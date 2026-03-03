@@ -78,6 +78,23 @@ class HttpConsumer extends ApiConsumer {
     }
   }
 
+  @override
+  Future<dynamic> delete(String path, {Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('DELETE $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .delete(uri, headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('DELETE $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
   dynamic _handleResponse(http.Response response) {
     AppLogger.debug('${response.statusCode} ${response.request?.url}', tag: 'HTTP');
     try {

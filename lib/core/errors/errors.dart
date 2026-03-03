@@ -13,6 +13,14 @@ class ServerFailure extends Failure {
   const ServerFailure({required super.message});
 }
 
+class CacheFailure extends Failure {
+  const CacheFailure({required super.message});
+}
+
+class AuthFailure extends Failure {
+  const AuthFailure({super.message = 'errors.unauthorized'});
+}
+
 class OfflineFailure extends Failure {
-  const OfflineFailure({super.message = "No Internet Connection"});
+  const OfflineFailure({super.message = 'errors.offline'});
 }

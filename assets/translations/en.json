@@ -4,5 +4,9 @@
     "invalid_email": "Please enter a valid email",
     "password_too_short": "Password must be at least 8 characters",
     "password_weak": "Password must include letters, numbers, and a special character"
+  },
+  "errors": {
+    "offline": "No Internet Connection",
+    "unauthorized": "Session expired. Please log in again."
   }
 }

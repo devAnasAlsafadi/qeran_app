@@ -17,6 +17,11 @@ class AppLogger {
   }
 
 
+  static void warning(String message, {String tag = 'WARNING'}) {
+    if (!_isDebug) return;
+    dev.log('⚠️ $message', name: tag);
+  }
+
   static void error(String message, {Object? error, StackTrace? stack, String tag = 'ERROR'}) {
     if (!_isDebug) return;
     dev.log(
@@ -26,6 +31,4 @@ class AppLogger {
       stackTrace: stack,
     );
   }
-
-
 }

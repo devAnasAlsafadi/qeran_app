@@ -20,8 +20,8 @@ class NavigationManager {
 
 
 
-  //pushNamedAndRemoveUntil
-  static  void popUntil(BuildContext context, String routeUntil) {
+  //popUntil
+  static void popUntil(BuildContext context, String routeUntil) {
     Navigator.popUntil(context,(route) => route.settings.name == routeUntil);
   }
 
@@ -32,7 +32,7 @@ class NavigationManager {
   }
 
   //pop
-  static pop<T extends Object>(BuildContext context,[T? result]) {
+  static void pop<T extends Object>(BuildContext context, [T? result]) {
     Navigator.pop(context,result);
   }
 

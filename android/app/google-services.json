@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "379935865249",
+    "project_id": "qeran-project",
+    "storage_bucket": "qeran-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379935865249:android:ded990cae20bbb4d0873e0",
+        "android_client_info": {
+          "package_name": "com.example.qeran"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "379935865249-931dkdb2g3galjs6j40nv2sml5ng5uam.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.qeran",
+            "certificate_hash": "ada852b3527c766c6c398248085940dd19b0ce17"
+          }
+        },
+        {
+          "client_id": "379935865249-5f6n2ldi8jvjoes8k90pp7n9p0a46lvp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALU0WJpqe2BMhsE3w3c_imPEHU7CPAqBg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "379935865249-5f6n2ldi8jvjoes8k90pp7n9p0a46lvp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "379935865249-brplk9ugdousdbcvs041p5346pjgltu7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.qeran"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

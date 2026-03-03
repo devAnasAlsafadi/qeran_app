@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-class NavigationManger {
+class NavigationManager {
 
 
   //push named

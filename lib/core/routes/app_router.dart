@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/features/splash/presentation/screens/splash_screen.dart';
 
 class AppRouter {
 

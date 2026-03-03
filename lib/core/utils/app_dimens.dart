@@ -1,30 +1,37 @@
+import 'package:flutter/cupertino.dart';
+
 class AppDimens {
-  // Padding
-  static const double padding = 16;
-  static const double paddingSmall = 12;
-  static const double paddingLarge = 24;
 
-  // Radius
-  static const double radius = 16;
-  static const double radiusLarge = 24;
+  static const double p4 = 4.0;
+  static const double p8 = 8.0;
+  static const double p12 = 12.0;
+  static const double p16 = 16.0;
+  static const double p24 = 24.0;
+  static const double p32 = 32.0;
 
-  // Buttons
-  static const double buttonHeight = 48;
+  static const verticalSpace4 = SizedBox(height: p4);
+  static const verticalSpace8 = SizedBox(height: p8);
+  static const verticalSpace16 = SizedBox(height: p16);
+  static const verticalSpace24 = SizedBox(height: p24);
 
-  // Spacing
-  static const double cardSpacing = 20;
-  static const double verticalSpace = 16;
-  static const double verticalSpaceSmall = 8;
-  static const double verticalSpaceLarge = 32;
+  static const horizontalSpace8 = SizedBox(width: p8);
+  static const horizontalSpace16 = SizedBox(width: p16);
 
-  // Icons & Images
-  static const double logoSize = 90;
-  static const double iconSize = 24;
-  static const double iconLarge = 64;
-  static const double imageRoundSize = 120;
+  static const double r8 = 8.0;
+  static const double r16 = 16.0;
+  static BorderRadius borderRadius8 = BorderRadius.circular(r8);
+  static BorderRadius borderRadius16 = BorderRadius.circular(r16);
 
-  // Animation Durations
-  static const int animFast = 200;
-  static const int animNormal = 400;
-  static const int animSlow = 800;
+  // Font sizes
+  static const double fs12 = 12.0;
+  static const double fs14 = 14.0;
+  static const double fs16 = 16.0;
+  static const double fs18 = 18.0;
+  static const double fs20 = 20.0;
+  static const double fs24 = 24.0;
+
+  // Icon sizes
+  static const double icon16 = 16.0;
+  static const double icon20 = 20.0;
+  static const double icon24 = 24.0;
 }

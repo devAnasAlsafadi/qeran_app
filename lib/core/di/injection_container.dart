@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../features/splash/presentation/blocs/splash_cubit.dart';
 import '../api/api_consumer.dart';
 import '../api/http_consumer.dart';
 import '../datasources/shared_pref_service.dart';
@@ -20,12 +21,16 @@ Future<void> init() async {
   sl.registerLazySingleton(() => http.Client());
 
   //! Storage
-  // SecureStorageService is the default StorageService (used for sensitive data like tokens).
-  // Use sl<SharedPrefService>() explicitly for non-sensitive preferences.
-  sl.registerLazySingleton<StorageService>(() => SecureStorageService(sl()));
+  sl.registerLazySingleton<SecureStorageService>(() => SecureStorageService(sl()));
   sl.registerLazySingleton<SharedPrefService>(() => SharedPrefService(sl()));
 
   //! Network
   sl.registerLazySingleton<ApiConsumer>(() => HttpConsumer(client: sl(), storage: sl()));
 
+
+  //! Features - Splash
+  sl.registerFactory(() => SplashCubit(
+    secureStorage: sl<SecureStorageService>(),
+    sharedPrefs: sl<SharedPrefService>(),
+  ));
 }

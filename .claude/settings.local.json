@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__figma-desktop__get_design_context",
+      "mcp__figma-desktop__get_screenshot",
+      "mcp__figma__get_metadata",
+      "mcp__figma__get_design_context",
+      "Bash(cd \"C:\\\\Users\\\\ACER\\\\AndroidStudioProjects\\\\qeran\" && flutter pub get 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\ACER\\\\AndroidStudioProjects\\\\qeran\" && flutter analyze lib/features/auth/ 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\ACER\\\\AndroidStudioProjects\\\\qeran\" && flutter analyze lib/features/auth/ lib/core/di/ 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\ACER\\\\AndroidStudioProjects\\\\qeran\" && flutter analyze lib/ 2>&1)",
+      "Read(//mnt/c/Users/ACER/AndroidStudioProjects/**)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter test:*)",
+      "Bash(find /c/Users/ACER/AndroidStudioProjects/qeran/lib/features/auth/presentation/screens/login_screen -type f -name *.dart)",
+      "mcp__figma__whoami"
+    ]
+  }
+}

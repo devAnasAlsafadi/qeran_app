@@ -1,0 +1,16 @@
+/build/
+/android/
+/ios/
+/windows/
+/linux/
+/macos/
+/.dart_tool/
+/.idea/
+/.vscode/
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.ico
+/assets/
+/test/

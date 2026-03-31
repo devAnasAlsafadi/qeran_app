@@ -1,0 +1,1639 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: lib/features/splash/**, lib/core/**
+- Files matching these patterns are excluded: **/build/**, **/*.g.dart, **/*.freezed.dart
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+lib/core/api/api_consumer.dart
+lib/core/api/api_response.dart
+lib/core/api/end_points.dart
+lib/core/api/http_consumer.dart
+lib/core/app_logger.dart
+lib/core/constants/app_constants.dart
+lib/core/constants/storage_keys.dart
+lib/core/data/repositories/base_repository.dart
+lib/core/datasources/secure_storage_service.dart
+lib/core/datasources/shared_pref_service.dart
+lib/core/di/injection_container.dart
+lib/core/domain/entities/success_response.dart
+lib/core/enum/gender.dart
+lib/core/enum/snakebar_tybe.dart
+lib/core/errors/errors.dart
+lib/core/errors/exceptions.dart
+lib/core/extensions/context_extension.dart
+lib/core/extensions/localization_extension.dart
+lib/core/extensions/responsive_utils.dart
+lib/core/routes/app_router.dart
+lib/core/routes/navigation_manager.dart
+lib/core/routes/route_name.dart
+lib/core/services/storage_service.dart
+lib/core/theme/app_color.dart
+lib/core/theme/app_text_style.dart
+lib/core/theme/theme.dart
+lib/core/utils/app_assets.dart
+lib/core/utils/app_bloc_observer.dart
+lib/core/utils/app_dimens.dart
+lib/core/utils/app_snackbar.dart
+lib/core/utils/phone_formatter.dart
+lib/core/utils/phone_validator.dart
+lib/core/utils/validators.dart
+lib/core/widgets/app_button.dart
+lib/core/widgets/app_text_form_field.dart
+lib/features/splash/presentation/blocs/splash_cubit.dart
+lib/features/splash/presentation/blocs/splash_state.dart
+lib/features/splash/presentation/screens/splash_screen_controller.dart
+lib/features/splash/presentation/screens/splash_screen.dart
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="lib/core/data/repositories/base_repository.dart">
+import 'package:dartz/dartz.dart';
+import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/errors/exceptions.dart';
+
+typedef ApiCall<T> = Future<T> Function();
+
+mixin BaseRepository {
+  Future<Either<Failure, T>> executeApiCall<T>(ApiCall<T> apiCall) async {
+    try {
+      final result = await apiCall();
+      return Right(result);
+    } on ServerException catch (e) {
+      AppLogger.error('Server error', error: e, tag: 'REPO');
+      return Left(ServerFailure(message: e.message));
+    } on AuthException catch (e) {
+      AppLogger.error('Auth error', error: e, tag: 'REPO');
+      return Left(AuthFailure(message: e.message));
+    } catch (e) {
+      AppLogger.error('Unexpected error', error: e, tag: 'REPO');
+      return Left(ServerFailure(message: 'حدث خطأ غير متوقع'));
+    }
+  }
+}
+</file>
+
+<file path="lib/core/enum/gender.dart">
+enum Gender {
+  male,
+  female;
+
+  String get apiValue => switch (this) {
+        Gender.male => 'Male',
+        Gender.female => 'Female',
+      };
+}
+</file>
+
+<file path="lib/core/enum/snakebar_tybe.dart">
+enum SnackBarType { success, error, info }
+</file>
+
+<file path="lib/core/utils/phone_formatter.dart">
+class PhoneFormatter {
+  /// Combines country code and local number into API format: 972XXXXXXXXX
+  /// - Strips "+" from country code
+  /// - Strips leading "0" from local number
+  /// - Trims whitespace
+  static String toApiFormat(String countryCode, String localNumber) {
+    final code = countryCode.replaceAll('+', '').trim();
+    var local = localNumber.trim().replaceAll(RegExp(r'\s+'), '');
+    if (local.startsWith('0')) local = local.substring(1);
+    return '$code$local';
+  }
+}
+</file>
+
+<file path="lib/core/utils/phone_validator.dart">
+class PhoneValidator {
+  static String? validate(String? localNumber) {
+    if (localNumber == null || localNumber.trim().isEmpty) {
+      return 'رقم الهاتف مطلوب';
+    }
+    final cleaned = localNumber.trim().replaceAll(RegExp(r'\s+'), '');
+    if (RegExp(r'[^0-9]').hasMatch(cleaned)) {
+      return 'رقم الهاتف يجب أن يحتوي على أرقام فقط';
+    }
+    if (cleaned.length < 7) {
+      return 'رقم الهاتف قصير جداً';
+    }
+    return null;
+  }
+}
+</file>
+
+<file path="lib/core/api/api_response.dart">
+import 'package:equatable/equatable.dart';
+
+class ApiResponse<T> extends Equatable {
+  final int? status;
+  final T? data;
+  final String? message;
+
+  const ApiResponse({this.status, this.data, this.message});
+
+  bool get isSuccess => status == 1;
+
+  @override
+  List<Object?> get props => [status, data, message];
+
+  factory ApiResponse.fromJson(Map<String, dynamic> json, T Function(dynamic json) fromJsonT) {
+    return ApiResponse<T>(
+      status: json['status'] as int? ?? 0,
+      data: json['data'] != null ? fromJsonT(json['data']) : null,
+      message: json['message'] as String?,
+    );
+  }
+}
+</file>
+
+<file path="lib/core/api/end_points.dart">
+class EndPoints {
+  static const String baseUrl = "http://qeranadmin-001-site1.rtempurl.com/api/";
+
+  // Auth
+  static const String login = "Auth/login";
+  static const String register = "Auth/register-new";
+  static const String addPhone = "Auth/add-phone";
+  static const String verifyOtp = "Auth/verify-otp";
+  static const String forgotPassword = "auth/forgot-password";
+  static const String verifyForgotPasswordOtp = "Auth/verify-forgot-password-otp";
+  static const String resetPassword = "auth/reset-password";
+
+  // Questionnaire
+  static const String questions = "Questions";
+}
+</file>
+
+<file path="lib/core/constants/storage_keys.dart">
+class StorageKeys {
+  static const String token = 'token';
+  static const String firebaseUid = 'firebase_uid';
+  static const String seenOnboarding = 'seen_onboarding';
+  static const String isWhatsappVerified = 'is_whatsapp_verified';
+  static const String finishedQuestions = 'finished_questions';
+  static const String gender = 'gender';
+  static const String signedOath = 'signed_oath';
+  static const String userRole = 'user_role';
+
+  /// Temporary userId persisted during the multi-step auth flow
+  /// (register/login → add-phone → verify-otp). Cleared on OTP success.
+  static const String pendingUserId = 'pending_user_id';
+}
+</file>
+
+<file path="lib/core/datasources/secure_storage_service.dart">
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../services/storage_service.dart';
+
+class SecureStorageService implements StorageService {
+  final FlutterSecureStorage _secure;
+  SecureStorageService(this._secure);
+
+  @override
+  Future<void> save<T>(String key, T value) async {
+    await _secure.write(key: key, value: value.toString());
+  }
+
+  @override
+  Future<T?> get<T>(String key) async {
+    final value = await _secure.read(key: key);
+    if (value == null) return null;
+
+    if (T == bool) return (value == 'true') as T;
+    if (T == int) return int.tryParse(value) as T?;
+    if (T == double) return double.tryParse(value) as T?;
+    return value as T;
+  }
+
+  @override
+  Future<void> remove(String key) async => await _secure.delete(key: key);
+
+  @override
+  Future<void> clear() async => await _secure.deleteAll();
+}
+</file>
+
+<file path="lib/core/datasources/shared_pref_service.dart">
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../services/storage_service.dart';
+
+class SharedPrefService implements StorageService {
+  final SharedPreferences _prefs;
+  SharedPrefService(this._prefs);
+
+  @override
+  Future<void> save<T>(String key, T value) async {
+    if (value is String) await _prefs.setString(key, value);
+    else if (value is int) await _prefs.setInt(key, value);
+    else if (value is bool) await _prefs.setBool(key, value);
+    else if (value is double) await _prefs.setDouble(key, value);
+    else if (value is List<String>) await _prefs.setStringList(key, value);
+    else throw ArgumentError('SharedPrefService: unsupported type ${T.toString()} for key "$key"');
+  }
+
+  @override
+  Future<T?> get<T>(String key) async {
+    if (T == String) return _prefs.getString(key) as T?;
+    if (T == int) return _prefs.getInt(key) as T?;
+    if (T == bool) return _prefs.getBool(key) as T?;
+    if (T == double) return _prefs.getDouble(key) as T?;
+    if (T == List<String>) return _prefs.getStringList(key) as T?;
+    return _prefs.get(key) as T?;
+  }
+
+  @override
+  Future<void> remove(String key) async => await _prefs.remove(key);
+
+  @override
+  Future<void> clear() async => await _prefs.clear();
+}
+</file>
+
+<file path="lib/core/extensions/context_extension.dart">
+import 'package:flutter/material.dart';
+
+extension ThemeContext on BuildContext {
+  TextTheme get textTheme => Theme.of(this).textTheme;
+
+  ColorScheme get colorScheme => Theme.of(this).colorScheme;
+
+  ThemeData get theme => Theme.of(this);
+}
+</file>
+
+<file path="lib/core/extensions/responsive_utils.dart">
+import 'package:flutter/material.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
+extension ResponsiveContext on BuildContext {
+  bool get isMobile => ResponsiveBreakpoints.of(this).isMobile;
+  bool get isTablet => ResponsiveBreakpoints.of(this).isTablet;
+  bool get isDesktop => ResponsiveBreakpoints.of(this).isDesktop;
+
+  bool get isMobileOrTablet => isMobile || isTablet;
+}
+</file>
+
+<file path="lib/core/theme/app_color.dart">
+import 'package:flutter/material.dart';
+
+class AppColors {
+
+  AppColors._();
+
+  static const Color black = Colors.black;
+  static const Color black87 = Colors.black87;
+  static const Color black54 = Colors.black54;
+  static const Color white = Colors.white;
+  static const Color red = Colors.red;
+  static const Color green = Colors.green;
+  static const Color pink = Colors.pink;
+  static const Color blue = Colors.blue;
+  static const Color yellow = Colors.yellow;
+  static const Color grey = Colors.grey;
+  static const Color purple = Colors.deepPurple;
+  static const Color greyLight = Color(0xFFF3F4F6);
+  static const Color transparent = Colors.transparent;
+  static const Color fieldBackground = Color(0xFFEAE6E6);
+
+
+
+  static const Color primary = Color(0xFF431C33);
+  static const Color primaryLight = Color(0xFFE4C094);
+
+
+  static const Color surface = Color(0xFFF9F5F1);
+  static const Color background = Color(0xFFFFFFFF);
+
+  static const Color darkBackground = Color(0xFF1A1A1A);
+  static const Color darkSurface = Color(0xFF2C2C2C);
+
+
+  static const Color textPrimary = Color(0xFF431C33);
+  static const Color textSecondary = Color(0xFF8D8D8D);
+  static const Color textMuted = Color(0xFFAAAAAA);
+
+
+  static const Color error = Color(0xFFD32F2F);
+  static const Color success = Color(0xFF388E3C);
+  static const Color border = Color(0xFFE0E0E0);
+
+
+  static const Color darkGrey = Color(0xFF1A1A1A);
+}
+</file>
+
+<file path="lib/core/theme/app_text_style.dart">
+import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
+import 'app_color.dart';
+
+class AppTextStyles {
+  const AppTextStyles._();
+
+  static const TextStyle displayLarge = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle headlineMedium = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w700,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle headlineSmall = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle titleLarge = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle bodyLarge = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    fontFamily: AppConstants.fontFamilyArabic,
+    height: 1.5,
+  );
+
+  static const TextStyle bodyMedium = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle labelLarge = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle labelSmall = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+}
+</file>
+
+<file path="lib/core/theme/theme.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/constants/app_constants.dart';
+import 'package:qeran/core/utils/app_dimens.dart';
+import 'app_color.dart';
+import 'app_text_style.dart';
+
+class AppTheme {
+  AppTheme._();
+
+  // --- Light Theme ---
+  static ThemeData  lightTheme (Locale locale){
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      primaryColor: AppColors.primary,
+      scaffoldBackgroundColor: AppColors.white,
+      fontFamily: locale.languageCode == 'ar'
+          ? AppConstants.fontFamilyArabic
+          : AppConstants.fontFamilyEnglish,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        secondary: AppColors.primaryLight,
+        surface: AppColors.surface,
+        error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSurface: AppColors.textPrimary,
+      ),
+      textTheme: _textTheme.apply(
+        bodyColor: AppColors.textPrimary,
+        displayColor: AppColors.textPrimary,
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: AppColors.background,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.primary),
+        actionsIconTheme: const IconThemeData(color: AppColors.primary),
+        titleTextStyle: AppTextStyles.titleLarge.copyWith(
+          color: AppColors.primary,
+        ),
+      ),
+      elevatedButtonTheme: _buttonTheme(AppColors.primary, AppColors.white),
+      inputDecorationTheme: _inputTheme(AppColors.surface, AppColors.primary),
+      cardTheme: _cardTheme(AppColors.white, AppColors.primary),
+    );
+  }
+
+  // --- Dark Theme ---
+  static ThemeData  darkTheme (Locale locale){
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      primaryColor: AppColors.primaryLight,
+      scaffoldBackgroundColor: AppColors.darkBackground,
+      fontFamily: locale.languageCode == 'ar'
+          ? AppConstants.fontFamilyArabic
+          : AppConstants.fontFamilyEnglish,
+      colorScheme: const ColorScheme.dark(
+        primary:
+            AppColors.primaryLight,
+        secondary: AppColors.primary,
+        surface: AppColors.darkSurface,
+        error: AppColors.error,
+        onPrimary: AppColors.black,
+        onSurface: AppColors.white,
+      ),
+      textTheme: _textTheme.apply(
+        bodyColor: AppColors.white,
+        displayColor: AppColors.primaryLight,
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: AppColors.darkBackground,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.primaryLight),
+        actionsIconTheme: const IconThemeData(color: AppColors.primaryLight),
+        titleTextStyle: AppTextStyles.titleLarge.copyWith(
+          color: AppColors.primaryLight,
+        ),
+      ),
+      elevatedButtonTheme: _buttonTheme(
+        AppColors.primaryLight,
+        AppColors.black,
+      ),
+      inputDecorationTheme: _inputTheme(
+        AppColors.darkSurface,
+        AppColors.primaryLight,
+      ),
+      cardTheme: _cardTheme(AppColors.darkSurface, AppColors.primaryLight),
+    );
+  }
+
+
+
+  // --- Helper Methods ---
+
+  static TextTheme get _textTheme => const TextTheme(
+    displayLarge: AppTextStyles.displayLarge,
+    headlineMedium: AppTextStyles.headlineMedium,
+    headlineSmall: AppTextStyles.headlineSmall,
+    titleLarge: AppTextStyles.titleLarge,
+    bodyLarge: AppTextStyles.bodyLarge,
+    bodyMedium: AppTextStyles.bodyMedium,
+    labelLarge: AppTextStyles.labelLarge,
+    labelSmall: AppTextStyles.labelSmall,
+  );
+
+  static ElevatedButtonThemeData _buttonTheme(Color bg, Color fg) =>
+      ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: bg,
+          foregroundColor: fg,
+          alignment: Alignment.center,
+          textStyle: AppTextStyles.labelLarge.copyWith(
+            height: 1.0,
+            leadingDistribution: TextLeadingDistribution.even
+          ),
+          minimumSize: const Size(double.infinity, 55),
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: AppDimens.borderRadius12),
+        ),
+      );
+
+  static InputDecorationTheme _inputTheme(Color fillColor, Color focusColor) =>
+      InputDecorationTheme(
+        filled: true,
+        fillColor: fillColor,
+        contentPadding: AppDimens.paddingAll16,
+        border: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: BorderSide(color: focusColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        hintStyle: AppTextStyles.caption,
+        labelStyle: AppTextStyles.bodyMedium,
+      );
+
+  static CardThemeData _cardTheme(Color bgColor, Color shadowColor) =>
+      CardThemeData(
+        color: bgColor,
+        elevation: 4,
+        shadowColor: shadowColor.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(borderRadius: AppDimens.borderRadius16),
+      );
+}
+</file>
+
+<file path="lib/core/widgets/app_button.dart">
+import 'package:flutter/material.dart';
+
+class CustomButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final Color? backgroundColor;
+  final double? width;
+  final double height;
+  final double borderRadius;
+
+  const CustomButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.icon,
+    this.backgroundColor,
+    this.width,
+    this.height = 55,
+    this.borderRadius = 12,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width ?? double.infinity,
+      height: height,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (icon != null) ...[
+              const SizedBox(width: 10),
+              Icon(icon, color: Colors.white),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/splash/presentation/blocs/splash_cubit.dart">
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants/storage_keys.dart';
+import '../../../../core/datasources/secure_storage_service.dart';
+import '../../../../core/datasources/shared_pref_service.dart';
+import '../../../../core/services/storage_service.dart';
+import 'splash_state.dart';
+
+class SplashCubit extends Cubit<SplashState> {
+  final StorageService secureStorage;
+  final StorageService sharedPrefs;
+
+  SplashCubit({
+    required this.secureStorage,
+    required this.sharedPrefs,
+  }) : super(SplashInitial());
+
+  void checkAuthStatus() async {
+    await Future.delayed(const Duration(seconds: 3));
+
+    // --- Onboarding ---
+    final bool? seenOnboarding = await sharedPrefs.get<bool>(StorageKeys.seenOnboarding);
+    if (seenOnboarding != true) {
+      emit(NavigateToOnboarding());
+      return;
+    }
+
+
+    // ---Token & Firebase Check ---
+    final String? token = await secureStorage.get<String>(StorageKeys.token);
+    if (token == null || token.isEmpty) {
+      emit(NavigateToLogin());
+      return;
+    }
+
+
+    final String? role = await sharedPrefs.get<String>(StorageKeys.userRole);
+    if (role == 'khataba') {
+      emit(NavigateToKhatabaDashboard());
+      return;
+    }
+
+
+    // ---  WhatsApp Verification ---
+    final bool? isWhatsappVerified = await sharedPrefs.get<bool>(StorageKeys.isWhatsappVerified);
+    if (isWhatsappVerified != true) {
+      emit(NavigateToIncompleteProfile('whatsapp_input'));
+      return;
+    }
+
+    // --- Gender Selection ---
+    final String? gender = await sharedPrefs.get<String>(StorageKeys.gender);
+    if (gender == null || gender.isEmpty) {
+      emit(NavigateToIncompleteProfile('gender'));
+      return;
+    }
+
+    // ---Questions ---
+    final bool? finishedQuestions = await sharedPrefs.get<bool>(StorageKeys.finishedQuestions);
+    if (finishedQuestions != true) {
+      emit(NavigateToIncompleteProfile('gender'));
+      return;
+    }
+
+
+    // ---  Oath  ---
+    final bool? signedOath = await sharedPrefs.get<bool>(StorageKeys.signedOath);
+    if (signedOath != true) {
+      emit(NavigateToIncompleteProfile('oath'));
+      return;
+    }
+
+    emit(NavigateToHome());
+  }
+}
+</file>
+
+<file path="lib/features/splash/presentation/blocs/splash_state.dart">
+abstract class SplashState {}
+
+class SplashInitial extends SplashState {}
+class NavigateToOnboarding extends SplashState {}
+class NavigateToLogin extends SplashState {}
+class NavigateToHome extends SplashState {}
+class NavigateToKhatabaDashboard extends SplashState {}
+class NavigateToIncompleteProfile extends SplashState {
+  final String step; // 'questions', 'oath', 'photos'
+  NavigateToIncompleteProfile(this.step);
+}
+</file>
+
+<file path="lib/features/splash/presentation/screens/splash_screen_controller.dart">
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/routes/navigation_manager.dart';
+import '../../../../core/routes/route_name.dart';
+import '../blocs/splash_cubit.dart';
+import '../blocs/splash_state.dart';
+
+class SplashScreenController {
+  final BuildContext context;
+
+  SplashScreenController(this.context);
+
+  void init() {
+    context.read<SplashCubit>().checkAuthStatus();
+  }
+
+  void handleNavigation(SplashState state) {
+    if (state is NavigateToOnboarding) {
+      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.onboarding);
+    } else if (state is NavigateToLogin) {
+      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
+    } else if (state is NavigateToHome) {
+      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.homeScreen);
+    } else if (state is NavigateToKhatabaDashboard) {
+      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.khatabaDashboard);
+    } else if (state is NavigateToIncompleteProfile) {
+      _handleIncompleteNavigation(state.step);
+    }
+  }
+
+  void _handleIncompleteNavigation(String step) {
+    String targetRoute = RouteNames.loginScreen;
+
+    switch (step) {
+      case 'gender':
+        targetRoute = RouteNames.genderSelectionScreen;
+        break;
+      case 'questions':
+        targetRoute = RouteNames.genderSelectionScreen;
+        break;
+      case 'oath':
+        targetRoute = RouteNames.oathScreen;
+        break;
+      case 'photos':
+        targetRoute = RouteNames.photoUploadScreen;
+        break;
+      case 'whatsapp_input':
+        targetRoute = RouteNames.whatsappInput;
+        break;
+      case 'whatsapp_verify':
+        targetRoute = RouteNames.whatsappVerification;
+        break;
+    }
+
+    NavigationManager.pushNamedAndRemoveUntil(context, targetRoute);
+  }
+}
+</file>
+
+<file path="lib/core/api/api_consumer.dart">
+abstract class ApiConsumer {
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters});
+  Future<dynamic> post(String path, {Object? body, Map<String, dynamic>? queryParameters});
+  Future<dynamic> patch(String path, {Object? body, Map<String, dynamic>? queryParameters});
+  Future<dynamic> delete(String path, {Map<String, dynamic>? queryParameters});
+}
+</file>
+
+<file path="lib/core/app_logger.dart">
+import 'dart:developer' as dev;
+import 'package:flutter/foundation.dart';
+
+class AppLogger {
+
+  static const bool _isDebug = kDebugMode;
+
+
+  static void info(String message, {String tag = 'INFO'}) {
+    if (!_isDebug) return;
+    dev.log('\x1B[32m$message\x1B[0m', name: tag, time: DateTime.now());
+  }
+
+  static void debug(String message, {String tag = 'DEBUG'}) {
+    if (!_isDebug) return;
+    dev.log('🔍 $message', name: tag);
+  }
+
+
+  static void warning(String message, {String tag = 'WARNING'}) {
+    if (!_isDebug) return;
+    dev.log('⚠️ $message', name: tag);
+  }
+
+  static void error(String message, {Object? error, StackTrace? stack, String tag = 'ERROR'}) {
+    if (!_isDebug) return;
+    dev.log(
+      '❌ $message',
+      name: tag,
+      error: error,
+      stackTrace: stack,
+    );
+  }
+}
+</file>
+
+<file path="lib/core/constants/app_constants.dart">
+class AppConstants{
+
+  static const String cachedToken = "CACHED_TOKEN";
+  static const String appTitle = "Qeran App";
+  static const String fontFamilyArabic = 'NotoKufiArabic';
+  static const String fontFamilyEnglish = 'Montserrat';
+}
+</file>
+
+<file path="lib/core/di/injection_container.dart">
+import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../features/auth/di/auth_injection.dart';
+import '../../features/questionnaire/di/questionnaire_injection.dart';
+import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
+import '../../features/splash/presentation/blocs/splash_cubit.dart';
+import '../api/api_consumer.dart';
+import '../api/http_consumer.dart';
+import '../datasources/shared_pref_service.dart';
+import '../datasources/secure_storage_service.dart';
+import '../services/storage_service.dart';
+
+final sl = GetIt.instance;
+
+Future<void> init() async {
+
+  //! External
+  final sharedPrefs = await SharedPreferences.getInstance();
+  sl.registerSingleton<SharedPreferences>(sharedPrefs);
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  sl.registerLazySingleton(() => http.Client());
+
+  //! Storage
+  sl.registerLazySingleton<SecureStorageService>(() => SecureStorageService(sl()));
+  sl.registerLazySingleton<SharedPrefService>(() => SharedPrefService(sl()));
+  sl.registerLazySingleton<StorageService>(() => sl<SecureStorageService>());
+
+  //! Network
+  sl.registerLazySingleton<ApiConsumer>(() => HttpConsumer(client: sl(), storage: sl()));
+
+  //! Features - Auth
+  await initAuthDependencies();
+
+  //! Features - Questionnaire
+  initQuestionnaireDependencies();
+
+  //! Features - Onboarding
+  sl.registerFactory(() => OnboardingCubit(sharedPref: sl<SharedPrefService>()));
+
+  //! Features - Splash
+  sl.registerFactory(() => SplashCubit(
+    secureStorage: sl<SecureStorageService>(),
+    sharedPrefs: sl<SharedPrefService>(),
+  ));
+}
+</file>
+
+<file path="lib/core/domain/entities/success_response.dart">
+import '../../api/api_response.dart';
+
+class SuccessResponse<T> extends ApiResponse<T> {
+  SuccessResponse({
+    super.status,
+    super.data,
+    super.message,
+  });
+
+  factory SuccessResponse.fromApiResponse(ApiResponse<T> response) {
+    return SuccessResponse<T>(
+      status: response.status,
+      data: response.data,
+      message: response.message,
+    );
+  }
+}
+</file>
+
+<file path="lib/core/errors/errors.dart">
+import 'package:equatable/equatable.dart';
+
+abstract class Failure extends Equatable {
+  final String message;
+
+  const Failure({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ServerFailure extends Failure {
+  const ServerFailure({required super.message});
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure({required super.message});
+}
+
+class AuthFailure extends Failure {
+  const AuthFailure({super.message = 'errors.unauthorized'});
+}
+
+class OfflineFailure extends Failure {
+  const OfflineFailure({super.message = 'errors.offline'});
+}
+</file>
+
+<file path="lib/core/errors/exceptions.dart">
+class ServerException implements Exception {
+  final String message;
+  ServerException({required this.message});
+
+  @override
+  String toString() => message;
+}
+
+class CacheException implements Exception {
+  final String message;
+  CacheException({required this.message});
+
+  @override
+  String toString() => message;
+}
+
+class AuthException implements Exception {
+  final String message;
+  AuthException({required this.message});
+
+  @override
+  String toString() => message;
+}
+</file>
+
+<file path="lib/core/services/storage_service.dart">
+abstract class StorageService {
+  Future<void> save<T>(String key, T value);
+  Future<T?> get<T>(String key);
+  Future<void> remove(String key);
+  Future<void> clear();
+}
+</file>
+
+<file path="lib/core/utils/app_bloc_observer.dart">
+import 'package:bloc/bloc.dart';
+import 'package:qeran/core/app_logger.dart';
+
+class SimpleBlocObserver extends BlocObserver {
+  @override
+  void onEvent(Bloc bloc, Object? event) {
+    super.onEvent(bloc, event);
+    AppLogger.info('Event: ${bloc.runtimeType}, $event', tag: 'BLoC');
+  }
+
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    AppLogger.debug('State Change: ${bloc.runtimeType}, $change', tag: 'BLoC');
+  }
+
+  @override
+  void onTransition(Bloc bloc, Transition transition) {
+    super.onTransition(bloc, transition);
+    AppLogger.debug('Transition: ${bloc.runtimeType}, $transition', tag: 'BLoC');
+  }
+
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    AppLogger.error('Error in ${bloc.runtimeType}', error: error, stack: stackTrace, tag: 'BLoC');
+    super.onError(bloc, error, stackTrace);
+  }
+}
+</file>
+
+<file path="lib/core/utils/app_snackbar.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import '../enum/snakebar_tybe.dart';
+import '../theme/app_text_style.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+class AppSnackBar {
+  static Future<void> show(
+      BuildContext context, {
+        required String message,
+        required SnackBarType type,
+        String? title,
+      }) async {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 20,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: _SnackBarWidget(
+            message: message,
+            title: title,
+            type: type,
+            onDismiss: () => overlayEntry.remove(),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) overlayEntry.remove();
+    });
+  }
+
+}
+class _SnackBarWidget extends StatelessWidget {
+  final String? title;
+  final String message;
+  final SnackBarType type;
+  final VoidCallback onDismiss;
+
+  const _SnackBarWidget({
+    required this.message,
+    this.title,
+    required this.type,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bgColor = type == SnackBarType.error
+        ?  AppColors.error
+        : (type == SnackBarType.success ? AppColors.success : Colors.black87);
+
+    final IconData icon = type == SnackBarType.error
+        ? Icons.error_outline
+        : (type == SnackBarType.success ? Icons.check_circle_outline : Icons.info_outline);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: bgColor.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 28)
+            .animate(target: type == SnackBarType.success ? 1 : 0)
+            .scale(duration: 400.ms, curve: Curves.easeOutBack),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                 if (title != null)
+                   Text(title!, style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                 Text(message, style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white54, size: 18),
+            onPressed: onDismiss,
+          ),
+        ],
+      ),
+    )
+    .animate()
+    .slideY(begin: -1, end: 0, duration: 400.ms, curve: Curves.easeOutBack) // Slide down
+    .then(delay: 2500.ms) // Wait
+    .slideY(begin: 0, end: -1, duration: 400.ms, curve: Curves.easeInBack).shake() ;// Slide up to exit
+    // .shake(enabled: type == SnackBarType.error); // Shake on error
+  }
+}
+</file>
+
+<file path="lib/core/utils/validators.dart">
+import 'package:qeran/core/extensions/localization_extension.dart';
+
+class Validators {
+  static final RegExp emailPattern =
+      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+  static final RegExp passwordPattern =
+      RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$');
+
+  static String? validateEmail(String? val) {
+    if (val == null || val.isEmpty) return 'validators.field_required'.t;
+    if (!emailPattern.hasMatch(val)) return 'validators.invalid_email'.t;
+    return null;
+  }
+
+  static String? validatePassword(String? val) {
+    if (val == null || val.isEmpty) return 'validators.field_required'.t;
+    if (val.length < 8) return 'validators.password_too_short'.t;
+    if (!passwordPattern.hasMatch(val)) return 'validators.password_weak'.t;
+    return null;
+  }
+}
+</file>
+
+<file path="lib/features/splash/presentation/screens/splash_screen.dart">
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/features/splash/presentation/screens/splash_screen_controller.dart';
+import '../../../../core/utils/app_assets.dart';
+import '../blocs/splash_cubit.dart';
+import '../blocs/splash_state.dart';
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  late SplashScreenController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = SplashScreenController(context);
+    _controller.init();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<SplashCubit, SplashState>(
+      listener: (context, state) => _controller.handleNavigation(state),
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(AppAssets.logo, width: 220),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/core/api/http_consumer.dart">
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:qeran/core/constants/storage_keys.dart';
+import '../app_logger.dart';
+import '../errors/exceptions.dart';
+import '../services/storage_service.dart';
+import 'api_consumer.dart';
+import 'end_points.dart';
+
+class HttpConsumer extends ApiConsumer {
+  final http.Client client;
+  final StorageService storage;
+
+  static const Duration _timeout = Duration(seconds: 30);
+
+  HttpConsumer({required this.client, required this.storage});
+
+  Future<Map<String, String>> _getHeaders() async {
+    final token = await storage.get<String>(StorageKeys.token);
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Map<String, String>? _convertQueryParams(Map<String, dynamic>? params) {
+    return params?.map((key, value) => MapEntry(key, value.toString()));
+  }
+
+  @override
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('GET $uri', tag: 'HTTP');
+    try {
+      final response = await client.get(uri, headers: await _getHeaders()).timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('GET $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> post(String path, {Object? body, Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('POST $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .post(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('POST $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> patch(String path, {Object? body, Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('PATCH $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .patch(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('PATCH $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> delete(String path, {Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('DELETE $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .delete(uri, headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('DELETE $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  dynamic _handleResponse(http.Response response) {
+    AppLogger.debug('${response.statusCode} ${response.request?.url}', tag: 'HTTP');
+    try {
+      final dynamic responseBody = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (responseBody['status'] == 1 || responseBody['status'] == true) {
+          return responseBody;
+        } else {
+          throw ServerException(message: responseBody['message'] ?? "Operation Failed");
+        }
+      } else {
+        String errorMessage = _statusErrorMessage(response.statusCode);
+        if (responseBody is Map) {
+          if (responseBody['errors'] != null && responseBody['errors'] is Map) {
+            final Map<String, dynamic> errors = Map<String, dynamic>.from(responseBody['errors']);
+            if (errors.isNotEmpty) {
+              final firstList = errors.values.first;
+              if (firstList is List && firstList.isNotEmpty) {
+                errorMessage = firstList.first.toString();
+              }
+            }
+          } else {
+            errorMessage = responseBody['message'] as String?
+                ?? responseBody['error'] as String?
+                ?? _statusErrorMessage(response.statusCode);
+          }
+        }
+        AppLogger.error('${response.statusCode} ${response.request?.url}: $errorMessage', tag: 'HTTP');
+        throw ServerException(message: errorMessage);
+      }
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error(
+        '${response.statusCode} non-JSON body: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}',
+        tag: 'HTTP',
+      );
+      throw ServerException(message: _statusErrorMessage(response.statusCode));
+    }
+  }
+
+  String _errorMessage(Object e) {
+    if (e is TimeoutException) return "Request timed out. Please try again.";
+    return "Connection error: ${e.toString()}";
+  }
+
+  String _statusErrorMessage(int statusCode) => switch (statusCode) {
+        400 => 'البيانات المدخلة غير صحيحة',
+        401 => 'غير مصرح بالوصول',
+        403 => 'ليس لديك صلاحية للوصول',
+        404 => 'لم يتم العثور على المورد',
+        408 => 'انتهت مهلة الطلب',
+        429 => 'طلبات كثيرة، حاول لاحقاً',
+        500 || 502 || 503 => 'خطأ في الخادم، حاول لاحقاً',
+        _ => 'حدث خطأ، حاول مرة أخرى',
+      };
+}
+</file>
+
+<file path="lib/core/extensions/localization_extension.dart">
+import 'package:easy_localization/easy_localization.dart';
+
+extension LocalizationExtension on String {
+  String get t => this.tr();
+}
+</file>
+
+<file path="lib/core/routes/app_router.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/features/auth/presentation/screens/forgot_password/forget_pass_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/login_screen/login_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/oath/oath_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/register_screen/register_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/reset_password/reset_pass_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/upload_image/upload_image_profile_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/whatsapp_input/whatsapp_input_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/whatsapp_verification.dart';
+import 'package:qeran/features/home/presentation/screens/home_screen.dart';
+import 'package:qeran/features/khataba_dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
+import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
+import 'package:qeran/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart';
+import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart';
+import 'package:qeran/features/splash/presentation/screens/splash_screen.dart';
+
+class AppRouter {
+
+   Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case RouteNames.splashScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const SplashScreen());
+
+      case RouteNames.onboarding:
+        return MaterialPageRoute(settings: settings, builder: (context) => const OnBoardingScreen());
+
+      case RouteNames.loginScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const LoginScreen());
+
+      case RouteNames.registerScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const RegisterScreen());
+      case RouteNames.forgotPasswordEmail:
+        return MaterialPageRoute(settings: settings, builder: (context) => const ForgetPassScreen());
+      case RouteNames.resetPassword:
+        return MaterialPageRoute(settings: settings, builder: (context) => const ResetPassScreen());
+      case RouteNames.whatsappInput:
+        return MaterialPageRoute(settings: settings, builder: (context) => const WhatsappInputScreen());
+      case RouteNames.whatsappVerification:
+        return MaterialPageRoute(settings: settings, builder: (context) => const WhatsappVerificationScreen());
+      case RouteNames.genderSelectionScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const GenderSelectionScreen());
+      case RouteNames.questionsScreen:
+        final questions = settings.arguments as List<QuestionEntity>;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => QuestionnaireFlowScreen(questions: questions),
+        );
+      case RouteNames.oathScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const OathScreen());
+      case RouteNames.khatabaDashboard:
+        return MaterialPageRoute(settings: settings, builder: (context) => const DashboardScreen());
+      case RouteNames.homeScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const HomeScreen());
+      case RouteNames.photoUploadScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const UploadImageProfileScreen());
+      default:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => Scaffold(
+            body: Center(child: Text('No route defined for ${settings.name}')),
+          ),
+        );
+    }
+  }
+
+
+
+}
+</file>
+
+<file path="lib/core/routes/navigation_manager.dart">
+import 'package:flutter/material.dart';
+class NavigationManager {
+
+
+  //push named
+  static  Future<dynamic> navigateTo(BuildContext context, String routeName,{Object? arguments}) {
+    return Navigator.pushNamed(context, routeName,arguments: arguments);
+  }
+
+
+  //pushReplacementNamed
+  static  Future<dynamic> navigateAndReplace(BuildContext context, String routeName,{Object? arguments}) {
+    return Navigator.pushReplacementNamed(context, routeName,arguments: arguments);
+  }
+
+  //pushNamedAndRemoveUntil
+  static  Future<dynamic> pushNamedAndRemoveUntil(BuildContext context, String routeName,{Object? arguments}) {
+    return Navigator.pushNamedAndRemoveUntil(context, routeName,(route) => false,arguments: arguments);
+  }
+
+
+
+  //popUntil
+  static void popUntil(BuildContext context, String routeUntil) {
+    Navigator.popUntil(context,(route) => route.settings.name == routeUntil);
+  }
+
+
+  //popAndPush
+  static  void popAndPush(BuildContext context, String route,{Object? arguments}) {
+    Navigator.popAndPushNamed(context, route,arguments: arguments);
+  }
+
+  //pop
+  static void pop<T extends Object>(BuildContext context, [T? result]) {
+    Navigator.pop(context,result);
+  }
+
+
+
+
+
+}
+</file>
+
+<file path="lib/core/routes/route_name.dart">
+class RouteNames {
+  static const String splashScreen = '/';
+  static const String onboarding = '/onboarding';
+  static const String loginScreen = '/loginScreen';
+  static const String registerScreen = '/register';
+  static const String homeScreen = '/home';
+  static const String khatabaDashboard = '/khatabaDashboard';
+  static const String whatsappInput = '/whatsappInput';
+  static const String whatsappVerification = '/whatsappVerification';
+
+  static const String forgotPasswordEmail = '/forgotPasswordEmail';
+  static const String resetPassword = '/resetPassword';
+
+  static const String genderSelectionScreen = '/genderSelection';
+  static const String questionsScreen = '/questions';
+  static const String oathScreen = '/oath';
+  static const String photoUploadScreen = '/photoUpload';
+
+
+}
+</file>
+
+<file path="lib/core/utils/app_assets.dart">
+class AppAssets {
+  static const String translations = 'assets/translations';
+  static const String _imagePath = 'assets/images/';
+  static const String _iconPath = 'assets/icons/';
+  static const String logo = '${_imagePath}logo.png';
+  static const String female = '${_imagePath}female.png';
+  static const String male = '${_imagePath}male.png';
+  static const String onboarding1 = '${_imagePath}1.png';
+  static const String onboarding2 = '${_imagePath}2.png';
+  static const String onboarding3 = '${_imagePath}3.png';
+  static const String googleLogo = '${_iconPath}google_logo.svg';
+}
+</file>
+
+<file path="lib/core/utils/app_dimens.dart">
+import 'package:flutter/material.dart';
+
+class AppDimens {
+  //  (Base Scales)
+  static const double p4 = 4.0;
+  static const double p8 = 8.0;
+  static const double p12 = 12.0;
+  static const double p16 = 16.0;
+  static const double p20 = 20.0;
+  static const double p24 = 24.0;
+  static const double p32 = 32.0;
+  static const double p48 = 48.0;
+
+  //  (Border Radius)
+  static const double r8 = 8.0;
+  static const double r12 = 12.0;
+  static const double r16 = 16.0;
+
+  static final BorderRadius borderRadius8 = BorderRadius.circular(r8);
+  static final BorderRadius borderRadius12 = BorderRadius.circular(r12);
+  static final BorderRadius borderRadius16 = BorderRadius.circular(r16);
+
+  //  (Padding/Margins)
+  static const EdgeInsets paddingAll8 = EdgeInsets.all(p8);
+  static const EdgeInsets paddingAll16 = EdgeInsets.all(p16);
+  static const EdgeInsets paddingH16V8 = EdgeInsets.symmetric(horizontal: p16, vertical: p8);
+
+  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(vertical: p8, horizontal: p24);
+
+  //  (SizedBoxes)
+  static const verticalSpace8 = SizedBox(height: p8);
+  static const verticalSpace16 = SizedBox(height: p16);
+  static const verticalSpace24 = SizedBox(height: p24);
+  static const horizontalSpace8 = SizedBox(width: p8);
+}
+</file>
+
+<file path="lib/core/widgets/app_text_form_field.dart">
+import 'package:flutter/material.dart';
+import '../theme/app_color.dart';
+import '../utils/app_dimens.dart';
+
+class AppTextFormField extends StatelessWidget {
+  const AppTextFormField({
+    this.fillColor,
+    super.key,
+    required this.controller,
+    required this.hintText,
+    required this.obscureText,
+    required this.keyboardType,
+    this.textInputAction,
+    this.suffixIcon,
+    this.onTap,
+    this.prefixIcon,
+    this.validator,
+    this.focusNode,
+    this.errorMsg,
+    this.onChange,
+    this.border,
+  });
+
+  final TextEditingController controller;
+  final String hintText;
+  final bool obscureText;
+  final TextInputType keyboardType;
+  final Widget? suffixIcon;
+  final VoidCallback? onTap;
+  final Widget? prefixIcon;
+  final String? Function(String?)? validator;
+  final FocusNode? focusNode;
+  final String? errorMsg;
+  final Color? fillColor;
+  final OutlineInputBorder? border;
+  final void Function(String)? onChange;
+  final TextInputAction? textInputAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      focusNode: focusNode,
+      onTap: onTap,
+      onChanged: onChange,
+      autofocus: false,
+      textInputAction: textInputAction ?? TextInputAction.next,
+      decoration: InputDecoration(
+        suffixIcon: suffixIcon,
+        prefixIcon: prefixIcon,
+        border: border,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius16,
+          borderSide: const BorderSide(color: AppColors.transparent),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius8,
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
+        ),
+        fillColor: fillColor ?? AppColors.fieldBackground,
+        filled: true,
+        hintText: hintText,
+        hintStyle: const TextStyle(color: AppColors.grey),
+        errorText: errorMsg,
+      ),
+    );
+  }
+}
+</file>
+
+</files>

@@ -1,0 +1,1 @@
+enum WhatsappVerificationMode { registration, passwordReset }

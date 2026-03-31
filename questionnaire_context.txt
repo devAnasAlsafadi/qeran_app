@@ -1,0 +1,2920 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: lib/features/questionnaire/**, lib/core/**
+- Files matching these patterns are excluded: **/build/**, **/*.g.dart, **/*.freezed.dart
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+lib/core/api/api_consumer.dart
+lib/core/api/api_response.dart
+lib/core/api/end_points.dart
+lib/core/api/http_consumer.dart
+lib/core/app_logger.dart
+lib/core/constants/app_constants.dart
+lib/core/constants/storage_keys.dart
+lib/core/data/repositories/base_repository.dart
+lib/core/datasources/secure_storage_service.dart
+lib/core/datasources/shared_pref_service.dart
+lib/core/di/injection_container.dart
+lib/core/domain/entities/success_response.dart
+lib/core/enum/gender.dart
+lib/core/enum/snakebar_tybe.dart
+lib/core/errors/errors.dart
+lib/core/errors/exceptions.dart
+lib/core/extensions/context_extension.dart
+lib/core/extensions/localization_extension.dart
+lib/core/extensions/responsive_utils.dart
+lib/core/routes/app_router.dart
+lib/core/routes/navigation_manager.dart
+lib/core/routes/route_name.dart
+lib/core/services/storage_service.dart
+lib/core/theme/app_color.dart
+lib/core/theme/app_text_style.dart
+lib/core/theme/theme.dart
+lib/core/utils/app_assets.dart
+lib/core/utils/app_bloc_observer.dart
+lib/core/utils/app_dimens.dart
+lib/core/utils/app_snackbar.dart
+lib/core/utils/phone_formatter.dart
+lib/core/utils/phone_validator.dart
+lib/core/utils/validators.dart
+lib/core/widgets/app_button.dart
+lib/core/widgets/app_text_form_field.dart
+lib/features/questionnaire/data/datasources/questionnaire_remote_datasource.dart
+lib/features/questionnaire/data/models/question_model.dart
+lib/features/questionnaire/data/models/question_option_model.dart
+lib/features/questionnaire/data/repositories/questionnaire_repository_impl.dart
+lib/features/questionnaire/di/questionnaire_injection.dart
+lib/features/questionnaire/domain/entities/question_entity.dart
+lib/features/questionnaire/domain/entities/question_option_entity.dart
+lib/features/questionnaire/domain/repositories/questionnaire_repository.dart
+lib/features/questionnaire/domain/usecases/fetch_questions_usecase.dart
+lib/features/questionnaire/presentation/blocs/questionnaire_cubit.dart
+lib/features/questionnaire/presentation/blocs/questionnaire_state.dart
+lib/features/questionnaire/presentation/controllers/gender_selection_controller.dart
+lib/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart
+lib/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart
+lib/features/questionnaire/presentation/widgets/question_checkbox_widget.dart
+lib/features/questionnaire/presentation/widgets/question_date_widget.dart
+lib/features/questionnaire/presentation/widgets/question_height_widget.dart
+lib/features/questionnaire/presentation/widgets/question_progress_bar.dart
+lib/features/questionnaire/presentation/widgets/question_renderer.dart
+lib/features/questionnaire/presentation/widgets/question_select_widget.dart
+lib/features/questionnaire/presentation/widgets/question_weight_widget.dart
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="lib/core/data/repositories/base_repository.dart">
+import 'package:dartz/dartz.dart';
+import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/errors/exceptions.dart';
+
+typedef ApiCall<T> = Future<T> Function();
+
+mixin BaseRepository {
+  Future<Either<Failure, T>> executeApiCall<T>(ApiCall<T> apiCall) async {
+    try {
+      final result = await apiCall();
+      return Right(result);
+    } on ServerException catch (e) {
+      AppLogger.error('Server error', error: e, tag: 'REPO');
+      return Left(ServerFailure(message: e.message));
+    } on AuthException catch (e) {
+      AppLogger.error('Auth error', error: e, tag: 'REPO');
+      return Left(AuthFailure(message: e.message));
+    } catch (e) {
+      AppLogger.error('Unexpected error', error: e, tag: 'REPO');
+      return Left(ServerFailure(message: 'حدث خطأ غير متوقع'));
+    }
+  }
+}
+</file>
+
+<file path="lib/core/enum/gender.dart">
+enum Gender {
+  male,
+  female;
+
+  String get apiValue => switch (this) {
+        Gender.male => 'Male',
+        Gender.female => 'Female',
+      };
+}
+</file>
+
+<file path="lib/core/enum/snakebar_tybe.dart">
+enum SnackBarType { success, error, info }
+</file>
+
+<file path="lib/core/utils/phone_formatter.dart">
+class PhoneFormatter {
+  /// Combines country code and local number into API format: 972XXXXXXXXX
+  /// - Strips "+" from country code
+  /// - Strips leading "0" from local number
+  /// - Trims whitespace
+  static String toApiFormat(String countryCode, String localNumber) {
+    final code = countryCode.replaceAll('+', '').trim();
+    var local = localNumber.trim().replaceAll(RegExp(r'\s+'), '');
+    if (local.startsWith('0')) local = local.substring(1);
+    return '$code$local';
+  }
+}
+</file>
+
+<file path="lib/core/utils/phone_validator.dart">
+class PhoneValidator {
+  static String? validate(String? localNumber) {
+    if (localNumber == null || localNumber.trim().isEmpty) {
+      return 'رقم الهاتف مطلوب';
+    }
+    final cleaned = localNumber.trim().replaceAll(RegExp(r'\s+'), '');
+    if (RegExp(r'[^0-9]').hasMatch(cleaned)) {
+      return 'رقم الهاتف يجب أن يحتوي على أرقام فقط';
+    }
+    if (cleaned.length < 7) {
+      return 'رقم الهاتف قصير جداً';
+    }
+    return null;
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/data/datasources/questionnaire_remote_datasource.dart">
+import 'package:qeran/core/api/api_consumer.dart';
+import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/enum/gender.dart';
+import 'package:qeran/core/errors/exceptions.dart';
+import '../../../../core/api/api_response.dart';
+import '../models/question_model.dart';
+
+abstract interface class QuestionnaireRemoteDataSource {
+  Future<List<QuestionModel>> fetchQuestions({required Gender gender});
+}
+
+class QuestionnaireRemoteDataSourceImpl implements QuestionnaireRemoteDataSource {
+  final ApiConsumer _apiConsumer;
+
+  QuestionnaireRemoteDataSourceImpl({required ApiConsumer apiConsumer})
+      : _apiConsumer = apiConsumer;
+
+
+
+
+
+
+
+
+
+  @override
+  Future<List<QuestionModel>> fetchQuestions({required Gender gender}) async {
+    AppLogger.debug(
+      'FETCH QUESTIONS -> gender: ${gender.apiValue}',
+      tag: 'QUESTIONNAIRE',
+    );
+
+    final response = await _apiConsumer.get(
+      EndPoints.questions,
+      queryParameters: {'gender': gender.apiValue},
+    );
+
+    final apiResponse = ApiResponse<List<QuestionModel>>.fromJson(
+      response,
+          (json) {
+        final questionsList = json['questions'] as List<dynamic>? ?? [];
+        return questionsList
+            .map((q) => QuestionModel.fromJson(q as Map<String, dynamic>))
+            .toList();
+      },
+    );
+
+    if (apiResponse.data == null) {
+      throw ServerException(message: apiResponse.message ?? 'فشل تحميل الأسئلة');
+    }
+
+    AppLogger.info(
+      'Parsed ${apiResponse.data!.length} questions from response',
+      tag: 'QUESTIONNAIRE',
+    );
+
+    return apiResponse.data!;
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/data/models/question_model.dart">
+import '../../domain/entities/question_entity.dart';
+import 'question_option_model.dart';
+
+class QuestionModel {
+  final String questionId;
+  final String text;
+  final String type;
+  final List<QuestionOptionModel> options;
+
+  const QuestionModel({
+    required this.questionId,
+    required this.text,
+    required this.type,
+    required this.options,
+  });
+
+  factory QuestionModel.fromJson(Map<String, dynamic> json) {
+    final optionsList = json['options'] as List<dynamic>? ?? [];
+    return QuestionModel(
+      questionId: json['questionId'] as String? ?? '',
+      text: json['text'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      options: optionsList
+          .map((o) => QuestionOptionModel.fromJson(o as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  QuestionEntity toEntity() {
+    return QuestionEntity(
+      questionId: questionId,
+      text: text,
+      type: _parseType(type),
+      options: options.map((o) => o.toEntity()).toList(),
+    );
+  }
+
+  QuestionType _parseType(String raw) {
+    return switch (raw.toLowerCase()) {
+      'date' => QuestionType.date,
+      'height' => QuestionType.height,
+      'weight' => QuestionType.weight,
+      'select' => QuestionType.select,
+      'checkbox' => QuestionType.checkbox,
+      _ => QuestionType.unknown,
+    };
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/data/models/question_option_model.dart">
+import '../../domain/entities/question_option_entity.dart';
+
+class QuestionOptionModel {
+  final String id;
+  final String text;
+
+  const QuestionOptionModel({required this.id, required this.text});
+
+  factory QuestionOptionModel.fromJson(Map<String, dynamic> json) {
+    return QuestionOptionModel(
+      id: json['id']?.toString() ?? '',
+      text: json['text'] as String? ?? '',
+    );
+  }
+
+  QuestionOptionEntity toEntity() {
+    return QuestionOptionEntity(id: id, text: text);
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/data/repositories/questionnaire_repository_impl.dart">
+import 'package:dartz/dartz.dart';
+import 'package:qeran/core/data/repositories/base_repository.dart';
+import 'package:qeran/core/enum/gender.dart';
+import 'package:qeran/core/errors/errors.dart';
+import '../../domain/entities/question_entity.dart';
+import '../../domain/repositories/questionnaire_repository.dart';
+import '../datasources/questionnaire_remote_datasource.dart';
+
+class QuestionnaireRepositoryImpl
+    with BaseRepository
+    implements QuestionnaireRepository {
+  final QuestionnaireRemoteDataSource _dataSource;
+
+  const QuestionnaireRepositoryImpl(this._dataSource);
+
+  @override
+  Future<Either<Failure, List<QuestionEntity>>> fetchQuestions({
+    required Gender gender,
+  }) {
+    return executeApiCall(() async {
+      final models = await _dataSource.fetchQuestions(gender: gender);
+      return models.map((m) => m.toEntity()).toList();
+    });
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/di/questionnaire_injection.dart">
+import 'package:qeran/core/datasources/shared_pref_service.dart';
+import 'package:qeran/core/di/injection_container.dart';
+import '../data/datasources/questionnaire_remote_datasource.dart';
+import '../data/repositories/questionnaire_repository_impl.dart';
+import '../domain/repositories/questionnaire_repository.dart';
+import '../domain/usecases/fetch_questions_usecase.dart';
+import '../presentation/blocs/questionnaire_cubit.dart';
+
+void initQuestionnaireDependencies() {
+  //! DataSources
+  sl.registerLazySingleton<QuestionnaireRemoteDataSource>(
+    () => QuestionnaireRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+
+  //! Repositories
+  sl.registerLazySingleton<QuestionnaireRepository>(
+    () => QuestionnaireRepositoryImpl(sl()),
+  );
+
+  //! UseCases
+  sl.registerLazySingleton(() => FetchQuestionsUseCase(sl()));
+
+  //! Cubits
+  sl.registerFactory(
+    () => QuestionnaireCubit(
+      fetchQuestions: sl(),
+      sharedPrefs: sl<SharedPrefService>(),
+    ),
+  );
+}
+</file>
+
+<file path="lib/features/questionnaire/domain/entities/question_entity.dart">
+import 'package:equatable/equatable.dart';
+import 'question_option_entity.dart';
+
+enum QuestionType { date, height, weight, select, checkbox, unknown }
+
+class QuestionEntity extends Equatable {
+  final String questionId;
+  final String text;
+  final QuestionType type;
+  final List<QuestionOptionEntity> options;
+
+  const QuestionEntity({
+    required this.questionId,
+    required this.text,
+    required this.type,
+    required this.options,
+  });
+
+  /// A question is renderable only when it can be meaningfully answered.
+  /// - [QuestionType.select] / [QuestionType.checkbox]: require at least one option.
+  /// - [QuestionType.date] / [QuestionType.height] / [QuestionType.weight]: always renderable.
+  /// - [QuestionType.unknown]: never renderable.
+  bool get isRenderable => switch (type) {
+        QuestionType.select || QuestionType.checkbox => options.isNotEmpty,
+        QuestionType.date ||
+        QuestionType.height ||
+        QuestionType.weight =>
+          true,
+        QuestionType.unknown => false,
+      };
+
+  @override
+  List<Object?> get props => [questionId, text, type, options];
+}
+</file>
+
+<file path="lib/features/questionnaire/domain/entities/question_option_entity.dart">
+import 'package:equatable/equatable.dart';
+
+class QuestionOptionEntity extends Equatable {
+  final String id;
+  final String text;
+
+  const QuestionOptionEntity({required this.id, required this.text});
+
+  @override
+  List<Object?> get props => [id, text];
+}
+</file>
+
+<file path="lib/features/questionnaire/domain/repositories/questionnaire_repository.dart">
+import 'package:dartz/dartz.dart';
+import 'package:qeran/core/enum/gender.dart';
+import 'package:qeran/core/errors/errors.dart';
+import '../entities/question_entity.dart';
+
+abstract interface class QuestionnaireRepository {
+  Future<Either<Failure, List<QuestionEntity>>> fetchQuestions({
+    required Gender gender,
+  });
+}
+</file>
+
+<file path="lib/features/questionnaire/domain/usecases/fetch_questions_usecase.dart">
+import 'package:dartz/dartz.dart';
+import 'package:qeran/core/enum/gender.dart';
+import 'package:qeran/core/errors/errors.dart';
+import '../entities/question_entity.dart';
+import '../repositories/questionnaire_repository.dart';
+
+class FetchQuestionsUseCase {
+  final QuestionnaireRepository _repository;
+
+  FetchQuestionsUseCase(this._repository);
+
+  Future<Either<Failure, List<QuestionEntity>>> call({required Gender gender}) {
+    return _repository.fetchQuestions(gender: gender);
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/blocs/questionnaire_cubit.dart">
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/constants/storage_keys.dart';
+import 'package:qeran/core/datasources/shared_pref_service.dart';
+import 'package:qeran/core/enum/gender.dart';
+import '../../domain/entities/question_entity.dart';
+import '../../domain/usecases/fetch_questions_usecase.dart';
+import 'questionnaire_state.dart';
+
+class QuestionnaireCubit extends Cubit<QuestionnaireState> {
+  final FetchQuestionsUseCase _fetchQuestions;
+  final SharedPrefService _sharedPrefs;
+
+  /// In-memory answers: questionId → value (String, List of String, DateTime, or int).
+  final Map<String, dynamic> _answers = {};
+  List<QuestionEntity> _questions = [];
+  int _currentIndex = 0;
+
+  QuestionnaireCubit({
+    required FetchQuestionsUseCase fetchQuestions,
+    required SharedPrefService sharedPrefs,
+  })  : _fetchQuestions = fetchQuestions,
+        _sharedPrefs = sharedPrefs,
+        super(QuestionnaireInitial());
+
+  // ── Fetch ──────────────────────────────────────────────────────
+
+  Future<void> fetchQuestions({required Gender gender}) async {
+    emit(QuestionnaireLoading());
+    final result = await _fetchQuestions(gender: gender);
+    result.fold(
+      (failure) => emit(QuestionnaireFailure(failure.message)),
+      (questions) => emit(QuestionnaireFetched(questions)),
+    );
+  }
+
+  // ── Start Flow ─────────────────────────────────────────────────
+
+  /// Called by the FlowScreen when it receives questions via route arguments.
+  /// Non-renderable questions (e.g. `select` with empty options) are filtered
+  /// out here so that ALL downstream logic (progress, CTA, navigation) works
+  /// automatically on the valid subset.
+  void startFlow(List<QuestionEntity> questions) {
+    final valid = questions.where((q) => q.isRenderable).toList();
+
+    AppLogger.info(
+      'Questionnaire received ${questions.length} question(s), '
+      '${valid.length} valid/renderable after filtering.',
+      tag: 'QUESTIONNAIRE',
+    );
+
+    if (valid.isEmpty) {
+      AppLogger.info(
+        'No renderable questions — completing questionnaire immediately.',
+        tag: 'QUESTIONNAIRE',
+      );
+      _completeQuestionnaire();
+      return;
+    }
+
+    _questions = valid;
+    _answers.clear();
+    _currentIndex = 0;
+    _emitInProgress();
+  }
+
+  // ── Answer ─────────────────────────────────────────────────────
+
+  void answerQuestion(String questionId, dynamic value) {
+    _answers[questionId] = value;
+    _emitInProgress();
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────
+
+  void nextQuestion() {
+    final current = _questions[_currentIndex];
+    if (!_answers.containsKey(current.questionId)) return;
+
+    if (_currentIndex < _questions.length - 1) {
+      _currentIndex++;
+      _emitInProgress();
+    } else {
+      _completeQuestionnaire();
+    }
+  }
+
+  void previousQuestion() {
+    if (_currentIndex > 0) {
+      _currentIndex--;
+      _emitInProgress();
+    }
+  }
+
+  // ── Completion ─────────────────────────────────────────────────
+
+  Future<void> _completeQuestionnaire() async {
+    AppLogger.info(
+      'Questionnaire completed — ${_answers.length} answers',
+      tag: 'QUESTIONNAIRE',
+    );
+    await _sharedPrefs.save(StorageKeys.finishedQuestions, true);
+    emit(QuestionnaireCompleted());
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────
+
+  void _emitInProgress() {
+    emit(QuestionnaireInProgress(
+      questions: _questions,
+      currentIndex: _currentIndex,
+      answers: Map.unmodifiable(_answers),
+    ));
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/blocs/questionnaire_state.dart">
+import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
+
+sealed class QuestionnaireState {}
+
+final class QuestionnaireInitial extends QuestionnaireState {}
+
+final class QuestionnaireLoading extends QuestionnaireState {}
+
+final class QuestionnaireFetched extends QuestionnaireState {
+  final List<QuestionEntity> questions;
+
+  QuestionnaireFetched(this.questions);
+}
+
+final class QuestionnaireFailure extends QuestionnaireState {
+  final String message;
+
+  QuestionnaireFailure(this.message);
+}
+
+/// Active question-answering session state.
+final class QuestionnaireInProgress extends QuestionnaireState {
+  final List<QuestionEntity> questions;
+  final int currentIndex;
+  final Map<String, dynamic> answers;
+
+  QuestionnaireInProgress({
+    required this.questions,
+    required this.currentIndex,
+    required this.answers,
+  });
+
+  QuestionEntity get currentQuestion => questions[currentIndex];
+  bool get isFirst => currentIndex == 0;
+  bool get isLast => currentIndex == questions.length - 1;
+  bool get hasCurrentAnswer => answers.containsKey(currentQuestion.questionId);
+  double get progress => (currentIndex + 1) / questions.length;
+}
+
+/// All questions answered — questionnaire marked complete locally.
+final class QuestionnaireCompleted extends QuestionnaireState {}
+</file>
+
+<file path="lib/features/questionnaire/presentation/controllers/gender_selection_controller.dart">
+import 'package:flutter/foundation.dart';
+import 'package:qeran/core/constants/storage_keys.dart';
+import 'package:qeran/core/datasources/shared_pref_service.dart';
+import 'package:qeran/core/enum/gender.dart';
+
+class GenderSelectionController {
+  final SharedPrefService _sharedPrefs;
+
+  GenderSelectionController({required SharedPrefService sharedPrefs})
+      : _sharedPrefs = sharedPrefs;
+
+  final ValueNotifier<Gender?> selectedGenderNotifier =
+      ValueNotifier<Gender?>(null);
+
+  Gender? get selectedGender => selectedGenderNotifier.value;
+
+  void selectGender(Gender gender) {
+    selectedGenderNotifier.value = gender;
+  }
+
+  /// Persists the selected gender locally before question fetching.
+  Future<void> saveGender() async {
+    if (selectedGender == null) return;
+    await _sharedPrefs.save(StorageKeys.gender, selectedGender!.apiValue);
+  }
+
+  void dispose() {
+    selectedGenderNotifier.dispose();
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart">
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/datasources/shared_pref_service.dart';
+import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/enum/gender.dart';
+import 'package:qeran/core/enum/snakebar_tybe.dart';
+import 'package:qeran/core/routes/navigation_manager.dart';
+import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/core/utils/app_assets.dart';
+import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/core/widgets/app_button.dart';
+import '../../blocs/questionnaire_cubit.dart';
+import '../../blocs/questionnaire_state.dart';
+import '../../controllers/gender_selection_controller.dart';
+
+class GenderSelectionScreen extends StatefulWidget {
+  const GenderSelectionScreen({super.key});
+
+  @override
+  State<GenderSelectionScreen> createState() => _GenderSelectionScreenState();
+}
+
+class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
+  late final GenderSelectionController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = GenderSelectionController(
+      sharedPrefs: sl<SharedPrefService>(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<QuestionnaireCubit>(),
+      child: BlocListener<QuestionnaireCubit, QuestionnaireState>(
+        listener: _onStateChanged,
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.p24,
+                vertical: AppDimens.p16,
+              ),
+              child: Column(
+                children: [
+                  const Spacer(flex: 2),
+                  // ── Header ──
+                  Text(
+                    'مرحبا بك',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.displayLarge.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  AppDimens.verticalSpace8,
+                  Text(
+                    'اختر هويتك للبدء',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.headlineMedium.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  AppDimens.verticalSpace8,
+                  Text(
+                    'نستخدم هذه المعلومة ل تحسين تجربتك',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppDimens.p32),
+                  // ── Gender Cards ──
+                  _GenderRow(controller: _controller),
+                  const Spacer(flex: 3),
+                  // ── CTA ──
+                  _ContinueButton(controller: _controller),
+                  const SizedBox(height: AppDimens.p24),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onStateChanged(BuildContext context, QuestionnaireState state) {
+    if (state is QuestionnaireFetched) {
+      AppLogger.info(
+        'Questions fetched: ${state.questions.length}',
+        tag: 'QUESTIONNAIRE',
+      );
+      NavigationManager.navigateAndReplace(
+        context,
+        RouteNames.questionsScreen,
+        arguments: state.questions,
+      );
+    } else if (state is QuestionnaireFailure) {
+      AppSnackBar.show(
+        context,
+        message: state.message,
+        type: SnackBarType.error,
+      );
+    }
+  }
+}
+
+// ─── Gender Row ─────────────────────────────────────────────────
+
+class _GenderRow extends StatelessWidget {
+  final GenderSelectionController controller;
+
+  const _GenderRow({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<Gender?>(
+      valueListenable: controller.selectedGenderNotifier,
+      builder: (context, selectedGender, _) {
+        return Row(
+          children: [
+            Expanded(
+              child: _GenderCard(
+                gender: Gender.female,
+                isSelected: selectedGender == Gender.female,
+                onTap: () => controller.selectGender(Gender.female),
+              ),
+            ),
+            const SizedBox(width: AppDimens.p16),
+            Expanded(
+              child: _GenderCard(
+                gender: Gender.male,
+                isSelected: selectedGender == Gender.male,
+                onTap: () => controller.selectGender(Gender.male),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ─── Gender Card ────────────────────────────────────────────────
+
+class _GenderCard extends StatelessWidget {
+  final Gender gender;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _GenderCard({
+    required this.gender,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isMale = gender == Gender.male;
+    final String imageAsset = isMale ? AppAssets.male : AppAssets.female;
+    final String label = isMale ? 'رجل' : 'امرأة';
+    final Color cardBg = isMale
+        ? const Color(0xFFF5F5F5)
+        : const Color(0xFFF8E8EE);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: AppDimens.p16),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: AppDimens.borderRadius16,
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Circular image with selection ring
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF2ABFE8)
+                      : AppColors.border,
+                  width: isSelected ? 3 : 1,
+                ),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  imageAsset,
+                  fit: BoxFit.cover,
+                  width: 100,
+                  height: 100,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppDimens.p12),
+            Text(
+              label,
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Continue Button ────────────────────────────────────────────
+
+class _ContinueButton extends StatelessWidget {
+  final GenderSelectionController controller;
+
+  const _ContinueButton({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<QuestionnaireCubit, QuestionnaireState>(
+      builder: (context, state) {
+        return ValueListenableBuilder<Gender?>(
+          valueListenable: controller.selectedGenderNotifier,
+          builder: (context, selectedGender, _) {
+            final isLoading = state is QuestionnaireLoading;
+            final isEnabled = selectedGender != null && !isLoading;
+            return CustomButton(
+              text: isLoading ? 'جاري التحميل...' : 'متابعة',
+              onPressed: isEnabled
+                  ? () async {
+                      await controller.saveGender();
+                      if (!context.mounted) return;
+                      context
+                          .read<QuestionnaireCubit>()
+                          .fetchQuestions(gender: selectedGender);
+                    }
+                  : null,
+            );
+          },
+        );
+      },
+    );
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart">
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/routes/navigation_manager.dart';
+import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/widgets/app_button.dart';
+import '../../../domain/entities/question_entity.dart';
+import '../../blocs/questionnaire_cubit.dart';
+import '../../blocs/questionnaire_state.dart';
+import '../../widgets/question_progress_bar.dart';
+import '../../widgets/question_renderer.dart';
+
+class QuestionnaireFlowScreen extends StatelessWidget {
+  final List<QuestionEntity> questions;
+
+  const QuestionnaireFlowScreen({super.key, required this.questions});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<QuestionnaireCubit>()..startFlow(questions),
+      child: const _QuestionnaireFlowBody(),
+    );
+  }
+}
+
+class _QuestionnaireFlowBody extends StatelessWidget {
+  const _QuestionnaireFlowBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<QuestionnaireCubit, QuestionnaireState>(
+      listener: (context, state) {
+        if (state is QuestionnaireCompleted) {
+          NavigationManager.pushNamedAndRemoveUntil(
+            context,
+            RouteNames.homeScreen,
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state is! QuestionnaireInProgress) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return PopScope(
+          canPop: state.isFirst,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) {
+              context.read<QuestionnaireCubit>().previousQuestion();
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.p24,
+                  vertical: AppDimens.p16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ── Back Button ──
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: IconButton(
+                        icon: const Icon(Icons.chevron_left, size: 28),
+                        onPressed: () {
+                          if (state.isFirst) {
+                            NavigationManager.pop(context);
+                          } else {
+                            context
+                                .read<QuestionnaireCubit>()
+                                .previousQuestion();
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: AppDimens.p8),
+                    // ── Progress Bar ──
+                    QuestionProgressBar(progress: state.progress),
+                    const SizedBox(height: AppDimens.p32),
+                    // ── Question Text ──
+                    Text(
+                      state.currentQuestion.text,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.headlineMedium.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: AppDimens.p24),
+                    // ── Answer Area ──
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: QuestionRenderer(
+                          key: ValueKey(state.currentQuestion.questionId),
+                          question: state.currentQuestion,
+                          currentAnswer:
+                              state.answers[state.currentQuestion.questionId],
+                          onAnswerChanged: (value) {
+                            context.read<QuestionnaireCubit>().answerQuestion(
+                                  state.currentQuestion.questionId,
+                                  value,
+                                );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppDimens.p16),
+                    // ── Next / Finish Button ──
+                    CustomButton(
+                      text: state.isLast ? 'إنهاء' : 'التالي',
+                      onPressed: state.hasCurrentAnswer
+                          ? () =>
+                              context.read<QuestionnaireCubit>().nextQuestion()
+                          : null,
+                    ),
+                    const SizedBox(height: AppDimens.p16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/widgets/question_checkbox_widget.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/core/utils/app_dimens.dart';
+import '../../domain/entities/question_entity.dart';
+
+/// Renders a multi-select checkbox list (matching Figma reference).
+class QuestionCheckboxWidget extends StatelessWidget {
+  final QuestionEntity question;
+  final List<String> selectedOptionIds;
+  final ValueChanged<List<String>> onChanged;
+
+  const QuestionCheckboxWidget({
+    super.key,
+    required this.question,
+    required this.selectedOptionIds,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: question.options.map((option) {
+        final isSelected = selectedOptionIds.contains(option.id);
+        return InkWell(
+          onTap: () {
+            final updated = List<String>.from(selectedOptionIds);
+            if (isSelected) {
+              updated.remove(option.id);
+            } else {
+              updated.add(option.id);
+            }
+            onChanged(updated);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppDimens.p12),
+            child: Row(
+              children: [
+                // Checkbox
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                      width: 2,
+                    ),
+                    color: isSelected ? AppColors.primary : AppColors.background,
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check, size: 16, color: AppColors.white)
+                      : null,
+                ),
+                const SizedBox(width: AppDimens.p16),
+                Expanded(
+                  child: Text(
+                    option.text,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/widgets/question_date_widget.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+
+/// Drum-style date picker with three scroll wheels (day, month, year).
+/// Matches the Figma reference with center-highlighted row.
+class QuestionDateWidget extends StatefulWidget {
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime> onChanged;
+
+  const QuestionDateWidget({
+    super.key,
+    required this.selectedDate,
+    required this.onChanged,
+  });
+
+  @override
+  State<QuestionDateWidget> createState() => _QuestionDateWidgetState();
+}
+
+class _QuestionDateWidgetState extends State<QuestionDateWidget> {
+  late final FixedExtentScrollController _dayController;
+  late final FixedExtentScrollController _monthController;
+  late final FixedExtentScrollController _yearController;
+
+  static const int _minYear = 1950;
+  static const int _maxYear = 2010;
+  static const double _itemExtent = 44;
+
+  static const List<String> _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  late int _selectedDay;
+  late int _selectedMonth;
+  late int _selectedYear;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.selectedDate ?? DateTime(1996, 2, 15);
+    _selectedDay = initial.day;
+    _selectedMonth = initial.month;
+    _selectedYear = initial.year;
+
+    _dayController = FixedExtentScrollController(initialItem: _selectedDay - 1);
+    _monthController = FixedExtentScrollController(initialItem: _selectedMonth - 1);
+    _yearController = FixedExtentScrollController(initialItem: _selectedYear - _minYear);
+
+    // Emit initial value so the question has an answer from the start.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _emitDate();
+    });
+  }
+
+  @override
+  void dispose() {
+    _dayController.dispose();
+    _monthController.dispose();
+    _yearController.dispose();
+    super.dispose();
+  }
+
+  void _emitDate() {
+    final daysInMonth = DateUtils.getDaysInMonth(_selectedYear, _selectedMonth);
+    if (_selectedDay > daysInMonth) _selectedDay = daysInMonth;
+    widget.onChanged(DateTime(_selectedYear, _selectedMonth, _selectedDay));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: _itemExtent * 5,
+      child: Stack(
+        children: [
+          // Center highlight band
+          Center(
+            child: Container(
+              height: _itemExtent,
+              decoration: BoxDecoration(
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: AppColors.border, width: 1),
+                ),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              // Day wheel
+              Expanded(child: _buildWheel(
+                controller: _dayController,
+                itemCount: 31,
+                labelBuilder: (i) => '${i + 1}',
+                onChanged: (i) {
+                  _selectedDay = i + 1;
+                  _emitDate();
+                },
+              )),
+              // Month wheel
+              Expanded(child: _buildWheel(
+                controller: _monthController,
+                itemCount: 12,
+                labelBuilder: (i) => _months[i],
+                onChanged: (i) {
+                  _selectedMonth = i + 1;
+                  _emitDate();
+                },
+              )),
+              // Year wheel
+              Expanded(child: _buildWheel(
+                controller: _yearController,
+                itemCount: _maxYear - _minYear + 1,
+                labelBuilder: (i) => '${_minYear + i}',
+                onChanged: (i) {
+                  _selectedYear = _minYear + i;
+                  _emitDate();
+                },
+              )),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWheel({
+    required FixedExtentScrollController controller,
+    required int itemCount,
+    required String Function(int) labelBuilder,
+    required ValueChanged<int> onChanged,
+  }) {
+    return ListWheelScrollView.useDelegate(
+      controller: controller,
+      itemExtent: _itemExtent,
+      physics: const FixedExtentScrollPhysics(),
+      overAndUnderCenterOpacity: 0.4,
+      onSelectedItemChanged: onChanged,
+      childDelegate: ListWheelChildBuilderDelegate(
+        childCount: itemCount,
+        builder: (context, index) {
+          return Center(
+            child: Text(
+              labelBuilder(index),
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/widgets/question_height_widget.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+
+/// Single drum-style picker for height in cm.
+/// Matches Figma: center-highlighted row with "سم" unit label.
+class QuestionHeightWidget extends StatefulWidget {
+  final int? selectedHeight;
+  final ValueChanged<int> onChanged;
+
+  const QuestionHeightWidget({
+    super.key,
+    required this.selectedHeight,
+    required this.onChanged,
+  });
+
+  @override
+  State<QuestionHeightWidget> createState() => _QuestionHeightWidgetState();
+}
+
+class _QuestionHeightWidgetState extends State<QuestionHeightWidget> {
+  static const int _minHeight = 100;
+  static const int _maxHeight = 220;
+  static const double _itemExtent = 40;
+
+  late final FixedExtentScrollController _controller;
+  late int _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.selectedHeight ?? 150;
+    _controller = FixedExtentScrollController(
+      initialItem: _selected - _minHeight,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onChanged(_selected);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: _itemExtent * 7,
+      child: Stack(
+        children: [
+          // Center highlight band
+          Center(
+            child: Container(
+              height: _itemExtent,
+              decoration: BoxDecoration(
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: AppColors.border, width: 1),
+                ),
+              ),
+            ),
+          ),
+          ListWheelScrollView.useDelegate(
+            controller: _controller,
+            itemExtent: _itemExtent,
+            physics: const FixedExtentScrollPhysics(),
+            overAndUnderCenterOpacity: 0.35,
+            onSelectedItemChanged: (i) {
+              _selected = _minHeight + i;
+              widget.onChanged(_selected);
+            },
+            childDelegate: ListWheelChildBuilderDelegate(
+              childCount: _maxHeight - _minHeight + 1,
+              builder: (context, index) {
+                final value = _minHeight + index;
+                final isCenter = value == _selected;
+                return Center(
+                  child: Text(
+                    isCenter ? '$value سم' : '$value',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: isCenter ? FontWeight.bold : FontWeight.w400,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/widgets/question_progress_bar.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+
+class QuestionProgressBar extends StatelessWidget {
+  /// Value between 0.0 and 1.0.
+  final double progress;
+
+  const QuestionProgressBar({super.key, required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: LinearProgressIndicator(
+        value: progress,
+        minHeight: 5,
+        backgroundColor: AppColors.border,
+        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/widgets/question_renderer.dart">
+import 'package:flutter/material.dart';
+import '../../domain/entities/question_entity.dart';
+import 'question_checkbox_widget.dart';
+import 'question_date_widget.dart';
+import 'question_height_widget.dart';
+import 'question_select_widget.dart';
+import 'question_weight_widget.dart';
+
+/// Factory widget that dispatches to the correct answer widget
+/// based on [QuestionType].
+class QuestionRenderer extends StatelessWidget {
+  final QuestionEntity question;
+  final dynamic currentAnswer;
+  final ValueChanged<dynamic> onAnswerChanged;
+
+  const QuestionRenderer({
+    super.key,
+    required this.question,
+    required this.currentAnswer,
+    required this.onAnswerChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (question.type) {
+      QuestionType.select => QuestionSelectWidget(
+          question: question,
+          selectedOptionId: currentAnswer as String?,
+          onChanged: onAnswerChanged,
+        ),
+      QuestionType.checkbox => QuestionCheckboxWidget(
+          question: question,
+          selectedOptionIds: (currentAnswer as List<String>?) ?? [],
+          onChanged: onAnswerChanged,
+        ),
+      QuestionType.date => QuestionDateWidget(
+          selectedDate: currentAnswer as DateTime?,
+          onChanged: onAnswerChanged,
+        ),
+      QuestionType.height => QuestionHeightWidget(
+          selectedHeight: currentAnswer as int?,
+          onChanged: onAnswerChanged,
+        ),
+      QuestionType.weight => QuestionWeightWidget(
+          selectedWeight: currentAnswer as int?,
+          onChanged: onAnswerChanged,
+        ),
+      QuestionType.unknown => const SizedBox.shrink(),
+    };
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/widgets/question_select_widget.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/core/utils/app_dimens.dart';
+import '../../domain/entities/question_entity.dart';
+
+/// Renders a single-select list of radio options (matching Figma reference).
+class QuestionSelectWidget extends StatelessWidget {
+  final QuestionEntity question;
+  final String? selectedOptionId;
+  final ValueChanged<String> onChanged;
+
+  const QuestionSelectWidget({
+    super.key,
+    required this.question,
+    required this.selectedOptionId,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: question.options.map((option) {
+        final isSelected = selectedOptionId == option.id;
+        return InkWell(
+          onTap: () => onChanged(option.id),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppDimens.p12),
+            child: Row(
+              children: [
+                // Radio circle on the left (RTL makes this appear on the right visually)
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                      width: 2,
+                    ),
+                  ),
+                  child: isSelected
+                      ? Center(
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: AppDimens.p16),
+                Expanded(
+                  child: Text(
+                    option.text,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/questionnaire/presentation/widgets/question_weight_widget.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+
+/// Single drum-style picker for weight in kg.
+/// Similar to height widget, with "كغ" unit label.
+class QuestionWeightWidget extends StatefulWidget {
+  final int? selectedWeight;
+  final ValueChanged<int> onChanged;
+
+  const QuestionWeightWidget({
+    super.key,
+    required this.selectedWeight,
+    required this.onChanged,
+  });
+
+  @override
+  State<QuestionWeightWidget> createState() => _QuestionWeightWidgetState();
+}
+
+class _QuestionWeightWidgetState extends State<QuestionWeightWidget> {
+  static const int _minWeight = 30;
+  static const int _maxWeight = 200;
+  static const double _itemExtent = 40;
+
+  late final FixedExtentScrollController _controller;
+  late int _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.selectedWeight ?? 70;
+    _controller = FixedExtentScrollController(
+      initialItem: _selected - _minWeight,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onChanged(_selected);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: _itemExtent * 7,
+      child: Stack(
+        children: [
+          // Center highlight band
+          Center(
+            child: Container(
+              height: _itemExtent,
+              decoration: BoxDecoration(
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: AppColors.border, width: 1),
+                ),
+              ),
+            ),
+          ),
+          ListWheelScrollView.useDelegate(
+            controller: _controller,
+            itemExtent: _itemExtent,
+            physics: const FixedExtentScrollPhysics(),
+            overAndUnderCenterOpacity: 0.35,
+            onSelectedItemChanged: (i) {
+              _selected = _minWeight + i;
+              widget.onChanged(_selected);
+            },
+            childDelegate: ListWheelChildBuilderDelegate(
+              childCount: _maxWeight - _minWeight + 1,
+              builder: (context, index) {
+                final value = _minWeight + index;
+                final isCenter = value == _selected;
+                return Center(
+                  child: Text(
+                    isCenter ? '$value كغ' : '$value',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColors.textPrimary,
+                      fontWeight: isCenter ? FontWeight.bold : FontWeight.w400,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/core/api/api_response.dart">
+import 'package:equatable/equatable.dart';
+
+class ApiResponse<T> extends Equatable {
+  final int? status;
+  final T? data;
+  final String? message;
+
+  const ApiResponse({this.status, this.data, this.message});
+
+  bool get isSuccess => status == 1;
+
+  @override
+  List<Object?> get props => [status, data, message];
+
+  factory ApiResponse.fromJson(Map<String, dynamic> json, T Function(dynamic json) fromJsonT) {
+    return ApiResponse<T>(
+      status: json['status'] as int? ?? 0,
+      data: json['data'] != null ? fromJsonT(json['data']) : null,
+      message: json['message'] as String?,
+    );
+  }
+}
+</file>
+
+<file path="lib/core/api/end_points.dart">
+class EndPoints {
+  static const String baseUrl = "http://qeranadmin-001-site1.rtempurl.com/api/";
+
+  // Auth
+  static const String login = "Auth/login";
+  static const String register = "Auth/register-new";
+  static const String addPhone = "Auth/add-phone";
+  static const String verifyOtp = "Auth/verify-otp";
+  static const String forgotPassword = "auth/forgot-password";
+  static const String verifyForgotPasswordOtp = "Auth/verify-forgot-password-otp";
+  static const String resetPassword = "auth/reset-password";
+
+  // Questionnaire
+  static const String questions = "Questions";
+}
+</file>
+
+<file path="lib/core/constants/storage_keys.dart">
+class StorageKeys {
+  static const String token = 'token';
+  static const String firebaseUid = 'firebase_uid';
+  static const String seenOnboarding = 'seen_onboarding';
+  static const String isWhatsappVerified = 'is_whatsapp_verified';
+  static const String finishedQuestions = 'finished_questions';
+  static const String gender = 'gender';
+  static const String signedOath = 'signed_oath';
+  static const String userRole = 'user_role';
+
+  /// Temporary userId persisted during the multi-step auth flow
+  /// (register/login → add-phone → verify-otp). Cleared on OTP success.
+  static const String pendingUserId = 'pending_user_id';
+}
+</file>
+
+<file path="lib/core/datasources/secure_storage_service.dart">
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../services/storage_service.dart';
+
+class SecureStorageService implements StorageService {
+  final FlutterSecureStorage _secure;
+  SecureStorageService(this._secure);
+
+  @override
+  Future<void> save<T>(String key, T value) async {
+    await _secure.write(key: key, value: value.toString());
+  }
+
+  @override
+  Future<T?> get<T>(String key) async {
+    final value = await _secure.read(key: key);
+    if (value == null) return null;
+
+    if (T == bool) return (value == 'true') as T;
+    if (T == int) return int.tryParse(value) as T?;
+    if (T == double) return double.tryParse(value) as T?;
+    return value as T;
+  }
+
+  @override
+  Future<void> remove(String key) async => await _secure.delete(key: key);
+
+  @override
+  Future<void> clear() async => await _secure.deleteAll();
+}
+</file>
+
+<file path="lib/core/datasources/shared_pref_service.dart">
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../services/storage_service.dart';
+
+class SharedPrefService implements StorageService {
+  final SharedPreferences _prefs;
+  SharedPrefService(this._prefs);
+
+  @override
+  Future<void> save<T>(String key, T value) async {
+    if (value is String) await _prefs.setString(key, value);
+    else if (value is int) await _prefs.setInt(key, value);
+    else if (value is bool) await _prefs.setBool(key, value);
+    else if (value is double) await _prefs.setDouble(key, value);
+    else if (value is List<String>) await _prefs.setStringList(key, value);
+    else throw ArgumentError('SharedPrefService: unsupported type ${T.toString()} for key "$key"');
+  }
+
+  @override
+  Future<T?> get<T>(String key) async {
+    if (T == String) return _prefs.getString(key) as T?;
+    if (T == int) return _prefs.getInt(key) as T?;
+    if (T == bool) return _prefs.getBool(key) as T?;
+    if (T == double) return _prefs.getDouble(key) as T?;
+    if (T == List<String>) return _prefs.getStringList(key) as T?;
+    return _prefs.get(key) as T?;
+  }
+
+  @override
+  Future<void> remove(String key) async => await _prefs.remove(key);
+
+  @override
+  Future<void> clear() async => await _prefs.clear();
+}
+</file>
+
+<file path="lib/core/extensions/context_extension.dart">
+import 'package:flutter/material.dart';
+
+extension ThemeContext on BuildContext {
+  TextTheme get textTheme => Theme.of(this).textTheme;
+
+  ColorScheme get colorScheme => Theme.of(this).colorScheme;
+
+  ThemeData get theme => Theme.of(this);
+}
+</file>
+
+<file path="lib/core/extensions/responsive_utils.dart">
+import 'package:flutter/material.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
+extension ResponsiveContext on BuildContext {
+  bool get isMobile => ResponsiveBreakpoints.of(this).isMobile;
+  bool get isTablet => ResponsiveBreakpoints.of(this).isTablet;
+  bool get isDesktop => ResponsiveBreakpoints.of(this).isDesktop;
+
+  bool get isMobileOrTablet => isMobile || isTablet;
+}
+</file>
+
+<file path="lib/core/theme/app_color.dart">
+import 'package:flutter/material.dart';
+
+class AppColors {
+
+  AppColors._();
+
+  static const Color black = Colors.black;
+  static const Color black87 = Colors.black87;
+  static const Color black54 = Colors.black54;
+  static const Color white = Colors.white;
+  static const Color red = Colors.red;
+  static const Color green = Colors.green;
+  static const Color pink = Colors.pink;
+  static const Color blue = Colors.blue;
+  static const Color yellow = Colors.yellow;
+  static const Color grey = Colors.grey;
+  static const Color purple = Colors.deepPurple;
+  static const Color greyLight = Color(0xFFF3F4F6);
+  static const Color transparent = Colors.transparent;
+  static const Color fieldBackground = Color(0xFFEAE6E6);
+
+
+
+  static const Color primary = Color(0xFF431C33);
+  static const Color primaryLight = Color(0xFFE4C094);
+
+
+  static const Color surface = Color(0xFFF9F5F1);
+  static const Color background = Color(0xFFFFFFFF);
+
+  static const Color darkBackground = Color(0xFF1A1A1A);
+  static const Color darkSurface = Color(0xFF2C2C2C);
+
+
+  static const Color textPrimary = Color(0xFF431C33);
+  static const Color textSecondary = Color(0xFF8D8D8D);
+  static const Color textMuted = Color(0xFFAAAAAA);
+
+
+  static const Color error = Color(0xFFD32F2F);
+  static const Color success = Color(0xFF388E3C);
+  static const Color border = Color(0xFFE0E0E0);
+
+
+  static const Color darkGrey = Color(0xFF1A1A1A);
+}
+</file>
+
+<file path="lib/core/theme/app_text_style.dart">
+import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
+import 'app_color.dart';
+
+class AppTextStyles {
+  const AppTextStyles._();
+
+  static const TextStyle displayLarge = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle headlineMedium = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w700,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle headlineSmall = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle titleLarge = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle bodyLarge = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    fontFamily: AppConstants.fontFamilyArabic,
+    height: 1.5,
+  );
+
+  static const TextStyle bodyMedium = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle labelLarge = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle labelSmall = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+
+  static const TextStyle caption = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppConstants.fontFamilyArabic,
+  );
+}
+</file>
+
+<file path="lib/core/theme/theme.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/constants/app_constants.dart';
+import 'package:qeran/core/utils/app_dimens.dart';
+import 'app_color.dart';
+import 'app_text_style.dart';
+
+class AppTheme {
+  AppTheme._();
+
+  // --- Light Theme ---
+  static ThemeData  lightTheme (Locale locale){
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      primaryColor: AppColors.primary,
+      scaffoldBackgroundColor: AppColors.white,
+      fontFamily: locale.languageCode == 'ar'
+          ? AppConstants.fontFamilyArabic
+          : AppConstants.fontFamilyEnglish,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        secondary: AppColors.primaryLight,
+        surface: AppColors.surface,
+        error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSurface: AppColors.textPrimary,
+      ),
+      textTheme: _textTheme.apply(
+        bodyColor: AppColors.textPrimary,
+        displayColor: AppColors.textPrimary,
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: AppColors.background,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.primary),
+        actionsIconTheme: const IconThemeData(color: AppColors.primary),
+        titleTextStyle: AppTextStyles.titleLarge.copyWith(
+          color: AppColors.primary,
+        ),
+      ),
+      elevatedButtonTheme: _buttonTheme(AppColors.primary, AppColors.white),
+      inputDecorationTheme: _inputTheme(AppColors.surface, AppColors.primary),
+      cardTheme: _cardTheme(AppColors.white, AppColors.primary),
+    );
+  }
+
+  // --- Dark Theme ---
+  static ThemeData  darkTheme (Locale locale){
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      primaryColor: AppColors.primaryLight,
+      scaffoldBackgroundColor: AppColors.darkBackground,
+      fontFamily: locale.languageCode == 'ar'
+          ? AppConstants.fontFamilyArabic
+          : AppConstants.fontFamilyEnglish,
+      colorScheme: const ColorScheme.dark(
+        primary:
+            AppColors.primaryLight,
+        secondary: AppColors.primary,
+        surface: AppColors.darkSurface,
+        error: AppColors.error,
+        onPrimary: AppColors.black,
+        onSurface: AppColors.white,
+      ),
+      textTheme: _textTheme.apply(
+        bodyColor: AppColors.white,
+        displayColor: AppColors.primaryLight,
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: AppColors.darkBackground,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.primaryLight),
+        actionsIconTheme: const IconThemeData(color: AppColors.primaryLight),
+        titleTextStyle: AppTextStyles.titleLarge.copyWith(
+          color: AppColors.primaryLight,
+        ),
+      ),
+      elevatedButtonTheme: _buttonTheme(
+        AppColors.primaryLight,
+        AppColors.black,
+      ),
+      inputDecorationTheme: _inputTheme(
+        AppColors.darkSurface,
+        AppColors.primaryLight,
+      ),
+      cardTheme: _cardTheme(AppColors.darkSurface, AppColors.primaryLight),
+    );
+  }
+
+
+
+  // --- Helper Methods ---
+
+  static TextTheme get _textTheme => const TextTheme(
+    displayLarge: AppTextStyles.displayLarge,
+    headlineMedium: AppTextStyles.headlineMedium,
+    headlineSmall: AppTextStyles.headlineSmall,
+    titleLarge: AppTextStyles.titleLarge,
+    bodyLarge: AppTextStyles.bodyLarge,
+    bodyMedium: AppTextStyles.bodyMedium,
+    labelLarge: AppTextStyles.labelLarge,
+    labelSmall: AppTextStyles.labelSmall,
+  );
+
+  static ElevatedButtonThemeData _buttonTheme(Color bg, Color fg) =>
+      ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: bg,
+          foregroundColor: fg,
+          alignment: Alignment.center,
+          textStyle: AppTextStyles.labelLarge.copyWith(
+            height: 1.0,
+            leadingDistribution: TextLeadingDistribution.even
+          ),
+          minimumSize: const Size(double.infinity, 55),
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: AppDimens.borderRadius12),
+        ),
+      );
+
+  static InputDecorationTheme _inputTheme(Color fillColor, Color focusColor) =>
+      InputDecorationTheme(
+        filled: true,
+        fillColor: fillColor,
+        contentPadding: AppDimens.paddingAll16,
+        border: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: BorderSide(color: focusColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius12,
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        hintStyle: AppTextStyles.caption,
+        labelStyle: AppTextStyles.bodyMedium,
+      );
+
+  static CardThemeData _cardTheme(Color bgColor, Color shadowColor) =>
+      CardThemeData(
+        color: bgColor,
+        elevation: 4,
+        shadowColor: shadowColor.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(borderRadius: AppDimens.borderRadius16),
+      );
+}
+</file>
+
+<file path="lib/core/widgets/app_button.dart">
+import 'package:flutter/material.dart';
+
+class CustomButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final Color? backgroundColor;
+  final double? width;
+  final double height;
+  final double borderRadius;
+
+  const CustomButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.icon,
+    this.backgroundColor,
+    this.width,
+    this.height = 55,
+    this.borderRadius = 12,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width ?? double.infinity,
+      height: height,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (icon != null) ...[
+              const SizedBox(width: 10),
+              Icon(icon, color: Colors.white),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/core/api/api_consumer.dart">
+abstract class ApiConsumer {
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters});
+  Future<dynamic> post(String path, {Object? body, Map<String, dynamic>? queryParameters});
+  Future<dynamic> patch(String path, {Object? body, Map<String, dynamic>? queryParameters});
+  Future<dynamic> delete(String path, {Map<String, dynamic>? queryParameters});
+}
+</file>
+
+<file path="lib/core/app_logger.dart">
+import 'dart:developer' as dev;
+import 'package:flutter/foundation.dart';
+
+class AppLogger {
+
+  static const bool _isDebug = kDebugMode;
+
+
+  static void info(String message, {String tag = 'INFO'}) {
+    if (!_isDebug) return;
+    dev.log('\x1B[32m$message\x1B[0m', name: tag, time: DateTime.now());
+  }
+
+  static void debug(String message, {String tag = 'DEBUG'}) {
+    if (!_isDebug) return;
+    dev.log('🔍 $message', name: tag);
+  }
+
+
+  static void warning(String message, {String tag = 'WARNING'}) {
+    if (!_isDebug) return;
+    dev.log('⚠️ $message', name: tag);
+  }
+
+  static void error(String message, {Object? error, StackTrace? stack, String tag = 'ERROR'}) {
+    if (!_isDebug) return;
+    dev.log(
+      '❌ $message',
+      name: tag,
+      error: error,
+      stackTrace: stack,
+    );
+  }
+}
+</file>
+
+<file path="lib/core/constants/app_constants.dart">
+class AppConstants{
+
+  static const String cachedToken = "CACHED_TOKEN";
+  static const String appTitle = "Qeran App";
+  static const String fontFamilyArabic = 'NotoKufiArabic';
+  static const String fontFamilyEnglish = 'Montserrat';
+}
+</file>
+
+<file path="lib/core/di/injection_container.dart">
+import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../features/auth/di/auth_injection.dart';
+import '../../features/questionnaire/di/questionnaire_injection.dart';
+import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
+import '../../features/splash/presentation/blocs/splash_cubit.dart';
+import '../api/api_consumer.dart';
+import '../api/http_consumer.dart';
+import '../datasources/shared_pref_service.dart';
+import '../datasources/secure_storage_service.dart';
+import '../services/storage_service.dart';
+
+final sl = GetIt.instance;
+
+Future<void> init() async {
+
+  //! External
+  final sharedPrefs = await SharedPreferences.getInstance();
+  sl.registerSingleton<SharedPreferences>(sharedPrefs);
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  sl.registerLazySingleton(() => http.Client());
+
+  //! Storage
+  sl.registerLazySingleton<SecureStorageService>(() => SecureStorageService(sl()));
+  sl.registerLazySingleton<SharedPrefService>(() => SharedPrefService(sl()));
+  sl.registerLazySingleton<StorageService>(() => sl<SecureStorageService>());
+
+  //! Network
+  sl.registerLazySingleton<ApiConsumer>(() => HttpConsumer(client: sl(), storage: sl()));
+
+  //! Features - Auth
+  await initAuthDependencies();
+
+  //! Features - Questionnaire
+  initQuestionnaireDependencies();
+
+  //! Features - Onboarding
+  sl.registerFactory(() => OnboardingCubit(sharedPref: sl<SharedPrefService>()));
+
+  //! Features - Splash
+  sl.registerFactory(() => SplashCubit(
+    secureStorage: sl<SecureStorageService>(),
+    sharedPrefs: sl<SharedPrefService>(),
+  ));
+}
+</file>
+
+<file path="lib/core/domain/entities/success_response.dart">
+import '../../api/api_response.dart';
+
+class SuccessResponse<T> extends ApiResponse<T> {
+  SuccessResponse({
+    super.status,
+    super.data,
+    super.message,
+  });
+
+  factory SuccessResponse.fromApiResponse(ApiResponse<T> response) {
+    return SuccessResponse<T>(
+      status: response.status,
+      data: response.data,
+      message: response.message,
+    );
+  }
+}
+</file>
+
+<file path="lib/core/errors/errors.dart">
+import 'package:equatable/equatable.dart';
+
+abstract class Failure extends Equatable {
+  final String message;
+
+  const Failure({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ServerFailure extends Failure {
+  const ServerFailure({required super.message});
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure({required super.message});
+}
+
+class AuthFailure extends Failure {
+  const AuthFailure({super.message = 'errors.unauthorized'});
+}
+
+class OfflineFailure extends Failure {
+  const OfflineFailure({super.message = 'errors.offline'});
+}
+</file>
+
+<file path="lib/core/errors/exceptions.dart">
+class ServerException implements Exception {
+  final String message;
+  ServerException({required this.message});
+
+  @override
+  String toString() => message;
+}
+
+class CacheException implements Exception {
+  final String message;
+  CacheException({required this.message});
+
+  @override
+  String toString() => message;
+}
+
+class AuthException implements Exception {
+  final String message;
+  AuthException({required this.message});
+
+  @override
+  String toString() => message;
+}
+</file>
+
+<file path="lib/core/services/storage_service.dart">
+abstract class StorageService {
+  Future<void> save<T>(String key, T value);
+  Future<T?> get<T>(String key);
+  Future<void> remove(String key);
+  Future<void> clear();
+}
+</file>
+
+<file path="lib/core/utils/app_bloc_observer.dart">
+import 'package:bloc/bloc.dart';
+import 'package:qeran/core/app_logger.dart';
+
+class SimpleBlocObserver extends BlocObserver {
+  @override
+  void onEvent(Bloc bloc, Object? event) {
+    super.onEvent(bloc, event);
+    AppLogger.info('Event: ${bloc.runtimeType}, $event', tag: 'BLoC');
+  }
+
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    AppLogger.debug('State Change: ${bloc.runtimeType}, $change', tag: 'BLoC');
+  }
+
+  @override
+  void onTransition(Bloc bloc, Transition transition) {
+    super.onTransition(bloc, transition);
+    AppLogger.debug('Transition: ${bloc.runtimeType}, $transition', tag: 'BLoC');
+  }
+
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    AppLogger.error('Error in ${bloc.runtimeType}', error: error, stack: stackTrace, tag: 'BLoC');
+    super.onError(bloc, error, stackTrace);
+  }
+}
+</file>
+
+<file path="lib/core/utils/app_snackbar.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import '../enum/snakebar_tybe.dart';
+import '../theme/app_text_style.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+class AppSnackBar {
+  static Future<void> show(
+      BuildContext context, {
+        required String message,
+        required SnackBarType type,
+        String? title,
+      }) async {
+    final overlay = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 20,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: _SnackBarWidget(
+            message: message,
+            title: title,
+            type: type,
+            onDismiss: () => overlayEntry.remove(),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) overlayEntry.remove();
+    });
+  }
+
+}
+class _SnackBarWidget extends StatelessWidget {
+  final String? title;
+  final String message;
+  final SnackBarType type;
+  final VoidCallback onDismiss;
+
+  const _SnackBarWidget({
+    required this.message,
+    this.title,
+    required this.type,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bgColor = type == SnackBarType.error
+        ?  AppColors.error
+        : (type == SnackBarType.success ? AppColors.success : Colors.black87);
+
+    final IconData icon = type == SnackBarType.error
+        ? Icons.error_outline
+        : (type == SnackBarType.success ? Icons.check_circle_outline : Icons.info_outline);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: bgColor.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 28)
+            .animate(target: type == SnackBarType.success ? 1 : 0)
+            .scale(duration: 400.ms, curve: Curves.easeOutBack),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                 if (title != null)
+                   Text(title!, style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                 Text(message, style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white54, size: 18),
+            onPressed: onDismiss,
+          ),
+        ],
+      ),
+    )
+    .animate()
+    .slideY(begin: -1, end: 0, duration: 400.ms, curve: Curves.easeOutBack) // Slide down
+    .then(delay: 2500.ms) // Wait
+    .slideY(begin: 0, end: -1, duration: 400.ms, curve: Curves.easeInBack).shake() ;// Slide up to exit
+    // .shake(enabled: type == SnackBarType.error); // Shake on error
+  }
+}
+</file>
+
+<file path="lib/core/utils/validators.dart">
+import 'package:qeran/core/extensions/localization_extension.dart';
+
+class Validators {
+  static final RegExp emailPattern =
+      RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+  static final RegExp passwordPattern =
+      RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$');
+
+  static String? validateEmail(String? val) {
+    if (val == null || val.isEmpty) return 'validators.field_required'.t;
+    if (!emailPattern.hasMatch(val)) return 'validators.invalid_email'.t;
+    return null;
+  }
+
+  static String? validatePassword(String? val) {
+    if (val == null || val.isEmpty) return 'validators.field_required'.t;
+    if (val.length < 8) return 'validators.password_too_short'.t;
+    if (!passwordPattern.hasMatch(val)) return 'validators.password_weak'.t;
+    return null;
+  }
+}
+</file>
+
+<file path="lib/core/api/http_consumer.dart">
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:qeran/core/constants/storage_keys.dart';
+import '../app_logger.dart';
+import '../errors/exceptions.dart';
+import '../services/storage_service.dart';
+import 'api_consumer.dart';
+import 'end_points.dart';
+
+class HttpConsumer extends ApiConsumer {
+  final http.Client client;
+  final StorageService storage;
+
+  static const Duration _timeout = Duration(seconds: 30);
+
+  HttpConsumer({required this.client, required this.storage});
+
+  Future<Map<String, String>> _getHeaders() async {
+    final token = await storage.get<String>(StorageKeys.token);
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Map<String, String>? _convertQueryParams(Map<String, dynamic>? params) {
+    return params?.map((key, value) => MapEntry(key, value.toString()));
+  }
+
+  @override
+  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('GET $uri', tag: 'HTTP');
+    try {
+      final response = await client.get(uri, headers: await _getHeaders()).timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('GET $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> post(String path, {Object? body, Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('POST $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .post(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('POST $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> patch(String path, {Object? body, Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('PATCH $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .patch(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('PATCH $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> delete(String path, {Map<String, dynamic>? queryParameters}) async {
+    final uri = Uri.parse("${EndPoints.baseUrl}$path")
+        .replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('DELETE $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .delete(uri, headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('DELETE $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  dynamic _handleResponse(http.Response response) {
+    AppLogger.debug('${response.statusCode} ${response.request?.url}', tag: 'HTTP');
+    try {
+      final dynamic responseBody = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (responseBody['status'] == 1 || responseBody['status'] == true) {
+          return responseBody;
+        } else {
+          throw ServerException(message: responseBody['message'] ?? "Operation Failed");
+        }
+      } else {
+        String errorMessage = _statusErrorMessage(response.statusCode);
+        if (responseBody is Map) {
+          if (responseBody['errors'] != null && responseBody['errors'] is Map) {
+            final Map<String, dynamic> errors = Map<String, dynamic>.from(responseBody['errors']);
+            if (errors.isNotEmpty) {
+              final firstList = errors.values.first;
+              if (firstList is List && firstList.isNotEmpty) {
+                errorMessage = firstList.first.toString();
+              }
+            }
+          } else {
+            errorMessage = responseBody['message'] as String?
+                ?? responseBody['error'] as String?
+                ?? _statusErrorMessage(response.statusCode);
+          }
+        }
+        AppLogger.error('${response.statusCode} ${response.request?.url}: $errorMessage', tag: 'HTTP');
+        throw ServerException(message: errorMessage);
+      }
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error(
+        '${response.statusCode} non-JSON body: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}',
+        tag: 'HTTP',
+      );
+      throw ServerException(message: _statusErrorMessage(response.statusCode));
+    }
+  }
+
+  String _errorMessage(Object e) {
+    if (e is TimeoutException) return "Request timed out. Please try again.";
+    return "Connection error: ${e.toString()}";
+  }
+
+  String _statusErrorMessage(int statusCode) => switch (statusCode) {
+        400 => 'البيانات المدخلة غير صحيحة',
+        401 => 'غير مصرح بالوصول',
+        403 => 'ليس لديك صلاحية للوصول',
+        404 => 'لم يتم العثور على المورد',
+        408 => 'انتهت مهلة الطلب',
+        429 => 'طلبات كثيرة، حاول لاحقاً',
+        500 || 502 || 503 => 'خطأ في الخادم، حاول لاحقاً',
+        _ => 'حدث خطأ، حاول مرة أخرى',
+      };
+}
+</file>
+
+<file path="lib/core/extensions/localization_extension.dart">
+import 'package:easy_localization/easy_localization.dart';
+
+extension LocalizationExtension on String {
+  String get t => this.tr();
+}
+</file>
+
+<file path="lib/core/routes/app_router.dart">
+import 'package:flutter/material.dart';
+import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/features/auth/presentation/screens/forgot_password/forget_pass_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/login_screen/login_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/oath/oath_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/register_screen/register_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/reset_password/reset_pass_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/upload_image/upload_image_profile_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/whatsapp_input/whatsapp_input_screen.dart';
+import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/whatsapp_verification.dart';
+import 'package:qeran/features/home/presentation/screens/home_screen.dart';
+import 'package:qeran/features/khataba_dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
+import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
+import 'package:qeran/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart';
+import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart';
+import 'package:qeran/features/splash/presentation/screens/splash_screen.dart';
+
+class AppRouter {
+
+   Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case RouteNames.splashScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const SplashScreen());
+
+      case RouteNames.onboarding:
+        return MaterialPageRoute(settings: settings, builder: (context) => const OnBoardingScreen());
+
+      case RouteNames.loginScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const LoginScreen());
+
+      case RouteNames.registerScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const RegisterScreen());
+      case RouteNames.forgotPasswordEmail:
+        return MaterialPageRoute(settings: settings, builder: (context) => const ForgetPassScreen());
+      case RouteNames.resetPassword:
+        return MaterialPageRoute(settings: settings, builder: (context) => const ResetPassScreen());
+      case RouteNames.whatsappInput:
+        return MaterialPageRoute(settings: settings, builder: (context) => const WhatsappInputScreen());
+      case RouteNames.whatsappVerification:
+        return MaterialPageRoute(settings: settings, builder: (context) => const WhatsappVerificationScreen());
+      case RouteNames.genderSelectionScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const GenderSelectionScreen());
+      case RouteNames.questionsScreen:
+        final questions = settings.arguments as List<QuestionEntity>;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => QuestionnaireFlowScreen(questions: questions),
+        );
+      case RouteNames.oathScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const OathScreen());
+      case RouteNames.khatabaDashboard:
+        return MaterialPageRoute(settings: settings, builder: (context) => const DashboardScreen());
+      case RouteNames.homeScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const HomeScreen());
+      case RouteNames.photoUploadScreen:
+        return MaterialPageRoute(settings: settings, builder: (context) => const UploadImageProfileScreen());
+      default:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => Scaffold(
+            body: Center(child: Text('No route defined for ${settings.name}')),
+          ),
+        );
+    }
+  }
+
+
+
+}
+</file>
+
+<file path="lib/core/routes/navigation_manager.dart">
+import 'package:flutter/material.dart';
+class NavigationManager {
+
+
+  //push named
+  static  Future<dynamic> navigateTo(BuildContext context, String routeName,{Object? arguments}) {
+    return Navigator.pushNamed(context, routeName,arguments: arguments);
+  }
+
+
+  //pushReplacementNamed
+  static  Future<dynamic> navigateAndReplace(BuildContext context, String routeName,{Object? arguments}) {
+    return Navigator.pushReplacementNamed(context, routeName,arguments: arguments);
+  }
+
+  //pushNamedAndRemoveUntil
+  static  Future<dynamic> pushNamedAndRemoveUntil(BuildContext context, String routeName,{Object? arguments}) {
+    return Navigator.pushNamedAndRemoveUntil(context, routeName,(route) => false,arguments: arguments);
+  }
+
+
+
+  //popUntil
+  static void popUntil(BuildContext context, String routeUntil) {
+    Navigator.popUntil(context,(route) => route.settings.name == routeUntil);
+  }
+
+
+  //popAndPush
+  static  void popAndPush(BuildContext context, String route,{Object? arguments}) {
+    Navigator.popAndPushNamed(context, route,arguments: arguments);
+  }
+
+  //pop
+  static void pop<T extends Object>(BuildContext context, [T? result]) {
+    Navigator.pop(context,result);
+  }
+
+
+
+
+
+}
+</file>
+
+<file path="lib/core/routes/route_name.dart">
+class RouteNames {
+  static const String splashScreen = '/';
+  static const String onboarding = '/onboarding';
+  static const String loginScreen = '/loginScreen';
+  static const String registerScreen = '/register';
+  static const String homeScreen = '/home';
+  static const String khatabaDashboard = '/khatabaDashboard';
+  static const String whatsappInput = '/whatsappInput';
+  static const String whatsappVerification = '/whatsappVerification';
+
+  static const String forgotPasswordEmail = '/forgotPasswordEmail';
+  static const String resetPassword = '/resetPassword';
+
+  static const String genderSelectionScreen = '/genderSelection';
+  static const String questionsScreen = '/questions';
+  static const String oathScreen = '/oath';
+  static const String photoUploadScreen = '/photoUpload';
+
+
+}
+</file>
+
+<file path="lib/core/utils/app_assets.dart">
+class AppAssets {
+  static const String translations = 'assets/translations';
+  static const String _imagePath = 'assets/images/';
+  static const String _iconPath = 'assets/icons/';
+  static const String logo = '${_imagePath}logo.png';
+  static const String female = '${_imagePath}female.png';
+  static const String male = '${_imagePath}male.png';
+  static const String onboarding1 = '${_imagePath}1.png';
+  static const String onboarding2 = '${_imagePath}2.png';
+  static const String onboarding3 = '${_imagePath}3.png';
+  static const String googleLogo = '${_iconPath}google_logo.svg';
+}
+</file>
+
+<file path="lib/core/utils/app_dimens.dart">
+import 'package:flutter/material.dart';
+
+class AppDimens {
+  //  (Base Scales)
+  static const double p4 = 4.0;
+  static const double p8 = 8.0;
+  static const double p12 = 12.0;
+  static const double p16 = 16.0;
+  static const double p20 = 20.0;
+  static const double p24 = 24.0;
+  static const double p32 = 32.0;
+  static const double p48 = 48.0;
+
+  //  (Border Radius)
+  static const double r8 = 8.0;
+  static const double r12 = 12.0;
+  static const double r16 = 16.0;
+
+  static final BorderRadius borderRadius8 = BorderRadius.circular(r8);
+  static final BorderRadius borderRadius12 = BorderRadius.circular(r12);
+  static final BorderRadius borderRadius16 = BorderRadius.circular(r16);
+
+  //  (Padding/Margins)
+  static const EdgeInsets paddingAll8 = EdgeInsets.all(p8);
+  static const EdgeInsets paddingAll16 = EdgeInsets.all(p16);
+  static const EdgeInsets paddingH16V8 = EdgeInsets.symmetric(horizontal: p16, vertical: p8);
+
+  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(vertical: p8, horizontal: p24);
+
+  //  (SizedBoxes)
+  static const verticalSpace8 = SizedBox(height: p8);
+  static const verticalSpace16 = SizedBox(height: p16);
+  static const verticalSpace24 = SizedBox(height: p24);
+  static const horizontalSpace8 = SizedBox(width: p8);
+}
+</file>
+
+<file path="lib/core/widgets/app_text_form_field.dart">
+import 'package:flutter/material.dart';
+import '../theme/app_color.dart';
+import '../utils/app_dimens.dart';
+
+class AppTextFormField extends StatelessWidget {
+  const AppTextFormField({
+    this.fillColor,
+    super.key,
+    required this.controller,
+    required this.hintText,
+    required this.obscureText,
+    required this.keyboardType,
+    this.textInputAction,
+    this.suffixIcon,
+    this.onTap,
+    this.prefixIcon,
+    this.validator,
+    this.focusNode,
+    this.errorMsg,
+    this.onChange,
+    this.border,
+  });
+
+  final TextEditingController controller;
+  final String hintText;
+  final bool obscureText;
+  final TextInputType keyboardType;
+  final Widget? suffixIcon;
+  final VoidCallback? onTap;
+  final Widget? prefixIcon;
+  final String? Function(String?)? validator;
+  final FocusNode? focusNode;
+  final String? errorMsg;
+  final Color? fillColor;
+  final OutlineInputBorder? border;
+  final void Function(String)? onChange;
+  final TextInputAction? textInputAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      focusNode: focusNode,
+      onTap: onTap,
+      onChanged: onChange,
+      autofocus: false,
+      textInputAction: textInputAction ?? TextInputAction.next,
+      decoration: InputDecoration(
+        suffixIcon: suffixIcon,
+        prefixIcon: prefixIcon,
+        border: border,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius16,
+          borderSide: const BorderSide(color: AppColors.transparent),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppDimens.borderRadius8,
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
+        ),
+        fillColor: fillColor ?? AppColors.fieldBackground,
+        filled: true,
+        hintText: hintText,
+        hintStyle: const TextStyle(color: AppColors.grey),
+        errorText: errorMsg,
+      ),
+    );
+  }
+}
+</file>
+
+</files>

@@ -13,7 +13,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
-      scaffoldBackgroundColor: AppColors.surface,
+      scaffoldBackgroundColor: AppColors.white,
       fontFamily: locale.languageCode == 'ar'
           ? AppConstants.fontFamilyArabic
           : AppConstants.fontFamilyEnglish,

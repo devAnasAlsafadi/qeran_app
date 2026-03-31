@@ -50,19 +50,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyALU0WJpqe2BMhsE3w3c_imPEHU7CPAqBg',
-    appId: '1:379935865249:android:ded990cae20bbb4d0873e0',
-    messagingSenderId: '379935865249',
-    projectId: 'qeran-project',
-    storageBucket: 'qeran-project.firebasestorage.app',
+    apiKey: 'AIzaSyBEk-BvNrv4D3ec2uJtec1UuPtSR4-bGqE',
+    appId: '1:517112282743:android:be8ee85568a37fa2169072',
+    messagingSenderId: '517112282743',
+    projectId: 'qeran-7e6a2',
+    storageBucket: 'qeran-7e6a2.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB1AJBQdeZGj_5VDcb5q1XyWQcSewe1z3U',
-    appId: '1:379935865249:ios:83e039797112df220873e0',
-    messagingSenderId: '379935865249',
-    projectId: 'qeran-project',
-    storageBucket: 'qeran-project.firebasestorage.app',
-    iosBundleId: 'com.example.qeran',
+    apiKey: 'AIzaSyC-fcOpjNG-dDosOUPFuLhYodERDQfc54Q',
+    appId: '1:517112282743:ios:bfdc82d6c55fd905169072',
+    messagingSenderId: '517112282743',
+    projectId: 'qeran-7e6a2',
+    storageBucket: 'qeran-7e6a2.firebasestorage.app',
+    iosClientId: '517112282743-4hsqi75o038c9agq7r1h9uo4stl35p5f.apps.googleusercontent.com',
+    iosBundleId: 'com.qeran.app',
   );
+
 }

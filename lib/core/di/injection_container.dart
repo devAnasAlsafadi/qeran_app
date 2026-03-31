@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../features/auth/di/auth_injection.dart';
+import '../../features/questionnaire/di/questionnaire_injection.dart';
+import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import '../../features/splash/presentation/blocs/splash_cubit.dart';
 import '../api/api_consumer.dart';
 import '../api/http_consumer.dart';
@@ -23,10 +26,19 @@ Future<void> init() async {
   //! Storage
   sl.registerLazySingleton<SecureStorageService>(() => SecureStorageService(sl()));
   sl.registerLazySingleton<SharedPrefService>(() => SharedPrefService(sl()));
+  sl.registerLazySingleton<StorageService>(() => sl<SecureStorageService>());
 
   //! Network
   sl.registerLazySingleton<ApiConsumer>(() => HttpConsumer(client: sl(), storage: sl()));
 
+  //! Features - Auth
+  await initAuthDependencies();
+
+  //! Features - Questionnaire
+  initQuestionnaireDependencies();
+
+  //! Features - Onboarding
+  sl.registerFactory(() => OnboardingCubit(sharedPref: sl<SharedPrefService>()));
 
   //! Features - Splash
   sl.registerFactory(() => SplashCubit(

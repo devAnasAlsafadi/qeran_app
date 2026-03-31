@@ -17,7 +17,7 @@ class AppColors {
   static const Color purple = Colors.deepPurple;
   static const Color greyLight = Color(0xFFF3F4F6);
   static const Color transparent = Colors.transparent;
-
+  static const Color fieldBackground = Color(0xFFEAE6E6);
 
 
 

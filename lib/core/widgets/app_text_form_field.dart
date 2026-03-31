@@ -53,14 +53,14 @@ class AppTextFormField extends StatelessWidget {
         prefixIcon: prefixIcon,
         border: border,
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppDimens.borderRadius8,
+          borderRadius: AppDimens.borderRadius16,
           borderSide: const BorderSide(color: AppColors.transparent),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppDimens.borderRadius8,
           borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary),
         ),
-        fillColor: fillColor ?? AppColors.greyLight,
+        fillColor: fillColor ?? AppColors.fieldBackground,
         filled: true,
         hintText: hintText,
         hintStyle: const TextStyle(color: AppColors.grey),

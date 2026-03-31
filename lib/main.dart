@@ -24,14 +24,17 @@ void main() async {
   //  Dependency Injection
   await di.init();
 
+
+
+
   await EasyLocalization.ensureInitialized();
   Bloc.observer = SimpleBlocObserver();
-
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale("ar")],
       fallbackLocale: const Locale('en'),
       path: AppAssets.translations,
+      startLocale: Locale("ar"),
       child:  QeranApp(),
     ),
   );

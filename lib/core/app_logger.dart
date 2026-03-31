@@ -8,7 +8,7 @@ class AppLogger {
 
   static void info(String message, {String tag = 'INFO'}) {
     if (!_isDebug) return;
-    dev.log(message, name: tag, time: DateTime.now());
+    dev.log('\x1B[32m$message\x1B[0m', name: tag, time: DateTime.now());
   }
 
   static void debug(String message, {String tag = 'DEBUG'}) {

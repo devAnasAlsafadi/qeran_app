@@ -46,10 +46,19 @@ dependencies:
   firebase_core: ^4.4.0
   firebase_auth: ^6.1.4
   google_sign_in: ^7.2.0
+  sign_in_with_apple: ^6.1.0
+  dartz: ^0.10.1
+  smooth_page_indicator: ^2.0.1
+  font_awesome_flutter: ^11.0.0
+  flutter_svg: ^2.2.4
+  flutter_animate: ^4.5.2
+  country_picker: ^2.0.27
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  test: ^1.25.0
+  mocktail: ^0.3.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -57,6 +66,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  change_app_package_name: ^1.5.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -67,6 +77,7 @@ flutter:
   assets:
     - assets/translations/
     - assets/images/
+    - assets/icons/
 
   fonts:
     - family: Montserrat

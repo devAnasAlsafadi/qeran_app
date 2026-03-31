@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:qeran/core/constants/app_constants.dart';
+import 'package:qeran/core/constants/storage_keys.dart';
 import '../app_logger.dart';
 import '../errors/exceptions.dart';
 import '../services/storage_service.dart';
@@ -17,7 +17,7 @@ class HttpConsumer extends ApiConsumer {
   HttpConsumer({required this.client, required this.storage});
 
   Future<Map<String, String>> _getHeaders() async {
-    final token = await storage.get<String>(AppConstants.cachedToken);
+    final token = await storage.get<String>(StorageKeys.token);
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -100,19 +100,26 @@ class HttpConsumer extends ApiConsumer {
     try {
       final dynamic responseBody = jsonDecode(response.body);
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        if (responseBody['status'] == true) {
+        if (responseBody['status'] == 1 || responseBody['status'] == true) {
           return responseBody;
         } else {
           throw ServerException(message: responseBody['message'] ?? "Operation Failed");
         }
       } else {
-        String errorMessage = "Something went wrong";
+        String errorMessage = _statusErrorMessage(response.statusCode);
         if (responseBody is Map) {
-          if (response.statusCode == 422 && responseBody['errors'] != null) {
-            final Map<String, dynamic> errors = responseBody['errors'];
-            errorMessage = errors.values.first[0].toString();
+          if (responseBody['errors'] != null && responseBody['errors'] is Map) {
+            final Map<String, dynamic> errors = Map<String, dynamic>.from(responseBody['errors']);
+            if (errors.isNotEmpty) {
+              final firstList = errors.values.first;
+              if (firstList is List && firstList.isNotEmpty) {
+                errorMessage = firstList.first.toString();
+              }
+            }
           } else {
-            errorMessage = responseBody['message'] ?? "Error: ${response.statusCode}";
+            errorMessage = responseBody['message'] as String?
+                ?? responseBody['error'] as String?
+                ?? _statusErrorMessage(response.statusCode);
           }
         }
         AppLogger.error('${response.statusCode} ${response.request?.url}: $errorMessage', tag: 'HTTP');
@@ -120,7 +127,11 @@ class HttpConsumer extends ApiConsumer {
       }
     } catch (e) {
       if (e is ServerException) rethrow;
-      throw ServerException(message: "Error interpreting server response");
+      AppLogger.error(
+        '${response.statusCode} non-JSON body: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}',
+        tag: 'HTTP',
+      );
+      throw ServerException(message: _statusErrorMessage(response.statusCode));
     }
   }
 
@@ -128,4 +139,17 @@ class HttpConsumer extends ApiConsumer {
     if (e is TimeoutException) return "Request timed out. Please try again.";
     return "Connection error: ${e.toString()}";
   }
+
+  String _statusErrorMessage(int statusCode) => switch (statusCode) {
+        400 => 'البيانات المدخلة غير صحيحة',
+        401 => 'غير مصرح بالوصول',
+        403 => 'ليس لديك صلاحية للوصول',
+        404 => 'لم يتم العثور على المورد',
+        408 => 'انتهت مهلة الطلب',
+        429 => 'طلبات كثيرة، حاول لاحقاً',
+        500 || 502 || 503 => 'خطأ في الخادم، حاول لاحقاً',
+        _ => 'حدث خطأ، حاول مرة أخرى',
+      };
 }
+
+

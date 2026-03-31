@@ -47,10 +47,17 @@ class SplashCubit extends Cubit<SplashState> {
       return;
     }
 
+    // --- Gender Selection ---
+    final String? gender = await sharedPrefs.get<String>(StorageKeys.gender);
+    if (gender == null || gender.isEmpty) {
+      emit(NavigateToIncompleteProfile('gender'));
+      return;
+    }
+
     // ---Questions ---
     final bool? finishedQuestions = await sharedPrefs.get<bool>(StorageKeys.finishedQuestions);
     if (finishedQuestions != true) {
-      emit(NavigateToIncompleteProfile('questions'));
+      emit(NavigateToIncompleteProfile('gender'));
       return;
     }
 

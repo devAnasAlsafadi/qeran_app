@@ -11,6 +11,7 @@ class RouteNames {
   static const String forgotPasswordEmail = '/forgotPasswordEmail';
   static const String resetPassword = '/resetPassword';
 
+  static const String genderSelectionScreen = '/genderSelection';
   static const String questionsScreen = '/questions';
   static const String oathScreen = '/oath';
   static const String photoUploadScreen = '/photoUpload';

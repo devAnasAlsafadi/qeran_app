@@ -1,33 +1,29 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:qeran/core/routes/route_name.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'core/constants/app_constants.dart';
-import 'core/datasources/secure_storage_service.dart';
-import 'core/datasources/shared_pref_service.dart';
 import 'core/di/injection_container.dart';
 import 'core/routes/app_router.dart';
+import 'core/routes/route_name.dart';
 import 'core/theme/theme.dart';
 import 'features/splash/presentation/blocs/splash_cubit.dart';
 
 class QeranApp extends StatelessWidget {
-   QeranApp({super.key});
-
-  final AppRouter _appRouter = AppRouter();
-
+  const QeranApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<SplashCubit>(
-          create: (context) => sl<SplashCubit>(),
-        ),
+        BlocProvider<SplashCubit>(create: (_) => sl<SplashCubit>()),
       ],
       child: MaterialApp(
-        localizationsDelegates: context.localizationDelegates,
+        localizationsDelegates: [
+          ...context.localizationDelegates,
+          CountryLocalizations.delegate,
+        ],
         supportedLocales: context.supportedLocales,
         locale: context.locale,
         debugShowCheckedModeBanner: false,
@@ -36,7 +32,7 @@ class QeranApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme(context.locale),
         themeMode: ThemeMode.light,
         initialRoute: RouteNames.splashScreen,
-        onGenerateRoute: _appRouter.onGenerateRoute,
+        onGenerateRoute: AppRouter().onGenerateRoute,
         builder: (context, child) => ResponsiveBreakpoints.builder(
           child: child!,
           breakpoints: [

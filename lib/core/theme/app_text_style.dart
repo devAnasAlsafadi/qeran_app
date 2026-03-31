@@ -9,7 +9,6 @@ class AppTextStyles {
     fontSize: 28,
     fontWeight: FontWeight.bold,
     fontFamily: AppConstants.fontFamilyArabic,
-    letterSpacing: 0.5,
   );
 
   static const TextStyle headlineMedium = TextStyle(
@@ -47,7 +46,6 @@ class AppTextStyles {
     fontSize: 18,
     fontWeight: FontWeight.bold,
     fontFamily: AppConstants.fontFamilyArabic,
-    letterSpacing: 1.1,
   );
 
   static const TextStyle labelSmall = TextStyle(

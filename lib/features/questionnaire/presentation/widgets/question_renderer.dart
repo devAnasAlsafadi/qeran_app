@@ -5,6 +5,8 @@ import 'question_date_widget.dart';
 import 'question_height_widget.dart';
 import 'question_select_widget.dart';
 import 'question_weight_widget.dart';
+import 'question_interests_widget.dart';
+import 'question_text_widget.dart';
 
 /// Factory widget that dispatches to the correct answer widget
 /// based on [QuestionType].
@@ -23,7 +25,7 @@ class QuestionRenderer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (question.type) {
-      QuestionType.select => QuestionSelectWidget(
+      QuestionType.select || QuestionType.radio => QuestionSelectWidget(
           question: question,
           selectedOptionId: currentAnswer as String?,
           onChanged: onAnswerChanged,
@@ -31,6 +33,15 @@ class QuestionRenderer extends StatelessWidget {
       QuestionType.checkbox => QuestionCheckboxWidget(
           question: question,
           selectedOptionIds: (currentAnswer as List<String>?) ?? [],
+          onChanged: onAnswerChanged,
+        ),
+      QuestionType.interests => QuestionInterestsWidget(
+          question: question,
+          selectedOptionIds: (currentAnswer as List<String>?) ?? [],
+          onChanged: onAnswerChanged,
+        ),
+      QuestionType.text => QuestionTextWidget(
+          currentAnswer: currentAnswer as String?,
           onChanged: onAnswerChanged,
         ),
       QuestionType.date => QuestionDateWidget(

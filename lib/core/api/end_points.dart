@@ -12,4 +12,8 @@ class EndPoints {
 
   // Questionnaire
   static const String questions = "Questions";
+  static const String submitAnswers = "Questions/submit";
+
+  // Profile
+  static const String profileImages = "users/profile-images";
 }

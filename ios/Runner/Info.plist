@@ -50,5 +50,9 @@
     	<string>en</string>
     	<string>ar</string>
     </array>
+	<key>NSCameraUsageDescription</key>
+	<string>نحتاج الوصول للكاميرا لالتقاط صورة الملف الشخصي</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>نحتاج الوصول لمعرض الصور لاختيار صور الملف الشخصي</string>
 </dict>
 </plist>

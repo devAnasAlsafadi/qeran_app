@@ -42,7 +42,7 @@ class AppRouter {
       case RouteNames.genderSelectionScreen:
         return MaterialPageRoute(settings: settings, builder: (context) => const GenderSelectionScreen());
       case RouteNames.questionsScreen:
-        final questions = settings.arguments as List<QuestionEntity>;
+        final questions = settings.arguments as List<QuestionEntity>?;
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => QuestionnaireFlowScreen(questions: questions),

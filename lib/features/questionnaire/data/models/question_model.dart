@@ -42,6 +42,9 @@ class QuestionModel {
       'weight' => QuestionType.weight,
       'select' => QuestionType.select,
       'checkbox' => QuestionType.checkbox,
+      'interests' => QuestionType.interests,
+      'text' => QuestionType.text,
+      'radio' => QuestionType.radio,
       _ => QuestionType.unknown,
     };
   }

@@ -57,7 +57,7 @@ class SplashCubit extends Cubit<SplashState> {
     // ---Questions ---
     final bool? finishedQuestions = await sharedPrefs.get<bool>(StorageKeys.finishedQuestions);
     if (finishedQuestions != true) {
-      emit(NavigateToIncompleteProfile('gender'));
+      emit(NavigateToIncompleteProfile('questions'));
       return;
     }
 
@@ -66,6 +66,13 @@ class SplashCubit extends Cubit<SplashState> {
     final bool? signedOath = await sharedPrefs.get<bool>(StorageKeys.signedOath);
     if (signedOath != true) {
       emit(NavigateToIncompleteProfile('oath'));
+      return;
+    }
+
+    // --- Photo Upload ---
+    final bool? uploadedPhotos = await sharedPrefs.get<bool>(StorageKeys.uploadedPhotos);
+    if (uploadedPhotos != true) {
+      emit(NavigateToIncompleteProfile('photos'));
       return;
     }
 

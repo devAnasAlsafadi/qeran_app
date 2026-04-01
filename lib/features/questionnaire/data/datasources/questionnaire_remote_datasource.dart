@@ -4,10 +4,12 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import '../../../../core/api/api_response.dart';
+import '../../../../core/domain/entities/success_response.dart';
 import '../models/question_model.dart';
 
 abstract interface class QuestionnaireRemoteDataSource {
   Future<List<QuestionModel>> fetchQuestions({required Gender gender});
+  Future<dynamic> submitAnswers({required List<Map<String, dynamic>> answers});
 }
 
 class QuestionnaireRemoteDataSourceImpl implements QuestionnaireRemoteDataSource {
@@ -57,4 +59,25 @@ class QuestionnaireRemoteDataSourceImpl implements QuestionnaireRemoteDataSource
 
     return apiResponse.data!;
   }
+
+  @override
+  Future<SuccessResponse<dynamic>> submitAnswers({
+    required List<Map<String, dynamic>> answers,
+  }) async {
+    AppLogger.debug('SUBMIT ANSWERS -> count: ${answers.length}', tag: 'QUESTIONNAIRE');
+
+    final response = await _apiConsumer.post(
+      EndPoints.submitAnswers,
+      body: {'answers': answers},
+    );
+
+    final apiResponse = ApiResponse<dynamic>.fromJson(
+      response,
+          (json) => json,
+    );
+
+    return SuccessResponse.fromApiResponse(apiResponse);
+  }
+
+
 }

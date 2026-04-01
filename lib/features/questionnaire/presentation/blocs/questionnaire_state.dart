@@ -39,3 +39,10 @@ final class QuestionnaireInProgress extends QuestionnaireState {
 
 /// All questions answered — questionnaire marked complete locally.
 final class QuestionnaireCompleted extends QuestionnaireState {}
+
+final class QuestionnaireSubmitting extends QuestionnaireState {}
+
+final class QuestionnaireSubmissionFailure extends QuestionnaireState {
+  final String message;
+  QuestionnaireSubmissionFailure(this.message);
+}

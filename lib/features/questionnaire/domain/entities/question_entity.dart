@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'question_option_entity.dart';
 
-enum QuestionType { date, height, weight, select, checkbox, unknown }
+enum QuestionType { date, height, weight, select, checkbox, interests, text, radio, unknown }
 
 class QuestionEntity extends Equatable {
   final String questionId;
@@ -21,10 +21,15 @@ class QuestionEntity extends Equatable {
   /// - [QuestionType.date] / [QuestionType.height] / [QuestionType.weight]: always renderable.
   /// - [QuestionType.unknown]: never renderable.
   bool get isRenderable => switch (type) {
-        QuestionType.select || QuestionType.checkbox => options.isNotEmpty,
+        QuestionType.select ||
+        QuestionType.checkbox ||
+        QuestionType.interests ||
+        QuestionType.radio =>
+          options.isNotEmpty,
         QuestionType.date ||
         QuestionType.height ||
-        QuestionType.weight =>
+        QuestionType.weight ||
+        QuestionType.text =>
           true,
         QuestionType.unknown => false,
       };

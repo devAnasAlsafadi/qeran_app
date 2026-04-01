@@ -36,7 +36,7 @@ class SplashScreenController {
         targetRoute = RouteNames.genderSelectionScreen;
         break;
       case 'questions':
-        targetRoute = RouteNames.genderSelectionScreen;
+        targetRoute = RouteNames.questionsScreen;
         break;
       case 'oath':
         targetRoute = RouteNames.oathScreen;

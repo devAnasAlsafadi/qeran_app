@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/likes_tab.dart';
 
 /// Three-segment header on the Likes / Interests screen.
 ///
-/// Wraps all cells in a single white rounded card with a soft burgundy
-/// shadow — matches the Figma "pill" style. The active indicator is an
-/// animated burgundy bar that slides horizontally inside the card via
-/// `AnimatedPositionedDirectional`, so the position is correct in both
-/// RTL and LTR without per-locale overrides.
-///
-/// Tab order is `[sent, received, matches]` so in Arabic (RTL) `Sent`
-/// sits on the right, `Received` in the middle and `Matches` on the
-/// left; in English (LTR) they flip automatically.
+/// Wraps all cells in a single paper rounded card with a wine-tinted
+/// shadow. The active indicator is an animated wine bar that slides
+/// horizontally via `AnimatedPositionedDirectional`, so the position is
+/// correct in both RTL and LTR without per-locale overrides.
 class LikesSegmentedTabs extends StatelessWidget {
   final LikesTab active;
   final ValueChanged<LikesTab> onChanged;
@@ -57,26 +53,18 @@ class LikesSegmentedTabs extends StatelessWidget {
     final activeIndex = _order.indexOf(active);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppDimens.p20,
-        AppDimens.p8,
-        AppDimens.p20,
-        AppDimens.p12,
+        QeranSpacing.s20,
+        QeranSpacing.s8,
+        QeranSpacing.s20,
+        QeranSpacing.s12,
       ),
       child: Container(
         height: _kCardHeight,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: QeranColors.paper,
           borderRadius: BorderRadius.circular(_kCardRadius),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.06),
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x10431C33), // primary @ ~6 %
-              blurRadius: 20,
-              offset: Offset(0, 6),
-            ),
-          ],
+          border: Border.all(color: QeranColors.wine08),
+          boxShadow: QeranShadows.e2,
         ),
         child: Padding(
           padding: const EdgeInsets.all(_kInnerPad),
@@ -87,8 +75,6 @@ class LikesSegmentedTabs extends StatelessWidget {
                   activeIndex * cellWidth + (cellWidth - _kBarWidth) / 2;
               return Stack(
                 children: [
-                  // Bottom-aligned animated underline. Directional Start
-                  // means RTL-correct positioning without extra logic.
                   AnimatedPositionedDirectional(
                     duration: _kAnimDur,
                     curve: Curves.easeOutCubic,
@@ -98,7 +84,7 @@ class LikesSegmentedTabs extends StatelessWidget {
                     height: _kBarHeight,
                     child: const DecoratedBox(
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: QeranColors.gold,
                         borderRadius: BorderRadius.all(Radius.circular(2)),
                       ),
                     ),
@@ -136,9 +122,6 @@ class _TabCell extends StatelessWidget {
     required this.onTap,
   });
 
-  static const Color _active = AppColors.primary;
-  static const Color _inactive = AppColors.textSecondary;
-
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -148,8 +131,8 @@ class _TabCell extends StatelessWidget {
         child: AnimatedDefaultTextStyle(
           duration: LikesSegmentedTabs._kAnimDur,
           curve: Curves.easeOutCubic,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: isActive ? _active : _inactive,
+          style: QeranTypography.subtitle.copyWith(
+            color: isActive ? QeranColors.wine : QeranColors.inkMuted,
             fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
           ),
           child: Text(

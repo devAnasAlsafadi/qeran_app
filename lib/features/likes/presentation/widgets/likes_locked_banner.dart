@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// Premium burgundy strip that sits above the incoming list when the
+/// Premium wine strip that sits above the incoming list when the
 /// server reports `requiresSubscription: true`. Tapping it pushes the
 /// existing Packages route — never invents a paywall sheet.
 class LikesLockedBanner extends StatelessWidget {
@@ -16,21 +17,21 @@ class LikesLockedBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        AppDimens.p20,
+        QeranSpacing.s20,
         0,
-        AppDimens.p20,
-        AppDimens.p12,
+        QeranSpacing.s20,
+        QeranSpacing.s12,
       ),
       child: Material(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(20),
+        color: QeranColors.wine,
+        borderRadius: QeranRadii.cardR,
         child: InkWell(
           onTap: onSubscribe,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: QeranRadii.cardR,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppDimens.p16,
-              vertical: AppDimens.p12,
+              horizontal: QeranSpacing.s16,
+              vertical: QeranSpacing.s12,
             ),
             child: Row(
               children: [
@@ -39,41 +40,39 @@ class LikesLockedBanner extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primaryLight.withValues(alpha: 0.30),
+                    color: QeranColors.gold.withValues(alpha: 0.20),
+                    border: Border.all(color: QeranColors.gold, width: 1),
                   ),
                   alignment: Alignment.center,
                   child: const Icon(
                     Icons.lock_rounded,
-                    color: AppColors.white,
+                    color: QeranColors.gold,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: AppDimens.p12),
+                QeranSpacing.hs12,
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         LocaleKeys.likes_locked_title.t(context),
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: QeranTypography.subtitle
+                            .copyWith(color: QeranColors.paper),
                       ),
-                      const SizedBox(height: 2),
+                      QeranSpacing.vs4,
                       Text(
                         LocaleKeys.likes_locked_subtitle.t(context),
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.white.withValues(alpha: 0.85),
-                        ),
+                        style: QeranTypography.caption
+                            .copyWith(color: QeranColors.gold),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: AppDimens.p8),
+                QeranSpacing.hs8,
                 const Icon(
                   Icons.chevron_left_rounded,
-                  color: AppColors.white,
+                  color: QeranColors.gold,
                 ),
               ],
             ),

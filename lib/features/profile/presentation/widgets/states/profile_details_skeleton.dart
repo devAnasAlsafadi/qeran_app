@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_skeleton.dart';
 
 /// First-paint placeholder for the Full Profile Details screen when no
-/// seed is available (e.g. chat-tap path). Plain coloured blocks —
-/// avoids a third-party shimmer dependency. The hero block matches
-/// the gallery height so the layout doesn't jump when the real image
-/// lands.
+/// seed is available (e.g. chat-tap path). The hero block matches the
+/// gallery height so the layout doesn't jump when the real image lands.
 class ProfileDetailsSkeleton extends StatelessWidget {
   const ProfileDetailsSkeleton({super.key});
 
@@ -14,78 +12,37 @@ class ProfileDetailsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final block = AppColors.primary.withValues(alpha: 0.06);
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(height: _heroHeight, color: block),
-        const SizedBox(height: AppDimens.p16),
+        QeranSkeleton.box(height: _heroHeight, radius: 0),
+        SizedBox(height: QeranSpacing.s20),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.p20),
+          padding: EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Line(width: 180, color: block),
-              const SizedBox(height: AppDimens.p12),
-              _Line(width: double.infinity, color: block, height: 14),
-              const SizedBox(height: AppDimens.p8),
-              _Line(width: 240, color: block, height: 14),
-              const SizedBox(height: AppDimens.p24),
-              _Line(width: 140, color: block),
-              const SizedBox(height: AppDimens.p12),
+              QeranSkeleton(width: 180, height: 22),
+              SizedBox(height: QeranSpacing.s12),
+              QeranSkeleton(height: 14),
+              SizedBox(height: QeranSpacing.s8),
+              QeranSkeleton(width: 240, height: 14),
+              SizedBox(height: QeranSpacing.s24),
+              QeranSkeleton(width: 140, height: 22),
+              SizedBox(height: QeranSpacing.s12),
               Row(
                 children: [
-                  _Pill(color: block),
-                  const SizedBox(width: AppDimens.p8),
-                  _Pill(color: block),
-                  const SizedBox(width: AppDimens.p8),
-                  _Pill(color: block),
+                  QeranSkeleton(width: 70, height: 28),
+                  SizedBox(width: QeranSpacing.s8),
+                  QeranSkeleton(width: 70, height: 28),
+                  SizedBox(width: QeranSpacing.s8),
+                  QeranSkeleton(width: 70, height: 28),
                 ],
               ),
             ],
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Line extends StatelessWidget {
-  final double width;
-  final double height;
-  final Color color;
-  const _Line({
-    required this.width,
-    required this.color,
-    this.height = 18,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  final Color color;
-  const _Pill({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 70,
-      height: 28,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-      ),
     );
   }
 }

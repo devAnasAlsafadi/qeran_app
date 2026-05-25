@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -45,12 +45,15 @@ class _Button extends StatelessWidget {
         final cubit = context.read<ShareWithMatchmakerCubit>();
         return Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p20,
-            vertical: AppDimens.p8,
+            horizontal: QeranSpacing.s20,
+            vertical: QeranSpacing.s8,
           ),
-          child: _Pill(
-            isLoading: state.isSharing,
-            onTap: () => _onTap(context, cubit, state),
+          child: QeranButton(
+            label:
+                LocaleKeys.profile_share_with_matchmaker_cta.t(context),
+            onPressed: () => _onTap(context, cubit, state),
+            loading: state.isSharing,
+            leadingIcon: Icons.chat_bubble_outline_rounded,
           ),
         );
       },
@@ -132,62 +135,5 @@ class _Button extends StatelessWidget {
       case ShareEvent.failure:
         return (LocaleKeys.profile_share_failure, SnackBarType.error);
     }
-  }
-}
-
-class _Pill extends StatelessWidget {
-  final bool isLoading;
-  final VoidCallback onTap;
-  const _Pill({required this.isLoading, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.primary,
-      borderRadius: BorderRadius.circular(30),
-      child: InkWell(
-        onTap: isLoading ? null : onTap,
-        borderRadius: BorderRadius.circular(30),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p20,
-            vertical: AppDimens.p12,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (isLoading)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.white),
-                  ),
-                )
-              else
-                const Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  color: AppColors.white,
-                  size: 18,
-                ),
-              const SizedBox(width: AppDimens.p8),
-              Flexible(
-                child: Text(
-                  LocaleKeys.profile_share_with_matchmaker_cta.t(context),
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

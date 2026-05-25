@@ -54,6 +54,7 @@ skills-lock.json
 # Editor / IDE
 .vscode/
 .claude/settings.local.json
+.claude/settings.json
 
 # Android Kotlin build cache
 android/.kotlin/

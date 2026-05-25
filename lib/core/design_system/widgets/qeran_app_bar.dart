@@ -1,0 +1,73 @@
+import 'package:flutter/material.dart';
+
+import '../tokens/qeran_colors.dart';
+import '../tokens/qeran_typography.dart';
+
+/// Cream-aware app bar with wine title + icons and a branded back
+/// button. Caller owns navigation; this widget never pops on its own.
+class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const QeranAppBar({
+    super.key,
+    this.title,
+    this.onBack,
+    this.actions = const [],
+    this.background = QeranColors.creamCanvas,
+    this.centerTitle = true,
+  });
+
+  final String? title;
+  final VoidCallback? onBack;
+  final List<Widget> actions;
+  final Color background;
+  final bool centerTitle;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    final canPop = onBack != null || Navigator.of(context).canPop();
+    return AppBar(
+      backgroundColor: background,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: centerTitle,
+      iconTheme: const IconThemeData(color: QeranColors.wine),
+      actionsIconTheme: const IconThemeData(color: QeranColors.wine),
+      leading: canPop
+          ? _QeranBackButton(
+              onTap: onBack ?? () => Navigator.of(context).maybePop(),
+            )
+          : null,
+      title: title == null
+          ? null
+          : Text(
+              title!,
+              style: QeranTypography.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+      actions: actions,
+    );
+  }
+}
+
+class _QeranBackButton extends StatelessWidget {
+  const _QeranBackButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    // Mirror chevron for RTL.
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final icon = isRtl
+        ? Icons.chevron_right_rounded
+        : Icons.chevron_left_rounded;
+    return IconButton(
+      icon: Icon(icon, color: QeranColors.wine, size: 26),
+      onPressed: onTap,
+      tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+    );
+  }
+}

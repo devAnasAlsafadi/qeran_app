@@ -112,7 +112,9 @@ void main() {
             email: any(named: 'email'),
             password: any(named: 'password'),
           ),
-        ).thenThrow(ServerException(message: 'البريد الإلكتروني مستخدم بالفعل'));
+        ).thenThrow(
+          ServerException(message: 'البريد الإلكتروني مستخدم بالفعل'),
+        );
 
         // ── Act ────────────────────────────────────────────────────────────
         final result = await repository.registerUser(
@@ -183,10 +185,8 @@ void main() {
       () async {
         // ── Arrange ────────────────────────────────────────────────────────
         when(
-          () => mockDataSource.loginWithEmail(
-            email: tEmail,
-            password: tPassword,
-          ),
+          () =>
+              mockDataSource.loginWithEmail(email: tEmail, password: tPassword),
         ).thenAnswer((_) async => tUserSuccessResponse);
 
         // ── Act ────────────────────────────────────────────────────────────
@@ -198,10 +198,8 @@ void main() {
         // ── Assert ─────────────────────────────────────────────────────────
         expect(result, equals(Right<Failure, UserEntity>(tUserEntity)));
         verify(
-          () => mockDataSource.loginWithEmail(
-            email: tEmail,
-            password: tPassword,
-          ),
+          () =>
+              mockDataSource.loginWithEmail(email: tEmail, password: tPassword),
         ).called(1);
       },
     );
@@ -275,10 +273,8 @@ void main() {
       () async {
         // ── Arrange ────────────────────────────────────────────────────────
         when(
-          () => mockDataSource.verifyWhatsappOtp(
-            phoneNumber: tPhone,
-            otp: tOtp,
-          ),
+          () =>
+              mockDataSource.verifyWhatsappOtp(phoneNumber: tPhone, otp: tOtp),
         ).thenAnswer((_) async => tUserSuccessResponse);
 
         // ── Act ────────────────────────────────────────────────────────────
@@ -290,10 +286,8 @@ void main() {
         // ── Assert ─────────────────────────────────────────────────────────
         expect(result, equals(Right<Failure, UserEntity>(tUserEntity)));
         verify(
-          () => mockDataSource.verifyWhatsappOtp(
-            phoneNumber: tPhone,
-            otp: tOtp,
-          ),
+          () =>
+              mockDataSource.verifyWhatsappOtp(phoneNumber: tPhone, otp: tOtp),
         ).called(1);
       },
     );

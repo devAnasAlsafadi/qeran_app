@@ -10,8 +10,14 @@ void main() {
     });
 
     test('returns error when contains non-digits', () {
-      expect(PhoneValidator.validate('591234abc'), 'رقم الهاتف يجب أن يحتوي على أرقام فقط');
-      expect(PhoneValidator.validate('591-234-567'), 'رقم الهاتف يجب أن يحتوي على أرقام فقط');
+      expect(
+        PhoneValidator.validate('591234abc'),
+        'رقم الهاتف يجب أن يحتوي على أرقام فقط',
+      );
+      expect(
+        PhoneValidator.validate('591-234-567'),
+        'رقم الهاتف يجب أن يحتوي على أرقام فقط',
+      );
     });
 
     test('returns error when too short', () {
@@ -20,7 +26,10 @@ void main() {
 
     test('returns null when valid', () {
       expect(PhoneValidator.validate('591234567'), null);
-      expect(PhoneValidator.validate('591 234 567'), null); // spaces are ignored
+      expect(
+        PhoneValidator.validate('591 234 567'),
+        null,
+      ); // spaces are ignored
     });
   });
 }

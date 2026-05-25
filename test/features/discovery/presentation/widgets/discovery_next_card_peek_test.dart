@@ -1,0 +1,214 @@
+import 'package:dartz/dartz.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_page.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_profile.dart';
+import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
+import 'package:qeran/features/discovery/domain/usecases/fetch_discovery_page_usecase.dart';
+import 'package:qeran/features/discovery/domain/usecases/like_profile_usecase.dart';
+import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.dart';
+import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
+import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// ── Fakes ────────────────────────────────────────────────────────────────────
+
+DiscoveryProfile _profile(String id) => DiscoveryProfile(
+      id: id,
+      name: 'Name-$id',
+      age: 25,
+      images: const [],
+      matchingScore: 0,
+      placements: const [],
+    );
+
+class _StubAssetLoader extends AssetLoader {
+  const _StubAssetLoader();
+  @override
+  Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
+      const {};
+}
+
+class _FakeFetch implements FetchDiscoveryPageUseCase {
+  final List<DiscoveryProfile> _profiles;
+  _FakeFetch(this._profiles);
+
+  @override
+  Future<Either<Failure, DiscoveryPage>> call({
+    int page = 1,
+    int pageSize = 10,
+    Map<String, String>? filterParams,
+  }) async =>
+      Right(DiscoveryPage(
+        profiles: _profiles,
+        pageNumber: 1,
+        pageSize: _profiles.length,
+        totalCount: _profiles.length,
+        totalPages: 1,
+      ));
+}
+
+class _FakeLike implements LikeProfileUseCase {
+  @override
+  Future<Either<Failure, LikeOutcome>> call(String profileId) async =>
+      const Right(LikeAccepted(likeId: '1'));
+}
+
+class _FakePass implements PassProfileUseCase {
+  @override
+  Future<Either<Failure, Unit>> call(String profileId) async =>
+      const Right(unit);
+}
+
+Future<void> _pumpView(
+  WidgetTester tester,
+  List<DiscoveryProfile> profiles,
+) async {
+  sl.registerFactory<DiscoveryCubit>(
+    () => DiscoveryCubit(
+      fetchPage: _FakeFetch(profiles),
+      likeProfile: _FakeLike(),
+      passProfile: _FakePass(),
+    ),
+  );
+  await tester.pumpWidget(
+    EasyLocalization(
+      supportedLocales: const [Locale('en')],
+      path: 'assets/translations',
+      assetLoader: const _StubAssetLoader(),
+      child: Builder(
+        builder: (ctx) => MaterialApp(
+          locale: ctx.locale,
+          supportedLocales: ctx.supportedLocales,
+          localizationsDelegates: ctx.localizationDelegates,
+          home: const Scaffold(body: DiscoveryView(showTopBar: false)),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+void main() {
+  // ── Unit: DiscoveryLoaded.next ──────────────────────────────────────────────
+  group('DiscoveryLoaded.next', () {
+    test('null when only one profile', () {
+      final s = DiscoveryLoaded(
+        profiles: [_profile('a')],
+        currentIndex: 0,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, isNull);
+    });
+
+    test('returns second profile at index 0', () {
+      final p1 = _profile('a');
+      final p2 = _profile('b');
+      final s = DiscoveryLoaded(
+        profiles: [p1, p2],
+        currentIndex: 0,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, equals(p2));
+    });
+
+    test('null when profile list is empty', () {
+      final s = DiscoveryLoaded(
+        profiles: const [],
+        currentIndex: 0,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, isNull);
+    });
+
+    test('returns third profile when currentIndex is 1', () {
+      final s = DiscoveryLoaded(
+        profiles: [_profile('a'), _profile('b'), _profile('c')],
+        currentIndex: 1,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, equals(_profile('c')));
+    });
+
+    test('null when currentIndex is the last slot', () {
+      final s = DiscoveryLoaded(
+        profiles: [_profile('a'), _profile('b')],
+        currentIndex: 1,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, isNull);
+    });
+  });
+
+  // ── Widget: peek layer ────────────────────────────────────────────────────
+  group('next-card peek layer', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('two DiscoveryImagePanel widgets when two profiles exist',
+        (tester) async {
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+      expect(find.byType(DiscoveryImagePanel), findsNWidgets(2));
+    });
+
+    testWidgets('one DiscoveryImagePanel widget when only one profile',
+        (tester) async {
+      await _pumpView(tester, [_profile('a')]);
+      expect(find.byType(DiscoveryImagePanel), findsOneWidget);
+    });
+
+    testWidgets('overlay icons belong to the screen layer only — never inside cards',
+        (tester) async {
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+      // Both the active card (showOverlayActions: false) and the peek card
+      // (showOverlayActions: false) suppress DiscoveryImagePanel's internal
+      // overlay row. Only the screen-level _OverlayControls renders, using
+      // Icons.notifications_none_rounded (not outlined).
+      expect(
+        find.byIcon(Icons.notifications_outlined),
+        findsNothing,
+        reason: 'card-panel overlay icons must be suppressed in home context',
+      );
+      // Screen-level overlay renders exactly one notifications button.
+      expect(
+        find.byIcon(Icons.notifications_none_rounded),
+        findsOneWidget,
+        reason: 'exactly one screen-level notifications icon expected',
+      );
+    });
+
+    testWidgets('peek Opacity(0.60) is wrapped in IgnorePointer',
+        (tester) async {
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+      // _PeekCardLayer renders Opacity(opacity: 0.60). The active card
+      // renders at full opacity, so this finder is unique to the peek.
+      final peekOpacity = find.byWidgetPredicate(
+        (w) => w is Opacity && (w.opacity - 0.60).abs() < 0.001,
+      );
+      expect(peekOpacity, findsOneWidget);
+      // The peek Opacity must be inside IgnorePointer so it never blocks
+      // gestures on the active card.
+      expect(
+        find.ancestor(of: peekOpacity, matching: find.byType(IgnorePointer)),
+        findsAtLeastNWidgets(1),
+      );
+    });
+  });
+}

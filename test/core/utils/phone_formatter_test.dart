@@ -12,7 +12,10 @@ void main() {
     });
 
     test('strips spaces from local number', () {
-      expect(PhoneFormatter.toApiFormat('+970', ' 59 123 4567 '), '970591234567');
+      expect(
+        PhoneFormatter.toApiFormat('+970', ' 59 123 4567 '),
+        '970591234567',
+      );
     });
 
     test('works without plus sign in country code', () {

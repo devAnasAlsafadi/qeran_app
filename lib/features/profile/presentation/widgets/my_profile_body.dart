@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 
 import '../../domain/entities/my_profile.dart';
 import '../../domain/entities/profile_image.dart';
@@ -20,25 +20,22 @@ class MyProfileBody extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         ProfileStatusBanner(status: profile.profileStatus),
-        const SizedBox(height: AppDimens.p16),
+        QeranSpacing.vs20,
         ProfileHeaderGallery(
           images: _ownerImagesAsProfileImages(profile),
         ),
-        const SizedBox(height: AppDimens.p16),
+        QeranSpacing.vs20,
         _HeaderRow(profile: profile),
-        const SizedBox(height: AppDimens.p16),
+        QeranSpacing.vs20,
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.p20),
+          padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
           child: PlacementRenderer(placements: profile.placements),
         ),
-        const SizedBox(height: AppDimens.p32),
+        QeranSpacing.vs32,
       ],
     );
   }
 
-  /// Widens [OwnerImage] to the sealed [ProfileImage] supertype expected
-  /// by [ProfileHeaderGallery]. Order: primary first if any, then the
-  /// rest in server order.
   List<ProfileImage> _ownerImagesAsProfileImages(MyProfile p) {
     final list = <ProfileImage>[];
     final primary = p.profileImage;
@@ -57,34 +54,36 @@ class _HeaderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final email = (profile.email ?? '').trim();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimens.p20),
+      padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            profile.name,
-            style: AppTextStyles.headlineMedium.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${profile.gender} · ${profile.age}',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          if ((profile.email ?? '').isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              profile.email!,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+          Text(profile.name, style: QeranTypography.headline),
+          QeranSpacing.vs12,
+          Wrap(
+            spacing: QeranSpacing.s8,
+            runSpacing: QeranSpacing.s8,
+            children: [
+              QeranChip(
+                label: profile.gender,
+                variant: QeranChipVariant.meta,
+                icon: Icons.person_outline_rounded,
               ),
-            ),
-          ],
+              QeranChip(
+                label: '${profile.age}',
+                variant: QeranChipVariant.meta,
+                icon: Icons.cake_outlined,
+              ),
+              if (email.isNotEmpty)
+                QeranChip(
+                  label: email,
+                  variant: QeranChipVariant.meta,
+                  icon: Icons.mail_outline_rounded,
+                ),
+            ],
+          ),
         ],
       ),
     );

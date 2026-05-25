@@ -1,8 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/other_profile.dart';
@@ -25,8 +25,6 @@ class FullProfileBody extends StatelessWidget {
     required this.entry,
   });
 
-  /// Share button only makes sense for peer profiles the user might
-  /// want their matchmaker to weigh in on.
   bool get _showShare {
     switch (entry) {
       case ProfileEntrySource.discovery:
@@ -48,20 +46,20 @@ class FullProfileBody extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         ProfileHeaderGallery(images: profile.images),
-        const SizedBox(height: AppDimens.p16),
+        QeranSpacing.vs20,
         _TitleRow(name: profile.name, age: profile.age),
-        const SizedBox(height: AppDimens.p8),
+        QeranSpacing.vs8,
         MatchingScoreCard(percent: profile.matchingScore),
-        const SizedBox(height: AppDimens.p8),
+        QeranSpacing.vs8,
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.p20),
+          padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
           child: PlacementRenderer(placements: profile.placements),
         ),
         if (_showShare) ...[
-          const SizedBox(height: AppDimens.p24),
+          QeranSpacing.vs24,
           ShareWithMatchmakerButton(userId: profile.id),
         ],
-        const SizedBox(height: AppDimens.p32),
+        QeranSpacing.vs32,
       ],
     );
   }
@@ -81,24 +79,21 @@ class _TitleRow extends StatelessWidget {
             namedArgs: {'name': name, 'age': '$age'},
           );
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimens.p20),
+      padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
-              style: AppTextStyles.headlineMedium.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
+              style: QeranTypography.headline,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: AppDimens.p8),
+          QeranSpacing.hs8,
           const Icon(
             Icons.verified_rounded,
-            color: AppColors.success,
+            color: QeranColors.gold,
             size: 22,
           ),
         ],

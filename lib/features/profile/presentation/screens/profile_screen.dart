@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_card.dart';
+import 'package:qeran/core/design_system/widgets/qeran_section_header.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
@@ -58,16 +63,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _ProfileHeader(name: user?.name, email: user?.email),
-                  const SizedBox(height: 24),
+                  QeranSpacing.vs24,
                   _MyProfileTile(
                     onTap: () => NavigationManager.navigateTo(
                       context,
                       RouteNames.myProfile,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  QeranSpacing.vs32,
+                  QeranSectionHeader(
+                    title: LocaleKeys.subscriptions_status_my_subscription
+                        .t(context),
+                  ),
+                  QeranSpacing.vs12,
                   const SubscriptionStatusBlock(),
-                  const SizedBox(height: 24),
+                  QeranSpacing.vs32,
                   _LogoutTile(onTap: () => _handleLogout(context)),
                 ],
               );
@@ -172,61 +182,38 @@ class _MyProfileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.08),
+    return QeranCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: QeranColors.gold20,
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0F431C33),
-                blurRadius: 16,
-                offset: Offset(0, 4),
-              ),
-            ],
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.person_rounded,
+              color: QeranColors.wine,
+              size: 20,
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.10),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  LocaleKeys.profile_my_title.t(context),
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.primary,
-                size: 22,
-              ),
-            ],
+          QeranSpacing.hs12,
+          Expanded(
+            child: Text(
+              LocaleKeys.profile_my_title.t(context),
+              style: QeranTypography.subtitle,
+            ),
           ),
-        ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: QeranColors.wine,
+            size: 22,
+          ),
+        ],
       ),
     );
   }
@@ -238,61 +225,38 @@ class _LogoutTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.08),
+    return QeranCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: QeranColors.danger.withValues(alpha: 0.10),
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0F431C33),
-                blurRadius: 16,
-                offset: Offset(0, 4),
-              ),
-            ],
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.logout_rounded,
+              color: QeranColors.danger,
+              size: 20,
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.10),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.logout_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  LocaleKeys.common_logout.t(context),
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.primary,
-                size: 22,
-              ),
-            ],
+          QeranSpacing.hs12,
+          Expanded(
+            child: Text(
+              LocaleKeys.common_logout.t(context),
+              style: QeranTypography.subtitle,
+            ),
           ),
-        ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: QeranColors.wine,
+            size: 22,
+          ),
+        ],
       ),
     );
   }

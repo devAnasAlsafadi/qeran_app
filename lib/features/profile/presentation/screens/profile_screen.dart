@@ -9,7 +9,6 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
 import 'package:qeran/core/widgets/logout_confirmation_dialog.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
@@ -63,7 +62,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _ProfileHeader(name: user?.name, email: user?.email),
-                  QeranSpacing.vs24,
+                  QeranSpacing.vs32,
+                  QeranSectionHeader(
+                    title: LocaleKeys.profile_my_title.t(context),
+                  ),
+                  QeranSpacing.vs12,
                   _MyProfileTile(
                     onTap: () => NavigationManager.navigateTo(
                       context,
@@ -114,31 +117,30 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trimmed = (name ?? '').trim();
-    final initial = trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
+    final initial =
+        trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
     return Row(
       children: [
         Container(
           width: 64,
           height: 64,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primary.withValues(alpha: 0.10),
+            color: QeranColors.gold20,
           ),
           alignment: Alignment.center,
           child: initial.isEmpty
               ? const Icon(
                   Icons.person_rounded,
-                  color: AppColors.primary,
+                  color: QeranColors.wine,
                   size: 30,
                 )
               : Text(
                   initial,
-                  style: AppTextStyles.headlineMedium.copyWith(
-                    color: AppColors.primary,
-                  ),
+                  style: QeranTypography.headline,
                 ),
         ),
-        const SizedBox(width: 14),
+        QeranSpacing.hs16,
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,19 +149,15 @@ class _ProfileHeader extends StatelessWidget {
                 trimmed.isNotEmpty
                     ? trimmed
                     : LocaleKeys.home_nav_profile.t(context),
-                style: AppTextStyles.headlineSmall.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+                style: QeranTypography.headline,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               if (email != null && email!.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                QeranSpacing.vs4,
                 Text(
                   email!,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                  style: QeranTypography.bodySm,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

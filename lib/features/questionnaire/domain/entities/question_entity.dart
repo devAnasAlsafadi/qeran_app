@@ -1,39 +1,33 @@
 import 'package:equatable/equatable.dart';
 import 'question_option_entity.dart';
 
-enum QuestionType { date, height, weight, select, checkbox, interests, text, radio, unknown }
+enum QuestionType {
+  date,
+  height,
+  weight,
+  select,
+  checkbox,
+  interests,
+  text,
+  radio,
+  unknown,
+}
 
 class QuestionEntity extends Equatable {
   final String questionId;
   final String text;
   final QuestionType type;
   final List<QuestionOptionEntity> options;
+  final String categoryName;
 
   const QuestionEntity({
     required this.questionId,
     required this.text,
     required this.type,
     required this.options,
+    this.categoryName = '',
   });
 
-  /// A question is renderable only when it can be meaningfully answered.
-  /// - [QuestionType.select] / [QuestionType.checkbox]: require at least one option.
-  /// - [QuestionType.date] / [QuestionType.height] / [QuestionType.weight]: always renderable.
-  /// - [QuestionType.unknown]: never renderable.
-  bool get isRenderable => switch (type) {
-        QuestionType.select ||
-        QuestionType.checkbox ||
-        QuestionType.interests ||
-        QuestionType.radio =>
-          options.isNotEmpty,
-        QuestionType.date ||
-        QuestionType.height ||
-        QuestionType.weight ||
-        QuestionType.text =>
-          true,
-        QuestionType.unknown => false,
-      };
-
   @override
-  List<Object?> get props => [questionId, text, type, options];
+  List<Object?> get props => [questionId, text, type, options, categoryName];
 }

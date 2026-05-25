@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/theme/app_color.dart';
@@ -19,8 +21,8 @@ import '../../blocs/whatsapp/whatsapp_state.dart';
 import '../../controllers/otp_controller.dart';
 import '../../widgets/auth_logo_header.dart';
 import '../../widgets/auth_back_button.dart';
-import '../../widgets/otp_input_row.dart';
-import '../../widgets/otp_resend_row.dart';
+import 'widgets/otp_input_row.dart';
+import 'widgets/otp_resend_row.dart';
 import '../../widgets/auth_title_subtitle.dart';
 import 'whatsapp_verification_args.dart';
 import 'whatsapp_verification_mode.dart';
@@ -29,10 +31,12 @@ class WhatsappVerificationScreen extends StatefulWidget {
   const WhatsappVerificationScreen({super.key});
 
   @override
-  State<WhatsappVerificationScreen> createState() => _WhatsappVerificationScreenState();
+  State<WhatsappVerificationScreen> createState() =>
+      _WhatsappVerificationScreenState();
 }
 
-class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen> {
+class _WhatsappVerificationScreenState
+    extends State<WhatsappVerificationScreen> {
   late final OtpController _controller;
 
   String _phoneNumber = '';
@@ -69,9 +73,12 @@ class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen>
         ],
         child: MultiBlocListener(
           listeners: [
-            BlocListener<WhatsappBloc, WhatsappState>(listener: _onWhatsappStateChanged),
+            BlocListener<WhatsappBloc, WhatsappState>(
+              listener: _onWhatsappStateChanged,
+            ),
             BlocListener<PasswordResetBloc, PasswordResetState>(
-                listener: _onPasswordResetStateChanged),
+              listener: _onPasswordResetStateChanged,
+            ),
           ],
           child: child,
         ),
@@ -103,8 +110,8 @@ class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen>
                 AppDimens.verticalSpace16,
                 const AuthLogoHeader(),
                 AppDimens.verticalSpace24,
-                const AuthTitleSubtitle(
-                  title: 'رقم التحقق الخاص برقم الواتساب',
+                AuthTitleSubtitle(
+                  title: LocaleKeys.auth_otp_screen_title.t(context),
                 ),
                 AppDimens.verticalSpace16,
                 _buildSubtitle(),
@@ -132,11 +139,13 @@ class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen>
 
   Widget _buildSubtitle() {
     return RichText(
-      textAlign: TextAlign.right,
+      textAlign: TextAlign.start,
       text: TextSpan(
-        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
         children: [
-          const TextSpan(text: 'أدخل الرمز الذي تم إرساله إلى الرقم '),
+          TextSpan(text: LocaleKeys.auth_otp_sent_to_prefix.t(context)),
           TextSpan(
             text: _phoneNumber,
             style: AppTextStyles.bodyMedium.copyWith(
@@ -156,18 +165,21 @@ class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen>
           return BlocBuilder<PasswordResetBloc, PasswordResetState>(
             builder: (ctx, resetState) {
               final isLoading =
-                  whatsappState is WhatsappLoading || resetState is PasswordResetLoading;
+                  whatsappState is WhatsappLoading ||
+                  resetState is PasswordResetLoading;
               return CustomButton(
-                text: 'التالي',
+                text: LocaleKeys.common_next.t(ctx),
+                isLoading: isLoading,
                 onPressed: isLoading ? null : () => _onNextPressed(ctx),
               );
             },
           );
         }
-        
+
         final isLoading = whatsappState is WhatsappLoading;
         return CustomButton(
-          text: 'التالي',
+          text: LocaleKeys.common_next.t(context),
+          isLoading: isLoading,
           onPressed: isLoading ? null : () => _onNextPressed(context),
         );
       },
@@ -176,19 +188,23 @@ class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen>
 
   void _onNextPressed(BuildContext context) {
     if (!_controller.isOtpComplete) {
-      AppSnackBar.show(context, message: 'أدخل رمز التحقق كاملاً', type: SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        message: LocaleKeys.auth_otp_incomplete.t(context),
+        type: SnackBarType.error,
+      );
       return;
     }
     final otp = _controller.fullOtp;
     AppLogger.debug('Submitting OTP to API: $otp', tag: 'OTP');
     if (_mode == WhatsappVerificationMode.registration) {
       context.read<WhatsappBloc>().add(
-            VerifyOtpRequested(phoneNumber: _phoneNumber, otp: otp),
-          );
+        VerifyOtpRequested(phoneNumber: _phoneNumber, otp: otp),
+      );
     } else {
       context.read<PasswordResetBloc>().add(
-            VerifyForgotPasswordOtpRequested(phoneNumber: _phoneNumber, code: otp),
-          );
+        VerifyForgotPasswordOtpRequested(phoneNumber: _phoneNumber, code: otp),
+      );
     }
   }
 
@@ -201,26 +217,37 @@ class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen>
     if (state is WhatsappOtpVerified) {
       AppSnackBar.show(
         context,
-        message: 'تم التحقق من الرقم بنجاح',
+        message: LocaleKeys.auth_otp_verified_success.t(context),
         type: SnackBarType.success,
       );
-      NavigationManager.navigateTo(context, RouteNames.genderSelectionScreen);
+      final answered = state.user.hasAnsweredQuestions == true;
+      NavigationManager.pushNamedAndRemoveUntil(
+        context,
+        answered ? RouteNames.homeScreen : RouteNames.genderSelectionScreen,
+      );
     } else if (state is WhatsappOtpSent && state.isResend) {
       AppSnackBar.show(
         context,
-        message: 'تم إعادة إرسال كود التحقق',
+        message: LocaleKeys.auth_otp_resent_success.t(context),
         type: SnackBarType.success,
       );
     } else if (state is WhatsappFailure) {
-      AppSnackBar.show(context, message: state.message, type: SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        message: state.message.t(context),
+        type: SnackBarType.error,
+      );
     }
   }
 
-  void _onPasswordResetStateChanged(BuildContext context, PasswordResetState state) {
+  void _onPasswordResetStateChanged(
+    BuildContext context,
+    PasswordResetState state,
+  ) {
     if (state is PasswordResetOtpVerified) {
       AppSnackBar.show(
         context,
-        message: 'تم التحقق من الرقم بنجاح',
+        message: LocaleKeys.auth_otp_verified_success.t(context),
         type: SnackBarType.success,
       );
       NavigationManager.navigateTo(
@@ -229,7 +256,11 @@ class _WhatsappVerificationScreenState extends State<WhatsappVerificationScreen>
         arguments: {'phoneNumber': state.phoneNumber, 'otp': state.otp},
       );
     } else if (state is PasswordResetFailure) {
-      AppSnackBar.show(context, message: state.message, type: SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        message: state.message.t(context),
+        type: SnackBarType.error,
+      );
     }
   }
 }

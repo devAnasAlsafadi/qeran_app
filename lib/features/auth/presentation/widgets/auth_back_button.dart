@@ -5,10 +5,7 @@ import 'package:qeran/core/theme/app_color.dart';
 class AuthBackButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const AuthBackButton({
-    super.key,
-    required this.onPressed,
-  });
+  const AuthBackButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {

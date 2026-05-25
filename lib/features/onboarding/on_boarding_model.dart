@@ -1,3 +1,5 @@
+import 'package:qeran/generated/locale_keys.g.dart';
+
 import '../../core/utils/app_assets.dart';
 
 class OnboardingModel {
@@ -5,24 +7,27 @@ class OnboardingModel {
   final String description;
   final String image;
 
-  OnboardingModel({required this.title, required this.description, required this.image});
+  OnboardingModel({
+    required this.title,
+    required this.description,
+    required this.image,
+  });
 }
-
 
 List<OnboardingModel> onboardingData = [
   OnboardingModel(
-    title: "ابحث عن شريك حياتك",
-    description: "تطبيق قرآن يوفر لك بيئة آمنة وجادة للبحث عن نصفك الآخر وفق الضوابط الشرعية.",
+    title: LocaleKeys.onboarding_page1_title,
+    description: LocaleKeys.onboarding_page1_description,
     image: AppAssets.onboarding1,
   ),
   OnboardingModel(
-    title: "توافق دقيق",
-    description: "نظامنا الذكي يساعدك في العثور على من يناسبك بناءً على إجاباتك واهتماماتك.",
+    title: LocaleKeys.onboarding_page2_title,
+    description: LocaleKeys.onboarding_page2_description,
     image: AppAssets.onboarding2,
   ),
   OnboardingModel(
-    title: "تواصل بثقة",
-    description: "تواصل مع الآخرين من خلال رسائل آمنة ومراقبة لضمان تجربة إيجابية.",
+    title: LocaleKeys.onboarding_page3_title,
+    description: LocaleKeys.onboarding_page3_description,
     image: AppAssets.onboarding3,
   ),
 ];

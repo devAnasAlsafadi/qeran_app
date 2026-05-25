@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qeran/core/theme/app_color.dart';
@@ -23,11 +25,13 @@ class SocialLoginButtons extends StatelessWidget {
           onTap: onGoogleTap,
           child: SvgPicture.asset(AppAssets.googleLogo),
         ),
-        AppDimens.horizontalSpace8,
-        _SocialButton(
-          onTap: onAppleTap,
-          child: const Icon(Icons.apple, size: 28, color: AppColors.black),
-        ),
+        if (Platform.isIOS) ...[
+          AppDimens.horizontalSpace8,
+          _SocialButton(
+            onTap: onAppleTap,
+            child: const Icon(Icons.apple, size: 28, color: AppColors.black),
+          ),
+        ],
       ],
     );
   }
@@ -55,4 +59,3 @@ class _SocialButton extends StatelessWidget {
     );
   }
 }
-

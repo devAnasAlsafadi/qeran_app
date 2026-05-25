@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/localization_extension.dart';
 import '../../../../core/theme/app_color.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../../core/theme/app_text_style.dart';
 import '../../../../core/utils/app_dimens.dart';
 import '../../on_boarding_model.dart';
@@ -86,7 +88,6 @@ class _NavCircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // الأيقونات هنا تقرأ اتجاه التطبيق (RTL/LTR) وتعكس نفسها تلقائياً
     final iconData = pointForward
         ? Icons.arrow_forward_ios_rounded
         : Icons.arrow_back_ios_new_rounded;
@@ -96,12 +97,11 @@ class _NavCircleButton extends StatelessWidget {
       child: Container(
         width: 56,
         height: 56,
-        decoration: BoxDecoration(color: backgroundColor, shape: BoxShape.circle),
-        child: Icon(
-          iconData,
-          color: iconColor,
-          size: 20,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          shape: BoxShape.circle,
         ),
+        child: Icon(iconData, color: iconColor, size: 20),
       ),
     );
   }
@@ -126,7 +126,7 @@ class _GetStartedButton extends StatelessWidget {
           borderRadius: AppDimens.borderRadius16,
         ),
         child: Text(
-          'ابدأ الآن',
+          LocaleKeys.onboarding_get_started.t(context),
           style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
         ),
       ),

@@ -11,8 +11,8 @@ class OnboardingCubit extends Cubit<OnboardingState> {
   final SharedPrefService _sharedPref;
 
   OnboardingCubit({required SharedPrefService sharedPref})
-      : _sharedPref = sharedPref,
-        super(const OnboardingIdle());
+    : _sharedPref = sharedPref,
+      super(const OnboardingIdle());
 
   /// Called by PageView.onPageChanged (manual swipe).
   void onPageChanged(int index) {

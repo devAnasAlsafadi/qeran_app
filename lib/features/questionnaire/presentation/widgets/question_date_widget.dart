@@ -28,8 +28,18 @@ class _QuestionDateWidgetState extends State<QuestionDateWidget> {
   static const double _itemExtent = 44;
 
   static const List<String> _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   late int _selectedDay;
@@ -45,8 +55,12 @@ class _QuestionDateWidgetState extends State<QuestionDateWidget> {
     _selectedYear = initial.year;
 
     _dayController = FixedExtentScrollController(initialItem: _selectedDay - 1);
-    _monthController = FixedExtentScrollController(initialItem: _selectedMonth - 1);
-    _yearController = FixedExtentScrollController(initialItem: _selectedYear - _minYear);
+    _monthController = FixedExtentScrollController(
+      initialItem: _selectedMonth - 1,
+    );
+    _yearController = FixedExtentScrollController(
+      initialItem: _selectedYear - _minYear,
+    );
 
     // Emit initial value so the question has an answer from the start.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -88,35 +102,41 @@ class _QuestionDateWidgetState extends State<QuestionDateWidget> {
           Row(
             children: [
               // Day wheel
-              Expanded(child: _buildWheel(
-                controller: _dayController,
-                itemCount: 31,
-                labelBuilder: (i) => '${i + 1}',
-                onChanged: (i) {
-                  _selectedDay = i + 1;
-                  _emitDate();
-                },
-              )),
+              Expanded(
+                child: _buildWheel(
+                  controller: _dayController,
+                  itemCount: 31,
+                  labelBuilder: (i) => '${i + 1}',
+                  onChanged: (i) {
+                    _selectedDay = i + 1;
+                    _emitDate();
+                  },
+                ),
+              ),
               // Month wheel
-              Expanded(child: _buildWheel(
-                controller: _monthController,
-                itemCount: 12,
-                labelBuilder: (i) => _months[i],
-                onChanged: (i) {
-                  _selectedMonth = i + 1;
-                  _emitDate();
-                },
-              )),
+              Expanded(
+                child: _buildWheel(
+                  controller: _monthController,
+                  itemCount: 12,
+                  labelBuilder: (i) => _months[i],
+                  onChanged: (i) {
+                    _selectedMonth = i + 1;
+                    _emitDate();
+                  },
+                ),
+              ),
               // Year wheel
-              Expanded(child: _buildWheel(
-                controller: _yearController,
-                itemCount: _maxYear - _minYear + 1,
-                labelBuilder: (i) => '${_minYear + i}',
-                onChanged: (i) {
-                  _selectedYear = _minYear + i;
-                  _emitDate();
-                },
-              )),
+              Expanded(
+                child: _buildWheel(
+                  controller: _yearController,
+                  itemCount: _maxYear - _minYear + 1,
+                  labelBuilder: (i) => '${_minYear + i}',
+                  onChanged: (i) {
+                    _selectedYear = _minYear + i;
+                    _emitDate();
+                  },
+                ),
+              ),
             ],
           ),
         ],

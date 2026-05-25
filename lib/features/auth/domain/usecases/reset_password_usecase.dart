@@ -11,10 +11,9 @@ class ResetPasswordUseCase {
     required String phoneNumber,
     required String code,
     required String newPassword,
-  }) =>
-      _repository.resetPassword(
-        phoneNumber: phoneNumber,
-        code: code,
-        newPassword: newPassword,
-      );
+  }) => _repository.resetPassword(
+    phoneNumber: phoneNumber,
+    code: code,
+    newPassword: newPassword,
+  );
 }

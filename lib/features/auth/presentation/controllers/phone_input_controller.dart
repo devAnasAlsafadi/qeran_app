@@ -6,12 +6,13 @@ class PhoneInputController {
   final phoneController = TextEditingController();
   final phoneFocus = FocusNode();
   final formKey = GlobalKey<FormState>();
-  final ValueNotifier<String> countryCodeNotifier = ValueNotifier<String>('+970');
+  final ValueNotifier<String> countryCodeNotifier = ValueNotifier<String>(
+    '+970',
+  );
 
   String get selectedCountryCode => countryCodeNotifier.value;
 
   bool validate() => formKey.currentState?.validate() ?? false;
-
 
   String? validateAndGetFormattedPhone() {
     if (formKey.currentState?.validate() ?? false) {
@@ -22,7 +23,6 @@ class PhoneInputController {
     }
     return null;
   }
-
 
   void dispose() {
     phoneController.dispose();

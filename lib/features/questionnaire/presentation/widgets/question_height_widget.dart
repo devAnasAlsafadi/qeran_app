@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Single drum-style picker for height in cm.
 /// Matches Figma: center-highlighted row with "سم" unit label.
@@ -77,7 +79,7 @@ class _QuestionHeightWidgetState extends State<QuestionHeightWidget> {
                 final isCenter = value == _selected;
                 return Center(
                   child: Text(
-                    isCenter ? '$value سم' : '$value',
+                    isCenter ? '$value ${LocaleKeys.questionnaire_height_unit.t(context)}' : '$value',
                     style: AppTextStyles.bodyLarge.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: isCenter ? FontWeight.bold : FontWeight.w400,

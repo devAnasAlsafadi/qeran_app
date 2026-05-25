@@ -37,12 +37,11 @@ final class QuestionnaireInProgress extends QuestionnaireState {
   double get progress => (currentIndex + 1) / questions.length;
 }
 
-/// All questions answered — questionnaire marked complete locally.
-final class QuestionnaireCompleted extends QuestionnaireState {}
+/// All questions answered locally — payload is ready to be submitted **after
+/// the oath**. The submit-after-oath rule means `/api/Questions/submit` is
+/// no longer called from this cubit.
+final class QuestionnaireReadyForOath extends QuestionnaireState {
+  final List<Map<String, dynamic>> answersPayload;
 
-final class QuestionnaireSubmitting extends QuestionnaireState {}
-
-final class QuestionnaireSubmissionFailure extends QuestionnaireState {
-  final String message;
-  QuestionnaireSubmissionFailure(this.message);
+  QuestionnaireReadyForOath(this.answersPayload);
 }

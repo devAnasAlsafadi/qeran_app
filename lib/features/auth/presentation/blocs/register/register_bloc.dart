@@ -1,14 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/auth/domain/usecases/register_user_usecase.dart';
+import '../user_session/user_session_cubit.dart';
 import 'register_event.dart';
 import 'register_state.dart';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   final RegisterUserUseCase _registerUser;
+  final UserSessionCubit _userSession;
 
-  RegisterBloc({required RegisterUserUseCase registerUser})
-      : _registerUser = registerUser,
-        super(RegisterInitial()) {
+  RegisterBloc({
+    required RegisterUserUseCase registerUser,
+    required UserSessionCubit userSession,
+  }) : _registerUser = registerUser,
+       _userSession = userSession,
+       super(RegisterInitial()) {
     on<RegisterRequested>(_onRegister);
   }
 
@@ -24,7 +29,13 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     );
     result.fold(
       (failure) => emit(RegisterFailure(failure.message)),
-      (user) => emit(RegisterSuccess(user)),
+      (user) {
+        // Tolerated: register-new returns a partial user with an empty
+        // token; the session still tracks the pending identity until
+        // verify-otp issues a real JWT.
+        _userSession.onAuthenticated(user);
+        emit(RegisterSuccess(user));
+      },
     );
   }
 }

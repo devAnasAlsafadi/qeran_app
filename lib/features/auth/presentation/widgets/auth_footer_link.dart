@@ -24,14 +24,18 @@ class AuthFooterLink extends StatelessWidget {
       children: [
         Text(
           promptText,
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
         const SizedBox(width: AppDimens.p4),
         GestureDetector(
           onTap: onTap,
           child: Text(
             actionText,
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryLight),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.primaryLight,
+            ),
           ),
         ),
       ],

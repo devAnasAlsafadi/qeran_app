@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_color.dart';
-import '../../../../core/theme/app_text_style.dart';
-import '../../../../core/utils/app_dimens.dart';
+import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 class OtpResendRow extends StatefulWidget {
   final VoidCallback onResend;
@@ -59,16 +62,24 @@ class _OtpResendRowState extends State<OtpResendRow> {
         GestureDetector(
           onTap: _canResend ? _handleResend : null,
           child: Text(
-            _secondsRemaining > 0 ? 'إعادة إرسال ($_secondsRemaining)' : 'إعادة إرسال',
+            _secondsRemaining > 0
+                ? LocaleKeys.auth_otp_resend_timer.tr(
+                    namedArgs: {'seconds': _secondsRemaining.toString()},
+                  )
+                : LocaleKeys.auth_otp_resend.t(context),
             style: AppTextStyles.bodyMedium.copyWith(
-              color: _canResend ? AppColors.primaryLight : AppColors.textSecondary.withValues(alpha: 0.5),
+              color: _canResend
+                  ? AppColors.primaryLight
+                  : AppColors.textSecondary.withValues(alpha: 0.5),
             ),
           ),
         ),
         const SizedBox(width: AppDimens.p4),
         Text(
-          'لم تحصل على الكود ؟',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          LocaleKeys.auth_otp_no_code.t(context),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
         ),
       ],
     );

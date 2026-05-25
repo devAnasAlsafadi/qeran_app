@@ -46,10 +46,16 @@ class QuestionCheckboxWidget extends StatelessWidget {
                       color: isSelected ? AppColors.primary : AppColors.border,
                       width: 2,
                     ),
-                    color: isSelected ? AppColors.primary : AppColors.background,
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.background,
                   ),
                   child: isSelected
-                      ? const Icon(Icons.check, size: 16, color: AppColors.white)
+                      ? const Icon(
+                          Icons.check,
+                          size: 16,
+                          color: AppColors.white,
+                        )
                       : null,
                 ),
                 const SizedBox(width: AppDimens.p16),

@@ -11,6 +11,5 @@ class VerifyWhatsappOtpUseCase {
   Future<Either<Failure, UserEntity>> call({
     required String phoneNumber,
     required String otp,
-  }) =>
-      _repository.verifyWhatsappOtp(phoneNumber: phoneNumber, otp: otp);
+  }) => _repository.verifyWhatsappOtp(phoneNumber: phoneNumber, otp: otp);
 }

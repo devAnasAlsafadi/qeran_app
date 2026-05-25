@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Single drum-style picker for weight in kg.
 /// Similar to height widget, with "كغ" unit label.
@@ -77,7 +79,7 @@ class _QuestionWeightWidgetState extends State<QuestionWeightWidget> {
                 final isCenter = value == _selected;
                 return Center(
                   child: Text(
-                    isCenter ? '$value كغ' : '$value',
+                    isCenter ? '$value ${LocaleKeys.questionnaire_weight_unit.t(context)}' : '$value',
                     style: AppTextStyles.bodyLarge.copyWith(
                       color: AppColors.textPrimary,
                       fontWeight: isCenter ? FontWeight.bold : FontWeight.w400,

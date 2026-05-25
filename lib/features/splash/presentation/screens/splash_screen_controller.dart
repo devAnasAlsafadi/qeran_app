@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../../../core/routes/navigation_manager.dart';
 import '../../../../core/routes/route_name.dart';
+import '../../../devices/application/device_bootstrap_service.dart';
 import '../blocs/splash_cubit.dart';
 import '../blocs/splash_state.dart';
 
@@ -12,17 +16,25 @@ class SplashScreenController {
 
   void init() {
     context.read<SplashCubit>().checkAuthStatus();
+    // Fire-and-forget — must not block splash routing.
+    unawaited(sl<DeviceBootstrapService>().bootstrap());
   }
 
   void handleNavigation(SplashState state) {
     if (state is NavigateToOnboarding) {
       NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.onboarding);
     } else if (state is NavigateToLogin) {
-      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
+      NavigationManager.pushNamedAndRemoveUntil(
+        context,
+        RouteNames.loginScreen,
+      );
     } else if (state is NavigateToHome) {
       NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.homeScreen);
     } else if (state is NavigateToKhatabaDashboard) {
-      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.khatabaDashboard);
+      NavigationManager.pushNamedAndRemoveUntil(
+        context,
+        RouteNames.khatabaDashboard,
+      );
     } else if (state is NavigateToIncompleteProfile) {
       _handleIncompleteNavigation(state.step);
     }

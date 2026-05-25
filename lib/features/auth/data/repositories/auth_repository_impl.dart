@@ -19,11 +19,16 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
     required String password,
   }) {
     return executeApiCall(() async {
-      final successResponse = await _dataSource.loginWithEmail(email: email, password: password);
+      final successResponse = await _dataSource.loginWithEmail(
+        email: email,
+        password: password,
+      );
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(message: successResponse.message ?? 'Unknown Error');
+        throw ServerException(
+          message: successResponse.message ?? 'Unknown Error',
+        );
       }
     });
   }
@@ -43,7 +48,9 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(message: successResponse.message ?? 'Unknown Error');
+        throw ServerException(
+          message: successResponse.message ?? 'Unknown Error',
+        );
       }
     });
   }
@@ -62,17 +69,24 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
     required String otp,
   }) {
     return executeApiCall(() async {
-      final successResponse = await _dataSource.verifyWhatsappOtp(phoneNumber: phoneNumber, otp: otp);
+      final successResponse = await _dataSource.verifyWhatsappOtp(
+        phoneNumber: phoneNumber,
+        otp: otp,
+      );
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(message: successResponse.message ?? 'Unknown Error');
+        throw ServerException(
+          message: successResponse.message ?? 'Unknown Error',
+        );
       }
     });
   }
 
   @override
-  Future<Either<Failure, Unit>> requestForgotPasswordOtp({required String phoneNumber}) {
+  Future<Either<Failure, Unit>> requestForgotPasswordOtp({
+    required String phoneNumber,
+  }) {
     return executeApiCall(() async {
       await _dataSource.requestForgotPasswordOtp(phoneNumber: phoneNumber);
       return unit;
@@ -85,7 +99,10 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
     required String code,
   }) {
     return executeApiCall(() async {
-      await _dataSource.verifyForgotPasswordOtp(phoneNumber: phoneNumber, code: code);
+      await _dataSource.verifyForgotPasswordOtp(
+        phoneNumber: phoneNumber,
+        code: code,
+      );
       return unit;
     });
   }
@@ -97,7 +114,11 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
     required String newPassword,
   }) {
     return executeApiCall(() async {
-      await _dataSource.resetPassword(phoneNumber: phoneNumber, code: code, newPassword: newPassword);
+      await _dataSource.resetPassword(
+        phoneNumber: phoneNumber,
+        code: code,
+        newPassword: newPassword,
+      );
       return unit;
     });
   }
@@ -107,16 +128,28 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
   @override
   Future<Either<Failure, UserEntity>> loginWithGoogle() {
     return executeApiCall(() async {
-      final user = await _dataSource.loginWithGoogle();
-      return user.toEntity();
+      final successResponse = await _dataSource.loginWithGoogle();
+      if (successResponse.data != null) {
+        return successResponse.data!.toEntity();
+      } else {
+        throw ServerException(
+          message: successResponse.message ?? 'Unknown Error',
+        );
+      }
     });
   }
 
   @override
   Future<Either<Failure, UserEntity>> loginWithApple() {
     return executeApiCall(() async {
-      final user = await _dataSource.loginWithApple();
-      return user.toEntity();
+      final successResponse = await _dataSource.loginWithApple();
+      if (successResponse.data != null) {
+        return successResponse.data!.toEntity();
+      } else {
+        throw ServerException(
+          message: successResponse.message ?? 'Unknown Error',
+        );
+      }
     });
   }
 }

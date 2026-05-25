@@ -26,7 +26,6 @@ void initQuestionnaireDependencies() {
   sl.registerFactory(
     () => QuestionnaireCubit(
       fetchQuestions: sl(),
-      submitAnswersUseCase: sl(),
       sharedPrefs: sl<SharedPrefService>(),
     ),
   );

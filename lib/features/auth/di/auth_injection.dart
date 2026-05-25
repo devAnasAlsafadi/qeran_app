@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 
+import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
+import 'package:qeran/features/questionnaire/domain/usecases/submit_answers_usecase.dart';
 import '../data/datasources/auth_remote_datasource.dart';
 import '../data/datasources/profile_image_remote_datasource.dart';
 import '../data/repositories/auth_repository_impl.dart';
@@ -22,9 +24,11 @@ import '../domain/usecases/upload_images_usecase.dart';
 import '../domain/usecases/verify_forgot_password_otp_usecase.dart';
 import '../domain/usecases/verify_whatsapp_otp_usecase.dart';
 import '../presentation/blocs/login/login_bloc.dart';
+import '../presentation/blocs/oath/oath_cubit.dart';
 import '../presentation/blocs/password_reset/password_reset_bloc.dart';
 import '../presentation/blocs/photo_upload/photo_upload_cubit.dart';
 import '../presentation/blocs/register/register_bloc.dart';
+import '../presentation/blocs/user_session/user_session_cubit.dart';
 import '../presentation/blocs/whatsapp/whatsapp_bloc.dart';
 
 Future<void> initAuthDependencies() async {
@@ -44,15 +48,13 @@ Future<void> initAuthDependencies() async {
 
   sl.registerLazySingleton<ProfileImageRemoteDataSource>(
     () => ProfileImageRemoteDataSourceImpl(
-      httpClient: sl<http.Client>(),
+      apiConsumer: sl<ApiConsumer>(),
       secureStorage: sl<StorageService>(),
     ),
   );
 
   //! Repositories
-  sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(sl()),
-  );
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
 
   sl.registerLazySingleton<ProfileImageRepository>(
     () => ProfileImageRepositoryImpl(sl<ProfileImageRemoteDataSource>()),
@@ -76,13 +78,25 @@ Future<void> initAuthDependencies() async {
       loginWithEmail: sl(),
       loginWithGoogle: sl(),
       loginWithApple: sl(),
+      deviceBootstrap: sl<DeviceBootstrapService>(),
+      userSession: sl<UserSessionCubit>(),
     ),
   );
 
-  sl.registerFactory(() => RegisterBloc(registerUser: sl()));
+  sl.registerFactory(
+    () => RegisterBloc(
+      registerUser: sl(),
+      userSession: sl<UserSessionCubit>(),
+    ),
+  );
 
   sl.registerFactory(
-    () => WhatsappBloc(sendOtp: sl(), verifyOtp: sl()),
+    () => WhatsappBloc(
+      sendOtp: sl(),
+      verifyOtp: sl(),
+      deviceBootstrap: sl<DeviceBootstrapService>(),
+      userSession: sl<UserSessionCubit>(),
+    ),
   );
 
   sl.registerFactory(
@@ -95,8 +109,16 @@ Future<void> initAuthDependencies() async {
 
   sl.registerFactory(
     () => PhotoUploadCubit(
-      uploadImagesUseCase: sl(),
-      sharedPrefService: sl<SharedPrefService>(),
+      uploadImages: sl(),
+      sharedPrefs: sl<SharedPrefService>(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => OathCubit(
+      submitAnswers: sl<SubmitAnswersUseCase>(),
+      sharedPrefs: sl<SharedPrefService>(),
+      userSession: sl<UserSessionCubit>(),
     ),
   );
 }

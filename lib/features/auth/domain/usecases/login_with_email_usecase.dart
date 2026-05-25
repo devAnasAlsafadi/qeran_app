@@ -11,6 +11,5 @@ class LoginWithEmailUseCase {
   Future<Either<Failure, UserEntity>> call({
     required String email,
     required String password,
-  }) =>
-      _repository.loginWithEmail(email: email, password: password);
+  }) => _repository.loginWithEmail(email: email, password: password);
 }

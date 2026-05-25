@@ -1,5 +1,6 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 
@@ -34,9 +35,16 @@ class CountryCodePicker extends StatelessWidget {
           children: [
             Text(country.flagEmoji, style: const TextStyle(fontSize: 20)),
             const SizedBox(width: AppDimens.p4),
-            Text('+${country.phoneCode}', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              '+${country.phoneCode}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(width: AppDimens.p4),
-            const Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              size: 18,
+              color: AppColors.textSecondary,
+            ),
           ],
         ),
       ),
@@ -49,9 +57,11 @@ class CountryCodePicker extends StatelessWidget {
       favorite: ['PS', 'SA', 'AE', 'JO', 'EG', 'KW', 'QA', 'BH', 'OM', 'LB'],
       showPhoneCode: true,
       countryListTheme: CountryListThemeData(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppDimens.r16)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppDimens.r16),
+        ),
         inputDecoration: InputDecoration(
-          hintText: 'ابحث عن دولة أو رمز الاتصال',
+          hintText: 'auth.country_search_hint'.t(context),
           hintTextDirection: TextDirection.rtl,
           prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
           filled: true,

@@ -6,15 +6,20 @@ class QuestionModel {
   final String text;
   final String type;
   final List<QuestionOptionModel> options;
+  final String categoryName;
 
   const QuestionModel({
     required this.questionId,
     required this.text,
     required this.type,
     required this.options,
+    this.categoryName = '',
   });
 
-  factory QuestionModel.fromJson(Map<String, dynamic> json) {
+  factory QuestionModel.fromJson(
+    Map<String, dynamic> json, {
+    String categoryName = '',
+  }) {
     final optionsList = json['options'] as List<dynamic>? ?? [];
     return QuestionModel(
       questionId: json['questionId'] as String? ?? '',
@@ -23,6 +28,7 @@ class QuestionModel {
       options: optionsList
           .map((o) => QuestionOptionModel.fromJson(o as Map<String, dynamic>))
           .toList(),
+      categoryName: categoryName,
     );
   }
 
@@ -32,6 +38,7 @@ class QuestionModel {
       text: text,
       type: _parseType(type),
       options: options.map((o) => o.toEntity()).toList(),
+      categoryName: categoryName,
     );
   }
 
@@ -49,5 +56,3 @@ class QuestionModel {
     };
   }
 }
-
-

@@ -14,10 +14,10 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
     required RequestForgotPasswordOtpUseCase requestReset,
     required VerifyForgotPasswordOtpUseCase verifyOtp,
     required ResetPasswordUseCase resetPassword,
-  })  : _requestReset = requestReset,
-        _verifyOtp = verifyOtp,
-        _resetPassword = resetPassword,
-        super(PasswordResetInitial()) {
+  }) : _requestReset = requestReset,
+       _verifyOtp = verifyOtp,
+       _resetPassword = resetPassword,
+       super(PasswordResetInitial()) {
     on<RequestForgotPasswordOtpRequested>(_onRequestReset);
     on<VerifyForgotPasswordOtpRequested>(_onVerifyOtp);
     on<ResetPasswordRequested>(_onResetPassword);
@@ -46,7 +46,12 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
     );
     result.fold(
       (failure) => emit(PasswordResetFailure(failure.message)),
-      (_) => emit(PasswordResetOtpVerified(phoneNumber: event.phoneNumber, otp: event.code)),
+      (_) => emit(
+        PasswordResetOtpVerified(
+          phoneNumber: event.phoneNumber,
+          otp: event.code,
+        ),
+      ),
     );
   }
 

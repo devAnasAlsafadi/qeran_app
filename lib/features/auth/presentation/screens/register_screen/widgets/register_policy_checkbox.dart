@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 
 class RegisterPolicyCheckbox extends StatelessWidget {
   final ValueNotifier<bool> acceptedPolicyNotifier;
@@ -23,12 +24,16 @@ class RegisterPolicyCheckbox extends StatelessWidget {
           children: [
             RichText(
               text: TextSpan(
-                style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                ),
                 children: [
-                  const TextSpan(text: 'موافق على '),
+                  TextSpan(text: LocaleKeys.auth_policy_agree.t(context)),
                   TextSpan(
-                    text: 'سياسات الخصوصية',
-                    style: AppTextStyles.caption.copyWith(color: AppColors.primaryLight),
+                    text: LocaleKeys.auth_privacy_policy.t(context),
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primaryLight,
+                    ),
                   ),
                 ],
               ),

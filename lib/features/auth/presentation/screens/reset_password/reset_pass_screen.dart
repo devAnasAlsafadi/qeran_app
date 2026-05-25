@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/theme/app_color.dart';
@@ -41,7 +43,8 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     _phoneNumber = args?['phoneNumber'] as String? ?? '';
     _otp = args?['otp'] as String? ?? '';
   }
@@ -54,7 +57,6 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return BlocProvider(
       create: (_) => sl<PasswordResetBloc>(),
       child: BlocListener<PasswordResetBloc, PasswordResetState>(
@@ -71,7 +73,9 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    AuthBackButton(onPressed: () => NavigationManager.pop(context)),
+                    AuthBackButton(
+                      onPressed: () => NavigationManager.pop(context),
+                    ),
                     AppDimens.verticalSpace16,
                     const AuthLogoHeader(),
                     AppDimens.verticalSpace24,
@@ -100,25 +104,25 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
 
   Widget _buildTitle() {
     return Text(
-      'إنشاء كلمة مرور جديدة',
+      LocaleKeys.auth_reset_password_title.t(context),
       style: AppTextStyles.displayLarge,
-      textAlign: TextAlign.right,
+      textAlign: TextAlign.start,
     );
   }
 
   Widget _buildSubtitle() {
     return Text(
-      'يجب أن تكون كلمة مرورك الجديدة مختلفة عن كلمات المرور المستخدمة سابقاً.',
+      LocaleKeys.auth_reset_password_subtitle.t(context),
       style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-      textAlign: TextAlign.right,
+      textAlign: TextAlign.start,
     );
   }
 
   Widget _buildPasswordLabel() {
     return Text(
-      'كلمة المرور',
+      LocaleKeys.auth_password_label.t(context),
       style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-      textAlign: TextAlign.right,
+      textAlign: TextAlign.start,
     );
   }
 
@@ -127,16 +131,17 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
       controller: _controller.passwordController,
       focusNode: _controller.passwordFocus,
       obscurePasswordNotifier: _controller.obscurePasswordNotifier,
-      onToggleVisibility: () => _controller.obscurePasswordNotifier.value = !_controller.obscurePasswordNotifier.value,
-      hintText: 'أدخل كلمة المرور الجديدة',
+      onToggleVisibility: () => _controller.obscurePasswordNotifier.value =
+          !_controller.obscurePasswordNotifier.value,
+      hintText: LocaleKeys.auth_new_password_hint,
     );
   }
 
   Widget _buildConfirmLabel() {
     return Text(
-      'تأكيد كلمة المرور',
+      LocaleKeys.auth_confirm_password_label.t(context),
       style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-      textAlign: TextAlign.right,
+      textAlign: TextAlign.start,
     );
   }
 
@@ -145,43 +150,69 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
       controller: _controller.confirmPasswordController,
       focusNode: _controller.confirmFocus,
       obscurePasswordNotifier: _controller.obscureConfirmNotifier,
-      onToggleVisibility: () => _controller.obscureConfirmNotifier.value = !_controller.obscureConfirmNotifier.value,
-      hintText: 'أعد إدخال كلمة المرور',
+      onToggleVisibility: () => _controller.obscureConfirmNotifier.value =
+          !_controller.obscureConfirmNotifier.value,
+      hintText: LocaleKeys.auth_confirm_password_hint,
       validator: (v) {
-        if (v == null || v.isEmpty) return 'تأكيد كلمة المرور مطلوب';
-        if (v != _controller.passwordController.text) return 'كلمتا المرور غير متطابقتين';
+        if (v == null || v.isEmpty) {
+          return LocaleKeys.auth_confirm_password_required.t(context);
+        }
+        if (v != _controller.passwordController.text) {
+          return LocaleKeys.auth_passwords_mismatch.t(context);
+        }
         return null;
       },
     );
   }
 
-  Widget _buildResetButton(BuildContext context, String phoneNumber, String otp) {
+  Widget _buildResetButton(
+    BuildContext context,
+    String phoneNumber,
+    String otp,
+  ) {
     return BlocBuilder<PasswordResetBloc, PasswordResetState>(
-      builder: (ctx, state) => CustomButton(
-        text: 'إعادة تعيين كلمة المرور',
-        onPressed: state is PasswordResetLoading
-            ? null
-            : () => _onResetPressed(ctx, phoneNumber, otp),
-      ),
+      builder: (ctx, state) {
+        final isLoading = state is PasswordResetLoading;
+        return CustomButton(
+          text: LocaleKeys.auth_reset_password_button.t(ctx),
+          isLoading: isLoading,
+          onPressed: isLoading
+              ? null
+              : () => _onResetPressed(ctx, phoneNumber, otp),
+        );
+      },
     );
   }
 
   void _onResetPressed(BuildContext context, String phoneNumber, String otp) {
     if (_controller.validate()) {
-      context.read<PasswordResetBloc>().add(ResetPasswordRequested(
-            phoneNumber: phoneNumber,
-            code: otp,
-            newPassword: _controller.passwordController.text,
-          ));
+      context.read<PasswordResetBloc>().add(
+        ResetPasswordRequested(
+          phoneNumber: phoneNumber,
+          code: otp,
+          newPassword: _controller.passwordController.text,
+        ),
+      );
     }
   }
 
   void _onStateChanged(BuildContext context, PasswordResetState state) {
     if (state is PasswordResetSuccess) {
-      AppSnackBar.show(context, message: 'تم تغيير كلمة المرور بنجاح', type: SnackBarType.success);
-      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
+      AppSnackBar.show(
+        context,
+        message: LocaleKeys.auth_reset_password_success.t(context),
+        type: SnackBarType.success,
+      );
+      NavigationManager.pushNamedAndRemoveUntil(
+        context,
+        RouteNames.loginScreen,
+      );
     } else if (state is PasswordResetFailure) {
-      AppSnackBar.show(context, message: state.message, type: SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        message: state.message.t(context),
+        type: SnackBarType.error,
+      );
     }
   }
 }

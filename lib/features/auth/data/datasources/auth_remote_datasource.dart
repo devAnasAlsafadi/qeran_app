@@ -10,6 +10,8 @@ import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/domain/entities/success_response.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/core/utils/log_masker.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import '../models/user_model.dart';
 
 abstract interface class AuthRemoteDataSource {
@@ -18,9 +20,9 @@ abstract interface class AuthRemoteDataSource {
     required String password,
   });
 
-  Future<UserModel> loginWithGoogle();
+  Future<SuccessResponse<UserModel>> loginWithGoogle();
 
-  Future<UserModel> loginWithApple();
+  Future<SuccessResponse<UserModel>> loginWithApple();
 
   Future<SuccessResponse<UserModel>> registerUser({
     required String name,
@@ -35,7 +37,9 @@ abstract interface class AuthRemoteDataSource {
     required String otp,
   });
 
-  Future<SuccessResponse<void>> requestForgotPasswordOtp({required String phoneNumber});
+  Future<SuccessResponse<void>> requestForgotPasswordOtp({
+    required String phoneNumber,
+  });
 
   Future<SuccessResponse<void>> verifyForgotPasswordOtp({
     required String phoneNumber,
@@ -60,10 +64,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required ApiConsumer apiConsumer,
     required SharedPrefService sharedPref,
     required StorageService secureStorage,
-  })  : _firebaseAuth = firebaseAuth,
-        _apiConsumer = apiConsumer,
-        _sharedPref = sharedPref,
-        _secureStorage = secureStorage;
+  }) : _firebaseAuth = firebaseAuth,
+       _apiConsumer = apiConsumer,
+       _sharedPref = sharedPref,
+       _secureStorage = secureStorage;
 
   // ─── Manual Auth (Custom REST API) ────────────────────────────
 
@@ -72,27 +76,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    final response = await _apiConsumer.post(EndPoints.login, body: {
-      'email': email,
-      'password': password,
-    });
+    final response = await _apiConsumer.post(
+      EndPoints.login,
+      body: {'email': email, 'password': password},
+    );
 
     final apiResponse = ApiResponse<UserModel>.fromJson(
       response,
       (json) => UserModel.fromJson(json),
     );
 
-
-
-
     // Persist the userId and token for the subsequent OTP flow
     if (apiResponse.data != null) {
       await _sharedPref.save(StorageKeys.pendingUserId, apiResponse.data!.id);
-      final token = apiResponse.data!.token;
-      if (token != null && token.isNotEmpty) {
-        await _secureStorage.save(StorageKeys.token, token);
-        AppLogger.debug('LOGIN -> Token saved', tag: 'AUTH_DEBUG');
-      }
+      await _persistAuthSession(apiResponse.data!);
     }
 
     return SuccessResponse.fromApiResponse(apiResponse);
@@ -105,11 +102,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     // Step 1 only: register-new with name, email, password
-    final response = await _apiConsumer.post(EndPoints.register, body: {
-      'name': name,
-      'email': email,
-      'password': password,
-    });
+    final response = await _apiConsumer.post(
+      EndPoints.register,
+      body: {'name': name, 'email': email, 'password': password},
+    );
 
     // Parse as dynamic — register-new only returns a partial object (userId),
     // not a full UserModel. Strict parsing would leave data == null and
@@ -120,14 +116,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // Extract and persist the userId for the subsequent add-phone step
       final userId = apiResponse.data['userId'] as String? ?? '';
       await _sharedPref.save(StorageKeys.pendingUserId, userId);
-      AppLogger.debug('REGISTER SUCCESS -> Saved userId: $userId', tag: 'AUTH_DEBUG');
+      AppLogger.debug(
+        'REGISTER SUCCESS -> Saved userId: $userId',
+        tag: 'AUTH_DEBUG',
+      );
 
       // Build a dummy UserModel so the Domain layer always sees data != null
-      final dummyUser = UserModel(
-        id: userId,
-        email: email,
-        name: name,
-      );
+      final dummyUser = UserModel(id: userId, email: email, name: name);
 
       return SuccessResponse(
         status: apiResponse.status,
@@ -135,18 +130,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: dummyUser,
       );
     } else {
-      throw ServerException(message: apiResponse.message ?? 'Registration failed');
+      throw ServerException(
+        message: apiResponse.message ?? 'Registration failed',
+      );
     }
   }
 
   @override
-  Future<SuccessResponse<void>> sendWhatsappOtp({required String phoneNumber}) async {
-    final userId = await _sharedPref.get<String>(StorageKeys.pendingUserId) ?? '';
-    AppLogger.debug('ADD-PHONE REQUEST -> userId: "$userId" | phone: "$phoneNumber"', tag: 'AUTH_DEBUG');
-    final response = await _apiConsumer.post(EndPoints.addPhone, body: {
-      'userId': userId,
-      'phoneNumber': phoneNumber,
-    });
+  Future<SuccessResponse<void>> sendWhatsappOtp({
+    required String phoneNumber,
+  }) async {
+    final userId =
+        await _sharedPref.get<String>(StorageKeys.pendingUserId) ?? '';
+    AppLogger.debug(
+      'ADD-PHONE REQUEST -> userId: "$userId" | phone: ${LogMasker.phone(phoneNumber)}',
+      tag: 'AUTH_DEBUG',
+    );
+    final response = await _apiConsumer.post(
+      EndPoints.addPhone,
+      body: {'userId': userId, 'phoneNumber': phoneNumber},
+    );
 
     final apiResponse = ApiResponse<void>.fromJson(response, (_) {});
     return SuccessResponse.fromApiResponse(apiResponse);
@@ -157,26 +160,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String phoneNumber,
     required String otp,
   }) async {
-    final userId = await _sharedPref.get<String>(StorageKeys.pendingUserId) ?? '';
-    AppLogger.debug('VERIFY-OTP REQUEST -> userId: "$userId" | phone: "$phoneNumber" | code: "$otp"', tag: 'AUTH_DEBUG');
-    final response = await _apiConsumer.post(EndPoints.verifyOtp, body: {
-      'userId': userId,
-      'phoneNumber': phoneNumber,
-      'code': otp,
-    });
+    final userId =
+        await _sharedPref.get<String>(StorageKeys.pendingUserId) ?? '';
+    AppLogger.debug(
+      'VERIFY-OTP REQUEST -> userId: "$userId" | phone: ${LogMasker.phone(phoneNumber)} | ${LogMasker.otp(otp)}',
+      tag: 'AUTH_DEBUG',
+    );
+    final response = await _apiConsumer.post(
+      EndPoints.verifyOtp,
+      body: {'userId': userId, 'phoneNumber': phoneNumber, 'code': otp},
+    );
 
     final apiResponse = ApiResponse<UserModel>.fromJson(
       response,
       (json) => UserModel.fromJson(json),
     );
-    // Persist the final auth token so all subsequent requests are authenticated
-    final token = apiResponse.data?.token;
-    if (token != null && token.isNotEmpty) {
-      await _secureStorage.save(StorageKeys.token, token);
-      AppLogger.debug('VERIFY-OTP -> Token saved', tag: 'AUTH_DEBUG');
+
+    // Persist the auth session: token + userId + role + server flags.
+    // No-op when token is empty (defensive — verify-otp success should always
+    // include a non-empty token).
+    if (apiResponse.data != null) {
+      await _persistAuthSession(apiResponse.data!);
     }
 
-    // Mark WhatsApp as verified so SplashCubit routes correctly on restart
+    // verify-otp success guarantees the phone is verified, even if the
+    // server response omits the flag.
     await _sharedPref.save(StorageKeys.isWhatsappVerified, true);
 
     // Clean up the temporary userId now that auth flow is complete
@@ -197,12 +205,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<SuccessResponse<void>> requestForgotPasswordOtp({required String phoneNumber}) async {
+  Future<SuccessResponse<void>> requestForgotPasswordOtp({
+    required String phoneNumber,
+  }) async {
     final formattedPhone = _formatForgotPhone(phoneNumber);
-    AppLogger.debug('FORGOT PASSWORD REQUEST -> phone: "$formattedPhone"', tag: 'AUTH_DEBUG');
-    final response = await _apiConsumer.post(EndPoints.forgotPassword, body: {
-      'phoneNumber': formattedPhone,
-    });
+    AppLogger.debug(
+      'FORGOT PASSWORD REQUEST -> phone: ${LogMasker.phone(formattedPhone)}',
+      tag: 'AUTH_DEBUG',
+    );
+    final response = await _apiConsumer.post(
+      EndPoints.forgotPassword,
+      body: {'phoneNumber': formattedPhone},
+    );
 
     final apiResponse = ApiResponse<void>.fromJson(response, (_) {});
     return SuccessResponse.fromApiResponse(apiResponse);
@@ -214,11 +228,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String code,
   }) async {
     final formattedPhone = _formatForgotPhone(phoneNumber);
-    AppLogger.debug('VERIFY FORGOT OTP -> phone: "$formattedPhone" | code: "$code"', tag: 'AUTH_DEBUG');
-    final response = await _apiConsumer.post(EndPoints.verifyForgotPasswordOtp, body: {
-      'phoneNumber': formattedPhone,
-      'code': code,
-    });
+    AppLogger.debug(
+      'VERIFY FORGOT OTP -> phone: ${LogMasker.phone(formattedPhone)} | ${LogMasker.otp(code)}',
+      tag: 'AUTH_DEBUG',
+    );
+    final response = await _apiConsumer.post(
+      EndPoints.verifyForgotPasswordOtp,
+      body: {'phoneNumber': formattedPhone, 'code': code},
+    );
 
     final apiResponse = ApiResponse<void>.fromJson(response, (_) {});
     return SuccessResponse.fromApiResponse(apiResponse);
@@ -231,12 +248,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String newPassword,
   }) async {
     final formattedPhone = _formatForgotPhone(phoneNumber);
-    AppLogger.debug('RESET PASSWORD -> phone: "$formattedPhone" | code: "$code"', tag: 'AUTH_DEBUG');
-    final response = await _apiConsumer.post(EndPoints.resetPassword, body: {
-      'phoneNumber': formattedPhone,
-      'code': code,
-      'newPassword': newPassword,
-    });
+    AppLogger.debug(
+      'RESET PASSWORD -> phone: ${LogMasker.phone(formattedPhone)} | ${LogMasker.otp(code)}',
+      tag: 'AUTH_DEBUG',
+    );
+    final response = await _apiConsumer.post(
+      EndPoints.resetPassword,
+      body: {
+        'phoneNumber': formattedPhone,
+        'code': code,
+        'newPassword': newPassword,
+      },
+    );
 
     final apiResponse = ApiResponse<void>.fromJson(response, (_) {});
     return SuccessResponse.fromApiResponse(apiResponse);
@@ -245,42 +268,33 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   // ─── Social Auth (Firebase) ───────────────────────────────────
 
   @override
-  Future<UserModel> loginWithGoogle() async {
+  Future<SuccessResponse<UserModel>> loginWithGoogle() async {
     try {
       final googleUser = await GoogleSignIn.instance.authenticate();
       final idToken = googleUser.authentication.idToken;
       final credential = GoogleAuthProvider.credential(idToken: idToken);
-      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        credential,
+      );
       final user = userCredential.user;
-      if (user == null) throw AuthException(message: 'فشل تسجيل الدخول بـ Google');
-      final token = await user.getIdToken();
-      if (token != null && token.isNotEmpty) {
-        await _secureStorage.save(StorageKeys.token, token);
-      }
-      AppLogger.info('Google login successful: ${user.uid}', tag: 'AUTH');
-
-      try {
-        final googleAuth = await googleUser.authentication;
-        AppLogger.debug(
-          'Google Sign-In Response Data:\n'
-          '1. Firebase User UID: ${user.uid}\n'
-          '2. Email: ${user.email}\n'
-          '3. Display Name: ${user.displayName}\n'
-          '4. Photo URL: ${user.photoURL}\n'
-          '5. Google ID Token: ${googleAuth is Future ? ( googleAuth).idToken : googleAuth.idToken}\n'
-          '6. Google Access Token: ${googleAuth is Future ? (googleAuth).idToken : googleAuth.idToken}',
-          tag: 'GOOGLE_AUTH_DATA',
-        );
-      } catch (e) {
-        AppLogger.debug('Failed to get auth details for log: $e', tag: 'GOOGLE_AUTH_DATA');
+      if (user == null) {
+        throw AuthException(message: LocaleKeys.errors_auth_failed_google);
       }
 
-      return UserModel.fromFirebaseUser(
-        uid: user.uid,
-        name: user.displayName ?? googleUser.displayName ?? '',
-        email: user.email ?? googleUser.email,
-        photoUrl: user.photoURL,
-        token: token,
+      final firebaseIdToken = await user.getIdToken();
+      if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
+        throw AuthException(message: LocaleKeys.errors_auth_token_error);
+      }
+
+      final displayName = user.displayName ?? googleUser.displayName ?? '';
+      AppLogger.info(
+        'Google Firebase auth successful: ${user.uid}',
+        tag: 'AUTH',
+      );
+
+      return _postFirebaseSignIn(
+        idToken: firebaseIdToken,
+        displayName: displayName,
       );
     } on FirebaseAuthException catch (e) {
       AppLogger.error('Firebase Google login failed', error: e, tag: 'AUTH');
@@ -297,7 +311,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> loginWithApple() async {
+  Future<SuccessResponse<UserModel>> loginWithApple() async {
     try {
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
@@ -312,64 +326,112 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         ),
       );
 
-      AppLogger.debug('Apple User Identifier: ${appleCredential.userIdentifier}', tag: 'APPLE_FULL_PAYLOAD');
-      AppLogger.debug('Apple Email: ${appleCredential.email}', tag: 'APPLE_FULL_PAYLOAD');
-      AppLogger.debug('Apple Given Name: ${appleCredential.givenName}', tag: 'APPLE_FULL_PAYLOAD');
-      AppLogger.debug('Apple Family Name: ${appleCredential.familyName}', tag: 'APPLE_FULL_PAYLOAD');
-      AppLogger.debug('Apple Identity Token (Raw): ${appleCredential.identityToken}', tag: 'APPLE_FULL_PAYLOAD');
-      AppLogger.debug('Apple Authorization Code: ${appleCredential.authorizationCode}', tag: 'APPLE_FULL_PAYLOAD');
-
-
-
-
-
-
       final oauthCredential = OAuthProvider('apple.com').credential(
         idToken: appleCredential.identityToken,
         accessToken: appleCredential.authorizationCode,
       );
-      final userCredential = await _firebaseAuth.signInWithCredential(oauthCredential);
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        oauthCredential,
+      );
       final user = userCredential.user;
-      if (user == null) throw AuthException(message: 'فشل تسجيل الدخول بـ Apple');
-      final name = [appleCredential.givenName, appleCredential.familyName]
-          .where((s) => s != null && s.isNotEmpty)
-          .join(' ');
-      final token = await user.getIdToken();
-      if (token != null && token.isNotEmpty) {
-        await _secureStorage.save(StorageKeys.token, token);
+      if (user == null) {
+        throw AuthException(message: LocaleKeys.errors_auth_failed_apple);
       }
-      AppLogger.info('Apple login successful: ${user.uid}', tag: 'AUTH');
-      AppLogger.debug('Firebase UID: ${user.uid}', tag: 'APPLE_FULL_PAYLOAD');
-      AppLogger.debug('Firebase Email: ${user.email}', tag: 'APPLE_FULL_PAYLOAD');
-      AppLogger.debug('Firebase ID Token: $token', tag: 'APPLE_FULL_PAYLOAD');
-      return UserModel.fromFirebaseUser(
-        uid: user.uid,
-        name: name.isNotEmpty ? name : (user.displayName ?? ''),
-        email: user.email ?? '',
-        photoUrl: user.photoURL,
-        token: token,
+
+      final firebaseIdToken = await user.getIdToken();
+      if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
+        throw AuthException(message: LocaleKeys.errors_auth_token_error);
+      }
+
+      final name = [
+        appleCredential.givenName,
+        appleCredential.familyName,
+      ].where((s) => s != null && s.isNotEmpty).join(' ');
+      final displayName = name.isNotEmpty ? name : (user.displayName ?? '');
+      AppLogger.info(
+        'Apple Firebase auth successful: ${user.uid}',
+        tag: 'AUTH',
+      );
+
+      return _postFirebaseSignIn(
+        idToken: firebaseIdToken,
+        displayName: displayName,
       );
     } on FirebaseAuthException catch (e) {
       AppLogger.error('Firebase Apple login failed', error: e, tag: 'AUTH');
       throw AuthException(message: _mapFirebaseError(e.code));
     } on SignInWithAppleAuthorizationException catch (e) {
       AppLogger.error('Apple sign-in failed', error: e, tag: 'AUTH');
-      throw AuthException(message: 'تم إلغاء تسجيل الدخول بـ Apple');
+      throw AuthException(message: LocaleKeys.errors_apple_sign_in_cancelled);
     }
   }
 
   // ─── Helpers ──────────────────────────────────────────────────
 
+  Future<SuccessResponse<UserModel>> _postFirebaseSignIn({
+    required String idToken,
+    required String displayName,
+  }) async {
+    final response = await _apiConsumer.post(
+      EndPoints.firebaseSignIn,
+      body: {'idToken': idToken, 'displayName': displayName},
+    );
+
+    final apiResponse = ApiResponse<UserModel>.fromJson(
+      response,
+      (json) => UserModel.fromJson(json),
+    );
+
+    if (apiResponse.data != null) {
+      await _sharedPref.save(StorageKeys.pendingUserId, apiResponse.data!.id);
+      await _persistAuthSession(apiResponse.data!);
+    }
+
+    return SuccessResponse.fromApiResponse(apiResponse);
+  }
+
+  /// Persists the authenticated session locally so SplashCubit can route
+  /// correctly on the next cold start. No-op when the response carries an
+  /// empty token (server returns "" until phone is verified). The caller
+  /// remains responsible for [StorageKeys.pendingUserId] handling.
+  Future<void> _persistAuthSession(UserModel user) async {
+    final token = user.token;
+    if (token == null || token.isEmpty) return;
+    await _secureStorage.save(StorageKeys.token, token);
+    if (user.id.isNotEmpty) {
+      await _sharedPref.save(StorageKeys.userId, user.id);
+    }
+    if (user.name.isNotEmpty) {
+      await _sharedPref.save(StorageKeys.userName, user.name);
+    }
+    if (user.email.isNotEmpty) {
+      await _sharedPref.save(StorageKeys.userEmail, user.email);
+    }
+    final role = user.role;
+    if (role != null && role.isNotEmpty) {
+      await _sharedPref.save(StorageKeys.userRole, role);
+    }
+    final phoneVerified = user.isPhoneVerified ?? false;
+    await _sharedPref.save(StorageKeys.isWhatsappVerified, phoneVerified);
+    final answeredQuestions = user.hasAnsweredQuestions ?? false;
+    await _sharedPref.save(StorageKeys.finishedQuestions, answeredQuestions);
+    AppLogger.debug(
+      'AUTH session persisted (verified=$phoneVerified, '
+      'answered=$answeredQuestions, role=${role ?? '-'})',
+      tag: 'AUTH_DEBUG',
+    );
+  }
+
   String _mapFirebaseError(String code) {
     return switch (code) {
-      'user-not-found' => 'لا يوجد مستخدم بهذا البريد الإلكتروني',
-      'wrong-password' => 'كلمة المرور غير صحيحة',
-      'invalid-credential' => 'بيانات الدخول غير صحيحة',
-      'email-already-in-use' => 'البريد الإلكتروني مستخدم بالفعل',
-      'weak-password' => 'كلمة المرور ضعيفة جداً',
-      'too-many-requests' => 'طلبات كثيرة، حاول لاحقاً',
-      'network-request-failed' => 'تحقق من الاتصال بالإنترنت',
-      _ => 'حدث خطأ، حاول مرة أخرى',
+      'user-not-found' => LocaleKeys.errors_firebase_user_not_found,
+      'wrong-password' => LocaleKeys.errors_firebase_wrong_password,
+      'invalid-credential' => LocaleKeys.errors_firebase_invalid_credential,
+      'email-already-in-use' => LocaleKeys.errors_firebase_email_in_use,
+      'weak-password' => LocaleKeys.errors_firebase_weak_password,
+      'too-many-requests' => LocaleKeys.errors_too_many_requests,
+      'network-request-failed' => LocaleKeys.errors_network_failed,
+      _ => LocaleKeys.errors_generic,
     };
   }
 }

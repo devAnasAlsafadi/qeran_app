@@ -10,7 +10,10 @@ final class VerifyForgotPasswordOtpRequested extends PasswordResetEvent {
   final String phoneNumber;
   final String code;
 
-  VerifyForgotPasswordOtpRequested({required this.phoneNumber, required this.code});
+  VerifyForgotPasswordOtpRequested({
+    required this.phoneNumber,
+    required this.code,
+  });
 }
 
 final class ResetPasswordRequested extends PasswordResetEvent {

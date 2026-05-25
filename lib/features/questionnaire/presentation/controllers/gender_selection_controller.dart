@@ -7,10 +7,11 @@ class GenderSelectionController {
   final SharedPrefService _sharedPrefs;
 
   GenderSelectionController({required SharedPrefService sharedPrefs})
-      : _sharedPrefs = sharedPrefs;
+    : _sharedPrefs = sharedPrefs;
 
-  final ValueNotifier<Gender?> selectedGenderNotifier =
-      ValueNotifier<Gender?>(null);
+  final ValueNotifier<Gender?> selectedGenderNotifier = ValueNotifier<Gender?>(
+    null,
+  );
 
   Gender? get selectedGender => selectedGenderNotifier.value;
 

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/core/widgets/exit_app_dialog.dart';
+import 'package:qeran/core/widgets/onboarding_pop_scope.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
@@ -47,40 +51,50 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
       create: (_) => sl<WhatsappBloc>(),
       child: BlocListener<WhatsappBloc, WhatsappState>(
         listener: _onStateChanged,
-        child: Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.p24,
-                vertical: AppDimens.p16,
-              ),
-              child: Form(
-                key: _controller.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AuthBackButton(onPressed: () => NavigationManager.pop(context)),
-                    AppDimens.verticalSpace16,
-                    const AuthLogoHeader(),
-                    AppDimens.verticalSpace24,
-                    const AuthTitleSubtitle(
-                      title: 'ما هو رقم هاتفك ؟',
-                      subtitle: 'أدخل رقم هاتفك',
-                    ),
-                    const SizedBox(height: AppDimens.p32),
-                    AuthPhoneInput(
-                      controller: _controller.phoneController,
-                      focusNode: _controller.phoneFocus,
-                      countryCodeNotifier: _controller.countryCodeNotifier,
-                    ),
-                    const SizedBox(height: AppDimens.p48),
-                    BlocBuilder<WhatsappBloc, WhatsappState>(
-                      builder: (context, state) => CustomButton(
-                        text: 'إرسال',
-                        onPressed: state is WhatsappLoading ? null : () => _onSendPressed(context),
+        child: OnboardingPopScope(
+          child: Scaffold(
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimens.p24,
+                  vertical: AppDimens.p16,
+                ),
+                child: Form(
+                  key: _controller.formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AuthBackButton(
+                        onPressed: () => ExitAppDialog.show(context),
                       ),
-                    ),
-                  ],
+                      AppDimens.verticalSpace16,
+                      const AuthLogoHeader(),
+                      AppDimens.verticalSpace24,
+                      AuthTitleSubtitle(
+                        title: LocaleKeys.auth_whatsapp_title.t(context),
+                        subtitle: LocaleKeys.auth_whatsapp_subtitle.t(context),
+                      ),
+                      const SizedBox(height: AppDimens.p32),
+                      AuthPhoneInput(
+                        controller: _controller.phoneController,
+                        focusNode: _controller.phoneFocus,
+                        countryCodeNotifier: _controller.countryCodeNotifier,
+                      ),
+                      const SizedBox(height: AppDimens.p48),
+                      BlocBuilder<WhatsappBloc, WhatsappState>(
+                        builder: (context, state) {
+                          final isLoading = state is WhatsappLoading;
+                          return CustomButton(
+                            text: LocaleKeys.common_send.t(context),
+                            isLoading: isLoading,
+                            onPressed: isLoading
+                                ? null
+                                : () => _onSendPressed(context),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -104,7 +118,7 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
     if (state is WhatsappOtpSent) {
       AppSnackBar.show(
         context,
-        message: 'تم إرسال كود التحقق إلى رقم الواتساب الخاص بك',
+        message: LocaleKeys.auth_otp_sent_success.t(context),
         type: SnackBarType.success,
       );
       NavigationManager.navigateTo(
@@ -116,7 +130,11 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
         ),
       );
     } else if (state is WhatsappFailure) {
-      AppSnackBar.show(context, message: state.message, type: SnackBarType.error);
+      AppSnackBar.show(
+        context,
+        message: state.message.t(context),
+        type: SnackBarType.error,
+      );
     }
   }
 }

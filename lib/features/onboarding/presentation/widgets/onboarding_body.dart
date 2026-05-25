@@ -7,8 +7,6 @@ class OnboardingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Image.asset(imagePath, fit: BoxFit.cover),
-    );
+    return SizedBox.expand(child: Image.asset(imagePath, fit: BoxFit.cover));
   }
 }

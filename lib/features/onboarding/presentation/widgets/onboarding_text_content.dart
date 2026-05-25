@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/localization_extension.dart';
 import '../../../../core/theme/app_color.dart';
 import '../../../../core/theme/app_text_style.dart';
 import '../../../../core/utils/app_dimens.dart';
@@ -28,7 +29,7 @@ class OnboardingTextContent extends StatelessWidget {
           transitionBuilder: (child, animation) =>
               FadeTransition(opacity: animation, child: child),
           child: Text(
-            page.title,
+            page.title.t(context),
             key: ValueKey<int>(currentPageIndex),
             style: AppTextStyles.displayLarge.copyWith(color: AppColors.white),
           ),
@@ -39,10 +40,11 @@ class OnboardingTextContent extends StatelessWidget {
           transitionBuilder: (child, animation) =>
               FadeTransition(opacity: animation, child: child),
           child: Text(
-            page.description,
+            page.description.t(context),
             key: ValueKey<String>('desc_$currentPageIndex'),
-            style: AppTextStyles.bodyLarge
-                .copyWith(color: AppColors.white.withValues(alpha: 0.85)),
+            style: AppTextStyles.bodyLarge.copyWith(
+              color: AppColors.white.withValues(alpha: 0.85),
+            ),
           ),
         ),
       ],

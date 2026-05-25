@@ -11,7 +11,7 @@ class AuthTitleSubtitle extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
-    this.textAlign = TextAlign.right,
+    this.textAlign = TextAlign.start,
   });
 
   @override
@@ -19,16 +19,14 @@ class AuthTitleSubtitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          title,
-          style: AppTextStyles.headlineMedium,
-          textAlign: textAlign,
-        ),
+        Text(title, style: AppTextStyles.headlineMedium, textAlign: textAlign),
         if (subtitle != null) ...[
           const SizedBox(height: 8),
           Text(
             subtitle!,
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+            ),
             textAlign: textAlign,
           ),
         ],

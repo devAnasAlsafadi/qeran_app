@@ -26,37 +26,40 @@ class QuestionRenderer extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (question.type) {
       QuestionType.select || QuestionType.radio => QuestionSelectWidget(
-          question: question,
-          selectedOptionId: currentAnswer as String?,
-          onChanged: onAnswerChanged,
-        ),
+        question: question,
+        selectedOptionId: currentAnswer as String?,
+        onChanged: onAnswerChanged,
+      ),
       QuestionType.checkbox => QuestionCheckboxWidget(
-          question: question,
-          selectedOptionIds: (currentAnswer as List<String>?) ?? [],
-          onChanged: onAnswerChanged,
-        ),
+        question: question,
+        selectedOptionIds: (currentAnswer as List<String>?) ?? [],
+        onChanged: onAnswerChanged,
+      ),
       QuestionType.interests => QuestionInterestsWidget(
-          question: question,
-          selectedOptionIds: (currentAnswer as List<String>?) ?? [],
-          onChanged: onAnswerChanged,
-        ),
+        question: question,
+        selectedOptionIds: (currentAnswer as List<String>?) ?? [],
+        onChanged: onAnswerChanged,
+      ),
       QuestionType.text => QuestionTextWidget(
-          currentAnswer: currentAnswer as String?,
-          onChanged: onAnswerChanged,
-        ),
+        currentAnswer: currentAnswer as String?,
+        onChanged: onAnswerChanged,
+      ),
       QuestionType.date => QuestionDateWidget(
-          selectedDate: currentAnswer as DateTime?,
-          onChanged: onAnswerChanged,
-        ),
+        selectedDate: currentAnswer as DateTime?,
+        onChanged: onAnswerChanged,
+      ),
       QuestionType.height => QuestionHeightWidget(
-          selectedHeight: currentAnswer as int?,
-          onChanged: onAnswerChanged,
-        ),
+        selectedHeight: currentAnswer as int?,
+        onChanged: onAnswerChanged,
+      ),
       QuestionType.weight => QuestionWeightWidget(
-          selectedWeight: currentAnswer as int?,
-          onChanged: onAnswerChanged,
-        ),
-      QuestionType.unknown => const SizedBox.shrink(),
+        selectedWeight: currentAnswer as int?,
+        onChanged: onAnswerChanged,
+      ),
+      QuestionType.unknown => QuestionTextWidget(
+        currentAnswer: currentAnswer as String?,
+        onChanged: onAnswerChanged,
+      ),
     };
   }
 }

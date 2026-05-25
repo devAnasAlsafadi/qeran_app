@@ -11,8 +11,5 @@ class VerifyForgotPasswordOtpUseCase {
     required String phoneNumber,
     required String code,
   }) =>
-      _repository.verifyForgotPasswordOtp(
-        phoneNumber: phoneNumber,
-        code: code,
-      );
+      _repository.verifyForgotPasswordOtp(phoneNumber: phoneNumber, code: code);
 }

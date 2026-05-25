@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
@@ -152,10 +153,7 @@ class _SheetContent extends StatelessWidget {
       builder: (context, state) {
         return switch (state) {
           DiscoveryFilterInitial() ||
-          DiscoveryFilterLoading() =>
-            const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            ),
+          DiscoveryFilterLoading() => const Center(child: QeranLoader()),
           DiscoveryFilterFailure(message: final msg) => _ErrorView(
               message: msg.t(context),
               onRetry: () =>

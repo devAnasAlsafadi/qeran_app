@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
@@ -53,7 +54,7 @@ class QuestionnaireFlowBody extends StatelessWidget {
 
         if (inProgressState == null) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(child: QeranLoader()),
           );
         }
 

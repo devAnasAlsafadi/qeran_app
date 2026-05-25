@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/theme/app_color.dart';
@@ -28,9 +29,7 @@ class LikesSentSection extends StatelessWidget {
     switch (state.outgoingStatus) {
       case LikesAsyncStatus.initial:
       case LikesAsyncStatus.loading:
-        return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        );
+        return const Center(child: QeranLoader());
       case LikesAsyncStatus.failure:
         return LikesErrorView(onRetry: cubit.loadOutgoing);
       case LikesAsyncStatus.loaded:

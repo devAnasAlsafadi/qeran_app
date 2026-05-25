@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'core/constants/app_constants.dart';
+import 'core/design_system/theme/qeran_theme.dart';
 import 'core/di/injection_container.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_name.dart';
 import 'core/services/language_service.dart';
-import 'core/theme/theme.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'features/devices/application/device_bootstrap_service.dart';
 import 'features/splash/presentation/blocs/splash_cubit.dart';
@@ -51,8 +51,7 @@ class QeranApp extends StatelessWidget {
         locale: context.locale,
         debugShowCheckedModeBanner: false,
         title: AppConstants.appTitle,
-        theme: AppTheme.lightTheme(context.locale),
-        darkTheme: AppTheme.darkTheme(context.locale),
+        theme: QeranTheme.light(context.locale),
         themeMode: ThemeMode.light,
         initialRoute: RouteNames.splashScreen,
         onGenerateRoute: AppRouter().onGenerateRoute,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import '../../../../domain/entities/question_entity.dart';
 
 class QuestionHeader extends StatelessWidget {
@@ -18,18 +17,14 @@ class QuestionHeader extends StatelessWidget {
           Text(
             question.categoryName,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: QeranTypography.bodySm,
           ),
-          const SizedBox(height: AppDimens.p8),
+          QeranSpacing.vs8,
         ],
         Text(
           question.text,
           textAlign: TextAlign.center,
-          style: AppTextStyles.headlineMedium.copyWith(
-            color: AppColors.textPrimary,
-          ),
+          style: QeranTypography.headline,
         ),
       ],
     );

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -10,12 +11,7 @@ import '../../domain/entities/profile_image.dart';
 
 /// Image hero for the Full Profile Details screen. Horizontal
 /// `PageView` over the full gallery (or a single primary photo), with
-/// a numerical 1/N indicator. Each cell uses [LikeBlurredImage] so
-/// Bearer auth + conditional blur stay consistent with Likes / Matches.
-///
-/// Accepts the sealed [ProfileImage] type so both [OwnerImage] (gallery
-/// with isApproved) and [OtherProfileImage] (with isBlurred) feed the
-/// same widget. Owner images are always rendered unblurred.
+/// a numerical 1/N indicator.
 class ProfileHeaderGallery extends StatefulWidget {
   final List<ProfileImage> images;
   final double height;
@@ -66,8 +62,8 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
           ),
           if (widget.images.length > 1)
             Positioned(
-              top: AppDimens.p12,
-              right: AppDimens.p12,
+              top: QeranSpacing.s12,
+              right: QeranSpacing.s12,
               child: _IndexBadge(
                 index: _index + 1,
                 total: widget.images.length,
@@ -94,7 +90,7 @@ class _Placeholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: height,
-      color: AppColors.primary.withValues(alpha: 0.06),
+      color: QeranColors.creamSurface,
       alignment: Alignment.center,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -102,13 +98,12 @@ class _Placeholder extends StatelessWidget {
           const Icon(
             Icons.person_rounded,
             size: 64,
-            color: AppColors.textMuted,
+            color: QeranColors.wine40,
           ),
-          const SizedBox(height: AppDimens.p8),
+          QeranSpacing.vs8,
           Text(
             LocaleKeys.profile_no_photo.t(context),
-            style: AppTextStyles.caption
-                .copyWith(color: AppColors.textSecondary),
+            style: QeranTypography.caption,
           ),
         ],
       ),
@@ -125,17 +120,13 @@ class _IndexBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(999),
+      decoration: const BoxDecoration(
+        color: QeranColors.overlayTintDark,
+        borderRadius: QeranRadii.pill,
       ),
       child: Text(
         '$index / $total',
-        style: AppTextStyles.caption.copyWith(
-          color: AppColors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
+        style: QeranTypography.caption.copyWith(color: QeranColors.paper),
       ),
     );
   }

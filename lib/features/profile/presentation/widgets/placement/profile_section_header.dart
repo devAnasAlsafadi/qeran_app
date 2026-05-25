@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
-/// Burgundy icon + bold label. Used by every section of the full
-/// profile body so the rendered surface reads as one continuous layout
-/// rather than a list of cards.
+/// Wine icon + label. Used by every section of the full profile body
+/// so the rendered surface reads as one continuous layout rather than
+/// a list of cards.
 class ProfileSectionHeader extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -19,17 +19,10 @@ class ProfileSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.primary),
-        const SizedBox(width: AppDimens.p4 + 2),
+        Icon(icon, size: 16, color: QeranColors.wine),
+        QeranSpacing.hs8,
         Flexible(
-          child: Text(
-            title,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-            ),
-          ),
+          child: Text(title, style: QeranTypography.label),
         ),
       ],
     );
@@ -41,11 +34,11 @@ class ProfileSectionDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.p20),
-      child: Container(
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: QeranSpacing.s20),
+      child: SizedBox(
         height: 1,
-        color: AppColors.primary.withValues(alpha: 0.08),
+        child: ColoredBox(color: QeranColors.divider),
       ),
     );
   }

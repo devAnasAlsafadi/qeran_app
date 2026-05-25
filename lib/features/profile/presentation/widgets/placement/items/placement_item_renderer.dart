@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import '../../../../domain/entities/placement_item.dart';
 import '../../../../domain/entities/placement_value.dart';
@@ -9,9 +8,7 @@ import 'inline_chip.dart';
 
 /// Item-level dispatcher. Picks a renderer based on the sealed
 /// `PlacementValue` variant: text for single answers, wrapped chips
-/// for multi answers. Knowing the `PlacementItemType` is optional —
-/// this surface is purely value-shape driven so a new server type
-/// never breaks rendering.
+/// for multi answers.
 class PlacementItemRenderer extends StatelessWidget {
   final PlacementItem item;
   const PlacementItemRenderer({super.key, required this.item});
@@ -19,18 +16,12 @@ class PlacementItemRenderer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.p8),
+      padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            item.question,
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 6),
+          Text(item.question, style: QeranTypography.caption),
+          const SizedBox(height: QeranSpacing.s6),
           _AnswerView(value: item.display),
         ],
       ),
@@ -47,14 +38,11 @@ class _AnswerView extends StatelessWidget {
     return switch (value) {
       PlacementSingle(value: final s) => Text(
           s,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w700,
-          ),
+          style: QeranTypography.subtitle,
         ),
       PlacementMulti(values: final vs) => Wrap(
-          spacing: AppDimens.p8,
-          runSpacing: 6,
+          spacing: QeranSpacing.s8,
+          runSpacing: QeranSpacing.s6,
           children: vs
               .where((v) => v.trim().isNotEmpty)
               .map(InlineChip.new)

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import '../../../domain/entities/placement.dart';
 import '../../../domain/entities/placement_value.dart';
@@ -31,16 +30,13 @@ class AboutMeSection extends StatelessWidget {
           title: placement.name,
           icon: Icons.person_outline_rounded,
         ),
-        const SizedBox(height: AppDimens.p8),
+        QeranSpacing.vs8,
         Text(
           body,
           maxLines: maxLines,
           overflow:
               maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            height: 1.7,
-          ),
+          style: QeranTypography.body,
         ),
       ],
     );

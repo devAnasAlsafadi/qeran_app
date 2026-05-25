@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../domain/entities/placement.dart';
 import '../../../domain/entities/placement_value.dart';
 import 'profile_section_header.dart';
 
-/// Flat interests section — burgundy header + wrap of pill chips.
-/// Server display strings already include the emoji marker
-/// (e.g. "🧭 محبة للسفر"), so each chip just renders the string verbatim.
+/// Flat interests section — wine header + wrap of pill chips.
 class InterestsSection extends StatelessWidget {
   final Placement placement;
   const InterestsSection({super.key, required this.placement});
@@ -31,11 +28,18 @@ class InterestsSection extends StatelessWidget {
           title: title,
           icon: Icons.auto_awesome_outlined,
         ),
-        const SizedBox(height: AppDimens.p12),
+        QeranSpacing.vs12,
         Wrap(
-          spacing: AppDimens.p8,
-          runSpacing: AppDimens.p8,
-          children: chips.map(_InterestPill.new).toList(growable: false),
+          spacing: QeranSpacing.s8,
+          runSpacing: QeranSpacing.s8,
+          children: chips
+              .map(
+                (label) => QeranChip(
+                  label: label,
+                  variant: QeranChipVariant.interest,
+                ),
+              )
+              .toList(growable: false),
         ),
       ],
     );
@@ -56,35 +60,5 @@ class InterestsSection extends StatelessWidget {
       }
     }
     return out;
-  }
-}
-
-class _InterestPill extends StatelessWidget {
-  final String label;
-  const _InterestPill(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.p12,
-        vertical: AppDimens.p8,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.18),
-        ),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.labelSmall.copyWith(
-          color: AppColors.primary,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-      ),
-    );
   }
 }

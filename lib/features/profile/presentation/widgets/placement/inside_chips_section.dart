@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 
 import '../../../domain/entities/placement.dart';
 import '../../../domain/entities/placement_item.dart';
@@ -19,44 +18,22 @@ class InsideChipsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (placement.items.isEmpty) return const SizedBox.shrink();
     return Wrap(
-      spacing: AppDimens.p8,
-      runSpacing: AppDimens.p8,
+      spacing: QeranSpacing.s8,
+      runSpacing: QeranSpacing.s8,
       children: placement.items
-          .map((i) => _OutlinedTag(item: i))
+          .map(
+            (i) => QeranChip(
+              label: _label(i),
+              variant: QeranChipVariant.inside,
+              compact: true,
+            ),
+          )
           .toList(growable: false),
     );
   }
-}
 
-class _OutlinedTag extends StatelessWidget {
-  final PlacementItem item;
-  const _OutlinedTag({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.p12,
-        vertical: AppDimens.p4 + 2,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimens.r8),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Text(
-        _label(item.display),
-        style: AppTextStyles.labelSmall.copyWith(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
-  String _label(PlacementValue v) {
-    return switch (v) {
+  String _label(PlacementItem item) {
+    return switch (item.display) {
       PlacementSingle(value: final s) => s,
       PlacementMulti(values: final vs) => vs.join(' · '),
     };

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
 import '../../../domain/entities/placement.dart';
 import 'items/placement_item_renderer.dart';
@@ -23,7 +23,7 @@ class QaDefaultSection extends StatelessWidget {
           title: placement.name,
           icon: Icons.list_alt_rounded,
         ),
-        const SizedBox(height: AppDimens.p8),
+        QeranSpacing.vs8,
         for (final item in placement.items)
           PlacementItemRenderer(item: item),
       ],

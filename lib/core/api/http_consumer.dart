@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import '../app_logger.dart';
 import '../errors/exceptions.dart';
+import '../services/language_service.dart';
 import '../services/storage_service.dart';
 import 'api_consumer.dart';
 import 'end_points.dart';
@@ -11,16 +15,23 @@ import 'end_points.dart';
 class HttpConsumer extends ApiConsumer {
   final http.Client client;
   final StorageService storage;
+  final LanguageService languageService;
 
   static const Duration _timeout = Duration(seconds: 30);
+  static const Duration _multipartTimeout = Duration(seconds: 60);
 
-  HttpConsumer({required this.client, required this.storage});
+  HttpConsumer({
+    required this.client,
+    required this.storage,
+    required this.languageService,
+  });
 
   Future<Map<String, String>> _getHeaders() async {
     final token = await storage.get<String>(StorageKeys.token);
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Accept-Language': languageService.currentLanguage,
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
@@ -30,12 +41,18 @@ class HttpConsumer extends ApiConsumer {
   }
 
   @override
-  Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) async {
-    final uri = Uri.parse("${EndPoints.baseUrl}$path")
-        .replace(queryParameters: _convertQueryParams(queryParameters));
+  Future<dynamic> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final uri = Uri.parse(
+      "${EndPoints.baseUrl}$path",
+    ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('GET $uri', tag: 'HTTP');
     try {
-      final response = await client.get(uri, headers: await _getHeaders()).timeout(_timeout);
+      final response = await client
+          .get(uri, headers: await _getHeaders())
+          .timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
       if (e is ServerException) rethrow;
@@ -45,9 +62,14 @@ class HttpConsumer extends ApiConsumer {
   }
 
   @override
-  Future<dynamic> post(String path, {Object? body, Map<String, dynamic>? queryParameters}) async {
-    final uri = Uri.parse("${EndPoints.baseUrl}$path")
-        .replace(queryParameters: _convertQueryParams(queryParameters));
+  Future<dynamic> post(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final uri = Uri.parse(
+      "${EndPoints.baseUrl}$path",
+    ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('POST $uri', tag: 'HTTP');
     try {
       final response = await client
@@ -62,9 +84,57 @@ class HttpConsumer extends ApiConsumer {
   }
 
   @override
-  Future<dynamic> patch(String path, {Object? body, Map<String, dynamic>? queryParameters}) async {
-    final uri = Uri.parse("${EndPoints.baseUrl}$path")
-        .replace(queryParameters: _convertQueryParams(queryParameters));
+  Future<dynamic> getRaw(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final uri = Uri.parse(
+      "${EndPoints.baseUrl}$path",
+    ).replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('GET (raw) $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .get(uri, headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleRawResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('GET (raw) $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> postRaw(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final uri = Uri.parse(
+      "${EndPoints.baseUrl}$path",
+    ).replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('POST (raw) $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .post(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleRawResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('POST (raw) $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
+  Future<dynamic> patch(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final uri = Uri.parse(
+      "${EndPoints.baseUrl}$path",
+    ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('PATCH $uri', tag: 'HTTP');
     try {
       final response = await client
@@ -79,9 +149,13 @@ class HttpConsumer extends ApiConsumer {
   }
 
   @override
-  Future<dynamic> delete(String path, {Map<String, dynamic>? queryParameters}) async {
-    final uri = Uri.parse("${EndPoints.baseUrl}$path")
-        .replace(queryParameters: _convertQueryParams(queryParameters));
+  Future<dynamic> delete(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final uri = Uri.parse(
+      "${EndPoints.baseUrl}$path",
+    ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('DELETE $uri', tag: 'HTTP');
     try {
       final response = await client
@@ -95,21 +169,90 @@ class HttpConsumer extends ApiConsumer {
     }
   }
 
+  @override
+  Future<dynamic> postMultipart(
+    String path, {
+    required List<File> files,
+    required String fieldName,
+    Map<String, String>? fields,
+    Duration? timeout,
+  }) async {
+    if (files.isEmpty) {
+      throw ArgumentError('postMultipart requires at least one file');
+    }
+    final uri = Uri.parse('${EndPoints.baseUrl}$path');
+    AppLogger.info('POST (multipart) $uri', tag: 'HTTP');
+    try {
+      // _getHeaders adds Content-Type: application/json. Multipart sets
+      // its own Content-Type with boundary, so strip ours before
+      // assigning — leaving both in place yields a malformed request.
+      final headers = await _getHeaders();
+      headers.remove('Content-Type');
+
+      final request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(headers);
+      if (fields != null) request.fields.addAll(fields);
+
+      for (var i = 0; i < files.length; i++) {
+        final file = files[i];
+        request.files.add(await http.MultipartFile.fromPath(
+          fieldName,
+          file.path,
+          filename: 'file_$i${_extensionOf(file.path)}',
+          contentType: MediaType('image', _mimeSubtype(file.path)),
+        ));
+      }
+
+      final streamed =
+          await client.send(request).timeout(timeout ?? _multipartTimeout);
+      final response = await http.Response.fromStream(streamed);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      if (e is ArgumentError) rethrow;
+      AppLogger.error('POST (multipart) $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  String _extensionOf(String path) {
+    final dot = path.lastIndexOf('.');
+    return dot != -1 ? path.substring(dot) : '.jpg';
+  }
+
+  String _mimeSubtype(String path) {
+    final ext = path.contains('.')
+        ? path.substring(path.lastIndexOf('.') + 1).toLowerCase()
+        : 'jpeg';
+    return ext == 'jpg' ? 'jpeg' : ext;
+  }
+
   dynamic _handleResponse(http.Response response) {
-    AppLogger.debug('${response.statusCode} ${response.request?.url}', tag: 'HTTP');
+    AppLogger.debug(
+      '${response.statusCode} ${response.request?.url}',
+      tag: 'HTTP',
+    );
     try {
       final dynamic responseBody = jsonDecode(response.body);
       if (response.statusCode >= 200 && response.statusCode < 300) {
         if (responseBody['status'] == 1 || responseBody['status'] == true) {
           return responseBody;
         } else {
-          throw ServerException(message: responseBody['message'] ?? "Operation Failed");
+          // Status-envelope failure on a 2xx response. Surface the
+          // optional `errorCode` so data-source classifiers can switch
+          // on it instead of substring-matching the Arabic message.
+          throw CodedServerException(
+            message: responseBody['message'] ?? "Operation Failed",
+            errorCode: responseBody is Map ? responseBody['errorCode'] as String? : null,
+          );
         }
       } else {
         String errorMessage = _statusErrorMessage(response.statusCode);
         if (responseBody is Map) {
           if (responseBody['errors'] != null && responseBody['errors'] is Map) {
-            final Map<String, dynamic> errors = Map<String, dynamic>.from(responseBody['errors']);
+            final Map<String, dynamic> errors = Map<String, dynamic>.from(
+              responseBody['errors'],
+            );
             if (errors.isNotEmpty) {
               final firstList = errors.values.first;
               if (firstList is List && firstList.isNotEmpty) {
@@ -117,13 +260,20 @@ class HttpConsumer extends ApiConsumer {
               }
             }
           } else {
-            errorMessage = responseBody['message'] as String?
-                ?? responseBody['error'] as String?
-                ?? _statusErrorMessage(response.statusCode);
+            errorMessage =
+                responseBody['message'] as String? ??
+                responseBody['error'] as String? ??
+                _statusErrorMessage(response.statusCode);
           }
         }
-        AppLogger.error('${response.statusCode} ${response.request?.url}: $errorMessage', tag: 'HTTP');
-        throw ServerException(message: errorMessage);
+        AppLogger.error(
+          '${response.statusCode} ${response.request?.url}: $errorMessage',
+          tag: 'HTTP',
+        );
+        throw CodedServerException(
+          message: errorMessage,
+          errorCode: responseBody is Map ? responseBody['errorCode'] as String? : null,
+        );
       }
     } catch (e) {
       if (e is ServerException) rethrow;
@@ -135,21 +285,89 @@ class HttpConsumer extends ApiConsumer {
     }
   }
 
+  /// Same status-code handling as [_handleResponse] but does **not**
+  /// enforce the `status == 1` envelope. Used by [getRaw] / [postRaw] for
+  /// endpoints that return a raw List, a literal `null`, or a Map with
+  /// a different success-flag shape (e.g. the subscriptions endpoints'
+  /// `success: true/false`).
+  ///
+  /// Behaviour:
+  /// * 2xx → returns the decoded body as-is, **except** when the body is
+  ///   a Map with `success: false` (POST envelope used by `/subscribe`)
+  ///   — in that case it throws `ServerException` with `message`.
+  /// * non-2xx → throws `ServerException` with the parsed error message.
+  dynamic _handleRawResponse(http.Response response) {
+    AppLogger.debug(
+      '${response.statusCode} (raw) ${response.request?.url}',
+      tag: 'HTTP',
+    );
+    final ok = response.statusCode >= 200 && response.statusCode < 300;
+    // Server may return literal `null` (e.g. `/subscriptions/current`
+    // when not subscribed) — keep that as a valid 2xx response.
+    if (ok && response.body.isEmpty) return null;
+
+    dynamic body;
+    try {
+      body = jsonDecode(response.body);
+    } catch (_) {
+      AppLogger.error(
+        '${response.statusCode} non-JSON body: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}',
+        tag: 'HTTP',
+      );
+      throw ServerException(message: _statusErrorMessage(response.statusCode));
+    }
+
+    if (ok) {
+      if (body is Map<String, dynamic> && body['success'] == false) {
+        throw CodedServerException(
+          message: body['message'] as String? ?? 'Operation Failed',
+          errorCode: body['errorCode'] as String?,
+        );
+      }
+      // `status: 0` envelopes are NOT thrown here — data sources that
+      // use `postRaw` inspect the body themselves and classify before
+      // bubbling up (see `LikesRemoteDataSourceImpl._action` and the
+      // matches data source). Throwing here would short-circuit that.
+      return body;
+    }
+
+    var errorMessage = _statusErrorMessage(response.statusCode);
+    if (body is Map) {
+      final errors = body['errors'];
+      if (errors is Map && errors.isNotEmpty) {
+        final firstList = errors.values.first;
+        if (firstList is List && firstList.isNotEmpty) {
+          errorMessage = firstList.first.toString();
+        }
+      } else {
+        errorMessage = body['message'] as String? ??
+            body['error'] as String? ??
+            errorMessage;
+      }
+    }
+    AppLogger.error(
+      '${response.statusCode} (raw) ${response.request?.url}: $errorMessage',
+      tag: 'HTTP',
+    );
+    throw CodedServerException(
+      message: errorMessage,
+      errorCode: body is Map ? body['errorCode'] as String? : null,
+    );
+  }
+
   String _errorMessage(Object e) {
-    if (e is TimeoutException) return "Request timed out. Please try again.";
-    return "Connection error: ${e.toString()}";
+    if (e is TimeoutException) return LocaleKeys.errors_timeout;
+    return LocaleKeys.errors_generic;
   }
 
   String _statusErrorMessage(int statusCode) => switch (statusCode) {
-        400 => 'البيانات المدخلة غير صحيحة',
-        401 => 'غير مصرح بالوصول',
-        403 => 'ليس لديك صلاحية للوصول',
-        404 => 'لم يتم العثور على المورد',
-        408 => 'انتهت مهلة الطلب',
-        429 => 'طلبات كثيرة، حاول لاحقاً',
-        500 || 502 || 503 => 'خطأ في الخادم، حاول لاحقاً',
-        _ => 'حدث خطأ، حاول مرة أخرى',
-      };
+    400 => LocaleKeys.errors_bad_request,
+    401 => LocaleKeys.errors_unauthorized,
+    403 => LocaleKeys.errors_forbidden,
+    404 => LocaleKeys.errors_not_found,
+    408 => LocaleKeys.errors_timeout,
+    429 => LocaleKeys.errors_too_many_requests,
+    500 || 502 || 503 => LocaleKeys.errors_server,
+    _ => LocaleKeys.errors_generic,
+  };
 }
-
-

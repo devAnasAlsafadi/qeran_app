@@ -8,12 +8,21 @@ class SharedPrefService implements StorageService {
 
   @override
   Future<void> save<T>(String key, T value) async {
-    if (value is String) await _prefs.setString(key, value);
-    else if (value is int) await _prefs.setInt(key, value);
-    else if (value is bool) await _prefs.setBool(key, value);
-    else if (value is double) await _prefs.setDouble(key, value);
-    else if (value is List<String>) await _prefs.setStringList(key, value);
-    else throw ArgumentError('SharedPrefService: unsupported type ${T.toString()} for key "$key"');
+    if (value is String) {
+      await _prefs.setString(key, value);
+    } else if (value is int) {
+      await _prefs.setInt(key, value);
+    } else if (value is bool) {
+      await _prefs.setBool(key, value);
+    } else if (value is double) {
+      await _prefs.setDouble(key, value);
+    } else if (value is List<String>) {
+      await _prefs.setStringList(key, value);
+    } else {
+      throw ArgumentError(
+        'SharedPrefService: unsupported type ${T.toString()} for key "$key"',
+      );
+    }
   }
 
   @override

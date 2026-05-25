@@ -10,4 +10,3 @@ class AppAssets {
   static const String onboarding3 = '${_imagePath}3.png';
   static const String googleLogo = '${_iconPath}google_logo.svg';
 }
-

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 abstract class Failure extends Equatable {
   final String message;
@@ -18,9 +19,9 @@ class CacheFailure extends Failure {
 }
 
 class AuthFailure extends Failure {
-  const AuthFailure({super.message = 'errors.unauthorized'});
+  const AuthFailure({super.message = LocaleKeys.errors_unauthorized});
 }
 
 class OfflineFailure extends Failure {
-  const OfflineFailure({super.message = 'errors.offline'});
+  const OfflineFailure({super.message = LocaleKeys.errors_offline});
 }

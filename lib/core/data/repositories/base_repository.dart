@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 typedef ApiCall<T> = Future<T> Function();
 
@@ -18,7 +19,7 @@ mixin BaseRepository {
       return Left(AuthFailure(message: e.message));
     } catch (e) {
       AppLogger.error('Unexpected error', error: e, tag: 'REPO');
-      return Left(ServerFailure(message: 'حدث خطأ غير متوقع'));
+      return Left(ServerFailure(message: LocaleKeys.errors_unexpected));
     }
   }
 }

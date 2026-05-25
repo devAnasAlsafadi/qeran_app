@@ -3,7 +3,7 @@ enum Gender {
   female;
 
   String get apiValue => switch (this) {
-        Gender.male => 'Male',
-        Gender.female => 'Female',
-      };
+    Gender.male => 'Male',
+    Gender.female => 'Female',
+  };
 }

@@ -8,7 +8,7 @@ class AppTheme {
   AppTheme._();
 
   // --- Light Theme ---
-  static ThemeData  lightTheme (Locale locale){
+  static ThemeData lightTheme(Locale locale) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -46,7 +46,7 @@ class AppTheme {
   }
 
   // --- Dark Theme ---
-  static ThemeData  darkTheme (Locale locale){
+  static ThemeData darkTheme(Locale locale) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -56,8 +56,7 @@ class AppTheme {
           ? AppConstants.fontFamilyArabic
           : AppConstants.fontFamilyEnglish,
       colorScheme: const ColorScheme.dark(
-        primary:
-            AppColors.primaryLight,
+        primary: AppColors.primaryLight,
         secondary: AppColors.primary,
         surface: AppColors.darkSurface,
         error: AppColors.error,
@@ -90,8 +89,6 @@ class AppTheme {
     );
   }
 
-
-
   // --- Helper Methods ---
 
   static TextTheme get _textTheme => const TextTheme(
@@ -113,7 +110,7 @@ class AppTheme {
           alignment: Alignment.center,
           textStyle: AppTextStyles.labelLarge.copyWith(
             height: 1.0,
-            leadingDistribution: TextLeadingDistribution.even
+            leadingDistribution: TextLeadingDistribution.even,
           ),
           minimumSize: const Size(double.infinity, 55),
           padding: EdgeInsets.zero,

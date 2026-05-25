@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -7,19 +9,40 @@ import 'core/constants/app_constants.dart';
 import 'core/di/injection_container.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_name.dart';
+import 'core/services/language_service.dart';
 import 'core/theme/theme.dart';
+import 'features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'features/devices/application/device_bootstrap_service.dart';
 import 'features/splash/presentation/blocs/splash_cubit.dart';
+import 'features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 
 class QeranApp extends StatelessWidget {
   const QeranApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Keep the API layer in sync with the active locale.
+    // easy_localization triggers a rebuild here every time the locale changes.
+    final code = context.locale.languageCode;
+    final language = sl<LanguageService>();
+    if (language.currentLanguage != code) {
+      language.setLanguage(code);
+      // Re-register the device with the new language so the server can switch
+      // topic subscriptions. The orchestrator itself is idempotent against the
+      // last-registered language, so unrelated rebuilds are no-ops.
+      unawaited(sl<DeviceBootstrapService>().onLanguageChanged(code));
+    }
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<SplashCubit>(create: (_) => sl<SplashCubit>()),
+        BlocProvider<UserSessionCubit>.value(value: sl<UserSessionCubit>()),
+        BlocProvider<CurrentSubscriptionCubit>.value(
+          value: sl<CurrentSubscriptionCubit>(),
+        ),
       ],
       child: MaterialApp(
+        navigatorKey: sl<GlobalKey<NavigatorState>>(),
         localizationsDelegates: [
           ...context.localizationDelegates,
           CountryLocalizations.delegate,

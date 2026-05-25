@@ -8,6 +8,7 @@ class CustomButton extends StatelessWidget {
   final double? width;
   final double height;
   final double borderRadius;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
@@ -18,6 +19,7 @@ class CustomButton extends StatelessWidget {
     this.width,
     this.height = 55,
     this.borderRadius = 12,
+    this.isLoading = false,
   });
 
   @override
@@ -26,30 +28,48 @@ class CustomButton extends StatelessWidget {
       width: width ?? double.infinity,
       height: height,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.primary,
+          backgroundColor:
+              backgroundColor ?? Theme.of(context).colorScheme.primary,
+          disabledBackgroundColor:
+              (backgroundColor ?? Theme.of(context).colorScheme.primary)
+                  .withValues(alpha: 0.6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
           elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (icon != null) ...[
-              const SizedBox(width: 10),
-              Icon(icon, color: Colors.white),
-            ],
-          ],
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: isLoading
+              ? const SizedBox(
+                  key: ValueKey('loading'),
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Row(
+                  key: const ValueKey('content'),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (icon != null) ...[
+                      const SizedBox(width: 10),
+                      Icon(icon, color: Colors.white),
+                    ],
+                  ],
+                ),
         ),
       ),
     );

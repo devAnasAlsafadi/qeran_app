@@ -10,37 +10,70 @@ import 'package:qeran/features/auth/presentation/screens/whatsapp_input/whatsapp
 import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/whatsapp_verification.dart';
 import 'package:qeran/features/home/presentation/screens/home_screen.dart';
 import 'package:qeran/features/khataba_dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:qeran/features/likes/presentation/screens/matchmaker_chat_screen.dart';
+import 'package:qeran/features/notifications/presentation/screens/notifications_demo_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
+import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
+import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
+import 'package:qeran/features/profile/presentation/screens/my_profile_screen.dart';
 import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart';
 import 'package:qeran/features/splash/presentation/screens/splash_screen.dart';
+import 'package:qeran/features/subscriptions/presentation/screens/packages_screen.dart';
+import 'package:qeran/features/subscriptions/presentation/screens/subscription_purchase_screen.dart';
 
 class AppRouter {
-
-   Route<dynamic> onGenerateRoute(RouteSettings settings) {
+  Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RouteNames.splashScreen:
-        return MaterialPageRoute(settings: settings, builder: (context) => const SplashScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const SplashScreen(),
+        );
 
       case RouteNames.onboarding:
-        return MaterialPageRoute(settings: settings, builder: (context) => const OnBoardingScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const OnBoardingScreen(),
+        );
 
       case RouteNames.loginScreen:
-        return MaterialPageRoute(settings: settings, builder: (context) => const LoginScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const LoginScreen(),
+        );
 
       case RouteNames.registerScreen:
-        return MaterialPageRoute(settings: settings, builder: (context) => const RegisterScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const RegisterScreen(),
+        );
       case RouteNames.forgotPasswordEmail:
-        return MaterialPageRoute(settings: settings, builder: (context) => const ForgetPassScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const ForgetPassScreen(),
+        );
       case RouteNames.resetPassword:
-        return MaterialPageRoute(settings: settings, builder: (context) => const ResetPassScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const ResetPassScreen(),
+        );
       case RouteNames.whatsappInput:
-        return MaterialPageRoute(settings: settings, builder: (context) => const WhatsappInputScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const WhatsappInputScreen(),
+        );
       case RouteNames.whatsappVerification:
-        return MaterialPageRoute(settings: settings, builder: (context) => const WhatsappVerificationScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const WhatsappVerificationScreen(),
+        );
       case RouteNames.genderSelectionScreen:
-        return MaterialPageRoute(settings: settings, builder: (context) => const GenderSelectionScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const GenderSelectionScreen(),
+        );
       case RouteNames.questionsScreen:
         final questions = settings.arguments as List<QuestionEntity>?;
         return MaterialPageRoute(
@@ -48,13 +81,80 @@ class AppRouter {
           builder: (context) => QuestionnaireFlowScreen(questions: questions),
         );
       case RouteNames.oathScreen:
-        return MaterialPageRoute(settings: settings, builder: (context) => const OathScreen());
+        final answersPayload =
+            settings.arguments is List<Map<String, dynamic>>
+                ? settings.arguments as List<Map<String, dynamic>>
+                : null;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => OathScreen(answersPayload: answersPayload),
+        );
       case RouteNames.khatabaDashboard:
-        return MaterialPageRoute(settings: settings, builder: (context) => const DashboardScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const DashboardScreen(),
+        );
       case RouteNames.homeScreen:
-        return MaterialPageRoute(settings: settings, builder: (context) => const HomeScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const HomeScreen(),
+        );
       case RouteNames.photoUploadScreen:
-        return MaterialPageRoute(settings: settings, builder: (context) => const UploadImageProfileScreen());
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const UploadImageProfileScreen(),
+        );
+      case RouteNames.notificationsDemo:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const NotificationsDemoScreen(),
+        );
+      case RouteNames.packagesScreen:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const PackagesScreen(),
+        );
+      case RouteNames.subscriptionPurchase:
+        final args = settings.arguments as SubscriptionPurchaseArgs?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => args == null
+              ? Scaffold(
+                  body: Center(
+                    child: Text('Missing args for ${settings.name}'),
+                  ),
+                )
+              : SubscriptionPurchaseScreen(args: args),
+        );
+      case RouteNames.matchmakerChat:
+        final chatArgs = settings.arguments as MatchmakerChatScreenArgs?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => chatArgs == null
+              ? Scaffold(
+                  body: Center(
+                    child: Text('Missing args for ${settings.name}'),
+                  ),
+                )
+              : MatchmakerChatScreen(args: chatArgs),
+        );
+      case RouteNames.fullProfileDetails:
+        final args = settings.arguments as FullProfileDetailsArgs?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => args == null
+              ? Scaffold(
+                  body: Center(
+                    child: Text('Missing args for ${settings.name}'),
+                  ),
+                )
+              : FullProfileDetailsScreen(args: args),
+        );
+      case RouteNames.myProfile:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const MyProfileScreen(),
+        );
       default:
         return MaterialPageRoute(
           settings: settings,
@@ -64,8 +164,4 @@ class AppRouter {
         );
     }
   }
-
-
-
 }
-

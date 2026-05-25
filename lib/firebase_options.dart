@@ -63,8 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '517112282743',
     projectId: 'qeran-7e6a2',
     storageBucket: 'qeran-7e6a2.firebasestorage.app',
-    iosClientId: '517112282743-4hsqi75o038c9agq7r1h9uo4stl35p5f.apps.googleusercontent.com',
+    iosClientId:
+        '517112282743-4hsqi75o038c9agq7r1h9uo4stl35p5f.apps.googleusercontent.com',
     iosBundleId: 'com.qeran.app',
   );
-
 }

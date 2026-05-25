@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
-import 'app_color.dart';
 
 class AppTextStyles {
   const AppTextStyles._();

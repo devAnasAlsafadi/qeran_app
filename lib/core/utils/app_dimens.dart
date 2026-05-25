@@ -23,9 +23,15 @@ class AppDimens {
   //  (Padding/Margins)
   static const EdgeInsets paddingAll8 = EdgeInsets.all(p8);
   static const EdgeInsets paddingAll16 = EdgeInsets.all(p16);
-  static const EdgeInsets paddingH16V8 = EdgeInsets.symmetric(horizontal: p16, vertical: p8);
+  static const EdgeInsets paddingH16V8 = EdgeInsets.symmetric(
+    horizontal: p16,
+    vertical: p8,
+  );
 
-  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(vertical: p8, horizontal: p24);
+  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(
+    vertical: p8,
+    horizontal: p24,
+  );
 
   //  (SizedBoxes)
   static const verticalSpace8 = SizedBox(height: p8);

@@ -16,5 +16,16 @@ class RouteNames {
   static const String oathScreen = '/oath';
   static const String photoUploadScreen = '/photoUpload';
 
+  static const String notificationsDemo = '/notificationsDemo';
 
+  // Subscriptions
+  static const String packagesScreen = '/packages';
+  static const String subscriptionPurchase = '/subscription/purchase';
+
+  // Likes / Matches
+  static const String matchmakerChat = '/matchmakerChat';
+
+  // Profile (shared)
+  static const String fullProfileDetails = '/profile/details';
+  static const String myProfile = '/profile/me';
 }

@@ -17,12 +17,20 @@ class SimpleBlocObserver extends BlocObserver {
   @override
   void onTransition(Bloc bloc, Transition transition) {
     super.onTransition(bloc, transition);
-    AppLogger.debug('Transition: ${bloc.runtimeType}, $transition', tag: 'BLoC');
+    AppLogger.debug(
+      'Transition: ${bloc.runtimeType}, $transition',
+      tag: 'BLoC',
+    );
   }
 
   @override
   void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
-    AppLogger.error('Error in ${bloc.runtimeType}', error: error, stack: stackTrace, tag: 'BLoC');
+    AppLogger.error(
+      'Error in ${bloc.runtimeType}',
+      error: error,
+      stack: stackTrace,
+      tag: 'BLoC',
+    );
     super.onError(bloc, error, stackTrace);
   }
 }

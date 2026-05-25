@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Transient artifacts
+test_results.txt
+
+# Agent harness (Claude Code subagents)
+.agents/
+skills-lock.json
+
+# Editor / IDE
+.vscode/
+.claude/settings.local.json
+
+# Android Kotlin build cache
+android/.kotlin/

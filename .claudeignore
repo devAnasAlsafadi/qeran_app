@@ -1,0 +1,12 @@
+build/
+.dart_tool/
+.git/
+android/.kotlin/
+android/.gradle/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/ephemeral/
+coverage/
+*.log
+test_results.txt
+Qeran identity.pdf

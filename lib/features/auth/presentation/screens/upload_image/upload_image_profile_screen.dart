@@ -54,7 +54,6 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
 
         return OnboardingPopScope(
           child: Scaffold(
-            backgroundColor: AppColors.background,
             body: SafeArea(
               child: Padding(
                 padding: AppDimens.paddingAll16,

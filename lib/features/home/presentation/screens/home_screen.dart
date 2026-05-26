@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
@@ -37,10 +36,10 @@ class _HomeScreenState extends State<HomeScreen> {
       openMessagesTab: _openMessagesTab,
       child: Scaffold(
         extendBody: true,
-        backgroundColor: AppColors.background,
         // Discovery image bleeds to screen edges; the other screens own
         // their own SafeArea so the body stays free of outer padding
-        // here.
+        // here. Scaffold inherits `QeranTheme.scaffoldBackgroundColor`
+        // (cream canvas) per BRAND_DECISION.md.
         body: _bodyFor(_currentTab),
         bottomNavigationBar: HomeBottomNavBar(
           currentIndex: _currentTab,

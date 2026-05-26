@@ -51,7 +51,6 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
         listener: _onStateChanged,
         child: OnboardingPopScope(
           child: Scaffold(
-            backgroundColor: AppColors.background,
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(

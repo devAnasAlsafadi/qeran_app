@@ -23,9 +23,7 @@ class MatchmakerChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
         elevation: 0,
         title: Text(
           LocaleKeys.likes_matchmaker_chat_title.t(context),

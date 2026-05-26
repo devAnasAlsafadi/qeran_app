@@ -44,7 +44,6 @@ class _ProfileDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: BlocConsumer<ProfileDetailsCubit, ProfileDetailsState>(

@@ -5,7 +5,6 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/exit_app_dialog.dart';
@@ -74,7 +73,6 @@ class QuestionnaireFlowBody extends StatelessWidget {
             }
           },
           child: Scaffold(
-            backgroundColor: AppColors.background,
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(

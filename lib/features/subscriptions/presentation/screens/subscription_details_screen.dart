@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../widgets/subscription_status_block.dart';
@@ -15,24 +14,16 @@ import '../widgets/subscription_status_block.dart';
 /// the app-scoped `CurrentSubscriptionCubit` and renders all four
 /// emotional variants (loading / loaded-active / loaded-expired / none).
 ///
-/// TODO(phase4-bg-unification): Scaffold background is intentionally
-/// `AppColors.background` (white) for visual parity with the Settings
-/// tab, which renders inside `HomeScreen`'s Scaffold and that screen
-/// explicitly overrides `QeranTheme`'s cream canvas with the same
-/// white. When the Phase 4 background unification milestone lands,
-/// flip both `HomeScreen` and this screen to inherit the theme's
-/// `QeranColors.creamCanvas` default (just remove the override here
-/// and on `home_screen.dart:40`).
+/// Scaffold + app bar inherit `QeranTheme`'s cream-canvas defaults per
+/// BRAND_DECISION.md — no explicit override needed.
 class SubscriptionDetailsScreen extends StatelessWidget {
   const SubscriptionDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: QeranAppBar(
         title: LocaleKeys.subscriptions_status_my_subscription.t(context),
-        background: AppColors.background,
       ),
       body: const SafeArea(
         top: false,

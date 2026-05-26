@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 
 import '../widgets/discovery_view.dart';
@@ -14,7 +13,6 @@ class DiscoveryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: Padding(

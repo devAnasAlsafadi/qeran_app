@@ -7,7 +7,6 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
@@ -47,7 +46,6 @@ class _LikesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: BlocConsumer<LikesCubit, LikesState>(

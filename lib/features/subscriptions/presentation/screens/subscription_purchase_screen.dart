@@ -74,7 +74,6 @@ class _PurchaseView extends StatelessWidget {
         final inflight = state is SubscriptionPurchaseAwaitingPayment ||
             state is SubscriptionPurchaseSubscribing;
         return Scaffold(
-          backgroundColor: AppColors.background,
           appBar: AppBar(
             backgroundColor: AppColors.transparent,
             elevation: 0,

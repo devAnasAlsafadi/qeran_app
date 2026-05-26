@@ -85,7 +85,6 @@ class _OathScreenState extends State<OathScreen> {
             final isSubmitting = state is OathSubmitting;
             return OnboardingPopScope(
               child: Scaffold(
-                backgroundColor: AppColors.background,
                 body: SafeArea(
                   child: Stack(
                     children: [

@@ -45,7 +45,6 @@ Future<Map<String, String>?> showDiscoveryFilterSheet(
   return showModalBottomSheet<Map<String, String>?>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.background,
     useSafeArea: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(

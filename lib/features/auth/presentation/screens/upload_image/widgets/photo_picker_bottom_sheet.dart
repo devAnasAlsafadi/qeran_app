@@ -17,7 +17,6 @@ class PhotoPickerBottomSheet extends StatelessWidget {
   }) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimens.p16),

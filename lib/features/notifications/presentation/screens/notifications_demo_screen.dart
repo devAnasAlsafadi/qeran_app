@@ -65,9 +65,7 @@ class _NotificationsDemoScreenState extends State<NotificationsDemoScreen> {
     final hasUnread = _items.any((n) => !n.isRead);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(
           LocaleKeys.notifications_title.tr(),

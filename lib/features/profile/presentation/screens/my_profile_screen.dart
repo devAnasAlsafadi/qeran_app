@@ -35,7 +35,6 @@ class _View extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           LocaleKeys.profile_my_title.t(context),
@@ -44,7 +43,6 @@ class _View extends StatelessWidget {
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded,

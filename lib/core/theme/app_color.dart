@@ -22,6 +22,11 @@ class AppColors {
   static const Color primaryLight = Color(0xFFE4C094);
 
   static const Color surface = Color(0xFFF9F5F1);
+
+  @Deprecated(
+    'Use QeranColors.creamCanvas via theme default (QeranTheme.light). '
+    'See BRAND_DECISION.md — pure white scaffolds are forbidden.',
+  )
   static const Color background = Color(0xFFFFFFFF);
 
   static const Color darkBackground = Color(0xFF1A1A1A);

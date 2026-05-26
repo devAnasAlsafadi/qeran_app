@@ -35,7 +35,6 @@ import 'discovery_empty_view.dart';
 import 'discovery_like_burst.dart';
 import 'discovery_swipe_handler.dart';
 import 'discovery_top_bar.dart';
-import 'profile_details/scroll_hint.dart';
 
 /// Reusable Discovery content. Self-contained — provides its own
 /// `DiscoveryCubit` and drives `loadInitial` on first build.
@@ -102,17 +101,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
   /// can spawn again. Independent from `_animController.isAnimating`
   /// because hearts can outlive the controller's busy window.
   bool _likeBurstInFlight = false;
-
-  /// One-time scroll affordance — flipped to `true` after the user's
-  /// first ~2 dp of vertical scroll. The `ScrollHint` widget then
-  /// fades out and stays mounted (invisible) for the rest of the
-  /// Discovery view's lifetime.
-  bool _hintDismissed = false;
-
-  void _dismissHint() {
-    if (_hintDismissed) return;
-    setState(() => _hintDismissed = true);
-  }
 
   @override
   void dispose() {
@@ -204,7 +192,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
           }
         },
         builder: (context, state) {
-          final bottomInset = MediaQuery.of(context).padding.bottom;
           return Stack(
             clipBehavior: Clip.none,
             children: [
@@ -223,24 +210,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
                 height: 260,
                 child: ColoredBox(color: QeranColors.paper),
               ),
-              Positioned.fill(
-                child: NotificationListener<ScrollUpdateNotification>(
-                  onNotification: (n) {
-                    if (!_hintDismissed) {
-                      final delta = n.scrollDelta;
-                      if (delta != null && delta.abs() > 1.5) {
-                        // Defer the setState so we don't mutate during
-                        // the notification-dispatch phase.
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) _dismissHint();
-                        });
-                      }
-                    }
-                    return false;
-                  },
-                  child: _buildBody(context, state),
-                ),
-              ),
+              Positioned.fill(child: _buildBody(context, state)),
               if (!widget.showTopBar)
                 Positioned(
                   top: 0,
@@ -265,19 +235,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
                 state: state,
                 onLikeBurst: _spawnLikeBurst,
               ),
-              // Animated scroll affordance — first-time only, sits
-              // directly above the floating action bar (6 px gap).
-              // `IgnorePointer` inside the widget keeps it from
-              // blocking touches.
-              if (state is DiscoveryLoaded &&
-                  !state.isEmpty &&
-                  !state.isExhausted)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: bottomInset + _kNavActionGap + 64 + 6,
-                  child: ScrollHint(visible: !_hintDismissed),
-                ),
             ],
           );
         },

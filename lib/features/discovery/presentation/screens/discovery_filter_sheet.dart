@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/discovery_filter_cubit.dart';
@@ -203,8 +203,8 @@ class _SheetFooter extends StatelessWidget {
             AppDimens.p20,
             AppDimens.p16,
           ),
-          child: CustomButton(
-            text: LocaleKeys.discovery_filter_save_cta.t(context),
+          child: QeranButton(
+            label: LocaleKeys.discovery_filter_save_cta.t(context),
             onPressed: enabled
                 ? () {
                     final payload =

@@ -31,6 +31,17 @@ class LikeBlurredImage extends StatelessWidget {
   final BoxShape shape;
   final BorderRadius? borderRadius;
 
+  /// Image alignment passed to `CachedNetworkImage`. Defaults to centre.
+  /// Portrait gallery callers should pass `Alignment(0, -0.3)` to bias
+  /// the crop toward the top third where faces sit (matrimony-app rule
+  /// of thumb).
+  final Alignment alignment;
+
+  /// Image fit passed to `CachedNetworkImage`. Defaults to `BoxFit.cover`
+  /// (the existing behaviour at every legacy call site). Fullscreen
+  /// viewers pass `BoxFit.contain` so the entire image is visible.
+  final BoxFit fit;
+
   const LikeBlurredImage({
     super.key,
     required this.url,
@@ -39,6 +50,8 @@ class LikeBlurredImage extends StatelessWidget {
     this.fallbackIcon = Icons.person_rounded,
     this.shape = BoxShape.circle,
     this.borderRadius,
+    this.alignment = Alignment.center,
+    this.fit = BoxFit.cover,
   });
 
   /// Soft blur — strong enough to obscure facial features without
@@ -65,7 +78,8 @@ class LikeBlurredImage extends StatelessWidget {
     final img = CachedNetworkImage(
       imageUrl: u,
       httpHeaders: _authHeaders(context),
-      fit: BoxFit.cover,
+      fit: fit,
+      alignment: alignment,
       placeholder: (_, _) => _placeholder(),
       errorWidget: (_, _, _) => _fallback(),
     );

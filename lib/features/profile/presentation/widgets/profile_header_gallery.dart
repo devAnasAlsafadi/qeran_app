@@ -9,24 +9,31 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/profile_image.dart';
 
-/// Image hero for the Full Profile Details screen. Horizontal
-/// `PageView` over the full gallery (or a single primary photo), with
-/// a numerical 1/N indicator.
+/// Image hero for the Full Profile Details screen. A 3:4 aspect-ratio
+/// PageView over the gallery (or a single primary photo) with:
+///
+/// * top-biased crop (`Alignment(0, -0.3)`) so faces are never clipped
+///   by `BoxFit.cover` — the rule for any portrait-photo surface in a
+///   matrimony product;
+/// * a `1 / N` numeric pill at the top-trailing corner;
+/// * a bottom-centered dots indicator (cream for unselected, gold for
+///   selected) when there are multiple images;
+/// * tap-to-expand into a fullscreen `InteractiveViewer` for pinch-zoom
+///   and pan, preserving the source image's blur state when present.
 class ProfileHeaderGallery extends StatefulWidget {
   final List<ProfileImage> images;
-  final double height;
 
-  const ProfileHeaderGallery({
-    super.key,
-    required this.images,
-    this.height = 360,
-  });
+  const ProfileHeaderGallery({super.key, required this.images});
 
   @override
   State<ProfileHeaderGallery> createState() => _ProfileHeaderGalleryState();
 }
 
 class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
+  /// Bias the crop to the top third — face-preservation rule of thumb
+  /// for matrimony products (Hinge, Match, eHarmony all do this).
+  static const Alignment _topBiasedAlignment = Alignment(0, -0.3);
+
   final PageController _controller = PageController();
   int _index = 0;
 
@@ -39,10 +46,10 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
   @override
   Widget build(BuildContext context) {
     if (widget.images.isEmpty) {
-      return _Placeholder(height: widget.height);
+      return const _EmptyState();
     }
-    return SizedBox(
-      height: widget.height,
+    return AspectRatio(
+      aspectRatio: 3 / 4,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -50,26 +57,56 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
             controller: _controller,
             onPageChanged: (i) => setState(() => _index = i),
             itemCount: widget.images.length,
-            itemBuilder: (_, i) => RepaintBoundary(
-              child: LikeBlurredImage(
-                url: widget.images[i].url,
-                blur: _isBlurred(widget.images[i]),
-                size: null,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.zero,
-              ),
-            ),
+            itemBuilder: (_, i) {
+              final image = widget.images[i];
+              final blurred = _isBlurred(image);
+              return GestureDetector(
+                onTap: () => _openFullscreen(context, image, blurred),
+                child: RepaintBoundary(
+                  child: LikeBlurredImage(
+                    url: image.url,
+                    blur: blurred,
+                    size: null,
+                    shape: BoxShape.rectangle,
+                    borderRadius: BorderRadius.zero,
+                    alignment: _topBiasedAlignment,
+                  ),
+                ),
+              );
+            },
           ),
-          if (widget.images.length > 1)
-            Positioned(
+          if (widget.images.length > 1) ...[
+            PositionedDirectional(
               top: QeranSpacing.s12,
-              right: QeranSpacing.s12,
+              end: QeranSpacing.s12,
               child: _IndexBadge(
                 index: _index + 1,
                 total: widget.images.length,
               ),
             ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 16,
+              child: _DotsIndicator(
+                count: widget.images.length,
+                current: _index,
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  void _openFullscreen(BuildContext context, ProfileImage image, bool blurred) {
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        opaque: false,
+        barrierColor: Colors.black87,
+        pageBuilder: (_, _, _) => _FullscreenViewer(image: image, blurred: blurred),
+        transitionsBuilder: (_, animation, _, child) =>
+            FadeTransition(opacity: animation, child: child),
       ),
     );
   }
@@ -82,30 +119,34 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
   }
 }
 
-class _Placeholder extends StatelessWidget {
-  final double height;
-  const _Placeholder({required this.height});
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      color: QeranColors.creamSurface,
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.person_rounded,
-            size: 64,
-            color: QeranColors.wine40,
-          ),
-          QeranSpacing.vs8,
-          Text(
-            LocaleKeys.profile_no_photo.t(context),
-            style: QeranTypography.caption,
-          ),
-        ],
+    return AspectRatio(
+      aspectRatio: 3 / 4,
+      child: Container(
+        color: QeranColors.creamSurface,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.person_rounded,
+              size: 80,
+              color: QeranColors.wine,
+            ),
+            QeranSpacing.vs8,
+            Text(
+              LocaleKeys.profile_no_photo.t(context),
+              style: QeranTypography.caption.copyWith(
+                color: QeranColors.inkMuted,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -127,6 +168,102 @@ class _IndexBadge extends StatelessWidget {
       child: Text(
         '$index / $total',
         style: QeranTypography.caption.copyWith(color: QeranColors.paper),
+      ),
+    );
+  }
+}
+
+/// Bottom-centered page-position indicator. Gold + 8 dp for the active
+/// dot, cream-surface + 6 dp for the rest. Animates between states so a
+/// page swipe reads as a smooth shift rather than a hard cut.
+class _DotsIndicator extends StatelessWidget {
+  final int count;
+  final int current;
+  const _DotsIndicator({required this.count, required this.current});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(count, (i) {
+        final isActive = i == current;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          width: isActive ? 8 : 6,
+          height: isActive ? 8 : 6,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isActive ? QeranColors.gold : QeranColors.creamSurface,
+          ),
+        );
+      }),
+    );
+  }
+}
+
+/// Fullscreen image viewer with pinch-zoom and pan. Uses a transparent
+/// route with a black-overlay barrier so the user perceives it as a
+/// modal lifted off the profile screen. Close button sits at the
+/// top-trailing corner per platform convention.
+class _FullscreenViewer extends StatelessWidget {
+  final ProfileImage image;
+  final bool blurred;
+  const _FullscreenViewer({required this.image, required this.blurred});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                minScale: 1.0,
+                maxScale: 4.0,
+                child: LikeBlurredImage(
+                  url: image.url,
+                  blur: blurred,
+                  size: null,
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.zero,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            PositionedDirectional(
+              top: 16,
+              end: 16,
+              child: _FullscreenCloseButton(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FullscreenCloseButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: QeranColors.paper,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => Navigator.of(context).maybePop(),
+        child: const SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(
+            Icons.close_rounded,
+            color: QeranColors.wine,
+            size: 22,
+          ),
+        ),
       ),
     );
   }

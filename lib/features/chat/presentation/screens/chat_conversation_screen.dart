@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
@@ -79,19 +81,22 @@ class _ConversationView extends StatelessWidget {
         final cubit = context.read<ConversationCubit>();
         final cooldown = state.sendCooldownUntil != null &&
             DateTime.now().isBefore(state.sendCooldownUntil!);
-        return Column(
-          children: [
-            _Header(info: info),
-            ChatRealtimeBanner(
-              status: state.realtimeStatus,
-              hasEverBeenConnected: state.hasEverBeenConnected,
-            ),
-            Expanded(child: _Body(state: state, cubit: cubit, info: info)),
-            ChatInputBar(
-              onSend: cubit.sendText,
-              sendDisabledByCooldown: cooldown,
-            ),
-          ],
+        return ColoredBox(
+          color: QeranColors.creamSurface,
+          child: Column(
+            children: [
+              _Header(info: info),
+              ChatRealtimeBanner(
+                status: state.realtimeStatus,
+                hasEverBeenConnected: state.hasEverBeenConnected,
+              ),
+              Expanded(child: _Body(state: state, cubit: cubit, info: info)),
+              ChatInputBar(
+                onSend: cubit.sendText,
+                sendDisabledByCooldown: cooldown,
+              ),
+            ],
+          ),
         );
       },
     );
@@ -190,9 +195,7 @@ class _Body extends StatelessWidget {
     switch (state.initialStatus) {
       case ConversationAsyncStatus.initial:
       case ConversationAsyncStatus.loading:
-        return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        );
+        return const Center(child: QeranLoader());
       case ConversationAsyncStatus.failure:
         return ChatErrorView(
           onRetry: cubit.init,
@@ -222,57 +225,53 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
+      decoration: const BoxDecoration(
+        color: QeranColors.paper,
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.primary.withValues(alpha: 0.06),
-          ),
+          bottom: BorderSide(color: QeranColors.wine08),
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x10431C33),
-            blurRadius: 16,
-            offset: Offset(0, 4),
-          ),
-        ],
+        boxShadow: QeranShadows.e1,
       ),
       padding: const EdgeInsets.fromLTRB(
-        AppDimens.p16,
-        AppDimens.p12,
-        AppDimens.p16,
-        AppDimens.p12,
+        QeranSpacing.s16,
+        QeranSpacing.s12,
+        QeranSpacing.s16,
+        QeranSpacing.s12,
       ),
       child: SafeArea(
         bottom: false,
         child: Row(
           children: [
-            LikeBlurredImage(
-              url: info.profileImageUrl,
-              blur: false,
-              size: 44,
-              fallbackIcon: Icons.person_rounded,
+            // Gold ring around the avatar — the brand's quiet
+            // presence signal for the person on the other side.
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: QeranColors.gold, width: 1.2),
+              ),
+              child: LikeBlurredImage(
+                url: info.profileImageUrl,
+                blur: false,
+                size: 40,
+                fallbackIcon: Icons.person_rounded,
+              ),
             ),
-            const SizedBox(width: AppDimens.p12),
+            QeranSpacing.hs12,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     info.name,
-                    style: AppTextStyles.titleLarge.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: QeranTypography.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  QeranSpacing.vs4,
                   Text(
                     LocaleKeys.chat_header_default_subtitle.t(context),
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textMuted,
-                    ),
+                    style: QeranTypography.caption,
                   ),
                 ],
               ),

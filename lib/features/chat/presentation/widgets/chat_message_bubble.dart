@@ -1,11 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
@@ -15,25 +16,24 @@ import '../../domain/entities/chat_message.dart';
 import '../../domain/entities/message_send_status.dart';
 import 'shared_profile_message_card.dart';
 
-/// One bubble in the chat. Differentiates user (outgoing) vs
-/// matchmaker (incoming) by color, alignment and tail. RTL/LTR is
-/// handled implicitly via `AlignmentDirectional` — outgoing always
-/// hugs the user's end, incoming the other end.
+/// One bubble in the chat. Per the Qeran identity:
+///   - Inbound (matchmaker)  → gold background, wine text.
+///   - Outbound (me)         → paper background, wine text, e1 lift.
+/// Both use a directional tail that points at the speaker side in both
+/// LTR and RTL via `BorderRadiusDirectional`.
 ///
-/// Shared-profile bubbles are rendered by `SharedProfileMessageCard`
-/// (Phase 10) — this file only handles plain text bubbles. Until
-/// Phase 10 lands, a profile-share message falls back to its raw
-/// content placeholder (never reached in practice for a real send).
+/// Shared-profile bubbles are rendered by `SharedProfileMessageCard` —
+/// this file only handles plain text bubbles.
 class ChatMessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMine;
 
-  /// When true, render the subtle "Read" micro-label under the
-  /// bubble. The conversation list passes this only for the *last*
-  /// outgoing message and only when `isRead == true`.
+  /// When true, render the subtle "Read" micro-label under the bubble.
+  /// The conversation list passes this only for the *last* outgoing
+  /// message and only when `isRead == true`.
   final bool showReadReceipt;
 
-  /// Tap on a failed outgoing bubble. Wired in Phase 6.
+  /// Tap on a failed outgoing bubble. Wired upstream.
   final VoidCallback? onRetry;
 
   const ChatMessageBubble({
@@ -46,8 +46,9 @@ class ChatMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final align =
-        isMine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart;
+    final align = isMine
+        ? AlignmentDirectional.centerEnd
+        : AlignmentDirectional.centerStart;
     final maxWidth = MediaQuery.of(context).size.width * 0.78;
     return Align(
       alignment: align,
@@ -63,7 +64,7 @@ class ChatMessageBubble extends StatelessWidget {
                   : null,
               child: _Bubble(message: message, isMine: isMine),
             ),
-            const SizedBox(height: 4),
+            QeranSpacing.vs4,
             _Footer(
               message: message,
               isMine: isMine,
@@ -85,31 +86,25 @@ class _Bubble extends StatelessWidget {
   Widget build(BuildContext context) {
     // Directional corners so the "tail" points at the speaker side in
     // both LTR and RTL automatically. Outgoing (isMine) tail is at
-    // `bottomEnd` — right in LTR, left in RTL — matching the bubble's
-    // `AlignmentDirectional.centerEnd` alignment. The incoming
-    // variant mirrors the radii.
+    // `bottomEnd`; incoming mirrors.
     final radius = BorderRadiusDirectional.only(
       topStart: const Radius.circular(18),
       topEnd: const Radius.circular(18),
       bottomStart: Radius.circular(isMine ? 18 : 6),
       bottomEnd: Radius.circular(isMine ? 6 : 18),
     );
-    final bg = isMine ? AppColors.primary : AppColors.white;
-    final fg = isMine ? AppColors.white : AppColors.textPrimary;
-    final border = isMine
-        ? null
-        : Border.all(color: AppColors.primary.withValues(alpha: 0.06));
+    final bg = isMine ? QeranColors.paper : QeranColors.gold;
     final isFailed = message.status == MessageSendStatus.failed;
     // Shared-profile messages drop the text body and render a mini
     // profile card instead. We keep the bubble shell so the speaker
-    // (matchmaker vs me) stays unambiguous, but tighten the padding
-    // so the card's own inset carries the breathing room.
+    // stays unambiguous, but tighten the padding so the card's own
+    // inset carries the breathing room.
     final isProfileShare = message.isSharedProfile;
     final padding = isProfileShare
         ? const EdgeInsets.all(6)
         : const EdgeInsets.symmetric(
-            horizontal: AppDimens.p12,
-            vertical: AppDimens.p8,
+            horizontal: QeranSpacing.s12,
+            vertical: QeranSpacing.s8,
           );
     return Opacity(
       opacity: message.status == MessageSendStatus.sending ? 0.6 : 1,
@@ -119,17 +114,9 @@ class _Bubble extends StatelessWidget {
           color: bg,
           borderRadius: radius,
           border: isFailed
-              ? Border.all(color: AppColors.error.withValues(alpha: 0.45))
-              : border,
-          boxShadow: isMine
-              ? null
-              : const [
-                  BoxShadow(
-                    color: Color(0x0A431C33),
-                    blurRadius: 12,
-                    offset: Offset(0, 2),
-                  ),
-                ],
+              ? Border.all(color: QeranColors.danger.withValues(alpha: 0.45))
+              : null,
+          boxShadow: QeranShadows.e1,
         ),
         child: isProfileShare && message.sharedProfile != null
             ? SharedProfileMessageCard(
@@ -139,8 +126,8 @@ class _Bubble extends StatelessWidget {
               )
             : Text(
                 message.content,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: fg,
+                style: QeranTypography.body.copyWith(
+                  color: QeranColors.wine,
                   height: 1.4,
                 ),
               ),
@@ -150,9 +137,7 @@ class _Bubble extends StatelessWidget {
 }
 
 /// Opens the reusable Full Profile Details screen with a seed
-/// constructed from the chat-side `SharedProfile` mini payload. The
-/// `userId` is what backend already carries on the share; the by-id
-/// hydration call fills in `placements` + full gallery.
+/// constructed from the chat-side `SharedProfile` mini payload.
 void _openSharedProfile(BuildContext context, ChatMessage message) {
   final shared = message.sharedProfile;
   if (shared == null) return;
@@ -181,44 +166,30 @@ class _Footer extends StatelessWidget {
   Widget build(BuildContext context) {
     final time = _formatTime(context, message.sentAt);
     final children = <Widget>[
-      Text(
-        time,
-        style: AppTextStyles.caption.copyWith(
-          color: AppColors.textMuted,
-          fontSize: 11,
-        ),
-      ),
+      Text(time, style: QeranTypography.caption),
     ];
     if (isMine) {
       switch (message.status) {
         case MessageSendStatus.sending:
-          children.add(const SizedBox(width: 6));
+          children.add(QeranSpacing.hs4);
           children.add(Text(
             LocaleKeys.chat_message_status_sending.t(context),
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textMuted,
-              fontSize: 11,
-            ),
+            style: QeranTypography.caption,
           ));
         case MessageSendStatus.failed:
-          children.add(const SizedBox(width: 6));
+          children.add(QeranSpacing.hs4);
           children.add(Text(
             LocaleKeys.chat_message_status_failed.t(context),
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.error,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-            ),
+            style: QeranTypography.caption
+                .copyWith(color: QeranColors.danger),
           ));
         case MessageSendStatus.sent:
           if (showReadReceipt && message.isRead) {
-            children.add(const SizedBox(width: 6));
+            children.add(QeranSpacing.hs4);
             children.add(Text(
               LocaleKeys.chat_message_read_label.t(context),
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.primary.withValues(alpha: 0.7),
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+              style: QeranTypography.caption.copyWith(
+                color: QeranColors.wine.withValues(alpha: 0.7),
               ),
             ));
           }

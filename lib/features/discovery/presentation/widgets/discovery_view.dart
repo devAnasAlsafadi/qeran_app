@@ -3,13 +3,15 @@ import 'dart:async';
 import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
@@ -219,7 +221,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
                 right: 0,
                 bottom: 0,
                 height: 260,
-                child: ColoredBox(color: AppColors.white),
+                child: ColoredBox(color: QeranColors.paper),
               ),
               Positioned.fill(
                 child: NotificationListener<ScrollUpdateNotification>(
@@ -327,7 +329,7 @@ class _ScrollableProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: QeranColors.wine,
       onRefresh: () => context.read<DiscoveryCubit>().refresh(),
       child: _buildContent(context),
     );
@@ -336,9 +338,7 @@ class _ScrollableProfile extends StatelessWidget {
   Widget _buildContent(BuildContext context) {
     final s = state;
     if (s is DiscoveryInitial || s is DiscoveryLoading) {
-      return const _ScrollableCenter(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      );
+      return const _ScrollableCenter(child: QeranLoader());
     }
     if (s is DiscoveryFailure) {
       return _ScrollableCenter(
@@ -487,17 +487,17 @@ class _ProfilePageState extends State<_ProfilePage> {
               Transform.translate(
                 offset: const Offset(0, -_kBodyOverlap),
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: QeranColors.paper,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(AppDimens.p24),
                       topRight: Radius.circular(AppDimens.p24),
                     ),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: Color(0x0F431C33),
-                        blurRadius: 18,
-                        offset: Offset(0, -4),
+                        color: Color(0x14431C33),
+                        blurRadius: 24,
+                        offset: Offset(0, -6),
                       ),
                     ],
                   ),
@@ -614,13 +614,7 @@ class _ImageCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(_kCardRadius),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: QeranShadows.e3,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(_kCardRadius),
@@ -918,19 +912,27 @@ class _OverlayCircleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.white,
-      shape: CircleBorder(side: BorderSide(color: AppColors.border)),
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: Icon(
-            icon,
-            size: 22,
-            color: AppColors.textPrimary,
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: QeranShadows.e2,
+      ),
+      child: Material(
+        color: QeranColors.paper,
+        shape: const CircleBorder(
+          side: BorderSide(color: QeranColors.wine08),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Icon(
+              icon,
+              size: 22,
+              color: QeranColors.wine,
+            ),
           ),
         ),
       ),
@@ -1008,14 +1010,14 @@ class _ErrorView extends StatelessWidget {
         const Icon(
           Icons.error_outline_rounded,
           size: 56,
-          color: AppColors.textMuted,
+          color: QeranColors.wine40,
         ),
         const SizedBox(height: AppDimens.p12),
         Text(
           message,
           textAlign: TextAlign.center,
           style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+            color: QeranColors.inkBody,
           ),
         ),
         const SizedBox(height: AppDimens.p16),
@@ -1024,7 +1026,7 @@ class _ErrorView extends StatelessWidget {
           child: Text(
             LocaleKeys.discovery_error_retry.t(context),
             style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
+              color: QeranColors.wine,
               fontWeight: FontWeight.w700,
             ),
           ),

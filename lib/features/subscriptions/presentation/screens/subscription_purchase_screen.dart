@@ -120,16 +120,30 @@ class _PurchaseView extends StatelessWidget {
       context
           .read<CurrentSubscriptionCubit>()
           .onSubscribed(state.subscription);
-      AppSnackBar.show(
-        context,
-        message: LocaleKeys.subscriptions_subscribe_success.t(context),
-        type: SnackBarType.success,
-      );
+      // Pop FIRST, then surface the snackbar on the destination route.
+      // Showing it on `context` before pop binds the OverlayEntry to
+      // the checkout's Overlay — which gets disposed mid-animation,
+      // orphaning the entry and freezing the user for 3 s on the
+      // destination screen.
       NavigationManager.pop(context);
       if (Navigator.canPop(context)) {
         NavigationManager.pop(context);
       }
+      // Defer to the next frame so the destination route is fully
+      // mounted before we resolve its Overlay via the app-wide
+      // navigator key (the local `context` is about to be unmounted).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final navContext = sl<GlobalKey<NavigatorState>>().currentContext;
+        if (navContext == null || !navContext.mounted) return;
+        AppSnackBar.show(
+          navContext,
+          message: LocaleKeys.subscriptions_subscribe_success.t(navContext),
+          type: SnackBarType.success,
+        );
+      });
     } else if (state is SubscriptionPurchaseFailure) {
+      // Failure keeps the user on the checkout screen — the current
+      // context's Overlay is the right binding, no deferral needed.
       AppSnackBar.show(
         context,
         message: state.message.t(context),

@@ -28,7 +28,11 @@ class SubscriptionDetailsScreen extends StatelessWidget {
         top: false,
         child: SingleChildScrollView(
           physics: BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
+          // Wider margins than the settings list — the subscription
+          // status card is tall, so a 16 dp gutter makes the cream
+          // canvas read as a thin border. 20 h × 24 t × 32 b gives the
+          // cream visible presence around the paper card.
+          padding: EdgeInsets.fromLTRB(20, 24, 20, 32),
           child: SubscriptionStatusBlock(),
         ),
       ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_plan.dart';
@@ -13,11 +15,12 @@ import 'feature_row.dart';
 import 'plan_visual.dart';
 import 'pricing_segment.dart';
 
-/// Premium plan card: header with icon+name+popular badge, description,
-/// feature rows, pricing segmented control, price summary, CTA.
+/// Premium plan card: header with icon + name + popular badge,
+/// description, feature rows, pricing segmented control, price summary,
+/// and a gold CTA. Popular plans gain a top gold accent bar so the
+/// recommended choice carries the most visual weight on the screen.
 ///
-/// All visuals are derived from the API — never hardcode plan IDs,
-/// names, or prices.
+/// All plan data is API-driven — never hardcoded.
 class PlanCard extends StatelessWidget {
   final SubscriptionPlan plan;
   final SubscriptionPricing? selectedPricing;
@@ -34,56 +37,64 @@ class PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = PlanVisual.parseColor(plan.color);
+    final isPopular = plan.isPopular;
     return Container(
-      padding: const EdgeInsets.all(AppDimens.p20),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.20),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14431C33),
-            blurRadius: 24,
-            offset: Offset(0, 8),
-          ),
-        ],
+        color: QeranColors.paper,
+        borderRadius: QeranRadii.cardR,
+        boxShadow: isPopular ? QeranShadows.e3 : QeranShadows.e2,
+        border: isPopular
+            ? null
+            : Border.all(color: QeranColors.wine08),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _PlanHeader(plan: plan, accent: accent),
-          if (plan.descriptionAr != null && plan.descriptionAr!.isNotEmpty)
+      child: ClipRRect(
+        borderRadius: QeranRadii.cardR,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isPopular) Container(height: 3, color: QeranColors.gold),
             Padding(
-              padding: const EdgeInsets.only(top: AppDimens.p8),
-              child: Text(
-                plan.descriptionAr!,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
+              padding: const EdgeInsets.all(QeranSpacing.s20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _PlanHeader(plan: plan),
+                  if (plan.descriptionAr != null &&
+                      plan.descriptionAr!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: QeranSpacing.s8),
+                      child: Text(
+                        plan.descriptionAr!,
+                        style: QeranTypography.bodySm,
+                      ),
+                    ),
+                  QeranSpacing.vs16,
+                  _FeatureList(plan: plan),
+                  QeranSpacing.vs16,
+                  _DurationLabel(),
+                  QeranSpacing.vs8,
+                  PricingSegment(
+                    pricings: plan.activePricings,
+                    selectedPricingId: selectedPricing?.id ?? -1,
+                    onSelected: onSelectPricing,
+                  ),
+                  QeranSpacing.vs16,
+                  if (selectedPricing != null)
+                    _PriceSummary(pricing: selectedPricing!),
+                  QeranSpacing.vs16,
+                  QeranButton(
+                    label:
+                        LocaleKeys.subscriptions_subscribe_cta.t(context),
+                    variant: QeranButtonVariant.primary,
+                    onPressed: onSubscribe,
+                  ),
+                ],
               ),
             ),
-          const SizedBox(height: AppDimens.p16),
-          _FeatureList(plan: plan),
-          const SizedBox(height: AppDimens.p16),
-          _DurationLabel(),
-          const SizedBox(height: AppDimens.p8),
-          PricingSegment(
-            pricings: plan.activePricings,
-            selectedPricingId: selectedPricing?.id ?? -1,
-            onSelected: onSelectPricing,
-          ),
-          const SizedBox(height: AppDimens.p16),
-          if (selectedPricing != null) _PriceSummary(pricing: selectedPricing!),
-          const SizedBox(height: AppDimens.p16),
-          CustomButton(
-            text: LocaleKeys.subscriptions_subscribe_cta.t(context),
-            backgroundColor: AppColors.primary,
-            onPressed: onSubscribe,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -91,28 +102,24 @@ class PlanCard extends StatelessWidget {
 
 class _PlanHeader extends StatelessWidget {
   final SubscriptionPlan plan;
-  final Color accent;
-  const _PlanHeader({required this.plan, required this.accent});
+  const _PlanHeader({required this.plan});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _PlanIcon(icon: plan.icon, accent: accent),
-        const SizedBox(width: AppDimens.p12),
+        _PlanIcon(icon: plan.icon),
+        QeranSpacing.hs12,
         Expanded(
           child: Text(
             plan.nameAr,
-            style: AppTextStyles.titleLarge.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
+            style: QeranTypography.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        if (plan.isPopular) _PopularPlanBadge(accent: accent),
+        if (plan.isPopular) const _PopularPlanBadge(),
       ],
     );
   }
@@ -120,30 +127,29 @@ class _PlanHeader extends StatelessWidget {
 
 class _PlanIcon extends StatelessWidget {
   final String icon;
-  final Color accent;
-  const _PlanIcon({required this.icon, required this.accent});
+  const _PlanIcon({required this.icon});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.circle,
+        color: QeranColors.gold.withValues(alpha: 0.18),
+        border: Border.all(color: QeranColors.gold, width: 1),
       ),
       alignment: Alignment.center,
       child: PlanVisual.isUrl(icon)
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+          ? ClipOval(
               child: Image.network(
                 icon,
-                width: 28,
-                height: 28,
+                width: 30,
+                height: 30,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.workspace_premium_rounded,
-                  color: accent,
+                  color: QeranColors.wine,
                   size: 22,
                 ),
               ),
@@ -157,29 +163,30 @@ class _PlanIcon extends StatelessWidget {
 }
 
 class _PopularPlanBadge extends StatelessWidget {
-  final Color accent;
-  const _PopularPlanBadge({required this.accent});
+  const _PopularPlanBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: QeranSpacing.s12,
+        vertical: QeranSpacing.s4,
+      ),
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
+        color: QeranColors.gold.withValues(alpha: 0.20),
+        borderRadius: QeranRadii.pill,
+        border: Border.all(color: QeranColors.gold, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star_rounded, size: 14, color: accent),
-          const SizedBox(width: 4),
+          const Icon(Icons.star_rounded,
+              size: 14, color: QeranColors.wine),
+          QeranSpacing.hs4,
           Text(
             LocaleKeys.subscriptions_popular_plan.t(context),
-            style: AppTextStyles.labelSmall.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-            ),
+            style: QeranTypography.caption
+                .copyWith(color: QeranColors.wine),
           ),
         ],
       ),
@@ -244,10 +251,7 @@ class _DurationLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       LocaleKeys.subscriptions_select_duration.t(context),
-      style: AppTextStyles.labelSmall.copyWith(
-        color: AppColors.textSecondary,
-        fontWeight: FontWeight.w600,
-      ),
+      style: QeranTypography.caption,
     );
   }
 }
@@ -267,50 +271,45 @@ class _PriceSummary extends StatelessWidget {
             if (pricing.hasStrikethroughOriginal) ...[
               Text(
                 '${pricing.originalPrice!.toStringAsFixed(2)} $currency',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textMuted,
+                style: QeranTypography.bodySm.copyWith(
+                  color: QeranColors.inkMuted,
                   decoration: TextDecoration.lineThrough,
-                  decorationColor: AppColors.textMuted,
+                  decorationColor: QeranColors.inkMuted,
                 ),
               ),
-              const SizedBox(width: AppDimens.p8),
+              QeranSpacing.hs8,
             ],
             Text(
               '${pricing.price.toStringAsFixed(2)} $currency',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w800,
+              style: QeranTypography.numeric.copyWith(
+                fontSize: 22,
+                color: QeranColors.wine,
               ),
             ),
             const Spacer(),
             if (pricing.hasDiscountBadge)
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+                  horizontal: QeranSpacing.s12,
+                  vertical: QeranSpacing.s4,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(20),
+                  color: QeranColors.gold.withValues(alpha: 0.20),
+                  borderRadius: QeranRadii.pill,
                 ),
                 child: Text(
                   '${pricing.discountPercent}%',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: QeranTypography.label,
                 ),
               ),
           ],
         ),
         if (pricing.durationDays > 30) ...[
-          const SizedBox(height: 4),
+          QeranSpacing.vs4,
           Text(
             '${pricing.monthlyEquivalent.toStringAsFixed(2)} $currency'
             '${LocaleKeys.subscriptions_per_month.t(context)}',
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: QeranTypography.caption,
           ),
         ],
       ],

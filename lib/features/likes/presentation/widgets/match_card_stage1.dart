@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
@@ -86,13 +87,13 @@ class _Status extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.success),
+        Icon(icon, size: 14, color: QeranColors.gold),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
             text,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.success,
+              color: QeranColors.wine,
               fontWeight: FontWeight.w700,
               fontSize: 13,
             ),

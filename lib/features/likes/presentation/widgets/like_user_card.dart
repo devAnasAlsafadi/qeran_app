@@ -183,7 +183,8 @@ class _VisibleContent extends StatelessWidget {
 }
 
 /// Status chip — gold-toned clock for pending (matches Figma "waiting"
-/// hue), green heart for accepted, muted icons for archived states.
+/// hue), wine heart for accepted (success in Qeran wears wine/gold,
+/// never Material green), muted icons for archived states.
 class _StatusRow extends StatelessWidget {
   final LikeRequestCard card;
   const _StatusRow({required this.card});
@@ -228,7 +229,7 @@ class _StatusRow extends StatelessWidget {
         return (
           Icons.favorite_rounded,
           LocaleKeys.likes_status_accepted,
-          AppColors.success,
+          QeranColors.wine,
         );
       case LikeRequestStatus.rejected:
         return (

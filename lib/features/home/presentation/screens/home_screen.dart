@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
-import 'package:qeran/features/home/presentation/widgets/home_bottom_nav_bar.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Home shell. Hosts the Discovery deck (image bleeds to screen edges
 /// per Figma, with filter + notification bell as overlays on the image
@@ -32,18 +34,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final items = <QeranNavItem>[
+      QeranNavItem(
+        outlineIcon: Icons.diamond_outlined,
+        filledIcon: Icons.diamond_rounded,
+        label: LocaleKeys.home_nav_marriage.t(context),
+      ),
+      QeranNavItem(
+        outlineIcon: Icons.favorite_border_rounded,
+        filledIcon: Icons.favorite_rounded,
+        label: LocaleKeys.home_nav_likes.t(context),
+      ),
+      QeranNavItem(
+        outlineIcon: Icons.chat_bubble_outline_rounded,
+        filledIcon: Icons.chat_bubble_rounded,
+        label: LocaleKeys.home_nav_messages.t(context),
+      ),
+      QeranNavItem(
+        outlineIcon: Icons.person_outline_rounded,
+        filledIcon: Icons.person_rounded,
+        label: LocaleKeys.home_nav_profile.t(context),
+      ),
+    ];
     return HomeShellScope(
       openMessagesTab: _openMessagesTab,
       child: Scaffold(
         extendBody: true,
-        // Discovery image bleeds to screen edges; the other screens own
-        // their own SafeArea so the body stays free of outer padding
-        // here. Scaffold inherits `QeranTheme.scaffoldBackgroundColor`
-        // (cream canvas) per BRAND_DECISION.md.
         body: _bodyFor(_currentTab),
-        bottomNavigationBar: HomeBottomNavBar(
+        bottomNavigationBar: QeranBottomNav(
+          items: items,
           currentIndex: _currentTab,
-          onTabSelected: _selectTab,
+          onTap: _selectTab,
         ),
       ),
     );

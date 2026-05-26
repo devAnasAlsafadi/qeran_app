@@ -54,3 +54,20 @@ DateTime? parseNullableDateTime(Object? raw) {
   if (raw is! String || raw.isEmpty) return null;
   return DateTime.tryParse(raw);
 }
+
+/// Normalises any `Map` into `Map<String, dynamic>`. SignalR (and some
+/// JSON paths) hand us `Map<dynamic, dynamic>` for nested objects; a
+/// naive `raw is Map<String, dynamic>` guard silently drops them. Use
+/// this for any nested object field so a single payload shape mismatch
+/// never collapses a structured field to `null`.
+Map<String, dynamic>? parseNullableMap(Object? raw) {
+  if (raw is Map<String, dynamic>) return raw;
+  if (raw is Map) {
+    try {
+      return Map<String, dynamic>.from(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+  return null;
+}

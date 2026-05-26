@@ -18,22 +18,25 @@ class SharedProfileModel {
   });
 
   static SharedProfileModel? fromJson(Object? raw) {
-    if (raw is! Map<String, dynamic>) return null;
+    final map = parseNullableMap(raw);
+    if (map == null) return null;
     return SharedProfileModel(
-      id: parseString(raw['id']),
-      name: parseString(raw['name']),
-      age: parseNullableInt(raw['age']),
-      matchingScore: parseDouble(raw['matchingScore']),
-      images: _parseImages(raw['images']),
+      id: parseString(map['id']),
+      name: parseString(map['name']),
+      age: parseNullableInt(map['age']),
+      matchingScore: parseDouble(map['matchingScore']),
+      images: _parseImages(map['images']),
     );
   }
 
   static List<SharedProfileImageModel> _parseImages(Object? raw) {
     if (raw is! List) return const [];
-    return raw
-        .whereType<Map<String, dynamic>>()
-        .map(SharedProfileImageModel.fromJson)
-        .toList(growable: false);
+    final out = <SharedProfileImageModel>[];
+    for (final item in raw) {
+      final m = parseNullableMap(item);
+      if (m != null) out.add(SharedProfileImageModel.fromJson(m));
+    }
+    return List.unmodifiable(out);
   }
 
   SharedProfile toEntity() => SharedProfile(

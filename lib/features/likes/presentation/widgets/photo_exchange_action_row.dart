@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -37,8 +37,8 @@ class PhotoExchangeActionRow extends StatelessWidget {
         _CircularActionButton(
           onTap: inFlight ? null : onAccept,
           icon: Icons.favorite_rounded,
-          backgroundColor: const Color(0xFFB12B41),
-          iconColor: AppColors.white,
+          backgroundColor: QeranColors.gold,
+          iconColor: QeranColors.wine,
           hasShadow: true,
           showSpinner: isAccepting,
           tooltipKey: LocaleKeys.likes_matches_photo_exchange_action_accept,
@@ -47,8 +47,8 @@ class PhotoExchangeActionRow extends StatelessWidget {
         _CircularActionButton(
           onTap: inFlight ? null : onReject,
           icon: Icons.close_rounded,
-          backgroundColor: const Color(0xFFF6F5F5),
-          iconColor: AppColors.textMuted,
+          backgroundColor: QeranColors.creamSurface,
+          iconColor: QeranColors.wine,
           hasShadow: false,
           showSpinner: isRejecting,
           tooltipKey: LocaleKeys.likes_matches_photo_exchange_action_reject,
@@ -93,7 +93,7 @@ class _CircularActionButton extends StatelessWidget {
             boxShadow: hasShadow
                 ? [
                     BoxShadow(
-                      color: backgroundColor.withValues(alpha: 0.25),
+                      color: QeranColors.wine.withValues(alpha: 0.18),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
@@ -363,8 +364,8 @@ class _ActionRow extends StatelessWidget {
         _CircularActionButton(
           onTap: actionInFlight ? null : onAccept,
           icon: Icons.favorite_rounded,
-          backgroundColor: const Color(0xFFB12B41),
-          iconColor: AppColors.white,
+          backgroundColor: QeranColors.gold,
+          iconColor: QeranColors.wine,
           hasShadow: true,
           showSpinner: isAccepting,
           tooltipKey: LocaleKeys.likes_action_accept,
@@ -373,8 +374,8 @@ class _ActionRow extends StatelessWidget {
         _CircularActionButton(
           onTap: actionInFlight ? null : onReject,
           icon: Icons.close_rounded,
-          backgroundColor: const Color(0xFFF6F5F5),
-          iconColor: AppColors.textMuted,
+          backgroundColor: QeranColors.creamSurface,
+          iconColor: QeranColors.wine,
           hasShadow: false,
           showSpinner: isRejecting,
           tooltipKey: LocaleKeys.likes_action_reject,
@@ -419,7 +420,7 @@ class _CircularActionButton extends StatelessWidget {
             boxShadow: hasShadow
                 ? [
                     BoxShadow(
-                      color: backgroundColor.withValues(alpha: 0.25),
+                      color: QeranColors.wine.withValues(alpha: 0.18),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),

@@ -3,8 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -32,39 +32,40 @@ class _ActionButtonPalette {
   });
 }
 
-// Pass — warm charcoal. High-contrast premium dark, not pure black, so
-// it sits gracefully next to the warm cream / burgundy palette.
+// Pass — paper with a wine outline. Per the official identity, the pass
+// affordance is a quiet white circle on the cream canvas, defined by a
+// hairline wine border (PDF page 6, "Home" mockup).
 const _ActionButtonPalette _kPassPalette = _ActionButtonPalette(
-  background: Color(0xFF2C2622),
-  disabledBackground: Color(0xFF6B6359),
-  iconColor: AppColors.white,
-  disabledIconColor: AppColors.white,
+  background: QeranColors.paper,
+  disabledBackground: QeranColors.paper,
+  iconColor: QeranColors.wine,
+  disabledIconColor: QeranColors.wine40,
+  borderColor: QeranColors.wine,
 );
 
-// Undo — soft warm nude. Reads as a quiet secondary surface against the
-// white sheet without competing with the burgundy / crimson siblings.
-// A whisper-thin burgundy outline defines the edge.
+// Undo — cream-lifted secondary. A whisper-thin wine outline defines the
+// edge so it reads as a quiet recessive surface next to the gold Like.
 const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
-  background: Color(0xFFEAD9C4),
-  disabledBackground: Color(0xFFF5ECDF),
-  iconColor: AppColors.primary,
-  disabledIconColor: AppColors.textMuted,
-  borderColor: Color(0x14431C33),
+  background: QeranColors.creamSurface,
+  disabledBackground: QeranColors.creamSurface,
+  iconColor: QeranColors.wine,
+  disabledIconColor: QeranColors.wine40,
+  borderColor: QeranColors.wine08,
 );
 
-// Like — rich romantic crimson with a plum undertone so it stays in
-// the Qeran tonal family (sits between cardinal red and burgundy).
+// Like — gold-filled primary CTA with a wine heart icon. The official
+// identity's Like affordance (PDF page 6, "Home" + "Matches" mockups).
 const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
-  background: Color(0xFFB12B41),
-  disabledBackground: Color(0xFFD58B96),
-  iconColor: AppColors.white,
-  disabledIconColor: AppColors.white,
+  background: QeranColors.gold,
+  disabledBackground: QeranColors.gold40,
+  iconColor: QeranColors.wine,
+  disabledIconColor: QeranColors.wine40,
 );
 
 /// Three-button action bar under the Discovery card.
 ///
-/// Layout: pass (X, charcoal) — undo (warm nude, smaller) — like
-/// (filled crimson, primary CTA, larger).
+/// Layout: pass (X, paper with wine outline) — undo (cream-lifted,
+/// smaller) — like (gold-filled, primary CTA, larger).
 ///
 /// Each button owns its own `AnimationController` for press feedback
 /// and is fully independent — a press on one button never affects the
@@ -151,7 +152,7 @@ class _PressableActionButton extends StatefulWidget {
   final String tooltip;
   final VoidCallback? onPressed;
 
-  /// Filled burgundy (primary CTA) vs cream outlined.
+  /// Filled (primary CTA) vs outlined. Drives elevation defaults.
   final bool filled;
 
   /// Tiny overshoot above 1.0 on release. Used for Like to give the
@@ -162,8 +163,8 @@ class _PressableActionButton extends StatefulWidget {
   /// Undo as a subtle "rewind" cue.
   final bool rewindRotate;
 
-  /// When true, an enabled tap fires a one-shot burgundy halo ring
-  /// behind the button. Used for the Like primary CTA only.
+  /// When true, an enabled tap fires a one-shot gold halo ring behind
+  /// the button. Used for the Like primary CTA only.
   final bool showHalo;
 
   /// Optional — when true, the button subtly pulses (scale/elevation/glow)
@@ -176,9 +177,9 @@ class _PressableActionButton extends StatefulWidget {
   final void Function(Offset origin)? onTapOrigin;
 
   /// Visual identity (background, icon, optional border). Decoupled
-  /// from [filled] so each of the three premium tones (charcoal,
-  /// warm nude, crimson) can be applied without forking the state
-  /// class.
+  /// from [filled] so each of the three brand tones (paper-with-wine,
+  /// cream-lifted, gold-filled) can be applied without forking the
+  /// state class.
   final _ActionButtonPalette palette;
 
   const _PressableActionButton({
@@ -492,7 +493,7 @@ class _PressableActionButtonState extends State<_PressableActionButton>
     final shape = palette.borderColor == null
         ? const CircleBorder()
         : CircleBorder(
-            side: BorderSide(color: palette.borderColor!, width: 1.2),
+            side: BorderSide(color: palette.borderColor!, width: 1.5),
           );
 
     final button = Tooltip(
@@ -534,8 +535,8 @@ class _PressableActionButtonState extends State<_PressableActionButton>
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            AppColors.primaryLight.withValues(alpha: glowOp),
-                            AppColors.primaryLight.withValues(alpha: 0.0),
+                            QeranColors.gold.withValues(alpha: glowOp),
+                            QeranColors.gold.withValues(alpha: 0.0),
                           ],
                           stops: const [0.3, 1.0],
                         ),
@@ -557,7 +558,7 @@ class _PressableActionButtonState extends State<_PressableActionButton>
             color: bgColor,
             shape: shape,
             elevation: currentElevation,
-            shadowColor: AppColors.primary.withValues(alpha: 0.18),
+            shadowColor: QeranColors.wine.withValues(alpha: 0.18),
             child: InkWell(
               onTap: _enabled ? _handleTap : null,
               onTapDown: _enabled ? (_) => _animatePressDown() : null,
@@ -592,12 +593,12 @@ class _PressableActionButtonState extends State<_PressableActionButton>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryLight.withValues(alpha: _idleOuterOpacity.value * 0.25),
+                            color: QeranColors.gold.withValues(alpha: _idleOuterOpacity.value * 0.25),
                             blurRadius: 28,
                             spreadRadius: 4,
                           ),
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: _idleOuterOpacity.value * 0.35),
+                            color: QeranColors.gold.withValues(alpha: _idleOuterOpacity.value * 0.35),
                             blurRadius: 36,
                             spreadRadius: 6,
                           ),
@@ -635,10 +636,9 @@ class _PressableActionButtonState extends State<_PressableActionButton>
   }
 }
 
-/// Premium burgundy halo that expands once per Like tap. Renders behind
-/// the button (Z-stacked) and is `IgnorePointer` so it never blocks
-/// touches. Layered: burgundy disc fill + warm gold inner glow +
-/// soft burgundy outer bloom.
+/// Premium gold halo that expands once per Like tap. Renders behind the
+/// button (Z-stacked) and is `IgnorePointer` so it never blocks touches.
+/// Layered: gold disc fill + warm gold inner glow + soft gold outer bloom.
 ///
 /// Design notes:
 /// * Scale starts at 1.2× so the ring is immediately visible as an
@@ -679,19 +679,19 @@ class _HaloRing extends StatelessWidget {
               height: diameter,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: ringOpacity),
+                color: QeranColors.gold.withValues(alpha: ringOpacity),
                 boxShadow: [
                   // Inner warm gold glow — tight, defines the halo edge.
                   BoxShadow(
-                    color: AppColors.primaryLight
+                    color: QeranColors.gold
                         .withValues(alpha: glowOpacity),
                     blurRadius: 28 * eased,
                     spreadRadius: 6 * eased,
                   ),
-                  // Outer burgundy bloom — wide blur, visible at a
-                  // glance even when the inner glow is fading.
+                  // Outer gold bloom — wide blur, visible at a glance
+                  // even when the inner glow is fading.
                   BoxShadow(
-                    color: AppColors.primary
+                    color: QeranColors.gold
                         .withValues(alpha: bloomOpacity),
                     blurRadius: 40 * eased,
                     spreadRadius: 4 * eased,

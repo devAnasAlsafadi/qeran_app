@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import '../enum/snakebar_tybe.dart';
 import '../theme/app_text_style.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -54,15 +54,24 @@ class _SnackBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Surface tone follows brand identity: success / info both live on
+    // wine, with the gold check disambiguating success. Error uses the
+    // wine-leaning danger token, never Material red.
     final Color bgColor = type == SnackBarType.error
-        ? AppColors.error
-        : (type == SnackBarType.success ? AppColors.success : Colors.black87);
+        ? QeranColors.danger
+        : QeranColors.wine;
 
     final IconData icon = type == SnackBarType.error
-        ? Icons.error_outline
+        ? Icons.error_outline_rounded
         : (type == SnackBarType.success
-              ? Icons.check_circle_outline
-              : Icons.info_outline);
+              ? Icons.check_circle_rounded
+              : Icons.info_outline_rounded);
+
+    // Gold check on wine is the brand's success signal (PDF page 6).
+    // Error/info keep a paper icon for legibility on the danger surface.
+    final Color iconColor = type == SnackBarType.success
+        ? QeranColors.gold
+        : QeranColors.paper;
 
     return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -79,7 +88,7 @@ class _SnackBarWidget extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.white, size: 28)
+              Icon(icon, color: iconColor, size: 28)
                   .animate(target: type == SnackBarType.success ? 1 : 0)
                   .scale(duration: 400.ms, curve: Curves.easeOutBack),
               const SizedBox(width: 12),
@@ -92,21 +101,25 @@ class _SnackBarWidget extends StatelessWidget {
                       Text(
                         title!,
                         style: AppTextStyles.bodyMedium.copyWith(
-                          color: Colors.white,
+                          color: QeranColors.paper,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     Text(
                       message,
                       style: AppTextStyles.caption.copyWith(
-                        color: Colors.white70,
+                        color: QeranColors.paper.withValues(alpha: 0.75),
                       ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white54, size: 18),
+                icon: Icon(
+                  Icons.close,
+                  color: QeranColors.paper.withValues(alpha: 0.6),
+                  size: 18,
+                ),
                 onPressed: onDismiss,
               ),
             ],

@@ -377,7 +377,7 @@ class _PlanBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = (plan.icon as String).isEmpty ? '💎' : plan.icon as String;
+    final icon = plan.icon as String;
     return Container(
       width: 48,
       height: 48,
@@ -401,7 +401,11 @@ class _PlanBadge extends StatelessWidget {
                 ),
               ),
             )
-          : Text(icon, style: const TextStyle(fontSize: 22)),
+          : const Icon(
+              Icons.workspace_premium_rounded,
+              color: QeranColors.wine,
+              size: 22,
+            ),
     );
   }
 }

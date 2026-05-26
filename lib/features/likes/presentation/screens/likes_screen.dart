@@ -20,6 +20,7 @@ import '../blocs/likes_state.dart';
 import '../widgets/likes_segmented_tabs.dart';
 import 'likes_received_section.dart';
 import 'likes_sent_section.dart';
+import 'match_success_screen.dart';
 import 'matches_section.dart';
 import 'matchmaker_chat_screen.dart';
 
@@ -83,10 +84,10 @@ class _LikesView extends StatelessWidget {
         break;
       // Like accept / reject
       case LikesActionEvent.acceptSuccess:
-        AppSnackBar.show(
+        NavigationManager.navigateTo(
           context,
-          message: LocaleKeys.likes_action_accepted_success.t(context),
-          type: SnackBarType.success,
+          RouteNames.matchSuccess,
+          arguments: const MatchSuccessArgs(),
         );
       case LikesActionEvent.acceptRequiresSubscription:
         showPaywall(context, intent: PaywallIntent.acceptLike);

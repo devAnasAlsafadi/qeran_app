@@ -10,6 +10,7 @@ import 'package:qeran/features/auth/presentation/screens/whatsapp_input/whatsapp
 import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/whatsapp_verification.dart';
 import 'package:qeran/features/home/presentation/screens/home_screen.dart';
 import 'package:qeran/features/khataba_dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:qeran/features/likes/presentation/screens/match_success_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/matchmaker_chat_screen.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_demo_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
@@ -125,6 +126,18 @@ class AppRouter {
                   ),
                 )
               : SubscriptionPurchaseScreen(args: args),
+        );
+      case RouteNames.matchSuccess:
+        final args = settings.arguments as MatchSuccessArgs?;
+        return PageRouteBuilder<void>(
+          settings: settings,
+          opaque: true,
+          transitionDuration: const Duration(milliseconds: 280),
+          reverseTransitionDuration: const Duration(milliseconds: 200),
+          pageBuilder: (_, _, _) => MatchSuccessScreen(args: args),
+          transitionsBuilder: (_, animation, _, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
         );
       case RouteNames.matchmakerChat:
         final chatArgs = settings.arguments as MatchmakerChatScreenArgs?;

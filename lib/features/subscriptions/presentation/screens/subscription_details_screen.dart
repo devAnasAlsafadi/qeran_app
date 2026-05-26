@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../widgets/subscription_status_block.dart';
@@ -14,25 +14,31 @@ import '../widgets/subscription_status_block.dart';
 /// No new business state: `SubscriptionStatusBlock` already reads from
 /// the app-scoped `CurrentSubscriptionCubit` and renders all four
 /// emotional variants (loading / loaded-active / loaded-expired / none).
+///
+/// TODO(phase4-bg-unification): Scaffold background is intentionally
+/// `AppColors.background` (white) for visual parity with the Settings
+/// tab, which renders inside `HomeScreen`'s Scaffold and that screen
+/// explicitly overrides `QeranTheme`'s cream canvas with the same
+/// white. When the Phase 4 background unification milestone lands,
+/// flip both `HomeScreen` and this screen to inherit the theme's
+/// `QeranColors.creamCanvas` default (just remove the override here
+/// and on `home_screen.dart:40`).
 class SubscriptionDetailsScreen extends StatelessWidget {
   const SubscriptionDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: QeranColors.creamCanvas,
+      backgroundColor: AppColors.background,
       appBar: QeranAppBar(
         title: LocaleKeys.subscriptions_status_my_subscription.t(context),
+        background: AppColors.background,
       ),
       body: const SafeArea(
         top: false,
         child: SingleChildScrollView(
           physics: BouncingScrollPhysics(),
-          // Wider margins than the settings list — the subscription
-          // status card is tall, so a 16 dp gutter makes the cream
-          // canvas read as a thin border. 20 h × 24 t × 32 b gives the
-          // cream visible presence around the paper card.
-          padding: EdgeInsets.fromLTRB(20, 24, 20, 32),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
           child: SubscriptionStatusBlock(),
         ),
       ),

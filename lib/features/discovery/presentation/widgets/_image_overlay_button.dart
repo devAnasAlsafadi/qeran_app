@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/theme/app_color.dart';
 
 /// Circular translucent-dark button used as an overlay on the discovery
@@ -55,9 +56,10 @@ class ImageOverlayButton extends StatelessWidget {
   }
 }
 
-/// Small green dot used as the bell's unread marker. The Figma shows a
+/// Small gold dot used as the bell's unread marker. The Figma shows a
 /// count badge ("39"); we render a simple dot this phase since the count
-/// is not yet wired to real data.
+/// is not yet wired to real data. Brand identity contains no green —
+/// unread/attention signals celebrate via gold.
 class OverlayUnreadDot extends StatelessWidget {
   const OverlayUnreadDot({super.key});
 
@@ -68,7 +70,7 @@ class OverlayUnreadDot extends StatelessWidget {
       height: 10,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.success,
+        color: QeranColors.gold,
         border: Border.all(color: AppColors.white, width: 1.5),
       ),
     );

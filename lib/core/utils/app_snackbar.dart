@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import '../enum/snakebar_tybe.dart';
 import '../theme/app_text_style.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class AppSnackBar {
+  /// Show a snackbar. When [overlay] is null we resolve it from
+  /// [context] (the historical behavior — every existing caller relies
+  /// on this). Pass [overlay] explicitly when you need to bind to a
+  /// specific [OverlayState] — e.g. the root navigator's overlay so
+  /// the entry survives a route pop.
   static Future<void> show(
     BuildContext context, {
     required String message,
     required SnackBarType type,
     String? title,
+    OverlayState? overlay,
   }) async {
-    final overlay = Overlay.of(context);
+    final overlayToUse = overlay ?? Overlay.of(context);
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
@@ -31,11 +38,38 @@ class AppSnackBar {
       ),
     );
 
-    overlay.insert(overlayEntry);
+    overlayToUse.insert(overlayEntry);
 
     Future.delayed(const Duration(seconds: 3), () {
       if (overlayEntry.mounted) overlayEntry.remove();
     });
+  }
+
+  /// Convenience for showing a snackbar that needs to survive a route
+  /// change (e.g. fired by a listener that's about to pop its own
+  /// screen). Resolves the root navigator's [OverlayState] directly
+  /// via `NavigatorState.overlay` — bypassing the gotcha where
+  /// `navigatorKey.currentContext` returns the Navigator's OWN context,
+  /// which sits ABOVE the Overlay in the tree, so `Overlay.of(...)`
+  /// can never find one upward and throws "No Overlay widget found".
+  static Future<void> showOnRoot({
+    required String message,
+    required SnackBarType type,
+    String? title,
+  }) async {
+    final navState = sl<GlobalKey<NavigatorState>>().currentState;
+    final overlayState = navState?.overlay;
+    if (overlayState == null) return;
+    // Use the overlay's own context — guaranteed to be inside the
+    // overlay subtree, so MediaQuery / Localizations lookups inside
+    // the entry's builder all resolve correctly.
+    return show(
+      overlayState.context,
+      message: message,
+      type: type,
+      title: title,
+      overlay: overlayState,
+    );
   }
 }
 

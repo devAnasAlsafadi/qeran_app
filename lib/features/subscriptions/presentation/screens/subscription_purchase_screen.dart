@@ -130,13 +130,19 @@ class _PurchaseView extends StatelessWidget {
         NavigationManager.pop(context);
       }
       // Defer to the next frame so the destination route is fully
-      // mounted before we resolve its Overlay via the app-wide
-      // navigator key (the local `context` is about to be unmounted).
+      // mounted, then show the snackbar via the root navigator's
+      // OverlayState (NOT navigatorKey.currentContext — that returns
+      // the Navigator's own context which sits ABOVE the Overlay,
+      // so Overlay.of() can't find one and throws).
+      //
+      // Localizations lookup needs a context — use the navigator's
+      // own context for that (Localizations IS an ancestor of the
+      // Navigator), with a fallback to the local context just in
+      // case the navigator state isn't available yet.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final navContext = sl<GlobalKey<NavigatorState>>().currentContext;
-        if (navContext == null || !navContext.mounted) return;
-        AppSnackBar.show(
-          navContext,
+        final navContext =
+            sl<GlobalKey<NavigatorState>>().currentState?.context ?? context;
+        AppSnackBar.showOnRoot(
           message: LocaleKeys.subscriptions_subscribe_success.t(navContext),
           type: SnackBarType.success,
         );

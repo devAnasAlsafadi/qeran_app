@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/services/payment_gateway.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../domain/entities/subscription_pricing.dart';
 
-/// Development-only payment stub. Shows a dialog that lets the tester
-/// choose between simulated "success" and "cancel" so the rest of the
-/// subscription flow can be exercised end-to-end before a real gateway
-/// is wired. **Never ship this to production.**
-///
-/// Uses the app-wide [GlobalKey] attached to `MaterialApp.navigatorKey`
-/// — always fresh, no `initState`/`dispose` lifecycle hooks required.
-/// To swap in a real gateway later, replace the binding in
-/// `subscriptions_injection.dart`; nothing else changes.
+/// Development-only payment stub. Shows a brand-aligned dialog that
+/// auto-progresses through a 2 s "processing" state, then reveals a
+/// success screen the tester confirms to continue. A subtle cancel
+/// affordance remains so simulated failures stay reachable. **Never
+/// ship this to production.**
 class FakePaymentGateway implements PaymentGateway {
   final GlobalKey<NavigatorState> _navigatorKey;
 
@@ -33,9 +30,6 @@ class FakePaymentGateway implements PaymentGateway {
   }) async {
     final navigator = _navigatorKey.currentState;
     if (navigator == null || !navigator.mounted) {
-      // Dev environment with no live navigator (e.g. widget tests). Fail
-      // explicitly so the cubit short-circuits to its Failure branch
-      // instead of incorrectly continuing to /subscribe.
       return const PaymentResult.failed(
         message: 'No navigator bound to the app — cannot show fake payment.',
       );
@@ -48,9 +42,6 @@ class FakePaymentGateway implements PaymentGateway {
       builder: (ctx) => _FakePaymentDialog(amount: finalAmount),
     );
 
-    // Yield a frame so the dialog has fully unmounted before the
-    // caller emits new state — avoids a transient layout glitch on
-    // some devices.
     await SchedulerBinding.instance.endOfFrame;
 
     return switch (result) {
@@ -64,89 +55,145 @@ class FakePaymentGateway implements PaymentGateway {
   }
 }
 
-class _FakePaymentDialog extends StatelessWidget {
+class _FakePaymentDialog extends StatefulWidget {
   final double amount;
   const _FakePaymentDialog({required this.amount});
 
   @override
+  State<_FakePaymentDialog> createState() => _FakePaymentDialogState();
+}
+
+enum _DialogPhase { processing, success }
+
+class _FakePaymentDialogState extends State<_FakePaymentDialog> {
+  _DialogPhase _phase = _DialogPhase.processing;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() => _phase = _DialogPhase.success);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currency = LocaleKeys.subscriptions_currency.t(context);
     return Dialog(
-      backgroundColor: AppColors.background,
+      backgroundColor: QeranColors.paper,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-          AppDimens.p24,
-          AppDimens.p24,
-          AppDimens.p24,
-          AppDimens.p20,
+          QeranSpacing.s24,
+          QeranSpacing.s24,
+          QeranSpacing.s24,
+          QeranSpacing.s20,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: _phase == _DialogPhase.processing
+            ? _ProcessingBody(amount: widget.amount)
+            : _SuccessBody(
+                onContinue: () => Navigator.of(context)
+                    .pop(PaymentResultStatus.success),
+                onCancel: () => Navigator.of(context)
+                    .pop(PaymentResultStatus.cancelled),
+              ),
+      ),
+    );
+  }
+}
+
+class _ProcessingBody extends StatelessWidget {
+  final double amount;
+  const _ProcessingBody({required this.amount});
+
+  @override
+  Widget build(BuildContext context) {
+    final currency = LocaleKeys.subscriptions_currency.t(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const QeranLoader(size: 56),
+        const SizedBox(height: QeranSpacing.s20),
+        Text(
+          'جارٍ معالجة الدفع...',
+          textAlign: TextAlign.center,
+          style: QeranTypography.title.copyWith(color: QeranColors.wine),
+        ),
+        const SizedBox(height: QeranSpacing.s8),
+        Text(
+          '${amount.toStringAsFixed(2)} $currency',
+          textAlign: TextAlign.center,
+          style: QeranTypography.numeric.copyWith(
+            color: QeranColors.inkMuted,
+            fontSize: 16,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SuccessBody extends StatelessWidget {
+  final VoidCallback onContinue;
+  final VoidCallback onCancel;
+  const _SuccessBody({required this.onContinue, required this.onCancel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 88,
+          height: 88,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: QeranColors.gold12,
+          ),
+          child: const Icon(
+            Icons.check_circle_rounded,
+            color: QeranColors.gold,
+            size: 64,
+          ),
+        ),
+        const SizedBox(height: QeranSpacing.s20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.10),
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.payments_outlined,
-                color: AppColors.primary,
-                size: 28,
-              ),
-            ),
-            const SizedBox(height: AppDimens.p16),
             Text(
-              LocaleKeys.subscriptions_fake_payment_title.t(context),
-              textAlign: TextAlign.center,
-              style: AppTextStyles.headlineSmall.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w800,
-              ),
+              'تم الاشتراك بنجاح',
+              style: QeranTypography.title.copyWith(color: QeranColors.wine),
             ),
-            const SizedBox(height: AppDimens.p8),
-            Text(
-              LocaleKeys.subscriptions_fake_payment_message.t(context),
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.6,
-              ),
-            ),
-            const SizedBox(height: AppDimens.p16),
-            Text(
-              '${amount.toStringAsFixed(2)} $currency',
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: AppDimens.p20),
-            CustomButton(
-              text: LocaleKeys.subscriptions_fake_payment_confirm.t(context),
-              backgroundColor: AppColors.primary,
-              onPressed: () => Navigator.of(context)
-                  .pop(PaymentResultStatus.success),
-            ),
-            const SizedBox(height: AppDimens.p8),
-            TextButton(
-              onPressed: () => Navigator.of(context)
-                  .pop(PaymentResultStatus.cancelled),
-              child: Text(
-                LocaleKeys.subscriptions_fake_payment_cancel.t(context),
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
+            const SizedBox(width: QeranSpacing.s8),
+            const Icon(
+              Icons.celebration_rounded,
+              color: QeranColors.gold,
+              size: 22,
             ),
           ],
         ),
-      ),
+        const SizedBox(height: QeranSpacing.s8),
+        Text(
+          'أهلاً بك. استمتع بمزايا اشتراكك الجديد.',
+          textAlign: TextAlign.center,
+          style: QeranTypography.body.copyWith(color: QeranColors.inkBody),
+        ),
+        const SizedBox(height: QeranSpacing.s24),
+        QeranButton(
+          label: 'ابدأ الآن',
+          onPressed: onContinue,
+        ),
+        const SizedBox(height: QeranSpacing.s8),
+        QeranButton(
+          label: LocaleKeys.subscriptions_fake_payment_cancel.t(context),
+          variant: QeranButtonVariant.ghost,
+          size: QeranButtonSize.md,
+          onPressed: onCancel,
+        ),
+      ],
     );
   }
 }

@@ -206,11 +206,7 @@ class _MyProfileTile extends StatelessWidget {
               style: QeranTypography.subtitle,
             ),
           ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: QeranColors.wine,
-            size: 22,
-          ),
+          _DirectionalChevron(),
         ],
       ),
     );
@@ -249,13 +245,25 @@ class _LogoutTile extends StatelessWidget {
               style: QeranTypography.subtitle,
             ),
           ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: QeranColors.wine,
-            size: 22,
-          ),
+          _DirectionalChevron(),
         ],
       ),
+    );
+  }
+}
+
+/// RTL-aware trailing chevron — auto-mirrors to point inward toward the
+/// content rather than off-screen in Arabic.
+class _DirectionalChevron extends StatelessWidget {
+  const _DirectionalChevron();
+
+  @override
+  Widget build(BuildContext context) {
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    return Icon(
+      isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+      color: QeranColors.wine,
+      size: 22,
     );
   }
 }

@@ -1,15 +1,18 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/effects/ring_motif.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/current_subscription.dart';
@@ -18,16 +21,9 @@ import '../blocs/current/current_subscription_cubit.dart';
 import '../blocs/current/current_subscription_state.dart';
 import 'plan_visual.dart';
 
-/// Lives in the Profile tab above the logout tile. Renders four
-/// distinct visual states from the app-scoped `CurrentSubscriptionCubit`:
-///
-/// * `Loading` / `Initial`  → slim placeholder card
-/// * `None`                 → "discover packages" promo
-/// * `Loaded` and active    → premium summary with usage rows
-/// * `Loaded` but expired   → renewal banner above a promo card
-/// * `Failure`              → soft error with a retry tap
-///
-/// Tapping any CTA pushes `RouteNames.packagesScreen`.
+/// Lives in the Profile tab. Renders four distinct emotional states
+/// from the app-scoped `CurrentSubscriptionCubit`. Visuals only —
+/// state shape and CTA targets are unchanged.
 class SubscriptionStatusBlock extends StatelessWidget {
   const SubscriptionStatusBlock({super.key});
 
@@ -68,49 +64,61 @@ class _LoadingCard extends StatelessWidget {
   }
 }
 
+/// Wine-gradient hero with a gold ring motif behind the crown icon.
+/// Used when the user has no active subscription — the visual weight
+/// signals "this matters" without being loud.
 class _PromoCard extends StatelessWidget {
   const _PromoCard();
 
   @override
   Widget build(BuildContext context) {
-    return _Card(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: QeranRadii.panelR,
+        boxShadow: QeranShadows.eHero,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4A1F38), QeranColors.wine],
+        ),
+      ),
+      padding: const EdgeInsets.all(QeranSpacing.s24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              const _PromoBadge(),
-              const SizedBox(width: AppDimens.p12),
+              const _CrownBadge(),
+              QeranSpacing.hs16,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       LocaleKeys.subscriptions_status_not_subscribed_title
                           .t(context),
-                      style: AppTextStyles.titleLarge.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                      ),
+                      style: QeranTypography.title
+                          .copyWith(color: QeranColors.paper),
                     ),
-                    const SizedBox(height: 4),
+                    QeranSpacing.vs4,
                     Text(
                       LocaleKeys.subscriptions_status_not_subscribed_body
                           .t(context),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: QeranTypography.bodySm
+                          .copyWith(color: QeranColors.gold),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppDimens.p16),
-          CustomButton(
-            text: LocaleKeys.subscriptions_view_packages_cta.t(context),
-            backgroundColor: AppColors.primary,
+          QeranSpacing.vs20,
+          QeranButton(
+            label: LocaleKeys.subscriptions_view_packages_cta.t(context),
+            variant: QeranButtonVariant.primary,
+            trailingIcon: Icons.arrow_forward_rounded,
             onPressed: () => NavigationManager.navigateTo(
               context,
               RouteNames.packagesScreen,
@@ -122,23 +130,39 @@ class _PromoCard extends StatelessWidget {
   }
 }
 
-class _PromoBadge extends StatelessWidget {
-  const _PromoBadge();
+class _CrownBadge extends StatelessWidget {
+  const _CrownBadge();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      alignment: Alignment.center,
-      child: const Icon(
-        Icons.diamond_outlined,
-        color: AppColors.primary,
-        size: 22,
+    return SizedBox(
+      width: 56,
+      height: 56,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const RingMotif(
+            color: QeranColors.gold,
+            opacity: 0.18,
+            size: 56,
+            ringCount: 1,
+          ),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: QeranColors.gold.withValues(alpha: 0.18),
+              border: Border.all(color: QeranColors.gold, width: 1.2),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.workspace_premium_rounded,
+              color: QeranColors.gold,
+              size: 22,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -155,43 +179,48 @@ class _ExpiredCard extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p16,
-            vertical: AppDimens.p12,
+            horizontal: QeranSpacing.s16,
+            vertical: QeranSpacing.s12,
           ),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.15),
-            ),
+            color: QeranColors.wine08,
+            borderRadius: QeranRadii.controlR,
+            border: Border.all(color: QeranColors.wine20),
           ),
-          child: Row(
+          child: const Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.history_rounded,
-                color: AppColors.primary,
+                color: QeranColors.wine,
                 size: 18,
               ),
-              const SizedBox(width: AppDimens.p8),
-              Expanded(
-                child: Text(
-                  LocaleKeys.subscriptions_status_expired_banner.t(context),
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+              QeranSpacing.hs8,
+              Expanded(child: _ExpiredCopy()),
             ],
           ),
         ),
-        const SizedBox(height: AppDimens.p12),
+        QeranSpacing.vs12,
         const _PromoCard(),
       ],
     );
   }
 }
 
+class _ExpiredCopy extends StatelessWidget {
+  const _ExpiredCopy();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      LocaleKeys.subscriptions_status_expired_banner.t(context),
+      style: QeranTypography.label,
+    );
+  }
+}
+
+/// Active subscription — paper card with a top gold accent bar,
+/// hero row, hairline divider, restrained usage rows, and a quiet
+/// "upgrade" secondary CTA.
 class _ActiveCard extends StatelessWidget {
   final CurrentSubscription subscription;
   const _ActiveCard({required this.subscription});
@@ -209,128 +238,134 @@ class _ActiveCard extends StatelessWidget {
               '${subscription.pricing.durationDays}',
             );
 
-    return _Card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              _PlanBadge(plan: subscription.plan, accent: accent),
-              const SizedBox(width: AppDimens.p12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            subscription.plan.nameAr,
-                            style: AppTextStyles.titleLarge.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16,
+    return Container(
+      decoration: BoxDecoration(
+        color: QeranColors.paper,
+        borderRadius: QeranRadii.cardR,
+        boxShadow: QeranShadows.e2,
+      ),
+      child: ClipRRect(
+        borderRadius: QeranRadii.cardR,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Top gold accent bar — quiet "premium" signal.
+            Container(height: 3, color: QeranColors.gold),
+            Padding(
+              padding: const EdgeInsets.all(QeranSpacing.s20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      _PlanBadge(plan: subscription.plan, accent: accent),
+                      QeranSpacing.hs12,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              subscription.plan.nameAr,
+                              style: QeranTypography.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '• $pricingLabel',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      LocaleKeys.subscriptions_status_active_until
-                          .t(context)
-                          .replaceFirst('{date}', expiresAt),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    if (daysRemaining >= 0) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        LocaleKeys.subscriptions_status_days_remaining
-                            .t(context)
-                            .replaceFirst('{days}', '$daysRemaining'),
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.textMuted,
+                            QeranSpacing.vs4,
+                            Text(
+                              pricingLabel,
+                              style: QeranTypography.bodySm,
+                            ),
+                          ],
                         ),
                       ),
                     ],
+                  ),
+                  QeranSpacing.vs16,
+                  Text(
+                    LocaleKeys.subscriptions_status_active_until
+                        .t(context)
+                        .replaceFirst('{date}', expiresAt),
+                    style: QeranTypography.bodySm,
+                  ),
+                  if (daysRemaining >= 0) ...[
+                    QeranSpacing.vs4,
+                    Text(
+                      LocaleKeys.subscriptions_status_days_remaining
+                          .t(context)
+                          .replaceFirst('{days}', '$daysRemaining'),
+                      style: QeranTypography.caption,
+                    ),
                   ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimens.p16),
-          Container(
-            height: 1,
-            color: accent.withValues(alpha: 0.10),
-          ),
-          const SizedBox(height: AppDimens.p12),
-          _UsageRow(
-            icon: Icons.favorite_rounded,
-            label: LocaleKeys.subscriptions_feature_likes_label.t(context),
-            used: subscription.likesUsed,
-            remaining: subscription.likesRemaining,
-            allowed: subscription.plan.features.likesAllowed,
-          ),
-          _UsageRow(
-            icon: Icons.photo_camera_rounded,
-            label: LocaleKeys.subscriptions_feature_photo_exchanges_label
-                .t(context),
-            used: subscription.photoExchangesUsed,
-            remaining: subscription.photoExchangesRemaining,
-            allowed: subscription.plan.features.photoExchangesAllowed,
-          ),
-          _UsageRow(
-            icon: Icons.workspace_premium_rounded,
-            label: LocaleKeys.subscriptions_feature_serious_interests_label
-                .t(context),
-            used: subscription.seriousInterestsUsed,
-            remaining: subscription.seriousInterestsRemaining,
-            allowed: subscription.plan.features.seriousInterestsAllowed,
-          ),
-          _UnlimitedRow(
-            icon: Icons.visibility_rounded,
-            label: LocaleKeys.subscriptions_feature_daily_profile_views_label
-                .t(context),
-            allowed: subscription.plan.features.dailyProfileViewsAllowed,
-          ),
-          const SizedBox(height: AppDimens.p16),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: BorderSide(
-                color: AppColors.primary.withValues(alpha: 0.30),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(vertical: AppDimens.p12),
-            ),
-            onPressed: () => NavigationManager.navigateTo(
-              context,
-              RouteNames.packagesScreen,
-            ),
-            child: Text(
-              LocaleKeys.subscriptions_upgrade_cta.t(context),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
+                  QeranSpacing.vs16,
+                  const _Hairline(),
+                  QeranSpacing.vs16,
+                  _UsageRow(
+                    icon: Icons.favorite_rounded,
+                    label: LocaleKeys.subscriptions_feature_likes_label
+                        .t(context),
+                    used: subscription.likesUsed,
+                    remaining: subscription.likesRemaining,
+                    allowed: subscription.plan.features.likesAllowed,
+                  ),
+                  _UsageRow(
+                    icon: Icons.photo_camera_rounded,
+                    label: LocaleKeys
+                        .subscriptions_feature_photo_exchanges_label
+                        .t(context),
+                    used: subscription.photoExchangesUsed,
+                    remaining: subscription.photoExchangesRemaining,
+                    allowed: subscription
+                        .plan.features.photoExchangesAllowed,
+                  ),
+                  _UsageRow(
+                    icon: Icons.workspace_premium_rounded,
+                    label: LocaleKeys
+                        .subscriptions_feature_serious_interests_label
+                        .t(context),
+                    used: subscription.seriousInterestsUsed,
+                    remaining: subscription.seriousInterestsRemaining,
+                    allowed: subscription
+                        .plan.features.seriousInterestsAllowed,
+                  ),
+                  _UnlimitedRow(
+                    icon: Icons.visibility_rounded,
+                    label: LocaleKeys
+                        .subscriptions_feature_daily_profile_views_label
+                        .t(context),
+                    allowed: subscription
+                        .plan.features.dailyProfileViewsAllowed,
+                  ),
+                  QeranSpacing.vs20,
+                  QeranButton(
+                    label: LocaleKeys.subscriptions_upgrade_cta.t(context),
+                    variant: QeranButtonVariant.secondary,
+                    size: QeranButtonSize.md,
+                    onPressed: () => NavigationManager.navigateTo(
+                      context,
+                      RouteNames.packagesScreen,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _Hairline extends StatelessWidget {
+  const _Hairline();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 1,
+      child: ColoredBox(color: QeranColors.divider),
     );
   }
 }
@@ -344,24 +379,24 @@ class _PlanBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = (plan.icon as String).isEmpty ? '💎' : plan.icon as String;
     return Container(
-      width: 44,
-      height: 44,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
+        shape: BoxShape.circle,
+        color: QeranColors.gold.withValues(alpha: 0.18),
+        border: Border.all(color: QeranColors.gold, width: 1),
       ),
       alignment: Alignment.center,
       child: PlanVisual.isUrl(icon)
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+          ? ClipOval(
               child: Image.network(
                 icon,
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Icon(
+                errorBuilder: (_, _, _) => const Icon(
                   Icons.workspace_premium_rounded,
-                  color: accent,
+                  color: QeranColors.wine,
                   size: 22,
                 ),
               ),
@@ -392,43 +427,35 @@ class _UsageRow extends StatelessWidget {
     final total = unlimited ? 0 : used + remaining;
     final progress = SubscriptionFormat.usagePercent(used, total);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: AppColors.primary),
-              const SizedBox(width: AppDimens.p8),
+              Icon(icon, size: 16, color: QeranColors.wine),
+              QeranSpacing.hs8,
               Expanded(
-                child: Text(
-                  label,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
+                child: Text(label, style: QeranTypography.bodySm),
               ),
               Text(
                 unlimited
                     ? SubscriptionFormat.formatRemaining(context, remaining)
                     : '$used / $total',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: QeranTypography.numeric,
               ),
             ],
           ),
           if (!unlimited && total > 0) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: QeranSpacing.s6),
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: LinearProgressIndicator(
                 value: progress,
-                minHeight: 6,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.10),
+                minHeight: 4,
+                backgroundColor: QeranColors.gold.withValues(alpha: 0.20),
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary,
+                  QeranColors.wine,
                 ),
               ),
             ),
@@ -452,38 +479,18 @@ class _UnlimitedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s6),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(width: AppDimens.p8),
-          Expanded(
-            child: Text(
-              label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
+          Icon(icon, size: 16, color: QeranColors.wine),
+          QeranSpacing.hs8,
+          Expanded(child: Text(label, style: QeranTypography.bodySm)),
           Text(
             SubscriptionFormat.formatAllowed(context, allowed, ''),
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
+            style: QeranTypography.label,
           ),
         ],
       ),
     );
-  }
-}
-
-class _Card extends StatelessWidget {
-  final Widget child;
-  const _Card({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return QeranCard(child: child);
   }
 }

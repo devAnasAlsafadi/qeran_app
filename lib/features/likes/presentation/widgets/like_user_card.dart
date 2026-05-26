@@ -313,11 +313,13 @@ class _CountdownChipState extends State<_CountdownChip> {
 
   @override
   Widget build(BuildContext context) {
+    // Non-compact so the clock icon renders at 14 px instead of the
+    // 12 px compact size — at 12 px the wine-on-gold12 glyph is too
+    // faint to register as "this is a timer".
     return QeranChip(
       label: LikeCountdownFormatter.format(context, _seconds),
       variant: QeranChipVariant.interest,
       icon: Icons.access_time_rounded,
-      compact: true,
     );
   }
 }

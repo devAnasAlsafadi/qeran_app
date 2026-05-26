@@ -62,8 +62,10 @@ class MatchCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Outer Container carries the shadow + rounded radius + gold
-    // border. The ClipRRect inside clips the accent bar and the
+    // Outer Container carries the shadow + rounded radius + 1.5 dp
+    // gold border. A second wine-tinted glow shadow stacks under the
+    // standard one to give matches a slightly warmer lift than other
+    // Likes cards. The ClipRRect inside clips the accent bar and the
     // stage content cleanly to the rounded corners.
     final shell = Container(
       margin: const EdgeInsets.only(bottom: AppDimens.p12),
@@ -71,38 +73,49 @@ class MatchCardWidget extends StatelessWidget {
         color: QeranColors.paper,
         borderRadius: BorderRadius.circular(_radius),
         boxShadow: const [
+          // Soft gold glow — only matches get this; makes the card feel
+          // "earned" at a glance versus plain like-row cards.
+          BoxShadow(
+            color: Color(0x1FE4C094),
+            blurRadius: 24,
+            offset: Offset(0, 8),
+          ),
           BoxShadow(
             color: Color(0x12431C33),
             blurRadius: 20,
             offset: Offset(0, 6),
           ),
         ],
-        border: Border.all(color: QeranColors.gold, width: 1),
+        border: Border.all(color: QeranColors.gold, width: 1.5),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(_radius),
         child: Stack(
           children: [
-            // Stage content. Asymmetric padding so the 4 dp accent bar
-            // on the end edge doesn't crowd text/avatars.
+            // Stage content. Asymmetric padding leaves room on the
+            // trailing edge for the 6 dp accent bar (alongside avatar)
+            // and on the top-leading corner for the "توافق" badge.
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
-                16, 14, 20, 14,
+                16, 36, 22, 14,
               ),
               child: _buildStageContent(),
             ),
             // Gold accent bar — trailing edge (RTL: visual left,
-            // alongside the avatar).
+            // alongside the avatar). 6 dp so it reads as a deliberate
+            // accent next to the 1.5 dp border rather than merging
+            // into it.
             PositionedDirectional(
               top: 0,
               bottom: 0,
               end: 0,
-              child: Container(width: 4, color: QeranColors.gold),
+              child: Container(width: 6, color: QeranColors.gold),
             ),
-            // "✓ توافق" chip — top-trailing corner.
+            // "✓ توافق" chip — top-LEADING corner (RTL: visual right),
+            // away from the avatar which sits on the trailing side.
             const PositionedDirectional(
               top: 12,
-              end: 12,
+              start: 12,
               child: _MatchBadge(),
             ),
           ],

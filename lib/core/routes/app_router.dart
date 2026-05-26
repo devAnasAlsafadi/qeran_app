@@ -22,6 +22,7 @@ import 'package:qeran/features/questionnaire/presentation/screens/gender_selecti
 import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart';
 import 'package:qeran/features/splash/presentation/screens/splash_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/screens/packages_screen.dart';
+import 'package:qeran/features/subscriptions/presentation/screens/subscription_details_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/screens/subscription_purchase_screen.dart';
 
 class AppRouter {
@@ -114,6 +115,11 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const PackagesScreen(),
+        );
+      case RouteNames.subscriptionDetails:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const SubscriptionDetailsScreen(),
         );
       case RouteNames.subscriptionPurchase:
         final args = settings.arguments as SubscriptionPurchaseArgs?;

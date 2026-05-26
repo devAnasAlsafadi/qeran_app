@@ -6,21 +6,24 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_section_header.dart';
+import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/logout_confirmation_dialog.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
-import 'package:qeran/features/subscriptions/presentation/widgets/subscription_status_block.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// Lightweight profile / settings surface rendered inside the home shell
-/// when the Profile bottom-nav tab is active. Intentionally minimal in
-/// this phase: a user header card and the logout entry. Other sections
-/// (edit profile, preferences, language) land in later sprints.
+/// Settings tab content. Three stacked surfaces: a premium profile
+/// header card, a unified card of action rows (subscription, language,
+/// notifications, support, terms, delete account), and a standalone
+/// logout card. Subscription details no longer render inline — the
+/// `اشتراكي` row taps through to a dedicated screen.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -33,7 +36,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     // Soft refresh — the cubit short-circuits inside its 60 s TTL so
-    // tab navigation doesn't spam /current.
+    // tab navigation doesn't spam /current. The subscription details
+    // screen still consumes the same cubit, so a warm cache here is
+    // a hit there too.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<CurrentSubscriptionCubit>().refresh();
@@ -69,21 +74,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       RouteNames.myProfile,
                     ),
                   ),
-                  QeranSpacing.vs32,
-                  QeranSectionHeader(
-                    title: LocaleKeys.subscriptions_status_my_subscription
-                        .t(context),
-                  ),
+                  QeranSpacing.vs24,
+                  const QeranSectionHeader(title: 'إعدادات'),
                   QeranSpacing.vs12,
-                  const SubscriptionStatusBlock(),
-                  QeranSpacing.vs32,
-                  _LogoutTile(onTap: () => _handleLogout(context)),
+                  _SettingsCard(onComingSoon: () => _showComingSoon(context)),
+                  QeranSpacing.vs24,
+                  _LogoutCard(onTap: () => _handleLogout(context)),
                 ],
               );
             },
           ),
         ),
       ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context) {
+    AppSnackBar.show(
+      context,
+      message: 'قريباً',
+      type: SnackBarType.info,
     );
   }
 
@@ -109,10 +119,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 /// previous thin avatar+email row AND the redundant `بروفايلي` tile —
 /// the user lands here daily, so the surface earns the warmth of a hero
 /// strip: gold-ringed avatar, name in wine headline, completion subtitle
-/// in charcoal, edit-link to `MyProfile`, and a gold-tinted verified
-/// chip. Layout mirrors the official identity's settings mockup (avatar
-/// on the leading side in RTL, verified pill floating on the trailing
-/// corner).
+/// in wine-tinted body, edit-link to `MyProfile`, and a gold-tinted
+/// verified chip. Layout mirrors the official identity's settings
+/// mockup (avatar on the leading side in RTL, verified pill on the
+/// trailing corner).
 class _ProfileHeaderCard extends StatelessWidget {
   final UserEntity? user;
   final VoidCallback onEditTap;
@@ -270,15 +280,247 @@ class _EditProfileLink extends StatelessWidget {
   }
 }
 
-class _LogoutTile extends StatelessWidget {
+// ── Settings card ──────────────────────────────────────────────────
+
+/// Unified card hosting every settings row. Sequence is locked: the
+/// subscription row is first (the warmest action), followed by the
+/// preference rows, with the destructive `delete account` row last so
+/// it doesn't sit next to logout in the visual scan.
+class _SettingsCard extends StatelessWidget {
+  final VoidCallback onComingSoon;
+  const _SettingsCard({required this.onComingSoon});
+
+  @override
+  Widget build(BuildContext context) {
+    return QeranCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          const _SubscriptionRow(),
+          const _RowDivider(),
+          _SettingsRow(
+            icon: Icons.language_rounded,
+            title: 'تغيير اللغة',
+            subtitle: 'العربية',
+            onTap: onComingSoon,
+          ),
+          const _RowDivider(),
+          _SettingsRow(
+            icon: Icons.notifications_outlined,
+            title: 'الإشعارات',
+            subtitle: 'إعدادات التنبيهات',
+            onTap: onComingSoon,
+          ),
+          const _RowDivider(),
+          _SettingsRow(
+            icon: Icons.chat_bubble_outline_rounded,
+            title: 'المساعدة والدعم',
+            subtitle: 'تواصل معنا',
+            onTap: onComingSoon,
+          ),
+          const _RowDivider(),
+          _SettingsRow(
+            icon: Icons.description_outlined,
+            title: 'الشروط والأحكام',
+            subtitle: 'سياسة الاستخدام',
+            onTap: onComingSoon,
+          ),
+          const _RowDivider(),
+          _SettingsRow(
+            icon: Icons.delete_outline_rounded,
+            title: 'حذف أو تجميد الحساب',
+            subtitle: null,
+            onTap: onComingSoon,
+            destructive: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// First row in the settings card. Reads `CurrentSubscriptionCubit` to
+/// drive the subtitle (active plan + days remaining / "no active sub"
+/// / "expired") and to decide whether to render the trailing `ترقية`
+/// gold pill. Taps through to `subscriptionDetails`.
+class _SubscriptionRow extends StatelessWidget {
+  const _SubscriptionRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
+      builder: (context, state) {
+        final (subtitle, showUpgrade) = _resolve(state);
+        return _SettingsRow(
+          icon: Icons.workspace_premium_rounded,
+          iconAccent: _IconAccent.gold,
+          title: LocaleKeys.subscriptions_status_my_subscription.t(context),
+          subtitle: subtitle,
+          trailing: showUpgrade
+              ? const QeranChip(
+                  label: 'ترقية',
+                  variant: QeranChipVariant.interest,
+                  compact: true,
+                )
+              : null,
+          onTap: () => NavigationManager.navigateTo(
+            context,
+            RouteNames.subscriptionDetails,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Returns `(subtitle, showUpgradePill)` per state.
+  (String, bool) _resolve(CurrentSubscriptionState state) {
+    return switch (state) {
+      CurrentSubscriptionLoaded(:final subscription) =>
+        subscription.isCurrentlyActive
+            ? (
+                '${subscription.plan.nameAr} - ${subscription.daysRemaining} يوم متبقي',
+                false,
+              )
+            : ('انتهت صلاحية الاشتراك', true),
+      CurrentSubscriptionFailure(:final lastKnown)
+          when lastKnown != null && lastKnown.isCurrentlyActive =>
+        (
+          '${lastKnown.plan.nameAr} - ${lastKnown.daysRemaining} يوم متبقي',
+          false,
+        ),
+      _ => ('لا يوجد اشتراك نشط', true),
+    };
+  }
+}
+
+enum _IconAccent { wine, gold, danger }
+
+/// One tappable row inside the unified settings card. Owns its own
+/// `InkWell` so the cream-surface highlight is scoped to the row, not
+/// the whole card.
+class _SettingsRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
   final VoidCallback onTap;
-  const _LogoutTile({required this.onTap});
+  final _IconAccent iconAccent;
+  final bool destructive;
+
+  const _SettingsRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.trailing,
+    this.iconAccent = _IconAccent.wine,
+    this.destructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accentColor = destructive
+        ? QeranColors.danger
+        : switch (iconAccent) {
+            _IconAccent.wine => QeranColors.wine,
+            _IconAccent.gold => QeranColors.gold,
+            _IconAccent.danger => QeranColors.danger,
+          };
+    final titleColor = destructive ? QeranColors.danger : QeranColors.wine;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: QeranColors.creamSurface,
+        highlightColor: QeranColors.creamSurface.withValues(alpha: 0.5),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: QeranColors.creamSurface,
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, size: 20, color: accentColor),
+              ),
+              QeranSpacing.hs12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: QeranTypography.body.copyWith(color: titleColor),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null) ...[
+                      QeranSpacing.vs4,
+                      Text(
+                        subtitle!,
+                        style: QeranTypography.caption.copyWith(
+                          color: QeranColors.inkMuted,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (trailing != null) ...[
+                QeranSpacing.hs8,
+                trailing!,
+              ],
+              QeranSpacing.hs8,
+              const _DirectionalChevron(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Hairline divider drawn between settings rows. Indented past the
+/// 40dp leading circle + 12dp gap + 8dp icon-to-text padding so the
+/// line aligns with the row title rather than slicing under the icon.
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsetsDirectional.only(start: 60, end: 16),
+      child: SizedBox(
+        height: 1,
+        child: ColoredBox(color: QeranColors.divider),
+      ),
+    );
+  }
+}
+
+// ── Logout card ─────────────────────────────────────────────────────
+
+/// Standalone destructive card below the settings list. Same paper
+/// treatment as the settings card but sits in its own surface so the
+/// terminal action is visually segregated from the preference rows
+/// above it. Behaviour preserved exactly (confirm dialog → cubit
+/// signOut → clear subscription → push login).
+class _LogoutCard extends StatelessWidget {
+  final VoidCallback onTap;
+  const _LogoutCard({required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return QeranCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
           Container(
@@ -286,7 +528,7 @@ class _LogoutTile extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: QeranColors.danger.withValues(alpha: 0.10),
+              color: QeranColors.danger.withValues(alpha: 0.12),
             ),
             alignment: Alignment.center,
             child: const Icon(
@@ -299,10 +541,10 @@ class _LogoutTile extends StatelessWidget {
           Expanded(
             child: Text(
               LocaleKeys.common_logout.t(context),
-              style: QeranTypography.subtitle,
+              style: QeranTypography.body.copyWith(color: QeranColors.danger),
             ),
           ),
-          _DirectionalChevron(),
+          const _DirectionalChevron(),
         ],
       ),
     );

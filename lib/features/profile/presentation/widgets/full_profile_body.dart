@@ -70,7 +70,7 @@ class FullProfileBody extends StatelessWidget {
                   age: profile.age,
                   matchPercent: profile.matchingScore,
                 ),
-                QeranSpacing.vs24,
+                QeranSpacing.vs32,
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: QeranSpacing.s20,

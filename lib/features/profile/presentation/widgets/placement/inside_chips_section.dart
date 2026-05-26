@@ -18,8 +18,8 @@ class InsideChipsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (placement.items.isEmpty) return const SizedBox.shrink();
     return Wrap(
-      spacing: QeranSpacing.s8,
-      runSpacing: QeranSpacing.s8,
+      spacing: QeranSpacing.s12,
+      runSpacing: QeranSpacing.s12,
       children: placement.items
           .map(
             (i) => QeranChip(

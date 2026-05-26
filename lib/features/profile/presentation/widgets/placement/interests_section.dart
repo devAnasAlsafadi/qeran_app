@@ -30,8 +30,8 @@ class InterestsSection extends StatelessWidget {
         ),
         QeranSpacing.vs12,
         Wrap(
-          spacing: QeranSpacing.s8,
-          runSpacing: QeranSpacing.s8,
+          spacing: QeranSpacing.s12,
+          runSpacing: QeranSpacing.s12,
           children: chips
               .map(
                 (label) => QeranChip(

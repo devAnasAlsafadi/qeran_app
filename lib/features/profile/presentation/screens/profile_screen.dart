@@ -4,12 +4,13 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
+import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_section_header.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/widgets/logout_confirmation_dialog.dart';
+import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
@@ -48,27 +49,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return SafeArea(
       bottom: false,
       child: RefreshIndicator(
-        color: AppColors.primary,
+        color: QeranColors.wine,
         onRefresh: _onRefresh,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           child: BlocBuilder<UserSessionCubit, UserSessionState>(
             builder: (context, state) {
               final user = state is UserSessionAuthenticated ? state.user : null;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _ProfileHeader(name: user?.name, email: user?.email),
-                  QeranSpacing.vs32,
-                  QeranSectionHeader(
-                    title: LocaleKeys.profile_my_title.t(context),
-                  ),
-                  QeranSpacing.vs12,
-                  _MyProfileTile(
-                    onTap: () => NavigationManager.navigateTo(
+                  _ProfileHeaderCard(
+                    user: user,
+                    onEditTap: () => NavigationManager.navigateTo(
                       context,
                       RouteNames.myProfile,
                     ),
@@ -109,105 +105,166 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  final String? name;
-  final String? email;
-  const _ProfileHeader({this.name, this.email});
+/// Premium header card at the top of the Settings tab. Replaces the
+/// previous thin avatar+email row AND the redundant `بروفايلي` tile —
+/// the user lands here daily, so the surface earns the warmth of a hero
+/// strip: gold-ringed avatar, name in wine headline, completion subtitle
+/// in charcoal, edit-link to `MyProfile`, and a gold-tinted verified
+/// chip. Layout mirrors the official identity's settings mockup (avatar
+/// on the leading side in RTL, verified pill floating on the trailing
+/// corner).
+class _ProfileHeaderCard extends StatelessWidget {
+  final UserEntity? user;
+  final VoidCallback onEditTap;
+  const _ProfileHeaderCard({required this.user, required this.onEditTap});
 
   @override
   Widget build(BuildContext context) {
-    final trimmed = (name ?? '').trim();
-    final initial =
-        trimmed.isEmpty ? '' : trimmed.substring(0, 1).toUpperCase();
-    return Row(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: QeranColors.gold20,
-          ),
-          alignment: Alignment.center,
-          child: initial.isEmpty
-              ? const Icon(
-                  Icons.person_rounded,
-                  color: QeranColors.wine,
-                  size: 30,
-                )
-              : Text(
-                  initial,
-                  style: QeranTypography.headline,
-                ),
-        ),
-        QeranSpacing.hs16,
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                trimmed.isNotEmpty
-                    ? trimmed
-                    : LocaleKeys.home_nav_profile.t(context),
-                style: QeranTypography.headline,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (email != null && email!.isNotEmpty) ...[
-                QeranSpacing.vs4,
+    final name = (user?.name ?? '').trim();
+    final photoUrl = user?.photoUrl;
+    return QeranCard(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Avatar(photoUrl: photoUrl),
+          QeranSpacing.hs16,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Text(
-                  email!,
-                  style: QeranTypography.bodySm,
+                  name.isNotEmpty
+                      ? name
+                      : LocaleKeys.home_nav_profile.t(context),
+                  style: QeranTypography.headline.copyWith(
+                    color: QeranColors.wine,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                QeranSpacing.vs4,
+                // Completion subtitle. Hardcoded for now — locale keys
+                // for the new settings strings are deferred per the
+                // implementation roadmap.
+                Text(
+                  'الملف الشخصي مكتمل',
+                  style: QeranTypography.bodySm.copyWith(
+                    color: QeranColors.inkBody,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                QeranSpacing.vs8,
+                _EditProfileLink(onTap: onEditTap),
               ],
-            ],
+            ),
           ),
-        ),
-      ],
+          QeranSpacing.hs8,
+          // Verified chip — hardcoded visible for now. Backend wiring
+          // (e.g. `user?.isPhoneVerified` and any future identity-
+          // verification flag) is out of scope for this milestone.
+          // TODO(verification): drive visibility from a real backend flag.
+          const QeranChip(
+            label: 'موثق',
+            variant: QeranChipVariant.interest,
+            icon: Icons.verified_rounded,
+            compact: true,
+          ),
+        ],
+      ),
     );
   }
 }
 
-/// Quiet navigation tile that opens the owner-facing `MyProfileScreen`
-/// where the user reads their own placements + status banner. Lives
-/// here in the Settings tab so the tab content stays a single column
-/// of action rows.
-class _MyProfileTile extends StatelessWidget {
-  final VoidCallback onTap;
-  const _MyProfileTile({required this.onTap});
+/// 64dp circular avatar with a 1.5dp gold ring per the official
+/// identity. Falls back to a wine person glyph on a gold-tinted disc
+/// when no photo is available — same fallback used elsewhere in the app.
+class _Avatar extends StatelessWidget {
+  final String? photoUrl;
+  const _Avatar({required this.photoUrl});
 
   @override
   Widget build(BuildContext context) {
-    return QeranCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: QeranColors.gold20,
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.person_rounded,
-              color: QeranColors.wine,
-              size: 20,
-            ),
+    final hasPhoto = photoUrl != null && photoUrl!.isNotEmpty;
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: QeranColors.gold, width: 1.5),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: QeranColors.gold20,
+        ),
+        clipBehavior: Clip.antiAlias,
+        alignment: Alignment.center,
+        child: hasPhoto
+            ? Image.network(
+                photoUrl!,
+                fit: BoxFit.cover,
+                width: 60,
+                height: 60,
+                errorBuilder: (_, _, _) => const _AvatarFallback(),
+              )
+            : const _AvatarFallback(),
+      ),
+    );
+  }
+}
+
+class _AvatarFallback extends StatelessWidget {
+  const _AvatarFallback();
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(
+      Icons.person_rounded,
+      color: QeranColors.wine,
+      size: 28,
+    );
+  }
+}
+
+/// Caption-sized inline link to the owner-facing profile screen.
+/// Renders as `[edit icon] عرض/تعديل الملف` — gold pencil + wine label
+/// — and routes to the same handler as the old quiet tile so navigation
+/// behaviour is preserved exactly.
+class _EditProfileLink extends StatelessWidget {
+  final VoidCallback onTap;
+  const _EditProfileLink({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.edit_outlined,
+                size: 14,
+                color: QeranColors.gold,
+              ),
+              QeranSpacing.hs4,
+              Text(
+                'عرض/تعديل الملف',
+                style: QeranTypography.caption.copyWith(
+                  color: QeranColors.wine,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
-          QeranSpacing.hs12,
-          Expanded(
-            child: Text(
-              LocaleKeys.profile_my_title.t(context),
-              style: QeranTypography.subtitle,
-            ),
-          ),
-          _DirectionalChevron(),
-        ],
+        ),
       ),
     );
   }

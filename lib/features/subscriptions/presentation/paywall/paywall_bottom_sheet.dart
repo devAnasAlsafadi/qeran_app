@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/effects/ring_motif.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/current/current_subscription_cubit.dart';
 import 'paywall_intent.dart';
 
-/// Premium burgundy/cream sheet shown when a gated action is blocked.
+/// Premium paper/wine sheet shown when a gated action is blocked.
 /// Dismissible — the user can close it and keep browsing Discovery.
 /// CTA pushes the packages route.
 Future<void> showPaywall(
@@ -22,8 +25,8 @@ Future<void> showPaywall(
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: AppColors.transparent,
-    barrierColor: const Color(0x59431C33),
+    backgroundColor: Colors.transparent,
+    barrierColor: QeranColors.overlayTintDark,
     useSafeArea: true,
     builder: (_) => _PaywallSheet(intent: intent),
   );
@@ -40,55 +43,44 @@ class _PaywallSheet extends StatelessWidget {
     );
     final copy = _copyFor(intent, hasActive);
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x33431C33),
-            blurRadius: 30,
-            offset: Offset(0, -8),
-          ),
-        ],
+      decoration: BoxDecoration(
+        color: QeranColors.paper,
+        borderRadius: QeranRadii.domeTop,
+        boxShadow: QeranShadows.e3,
       ),
       padding: const EdgeInsets.fromLTRB(
-        AppDimens.p24,
-        AppDimens.p12,
-        AppDimens.p24,
-        AppDimens.p24,
+        QeranSpacing.s24,
+        QeranSpacing.s12,
+        QeranSpacing.s24,
+        QeranSpacing.s24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _DragHandle(),
-          const SizedBox(height: AppDimens.p20),
+          QeranSpacing.vs20,
           _BadgeIcon(intent: intent),
-          const SizedBox(height: AppDimens.p16),
+          QeranSpacing.vs16,
           Text(
             copy.title.t(context),
             textAlign: TextAlign.center,
-            style: AppTextStyles.headlineSmall.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w800,
-            ),
+            style: QeranTypography.headline,
           ),
-          const SizedBox(height: AppDimens.p8),
+          QeranSpacing.vs8,
           Text(
             copy.body.t(context),
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.6,
-            ),
+            style: QeranTypography.body,
           ),
-          const SizedBox(height: AppDimens.p24),
-          CustomButton(
-            text: (hasActive
+          QeranSpacing.vs24,
+          QeranButton(
+            label: (hasActive
                     ? LocaleKeys.subscriptions_upgrade_cta
                     : LocaleKeys.subscriptions_view_packages_cta)
                 .t(context),
-            backgroundColor: AppColors.primary,
+            variant: QeranButtonVariant.primary,
+            trailingIcon: Icons.arrow_forward_rounded,
             onPressed: () {
               Navigator.of(context).pop();
               NavigationManager.navigateTo(
@@ -97,15 +89,12 @@ class _PaywallSheet extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: AppDimens.p8),
-          TextButton(
+          QeranSpacing.vs8,
+          QeranButton(
+            label: LocaleKeys.subscriptions_paywall_not_now.t(context),
+            variant: QeranButtonVariant.ghost,
+            size: QeranButtonSize.md,
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              LocaleKeys.subscriptions_paywall_not_now.t(context),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
           ),
         ],
       ),
@@ -157,7 +146,7 @@ class _DragHandle extends StatelessWidget {
         width: 44,
         height: 4,
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.30),
+          color: QeranColors.wine.withValues(alpha: 0.25),
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -179,15 +168,33 @@ class _BadgeIcon extends StatelessWidget {
       PaywallIntent.promo => Icons.diamond_outlined,
     };
     return Center(
-      child: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.primary.withValues(alpha: 0.10),
+      child: SizedBox(
+        width: 140,
+        height: 80,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            const IgnorePointer(
+              child: RingMotif(
+                color: QeranColors.gold,
+                opacity: 0.10,
+                size: 140,
+                ringCount: 2,
+                spacing: 14,
+              ),
+            ),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: QeranColors.gold20,
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, size: 32, color: QeranColors.wine),
+            ),
+          ],
         ),
-        alignment: Alignment.center,
-        child: Icon(icon, size: 30, color: AppColors.primary),
       ),
     );
   }

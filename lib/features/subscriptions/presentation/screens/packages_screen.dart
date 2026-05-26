@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
+import 'package:qeran/core/design_system/widgets/qeran_empty_state.dart';
+import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
+import 'package:qeran/core/design_system/widgets/qeran_premium_banner.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_plan.dart';
@@ -37,26 +42,14 @@ class _PackagesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.transparent,
-        elevation: 0,
-        title: Text(
-          LocaleKeys.subscriptions_title.t(context),
-          style: AppTextStyles.headlineSmall.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      ),
+      backgroundColor: QeranColors.creamCanvas,
+      appBar: QeranAppBar(title: LocaleKeys.subscriptions_title.t(context)),
       body: BlocBuilder<SubscriptionPlansCubit, SubscriptionPlansState>(
         builder: (context, state) {
           return switch (state) {
             SubscriptionPlansInitial() ||
             SubscriptionPlansLoading() =>
-              const _LoadingState(),
+              const Center(child: QeranLoader()),
             SubscriptionPlansFailure(:final message) =>
               _ErrorState(message: message.t(context)),
             SubscriptionPlansLoaded() => _PlansList(state: state),
@@ -67,61 +60,17 @@ class _PackagesView extends StatelessWidget {
   }
 }
 
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.primary),
-    );
-  }
-}
-
 class _ErrorState extends StatelessWidget {
   final String message;
   const _ErrorState({required this.message});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            size: 56,
-            color: AppColors.textMuted,
-          ),
-          const SizedBox(height: AppDimens.p12),
-          Text(
-            LocaleKeys.subscriptions_load_failed.t(context),
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            message,
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textMuted,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppDimens.p16),
-          TextButton(
-            onPressed: () =>
-                context.read<SubscriptionPlansCubit>().load(),
-            child: Text(
-              LocaleKeys.subscriptions_retry.t(context),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return QeranErrorState(
+      title: LocaleKeys.subscriptions_load_failed.t(context),
+      message: message,
+      retryLabel: LocaleKeys.subscriptions_retry.t(context),
+      onRetry: () => context.read<SubscriptionPlansCubit>().load(),
     );
   }
 }
@@ -133,37 +82,27 @@ class _PlansList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (state.plans.isEmpty) {
-      return Center(
-        child: Text(
-          LocaleKeys.subscriptions_empty_plans.t(context),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
+      return QeranEmptyState(
+        title: LocaleKeys.subscriptions_empty_plans.t(context),
+        icon: Icons.workspace_premium_outlined,
       );
     }
     final cubit = context.read<SubscriptionPlansCubit>();
+    // Header is rendered as the first item in the ListView. Two
+    // chunks: the wine-deep premium banner, then a soft supportive
+    // line — same emotional triad as paywall (hero → context → cards).
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(
-        AppDimens.p20,
-        AppDimens.p12,
-        AppDimens.p20,
-        AppDimens.p32,
+        QeranSpacing.s20,
+        QeranSpacing.s16,
+        QeranSpacing.s20,
+        QeranSpacing.s32,
       ),
       itemCount: state.plans.length + 1,
-      separatorBuilder: (_, _) => const SizedBox(height: AppDimens.p16),
+      separatorBuilder: (_, _) => const SizedBox(height: QeranSpacing.s16),
       itemBuilder: (context, index) {
         if (index == 0) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: AppDimens.p8),
-            child: Text(
-              LocaleKeys.subscriptions_subtitle.t(context),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          );
+          return _PackagesHeader();
         }
         final plan = state.plans[index - 1];
         final pricing = cubit.pricingFor(plan);
@@ -191,6 +130,32 @@ class _PlansList extends StatelessWidget {
       context,
       RouteNames.subscriptionPurchase,
       arguments: SubscriptionPurchaseArgs(plan: plan, pricing: pricing),
+    );
+  }
+}
+
+class _PackagesHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: QeranSpacing.s12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          QeranPremiumBanner(
+            title: LocaleKeys.subscriptions_status_not_subscribed_title
+                .t(context),
+            subtitle: LocaleKeys.subscriptions_status_not_subscribed_body
+                .t(context),
+          ),
+          QeranSpacing.vs20,
+          Text(
+            LocaleKeys.subscriptions_subtitle.t(context),
+            style: QeranTypography.body,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

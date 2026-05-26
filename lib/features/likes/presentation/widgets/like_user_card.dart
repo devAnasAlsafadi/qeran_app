@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
@@ -99,7 +101,7 @@ class _CardShell extends StatelessWidget {
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.06)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppDimens.p16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: child,
       ),
     );
@@ -137,9 +139,9 @@ class _VisibleContent extends StatelessWidget {
             children: [
               Text(
                 card.name,
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
+                style: QeranTypography.title.copyWith(
+                  color: QeranColors.wine,
+                  fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -199,10 +201,9 @@ class _StatusRow extends StatelessWidget {
         Flexible(
           child: Text(
             key.t(context),
-            style: AppTextStyles.bodyMedium.copyWith(
+            style: QeranTypography.bodySm.copyWith(
               color: color,
               fontWeight: FontWeight.w700,
-              fontSize: 13,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -312,30 +313,11 @@ class _CountdownChipState extends State<_CountdownChip> {
 
   @override
   Widget build(BuildContext context) {
-    const Color background = Color(0xFFF6EFE5); // soft warm cream
-    const Color foreground = Color(0xFFB18454); // gold-burgundy
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: foreground.withValues(alpha: 0.20)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.timer_outlined, size: 12, color: foreground),
-          const SizedBox(width: 4),
-          Text(
-            LikeCountdownFormatter.format(context, _seconds),
-            style: AppTextStyles.caption.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-            ),
-          ),
-        ],
-      ),
+    return QeranChip(
+      label: LikeCountdownFormatter.format(context, _seconds),
+      variant: QeranChipVariant.interest,
+      icon: Icons.access_time_rounded,
+      compact: true,
     );
   }
 }
@@ -466,18 +448,26 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = image?.url;
-    return ClipOval(
-      child: Container(
-        width: _size,
-        height: _size,
-        color: AppColors.primary.withValues(alpha: 0.06),
-        child: url == null || url.isEmpty
-            ? const Icon(
-                Icons.person_rounded,
-                size: 36,
-                color: AppColors.textMuted,
-              )
-            : _MaybeBlurredImage(url: url, blur: image?.isBlurred ?? false),
+    return Container(
+      width: _size,
+      height: _size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: QeranColors.gold, width: 1.5),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: ClipOval(
+        child: Container(
+          color: QeranColors.wine06,
+          alignment: Alignment.center,
+          child: url == null || url.isEmpty
+              ? const Icon(
+                  Icons.person_rounded,
+                  size: 32,
+                  color: QeranColors.wine,
+                )
+              : _MaybeBlurredImage(url: url, blur: image?.isBlurred ?? false),
+        ),
       ),
     );
   }

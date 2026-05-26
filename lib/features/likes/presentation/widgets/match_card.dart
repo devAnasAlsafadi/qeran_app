@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 
 import '../../domain/entities/match_card.dart';
@@ -9,7 +10,11 @@ import 'match_card_stage1.dart';
 import 'match_card_stage2.dart';
 
 /// One row in the Matches tab. Renders the stage-specific variant
-/// inside a shared card shell so all three look like siblings.
+/// inside a shared **hero** shell — gold border, a 4 dp gold accent
+/// bar running along the trailing edge (visual left in RTL, where the
+/// avatar sits), and a `✓ توافق` chip at the top-trailing corner. The
+/// hero treatment differentiates matches from the standard like-card
+/// surfaces in the other Likes tabs.
 class MatchCardWidget extends StatelessWidget {
   final MatchCard card;
 
@@ -53,13 +58,18 @@ class MatchCardWidget extends StatelessWidget {
     this.onOpenProfile,
   });
 
+  static const double _radius = 22;
+
   @override
   Widget build(BuildContext context) {
+    // Outer Container carries the shadow + rounded radius + gold
+    // border. The ClipRRect inside clips the accent bar and the
+    // stage content cleanly to the rounded corners.
     final shell = Container(
       margin: const EdgeInsets.only(bottom: AppDimens.p12),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(22),
+        color: QeranColors.paper,
+        borderRadius: BorderRadius.circular(_radius),
         boxShadow: const [
           BoxShadow(
             color: Color(0x12431C33),
@@ -67,17 +77,42 @@ class MatchCardWidget extends StatelessWidget {
             offset: Offset(0, 6),
           ),
         ],
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.06)),
+        border: Border.all(color: QeranColors.gold, width: 1),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppDimens.p16),
-        child: _buildStageContent(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(_radius),
+        child: Stack(
+          children: [
+            // Stage content. Asymmetric padding so the 4 dp accent bar
+            // on the end edge doesn't crowd text/avatars.
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                16, 14, 20, 14,
+              ),
+              child: _buildStageContent(),
+            ),
+            // Gold accent bar — trailing edge (RTL: visual left,
+            // alongside the avatar).
+            PositionedDirectional(
+              top: 0,
+              bottom: 0,
+              end: 0,
+              child: Container(width: 4, color: QeranColors.gold),
+            ),
+            // "✓ توافق" chip — top-trailing corner.
+            const PositionedDirectional(
+              top: 12,
+              end: 12,
+              child: _MatchBadge(),
+            ),
+          ],
+        ),
       ),
     );
     if (onOpenProfile == null) return shell;
     return InkWell(
       onTap: onOpenProfile,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(_radius),
       child: shell,
     );
   }
@@ -105,5 +140,19 @@ class MatchCardWidget extends StatelessWidget {
       case MatchStage.unknown:
         return MatchCardStage2(card: card, onContactMatchmaker: null);
     }
+  }
+}
+
+class _MatchBadge extends StatelessWidget {
+  const _MatchBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return const QeranChip(
+      label: 'توافق',
+      variant: QeranChipVariant.interest,
+      icon: Icons.check_circle_rounded,
+      compact: true,
+    );
   }
 }

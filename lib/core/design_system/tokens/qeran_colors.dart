@@ -41,7 +41,11 @@ class QeranColors {
   static const Color divider = wine08;
   static const Color hairline = wine12;
   static const Color danger = Color(0xFFA33949);
-  static const Color successWarm = Color(0xFF5F8F6C);
+
+  /// Success in Qeran wears gold, not green.
+  /// The brand identity contains no green; achievements
+  /// (matches, approvals, completions) celebrate via gold.
+  static const Color successWarm = gold;
   static const Color info = wine;
 
   // Overlays

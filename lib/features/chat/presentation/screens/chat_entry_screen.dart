@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
-import 'package:qeran/core/theme/app_color.dart';
 
 import '../blocs/chat_entry_cubit.dart';
 import '../blocs/chat_entry_state.dart';
@@ -34,7 +34,7 @@ class _ChatEntryView extends StatelessWidget {
         switch (state) {
           case ChatEntryInitial():
           case ChatEntryLoading():
-            return const _Loading();
+            return const Center(child: QeranLoader());
           case ChatEntryNoMatchmaker():
             return SafeArea(
               child: ChatEmptyNoMatchmaker(
@@ -48,25 +48,12 @@ class _ChatEntryView extends StatelessWidget {
               ),
             );
           case ChatEntryReady(:final info):
-            // Key on conversationId so a reassignment forces a fresh
-            // ChatConversationScreen state.
             return KeyedSubtree(
               key: ValueKey<int>(info.conversationId),
               child: ChatConversationScreen(info: info),
             );
         }
       },
-    );
-  }
-}
-
-class _Loading extends StatelessWidget {
-  const _Loading();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 }

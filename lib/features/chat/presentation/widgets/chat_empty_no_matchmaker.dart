@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/effects/ring_motif.dart';
+import 'package:qeran/core/design_system/motion/soft_scale_in.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// Calm empty card shown when `/my-matchmaker` reports `status:0`
-/// (no matchmaker assigned yet). The user can pull-to-refresh.
+/// Calm waiting surface shown when `/my-matchmaker` reports `status:0`
+/// (no matchmaker assigned yet). The visual language signals
+/// "someone is taking care of your journey", not "no data."
 class ChatEmptyNoMatchmaker extends StatelessWidget {
   final Future<void> Function() onRefresh;
   const ChatEmptyNoMatchmaker({super.key, required this.onRefresh});
@@ -14,7 +18,7 @@ class ChatEmptyNoMatchmaker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: QeranColors.wine,
       onRefresh: onRefresh,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -22,50 +26,88 @@ class ChatEmptyNoMatchmaker extends StatelessWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimens.p24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 96,
-                      height: 96,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary.withValues(alpha: 0.08),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.workspace_premium_rounded,
-                        size: 44,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: AppDimens.p20),
-                    Text(
-                      LocaleKeys.chat_entry_no_matchmaker_title.t(context),
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.titleLarge.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: AppDimens.p8),
-                    Text(
-                      LocaleKeys.chat_entry_no_matchmaker_subtitle.t(context),
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                        height: 1.6,
+              child: ColoredBox(
+                color: QeranColors.creamSurface,
+                child: Padding(
+                  padding: const EdgeInsets.all(QeranSpacing.s32),
+                  child: Center(
+                    child: SoftScaleIn(
+                      duration: QeranMotion.gentle,
+                      beginScale: 0.96,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const _WaitingMark(),
+                            QeranSpacing.vs24,
+                            Text(
+                              LocaleKeys.chat_entry_no_matchmaker_title
+                                  .t(context),
+                              textAlign: TextAlign.center,
+                              style: QeranTypography.headline,
+                            ),
+                            QeranSpacing.vs12,
+                            Text(
+                              LocaleKeys.chat_entry_no_matchmaker_subtitle
+                                  .t(context),
+                              textAlign: TextAlign.center,
+                              style: QeranTypography.body,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Brand mark for the waiting state — two concentric gold ring motifs
+/// behind a gold-ringed disc holding the handshake icon. Reads as
+/// "warmth + care + premium attention", not as a placeholder badge.
+class _WaitingMark extends StatelessWidget {
+  const _WaitingMark();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 160,
+      height: 160,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const RingMotif(
+            color: QeranColors.gold,
+            opacity: 0.10,
+            size: 160,
+            ringCount: 2,
+            spacing: 14,
+          ),
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: QeranColors.gold.withValues(alpha: 0.18),
+              border: Border.all(color: QeranColors.gold, width: 1.4),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.handshake_rounded,
+              size: 40,
+              color: QeranColors.wine,
+            ),
+          ),
+        ],
       ),
     );
   }

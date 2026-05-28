@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -40,16 +42,17 @@ class QeranBottomNav extends StatefulWidget {
     required this.onTap,
   });
 
-  static const double totalHeight = 112;
+  static const double totalHeight = 104;
   static const double barHeight = 70;
-  static const double discDiameter = 56;
+  static const double discDiameter = 44;
 
   /// Vertical offset of the disc CENTER above the bar's top edge.
-  /// Smaller than the disc radius — i.e. the bottom of the disc sits
-  /// BELOW the bar's top edge, nested into the notch like an egg in
-  /// an egg cup. With diameter 56 and lift 10, ~32% of the disc is
-  /// inside the notch and ~68% rises proudly above the bar.
-  static const double discLift = 10;
+  /// With diameter 44 (radius 22) and lift 6, the disc's bottom 16 dp
+  /// nests INSIDE the bar (~36% of the disc is below the bar's flat
+  /// top line; ~64% rises above). The notch curve is computed to
+  /// match the disc's exact outline at every y, so the bar's paper
+  /// edge wraps the disc with no cream-content gap visible behind.
+  static const double discLift = 6;
 
   /// Horizontal screen-edge margin so the bar floats as a card.
   static const double hMargin = 16;
@@ -205,30 +208,33 @@ class _NotchedBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Notch geometry tuned for "egg in cup":
-    // - depth equals the disc's bottom-y (discRadius - discLift), so
-    //   the deepest point of the curve coincides with the disc's
-    //   bottom-center.
-    // - notchHalf is slightly wider than the disc's actual x-span at
-    //   y=0 (sqrt(r² - lift²)) to leave a visible paper "skirt"
-    //   inside the cup rim — that's the cradle reading, not a flush
-    //   cutout.
-    final depth = discRadius - discLift;
-    final notchHalf = discRadius + 10;
+    // Notch curve = the disc's exact lower arc. The bar's top edge
+    // dips into the disc's outline at y=0, follows the disc's
+    // circular outline down to the disc's bottom and back up, then
+    // continues flat. Result: paper-to-gold transition runs along
+    // the disc's edge — no cream-content gap behind, cradle reads
+    // unambiguously.
+    //
+    // Entry/exit x: where the disc's circle (center (centerX,
+    // -discLift), radius discRadius) crosses y=0:
+    //     x = ±sqrt(r² - lift²)
+    final entry =
+        (discRadius * discRadius - discLift * discLift).clamp(0.0, double.infinity);
+    final entryX = entry == 0 ? 0.0 : _safeSqrt(entry);
     const r = 28.0;
     final path = Path()
       ..moveTo(0, r)
       ..quadraticBezierTo(0, 0, r, 0)
-      ..lineTo(notchCenterX - notchHalf, 0)
-      ..cubicTo(
-        notchCenterX - notchHalf * 0.50, 0,
-        notchCenterX - notchHalf * 0.28, depth,
-        notchCenterX, depth,
-      )
-      ..cubicTo(
-        notchCenterX + notchHalf * 0.28, depth,
-        notchCenterX + notchHalf * 0.50, 0,
-        notchCenterX + notchHalf, 0,
+      ..lineTo(notchCenterX - entryX, 0)
+      // arcToPoint draws a circular arc from the current point to
+      // `Offset(...)` along a circle of `radius`. clockwise:false
+      // takes the BOTTOM half of the disc (in canvas coords, y down).
+      // largeArc:false picks the shorter of the two possible arcs.
+      ..arcToPoint(
+        Offset(notchCenterX + entryX, 0),
+        radius: Radius.circular(discRadius),
+        clockwise: false,
+        largeArc: false,
       )
       ..lineTo(size.width - r, 0)
       ..quadraticBezierTo(size.width, 0, size.width, r)
@@ -238,9 +244,6 @@ class _NotchedBarPainter extends CustomPainter {
       ..quadraticBezierTo(0, size.height, 0, size.height - r)
       ..close();
 
-    // Stronger wine shadow — bar reads as floating above content.
-    // drawShadow elevation drives the engine's blur extent; 22 here
-    // produces a soft halo that wraps the bar on all sides.
     canvas.drawShadow(
       path,
       QeranColors.wine.withValues(alpha: 0.22),
@@ -249,6 +252,8 @@ class _NotchedBarPainter extends CustomPainter {
     );
     canvas.drawPath(path, Paint()..color = QeranColors.paper);
   }
+
+  static double _safeSqrt(double v) => v <= 0 ? 0 : math.sqrt(v);
 
   @override
   bool shouldRepaint(_NotchedBarPainter old) =>
@@ -263,21 +268,25 @@ class _FloatingDisc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // No paper border: the disc's gold body meets the bar's paper
+    // directly along the disc's outline (= the notch curve). A paper
+    // border here would merge into the bar's paper at the contact
+    // arc and hide the cradle. Shadows are intentionally restrained
+    // so they don't bleed over the bar's curve.
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: QeranColors.gold,
-        border: Border.all(color: QeranColors.paper, width: 3),
         boxShadow: [
           BoxShadow(
-            color: QeranColors.gold.withValues(alpha: 0.32),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: QeranColors.gold.withValues(alpha: 0.20),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: QeranColors.wine.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: QeranColors.wine.withValues(alpha: 0.10),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -294,7 +303,7 @@ class _FloatingDisc extends StatelessWidget {
           icon,
           key: ValueKey(icon),
           color: QeranColors.wine,
-          size: 28,
+          size: 22,
         ),
       ),
     );

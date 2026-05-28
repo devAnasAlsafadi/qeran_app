@@ -40,10 +40,22 @@ class QeranBottomNav extends StatefulWidget {
     required this.onTap,
   });
 
-  static const double totalHeight = 100;
+  static const double totalHeight = 112;
   static const double barHeight = 70;
   static const double discDiameter = 56;
-  static const double discLift = 24;
+
+  /// Vertical offset of the disc CENTER above the bar's top edge.
+  /// Smaller than the disc radius — i.e. the bottom of the disc sits
+  /// BELOW the bar's top edge, nested into the notch like an egg in
+  /// an egg cup. With diameter 56 and lift 10, ~32% of the disc is
+  /// inside the notch and ~68% rises proudly above the bar.
+  static const double discLift = 10;
+
+  /// Horizontal screen-edge margin so the bar floats as a card.
+  static const double hMargin = 16;
+
+  /// Gap between the bar's bottom edge and the SafeArea bottom.
+  static const double bMargin = 12;
 
   @override
   State<QeranBottomNav> createState() => _QeranBottomNavState();
@@ -102,66 +114,78 @@ class _QeranBottomNavState extends State<QeranBottomNav>
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      child: SizedBox(
-        height: QeranBottomNav.totalHeight,
-        child: LayoutBuilder(
-          builder: (context, c) {
-            final isRtl = Directionality.of(context) == TextDirection.rtl;
-            final count = widget.items.length;
-            final tabWidth = c.maxWidth / count;
-            final logicalCenter = (_animatedIndex + 0.5) * tabWidth;
-            final notchX = isRtl ? c.maxWidth - logicalCenter : logicalCenter;
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: QeranBottomNav.barHeight,
-                  child: CustomPaint(
-                    painter: _NotchedBarPainter(
-                      notchCenterX: notchX,
-                      notchRadius: QeranBottomNav.discDiameter / 2,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          QeranBottomNav.hMargin,
+          0,
+          QeranBottomNav.hMargin,
+          QeranBottomNav.bMargin,
+        ),
+        child: SizedBox(
+          height: QeranBottomNav.totalHeight,
+          child: LayoutBuilder(
+            builder: (context, c) {
+              final isRtl = Directionality.of(context) == TextDirection.rtl;
+              final count = widget.items.length;
+              final tabWidth = c.maxWidth / count;
+              final logicalCenter = (_animatedIndex + 0.5) * tabWidth;
+              final notchX =
+                  isRtl ? c.maxWidth - logicalCenter : logicalCenter;
+              // Disc center y from Stack bottom = barHeight + discLift.
+              // Disc bottom y = (barHeight + discLift) - radius.
+              const discBottom = QeranBottomNav.barHeight +
+                  QeranBottomNav.discLift -
+                  QeranBottomNav.discDiameter / 2;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: QeranBottomNav.barHeight,
+                    child: CustomPaint(
+                      painter: _NotchedBarPainter(
+                        notchCenterX: notchX,
+                        discRadius: QeranBottomNav.discDiameter / 2,
+                        discLift: QeranBottomNav.discLift,
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: QeranBottomNav.barHeight,
-                  child: Row(
-                    children: List.generate(
-                      count,
-                      (i) => Expanded(
-                        child: _TabCell(
-                          item: widget.items[i],
-                          isActive: i == widget.currentIndex,
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            if (i != widget.currentIndex) widget.onTap(i);
-                          },
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: QeranBottomNav.barHeight,
+                    child: Row(
+                      children: List.generate(
+                        count,
+                        (i) => Expanded(
+                          child: _TabCell(
+                            item: widget.items[i],
+                            isActive: i == widget.currentIndex,
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              if (i != widget.currentIndex) widget.onTap(i);
+                            },
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  left: notchX - QeranBottomNav.discDiameter / 2,
-                  bottom: QeranBottomNav.barHeight -
-                      QeranBottomNav.discDiameter / 2 +
-                      QeranBottomNav.discLift -
-                      4,
-                  width: QeranBottomNav.discDiameter,
-                  height: QeranBottomNav.discDiameter,
-                  child: _FloatingDisc(
-                    icon: widget.items[_displayedIndex].filledIcon,
+                  Positioned(
+                    left: notchX - QeranBottomNav.discDiameter / 2,
+                    bottom: discBottom,
+                    width: QeranBottomNav.discDiameter,
+                    height: QeranBottomNav.discDiameter,
+                    child: _FloatingDisc(
+                      icon: widget.items[_displayedIndex].filledIcon,
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -170,45 +194,67 @@ class _QeranBottomNavState extends State<QeranBottomNav>
 
 class _NotchedBarPainter extends CustomPainter {
   final double notchCenterX;
-  final double notchRadius;
+  final double discRadius;
+  final double discLift;
 
   _NotchedBarPainter({
     required this.notchCenterX,
-    required this.notchRadius,
+    required this.discRadius,
+    required this.discLift,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final notchHalf = notchRadius + 10;
-    final depth = notchRadius * 1.15;
+    // Notch geometry tuned for "egg in cup":
+    // - depth equals the disc's bottom-y (discRadius - discLift), so
+    //   the deepest point of the curve coincides with the disc's
+    //   bottom-center.
+    // - notchHalf is slightly wider than the disc's actual x-span at
+    //   y=0 (sqrt(r² - lift²)) to leave a visible paper "skirt"
+    //   inside the cup rim — that's the cradle reading, not a flush
+    //   cutout.
+    final depth = discRadius - discLift;
+    final notchHalf = discRadius + 10;
     const r = 28.0;
     final path = Path()
       ..moveTo(0, r)
       ..quadraticBezierTo(0, 0, r, 0)
       ..lineTo(notchCenterX - notchHalf, 0)
       ..cubicTo(
-        notchCenterX - notchHalf * 0.40, 0,
-        notchCenterX - notchHalf * 0.55, depth,
+        notchCenterX - notchHalf * 0.50, 0,
+        notchCenterX - notchHalf * 0.28, depth,
         notchCenterX, depth,
       )
       ..cubicTo(
-        notchCenterX + notchHalf * 0.55, depth,
-        notchCenterX + notchHalf * 0.40, 0,
+        notchCenterX + notchHalf * 0.28, depth,
+        notchCenterX + notchHalf * 0.50, 0,
         notchCenterX + notchHalf, 0,
       )
       ..lineTo(size.width - r, 0)
       ..quadraticBezierTo(size.width, 0, size.width, r)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
+      ..lineTo(size.width, size.height - r)
+      ..quadraticBezierTo(size.width, size.height, size.width - r, size.height)
+      ..lineTo(r, size.height)
+      ..quadraticBezierTo(0, size.height, 0, size.height - r)
       ..close();
 
-    canvas.drawShadow(path, QeranColors.wine.withValues(alpha: 0.18), 14, false);
+    // Stronger wine shadow — bar reads as floating above content.
+    // drawShadow elevation drives the engine's blur extent; 22 here
+    // produces a soft halo that wraps the bar on all sides.
+    canvas.drawShadow(
+      path,
+      QeranColors.wine.withValues(alpha: 0.22),
+      22,
+      false,
+    );
     canvas.drawPath(path, Paint()..color = QeranColors.paper);
   }
 
   @override
   bool shouldRepaint(_NotchedBarPainter old) =>
-      old.notchCenterX != notchCenterX || old.notchRadius != notchRadius;
+      old.notchCenterX != notchCenterX ||
+      old.discRadius != discRadius ||
+      old.discLift != discLift;
 }
 
 class _FloatingDisc extends StatelessWidget {

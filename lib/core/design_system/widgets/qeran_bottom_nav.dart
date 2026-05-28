@@ -23,16 +23,15 @@ class QeranNavItem {
   });
 }
 
-/// Premium curved-notch bottom navigation. The bar paints a DEEP well
-/// (notch depth ~39 dp into a 70 dp bar) sized 10 dp wider than the
-/// disc, so the disc visibly nests with a paper-coloured ring around
-/// it. A wine-tinted vertical gradient inside that ring sells the
-/// depth — the rim casts shadow down into the well.
+/// Premium curved-notch bottom navigation. The bar paints a deep
+/// well carved into its top edge, 10 dp wider than the disc, with
+/// a cream-coloured cradle fill and a directional wine rim shadow
+/// (top of the well only) — recess by colour hierarchy, depth by
+/// localised shadow.
 ///
-/// The active tab's label is hidden (the disc takes its place). The
-/// disc, the notch and the icon cross-fade all ride a single 420 ms
-/// controller, so the cradle drags the disc across the bar in
-/// lockstep.
+/// Everything rides ONE 640 ms ease-in-out controller: disc position,
+/// notch X, disc icon crossfade, AND each cell's outline icon + label
+/// opacity. The whole transition moves as one deliberate motion.
 class QeranBottomNav extends StatefulWidget {
   final List<QeranNavItem> items;
   final int currentIndex;
@@ -49,17 +48,8 @@ class QeranBottomNav extends StatefulWidget {
   static const double barHeight = 70;
   static const double discDiameter = 44;
   static const double discRadius = discDiameter / 2;
-
-  /// Disc center offset relative to bar's flat top (positive = above,
-  /// negative = below). At -7: disc center is 7 dp INSIDE the bar →
-  /// disc bottom dips 29 dp below bar top, disc top crowns 15 dp
-  /// above (~34% peek, ~66% submerged).
   static const double discLift = -7;
-
-  /// Socket radius = disc radius + 10 dp gap. The 10 dp halo around
-  /// the disc is the visible cradle space.
   static const double notchRadius = discRadius + 10;
-
   static const double hMargin = 16;
   static const double bMargin = 12;
 
@@ -72,26 +62,30 @@ class _QeranBottomNavState extends State<QeranBottomNav>
   late final AnimationController _ctrl;
   late final CurvedAnimation _slide;
   late final CurvedAnimation _iconFade;
+  late final ReverseAnimation _slideReverse;
 
   // Disc position lerps from _animFrom -> _animTo across the curve.
-  // Doubles so a rapid mid-animation tap re-anchors from the live
+  // Doubles so a rapid mid-animation tap re-anchors from the LIVE
   // interpolated position (no snap-back).
   late double _animFrom;
   late double _animTo;
-
-  // Icon crossfades from _iconFrom (visible at t=0) to _iconTo
-  // (visible at t=1) over the controller's [0.40, 0.85] interval.
   late int _iconFrom;
   late int _iconTo;
+
+  // Inactive tabs (not the from/to of any transition) are statically
+  // fully visible — share a single const animation.
+  static const Animation<double> _staticVisible =
+      AlwaysStoppedAnimation<double>(1.0);
 
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: QeranMotion.gentle, // 420 ms — deliberate, perceptible
+      duration: QeranMotion.hero, // 640 ms — deliberate, premium
     );
-    _slide = CurvedAnimation(parent: _ctrl, curve: QeranCurves.standard);
+    _slide = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOutCubic);
+    _slideReverse = ReverseAnimation(_slide);
     _iconFade = CurvedAnimation(
       parent: _ctrl,
       curve: const Interval(0.40, 0.85, curve: Curves.easeInOut),
@@ -124,6 +118,18 @@ class _QeranBottomNavState extends State<QeranBottomNav>
     _iconFade.dispose();
     _ctrl.dispose();
     super.dispose();
+  }
+
+  /// Opacity animation for tab `i`'s outline icon + label.
+  /// — i == _iconTo  (becoming active):   1 → 0 across the slide
+  /// — i == _iconFrom (becoming inactive): 0 → 1 across the slide
+  /// — anything else: statically 1.0
+  /// At settled state (controller=1, _iconFrom==_iconTo), the active
+  /// tab's _slideReverse evaluates to 0 so its label/icon stay hidden.
+  Animation<double> _outlineOpacityFor(int i) {
+    if (i == _iconTo) return _slideReverse;
+    if (i == _iconFrom) return _slide;
+    return _staticVisible;
   }
 
   @override
@@ -186,6 +192,7 @@ class _QeranBottomNavState extends State<QeranBottomNav>
                               child: _TabCell(
                                 item: widget.items[i],
                                 isActive: i == widget.currentIndex,
+                                outlineOpacity: _outlineOpacityFor(i),
                                 onTap: () {
                                   HapticFeedback.lightImpact();
                                   if (i != widget.currentIndex) {
@@ -235,17 +242,11 @@ class _NotchedBarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Painter coords: y=0 at bar top edge, y=size.height at bar bottom.
-    // Disc & notch are concentric at (notchCenterX, -discLift).
-
     final discriminant = (notchRadius * notchRadius - discLift * discLift)
         .clamp(0.0, double.infinity);
     final entryX = discriminant == 0 ? 0.0 : math.sqrt(discriminant);
     const cornerR = 28.0;
 
-    // Bar outline with the wide cradle carved into the top.
-    // arcToPoint clockwise:false picks the lower arc — dips DOWN into
-    // the bar (canvas y is down).
     final barPath = Path()
       ..moveTo(0, cornerR)
       ..quadraticBezierTo(0, 0, cornerR, 0)
@@ -273,50 +274,47 @@ class _NotchedBarPainter extends CustomPainter {
     );
     canvas.drawPath(barPath, Paint()..color = QeranColors.paper);
 
-    // Cradle ring = annulus between disc circle (r=discRadius) and
-    // notch circle (r=notchRadius), concentric at the disc center.
-    // Painted paper-coloured first so the cradle is a tangible recess
-    // (not a transparent halo showing page content), then overlaid
-    // with a wine-tinted vertical gradient — darkest at the rim,
-    // fading toward the bottom of the well. This is the depth cue.
+    // Cradle ring = concentric annulus (disc edge → notch edge).
     final discCenter = Offset(notchCenterX, -discLift);
-    final outerOval = Rect.fromCircle(center: discCenter, radius: notchRadius);
-    final innerOval = Rect.fromCircle(center: discCenter, radius: discRadius);
     final ringPath = Path()
       ..fillType = PathFillType.evenOdd
-      ..addOval(outerOval)
-      ..addOval(innerOval);
+      ..addOval(Rect.fromCircle(center: discCenter, radius: notchRadius))
+      ..addOval(Rect.fromCircle(center: discCenter, radius: discRadius));
 
     canvas.save();
-    // Clip to the bar's outer silhouette so the ring never bleeds
-    // past the floating bar's rounded edges (important for first/last
-    // tabs, where the cradle sits close to a corner).
     canvas.clipRRect(RRect.fromRectAndRadius(
       Rect.fromLTWH(0, 0, size.width, size.height),
       const Radius.circular(cornerR),
     ));
 
-    canvas.drawPath(ringPath, Paint()..color = QeranColors.paper);
+    // 1) Cream fill — the recess reads as a recess by colour hierarchy:
+    // bar surface is paper (white, lifted), cradle is creamSurface
+    // (warm cream, recessed). No alpha-over-white mauve problem.
+    canvas.drawPath(ringPath, Paint()..color = QeranColors.creamSurface);
 
-    final shadowRect = Rect.fromLTRB(
+    // 2) Directional rim shadow — wine cast confined to the TOP of
+    // the well only (y=0 down to disc-centre y). Below the disc's
+    // equator the cradle stays clean cream; the lower half doesn't
+    // carry colour, so the result reads as "shadow under the lip",
+    // not "coloured ring around the disc". Low max alpha (0.20)
+    // keeps the cast subtle and avoids the muddy mauve from before.
+    final rimRect = Rect.fromLTRB(
       notchCenterX - notchRadius,
       0,
       notchCenterX + notchRadius,
-      -discLift + notchRadius,
+      -discLift, // gradient zone ends at the disc's vertical centre
     );
-    final shadow = LinearGradient(
+    final rimShadow = LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        QeranColors.wine.withValues(alpha: 0.55),
-        QeranColors.wine.withValues(alpha: 0.18),
+        QeranColors.wine.withValues(alpha: 0.20),
         QeranColors.wine.withValues(alpha: 0.0),
       ],
-      stops: const [0.0, 0.55, 1.0],
     );
     canvas.drawPath(
       ringPath,
-      Paint()..shader = shadow.createShader(shadowRect),
+      Paint()..shader = rimShadow.createShader(rimRect),
     );
     canvas.restore();
   }
@@ -342,9 +340,6 @@ class _FloatingDisc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 2.5 dp paper (white) ring separates the gold body cleanly from
-    // the wine-shadowed cradle interior. Disc shadows kept softened
-    // so the gold glow doesn't dilute the wine well.
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -385,11 +380,13 @@ class _FloatingDisc extends StatelessWidget {
 class _TabCell extends StatelessWidget {
   final QeranNavItem item;
   final bool isActive;
+  final Animation<double> outlineOpacity;
   final VoidCallback onTap;
 
   const _TabCell({
     required this.item,
     required this.isActive,
+    required this.outlineOpacity,
     required this.onTap,
   });
 
@@ -407,20 +404,24 @@ class _TabCell extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              // Outline icon + label are always rendered (constant
+              // layout); their opacity is driven by `outlineOpacity`
+              // so the active tab's content fades synchronously with
+              // the disc's slide instead of popping in/out.
               SizedBox(
                 height: 24,
-                child: isActive
-                    ? const SizedBox.shrink()
-                    : _IconWithBadge(
-                        icon: item.outlineIcon,
-                        badgeCount: item.badgeCount,
-                      ),
+                child: FadeTransition(
+                  opacity: outlineOpacity,
+                  child: _IconWithBadge(
+                    icon: item.outlineIcon,
+                    badgeCount: item.badgeCount,
+                  ),
+                ),
               ),
               const SizedBox(height: 4),
-              // Active tab's label is hidden — the disc takes its
-              // place. Inactive tabs keep icon + label.
-              if (!isActive)
-                Text(
+              FadeTransition(
+                opacity: outlineOpacity,
+                child: Text(
                   item.label,
                   style: QeranTypography.caption.copyWith(
                     color: QeranColors.inkMuted,
@@ -429,6 +430,7 @@ class _TabCell extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+              ),
               const SizedBox(height: 10),
             ],
           ),

@@ -287,35 +287,10 @@ class _NotchedBarPainter extends CustomPainter {
       const Radius.circular(cornerR),
     ));
 
-    // 1) Cream fill — the recess reads as a recess by colour hierarchy:
+    // Cream fill — the recess reads as a recess by colour hierarchy:
     // bar surface is paper (white, lifted), cradle is creamSurface
-    // (warm cream, recessed). No alpha-over-white mauve problem.
+    // (warm cream, recessed).
     canvas.drawPath(ringPath, Paint()..color = QeranColors.creamSurface);
-
-    // 2) Directional rim shadow — wine cast confined to the TOP of
-    // the well only (y=0 down to disc-centre y). Below the disc's
-    // equator the cradle stays clean cream; the lower half doesn't
-    // carry colour, so the result reads as "shadow under the lip",
-    // not "coloured ring around the disc". Low max alpha (0.20)
-    // keeps the cast subtle and avoids the muddy mauve from before.
-    final rimRect = Rect.fromLTRB(
-      notchCenterX - notchRadius,
-      0,
-      notchCenterX + notchRadius,
-      -discLift, // gradient zone ends at the disc's vertical centre
-    );
-    final rimShadow = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        QeranColors.wine.withValues(alpha: 0.20),
-        QeranColors.wine.withValues(alpha: 0.0),
-      ],
-    );
-    canvas.drawPath(
-      ringPath,
-      Paint()..shader = rimShadow.createShader(rimRect),
-    );
     canvas.restore();
   }
 

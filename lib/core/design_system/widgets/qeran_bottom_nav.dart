@@ -23,15 +23,16 @@ class QeranNavItem {
   });
 }
 
-/// Premium curved-notch bottom navigation. A 44 dp gold disc nests in
-/// a 27 dp-radius socket carved into the bar's top edge. The 5 dp gap
-/// between socket and disc is the visible halo — the cradle reads as
-/// real carved space, not a flush gold-on-paper join.
+/// Premium curved-notch bottom navigation. The bar paints a DEEP well
+/// (notch depth ~39 dp into a 70 dp bar) sized 10 dp wider than the
+/// disc, so the disc visibly nests with a paper-coloured ring around
+/// it. A wine-tinted vertical gradient inside that ring sells the
+/// depth — the rim casts shadow down into the well.
 ///
-/// Position (notch X, disc left) and icon cross-fade ride the SAME
-/// 420 ms controller, so the socket and disc travel in perfect
-/// lockstep and the icon swap is tied to the slide (Interval 0.40-0.85)
-/// instead of a wall-clock delay.
+/// The active tab's label is hidden (the disc takes its place). The
+/// disc, the notch and the icon cross-fade all ride a single 420 ms
+/// controller, so the cradle drags the disc across the bar in
+/// lockstep.
 class QeranBottomNav extends StatefulWidget {
   final List<QeranNavItem> items;
   final int currentIndex;
@@ -47,21 +48,19 @@ class QeranBottomNav extends StatefulWidget {
   static const double totalHeight = 104;
   static const double barHeight = 70;
   static const double discDiameter = 44;
+  static const double discRadius = discDiameter / 2;
 
-  /// Disc center sits this far ABOVE the bar's flat top edge.
-  /// At 2: disc bottom dips 20 dp inside the bar (~45% nested, ~55%
-  /// above). Reads as "seated in a socket" rather than "floating".
-  static const double discLift = 2;
+  /// Disc center offset relative to bar's flat top (positive = above,
+  /// negative = below). At -7: disc center is 7 dp INSIDE the bar →
+  /// disc bottom dips 29 dp below bar top, disc top crowns 15 dp
+  /// above (~34% peek, ~66% submerged).
+  static const double discLift = -7;
 
-  /// Socket radius is 5 dp larger than the disc radius. The notch and
-  /// the disc are concentric, so the gap is a uniform 5 dp halo around
-  /// the disc's perimeter wherever it overlaps the bar — the carve.
-  static const double notchRadius = (discDiameter / 2) + 5;
+  /// Socket radius = disc radius + 10 dp gap. The 10 dp halo around
+  /// the disc is the visible cradle space.
+  static const double notchRadius = discRadius + 10;
 
-  /// Horizontal screen-edge margin so the bar floats as a card.
   static const double hMargin = 16;
-
-  /// Gap between the bar's bottom edge and the SafeArea bottom.
   static const double bMargin = 12;
 
   @override
@@ -74,14 +73,14 @@ class _QeranBottomNavState extends State<QeranBottomNav>
   late final CurvedAnimation _slide;
   late final CurvedAnimation _iconFade;
 
-  // Disc position interpolates from _animFrom -> _animTo. Doubles so a
-  // rapid tap mid-animation re-anchors from the LIVE position, not the
-  // prior anchor (no snap).
+  // Disc position lerps from _animFrom -> _animTo across the curve.
+  // Doubles so a rapid mid-animation tap re-anchors from the live
+  // interpolated position (no snap-back).
   late double _animFrom;
   late double _animTo;
 
-  // Icon crossfades from _iconFrom (fully shown at slide start) to
-  // _iconTo (fully shown when slide settles).
+  // Icon crossfades from _iconFrom (visible at t=0) to _iconTo
+  // (visible at t=1) over the controller's [0.40, 0.85] interval.
   late int _iconFrom;
   late int _iconTo;
 
@@ -108,9 +107,6 @@ class _QeranBottomNavState extends State<QeranBottomNav>
   void didUpdateWidget(QeranBottomNav old) {
     super.didUpdateWidget(old);
     if (widget.currentIndex != old.currentIndex) {
-      // Snapshot the live interpolated position so a tap during a
-      // running animation continues smoothly from where the disc is
-      // right now, rather than snapping back to _animFrom.
       final liveT = _slide.value;
       _animFrom = _animFrom + (_animTo - _animFrom) * liveT;
       _animTo = widget.currentIndex.toDouble();
@@ -150,7 +146,7 @@ class _QeranBottomNavState extends State<QeranBottomNav>
               final tabWidth = c.maxWidth / count;
               const discBottom = QeranBottomNav.barHeight +
                   QeranBottomNav.discLift -
-                  QeranBottomNav.discDiameter / 2;
+                  QeranBottomNav.discRadius;
               return AnimatedBuilder(
                 animation: _ctrl,
                 builder: (context, _) {
@@ -158,8 +154,9 @@ class _QeranBottomNavState extends State<QeranBottomNav>
                   final animIndex =
                       lerpDouble(_animFrom, _animTo, t) ?? _animTo;
                   final logicalCenter = (animIndex + 0.5) * tabWidth;
-                  final notchX =
-                      isRtl ? c.maxWidth - logicalCenter : logicalCenter;
+                  final notchX = isRtl
+                      ? c.maxWidth - logicalCenter
+                      : logicalCenter;
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -172,6 +169,7 @@ class _QeranBottomNavState extends State<QeranBottomNav>
                           painter: _NotchedBarPainter(
                             notchCenterX: notchX,
                             notchRadius: QeranBottomNav.notchRadius,
+                            discRadius: QeranBottomNav.discRadius,
                             discLift: QeranBottomNav.discLift,
                           ),
                         ),
@@ -200,7 +198,7 @@ class _QeranBottomNavState extends State<QeranBottomNav>
                         ),
                       ),
                       Positioned(
-                        left: notchX - QeranBottomNav.discDiameter / 2,
+                        left: notchX - QeranBottomNav.discRadius,
                         bottom: discBottom,
                         width: QeranBottomNav.discDiameter,
                         height: QeranBottomNav.discDiameter,
@@ -225,33 +223,32 @@ class _QeranBottomNavState extends State<QeranBottomNav>
 class _NotchedBarPainter extends CustomPainter {
   final double notchCenterX;
   final double notchRadius;
+  final double discRadius;
   final double discLift;
 
   _NotchedBarPainter({
     required this.notchCenterX,
     required this.notchRadius,
+    required this.discRadius,
     required this.discLift,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Notch = circle centered at the disc's center (notchCenterX,
-    // -discLift) with radius `notchRadius`. Bar's paper edge follows
-    // this larger circle, leaving a uniform `notchRadius - discRadius`
-    // halo of page/cream-canvas around the disc.
-    //
-    // Entry/exit X (where the notch circle crosses y=0):
-    //     x = ±sqrt(notchRadius² - discLift²)
-    //
-    // arcToPoint with clockwise:false picks the lower arc of the notch
-    // circle (the one that dips DOWN into the bar in y-down canvas).
+    // Painter coords: y=0 at bar top edge, y=size.height at bar bottom.
+    // Disc & notch are concentric at (notchCenterX, -discLift).
+
     final discriminant = (notchRadius * notchRadius - discLift * discLift)
         .clamp(0.0, double.infinity);
     final entryX = discriminant == 0 ? 0.0 : math.sqrt(discriminant);
-    const r = 28.0;
-    final path = Path()
-      ..moveTo(0, r)
-      ..quadraticBezierTo(0, 0, r, 0)
+    const cornerR = 28.0;
+
+    // Bar outline with the wide cradle carved into the top.
+    // arcToPoint clockwise:false picks the lower arc — dips DOWN into
+    // the bar (canvas y is down).
+    final barPath = Path()
+      ..moveTo(0, cornerR)
+      ..quadraticBezierTo(0, 0, cornerR, 0)
       ..lineTo(notchCenterX - entryX, 0)
       ..arcToPoint(
         Offset(notchCenterX + entryX, 0),
@@ -259,27 +256,76 @@ class _NotchedBarPainter extends CustomPainter {
         clockwise: false,
         largeArc: false,
       )
-      ..lineTo(size.width - r, 0)
-      ..quadraticBezierTo(size.width, 0, size.width, r)
-      ..lineTo(size.width, size.height - r)
-      ..quadraticBezierTo(size.width, size.height, size.width - r, size.height)
-      ..lineTo(r, size.height)
-      ..quadraticBezierTo(0, size.height, 0, size.height - r)
+      ..lineTo(size.width - cornerR, 0)
+      ..quadraticBezierTo(size.width, 0, size.width, cornerR)
+      ..lineTo(size.width, size.height - cornerR)
+      ..quadraticBezierTo(
+          size.width, size.height, size.width - cornerR, size.height)
+      ..lineTo(cornerR, size.height)
+      ..quadraticBezierTo(0, size.height, 0, size.height - cornerR)
       ..close();
 
     canvas.drawShadow(
-      path,
+      barPath,
       QeranColors.wine.withValues(alpha: 0.22),
       22,
       false,
     );
-    canvas.drawPath(path, Paint()..color = QeranColors.paper);
+    canvas.drawPath(barPath, Paint()..color = QeranColors.paper);
+
+    // Cradle ring = annulus between disc circle (r=discRadius) and
+    // notch circle (r=notchRadius), concentric at the disc center.
+    // Painted paper-coloured first so the cradle is a tangible recess
+    // (not a transparent halo showing page content), then overlaid
+    // with a wine-tinted vertical gradient — darkest at the rim,
+    // fading toward the bottom of the well. This is the depth cue.
+    final discCenter = Offset(notchCenterX, -discLift);
+    final outerOval = Rect.fromCircle(center: discCenter, radius: notchRadius);
+    final innerOval = Rect.fromCircle(center: discCenter, radius: discRadius);
+    final ringPath = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addOval(outerOval)
+      ..addOval(innerOval);
+
+    canvas.save();
+    // Clip to the bar's outer silhouette so the ring never bleeds
+    // past the floating bar's rounded edges (important for first/last
+    // tabs, where the cradle sits close to a corner).
+    canvas.clipRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(cornerR),
+    ));
+
+    canvas.drawPath(ringPath, Paint()..color = QeranColors.paper);
+
+    final shadowRect = Rect.fromLTRB(
+      notchCenterX - notchRadius,
+      0,
+      notchCenterX + notchRadius,
+      -discLift + notchRadius,
+    );
+    final shadow = LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        QeranColors.wine.withValues(alpha: 0.55),
+        QeranColors.wine.withValues(alpha: 0.18),
+        QeranColors.wine.withValues(alpha: 0.0),
+      ],
+      stops: const [0.0, 0.55, 1.0],
+    );
+    canvas.drawPath(
+      ringPath,
+      Paint()..shader = shadow.createShader(shadowRect),
+    );
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(_NotchedBarPainter old) =>
       old.notchCenterX != notchCenterX ||
       old.notchRadius != notchRadius ||
+      old.discRadius != discRadius ||
       old.discLift != discLift;
 }
 
@@ -296,14 +342,14 @@ class _FloatingDisc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1.5 dp wine ring frames the gold body. Gold shadow blur dropped
-    // 10 -> 6 so the soft halo doesn't bleed across the 5 dp paper
-    // cradle and dilute the carved feel.
+    // 2.5 dp paper (white) ring separates the gold body cleanly from
+    // the wine-shadowed cradle interior. Disc shadows kept softened
+    // so the gold glow doesn't dilute the wine well.
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: QeranColors.gold,
-        border: Border.all(color: QeranColors.wine, width: 1.5),
+        border: Border.all(color: QeranColors.paper, width: 2.5),
         boxShadow: [
           BoxShadow(
             color: QeranColors.gold.withValues(alpha: 0.20),
@@ -371,15 +417,18 @@ class _TabCell extends StatelessWidget {
                       ),
               ),
               const SizedBox(height: 4),
-              Text(
-                item.label,
-                style: QeranTypography.caption.copyWith(
-                  color: isActive ? QeranColors.wine : QeranColors.inkMuted,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              // Active tab's label is hidden — the disc takes its
+              // place. Inactive tabs keep icon + label.
+              if (!isActive)
+                Text(
+                  item.label,
+                  style: QeranTypography.caption.copyWith(
+                    color: QeranColors.inkMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
               const SizedBox(height: 10),
             ],
           ),

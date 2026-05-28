@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,14 +23,15 @@ class QeranNavItem {
   });
 }
 
-/// Premium curved-notch bottom navigation. A 56 dp gold disc lifts
-/// 24 dp above the bar's top edge at the active tab's center. The bar
-/// itself is custom-painted: the top edge dips downward where the
-/// disc sits so it reads as a true cutout, not a floating overlay.
+/// Premium curved-notch bottom navigation. A 44 dp gold disc nests in
+/// a 27 dp-radius socket carved into the bar's top edge. The 5 dp gap
+/// between socket and disc is the visible halo — the cradle reads as
+/// real carved space, not a flush gold-on-paper join.
 ///
-/// All four moving parts (notch X, disc X, icon swap, haptic) share
-/// a single 350 ms easeOutCubic AnimationController so the gesture
-/// feels physically coherent.
+/// Position (notch X, disc left) and icon cross-fade ride the SAME
+/// 420 ms controller, so the socket and disc travel in perfect
+/// lockstep and the icon swap is tied to the slide (Interval 0.40-0.85)
+/// instead of a wall-clock delay.
 class QeranBottomNav extends StatefulWidget {
   final List<QeranNavItem> items;
   final int currentIndex;
@@ -46,13 +48,15 @@ class QeranBottomNav extends StatefulWidget {
   static const double barHeight = 70;
   static const double discDiameter = 44;
 
-  /// Vertical offset of the disc CENTER above the bar's top edge.
-  /// With diameter 44 (radius 22) and lift 6, the disc's bottom 16 dp
-  /// nests INSIDE the bar (~36% of the disc is below the bar's flat
-  /// top line; ~64% rises above). The notch curve is computed to
-  /// match the disc's exact outline at every y, so the bar's paper
-  /// edge wraps the disc with no cream-content gap visible behind.
-  static const double discLift = 6;
+  /// Disc center sits this far ABOVE the bar's flat top edge.
+  /// At 2: disc bottom dips 20 dp inside the bar (~45% nested, ~55%
+  /// above). Reads as "seated in a socket" rather than "floating".
+  static const double discLift = 2;
+
+  /// Socket radius is 5 dp larger than the disc radius. The notch and
+  /// the disc are concentric, so the gap is a uniform 5 dp halo around
+  /// the disc's perimeter wherever it overlaps the bar — the carve.
+  static const double notchRadius = (discDiameter / 2) + 5;
 
   /// Horizontal screen-edge margin so the bar floats as a card.
   static const double hMargin = 16;
@@ -67,48 +71,61 @@ class QeranBottomNav extends StatefulWidget {
 class _QeranBottomNavState extends State<QeranBottomNav>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
-  late double _animatedIndex;
-  late int _displayedIndex;
+  late final CurvedAnimation _slide;
+  late final CurvedAnimation _iconFade;
+
+  // Disc position interpolates from _animFrom -> _animTo. Doubles so a
+  // rapid tap mid-animation re-anchors from the LIVE position, not the
+  // prior anchor (no snap).
+  late double _animFrom;
+  late double _animTo;
+
+  // Icon crossfades from _iconFrom (fully shown at slide start) to
+  // _iconTo (fully shown when slide settles).
+  late int _iconFrom;
+  late int _iconTo;
 
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 350),
+      duration: QeranMotion.gentle, // 420 ms — deliberate, perceptible
     );
-    _animatedIndex = widget.currentIndex.toDouble();
-    _displayedIndex = widget.currentIndex;
+    _slide = CurvedAnimation(parent: _ctrl, curve: QeranCurves.standard);
+    _iconFade = CurvedAnimation(
+      parent: _ctrl,
+      curve: const Interval(0.40, 0.85, curve: Curves.easeInOut),
+    );
+    _animFrom = widget.currentIndex.toDouble();
+    _animTo = widget.currentIndex.toDouble();
+    _iconFrom = widget.currentIndex;
+    _iconTo = widget.currentIndex;
+    _ctrl.value = 1.0;
   }
 
   @override
   void didUpdateWidget(QeranBottomNav old) {
     super.didUpdateWidget(old);
     if (widget.currentIndex != old.currentIndex) {
-      final from = _animatedIndex;
-      final to = widget.currentIndex.toDouble();
+      // Snapshot the live interpolated position so a tap during a
+      // running animation continues smoothly from where the disc is
+      // right now, rather than snapping back to _animFrom.
+      final liveT = _slide.value;
+      _animFrom = _animFrom + (_animTo - _animFrom) * liveT;
+      _animTo = widget.currentIndex.toDouble();
+      _iconFrom = _iconTo;
+      _iconTo = widget.currentIndex;
       _ctrl
-        ..stop()
-        ..reset();
-      final tween = Tween<double>(begin: from, end: to)
-          .chain(CurveTween(curve: QeranCurves.standard));
-      final anim = _ctrl.drive(tween);
-      void listener() {
-        setState(() => _animatedIndex = anim.value);
-      }
-      anim.addListener(listener);
-      _ctrl.forward().whenComplete(() => anim.removeListener(listener));
-      // Icon swap fires ~halfway so the new icon enters as the disc
-      // settles on the new tab.
-      Future.delayed(const Duration(milliseconds: 175), () {
-        if (!mounted) return;
-        setState(() => _displayedIndex = widget.currentIndex);
-      });
+        ..reset()
+        ..forward();
     }
   }
 
   @override
   void dispose() {
+    _slide.dispose();
+    _iconFade.dispose();
     _ctrl.dispose();
     super.dispose();
   }
@@ -131,61 +148,71 @@ class _QeranBottomNavState extends State<QeranBottomNav>
               final isRtl = Directionality.of(context) == TextDirection.rtl;
               final count = widget.items.length;
               final tabWidth = c.maxWidth / count;
-              final logicalCenter = (_animatedIndex + 0.5) * tabWidth;
-              final notchX =
-                  isRtl ? c.maxWidth - logicalCenter : logicalCenter;
-              // Disc center y from Stack bottom = barHeight + discLift.
-              // Disc bottom y = (barHeight + discLift) - radius.
               const discBottom = QeranBottomNav.barHeight +
                   QeranBottomNav.discLift -
                   QeranBottomNav.discDiameter / 2;
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: QeranBottomNav.barHeight,
-                    child: CustomPaint(
-                      painter: _NotchedBarPainter(
-                        notchCenterX: notchX,
-                        discRadius: QeranBottomNav.discDiameter / 2,
-                        discLift: QeranBottomNav.discLift,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: QeranBottomNav.barHeight,
-                    child: Row(
-                      children: List.generate(
-                        count,
-                        (i) => Expanded(
-                          child: _TabCell(
-                            item: widget.items[i],
-                            isActive: i == widget.currentIndex,
-                            onTap: () {
-                              HapticFeedback.lightImpact();
-                              if (i != widget.currentIndex) widget.onTap(i);
-                            },
+              return AnimatedBuilder(
+                animation: _ctrl,
+                builder: (context, _) {
+                  final t = _slide.value;
+                  final animIndex =
+                      lerpDouble(_animFrom, _animTo, t) ?? _animTo;
+                  final logicalCenter = (animIndex + 0.5) * tabWidth;
+                  final notchX =
+                      isRtl ? c.maxWidth - logicalCenter : logicalCenter;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: QeranBottomNav.barHeight,
+                        child: CustomPaint(
+                          painter: _NotchedBarPainter(
+                            notchCenterX: notchX,
+                            notchRadius: QeranBottomNav.notchRadius,
+                            discLift: QeranBottomNav.discLift,
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    left: notchX - QeranBottomNav.discDiameter / 2,
-                    bottom: discBottom,
-                    width: QeranBottomNav.discDiameter,
-                    height: QeranBottomNav.discDiameter,
-                    child: _FloatingDisc(
-                      icon: widget.items[_displayedIndex].filledIcon,
-                    ),
-                  ),
-                ],
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: QeranBottomNav.barHeight,
+                        child: Row(
+                          children: List.generate(
+                            count,
+                            (i) => Expanded(
+                              child: _TabCell(
+                                item: widget.items[i],
+                                isActive: i == widget.currentIndex,
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  if (i != widget.currentIndex) {
+                                    widget.onTap(i);
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: notchX - QeranBottomNav.discDiameter / 2,
+                        bottom: discBottom,
+                        width: QeranBottomNav.discDiameter,
+                        height: QeranBottomNav.discDiameter,
+                        child: _FloatingDisc(
+                          fromIcon: widget.items[_iconFrom].filledIcon,
+                          toIcon: widget.items[_iconTo].filledIcon,
+                          fade: _iconFade,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),
@@ -197,42 +224,38 @@ class _QeranBottomNavState extends State<QeranBottomNav>
 
 class _NotchedBarPainter extends CustomPainter {
   final double notchCenterX;
-  final double discRadius;
+  final double notchRadius;
   final double discLift;
 
   _NotchedBarPainter({
     required this.notchCenterX,
-    required this.discRadius,
+    required this.notchRadius,
     required this.discLift,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Notch curve = the disc's exact lower arc. The bar's top edge
-    // dips into the disc's outline at y=0, follows the disc's
-    // circular outline down to the disc's bottom and back up, then
-    // continues flat. Result: paper-to-gold transition runs along
-    // the disc's edge — no cream-content gap behind, cradle reads
-    // unambiguously.
+    // Notch = circle centered at the disc's center (notchCenterX,
+    // -discLift) with radius `notchRadius`. Bar's paper edge follows
+    // this larger circle, leaving a uniform `notchRadius - discRadius`
+    // halo of page/cream-canvas around the disc.
     //
-    // Entry/exit x: where the disc's circle (center (centerX,
-    // -discLift), radius discRadius) crosses y=0:
-    //     x = ±sqrt(r² - lift²)
-    final entry =
-        (discRadius * discRadius - discLift * discLift).clamp(0.0, double.infinity);
-    final entryX = entry == 0 ? 0.0 : _safeSqrt(entry);
+    // Entry/exit X (where the notch circle crosses y=0):
+    //     x = ±sqrt(notchRadius² - discLift²)
+    //
+    // arcToPoint with clockwise:false picks the lower arc of the notch
+    // circle (the one that dips DOWN into the bar in y-down canvas).
+    final discriminant = (notchRadius * notchRadius - discLift * discLift)
+        .clamp(0.0, double.infinity);
+    final entryX = discriminant == 0 ? 0.0 : math.sqrt(discriminant);
     const r = 28.0;
     final path = Path()
       ..moveTo(0, r)
       ..quadraticBezierTo(0, 0, r, 0)
       ..lineTo(notchCenterX - entryX, 0)
-      // arcToPoint draws a circular arc from the current point to
-      // `Offset(...)` along a circle of `radius`. clockwise:false
-      // takes the BOTTOM half of the disc (in canvas coords, y down).
-      // largeArc:false picks the shorter of the two possible arcs.
       ..arcToPoint(
         Offset(notchCenterX + entryX, 0),
-        radius: Radius.circular(discRadius),
+        radius: Radius.circular(notchRadius),
         clockwise: false,
         largeArc: false,
       )
@@ -253,34 +276,38 @@ class _NotchedBarPainter extends CustomPainter {
     canvas.drawPath(path, Paint()..color = QeranColors.paper);
   }
 
-  static double _safeSqrt(double v) => v <= 0 ? 0 : math.sqrt(v);
-
   @override
   bool shouldRepaint(_NotchedBarPainter old) =>
       old.notchCenterX != notchCenterX ||
-      old.discRadius != discRadius ||
+      old.notchRadius != notchRadius ||
       old.discLift != discLift;
 }
 
 class _FloatingDisc extends StatelessWidget {
-  final IconData icon;
-  const _FloatingDisc({required this.icon});
+  final IconData fromIcon;
+  final IconData toIcon;
+  final Animation<double> fade;
+
+  const _FloatingDisc({
+    required this.fromIcon,
+    required this.toIcon,
+    required this.fade,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // No paper border: the disc's gold body meets the bar's paper
-    // directly along the disc's outline (= the notch curve). A paper
-    // border here would merge into the bar's paper at the contact
-    // arc and hide the cradle. Shadows are intentionally restrained
-    // so they don't bleed over the bar's curve.
+    // 1.5 dp wine ring frames the gold body. Gold shadow blur dropped
+    // 10 -> 6 so the soft halo doesn't bleed across the 5 dp paper
+    // cradle and dilute the carved feel.
     return DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: QeranColors.gold,
+        border: Border.all(color: QeranColors.wine, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: QeranColors.gold.withValues(alpha: 0.20),
-            blurRadius: 10,
+            blurRadius: 6,
             offset: const Offset(0, 4),
           ),
           BoxShadow(
@@ -290,20 +317,19 @@ class _FloatingDisc extends StatelessWidget {
           ),
         ],
       ),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 220),
-        transitionBuilder: (child, anim) => FadeTransition(
-          opacity: anim,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.82, end: 1).animate(anim),
-            child: child,
-          ),
-        ),
-        child: Icon(
-          icon,
-          key: ValueKey(icon),
-          color: QeranColors.wine,
-          size: 22,
+      child: Center(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            FadeTransition(
+              opacity: ReverseAnimation(fade),
+              child: Icon(fromIcon, color: QeranColors.wine, size: 22),
+            ),
+            FadeTransition(
+              opacity: fade,
+              child: Icon(toIcon, color: QeranColors.wine, size: 22),
+            ),
+          ],
         ),
       ),
     );

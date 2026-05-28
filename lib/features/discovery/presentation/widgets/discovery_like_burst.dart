@@ -2,10 +2,12 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
-/// Burgundy heart that flies from the Like button to the card image
-/// area in two stages and fades into the card-level Like overlay.
+/// Gold heart that flies from the Like button to the card image area
+/// in two stages and fades into the card-level Like overlay. Gold so
+/// it visually originates from the gold heart inside the wine Like
+/// circle (the icon "lifts off" without changing colour).
 ///
 /// Stage 1 (travel) — 0 → 900 ms: heart appears at the button center
 /// at full opacity / scale 1.0, then arcs upward toward the target,
@@ -125,7 +127,7 @@ class _DiscoveryLikeBurstState extends State<DiscoveryLikeBurst>
                 child: const Icon(
                   Icons.favorite_rounded,
                   size: _iconSize,
-                  color: AppColors.primary,
+                  color: QeranColors.gold,
                 ),
               ),
             ),

@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -52,13 +53,14 @@ const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
   borderColor: QeranColors.wine08,
 );
 
-// Like — gold-filled primary CTA with a wine heart icon. The official
-// identity's Like affordance (PDF page 6, "Home" + "Matches" mockups).
+// Like — wine-filled primary CTA with a gold heart icon. Wine circle +
+// gold heart mirrors the identity's brand pairing and prevents the
+// gold-on-gold cluster with the gold bottom-nav active disc below.
 const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
-  background: QeranColors.gold,
-  disabledBackground: QeranColors.gold40,
-  iconColor: QeranColors.wine,
-  disabledIconColor: QeranColors.wine40,
+  background: QeranColors.wine,
+  disabledBackground: QeranColors.wine40,
+  iconColor: QeranColors.gold,
+  disabledIconColor: QeranColors.gold40,
 );
 
 /// Three-button action bar under the Discovery card.
@@ -108,7 +110,7 @@ class DiscoveryActionBar extends StatelessWidget {
             onPressed: onPass,
             palette: _kPassPalette,
           ),
-          const Spacer(),
+          const SizedBox(width: QeranSpacing.s12),
           _PressableActionButton(
             icon: Icons.replay_rounded,
             size: 44,
@@ -595,12 +597,12 @@ class _PressableActionButtonState extends State<_PressableActionButton>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: QeranColors.gold.withValues(alpha: _idleOuterOpacity.value * 0.25),
+                            color: QeranColors.wine.withValues(alpha: _idleOuterOpacity.value * 0.25),
                             blurRadius: 28,
                             spreadRadius: 4,
                           ),
                           BoxShadow(
-                            color: QeranColors.gold.withValues(alpha: _idleOuterOpacity.value * 0.35),
+                            color: QeranColors.wine.withValues(alpha: _idleOuterOpacity.value * 0.35),
                             blurRadius: 36,
                             spreadRadius: 6,
                           ),
@@ -638,9 +640,11 @@ class _PressableActionButtonState extends State<_PressableActionButton>
   }
 }
 
-/// Premium gold halo that expands once per Like tap. Renders behind the
+/// Premium wine halo that expands once per Like tap. Renders behind the
 /// button (Z-stacked) and is `IgnorePointer` so it never blocks touches.
-/// Layered: gold disc fill + warm gold inner glow + soft gold outer bloom.
+/// Layered: wine disc fill + wine inner glow + soft wine outer bloom —
+/// matches the new wine-filled Like CTA so the halo doesn't compete with
+/// the gold heart icon inside.
 ///
 /// Design notes:
 /// * Scale starts at 1.2× so the ring is immediately visible as an
@@ -681,19 +685,19 @@ class _HaloRing extends StatelessWidget {
               height: diameter,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: QeranColors.gold.withValues(alpha: ringOpacity),
+                color: QeranColors.wine.withValues(alpha: ringOpacity),
                 boxShadow: [
-                  // Inner warm gold glow — tight, defines the halo edge.
+                  // Inner wine glow — tight, defines the halo edge.
                   BoxShadow(
-                    color: QeranColors.gold
+                    color: QeranColors.wine
                         .withValues(alpha: glowOpacity),
                     blurRadius: 28 * eased,
                     spreadRadius: 6 * eased,
                   ),
-                  // Outer gold bloom — wide blur, visible at a glance
+                  // Outer wine bloom — wide blur, visible at a glance
                   // even when the inner glow is fading.
                   BoxShadow(
-                    color: QeranColors.gold
+                    color: QeranColors.wine
                         .withValues(alpha: bloomOpacity),
                     blurRadius: 40 * eased,
                     spreadRadius: 4 * eased,

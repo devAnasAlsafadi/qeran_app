@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 
 import '../../domain/entities/discovery_profile.dart';
@@ -54,7 +55,7 @@ class DiscoveryImagePanel extends StatelessWidget {
           if (imageUrl.isNotEmpty)
             DiscoveryBlurredImage(url: imageUrl)
           else
-            Container(color: AppColors.surface),
+            Container(color: QeranColors.creamSurface),
           const Align(
             alignment: Alignment.center,
             child: DiscoveryPrivacyMessage(),
@@ -147,18 +148,18 @@ class _NameAgeRow extends StatelessWidget {
         Flexible(
           child: Text(
             '$name $age',
-            style: AppTextStyles.headlineMedium.copyWith(
-              color: AppColors.white,
+            style: QeranTypography.headline.copyWith(
+              color: QeranColors.paper,
               fontWeight: FontWeight.w700,
             ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(width: AppDimens.p4 + 2),
+        const SizedBox(width: QeranSpacing.s6),
         const Icon(
           Icons.verified_rounded,
           size: 20,
-          color: AppColors.success,
+          color: QeranColors.gold,
         ),
       ],
     );
@@ -241,7 +242,7 @@ class DiscoveryCard extends StatelessWidget {
           offset: const Offset(0, -AppDimens.p16),
           child: Container(
             decoration: const BoxDecoration(
-              color: AppColors.white,
+              color: QeranColors.paper,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(AppDimens.p24),
                 topRight: Radius.circular(AppDimens.p24),

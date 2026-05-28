@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Colour palette for a single action button. Decouples the visual
@@ -103,17 +102,17 @@ class DiscoveryActionBar extends StatelessWidget {
         children: [
           _PressableActionButton(
             icon: Icons.close_rounded,
-            size: 56,
-            iconSize: 28,
+            size: 52,
+            iconSize: 24,
             tooltip: LocaleKeys.discovery_action_pass_label.t(context),
             onPressed: onPass,
             palette: _kPassPalette,
           ),
-          const SizedBox(width: AppDimens.p12),
+          const Spacer(),
           _PressableActionButton(
             icon: Icons.replay_rounded,
-            size: 48,
-            iconSize: 22,
+            size: 44,
+            iconSize: 20,
             tooltip: LocaleKeys.discovery_action_undo_label.t(context),
             onPressed: onUndo,
             rewindRotate: true,
@@ -122,8 +121,8 @@ class DiscoveryActionBar extends StatelessWidget {
           const Spacer(),
           _PressableActionButton(
             icon: Icons.favorite_rounded,
-            size: 64,
-            iconSize: 30,
+            size: 72,
+            iconSize: 34,
             tooltip: LocaleKeys.discovery_action_like_label.t(context),
             onPressed: onLike,
             filled: true,
@@ -253,33 +252,36 @@ class _PressableActionButtonState extends State<_PressableActionButton>
 
     if (widget.idlePulse) {
       _idleCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2000));
+      // Idle pulse magnitude lowered (scale 1.035, glow 0.18, elevation 6)
+      // to stop the Like CTA from competing with the gold bottom-nav disc
+      // sitting in the same vertical column on the Discovery tab.
       _idleScale = TweenSequence<double>([
         TweenSequenceItem(
-          tween: Tween<double>(begin: 1.0, end: 1.075).chain(CurveTween(curve: Curves.easeInOutCubic)),
+          tween: Tween<double>(begin: 1.0, end: 1.035).chain(CurveTween(curve: Curves.easeInOutCubic)),
           weight: 1,
         ),
         TweenSequenceItem(
-          tween: Tween<double>(begin: 1.075, end: 1.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
+          tween: Tween<double>(begin: 1.035, end: 1.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
           weight: 1,
         ),
       ]).animate(_idleCtrl!);
       _idleElevation = TweenSequence<double>([
         TweenSequenceItem(
-          tween: Tween<double>(begin: 4.0, end: 9.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
+          tween: Tween<double>(begin: 4.0, end: 6.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
           weight: 1,
         ),
         TweenSequenceItem(
-          tween: Tween<double>(begin: 9.0, end: 4.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
+          tween: Tween<double>(begin: 6.0, end: 4.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
           weight: 1,
         ),
       ]).animate(_idleCtrl!);
       _idleGlowOpacity = TweenSequence<double>([
         TweenSequenceItem(
-          tween: Tween<double>(begin: 0.0, end: 0.40).chain(CurveTween(curve: Curves.easeInOutCubic)),
+          tween: Tween<double>(begin: 0.0, end: 0.18).chain(CurveTween(curve: Curves.easeInOutCubic)),
           weight: 1,
         ),
         TweenSequenceItem(
-          tween: Tween<double>(begin: 0.40, end: 0.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
+          tween: Tween<double>(begin: 0.18, end: 0.0).chain(CurveTween(curve: Curves.easeInOutCubic)),
           weight: 1,
         ),
       ]).animate(_idleCtrl!);

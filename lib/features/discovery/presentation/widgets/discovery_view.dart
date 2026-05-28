@@ -77,7 +77,7 @@ const double _kStackTPad = 16.0;
 const double _kPeekHeight = 20.0;
 const double _kCardRadius = 30.0;
 const double _kBodyHPad = AppDimens.p20;
-const double _kNavActionGap = 12.0;
+const double _kNavActionGap = 28.0;
 const double _kActionBarReserve = 120.0;
 const double _kImageHeightFraction = 0.51;
 
@@ -450,9 +450,14 @@ class _ProfilePageState extends State<_ProfilePage> {
                       topLeft: Radius.circular(AppDimens.p24),
                       topRight: Radius.circular(AppDimens.p24),
                     ),
+                    // Soft upward shadow at the sheet's top edge to
+                    // separate the body card from the image. The
+                    // QeranShadows tokens (e1/e2/e3) are all downward
+                    // shadows; this specialised upward variant uses
+                    // the same wine-tinted palette via `wine08`.
                     boxShadow: const [
                       BoxShadow(
-                        color: Color(0x14431C33),
+                        color: QeranColors.wine08,
                         blurRadius: 24,
                         offset: Offset(0, -6),
                       ),

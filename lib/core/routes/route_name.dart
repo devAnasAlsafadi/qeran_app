@@ -4,7 +4,6 @@ class RouteNames {
   static const String loginScreen = '/loginScreen';
   static const String registerScreen = '/register';
   static const String homeScreen = '/home';
-  static const String khatabaDashboard = '/khatabaDashboard';
   static const String whatsappInput = '/whatsappInput';
   static const String whatsappVerification = '/whatsappVerification';
 
@@ -30,4 +29,9 @@ class RouteNames {
   // Profile (shared)
   static const String fullProfileDetails = '/profile/details';
   static const String myProfile = '/profile/me';
+
+  // Matchmaker (role=Moderator)
+  static const String matchmakerHome = '/matchmaker/home';
+  static const String matchmakerNotifications = '/matchmaker/notifications';
+  static const String matchmakerAccount = '/matchmaker/account';
 }

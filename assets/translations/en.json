@@ -354,5 +354,28 @@
     "share_validation": "Couldn't share this profile",
     "share_rate_limited": "You're sharing profiles too quickly. Try again shortly.",
     "share_failure": "Couldn't share. Try again."
+  },
+  "matchmaker": {
+    "nav_dashboard": "Dashboard",
+    "nav_users": "Users",
+    "nav_cases": "Cases",
+    "nav_conversations": "Messages",
+    "nav_explore": "Explore",
+    "notifications_title": "Notifications",
+    "account_title": "Account",
+    "empty_dashboard_title": "Your dashboard",
+    "empty_dashboard_message": "Pending reviews, approved users, active compatibility cases, and unread messages will appear here.",
+    "empty_users_title": "Users management",
+    "empty_users_message": "Your assigned users will be split into three lists: pending review, approved unsubscribed, and approved subscribed.",
+    "empty_cases_title": "Compatibility cases",
+    "empty_cases_message": "Active cases between users (after a like has been accepted) will appear here, with photo-exchange and visit progress.",
+    "empty_conversations_title": "Your conversations",
+    "empty_conversations_message": "Conversations with your users and with fellow matchmakers will appear here.",
+    "empty_explore_title": "Explore profiles",
+    "empty_explore_message": "Browse and search approved profiles across all matchmakers, and share them.",
+    "empty_notifications_title": "No notifications yet",
+    "empty_notifications_message": "Notifications relevant to your matchmaker work will appear here.",
+    "empty_account_title": "Your account",
+    "empty_account_message": "Your profile and account settings will appear here soon."
   }
 }

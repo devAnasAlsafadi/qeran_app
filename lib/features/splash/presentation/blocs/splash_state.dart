@@ -8,7 +8,7 @@ class NavigateToLogin extends SplashState {}
 
 class NavigateToHome extends SplashState {}
 
-class NavigateToKhatabaDashboard extends SplashState {}
+class NavigateToMatchmakerHome extends SplashState {}
 
 class NavigateToIncompleteProfile extends SplashState {
   final String step; // 'questions', 'oath', 'photos'

@@ -9,8 +9,10 @@ import 'package:qeran/features/auth/presentation/screens/upload_image/upload_ima
 import 'package:qeran/features/auth/presentation/screens/whatsapp_input/whatsapp_input_screen.dart';
 import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/whatsapp_verification.dart';
 import 'package:qeran/features/home/presentation/screens/home_screen.dart';
-import 'package:qeran/features/khataba_dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/match_success_screen.dart';
+import 'package:qeran/features/matchmaker/account/presentation/screens/matchmaker_account_screen.dart';
+import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_home_screen.dart';
+import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/matchmaker_chat_screen.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_demo_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
@@ -91,10 +93,20 @@ class AppRouter {
           settings: settings,
           builder: (context) => OathScreen(answersPayload: answersPayload),
         );
-      case RouteNames.khatabaDashboard:
+      case RouteNames.matchmakerHome:
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => const DashboardScreen(),
+          builder: (context) => const MatchmakerHomeScreen(),
+        );
+      case RouteNames.matchmakerNotifications:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const MatchmakerNotificationsScreen(),
+        );
+      case RouteNames.matchmakerAccount:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const MatchmakerAccountScreen(),
         );
       case RouteNames.homeScreen:
         return MaterialPageRoute(

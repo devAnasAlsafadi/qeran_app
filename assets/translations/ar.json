@@ -354,5 +354,28 @@
     "share_validation": "تعذّر مشاركة هذا البروفايل",
     "share_rate_limited": "تشارك بروفايلات بسرعة، انتظر قليلاً.",
     "share_failure": "تعذّر المشاركة، حاول مجدداً"
+  },
+  "matchmaker": {
+    "nav_dashboard": "الرئيسية",
+    "nav_users": "المستخدمون",
+    "nav_cases": "التوافق",
+    "nav_conversations": "المحادثات",
+    "nav_explore": "استكشاف",
+    "notifications_title": "الإشعارات",
+    "account_title": "حسابي",
+    "empty_dashboard_title": "لوحة الإحصائيات",
+    "empty_dashboard_message": "ستظهر هنا أعداد المستخدمين بانتظار المراجعة، المعتمدين، حالات التوافق النشطة، والرسائل غير المقروءة.",
+    "empty_users_title": "إدارة المستخدمين",
+    "empty_users_message": "ستظهر هنا قوائم المستخدمين المسنّدين إليكِ: بانتظار المراجعة، معتمدون بلا اشتراك، ومعتمدون مشتركون.",
+    "empty_cases_title": "حالات التوافق",
+    "empty_cases_message": "ستظهر هنا الحالات النشطة بين المستخدمين بعد قبول الإعجاب، مع متابعة مراحل تبادل الصور والزيارة.",
+    "empty_conversations_title": "محادثاتي",
+    "empty_conversations_message": "ستظهر هنا محادثاتكِ مع المستخدمين ومع الخطّابات الزميلات.",
+    "empty_explore_title": "استكشاف البروفايلات",
+    "empty_explore_message": "ابحثي وتصفّحي البروفايلات المعتمدة من جميع الخطّابات، مع إمكانية المشاركة.",
+    "empty_notifications_title": "لا توجد إشعارات",
+    "empty_notifications_message": "ستظهر هنا الإشعارات الجديدة الخاصة بعملكِ كخطّابة.",
+    "empty_account_title": "حسابي",
+    "empty_account_message": "بياناتك الشخصية وإعدادات حسابك ستظهر هنا قريباً."
   }
 }

@@ -33,8 +33,12 @@ class SplashCubit extends Cubit<SplashState> {
     }
 
     final String? role = await sharedPrefs.get<String>(StorageKeys.userRole);
-    if (role == 'khataba') {
-      emit(NavigateToKhatabaDashboard());
+    // Case-insensitive: accept both the legacy `khataba` literal and
+    // the documented `Moderator` value while the backend reconciles
+    // (see backend question #1). One value wins after dev confirms.
+    final normalizedRole = role?.toLowerCase();
+    if (normalizedRole == 'khataba' || normalizedRole == 'moderator') {
+      emit(NavigateToMatchmakerHome());
       return;
     }
 

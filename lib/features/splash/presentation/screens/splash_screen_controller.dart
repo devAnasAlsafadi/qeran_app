@@ -30,10 +30,10 @@ class SplashScreenController {
       );
     } else if (state is NavigateToHome) {
       NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.homeScreen);
-    } else if (state is NavigateToKhatabaDashboard) {
+    } else if (state is NavigateToMatchmakerHome) {
       NavigationManager.pushNamedAndRemoveUntil(
         context,
-        RouteNames.khatabaDashboard,
+        RouteNames.matchmakerHome,
       );
     } else if (state is NavigateToIncompleteProfile) {
       _handleIncompleteNavigation(state.step);

@@ -10,6 +10,7 @@ import '../../features/chat/di/chat_injection.dart';
 import '../../features/devices/di/devices_injection.dart';
 import '../../features/discovery/di/discovery_injection.dart';
 import '../../features/likes/di/likes_injection.dart';
+import '../../features/matchmaker/di/matchmaker_injection.dart';
 import '../../features/profile/di/profile_injection.dart';
 import '../../features/questionnaire/di/questionnaire_injection.dart';
 import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
@@ -101,6 +102,10 @@ Future<void> init() async {
 
   //! Features - Profile (shared reusable surface)
   initProfileDependencies();
+
+  //! Features - Matchmaker (role=Moderator) — foundation only.
+  // Currently a no-op; each subsequent milestone fills it.
+  await initMatchmakerDependencies();
 
   //! Features - Onboarding
   sl.registerFactory(

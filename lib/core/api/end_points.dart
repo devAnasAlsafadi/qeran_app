@@ -160,4 +160,96 @@ class EndPoints {
   /// change in one place lands everywhere.
   static String get chatHubUrl =>
       '${Uri.parse(baseUrl).origin}/hubs/chat';
+
+  // ─── Matchmaker (role=Moderator) ─────────────────────
+  // Source: docs/MOBILE_MATCHMAKER_FLOW.md.
+  // String constants only — no behavior, no validation.
+
+  /// `GET /api/matchmaker/dashboard` — 6 counters
+  /// (pending users, approved sub/unsub, active compat cases,
+  /// unread messages, total assigned).
+  static const String matchmakerDashboard = "matchmaker/dashboard";
+
+  /// `GET /api/matchmaker/users/pending?page=N&pageSize=M`
+  static const String matchmakerUsersPending = "matchmaker/users/pending";
+
+  /// `GET /api/matchmaker/users/approved-unsubscribed?page=N&pageSize=M`
+  static const String matchmakerUsersApprovedUnsubscribed =
+      "matchmaker/users/approved-unsubscribed";
+
+  /// `GET /api/matchmaker/users/approved-subscribed?page=N&pageSize=M`
+  static const String matchmakerUsersApprovedSubscribed =
+      "matchmaker/users/approved-subscribed";
+
+  /// `GET /api/matchmaker/users/{id}/profile` — full profile (never blurred).
+  static String matchmakerUserProfile(String userId) =>
+      "matchmaker/users/$userId/profile";
+
+  /// `POST /api/matchmaker/users/{id}/approve` — body empty.
+  static String matchmakerUserApprove(String userId) =>
+      "matchmaker/users/$userId/approve";
+
+  /// `POST /api/matchmaker/users/{id}/reject` — body `{reason}` (≤500 chars).
+  static String matchmakerUserReject(String userId) =>
+      "matchmaker/users/$userId/reject";
+
+  /// `POST /api/matchmaker/users/{id}/request-image` — body empty.
+  static String matchmakerUserRequestImage(String userId) =>
+      "matchmaker/users/$userId/request-image";
+
+  /// `GET /api/matchmaker/users/{id}/editable-answers?page=N&pageSize=M`
+  static String matchmakerUserEditableAnswers(String userId) =>
+      "matchmaker/users/$userId/editable-answers";
+
+  /// `POST /api/matchmaker/users/{id}/text-answer` — body `{questionId, textAnswer}`.
+  static String matchmakerUserTextAnswer(String userId) =>
+      "matchmaker/users/$userId/text-answer";
+
+  /// `GET /api/matchmaker/users/{id}/chat` — lazy-open conversation.
+  /// Returns `conversationId`.
+  static String matchmakerUserChat(String userId) =>
+      "matchmaker/users/$userId/chat";
+
+  /// `GET /api/matchmaker/compatibility-cases?page=N&pageSize=M`
+  static const String matchmakerCompatibilityCases =
+      "matchmaker/compatibility-cases";
+
+  /// `POST /api/matchmaker/compatibility-cases/{formalRequestId}/status`
+  /// — body `{newStatus}` (1..5).
+  static String matchmakerCompatibilityCaseStatus(int formalRequestId) =>
+      "matchmaker/compatibility-cases/$formalRequestId/status";
+
+  /// `GET /api/matchmaker/explore?page=N&pageSize=M&search=...&gender=...`
+  static const String matchmakerExplore = "matchmaker/explore";
+
+  /// `GET /api/matchmaker/explore/filters` — available filter questions.
+  static const String matchmakerExploreFilters = "matchmaker/explore/filters";
+
+  /// `GET /api/matchmaker/colleagues?page=N&pageSize=M`
+  static const String matchmakerColleagues = "matchmaker/colleagues";
+
+  /// `POST /api/matchmaker/colleagues/{id}/open-chat` — body empty.
+  /// Returns `conversationId`.
+  static String matchmakerColleagueOpenChat(String colleagueId) =>
+      "matchmaker/colleagues/$colleagueId/open-chat";
+
+  /// `GET /api/matchmaker/conversations/users?page=N&pageSize=M`
+  static const String matchmakerConversationsUsers =
+      "matchmaker/conversations/users";
+
+  /// `GET /api/matchmaker/conversations/colleagues?page=N&pageSize=M`
+  static const String matchmakerConversationsColleagues =
+      "matchmaker/conversations/colleagues";
+
+  /// `GET /api/matchmaker/me` — current matchmaker profile.
+  static const String matchmakerMe = "matchmaker/me";
+
+  /// `PUT /api/matchmaker/me` — body `{name}`.
+  static const String matchmakerMeUpdate = "matchmaker/me";
+
+  /// `POST /api/matchmaker/me/profile-photo` — multipart, jpg/jpeg/png ≤2MB.
+  static const String matchmakerMeProfilePhoto = "matchmaker/me/profile-photo";
+
+  /// `POST /api/matchmaker/me/deactivate` — body empty.
+  static const String matchmakerMeDeactivate = "matchmaker/me/deactivate";
 }

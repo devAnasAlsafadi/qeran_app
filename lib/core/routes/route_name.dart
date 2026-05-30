@@ -38,4 +38,5 @@ class RouteNames {
   static const String matchmakerEditableAnswers =
       '/matchmaker/editable-answers';
   static const String matchmakerCaseDetail = '/matchmaker/case-detail';
+  static const String matchmakerUserChat = '/matchmaker/user-chat';
 }

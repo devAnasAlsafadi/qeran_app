@@ -29,7 +29,14 @@ import '../widgets/chat_realtime_banner.dart';
 /// affordance wired through to `cubit.retryFailedSend`.
 class ChatConversationScreen extends StatelessWidget {
   final MatchmakerInfo info;
-  const ChatConversationScreen({super.key, required this.info});
+
+  /// Optional leading back action. When non-null the header renders a back
+  /// button that calls it — used when this screen is PUSHED as a route
+  /// (e.g. the matchmaker opening a conversation). Null on the user Messages
+  /// tab (no route to pop), so that tab renders exactly as before.
+  final VoidCallback? onBack;
+
+  const ChatConversationScreen({super.key, required this.info, this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +51,7 @@ class ChatConversationScreen extends StatelessWidget {
       child: Builder(
         builder: (ctx) => ChatLifecycleWrapper(
           cubit: ctx.read<ConversationCubit>(),
-          child: _ConversationView(info: info),
+          child: _ConversationView(info: info, onBack: onBack),
         ),
       ),
     );
@@ -65,7 +72,8 @@ class ChatConversationScreen extends StatelessWidget {
 
 class _ConversationView extends StatelessWidget {
   final MatchmakerInfo info;
-  const _ConversationView({required this.info});
+  final VoidCallback? onBack;
+  const _ConversationView({required this.info, this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +93,7 @@ class _ConversationView extends StatelessWidget {
           color: QeranColors.creamSurface,
           child: Column(
             children: [
-              _Header(info: info),
+              _Header(info: info, onBack: onBack),
               ChatRealtimeBanner(
                 status: state.realtimeStatus,
                 hasEverBeenConnected: state.hasEverBeenConnected,
@@ -218,9 +226,42 @@ class _Body extends StatelessWidget {
   }
 }
 
+/// Leading back affordance for the header — shown only when
+/// [ChatConversationScreen.onBack] is set (pushed-route usage). Transparent
+/// host since the header is already on a paper surface.
+class _HeaderBackButton extends StatelessWidget {
+  const _HeaderBackButton({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onBack,
+        child: const SizedBox(
+          width: 40,
+          height: 40,
+          child: Center(
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: QeranColors.wine,
+              size: 24,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _Header extends StatelessWidget {
   final MatchmakerInfo info;
-  const _Header({required this.info});
+  final VoidCallback? onBack;
+  const _Header({required this.info, this.onBack});
 
   @override
   Widget build(BuildContext context) {
@@ -242,6 +283,10 @@ class _Header extends StatelessWidget {
         bottom: false,
         child: Row(
           children: [
+            if (onBack != null) ...[
+              _HeaderBackButton(onBack: onBack!),
+              QeranSpacing.hs4,
+            ],
             // Gold ring around the avatar — the brand's quiet
             // presence signal for the person on the other side.
             Container(

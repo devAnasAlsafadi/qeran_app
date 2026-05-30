@@ -13,6 +13,8 @@ import 'package:qeran/features/likes/presentation/screens/match_success_screen.d
 import 'package:qeran/features/matchmaker/account/presentation/screens/matchmaker_account_screen.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/compatibility_case.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/presentation/screens/matchmaker_case_detail_screen.dart';
+import 'package:qeran/features/matchmaker/conversations/domain/entities/matchmaker_conversation.dart';
+import 'package:qeran/features/matchmaker/conversations/presentation/screens/matchmaker_user_chat_screen.dart';
 import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_home_screen.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_editable_answers_screen.dart';
@@ -147,6 +149,18 @@ class AppRouter {
                   ),
                 )
               : MatchmakerCaseDetailScreen(caseItem: caseArg),
+        );
+      case RouteNames.matchmakerUserChat:
+        final conv = settings.arguments as MatchmakerConversation?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => conv == null
+              ? Scaffold(
+                  body: Center(
+                    child: Text('Missing args for ${settings.name}'),
+                  ),
+                )
+              : MatchmakerUserChatScreen(conversation: conv),
         );
       case RouteNames.homeScreen:
         return MaterialPageRoute(

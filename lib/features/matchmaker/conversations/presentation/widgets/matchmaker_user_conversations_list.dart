@@ -6,6 +6,8 @@ import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../core/routes/navigation_manager.dart';
+import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
@@ -73,10 +75,20 @@ class _ListBody extends StatelessWidget {
               if (index >= state.items.length) {
                 return const MatchmakerLoadMoreFooter();
               }
+              final conversation = state.items[index];
               return MatchmakerConversationCard(
-                conversation: state.items[index],
-                onTap: () {
-                  // Opening the chat screen is 4b.
+                conversation: conversation,
+                onTap: () async {
+                  await NavigationManager.navigateTo(
+                    context,
+                    RouteNames.matchmakerUserChat,
+                    arguments: conversation,
+                  );
+                  // The chat auto-marked the conversation read on open;
+                  // refresh so the unread badge clears.
+                  if (context.mounted) {
+                    context.read<MatchmakerUserConversationsCubit>().refresh();
+                  }
                 },
               );
             },

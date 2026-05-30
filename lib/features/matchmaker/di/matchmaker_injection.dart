@@ -5,6 +5,12 @@ import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
 import '../dashboard/domain/usecases/get_matchmaker_dashboard_usecase.dart';
 import '../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
+import '../users/data/datasources/matchmaker_users_remote_datasource.dart';
+import '../users/data/repositories/matchmaker_users_repository_impl.dart';
+import '../users/domain/entities/matchmaker_users_list.dart';
+import '../users/domain/repositories/matchmaker_users_repository.dart';
+import '../users/domain/usecases/fetch_matchmaker_users_usecase.dart';
+import '../users/presentation/blocs/matchmaker_users_list_cubit.dart';
 
 /// Matchmaker (role=Moderator) feature DI registration.
 ///
@@ -30,5 +36,18 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(() => GetMatchmakerDashboardUseCase(sl()));
   sl.registerFactory(
     () => MatchmakerDashboardCubit(getDashboard: sl()),
+  );
+
+  //! ── M2b · Users management ───────────────────────────────────────
+  sl.registerLazySingleton<MatchmakerUsersRemoteDataSource>(
+    () => MatchmakerUsersRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerUsersRepository>(
+    () => MatchmakerUsersRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => FetchMatchmakerUsersUseCase(sl()));
+  // One cubit per list — the caller passes which list via param1.
+  sl.registerFactoryParam<MatchmakerUsersListCubit, MatchmakerUsersList, void>(
+    (list, _) => MatchmakerUsersListCubit(list: list, fetchUsers: sl()),
   );
 }

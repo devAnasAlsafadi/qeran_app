@@ -7,6 +7,8 @@ import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_skeleton.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../home/presentation/home_shell_scope.dart';
+import '../../../users/domain/entities/matchmaker_users_list.dart';
 import '../../domain/entities/matchmaker_dashboard_stats.dart';
 import 'matchmaker_stat_card.dart';
 
@@ -16,29 +18,34 @@ const int _usersTab = 1;
 const int _casesTab = 2;
 const int _conversationsTab = 3;
 
-/// Descriptor for one stat card: which icon, which label, which count to
-/// read off the entity, and which tab a tap should open.
+/// Descriptor for one stat card: icon, label, which count to read, the
+/// destination tab a tap opens, and (for the three user counts) the
+/// Users sub-tab to land on.
 class _StatSpec {
   final IconData icon;
   final String labelKey;
   final int Function(MatchmakerDashboardStats s) count;
   final int destinationTab;
-  const _StatSpec(this.icon, this.labelKey, this.count, this.destinationTab);
+  final MatchmakerUsersList? usersSubTab;
+  const _StatSpec(
+    this.icon,
+    this.labelKey,
+    this.count,
+    this.destinationTab, {
+    this.usersSubTab,
+  });
 }
 
-// NOTE (M2b): the three user counts all open the Users tab for now. Once
-// the Users sub-tabs (pending / approved-unsubscribed / approved-
-// subscribed) exist, the shell scope gains a sub-tab argument and these
-// route to the exact sub-list. We don't fake sub-tabs that don't exist.
 const List<_StatSpec> _specs = [
   _StatSpec(Icons.pending_actions_outlined,
-      LocaleKeys.matchmaker_dashboard_pending, _pending, _usersTab),
+      LocaleKeys.matchmaker_dashboard_pending, _pending, _usersTab,
+      usersSubTab: MatchmakerUsersList.pending),
   _StatSpec(Icons.workspace_premium_outlined,
       LocaleKeys.matchmaker_dashboard_approved_subscribed, _approvedSub,
-      _usersTab),
+      _usersTab, usersSubTab: MatchmakerUsersList.approvedSubscribed),
   _StatSpec(Icons.verified_outlined,
       LocaleKeys.matchmaker_dashboard_approved_unsubscribed, _approvedUnsub,
-      _usersTab),
+      _usersTab, usersSubTab: MatchmakerUsersList.approvedUnsubscribed),
   _StatSpec(Icons.handshake_outlined,
       LocaleKeys.matchmaker_dashboard_active_cases, _activeCases, _casesTab),
   _StatSpec(Icons.mark_chat_unread_outlined,
@@ -66,11 +73,11 @@ class MatchmakerStatsGrid extends StatelessWidget {
   const MatchmakerStatsGrid({
     super.key,
     required this.stats,
-    required this.onOpenTab,
+    required this.onOpen,
   });
 
   final MatchmakerDashboardStats stats;
-  final ValueChanged<int> onOpenTab;
+  final MatchmakerOpenTab onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +99,10 @@ class MatchmakerStatsGrid extends StatelessWidget {
               icon: _specs[i].icon,
               count: _specs[i].count(stats),
               label: _specs[i].labelKey.t(context),
-              onTap: () => onOpenTab(_specs[i].destinationTab),
+              onTap: () => onOpen(
+                _specs[i].destinationTab,
+                usersSubTab: _specs[i].usersSubTab,
+              ),
             ),
           ),
       ],

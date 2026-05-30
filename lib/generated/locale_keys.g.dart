@@ -442,6 +442,25 @@ abstract class  LocaleKeys {
   static const matchmaker_dashboard_error_title =
       'matchmaker.dashboard_error_title';
   static const matchmaker_dashboard_retry = 'matchmaker.dashboard_retry';
+  static const matchmaker_users_tab_pending = 'matchmaker.users_tab_pending';
+  static const matchmaker_users_tab_approved_unsubscribed =
+      'matchmaker.users_tab_approved_unsubscribed';
+  static const matchmaker_users_tab_approved_subscribed =
+      'matchmaker.users_tab_approved_subscribed';
+  static const matchmaker_user_male = 'matchmaker.user_male';
+  static const matchmaker_user_female = 'matchmaker.user_female';
+  static const matchmaker_users_subscription_expires =
+      'matchmaker.users_subscription_expires';
+  static const matchmaker_users_error_title = 'matchmaker.users_error_title';
+  static const matchmaker_users_retry = 'matchmaker.users_retry';
+  static const matchmaker_users_empty_message =
+      'matchmaker.users_empty_message';
+  static const matchmaker_users_empty_pending_title =
+      'matchmaker.users_empty_pending_title';
+  static const matchmaker_users_empty_unsubscribed_title =
+      'matchmaker.users_empty_unsubscribed_title';
+  static const matchmaker_users_empty_subscribed_title =
+      'matchmaker.users_empty_subscribed_title';
   static const matchmaker_empty_dashboard_title =
       'matchmaker.empty_dashboard_title';
   static const matchmaker_empty_dashboard_message =

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
-import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../home/presentation/home_shell_scope.dart';
@@ -14,20 +13,12 @@ import '../widgets/matchmaker_stats_grid.dart';
 
 /// Dashboard tab — six quick-stat counters from `GET /matchmaker/dashboard`.
 /// Each card is a tappable shortcut to its related tab.
+///
+/// The `MatchmakerDashboardCubit` is provided by the shell
+/// (`MatchmakerHomeScreen`), not here, so the Users tab's pending badge
+/// can read the same stats. This tab only consumes it.
 class MatchmakerDashboardTab extends StatelessWidget {
   const MatchmakerDashboardTab({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider<MatchmakerDashboardCubit>(
-      create: (_) => sl<MatchmakerDashboardCubit>()..load(),
-      child: const _DashboardView(),
-    );
-  }
-}
-
-class _DashboardView extends StatelessWidget {
-  const _DashboardView();
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +38,9 @@ class _DashboardView extends StatelessWidget {
                     context.read<MatchmakerDashboardCubit>().refresh(),
                 child: MatchmakerStatsGrid(
                   stats: stats,
-                  onOpenTab: (tab) =>
-                      MatchmakerHomeShellScope.maybeOf(context)?.openTab(tab),
+                  onOpen: (index, {usersSubTab}) =>
+                      MatchmakerHomeShellScope.maybeOf(context)
+                          ?.openTab(index, usersSubTab: usersSubTab),
                 ),
               ),
             MatchmakerDashboardError(:final message) => QeranErrorState(

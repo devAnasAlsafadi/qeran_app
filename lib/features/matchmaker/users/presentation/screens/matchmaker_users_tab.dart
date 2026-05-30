@@ -1,28 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
+import '../../../dashboard/presentation/blocs/matchmaker_dashboard_state.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
+import '../../domain/entities/matchmaker_users_list.dart';
+import '../widgets/matchmaker_users_list_view.dart';
+import '../widgets/matchmaker_users_segmented_tabs.dart';
 
-/// Placeholder for the matchmaker users-management tab. M2 will replace
-/// the body with three paginated sub-tabs (pending / approved-unsub /
-/// approved-sub) backed by the matchmaker users endpoints.
+/// Users management tab — three paginated sub-tabs. Controlled: the
+/// active sub-tab lives in the shell so both the segmented control and
+/// the dashboard card shortcuts drive it. All three lists sit in an
+/// IndexedStack, so each keeps its pagination + scroll alive across
+/// sub-tab switches.
 class MatchmakerUsersTab extends StatelessWidget {
-  const MatchmakerUsersTab({super.key});
+  const MatchmakerUsersTab({
+    super.key,
+    required this.subTab,
+    required this.onSubTabChanged,
+  });
+
+  final MatchmakerUsersList subTab;
+  final ValueChanged<MatchmakerUsersList> onSubTabChanged;
 
   @override
   Widget build(BuildContext context) {
+    // Pending badge from the shell-provided dashboard cubit (the count is
+    // owned by the dashboard, per spec). 0 until the stats load.
+    final dashboardState = context.watch<MatchmakerDashboardCubit>().state;
+    final pendingBadge = dashboardState is MatchmakerDashboardLoaded
+        ? dashboardState.stats.pendingUsersCount
+        : 0;
+
     return Scaffold(
       backgroundColor: QeranColors.creamCanvas,
       appBar: MatchmakerAppBar(
         title: LocaleKeys.matchmaker_nav_users.t(context),
       ),
-      body: QeranEmptyState(
-        icon: Icons.groups_2_outlined,
-        title: LocaleKeys.matchmaker_empty_users_title.t(context),
-        message: LocaleKeys.matchmaker_empty_users_message.t(context),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            MatchmakerUsersSegmentedTabs(
+              active: subTab,
+              onChanged: onSubTabChanged,
+              pendingBadge: pendingBadge,
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: subTab.index,
+                children: const [
+                  MatchmakerUsersListView(list: MatchmakerUsersList.pending),
+                  MatchmakerUsersListView(
+                    list: MatchmakerUsersList.approvedUnsubscribed,
+                  ),
+                  MatchmakerUsersListView(
+                    list: MatchmakerUsersList.approvedSubscribed,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

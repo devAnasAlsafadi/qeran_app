@@ -51,6 +51,21 @@ bool parseBool(Object? raw, {bool fallback = false}) {
   return fallback;
 }
 
+/// Nullable bool for fields a list may omit entirely (e.g. pending rows
+/// carry `hasProfileImage`, the approved lists don't). Absent / unparseable
+/// → `null`, so the caller can tell "missing" from an explicit `false`.
+bool? parseNullableBool(Object? raw) {
+  if (raw == null) return null;
+  if (raw is bool) return raw;
+  if (raw is num) return raw != 0;
+  if (raw is String) {
+    final s = raw.toLowerCase();
+    if (s == 'true') return true;
+    if (s == 'false') return false;
+  }
+  return null;
+}
+
 DateTime? parseNullableDateTime(Object? raw) {
   if (raw is! String || raw.isEmpty) return null;
   return DateTime.tryParse(raw);

@@ -1,8 +1,10 @@
 import 'package:equatable/equatable.dart';
 
-/// A single row in any of the three matchmaker user lists. Common fields
-/// are always present; the per-list extras are nullable and only set for
-/// the list that carries them:
+/// A single row in any of the three matchmaker user lists. The common
+/// fields ([userId], [fullName], [profileImageUrl], [assignedAt]) are
+/// present on every list; the per-list extras are nullable and only set
+/// for the list that carries them:
+///   • [hasProfileImage]        → pending only
 ///   • [chatConversationId]     → approved-unsubscribed + approved-subscribed
 ///   • [subscriptionPlanName]   → approved-subscribed only
 ///   • [subscriptionExpiresAt]  → approved-subscribed only
@@ -12,25 +14,21 @@ import 'package:equatable/equatable.dart';
 /// the user has no profile image.
 class MatchmakerUserRow extends Equatable {
   final String userId;
-  final String name;
-  final String gender;
-  final int? age;
-  final bool hasProfileImage;
+  final String fullName;
   final String? profileImageUrl;
-  final DateTime? questionsCompletedAt;
+  final DateTime? assignedAt;
 
+  final bool? hasProfileImage;
   final int? chatConversationId;
   final String? subscriptionPlanName;
   final DateTime? subscriptionExpiresAt;
 
   const MatchmakerUserRow({
     required this.userId,
-    required this.name,
-    required this.gender,
-    required this.age,
-    required this.hasProfileImage,
+    required this.fullName,
     required this.profileImageUrl,
-    required this.questionsCompletedAt,
+    required this.assignedAt,
+    this.hasProfileImage,
     this.chatConversationId,
     this.subscriptionPlanName,
     this.subscriptionExpiresAt,
@@ -42,12 +40,10 @@ class MatchmakerUserRow extends Equatable {
   @override
   List<Object?> get props => [
         userId,
-        name,
-        gender,
-        age,
-        hasProfileImage,
+        fullName,
         profileImageUrl,
-        questionsCompletedAt,
+        assignedAt,
+        hasProfileImage,
         chatConversationId,
         subscriptionPlanName,
         subscriptionExpiresAt,

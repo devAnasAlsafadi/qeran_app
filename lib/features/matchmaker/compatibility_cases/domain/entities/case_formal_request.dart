@@ -11,6 +11,13 @@ class CaseFormalRequest extends Equatable {
 
   const CaseFormalRequest({required this.id, required this.status});
 
+  CaseFormalRequest copyWith({int? id, FormalRequestStatus? status}) {
+    return CaseFormalRequest(
+      id: id ?? this.id,
+      status: status ?? this.status,
+    );
+  }
+
   @override
   List<Object?> get props => [id, status];
 }

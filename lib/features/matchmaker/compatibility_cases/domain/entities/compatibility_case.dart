@@ -34,6 +34,23 @@ class CompatibilityCase extends Equatable {
     required this.canUpdateFormalRequestStatus,
   });
 
+  /// Minimal additive copy — only [formalRequest] is overridable, which
+  /// is all the live `CompatibilityCaseUpdated` flow (4c) needs to apply
+  /// a status change in place. All other fields are carried through.
+  CompatibilityCase copyWith({CaseFormalRequest? formalRequest}) {
+    return CompatibilityCase(
+      caseId: caseId,
+      myUser: myUser,
+      otherUser: otherUser,
+      likeAcceptedAt: likeAcceptedAt,
+      stage: stage,
+      photoExchange: photoExchange,
+      formalRequest: formalRequest ?? this.formalRequest,
+      chat: chat,
+      canUpdateFormalRequestStatus: canUpdateFormalRequestStatus,
+    );
+  }
+
   @override
   List<Object?> get props => [
         caseId,

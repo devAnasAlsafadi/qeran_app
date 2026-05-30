@@ -1,4 +1,6 @@
+import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/services/storage_service.dart';
 
 import '../compatibility_cases/data/datasources/compatibility_cases_remote_datasource.dart';
 import '../compatibility_cases/data/repositories/compatibility_cases_repository_impl.dart';
@@ -17,6 +19,8 @@ import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
 import '../dashboard/domain/usecases/get_matchmaker_dashboard_usecase.dart';
 import '../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
+import '../shared/data/datasources/matchmaker_realtime_signalr_service.dart';
+import '../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../users/data/datasources/matchmaker_editable_answers_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_user_actions_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_user_profile_remote_datasource.dart';
@@ -145,7 +149,9 @@ Future<void> initMatchmakerDependencies() async {
   );
   sl.registerLazySingleton(() => GetCompatibilityCasesUseCase(sl()));
   sl.registerLazySingleton(() => UpdateFormalRequestStatusUseCase(sl()));
-  sl.registerFactory(() => MatchmakerCasesListCubit(getCases: sl()));
+  sl.registerFactory(
+    () => MatchmakerCasesListCubit(getCases: sl(), realtimePort: sl()),
+  );
   // One status cubit per opened case — the caller passes the formalRequestId
   // via param1.
   sl.registerFactoryParam<MatchmakerCaseStatusCubit, int, void>(
@@ -165,5 +171,18 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(() => GetUserConversationsUseCase(sl()));
   sl.registerFactory(
     () => MatchmakerUserConversationsCubit(getConversations: sl()),
+  );
+
+  //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────
+  // A SEPARATE SignalR connection from the user-side chat realtime port:
+  // same hub + auth, but its own HubConnection / streams / lifecycle, so
+  // chat behavior is untouched. The shell owns connect/disconnect; the
+  // cases-list cubit consumes `caseUpdates`. Reuses the same secure-
+  // storage token source the chat connection uses (no new token plumbing).
+  sl.registerLazySingleton<MatchmakerRealtimePort>(
+    () => MatchmakerRealtimeSignalRService(
+      accessTokenProvider: () =>
+          sl<StorageService>().get<String>(StorageKeys.token),
+    ),
   );
 }

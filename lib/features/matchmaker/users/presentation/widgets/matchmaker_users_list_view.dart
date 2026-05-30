@@ -6,6 +6,8 @@ import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../core/routes/navigation_manager.dart';
+import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
@@ -85,10 +87,11 @@ class _ListBody extends StatelessWidget {
               final row = state.items[index];
               return MatchmakerUserRowCard(
                 row: row,
-                onTap: () {
-                  // TODO(M2c): open the matchmaker profile detail
-                  // (GET /matchmaker/users/{id}/profile) for row.userId.
-                },
+                onTap: () => NavigationManager.navigateTo(
+                  context,
+                  RouteNames.matchmakerUserProfile,
+                  arguments: row.userId,
+                ),
               );
             },
           ),

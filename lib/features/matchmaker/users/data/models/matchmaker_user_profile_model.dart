@@ -1,0 +1,90 @@
+import 'package:qeran/features/profile/data/models/owner_image_model.dart';
+import 'package:qeran/features/profile/data/models/placement_model.dart';
+import 'package:qeran/features/profile/domain/entities/profile_status.dart';
+
+import '../../../shared/data/json_parsers.dart';
+import '../../domain/entities/matchmaker_user_profile.dart';
+
+/// Wire model for the matchmaker profile-detail payload — the object found
+/// at `data.data.data` (the datasource unwraps the double envelope before
+/// this runs). Scalars use the matchmaker module's parsers; the nested
+/// `images` and `placements` reuse the profile feature's parsers so the
+/// shape stays in lock-step with the user-side profile.
+///
+/// Images parse as [OwnerImageModel] — the wire carries `isApproved` (the
+/// owner shape) — yielding [OwnerImage], which the gallery renders
+/// unblurred.
+class MatchmakerUserProfileModel {
+  final String userId;
+  final String name;
+  final String email;
+  final String gender;
+  final DateTime? birthDate;
+  final int? age;
+  final String profileStatus;
+  final bool hasAnsweredQuestions;
+  final OwnerImageModel? profileImage;
+  final List<OwnerImageModel> images;
+  final List<PlacementModel> placements;
+
+  const MatchmakerUserProfileModel({
+    required this.userId,
+    required this.name,
+    required this.email,
+    required this.gender,
+    required this.birthDate,
+    required this.age,
+    required this.profileStatus,
+    required this.hasAnsweredQuestions,
+    required this.profileImage,
+    required this.images,
+    required this.placements,
+  });
+
+  factory MatchmakerUserProfileModel.fromJson(Map<String, dynamic> json) {
+    final rawImages = json['images'];
+    final images = rawImages is List
+        ? rawImages
+            .whereType<Map<String, dynamic>>()
+            .map(OwnerImageModel.fromJson)
+            .toList(growable: false)
+        : const <OwnerImageModel>[];
+    final rawPlacements = json['placements'];
+    final placements = rawPlacements is List
+        ? rawPlacements
+            .whereType<Map<String, dynamic>>()
+            .map(PlacementModel.fromJson)
+            .toList(growable: false)
+        : const <PlacementModel>[];
+    final rawProfileImage = json['profileImage'];
+    return MatchmakerUserProfileModel(
+      userId: parseString(json['userId']),
+      name: parseString(json['name']),
+      email: parseString(json['email']),
+      gender: parseString(json['gender']),
+      birthDate: parseNullableDateTime(json['birthDate']),
+      age: parseNullableInt(json['age']),
+      profileStatus: parseString(json['profileStatus']),
+      hasAnsweredQuestions: parseBool(json['hasAnsweredQuestions']),
+      profileImage: rawProfileImage is Map<String, dynamic>
+          ? OwnerImageModel.fromJson(rawProfileImage)
+          : null,
+      images: images,
+      placements: placements,
+    );
+  }
+
+  MatchmakerUserProfile toEntity() => MatchmakerUserProfile(
+        userId: userId,
+        name: name,
+        email: email,
+        gender: gender,
+        birthDate: birthDate,
+        age: age,
+        profileStatus: ProfileStatus.fromString(profileStatus),
+        hasAnsweredQuestions: hasAnsweredQuestions,
+        profileImage: profileImage?.toEntity(),
+        images: images.map((i) => i.toEntity()).toList(growable: false),
+        placements: placements.map((p) => p.toEntity()).toList(growable: false),
+      );
+}

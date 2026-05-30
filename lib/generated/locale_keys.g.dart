@@ -461,6 +461,15 @@ abstract class  LocaleKeys {
       'matchmaker.users_empty_unsubscribed_title';
   static const matchmaker_users_empty_subscribed_title =
       'matchmaker.users_empty_subscribed_title';
+  static const matchmaker_profile_error_title =
+      'matchmaker.profile_error_title';
+  static const matchmaker_profile_retry = 'matchmaker.profile_retry';
+  static const matchmaker_profile_status_pending =
+      'matchmaker.profile_status_pending';
+  static const matchmaker_profile_status_rejected =
+      'matchmaker.profile_status_rejected';
+  static const matchmaker_profile_status_hidden =
+      'matchmaker.profile_status_hidden';
   static const matchmaker_empty_dashboard_title =
       'matchmaker.empty_dashboard_title';
   static const matchmaker_empty_dashboard_message =

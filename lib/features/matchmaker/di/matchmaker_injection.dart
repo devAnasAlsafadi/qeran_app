@@ -5,11 +5,16 @@ import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
 import '../dashboard/domain/usecases/get_matchmaker_dashboard_usecase.dart';
 import '../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
+import '../users/data/datasources/matchmaker_user_profile_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_users_remote_datasource.dart';
+import '../users/data/repositories/matchmaker_user_profile_repository_impl.dart';
 import '../users/data/repositories/matchmaker_users_repository_impl.dart';
 import '../users/domain/entities/matchmaker_users_list.dart';
+import '../users/domain/repositories/matchmaker_user_profile_repository.dart';
 import '../users/domain/repositories/matchmaker_users_repository.dart';
+import '../users/domain/usecases/fetch_matchmaker_user_profile_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_users_usecase.dart';
+import '../users/presentation/blocs/matchmaker_profile_detail_cubit.dart';
 import '../users/presentation/blocs/matchmaker_users_list_cubit.dart';
 
 /// Matchmaker (role=Moderator) feature DI registration.
@@ -49,5 +54,19 @@ Future<void> initMatchmakerDependencies() async {
   // One cubit per list — the caller passes which list via param1.
   sl.registerFactoryParam<MatchmakerUsersListCubit, MatchmakerUsersList, void>(
     (list, _) => MatchmakerUsersListCubit(list: list, fetchUsers: sl()),
+  );
+
+  //! ── M2c · User profile detail ────────────────────────────────────
+  sl.registerLazySingleton<MatchmakerUserProfileRemoteDataSource>(
+    () => MatchmakerUserProfileRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerUserProfileRepository>(
+    () => MatchmakerUserProfileRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => FetchMatchmakerUserProfileUseCase(sl()));
+  // One cubit per opened profile — the caller passes the userId via param1.
+  sl.registerFactoryParam<MatchmakerProfileDetailCubit, String, void>(
+    (userId, _) =>
+        MatchmakerProfileDetailCubit(userId: userId, fetchProfile: sl()),
   );
 }

@@ -13,6 +13,7 @@ import 'package:qeran/features/likes/presentation/screens/match_success_screen.d
 import 'package:qeran/features/matchmaker/account/presentation/screens/matchmaker_account_screen.dart';
 import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_home_screen.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
+import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_user_profile_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/matchmaker_chat_screen.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_demo_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
@@ -107,6 +108,18 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const MatchmakerAccountScreen(),
+        );
+      case RouteNames.matchmakerUserProfile:
+        final userId = settings.arguments as String?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => userId == null
+              ? Scaffold(
+                  body: Center(
+                    child: Text('Missing args for ${settings.name}'),
+                  ),
+                )
+              : MatchmakerUserProfileScreen(userId: userId),
         );
       case RouteNames.homeScreen:
         return MaterialPageRoute(

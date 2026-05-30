@@ -87,11 +87,18 @@ class _ListBody extends StatelessWidget {
               final row = state.items[index];
               return MatchmakerUserRowCard(
                 row: row,
-                onTap: () => NavigationManager.navigateTo(
-                  context,
-                  RouteNames.matchmakerUserProfile,
-                  arguments: row.userId,
-                ),
+                onTap: () async {
+                  final mutated = await NavigationManager.navigateTo(
+                    context,
+                    RouteNames.matchmakerUserProfile,
+                    arguments: row.userId,
+                  );
+                  // Approve / reject pop with `true` — the user left this
+                  // (pending) list, so refresh it on return.
+                  if (mutated == true && context.mounted) {
+                    context.read<MatchmakerUsersListCubit>().refresh();
+                  }
+                },
               );
             },
           ),

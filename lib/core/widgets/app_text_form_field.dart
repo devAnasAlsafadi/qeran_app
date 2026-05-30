@@ -19,6 +19,8 @@ class AppTextFormField extends StatelessWidget {
     this.errorMsg,
     this.onChange,
     this.border,
+    this.maxLines = 1,
+    this.maxLength,
   });
 
   final TextEditingController controller;
@@ -36,6 +38,14 @@ class AppTextFormField extends StatelessWidget {
   final void Function(String)? onChange;
   final TextInputAction? textInputAction;
 
+  /// Visible line count. Defaults to `1` (single-line) so every existing
+  /// call site is unchanged; the matchmaker reject sheet passes `5`.
+  final int maxLines;
+
+  /// Optional character cap (shows the built-in counter). `null` = no
+  /// limit, matching all pre-existing call sites.
+  final int? maxLength;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
@@ -43,6 +53,8 @@ class AppTextFormField extends StatelessWidget {
       validator: validator,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      maxLines: maxLines,
+      maxLength: maxLength,
       focusNode: focusNode,
       onTap: onTap,
       onChanged: onChange,

@@ -472,6 +472,34 @@ abstract class  LocaleKeys {
       'matchmaker.profile_status_hidden';
   static const matchmaker_profile_basic_info =
       'matchmaker.profile_basic_info';
+  static const matchmaker_profile_action_approve =
+      'matchmaker.profile_action_approve';
+  static const matchmaker_profile_action_reject =
+      'matchmaker.profile_action_reject';
+  static const matchmaker_profile_action_request_image =
+      'matchmaker.profile_action_request_image';
+  static const matchmaker_profile_action_cancel =
+      'matchmaker.profile_action_cancel';
+  static const matchmaker_profile_approve_confirm_title =
+      'matchmaker.profile_approve_confirm_title';
+  static const matchmaker_profile_approve_confirm_message =
+      'matchmaker.profile_approve_confirm_message';
+  static const matchmaker_profile_approve_success =
+      'matchmaker.profile_approve_success';
+  static const matchmaker_profile_reject_title =
+      'matchmaker.profile_reject_title';
+  static const matchmaker_profile_reject_subtitle =
+      'matchmaker.profile_reject_subtitle';
+  static const matchmaker_profile_reject_hint =
+      'matchmaker.profile_reject_hint';
+  static const matchmaker_profile_reject_submit =
+      'matchmaker.profile_reject_submit';
+  static const matchmaker_profile_reject_validation_empty =
+      'matchmaker.profile_reject_validation_empty';
+  static const matchmaker_profile_reject_success =
+      'matchmaker.profile_reject_success';
+  static const matchmaker_profile_request_image_success =
+      'matchmaker.profile_request_image_success';
   static const matchmaker_empty_dashboard_title =
       'matchmaker.empty_dashboard_title';
   static const matchmaker_empty_dashboard_message =

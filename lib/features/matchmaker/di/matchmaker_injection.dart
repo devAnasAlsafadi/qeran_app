@@ -7,6 +7,11 @@ import '../compatibility_cases/domain/usecases/get_compatibility_cases_usecase.d
 import '../compatibility_cases/domain/usecases/update_formal_request_status_usecase.dart';
 import '../compatibility_cases/presentation/blocs/matchmaker_case_status_cubit.dart';
 import '../compatibility_cases/presentation/blocs/matchmaker_cases_list_cubit.dart';
+import '../conversations/data/datasources/matchmaker_conversations_remote_datasource.dart';
+import '../conversations/data/repositories/matchmaker_conversations_repository_impl.dart';
+import '../conversations/domain/repositories/matchmaker_conversations_repository.dart';
+import '../conversations/domain/usecases/get_user_conversations_usecase.dart';
+import '../conversations/presentation/blocs/matchmaker_user_conversations_cubit.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
@@ -148,5 +153,17 @@ Future<void> initMatchmakerDependencies() async {
       formalRequestId: formalRequestId,
       update: sl(),
     ),
+  );
+
+  //! ── M4a · Conversations (with users) ─────────────────────────────
+  sl.registerLazySingleton<MatchmakerConversationsRemoteDataSource>(
+    () => MatchmakerConversationsRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerConversationsRepository>(
+    () => MatchmakerConversationsRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetUserConversationsUseCase(sl()));
+  sl.registerFactory(
+    () => MatchmakerUserConversationsCubit(getConversations: sl()),
   );
 }

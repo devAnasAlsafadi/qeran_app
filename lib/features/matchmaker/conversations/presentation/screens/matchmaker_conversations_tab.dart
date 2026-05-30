@@ -5,12 +5,25 @@ import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
+import '../../../shared/presentation/widgets/matchmaker_segmented_tabs.dart';
+import '../widgets/matchmaker_user_conversations_list.dart';
 
-/// Placeholder for the matchmaker conversations tab. M4 will replace
-/// the body with sub-tabs (with-users / with-colleagues) backed by the
-/// `/matchmaker/conversations/*` endpoints and the shared chat module.
-class MatchmakerConversationsTab extends StatelessWidget {
+/// Matchmaker conversations tab (M4a). Two segments: مستخدمون — the real
+/// paginated users-conversations list — and الزميلات, a placeholder until the
+/// colleague-conversation shape is finalised. An IndexedStack keeps the users
+/// list's pagination + scroll alive across segment switches.
+class MatchmakerConversationsTab extends StatefulWidget {
   const MatchmakerConversationsTab({super.key});
+
+  @override
+  State<MatchmakerConversationsTab> createState() =>
+      _MatchmakerConversationsTabState();
+}
+
+class _MatchmakerConversationsTabState
+    extends State<MatchmakerConversationsTab> {
+  // 0 = Users · 1 = Colleagues.
+  int _segment = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +32,52 @@ class MatchmakerConversationsTab extends StatelessWidget {
       appBar: MatchmakerAppBar(
         title: LocaleKeys.matchmaker_nav_conversations.t(context),
       ),
-      body: QeranEmptyState(
-        icon: Icons.chat_bubble_outline_rounded,
-        title: LocaleKeys.matchmaker_empty_conversations_title.t(context),
-        message: LocaleKeys.matchmaker_empty_conversations_message.t(context),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            MatchmakerSegmentedTabs(
+              activeIndex: _segment,
+              onChanged: (i) => setState(() => _segment = i),
+              segments: const [
+                MatchmakerSegment(
+                  labelKey: LocaleKeys.matchmaker_conversations_segment_users,
+                ),
+                MatchmakerSegment(
+                  labelKey:
+                      LocaleKeys.matchmaker_conversations_segment_colleagues,
+                ),
+              ],
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: _segment,
+                children: const [
+                  MatchmakerUserConversationsList(),
+                  _ColleaguesPlaceholder(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// Colleagues segment — placeholder only in 4a. The real colleague
+/// conversations list lands once the backend exposes a stable item shape.
+class _ColleaguesPlaceholder extends StatelessWidget {
+  const _ColleaguesPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return QeranEmptyState(
+      icon: Icons.groups_2_outlined,
+      title:
+          LocaleKeys.matchmaker_conversations_colleagues_empty_title.t(context),
+      message: LocaleKeys.matchmaker_conversations_colleagues_empty_message
+          .t(context),
     );
   }
 }

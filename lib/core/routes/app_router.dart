@@ -11,6 +11,8 @@ import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/w
 import 'package:qeran/features/home/presentation/screens/home_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/match_success_screen.dart';
 import 'package:qeran/features/matchmaker/account/presentation/screens/matchmaker_account_screen.dart';
+import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/compatibility_case.dart';
+import 'package:qeran/features/matchmaker/compatibility_cases/presentation/screens/matchmaker_case_detail_screen.dart';
 import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_home_screen.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_editable_answers_screen.dart';
@@ -133,6 +135,18 @@ class AppRouter {
                   ),
                 )
               : MatchmakerEditableAnswersScreen(userId: userId),
+        );
+      case RouteNames.matchmakerCaseDetail:
+        final caseArg = settings.arguments as CompatibilityCase?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => caseArg == null
+              ? Scaffold(
+                  body: Center(
+                    child: Text('Missing args for ${settings.name}'),
+                  ),
+                )
+              : MatchmakerCaseDetailScreen(caseItem: caseArg),
         );
       case RouteNames.homeScreen:
         return MaterialPageRoute(

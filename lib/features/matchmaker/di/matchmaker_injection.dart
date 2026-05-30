@@ -4,6 +4,8 @@ import '../compatibility_cases/data/datasources/compatibility_cases_remote_datas
 import '../compatibility_cases/data/repositories/compatibility_cases_repository_impl.dart';
 import '../compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
 import '../compatibility_cases/domain/usecases/get_compatibility_cases_usecase.dart';
+import '../compatibility_cases/domain/usecases/update_formal_request_status_usecase.dart';
+import '../compatibility_cases/presentation/blocs/matchmaker_case_status_cubit.dart';
 import '../compatibility_cases/presentation/blocs/matchmaker_cases_list_cubit.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
@@ -137,5 +139,14 @@ Future<void> initMatchmakerDependencies() async {
     () => CompatibilityCasesRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetCompatibilityCasesUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateFormalRequestStatusUseCase(sl()));
   sl.registerFactory(() => MatchmakerCasesListCubit(getCases: sl()));
+  // One status cubit per opened case — the caller passes the formalRequestId
+  // via param1.
+  sl.registerFactoryParam<MatchmakerCaseStatusCubit, int, void>(
+    (formalRequestId, _) => MatchmakerCaseStatusCubit(
+      formalRequestId: formalRequestId,
+      update: sl(),
+    ),
+  );
 }

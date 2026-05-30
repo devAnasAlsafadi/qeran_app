@@ -12,6 +12,14 @@ abstract interface class CompatibilityCasesRemoteDataSource {
     required int page,
     required int pageSize,
   });
+
+  /// Updates a case's formal-request status. [newStatus] is the verbatim
+  /// PascalCase wire value (e.g. `"ParentsVisited"`). Returns the success
+  /// message the server places in `data`.
+  Future<String> updateStatus({
+    required int formalRequestId,
+    required String newStatus,
+  });
 }
 
 class CompatibilityCasesRemoteDataSourceImpl
@@ -49,5 +57,25 @@ class CompatibilityCasesRemoteDataSourceImpl
       throw ServerException(message: LocaleKeys.errors_generic);
     }
     return CompatibilityCasesPageModel.fromJson(pageJson);
+  }
+
+  @override
+  Future<String> updateStatus({
+    required int formalRequestId,
+    required String newStatus,
+  }) async {
+    AppLogger.debug(
+      'MATCHMAKER — update case status fr=$formalRequestId → $newStatus',
+      tag: 'MATCHMAKER',
+    );
+    // Mutation: the human result text is in `data` with an empty `message`,
+    // so go through postRaw + mutationResultText (status == 1 = success).
+    // A failure throws a CodedServerException carrying the errorCode (e.g.
+    // INVALID_STATUS_TRANSITION) — the repository maps it.
+    final response = await _apiConsumer.postRaw(
+      EndPoints.matchmakerCompatibilityCaseStatus(formalRequestId),
+      body: {'newStatus': newStatus},
+    );
+    return mutationResultText(response);
   }
 }

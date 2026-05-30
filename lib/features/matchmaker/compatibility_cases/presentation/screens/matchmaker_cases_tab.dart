@@ -7,6 +7,8 @@ import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../core/routes/navigation_manager.dart';
+import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
@@ -83,10 +85,21 @@ class _CasesListBody extends StatelessWidget {
               if (index >= state.items.length) {
                 return const MatchmakerLoadMoreFooter();
               }
+              final caseItem = state.items[index];
               return MatchmakerCaseCard(
-                caseItem: state.items[index],
-                onTap: () {
-                  // Detail + status-update actions land in 3b.
+                caseItem: caseItem,
+                onTap: () async {
+                  final changed = await NavigationManager.navigateTo(
+                    context,
+                    RouteNames.matchmakerCaseDetail,
+                    arguments: caseItem,
+                  );
+                  // Detail pops `true` after a status update (or an invalid
+                  // transition that may have moved the case) — refresh so the
+                  // list reflects the new / now-filtered state.
+                  if (changed == true && context.mounted) {
+                    context.read<MatchmakerCasesListCubit>().refresh();
+                  }
                 },
               );
             },

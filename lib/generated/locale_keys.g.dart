@@ -151,15 +151,11 @@ abstract class  LocaleKeys {
   static const discovery_filter_clear_all = 'discovery.filter_clear_all';
   static const discovery_filter_load_failed = 'discovery.filter_load_failed';
   static const discovery_filter_range_format = 'discovery.filter_range_format';
-  static const discovery_details_interests_title =
-      'discovery.details_interests_title';
+  static const discovery_details_interests_title = 'discovery.details_interests_title';
   static const discovery_scroll_hint = 'discovery.scroll_hint';
-  static const discovery_like_already_pending =
-      'discovery.like_already_pending';
-  static const discovery_like_gender_mismatch =
-      'discovery.like_gender_mismatch';
-  static const discovery_like_user_unavailable =
-      'discovery.like_user_unavailable';
+  static const discovery_like_already_pending = 'discovery.like_already_pending';
+  static const discovery_like_gender_mismatch = 'discovery.like_gender_mismatch';
+  static const discovery_like_user_unavailable = 'discovery.like_user_unavailable';
   static const discovery = 'discovery';
   static const likes_title = 'likes.title';
   static const likes_tab_sent = 'likes.tab_sent';
@@ -173,11 +169,9 @@ abstract class  LocaleKeys {
   static const likes_action_reject = 'likes.action_reject';
   static const likes_action_accepted_success = 'likes.action_accepted_success';
   static const likes_action_rejected_success = 'likes.action_rejected_success';
-  static const likes_action_subscription_required =
-      'likes.action_subscription_required';
+  static const likes_action_subscription_required = 'likes.action_subscription_required';
   static const likes_action_request_expired = 'likes.action_request_expired';
-  static const likes_action_request_not_found =
-      'likes.action_request_not_found';
+  static const likes_action_request_not_found = 'likes.action_request_not_found';
   static const likes_action_failed = 'likes.action_failed';
   static const likes_empty_sent_title = 'likes.empty_sent_title';
   static const likes_empty_sent_subtitle = 'likes.empty_sent_subtitle';
@@ -191,55 +185,34 @@ abstract class  LocaleKeys {
   static const likes_locked_card_subtitle = 'likes.locked_card_subtitle';
   static const likes_archived_title = 'likes.archived_title';
   static const likes_time_left_days_hours = 'likes.time_left_days_hours';
-  static const likes_time_left_hours_minutes =
-      'likes.time_left_hours_minutes';
+  static const likes_time_left_hours_minutes = 'likes.time_left_hours_minutes';
   static const likes_time_left_minutes = 'likes.time_left_minutes';
   static const likes_time_left_soon = 'likes.time_left_soon';
   static const likes_matches_empty_title = 'likes.matches_empty_title';
   static const likes_matches_empty_subtitle = 'likes.matches_empty_subtitle';
   static const likes_matches_error_title = 'likes.matches_error_title';
-  static const likes_matches_stage_waiting_photos_title =
-      'likes.matches_stage_waiting_photos_title';
-  static const likes_matches_stage_waiting_photos_cta =
-      'likes.matches_stage_waiting_photos_cta';
-  static const likes_matches_stage_waiting_photos_pending =
-      'likes.matches_stage_waiting_photos_pending';
-  static const likes_matches_photo_exchange_action_accept =
-      'likes.matches_photo_exchange_action_accept';
-  static const likes_matches_photo_exchange_action_reject =
-      'likes.matches_photo_exchange_action_reject';
-  static const likes_matches_stage_photos_exchanged_subtitle =
-      'likes.matches_stage_photos_exchanged_subtitle';
+  static const likes_matches_stage_waiting_photos_title = 'likes.matches_stage_waiting_photos_title';
+  static const likes_matches_stage_waiting_photos_cta = 'likes.matches_stage_waiting_photos_cta';
+  static const likes_matches_stage_waiting_photos_pending = 'likes.matches_stage_waiting_photos_pending';
+  static const likes_matches_photo_exchange_action_accept = 'likes.matches_photo_exchange_action_accept';
+  static const likes_matches_photo_exchange_action_reject = 'likes.matches_photo_exchange_action_reject';
+  static const likes_matches_stage_photos_exchanged_subtitle = 'likes.matches_stage_photos_exchanged_subtitle';
   static const likes_matches_gallery_title = 'likes.matches_gallery_title';
-  static const likes_matches_formal_last_updated =
-      'likes.matches_formal_last_updated';
-  static const likes_matches_stage_matchmaker_subtitle =
-      'likes.matches_stage_matchmaker_subtitle';
-  static const likes_matches_stage_matchmaker_cta =
-      'likes.matches_stage_matchmaker_cta';
-  static const likes_matches_stage_matchmaker_will_contact =
-      'likes.matches_stage_matchmaker_will_contact';
+  static const likes_matches_formal_last_updated = 'likes.matches_formal_last_updated';
+  static const likes_matches_stage_matchmaker_subtitle = 'likes.matches_stage_matchmaker_subtitle';
+  static const likes_matches_stage_matchmaker_cta = 'likes.matches_stage_matchmaker_cta';
+  static const likes_matches_stage_matchmaker_will_contact = 'likes.matches_stage_matchmaker_will_contact';
   static const likes_matchmaker_chat_title = 'likes.matchmaker_chat_title';
-  static const likes_matchmaker_chat_placeholder =
-      'likes.matchmaker_chat_placeholder';
-  static const likes_matches_action_request_success =
-      'likes.matches_action_request_success';
-  static const likes_matches_action_request_already_pending =
-      'likes.matches_action_request_already_pending';
-  static const likes_matches_action_request_like_not_accepted =
-      'likes.matches_action_request_like_not_accepted';
-  static const likes_matches_action_request_failed =
-      'likes.matches_action_request_failed';
-  static const likes_matches_action_accept_success =
-      'likes.matches_action_accept_success';
-  static const likes_matches_action_reject_success =
-      'likes.matches_action_reject_success';
-  static const likes_matches_action_respond_not_found =
-      'likes.matches_action_respond_not_found';
-  static const likes_matches_action_respond_expired =
-      'likes.matches_action_respond_expired';
-  static const likes_matches_action_respond_failed =
-      'likes.matches_action_respond_failed';
+  static const likes_matchmaker_chat_placeholder = 'likes.matchmaker_chat_placeholder';
+  static const likes_matches_action_request_success = 'likes.matches_action_request_success';
+  static const likes_matches_action_request_already_pending = 'likes.matches_action_request_already_pending';
+  static const likes_matches_action_request_like_not_accepted = 'likes.matches_action_request_like_not_accepted';
+  static const likes_matches_action_request_failed = 'likes.matches_action_request_failed';
+  static const likes_matches_action_accept_success = 'likes.matches_action_accept_success';
+  static const likes_matches_action_reject_success = 'likes.matches_action_reject_success';
+  static const likes_matches_action_respond_not_found = 'likes.matches_action_respond_not_found';
+  static const likes_matches_action_respond_expired = 'likes.matches_action_respond_expired';
+  static const likes_matches_action_respond_failed = 'likes.matches_action_respond_failed';
   static const likes = 'likes';
   static const questionnaire_welcome = 'questionnaire.welcome';
   static const questionnaire_choose_identity = 'questionnaire.choose_identity';
@@ -263,32 +236,21 @@ abstract class  LocaleKeys {
   static const subscriptions_select_duration = 'subscriptions.select_duration';
   static const subscriptions_subscribe_cta = 'subscriptions.subscribe_cta';
   static const subscriptions_upgrade_cta = 'subscriptions.upgrade_cta';
-  static const subscriptions_view_packages_cta =
-      'subscriptions.view_packages_cta';
+  static const subscriptions_view_packages_cta = 'subscriptions.view_packages_cta';
   static const subscriptions_have_discount = 'subscriptions.have_discount';
-  static const subscriptions_discount_placeholder =
-      'subscriptions.discount_placeholder';
+  static const subscriptions_discount_placeholder = 'subscriptions.discount_placeholder';
   static const subscriptions_discount_apply = 'subscriptions.discount_apply';
   static const subscriptions_discount_remove = 'subscriptions.discount_remove';
-  static const subscriptions_discount_applied =
-      'subscriptions.discount_applied';
-  static const subscriptions_discount_invalid =
-      'subscriptions.discount_invalid';
+  static const subscriptions_discount_applied = 'subscriptions.discount_applied';
+  static const subscriptions_discount_invalid = 'subscriptions.discount_invalid';
   static const subscriptions_feature_likes = 'subscriptions.feature_likes';
-  static const subscriptions_feature_photo_exchanges =
-      'subscriptions.feature_photo_exchanges';
-  static const subscriptions_feature_serious_interests =
-      'subscriptions.feature_serious_interests';
-  static const subscriptions_feature_daily_profile_views =
-      'subscriptions.feature_daily_profile_views';
-  static const subscriptions_feature_likes_label =
-      'subscriptions.feature_likes_label';
-  static const subscriptions_feature_photo_exchanges_label =
-      'subscriptions.feature_photo_exchanges_label';
-  static const subscriptions_feature_serious_interests_label =
-      'subscriptions.feature_serious_interests_label';
-  static const subscriptions_feature_daily_profile_views_label =
-      'subscriptions.feature_daily_profile_views_label';
+  static const subscriptions_feature_photo_exchanges = 'subscriptions.feature_photo_exchanges';
+  static const subscriptions_feature_serious_interests = 'subscriptions.feature_serious_interests';
+  static const subscriptions_feature_daily_profile_views = 'subscriptions.feature_daily_profile_views';
+  static const subscriptions_feature_likes_label = 'subscriptions.feature_likes_label';
+  static const subscriptions_feature_photo_exchanges_label = 'subscriptions.feature_photo_exchanges_label';
+  static const subscriptions_feature_serious_interests_label = 'subscriptions.feature_serious_interests_label';
+  static const subscriptions_feature_daily_profile_views_label = 'subscriptions.feature_daily_profile_views_label';
   static const subscriptions_currency = 'subscriptions.currency';
   static const subscriptions_per_month = 'subscriptions.per_month';
   static const subscriptions_duration_days = 'subscriptions.duration_days';
@@ -296,62 +258,60 @@ abstract class  LocaleKeys {
   static const subscriptions_load_failed = 'subscriptions.load_failed';
   static const subscriptions_retry = 'subscriptions.retry';
   static const subscriptions_purchase_title = 'subscriptions.purchase_title';
-  static const subscriptions_purchase_summary =
-      'subscriptions.purchase_summary';
+  static const subscriptions_purchase_summary = 'subscriptions.purchase_summary';
   static const subscriptions_final_price = 'subscriptions.final_price';
   static const subscriptions_confirm_cta = 'subscriptions.confirm_cta';
-  static const subscriptions_subscribe_success =
-      'subscriptions.subscribe_success';
-  static const subscriptions_subscribe_failed =
-      'subscriptions.subscribe_failed';
-  static const subscriptions_fake_payment_title =
-      'subscriptions.fake_payment_title';
-  static const subscriptions_fake_payment_message =
-      'subscriptions.fake_payment_message';
-  static const subscriptions_fake_payment_confirm =
-      'subscriptions.fake_payment_confirm';
-  static const subscriptions_fake_payment_cancel =
-      'subscriptions.fake_payment_cancel';
-  static const subscriptions_paywall_like_title =
-      'subscriptions.paywall_like_title';
-  static const subscriptions_paywall_like_body =
-      'subscriptions.paywall_like_body';
-  static const subscriptions_paywall_likes_exhausted_title =
-      'subscriptions.paywall_likes_exhausted_title';
-  static const subscriptions_paywall_likes_exhausted_body =
-      'subscriptions.paywall_likes_exhausted_body';
-  static const subscriptions_paywall_photo_title =
-      'subscriptions.paywall_photo_title';
-  static const subscriptions_paywall_photo_body =
-      'subscriptions.paywall_photo_body';
-  static const subscriptions_paywall_serious_interest_title =
-      'subscriptions.paywall_serious_interest_title';
-  static const subscriptions_paywall_serious_interest_body =
-      'subscriptions.paywall_serious_interest_body';
-  static const subscriptions_paywall_accept_title =
-      'subscriptions.paywall_accept_title';
-  static const subscriptions_paywall_accept_body =
-      'subscriptions.paywall_accept_body';
-  static const subscriptions_paywall_not_now =
-      'subscriptions.paywall_not_now';
-  static const subscriptions_status_my_subscription =
-      'subscriptions.status_my_subscription';
-  static const subscriptions_status_active_until =
-      'subscriptions.status_active_until';
-  static const subscriptions_status_days_remaining =
-      'subscriptions.status_days_remaining';
-  static const subscriptions_status_expired_banner =
-      'subscriptions.status_expired_banner';
-  static const subscriptions_status_not_subscribed_title =
-      'subscriptions.status_not_subscribed_title';
-  static const subscriptions_status_not_subscribed_body =
-      'subscriptions.status_not_subscribed_body';
+  static const subscriptions_subscribe_success = 'subscriptions.subscribe_success';
+  static const subscriptions_subscribe_failed = 'subscriptions.subscribe_failed';
+  static const subscriptions_fake_payment_title = 'subscriptions.fake_payment_title';
+  static const subscriptions_fake_payment_message = 'subscriptions.fake_payment_message';
+  static const subscriptions_fake_payment_confirm = 'subscriptions.fake_payment_confirm';
+  static const subscriptions_fake_payment_cancel = 'subscriptions.fake_payment_cancel';
+  static const subscriptions_paywall_like_title = 'subscriptions.paywall_like_title';
+  static const subscriptions_paywall_like_body = 'subscriptions.paywall_like_body';
+  static const subscriptions_paywall_likes_exhausted_title = 'subscriptions.paywall_likes_exhausted_title';
+  static const subscriptions_paywall_likes_exhausted_body = 'subscriptions.paywall_likes_exhausted_body';
+  static const subscriptions_paywall_photo_title = 'subscriptions.paywall_photo_title';
+  static const subscriptions_paywall_photo_body = 'subscriptions.paywall_photo_body';
+  static const subscriptions_paywall_serious_interest_title = 'subscriptions.paywall_serious_interest_title';
+  static const subscriptions_paywall_serious_interest_body = 'subscriptions.paywall_serious_interest_body';
+  static const subscriptions_paywall_accept_title = 'subscriptions.paywall_accept_title';
+  static const subscriptions_paywall_accept_body = 'subscriptions.paywall_accept_body';
+  static const subscriptions_paywall_not_now = 'subscriptions.paywall_not_now';
+  static const subscriptions_status_my_subscription = 'subscriptions.status_my_subscription';
+  static const subscriptions_status_active_until = 'subscriptions.status_active_until';
+  static const subscriptions_status_days_remaining = 'subscriptions.status_days_remaining';
+  static const subscriptions_status_expired_banner = 'subscriptions.status_expired_banner';
+  static const subscriptions_status_not_subscribed_title = 'subscriptions.status_not_subscribed_title';
+  static const subscriptions_status_not_subscribed_body = 'subscriptions.status_not_subscribed_body';
   static const subscriptions = 'subscriptions';
+  static const profile_my_title = 'profile.my_title';
+  static const profile_name_age_format = 'profile.name_age_format';
+  static const profile_details_interests_title = 'profile.details_interests_title';
+  static const profile_compatibility_label = 'profile.compatibility_label';
+  static const profile_no_photo = 'profile.no_photo';
+  static const profile_not_available = 'profile.not_available';
+  static const profile_retry = 'profile.retry';
+  static const profile_status_pending_review = 'profile.status_pending_review';
+  static const profile_status_hidden = 'profile.status_hidden';
+  static const profile_status_rejected = 'profile.status_rejected';
+  static const profile_share_with_matchmaker_cta = 'profile.share_with_matchmaker_cta';
+  static const profile_share_confirm_title = 'profile.share_confirm_title';
+  static const profile_share_confirm_body = 'profile.share_confirm_body';
+  static const profile_share_confirm_send = 'profile.share_confirm_send';
+  static const profile_share_confirm_cancel = 'profile.share_confirm_cancel';
+  static const profile_share_success = 'profile.share_success';
+  static const profile_share_no_matchmaker = 'profile.share_no_matchmaker';
+  static const profile_share_profile_not_found = 'profile.share_profile_not_found';
+  static const profile_share_validation = 'profile.share_validation';
+  static const profile_share_rate_limited = 'profile.share_rate_limited';
+  static const profile_share_conversation_not_found = 'profile.share_conversation_not_found';
+  static const profile_share_unauthorized = 'profile.share_unauthorized';
+  static const profile_share_failure = 'profile.share_failure';
+  static const profile = 'profile';
   static const chat_tab_title = 'chat.tab_title';
-  static const chat_entry_no_matchmaker_title =
-      'chat.entry_no_matchmaker_title';
-  static const chat_entry_no_matchmaker_subtitle =
-      'chat.entry_no_matchmaker_subtitle';
+  static const chat_entry_no_matchmaker_title = 'chat.entry_no_matchmaker_title';
+  static const chat_entry_no_matchmaker_subtitle = 'chat.entry_no_matchmaker_subtitle';
   static const chat_entry_failure_title = 'chat.entry_failure_title';
   static const chat_entry_retry = 'chat.entry_retry';
   static const chat_header_default_subtitle = 'chat.header_default_subtitle';
@@ -366,25 +326,18 @@ abstract class  LocaleKeys {
   static const chat_message_read_label = 'chat.message_read_label';
   static const chat_date_today = 'chat.date_today';
   static const chat_date_yesterday = 'chat.date_yesterday';
-  static const chat_shared_profile_age_format =
-      'chat.shared_profile_age_format';
-  static const chat_shared_profile_score_label =
-      'chat.shared_profile_score_label';
-  static const chat_shared_profile_shared_by_matchmaker =
-      'chat.shared_profile_shared_by_matchmaker';
-  static const chat_shared_profile_shared_by_me =
-      'chat.shared_profile_shared_by_me';
+  static const chat_shared_profile_age_format = 'chat.shared_profile_age_format';
+  static const chat_shared_profile_score_label = 'chat.shared_profile_score_label';
+  static const chat_shared_profile_shared_by_matchmaker = 'chat.shared_profile_shared_by_matchmaker';
+  static const chat_shared_profile_shared_by_me = 'chat.shared_profile_shared_by_me';
   static const chat_messages_empty = 'chat.messages_empty';
-  static const chat_messages_pagination_failed =
-      'chat.messages_pagination_failed';
-  static const chat_messages_pagination_retry =
-      'chat.messages_pagination_retry';
+  static const chat_messages_pagination_failed = 'chat.messages_pagination_failed';
+  static const chat_messages_pagination_retry = 'chat.messages_pagination_retry';
   static const chat_messages_load_failed = 'chat.messages_load_failed';
   static const chat_send_validation_empty = 'chat.send_validation_empty';
   static const chat_send_validation_too_long = 'chat.send_validation_too_long';
   static const chat_send_rate_limited = 'chat.send_rate_limited';
-  static const chat_send_conversation_not_found =
-      'chat.send_conversation_not_found';
+  static const chat_send_conversation_not_found = 'chat.send_conversation_not_found';
   static const chat_send_unauthorized = 'chat.send_unauthorized';
   static const chat_send_failure = 'chat.send_failure';
   static const chat_share_profile_not_found = 'chat.share_profile_not_found';
@@ -392,35 +345,6 @@ abstract class  LocaleKeys {
   static const chat_share_rate_limited = 'chat.share_rate_limited';
   static const chat_share_failure = 'chat.share_failure';
   static const chat = 'chat';
-  static const profile_my_title = 'profile.my_title';
-  static const profile_name_age_format = 'profile.name_age_format';
-  static const profile_details_interests_title =
-      'profile.details_interests_title';
-  static const profile_compatibility_label = 'profile.compatibility_label';
-  static const profile_no_photo = 'profile.no_photo';
-  static const profile_not_available = 'profile.not_available';
-  static const profile_retry = 'profile.retry';
-  static const profile_status_pending_review =
-      'profile.status_pending_review';
-  static const profile_status_hidden = 'profile.status_hidden';
-  static const profile_status_rejected = 'profile.status_rejected';
-  static const profile_share_with_matchmaker_cta =
-      'profile.share_with_matchmaker_cta';
-  static const profile_share_confirm_title = 'profile.share_confirm_title';
-  static const profile_share_confirm_body = 'profile.share_confirm_body';
-  static const profile_share_confirm_send = 'profile.share_confirm_send';
-  static const profile_share_confirm_cancel = 'profile.share_confirm_cancel';
-  static const profile_share_success = 'profile.share_success';
-  static const profile_share_no_matchmaker = 'profile.share_no_matchmaker';
-  static const profile_share_profile_not_found =
-      'profile.share_profile_not_found';
-  static const profile_share_validation = 'profile.share_validation';
-  static const profile_share_rate_limited = 'profile.share_rate_limited';
-  static const profile_share_conversation_not_found =
-      'profile.share_conversation_not_found';
-  static const profile_share_unauthorized = 'profile.share_unauthorized';
-  static const profile_share_failure = 'profile.share_failure';
-  static const profile = 'profile';
   static const matchmaker_nav_dashboard = 'matchmaker.nav_dashboard';
   static const matchmaker_nav_users = 'matchmaker.nav_users';
   static const matchmaker_nav_cases = 'matchmaker.nav_cases';
@@ -429,118 +353,81 @@ abstract class  LocaleKeys {
   static const matchmaker_notifications_title = 'matchmaker.notifications_title';
   static const matchmaker_account_title = 'matchmaker.account_title';
   static const matchmaker_dashboard_pending = 'matchmaker.dashboard_pending';
-  static const matchmaker_dashboard_approved_subscribed =
-      'matchmaker.dashboard_approved_subscribed';
-  static const matchmaker_dashboard_approved_unsubscribed =
-      'matchmaker.dashboard_approved_unsubscribed';
-  static const matchmaker_dashboard_active_cases =
-      'matchmaker.dashboard_active_cases';
-  static const matchmaker_dashboard_unread_messages =
-      'matchmaker.dashboard_unread_messages';
-  static const matchmaker_dashboard_total_assigned =
-      'matchmaker.dashboard_total_assigned';
-  static const matchmaker_dashboard_error_title =
-      'matchmaker.dashboard_error_title';
+  static const matchmaker_dashboard_approved_subscribed = 'matchmaker.dashboard_approved_subscribed';
+  static const matchmaker_dashboard_approved_unsubscribed = 'matchmaker.dashboard_approved_unsubscribed';
+  static const matchmaker_dashboard_active_cases = 'matchmaker.dashboard_active_cases';
+  static const matchmaker_dashboard_unread_messages = 'matchmaker.dashboard_unread_messages';
+  static const matchmaker_dashboard_total_assigned = 'matchmaker.dashboard_total_assigned';
+  static const matchmaker_dashboard_error_title = 'matchmaker.dashboard_error_title';
   static const matchmaker_dashboard_retry = 'matchmaker.dashboard_retry';
   static const matchmaker_users_tab_pending = 'matchmaker.users_tab_pending';
-  static const matchmaker_users_tab_approved_unsubscribed =
-      'matchmaker.users_tab_approved_unsubscribed';
-  static const matchmaker_users_tab_approved_subscribed =
-      'matchmaker.users_tab_approved_subscribed';
-  static const matchmaker_users_subscription_expires =
-      'matchmaker.users_subscription_expires';
-  static const matchmaker_users_assigned_at =
-      'matchmaker.users_assigned_at';
+  static const matchmaker_users_tab_approved_unsubscribed = 'matchmaker.users_tab_approved_unsubscribed';
+  static const matchmaker_users_tab_approved_subscribed = 'matchmaker.users_tab_approved_subscribed';
+  static const matchmaker_users_subscription_expires = 'matchmaker.users_subscription_expires';
+  static const matchmaker_users_assigned_at = 'matchmaker.users_assigned_at';
   static const matchmaker_users_error_title = 'matchmaker.users_error_title';
   static const matchmaker_users_retry = 'matchmaker.users_retry';
-  static const matchmaker_users_empty_message =
-      'matchmaker.users_empty_message';
-  static const matchmaker_users_empty_pending_title =
-      'matchmaker.users_empty_pending_title';
-  static const matchmaker_users_empty_unsubscribed_title =
-      'matchmaker.users_empty_unsubscribed_title';
-  static const matchmaker_users_empty_subscribed_title =
-      'matchmaker.users_empty_subscribed_title';
-  static const matchmaker_profile_error_title =
-      'matchmaker.profile_error_title';
+  static const matchmaker_users_empty_message = 'matchmaker.users_empty_message';
+  static const matchmaker_users_empty_pending_title = 'matchmaker.users_empty_pending_title';
+  static const matchmaker_users_empty_unsubscribed_title = 'matchmaker.users_empty_unsubscribed_title';
+  static const matchmaker_users_empty_subscribed_title = 'matchmaker.users_empty_subscribed_title';
+  static const matchmaker_profile_error_title = 'matchmaker.profile_error_title';
   static const matchmaker_profile_retry = 'matchmaker.profile_retry';
-  static const matchmaker_profile_status_pending =
-      'matchmaker.profile_status_pending';
-  static const matchmaker_profile_status_rejected =
-      'matchmaker.profile_status_rejected';
-  static const matchmaker_profile_status_hidden =
-      'matchmaker.profile_status_hidden';
-  static const matchmaker_profile_basic_info =
-      'matchmaker.profile_basic_info';
-  static const matchmaker_profile_action_approve =
-      'matchmaker.profile_action_approve';
-  static const matchmaker_profile_action_reject =
-      'matchmaker.profile_action_reject';
-  static const matchmaker_profile_action_request_image =
-      'matchmaker.profile_action_request_image';
-  static const matchmaker_profile_action_cancel =
-      'matchmaker.profile_action_cancel';
-  static const matchmaker_profile_approve_confirm_title =
-      'matchmaker.profile_approve_confirm_title';
-  static const matchmaker_profile_approve_confirm_message =
-      'matchmaker.profile_approve_confirm_message';
-  static const matchmaker_profile_approve_success =
-      'matchmaker.profile_approve_success';
-  static const matchmaker_profile_reject_title =
-      'matchmaker.profile_reject_title';
-  static const matchmaker_profile_reject_subtitle =
-      'matchmaker.profile_reject_subtitle';
-  static const matchmaker_profile_reject_hint =
-      'matchmaker.profile_reject_hint';
-  static const matchmaker_profile_reject_submit =
-      'matchmaker.profile_reject_submit';
-  static const matchmaker_profile_reject_validation_empty =
-      'matchmaker.profile_reject_validation_empty';
-  static const matchmaker_profile_reject_success =
-      'matchmaker.profile_reject_success';
-  static const matchmaker_profile_request_image_success =
-      'matchmaker.profile_request_image_success';
+  static const matchmaker_profile_status_pending = 'matchmaker.profile_status_pending';
+  static const matchmaker_profile_status_rejected = 'matchmaker.profile_status_rejected';
+  static const matchmaker_profile_status_hidden = 'matchmaker.profile_status_hidden';
+  static const matchmaker_profile_basic_info = 'matchmaker.profile_basic_info';
+  static const matchmaker_profile_action_approve = 'matchmaker.profile_action_approve';
+  static const matchmaker_profile_action_reject = 'matchmaker.profile_action_reject';
+  static const matchmaker_profile_action_request_image = 'matchmaker.profile_action_request_image';
+  static const matchmaker_profile_action_cancel = 'matchmaker.profile_action_cancel';
+  static const matchmaker_profile_approve_confirm_title = 'matchmaker.profile_approve_confirm_title';
+  static const matchmaker_profile_approve_confirm_message = 'matchmaker.profile_approve_confirm_message';
+  static const matchmaker_profile_approve_success = 'matchmaker.profile_approve_success';
+  static const matchmaker_profile_reject_title = 'matchmaker.profile_reject_title';
+  static const matchmaker_profile_reject_subtitle = 'matchmaker.profile_reject_subtitle';
+  static const matchmaker_profile_reject_hint = 'matchmaker.profile_reject_hint';
+  static const matchmaker_profile_reject_submit = 'matchmaker.profile_reject_submit';
+  static const matchmaker_profile_reject_validation_empty = 'matchmaker.profile_reject_validation_empty';
+  static const matchmaker_profile_reject_success = 'matchmaker.profile_reject_success';
+  static const matchmaker_profile_request_image_success = 'matchmaker.profile_request_image_success';
   static const matchmaker_answers_title = 'matchmaker.answers_title';
   static const matchmaker_answers_open = 'matchmaker.answers_open';
   static const matchmaker_answers_edit = 'matchmaker.answers_edit';
   static const matchmaker_answers_save = 'matchmaker.answers_save';
   static const matchmaker_answers_hint = 'matchmaker.answers_hint';
-  static const matchmaker_answers_empty_value =
-      'matchmaker.answers_empty_value';
-  static const matchmaker_answers_save_success =
-      'matchmaker.answers_save_success';
-  static const matchmaker_answers_error_title =
-      'matchmaker.answers_error_title';
-  static const matchmaker_answers_empty_title =
-      'matchmaker.answers_empty_title';
-  static const matchmaker_answers_empty_message =
-      'matchmaker.answers_empty_message';
-  static const matchmaker_empty_dashboard_title =
-      'matchmaker.empty_dashboard_title';
-  static const matchmaker_empty_dashboard_message =
-      'matchmaker.empty_dashboard_message';
+  static const matchmaker_answers_empty_value = 'matchmaker.answers_empty_value';
+  static const matchmaker_answers_save_success = 'matchmaker.answers_save_success';
+  static const matchmaker_answers_error_title = 'matchmaker.answers_error_title';
+  static const matchmaker_answers_empty_title = 'matchmaker.answers_empty_title';
+  static const matchmaker_answers_empty_message = 'matchmaker.answers_empty_message';
+  static const matchmaker_cases_error_title = 'matchmaker.cases_error_title';
+  static const matchmaker_cases_retry = 'matchmaker.cases_retry';
+  static const matchmaker_cases_like_accepted_at = 'matchmaker.cases_like_accepted_at';
+  static const matchmaker_cases_stage_like_accepted = 'matchmaker.cases_stage_like_accepted';
+  static const matchmaker_cases_stage_photo_pending = 'matchmaker.cases_stage_photo_pending';
+  static const matchmaker_cases_stage_photo_accepted = 'matchmaker.cases_stage_photo_accepted';
+  static const matchmaker_cases_stage_photo_rejected = 'matchmaker.cases_stage_photo_rejected';
+  static const matchmaker_cases_stage_photo_expired = 'matchmaker.cases_stage_photo_expired';
+  static const matchmaker_cases_formal_waiting_appointment = 'matchmaker.cases_formal_waiting_appointment';
+  static const matchmaker_cases_formal_parents_visited = 'matchmaker.cases_formal_parents_visited';
+  static const matchmaker_cases_formal_successfully_closed = 'matchmaker.cases_formal_successfully_closed';
+  static const matchmaker_cases_formal_closed = 'matchmaker.cases_formal_closed';
+  static const matchmaker_cases_formal_cancelled = 'matchmaker.cases_formal_cancelled';
+  static const matchmaker_empty_dashboard_title = 'matchmaker.empty_dashboard_title';
+  static const matchmaker_empty_dashboard_message = 'matchmaker.empty_dashboard_message';
   static const matchmaker_empty_users_title = 'matchmaker.empty_users_title';
-  static const matchmaker_empty_users_message =
-      'matchmaker.empty_users_message';
+  static const matchmaker_empty_users_message = 'matchmaker.empty_users_message';
   static const matchmaker_empty_cases_title = 'matchmaker.empty_cases_title';
-  static const matchmaker_empty_cases_message =
-      'matchmaker.empty_cases_message';
-  static const matchmaker_empty_conversations_title =
-      'matchmaker.empty_conversations_title';
-  static const matchmaker_empty_conversations_message =
-      'matchmaker.empty_conversations_message';
-  static const matchmaker_empty_explore_title =
-      'matchmaker.empty_explore_title';
-  static const matchmaker_empty_explore_message =
-      'matchmaker.empty_explore_message';
-  static const matchmaker_empty_notifications_title =
-      'matchmaker.empty_notifications_title';
-  static const matchmaker_empty_notifications_message =
-      'matchmaker.empty_notifications_message';
-  static const matchmaker_empty_account_title =
-      'matchmaker.empty_account_title';
-  static const matchmaker_empty_account_message =
-      'matchmaker.empty_account_message';
+  static const matchmaker_empty_cases_message = 'matchmaker.empty_cases_message';
+  static const matchmaker_empty_conversations_title = 'matchmaker.empty_conversations_title';
+  static const matchmaker_empty_conversations_message = 'matchmaker.empty_conversations_message';
+  static const matchmaker_empty_explore_title = 'matchmaker.empty_explore_title';
+  static const matchmaker_empty_explore_message = 'matchmaker.empty_explore_message';
+  static const matchmaker_empty_notifications_title = 'matchmaker.empty_notifications_title';
+  static const matchmaker_empty_notifications_message = 'matchmaker.empty_notifications_message';
+  static const matchmaker_empty_account_title = 'matchmaker.empty_account_title';
+  static const matchmaker_empty_account_message = 'matchmaker.empty_account_message';
   static const matchmaker = 'matchmaker';
 
 }

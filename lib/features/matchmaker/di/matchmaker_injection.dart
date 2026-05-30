@@ -1,5 +1,10 @@
 import 'package:qeran/core/di/injection_container.dart';
 
+import '../compatibility_cases/data/datasources/compatibility_cases_remote_datasource.dart';
+import '../compatibility_cases/data/repositories/compatibility_cases_repository_impl.dart';
+import '../compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
+import '../compatibility_cases/domain/usecases/get_compatibility_cases_usecase.dart';
+import '../compatibility_cases/presentation/blocs/matchmaker_cases_list_cubit.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
@@ -123,4 +128,14 @@ Future<void> initMatchmakerDependencies() async {
     (userId, _) =>
         MatchmakerAnswerSaveCubit(userId: userId, updateTextAnswer: sl()),
   );
+
+  //! ── M3 · Compatibility cases ─────────────────────────────────────
+  sl.registerLazySingleton<CompatibilityCasesRemoteDataSource>(
+    () => CompatibilityCasesRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<CompatibilityCasesRepository>(
+    () => CompatibilityCasesRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetCompatibilityCasesUseCase(sl()));
+  sl.registerFactory(() => MatchmakerCasesListCubit(getCases: sl()));
 }

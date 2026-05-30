@@ -387,6 +387,7 @@
     "profile_status_pending": "This profile is awaiting your review",
     "profile_status_rejected": "This profile was rejected",
     "profile_status_hidden": "This profile is hidden from discovery",
+    "profile_basic_info": "Basic information",
     "empty_dashboard_title": "Your dashboard",
     "empty_dashboard_message": "Pending reviews, approved users, active compatibility cases, and unread messages will appear here.",
     "empty_users_title": "Users management",

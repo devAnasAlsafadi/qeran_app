@@ -470,6 +470,8 @@ abstract class  LocaleKeys {
       'matchmaker.profile_status_rejected';
   static const matchmaker_profile_status_hidden =
       'matchmaker.profile_status_hidden';
+  static const matchmaker_profile_basic_info =
+      'matchmaker.profile_basic_info';
   static const matchmaker_empty_dashboard_title =
       'matchmaker.empty_dashboard_title';
   static const matchmaker_empty_dashboard_message =

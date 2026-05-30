@@ -387,6 +387,7 @@
     "profile_status_pending": "هذا الملف بانتظار مراجعتك",
     "profile_status_rejected": "تم رفض هذا الملف",
     "profile_status_hidden": "هذا الملف مخفي عن الاستكشاف",
+    "profile_basic_info": "معلومات أساسية",
     "empty_dashboard_title": "لوحة الإحصائيات",
     "empty_dashboard_message": "ستظهر هنا أعداد المستخدمين بانتظار المراجعة، المعتمدين، حالات التوافق النشطة، والرسائل غير المقروءة.",
     "empty_users_title": "إدارة المستخدمين",

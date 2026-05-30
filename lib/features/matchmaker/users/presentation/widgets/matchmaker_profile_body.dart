@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/features/profile/domain/entities/placement.dart';
+import 'package:qeran/features/profile/domain/entities/placement_code.dart';
 import 'package:qeran/features/profile/presentation/widgets/placement/placement_renderer.dart';
+import 'package:qeran/features/profile/presentation/widgets/placement/profile_section_header.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_header_gallery.dart';
 
 import '../../../../../core/design_system/motion/soft_scale_in.dart';
 import '../../../../../core/design_system/tokens/qeran_motion.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../domain/entities/matchmaker_user_profile.dart';
+import 'matchmaker_above_image_section.dart';
 import 'matchmaker_profile_header.dart';
 import 'matchmaker_profile_status_banner.dart';
 
 /// Read surface for the matchmaker profile detail: gallery hero → hero
-/// title card (overlapping the gallery) → status banner → placements. The
-/// gallery and `PlacementRenderer` are reused from the profile feature, so
-/// the rendered sections match the user-side full profile exactly.
+/// title card (overlapping the gallery) → status banner → above-image
+/// fields → placements. The gallery and `PlacementRenderer` are reused from
+/// the profile feature, so the rendered sections match the user-side full
+/// profile.
 ///
-/// Note: `PlacementRenderer` intentionally skips the `aboveImage` placement
-/// (it's drawn over the photo on the user-side card), so residence / job /
-/// nationality are not surfaced here — same as the user-side full profile.
+/// `PlacementRenderer` skips the `aboveImage` placement (it's drawn over the
+/// photo on the user-side card), so it's surfaced here separately via
+/// [MatchmakerAboveImageSection] — the matchmaker never sees that card and
+/// needs residence / job / nationality to review the profile.
 class MatchmakerProfileBody extends StatelessWidget {
   const MatchmakerProfileBody({super.key, required this.profile});
 
@@ -28,6 +34,7 @@ class MatchmakerProfileBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final aboveImage = _aboveImageOf(profile.placements);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -53,7 +60,21 @@ class MatchmakerProfileBody extends StatelessWidget {
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
-                  child: PlacementRenderer(placements: profile.placements),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Primary identifying info first — the matchmaker
+                      // never saw the discovery card that normally carries
+                      // these fields.
+                      if (aboveImage != null &&
+                          aboveImage.items.isNotEmpty) ...[
+                        MatchmakerAboveImageSection(placement: aboveImage),
+                        const ProfileSectionDivider(),
+                      ],
+                      PlacementRenderer(placements: profile.placements),
+                    ],
+                  ),
                 ),
                 QeranSpacing.vs32,
               ],
@@ -62,5 +83,14 @@ class MatchmakerProfileBody extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// The `aboveImage` placement (residence / job / nationality), or `null`
+  /// when the profile carries none.
+  static Placement? _aboveImageOf(List<Placement> placements) {
+    for (final p in placements) {
+      if (p.code == PlacementCode.aboveImage) return p;
+    }
+    return null;
   }
 }

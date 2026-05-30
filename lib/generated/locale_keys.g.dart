@@ -500,6 +500,21 @@ abstract class  LocaleKeys {
       'matchmaker.profile_reject_success';
   static const matchmaker_profile_request_image_success =
       'matchmaker.profile_request_image_success';
+  static const matchmaker_answers_title = 'matchmaker.answers_title';
+  static const matchmaker_answers_open = 'matchmaker.answers_open';
+  static const matchmaker_answers_edit = 'matchmaker.answers_edit';
+  static const matchmaker_answers_save = 'matchmaker.answers_save';
+  static const matchmaker_answers_hint = 'matchmaker.answers_hint';
+  static const matchmaker_answers_empty_value =
+      'matchmaker.answers_empty_value';
+  static const matchmaker_answers_save_success =
+      'matchmaker.answers_save_success';
+  static const matchmaker_answers_error_title =
+      'matchmaker.answers_error_title';
+  static const matchmaker_answers_empty_title =
+      'matchmaker.answers_empty_title';
+  static const matchmaker_answers_empty_message =
+      'matchmaker.answers_empty_message';
   static const matchmaker_empty_dashboard_title =
       'matchmaker.empty_dashboard_title';
   static const matchmaker_empty_dashboard_message =

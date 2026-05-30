@@ -14,6 +14,7 @@ import '../blocs/matchmaker_profile_detail_cubit.dart';
 import '../blocs/matchmaker_profile_detail_state.dart';
 import '../blocs/matchmaker_user_actions_cubit.dart';
 import '../blocs/matchmaker_user_actions_state.dart';
+import '../widgets/matchmaker_edit_answers_button.dart';
 import '../widgets/matchmaker_profile_action_bar.dart';
 import '../widgets/matchmaker_profile_body.dart';
 
@@ -96,6 +97,11 @@ class _ProfileDetailView extends StatelessWidget {
                 top: 8,
                 start: 8,
                 child: _BackButton(),
+              ),
+              const PositionedDirectional(
+                top: 8,
+                end: 8,
+                child: MatchmakerEditAnswersButton(),
               ),
             ],
           ),

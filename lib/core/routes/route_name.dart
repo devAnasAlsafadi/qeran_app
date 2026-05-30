@@ -35,4 +35,6 @@ class RouteNames {
   static const String matchmakerNotifications = '/matchmaker/notifications';
   static const String matchmakerAccount = '/matchmaker/account';
   static const String matchmakerUserProfile = '/matchmaker/user-profile';
+  static const String matchmakerEditableAnswers =
+      '/matchmaker/editable-answers';
 }

@@ -5,21 +5,28 @@ import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
 import '../dashboard/domain/usecases/get_matchmaker_dashboard_usecase.dart';
 import '../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
+import '../users/data/datasources/matchmaker_editable_answers_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_user_actions_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_user_profile_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_users_remote_datasource.dart';
+import '../users/data/repositories/matchmaker_editable_answers_repository_impl.dart';
 import '../users/data/repositories/matchmaker_user_actions_repository_impl.dart';
 import '../users/data/repositories/matchmaker_user_profile_repository_impl.dart';
 import '../users/data/repositories/matchmaker_users_repository_impl.dart';
 import '../users/domain/entities/matchmaker_users_list.dart';
+import '../users/domain/repositories/matchmaker_editable_answers_repository.dart';
 import '../users/domain/repositories/matchmaker_user_actions_repository.dart';
 import '../users/domain/repositories/matchmaker_user_profile_repository.dart';
 import '../users/domain/repositories/matchmaker_users_repository.dart';
 import '../users/domain/usecases/approve_user_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_user_profile_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_users_usecase.dart';
+import '../users/domain/usecases/get_editable_answers_usecase.dart';
 import '../users/domain/usecases/reject_user_usecase.dart';
 import '../users/domain/usecases/request_image_user_usecase.dart';
+import '../users/domain/usecases/update_text_answer_usecase.dart';
+import '../users/presentation/blocs/matchmaker_answer_save_cubit.dart';
+import '../users/presentation/blocs/matchmaker_editable_answers_cubit.dart';
 import '../users/presentation/blocs/matchmaker_profile_detail_cubit.dart';
 import '../users/presentation/blocs/matchmaker_user_actions_cubit.dart';
 import '../users/presentation/blocs/matchmaker_users_list_cubit.dart';
@@ -95,5 +102,25 @@ Future<void> initMatchmakerDependencies() async {
       reject: sl(),
       requestImage: sl(),
     ),
+  );
+
+  //! ── M2e · Editable text answers ──────────────────────────────────
+  sl.registerLazySingleton<MatchmakerEditableAnswersRemoteDataSource>(
+    () => MatchmakerEditableAnswersRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerEditableAnswersRepository>(
+    () => MatchmakerEditableAnswersRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetEditableAnswersUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateTextAnswerUseCase(sl()));
+  sl.registerFactoryParam<MatchmakerEditableAnswersCubit, String, void>(
+    (userId, _) => MatchmakerEditableAnswersCubit(
+      userId: userId,
+      getEditableAnswers: sl(),
+    ),
+  );
+  sl.registerFactoryParam<MatchmakerAnswerSaveCubit, String, void>(
+    (userId, _) =>
+        MatchmakerAnswerSaveCubit(userId: userId, updateTextAnswer: sl()),
   );
 }

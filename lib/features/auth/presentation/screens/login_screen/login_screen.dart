@@ -121,6 +121,18 @@ class _LoginScreenState extends State<LoginScreen> {
         message: LocaleKeys.auth_login_success.t(context),
         type: SnackBarType.success,
       );
+      // Role-first: a matchmaker (role == "Moderator") has NO user
+      // onboarding gates. Backend confirms admin roles bypass
+      // IsPhoneVerified entirely, so correct credentials land straight
+      // on the matchmaker shell — never on phone-verify / questions /
+      // oath. This must short-circuit before any user gate below.
+      if (state.user.role?.toLowerCase() == 'moderator') {
+        NavigationManager.pushNamedAndRemoveUntil(
+          context,
+          RouteNames.matchmakerHome,
+        );
+        return;
+      }
       if (state.user.isPhoneVerified != true) {
         NavigationManager.navigateTo(context, RouteNames.whatsappInput);
       } else if (state.user.hasAnsweredQuestions != true) {

@@ -10,7 +10,7 @@ class MatchCardModel {
   final String otherUserId;
   final String otherUserName;
   final List<MatchImageModel> images;
-  final int stageCode;
+  final MatchStage stage;
   final PhotoExchangePendingModel? pendingPhotoExchange;
   final FormalRequestModel? formalRequest;
   final String? conversationId;
@@ -20,7 +20,7 @@ class MatchCardModel {
     required this.otherUserId,
     required this.otherUserName,
     required this.images,
-    required this.stageCode,
+    required this.stage,
     required this.pendingPhotoExchange,
     required this.formalRequest,
     required this.conversationId,
@@ -32,7 +32,7 @@ class MatchCardModel {
       otherUserId: parseString(json['otherUserId']),
       otherUserName: parseString(json['otherUserName']),
       images: _parseImages(json['images']),
-      stageCode: parseInt(json['stage'], fallback: -1),
+      stage: MatchStage.fromWire(json['stage']),
       pendingPhotoExchange:
           PhotoExchangePendingModel.fromJson(json['pendingPhotoExchange']),
       formalRequest: FormalRequestModel.fromJson(json['formalRequest']),
@@ -53,7 +53,7 @@ class MatchCardModel {
         otherUserId: otherUserId,
         otherUserName: otherUserName,
         images: images.map((m) => m.toEntity()).toList(growable: false),
-        stage: MatchStage.fromCode(stageCode),
+        stage: stage,
         pendingPhotoExchange: pendingPhotoExchange?.toEntity(),
         formalRequest: formalRequest?.toEntity(),
         conversationId: conversationId,

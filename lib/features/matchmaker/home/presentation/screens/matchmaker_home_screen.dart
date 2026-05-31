@@ -1,14 +1,20 @@
 import 'dart:async';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 
 import '../../../../../core/di/injection_container.dart';
+import '../../../../../core/routes/navigation_manager.dart';
+import '../../../../../core/routes/route_name.dart';
 import '../../../compatibility_cases/presentation/screens/matchmaker_cases_tab.dart';
+import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../conversations/presentation/screens/matchmaker_conversations_tab.dart';
 import '../../../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
 import '../../../dashboard/presentation/screens/matchmaker_dashboard_tab.dart';
 import '../../../explore/presentation/screens/matchmaker_explore_tab.dart';
+import '../../../shared/data/matchmaker_notification_router.dart';
 import '../../../shared/domain/entities/matchmaker_realtime_status.dart';
 import '../../../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../../../users/domain/entities/matchmaker_users_list.dart';
@@ -42,19 +48,61 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
   // Matchmaker-only — the user shell is untouched.
   late final MatchmakerRealtimePort _realtimePort;
 
+  // FCM deep-linking (M4d). Confined to the shell — Moderator-only mount,
+  // zero user-side impact. SignalR (4c) covers foreground live updates, so
+  // foreground `onMessage` is intentionally NOT handled here.
+  StreamSubscription<RemoteMessage>? _notifTapSub;
+
   @override
   void initState() {
     super.initState();
     _realtimePort = sl<MatchmakerRealtimePort>();
     WidgetsBinding.instance.addObserver(this);
     unawaited(_safeConnect());
+    // Background-tap (app alive) + terminated/cold-start (launched by tap).
+    _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
+    FirebaseMessaging.instance.getInitialMessage().then((m) {
+      if (m != null) _route(m);
+    });
   }
 
   @override
   void dispose() {
+    unawaited(_notifTapSub?.cancel());
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_realtimePort.disconnect());
     super.dispose();
+  }
+
+  /// Route a tapped notification into the matchmaker tree. Defensive role
+  /// guard (the shell is Moderator-only anyway). Parsing + audience guards
+  /// live in [MatchmakerNotificationRouter]; this only navigates.
+  void _route(RemoteMessage message) {
+    if (!mounted) return;
+    final role = sl<UserSessionCubit>().currentUser?.role;
+    if ((role ?? '').toLowerCase() != 'moderator') return;
+    switch (MatchmakerNotificationRouter.parse(message.data)) {
+      case OpenCases():
+        _selectTab(2); // Cases tab — the shell owns selection (no route change).
+      case OpenUserChat(:final conversationId, :final senderName):
+        // Thin conversation: chat loads messages by id; senderName fills the
+        // header. No route-arg change — satisfies the existing arg type.
+        NavigationManager.navigateTo(
+          context,
+          RouteNames.matchmakerUserChat,
+          arguments: MatchmakerConversation(
+            userId: '',
+            fullName: senderName,
+            profileImageUrl: null,
+            conversationId: conversationId,
+            lastMessageAt: null,
+            lastMessagePreview: null,
+            unreadCount: 0,
+          ),
+        );
+      case IgnoreDeepLink():
+        break;
+    }
   }
 
   @override

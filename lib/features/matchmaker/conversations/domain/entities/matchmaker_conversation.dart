@@ -31,6 +31,24 @@ class MatchmakerConversation extends Equatable {
   bool get isSharedProfilePreview =>
       lastMessagePreview?.startsWith('[profile:') ?? false;
 
+  /// Minimal additive copy — only the fields a live `ReceiveMessage`
+  /// updates (preview / timestamp / unread). All others carry through.
+  MatchmakerConversation copyWith({
+    DateTime? lastMessageAt,
+    String? lastMessagePreview,
+    int? unreadCount,
+  }) {
+    return MatchmakerConversation(
+      userId: userId,
+      fullName: fullName,
+      profileImageUrl: profileImageUrl,
+      conversationId: conversationId,
+      lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      lastMessagePreview: lastMessagePreview ?? this.lastMessagePreview,
+      unreadCount: unreadCount ?? this.unreadCount,
+    );
+  }
+
   @override
   List<Object?> get props => [
         userId,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
@@ -26,9 +28,24 @@ class MatchmakerUserConversationsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<MatchmakerUserConversationsCubit>(
-      create: (_) => sl<MatchmakerUserConversationsCubit>()..loadFirst(),
+      create: (ctx) =>
+          sl<MatchmakerUserConversationsCubit>(param1: _readMyId(ctx))
+            ..loadFirst(),
       child: const _ListBody(),
     );
+  }
+
+  /// Current user's id from the session — passed to the cubit so its live
+  /// `ReceiveMessage` handling can tell self-sent from inbound. Empty when
+  /// unauthenticated (e.g. test scope); mirrors the chat screen's reader.
+  static String _readMyId(BuildContext context) {
+    try {
+      final s = context.read<UserSessionCubit>().state;
+      if (s is UserSessionAuthenticated) return s.user.id;
+    } catch (_) {
+      // No session in test scope.
+    }
+    return '';
   }
 }
 

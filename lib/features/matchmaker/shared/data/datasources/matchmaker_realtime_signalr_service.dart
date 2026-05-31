@@ -8,6 +8,7 @@ import 'package:qeran/core/app_logger.dart';
 
 import '../../domain/entities/compatibility_case_update.dart';
 import '../../domain/entities/matchmaker_realtime_status.dart';
+import '../../domain/entities/received_chat_message.dart';
 import '../../domain/ports/matchmaker_realtime_port.dart';
 import 'matchmaker_realtime_event_parser.dart';
 
@@ -37,6 +38,8 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
       StreamController<MatchmakerRealtimeStatus>.broadcast();
   final StreamController<CompatibilityCaseUpdate> _caseUpdatesController =
       StreamController<CompatibilityCaseUpdate>.broadcast();
+  final StreamController<ReceivedChatMessage> _incomingController =
+      StreamController<ReceivedChatMessage>.broadcast();
 
   MatchmakerRealtimeSignalRService({
     required Future<String?> Function() accessTokenProvider,
@@ -68,6 +71,10 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
       _caseUpdatesController.stream;
 
   @override
+  Stream<ReceivedChatMessage> get incomingMessages =>
+      _incomingController.stream;
+
+  @override
   Future<void> connect() async {
     // Idempotent: tear down any previous session first so we never leak
     // two parallel HubConnections.
@@ -77,6 +84,7 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
     _connection = connection;
 
     connection.on('CompatibilityCaseUpdated', _onCaseUpdated);
+    connection.on('ReceiveMessage', _onMessage);
     _wireLifecycleCallbacks(connection);
     await _start(connection);
   }
@@ -142,16 +150,27 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
     await disconnect();
     await _statusController.close();
     await _caseUpdatesController.close();
+    await _incomingController.close();
   }
 
   @visibleForTesting
   void onCaseUpdatedForTest(List<Object?>? args) => _onCaseUpdated(args);
+
+  @visibleForTesting
+  void onMessageForTest(List<Object?>? args) => _onMessage(args);
 
   void _onCaseUpdated(List<Object?>? args) {
     final update = MatchmakerRealtimeEventParser.parseCaseUpdated(args);
     if (update == null) return;
     if (_caseUpdatesController.isClosed) return;
     _caseUpdatesController.add(update);
+  }
+
+  void _onMessage(List<Object?>? args) {
+    final message = MatchmakerRealtimeEventParser.parseReceivedMessage(args);
+    if (message == null) return;
+    if (_incomingController.isClosed) return;
+    _incomingController.add(message);
   }
 
   void _setStatus(MatchmakerRealtimeStatus s) {

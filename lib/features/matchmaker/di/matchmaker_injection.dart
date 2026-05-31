@@ -169,8 +169,15 @@ Future<void> initMatchmakerDependencies() async {
     () => MatchmakerConversationsRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetUserConversationsUseCase(sl()));
-  sl.registerFactory(
-    () => MatchmakerUserConversationsCubit(getConversations: sl()),
+  // One cubit per conversations tab mount — the caller passes the current
+  // user's id (from UserSessionCubit) via param1 so self-sent live messages
+  // don't bump unread. The realtime port (4c-1) is reused.
+  sl.registerFactoryParam<MatchmakerUserConversationsCubit, String, void>(
+    (myUserId, _) => MatchmakerUserConversationsCubit(
+      getConversations: sl(),
+      realtimePort: sl(),
+      myUserId: myUserId,
+    ),
   );
 
   //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────

@@ -1,5 +1,6 @@
 import '../entities/compatibility_case_update.dart';
 import '../entities/matchmaker_realtime_status.dart';
+import '../entities/received_chat_message.dart';
 
 /// Domain contract for the matchmaker-owned realtime layer.
 ///
@@ -23,6 +24,12 @@ abstract class MatchmakerRealtimePort {
   /// `CompatibilityCaseUpdated` event. Consumers map `newStatus` →
   /// `FormalRequestStatus` and update the cases list in place.
   Stream<CompatibilityCaseUpdate> get caseUpdates;
+
+  /// `ReceiveMessage` event (full ChatMessageDto, reduced to the list VO).
+  /// Delivery is connection-scoped — every message in any of the
+  /// matchmaker's conversations arrives here while connected, with no open
+  /// chat screen required. Consumed by the conversations-list cubit (4c-2).
+  Stream<ReceivedChatMessage> get incomingMessages;
 
   /// Idempotent — disconnects an existing session first. The access
   /// token is read fresh on every connect AND reconnect, so a rotated

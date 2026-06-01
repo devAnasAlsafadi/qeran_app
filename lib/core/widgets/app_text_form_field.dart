@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import '../theme/app_color.dart';
-import '../utils/app_dimens.dart';
 
 class AppTextFormField extends StatelessWidget {
   const AppTextFormField({
@@ -19,6 +19,7 @@ class AppTextFormField extends StatelessWidget {
     this.errorMsg,
     this.onChange,
     this.border,
+    this.borderRadius = QeranRadii.dome,
     this.maxLines = 1,
     this.maxLength,
   });
@@ -37,6 +38,11 @@ class AppTextFormField extends StatelessWidget {
   final OutlineInputBorder? border;
   final void Function(String)? onChange;
   final TextInputAction? textInputAction;
+
+  /// Corner radius for the field's enabled/focused borders. Defaults to the
+  /// unified [QeranRadii.dome] so every field shares the brand's soft-stadium
+  /// shape; override only when a specific surface needs a different radius.
+  final double borderRadius;
 
   /// Visible line count. Defaults to `1` (single-line) so every existing
   /// call site is unchanged; the matchmaker reject sheet passes `5`.
@@ -65,11 +71,11 @@ class AppTextFormField extends StatelessWidget {
         prefixIcon: prefixIcon,
         border: border,
         enabledBorder: OutlineInputBorder(
-          borderRadius: AppDimens.borderRadius16,
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: const BorderSide(color: AppColors.transparent),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: AppDimens.borderRadius8,
+          borderRadius: BorderRadius.circular(borderRadius),
           borderSide: BorderSide(
             color: Theme.of(context).colorScheme.secondary,
           ),

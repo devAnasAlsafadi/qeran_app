@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -18,7 +20,7 @@ class CustomButton extends StatelessWidget {
     this.backgroundColor,
     this.width,
     this.height = 55,
-    this.borderRadius = 12,
+    this.borderRadius = QeranRadii.chip,
     this.isLoading = false,
   });
 
@@ -49,7 +51,9 @@ class CustomButton extends StatelessWidget {
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      QeranColors.paper,
+                    ),
                   ),
                 )
               : Row(
@@ -59,14 +63,14 @@ class CustomButton extends StatelessWidget {
                     Text(
                       text,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: QeranColors.paper,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     if (icon != null) ...[
                       const SizedBox(width: 10),
-                      Icon(icon, color: Colors.white),
+                      Icon(icon, color: QeranColors.paper),
                     ],
                   ],
                 ),

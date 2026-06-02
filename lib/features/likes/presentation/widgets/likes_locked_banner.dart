@@ -70,8 +70,11 @@ class LikesLockedBanner extends StatelessWidget {
                   ),
                 ),
                 QeranSpacing.hs8,
+                // chevron_right_rounded auto-mirrors with the locale:
+                // points right in LTR, left in RTL — a forward/disclosure
+                // affordance consistent with the settings rows.
                 const Icon(
-                  Icons.chevron_left_rounded,
+                  Icons.chevron_right_rounded,
                   color: QeranColors.gold,
                 ),
               ],

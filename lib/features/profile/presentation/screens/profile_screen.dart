@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
@@ -60,7 +61,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          padding: const EdgeInsets.fromLTRB(
+            QeranSpacing.s16,
+            QeranSpacing.s16,
+            QeranSpacing.s16,
+            QeranSpacing.s24,
+          ),
           child: BlocBuilder<UserSessionCubit, UserSessionState>(
             builder: (context, state) {
               final user = state is UserSessionAuthenticated ? state.user : null;
@@ -75,7 +81,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   QeranSpacing.vs24,
-                  const QeranSectionHeader(title: 'إعدادات'),
+                  QeranSectionHeader(
+                    title: LocaleKeys.settings_account_management.t(context),
+                  ),
                   QeranSpacing.vs12,
                   _SettingsCard(onComingSoon: () => _showComingSoon(context)),
                   QeranSpacing.vs24,
@@ -92,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showComingSoon(BuildContext context) {
     AppSnackBar.show(
       context,
-      message: 'قريباً',
+      message: LocaleKeys.settings_coming_soon.t(context),
       type: SnackBarType.info,
     );
   }
@@ -159,7 +167,7 @@ class _ProfileHeaderCard extends StatelessWidget {
                 // for the new settings strings are deferred per the
                 // implementation roadmap.
                 Text(
-                  'الملف الشخصي مكتمل',
+                  LocaleKeys.settings_profile_complete.t(context),
                   style: QeranTypography.bodySm.copyWith(
                     color: QeranColors.inkBody,
                   ),
@@ -176,8 +184,8 @@ class _ProfileHeaderCard extends StatelessWidget {
           // (e.g. `user?.isPhoneVerified` and any future identity-
           // verification flag) is out of scope for this milestone.
           // TODO(verification): drive visibility from a real backend flag.
-          const QeranChip(
-            label: 'موثق',
+          QeranChip(
+            label: LocaleKeys.settings_verified.t(context),
             variant: QeranChipVariant.interest,
             icon: Icons.verified_rounded,
             compact: true,
@@ -266,7 +274,7 @@ class _EditProfileLink extends StatelessWidget {
               ),
               QeranSpacing.hs4,
               Text(
-                'عرض/تعديل الملف',
+                LocaleKeys.settings_view_edit_profile.t(context),
                 style: QeranTypography.caption.copyWith(
                   color: QeranColors.wine,
                   fontWeight: FontWeight.w600,
@@ -300,35 +308,46 @@ class _SettingsCard extends StatelessWidget {
           const _RowDivider(),
           _SettingsRow(
             icon: Icons.language_rounded,
-            title: 'تغيير اللغة',
-            subtitle: 'العربية',
-            onTap: onComingSoon,
+            title: LocaleKeys.settings_language_row.t(context),
+            subtitle: context.locale.languageCode == 'ar'
+                ? LocaleKeys.settings_lang_arabic.t(context)
+                : LocaleKeys.settings_lang_english.t(context),
+            onTap: () => NavigationManager.navigateTo(
+              context,
+              RouteNames.settingsLanguage,
+            ),
           ),
           const _RowDivider(),
           _SettingsRow(
             icon: Icons.notifications_outlined,
-            title: 'الإشعارات',
-            subtitle: 'إعدادات التنبيهات',
+            title: LocaleKeys.settings_notifications_row.t(context),
+            subtitle: LocaleKeys.settings_notifications_sub.t(context),
             onTap: onComingSoon,
           ),
           const _RowDivider(),
           _SettingsRow(
             icon: Icons.chat_bubble_outline_rounded,
-            title: 'المساعدة والدعم',
-            subtitle: 'تواصل معنا',
-            onTap: onComingSoon,
+            title: LocaleKeys.settings_support_row.t(context),
+            subtitle: LocaleKeys.settings_support_sub.t(context),
+            onTap: () => NavigationManager.navigateTo(
+              context,
+              RouteNames.settingsSupport,
+            ),
           ),
           const _RowDivider(),
           _SettingsRow(
             icon: Icons.description_outlined,
-            title: 'الشروط والأحكام',
-            subtitle: 'سياسة الاستخدام',
-            onTap: onComingSoon,
+            title: LocaleKeys.settings_terms_row.t(context),
+            subtitle: LocaleKeys.settings_terms_sub.t(context),
+            onTap: () => NavigationManager.navigateTo(
+              context,
+              RouteNames.settingsTerms,
+            ),
           ),
           const _RowDivider(),
           _SettingsRow(
             icon: Icons.delete_outline_rounded,
-            title: 'حذف أو تجميد الحساب',
+            title: LocaleKeys.settings_delete_account.t(context),
             subtitle: null,
             onTap: onComingSoon,
             destructive: true,
@@ -357,8 +376,8 @@ class _SubscriptionRow extends StatelessWidget {
           title: LocaleKeys.subscriptions_status_my_subscription.t(context),
           subtitle: subtitle,
           trailing: showUpgrade
-              ? const QeranChip(
-                  label: 'ترقية',
+              ? QeranChip(
+                  label: LocaleKeys.settings_upgrade.t(context),
                   variant: QeranChipVariant.interest,
                   compact: true,
                 )
@@ -551,16 +570,16 @@ class _LogoutCard extends StatelessWidget {
   }
 }
 
-/// RTL-aware trailing chevron — auto-mirrors to point inward toward the
-/// content rather than off-screen in Arabic.
+/// Trailing disclosure chevron. `chevron_right_rounded` auto-mirrors
+/// under the ambient Directionality (matchTextDirection): points left
+/// (inward) in Arabic/RTL, right in English/LTR — no manual flip.
 class _DirectionalChevron extends StatelessWidget {
   const _DirectionalChevron();
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    return Icon(
-      isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+    return const Icon(
+      Icons.chevron_right_rounded,
       color: QeranColors.wine,
       size: 22,
     );

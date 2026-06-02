@@ -25,6 +25,9 @@ import 'package:qeran/features/onboarding/presentation/screens/on_boarding_scree
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
 import 'package:qeran/features/profile/presentation/screens/my_profile_screen.dart';
+import 'package:qeran/features/settings/presentation/screens/settings_language_screen.dart';
+import 'package:qeran/features/settings/presentation/screens/settings_support_screen.dart';
+import 'package:qeran/features/settings/presentation/screens/settings_terms_screen.dart';
 import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart';
@@ -239,6 +242,21 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const MyProfileScreen(),
+        );
+      case RouteNames.settingsLanguage:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const SettingsLanguageScreen(),
+        );
+      case RouteNames.settingsSupport:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const SettingsSupportScreen(),
+        );
+      case RouteNames.settingsTerms:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const SettingsTermsScreen(),
         );
       default:
         return MaterialPageRoute(

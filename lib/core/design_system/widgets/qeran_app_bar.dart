@@ -59,13 +59,15 @@ class _QeranBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mirror chevron for RTL.
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    final icon = isRtl
-        ? Icons.chevron_right_rounded
-        : Icons.chevron_left_rounded;
+    // `chevron_left_rounded` auto-mirrors under the ambient Directionality
+    // (matchTextDirection): points left in LTR, right in RTL. No manual
+    // isRtl swap — that plus the framework's auto-mirror double-flips.
     return IconButton(
-      icon: Icon(icon, color: QeranColors.wine, size: 26),
+      icon: const Icon(
+        Icons.chevron_left_rounded,
+        color: QeranColors.wine,
+        size: 26,
+      ),
       onPressed: onTap,
       tooltip: MaterialLocalizations.of(context).backButtonTooltip,
     );

@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
@@ -9,6 +8,7 @@ import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dar
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/shared_profile.dart';
+import 'shared_profile_score_chip.dart';
 
 /// Mini-profile card rendered inside a chat bubble for shared-profile
 /// messages: image + name + age + compatibility chip + a "view profile"
@@ -80,9 +80,19 @@ class SharedProfileMessageCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (_answersLine().isNotEmpty) ...[
+                      const SizedBox(height: QeranSpacing.s4),
+                      Text(
+                        _answersLine(),
+                        textAlign: TextAlign.start,
+                        style: QeranTypography.bodySm.copyWith(color: mutedColor),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     if (hasScore) ...[
                       const SizedBox(height: QeranSpacing.s6),
-                      _ScoreChip(
+                      SharedProfileScoreChip(
                         percent: profile.matchingScore,
                         accent: accent,
                         textColor: titleColor,
@@ -124,6 +134,15 @@ class SharedProfileMessageCard extends StatelessWidget {
     return '${profile.name} · $age';
   }
 
+  /// Nationality / profession etc. joined into one muted line. Empty
+  /// when the backend ships no `answers`.
+  String _answersLine() {
+    return profile.answers
+        .map((a) => a.answer.trim())
+        .where((a) => a.isNotEmpty)
+        .join(' · ');
+  }
+
   String _sharedByLabel(BuildContext context) {
     if (isMine) {
       return LocaleKeys.chat_shared_profile_shared_by_me.t(context);
@@ -151,43 +170,6 @@ class _ViewButton extends StatelessWidget {
         LocaleKeys.chat_shared_profile_view_cta.t(context),
         textAlign: TextAlign.center,
         style: QeranTypography.label.copyWith(color: QeranColors.paper),
-      ),
-    );
-  }
-}
-
-class _ScoreChip extends StatelessWidget {
-  final double percent;
-  final Color accent;
-  final Color textColor;
-  const _ScoreChip({
-    required this.percent,
-    required this.accent,
-    required this.textColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final label = context.tr(
-      LocaleKeys.chat_shared_profile_score_label,
-      namedArgs: {'percent': '${percent.round()}'},
-    );
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: QeranSpacing.s8,
-        vertical: 2,
-      ),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.12),
-        borderRadius: QeranRadii.pill,
-        border: Border.all(color: accent.withValues(alpha: 0.30)),
-      ),
-      child: Text(
-        label,
-        style: QeranTypography.caption.copyWith(
-          color: textColor,
-          fontWeight: FontWeight.w700,
-        ),
       ),
     );
   }

@@ -1,8 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 enum LanguageSwitchVariant { light, dark }
 
@@ -17,51 +18,48 @@ class LanguageSwitchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isLight = variant == LanguageSwitchVariant.light;
-    final textColor = isLight ? AppColors.white : AppColors.primary;
-    final borderColor = isLight ? AppColors.white.withValues(alpha: 0.5) : AppColors.primary.withValues(alpha: 0.2);
-    final bgColor = isLight ? AppColors.white.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.05);
+    final iconColor = isLight ? QeranColors.paper : QeranColors.wine;
+    final borderColor =
+        isLight ? QeranColors.paper.withValues(alpha: 0.5) : QeranColors.wine20;
+    final bgColor =
+        isLight ? QeranColors.paper.withValues(alpha: 0.1) : QeranColors.wine06;
 
     return Container(
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: QeranRadii.pill,
         border: Border.all(color: borderColor),
       ),
       child: PopupMenuButton<Locale>(
         initialValue: context.locale,
         tooltip: 'Select Language',
         offset: const Offset(0, 45),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const RoundedRectangleBorder(
+          borderRadius: QeranRadii.controlR,
+        ),
         onSelected: (Locale newLocale) {
           context.setLocale(newLocale);
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.p12, vertical: AppDimens.p8),
-          child: Icon(
-            Icons.language,
-            size: 24,
-            color: textColor,
+          padding: const EdgeInsets.symmetric(
+            horizontal: QeranSpacing.s12,
+            vertical: QeranSpacing.s8,
           ),
+          child: Icon(Icons.language, size: 24, color: iconColor),
         ),
         itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
           PopupMenuItem<Locale>(
             value: const Locale('en'),
             child: Text(
               'English',
-              style: AppTextStyles.labelLarge.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
+              style: QeranTypography.label.copyWith(color: QeranColors.wine),
             ),
           ),
           PopupMenuItem<Locale>(
             value: const Locale('ar'),
             child: Text(
               'العربية',
-              style: AppTextStyles.labelLarge.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
+              style: QeranTypography.label.copyWith(color: QeranColors.wine),
             ),
           ),
         ],

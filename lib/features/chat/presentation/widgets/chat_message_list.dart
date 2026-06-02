@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/chat_message.dart';
@@ -80,7 +80,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
     // (which means above older days — correct).
     final items = _buildItems(context);
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: QeranColors.wine,
       onRefresh: widget.onRefresh,
       child: ListView.builder(
         controller: _controller,
@@ -89,8 +89,8 @@ class _ChatMessageListState extends State<ChatMessageList> {
           parent: BouncingScrollPhysics(),
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.p16,
-          vertical: AppDimens.p12,
+          horizontal: QeranSpacing.s16,
+          vertical: QeranSpacing.s12,
         ),
         itemCount: items.length,
         itemBuilder: (context, i) => items[i],
@@ -116,7 +116,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
       final day = DateTime(m.sentAt.year, m.sentAt.month, m.sentAt.day);
       final isMine = m.senderId == widget.me;
       out.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s4),
         child: ChatMessageBubble(
           message: m,
           isMine: isMine,
@@ -149,13 +149,13 @@ class _PaginationSpinner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.symmetric(vertical: AppDimens.p12),
+      padding: EdgeInsets.symmetric(vertical: QeranSpacing.s12),
       child: Center(
         child: SizedBox(
           width: 22,
           height: 22,
           child: CircularProgressIndicator(
-            color: AppColors.primary,
+            color: QeranColors.wine,
             strokeWidth: 2.4,
           ),
         ),
@@ -171,21 +171,18 @@ class _PaginationError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimens.p12),
+      padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s12),
       child: Center(
         child: TextButton.icon(
           onPressed: () => onRetry(),
           icon: const Icon(
             Icons.refresh_rounded,
             size: 16,
-            color: AppColors.primary,
+            color: QeranColors.wine,
           ),
           label: Text(
             LocaleKeys.chat_messages_pagination_retry.t(context),
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
+            style: QeranTypography.label.copyWith(color: QeranColors.wine),
           ),
         ),
       ),
@@ -200,7 +197,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: QeranColors.wine,
       onRefresh: onRefresh,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -210,12 +207,12 @@ class _EmptyState extends StatelessWidget {
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(AppDimens.p24),
+                  padding: const EdgeInsets.all(QeranSpacing.s24),
                   child: Text(
                     LocaleKeys.chat_messages_empty.t(context),
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
+                    style: QeranTypography.body.copyWith(
+                      color: QeranColors.inkMuted,
                       height: 1.6,
                     ),
                   ),

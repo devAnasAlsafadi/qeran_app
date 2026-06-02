@@ -90,7 +90,7 @@ class _ConversationView extends StatelessWidget {
         final cooldown = state.sendCooldownUntil != null &&
             DateTime.now().isBefore(state.sendCooldownUntil!);
         return ColoredBox(
-          color: QeranColors.creamSurface,
+          color: QeranColors.creamCanvas,
           child: Column(
             children: [
               _Header(info: info, onBack: onBack),

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import '../../domain/entities/discovery_filter_question.dart';
 import '../../domain/entities/discovery_filter_selection.dart';
@@ -49,32 +50,30 @@ class _FilterTextFieldState extends State<FilterTextField> {
       label: widget.question.label,
       bodyBuilder: (context) {
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppDimens.p8),
+          padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s8),
           child: TextField(
             controller: _controller,
-            textAlign: TextAlign.end,
+            textAlign: TextAlign.start,
             onChanged: (v) => widget.onChanged(v.trim()),
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
-            ),
+            style: QeranTypography.subtitle,
             decoration: InputDecoration(
               filled: true,
-              fillColor: AppColors.background,
+              fillColor: QeranColors.paper,
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.p12,
-                vertical: AppDimens.p12,
+                horizontal: QeranSpacing.s12,
+                vertical: QeranSpacing.s12,
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppDimens.r8),
-                borderSide: const BorderSide(color: AppColors.border),
+              border: const OutlineInputBorder(
+                borderRadius: QeranRadii.controlR,
+                borderSide: BorderSide(color: QeranColors.hairline),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppDimens.r8),
-                borderSide: const BorderSide(color: AppColors.border),
+              enabledBorder: const OutlineInputBorder(
+                borderRadius: QeranRadii.controlR,
+                borderSide: BorderSide(color: QeranColors.hairline),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppDimens.r8),
-                borderSide: const BorderSide(color: AppColors.primary),
+              focusedBorder: const OutlineInputBorder(
+                borderRadius: QeranRadii.controlR,
+                borderSide: BorderSide(color: QeranColors.wine),
               ),
             ),
           ),

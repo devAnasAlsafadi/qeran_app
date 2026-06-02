@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
-/// Shared back button used across auth screens that have a back navigation action.
+/// Shared back button used across auth screens that have a back navigation
+/// action. The icon auto-mirrors under the ambient Directionality
+/// (matchTextDirection): points right in Arabic/RTL, left in English/LTR.
 class AuthBackButton extends StatelessWidget {
   final VoidCallback onPressed;
 
@@ -13,7 +15,10 @@ class AuthBackButton extends StatelessWidget {
       alignment: AlignmentDirectional.centerStart,
       child: IconButton(
         onPressed: onPressed,
-        icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+        icon: const Icon(
+          Icons.arrow_back_ios_new,
+          color: QeranColors.wine,
+        ),
         padding: EdgeInsets.zero,
       ),
     );

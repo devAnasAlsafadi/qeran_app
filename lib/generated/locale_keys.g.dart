@@ -330,6 +330,7 @@ abstract class  LocaleKeys {
   static const chat_shared_profile_score_label = 'chat.shared_profile_score_label';
   static const chat_shared_profile_shared_by_matchmaker = 'chat.shared_profile_shared_by_matchmaker';
   static const chat_shared_profile_shared_by_me = 'chat.shared_profile_shared_by_me';
+  static const chat_shared_profile_view_cta = 'chat.shared_profile_view_cta';
   static const chat_messages_empty = 'chat.messages_empty';
   static const chat_messages_pagination_failed = 'chat.messages_pagination_failed';
   static const chat_messages_pagination_retry = 'chat.messages_pagination_retry';

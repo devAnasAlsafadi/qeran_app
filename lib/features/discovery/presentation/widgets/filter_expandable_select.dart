@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import '../../domain/entities/discovery_filter_option.dart';
 import '../../domain/entities/discovery_filter_question.dart';
@@ -31,12 +31,12 @@ class FilterExpandableSelect extends StatelessWidget {
       bodyBuilder: (context) {
         if (options.isEmpty) {
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppDimens.p8),
+            padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s8),
             child: Text(
               question.label,
-              textAlign: TextAlign.end,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textMuted,
+              textAlign: TextAlign.start,
+              style: QeranTypography.body.copyWith(
+                color: QeranColors.inkMuted,
               ),
             ),
           );
@@ -72,7 +72,7 @@ class _SelectRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppDimens.p12),
+        padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s12),
         child: Row(
           children: [
             Container(
@@ -81,7 +81,9 @@ class _SelectRow extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
+                  color: isSelected
+                      ? QeranColors.wine
+                      : QeranColors.hairline,
                   width: 2,
                 ),
               ),
@@ -92,20 +94,20 @@ class _SelectRow extends StatelessWidget {
                         height: 10,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.primary,
+                          color: QeranColors.wine,
                         ),
                       ),
                     )
                   : null,
             ),
-            const SizedBox(width: AppDimens.p12),
+            const SizedBox(width: QeranSpacing.s12),
             Expanded(
               child: Text(
                 option.display,
-                textAlign: TextAlign.end,
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+                textAlign: TextAlign.start,
+                style: isSelected
+                    ? QeranTypography.subtitle
+                    : QeranTypography.body,
               ),
             ),
           ],

@@ -1,35 +1,25 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/shared_profile.dart';
 
-/// MVP card rendered inside a chat bubble for `[profile:guid]`
-/// messages.
-///
-/// Per backend Q8 the chat-side `sharedProfile` ships a lightweight
-/// snapshot: image + name + optional age + optional matching score.
-/// `placements` is always `[]` on this surface, so we deliberately
-/// don't render any detail rows. Per design, **not tappable** in MVP
-/// — opening the full profile would require a separate fetch we
-/// haven't built yet.
-///
-/// The two variants (outgoing vs incoming bubble) only differ in
-/// background tint + score-chip accent so the speaker is unambiguous;
-/// the layout stays identical so RTL/LTR is automatically correct
-/// via `AlignmentDirectional` everywhere.
+/// Mini-profile card rendered inside a chat bubble for shared-profile
+/// messages: image + name + age + compatibility chip + a "view profile"
+/// CTA. Adapts to the bubble it sits in — light treatment on my wine
+/// bubble, ink treatment on the incoming paper bubble. Direction-aware
+/// via `AlignmentDirectional`.
 class SharedProfileMessageCard extends StatelessWidget {
   final SharedProfile profile;
   final bool isMine;
 
-  /// Tap callback wired by [ChatMessageBubble] — opens the reusable
-  /// [FullProfileDetailsScreen] with this profile as a seed. Null
-  /// disables tap (kept for legacy callers / tests).
+  /// Opens the reusable full-profile screen with this profile as a seed.
   final VoidCallback? onTap;
 
   const SharedProfileMessageCard({
@@ -43,24 +33,25 @@ class SharedProfileMessageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = profile.primaryImage;
     final hasScore = profile.matchingScore > 0;
-    // Inner card sits inside the bubble shell. Tints are subtle —
-    // outgoing reverses to cream-on-burgundy, incoming stays
-    // white-on-soft-gold-accent.
-    final innerBg = isMine
-        ? AppColors.white.withValues(alpha: 0.10)
-        : AppColors.primary.withValues(alpha: 0.04);
-    final accent = isMine ? AppColors.white : AppColors.primary;
-    final titleColor = isMine ? AppColors.white : AppColors.textPrimary;
-    final subTitleColor = isMine
-        ? AppColors.white.withValues(alpha: 0.85)
-        : AppColors.textSecondary;
+    // `isMine` → card sits on the wine bubble (light treatment);
+    // incoming → card sits on the paper bubble (ink treatment).
+    final onWine = isMine;
+    final titleColor = onWine ? QeranColors.paper : QeranColors.inkStrong;
+    final mutedColor =
+        onWine ? QeranColors.paper.withValues(alpha: 0.85) : QeranColors.inkMuted;
+    final accent = onWine ? QeranColors.gold : QeranColors.wine;
+    final innerBg =
+        onWine ? QeranColors.paper.withValues(alpha: 0.10) : QeranColors.creamSurface;
+    final borderColor =
+        onWine ? QeranColors.paper.withValues(alpha: 0.18) : QeranColors.wine12;
+
     final body = Container(
       width: 240,
-      padding: const EdgeInsets.all(AppDimens.p12),
+      padding: const EdgeInsets.all(QeranSpacing.s12),
       decoration: BoxDecoration(
         color: innerBg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: accent.withValues(alpha: 0.18)),
+        borderRadius: QeranRadii.controlR,
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,7 +64,7 @@ class SharedProfileMessageCard extends StatelessWidget {
                 blur: image?.isBlurred ?? true,
                 size: 56,
               ),
-              const SizedBox(width: AppDimens.p12),
+              QeranSpacing.hs12,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,15 +72,16 @@ class SharedProfileMessageCard extends StatelessWidget {
                   children: [
                     Text(
                       _nameAndAge(),
-                      style: AppTextStyles.bodyMedium.copyWith(
+                      textAlign: TextAlign.start,
+                      style: QeranTypography.subtitle.copyWith(
                         color: titleColor,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (hasScore) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: QeranSpacing.s6),
                       _ScoreChip(
                         percent: profile.matchingScore,
                         accent: accent,
@@ -101,26 +93,26 @@ class SharedProfileMessageCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppDimens.p8),
+          QeranSpacing.vs8,
           Text(
             _sharedByLabel(context),
-            style: AppTextStyles.caption.copyWith(
-              color: subTitleColor,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
+            textAlign: TextAlign.start,
+            style: QeranTypography.caption.copyWith(color: mutedColor),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          QeranSpacing.vs12,
+          _ViewButton(onWine: onWine),
         ],
       ),
     );
+
     if (onTap == null) return body;
     return Material(
-      color: AppColors.transparent,
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: QeranRadii.controlR,
         child: body,
       ),
     );
@@ -136,9 +128,31 @@ class SharedProfileMessageCard extends StatelessWidget {
     if (isMine) {
       return LocaleKeys.chat_shared_profile_shared_by_me.t(context);
     }
-    // For matchmaker-shared we don't yet thread the matchmaker name
-    // here — show the generic label until we wire that through.
     return LocaleKeys.chat_shared_profile_shared_by_matchmaker.t(context);
+  }
+}
+
+/// Bottom CTA bar — wine fill on the incoming paper card, light fill on
+/// my wine card; paper text on both.
+class _ViewButton extends StatelessWidget {
+  final bool onWine;
+  const _ViewButton({required this.onWine});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s8),
+      decoration: BoxDecoration(
+        color: onWine ? QeranColors.paper.withValues(alpha: 0.15) : QeranColors.wine,
+        borderRadius: QeranRadii.controlR,
+      ),
+      child: Text(
+        LocaleKeys.chat_shared_profile_view_cta.t(context),
+        textAlign: TextAlign.center,
+        style: QeranTypography.label.copyWith(color: QeranColors.paper),
+      ),
+    );
   }
 }
 
@@ -154,29 +168,25 @@ class _ScoreChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Server may ship a fractional percent (78.5). Round to nearest
-    // whole percent for display.
-    final rounded = percent.round();
     final label = context.tr(
       LocaleKeys.chat_shared_profile_score_label,
-      namedArgs: {'percent': '$rounded'},
+      namedArgs: {'percent': '${percent.round()}'},
     );
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.p8,
+        horizontal: QeranSpacing.s8,
         vertical: 2,
       ),
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: QeranRadii.pill,
         border: Border.all(color: accent.withValues(alpha: 0.30)),
       ),
       child: Text(
         label,
-        style: AppTextStyles.caption.copyWith(
+        style: QeranTypography.caption.copyWith(
           color: textColor,
           fontWeight: FontWeight.w700,
-          fontSize: 11,
         ),
       ),
     );

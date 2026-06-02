@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/discovery_filter_cubit.dart';
 import '../blocs/discovery_filter_state.dart';
 import '../widgets/filter_question_renderer.dart';
+import '../widgets/filter_sheet_header.dart';
 
 /// Bottom-sheet root for the dynamic filter UI.
 ///
-/// **Not yet opened from anywhere** — Chunk D wires the filter button
-/// on `DiscoveryView` / Home overlay. This file is the destination so
-/// that wiring is a one-line change.
-///
-/// The "Save Changes" button currently `Navigator.pop`s with the cubit's
-/// draft payload (plan §3). Callers do not yet exist — when they do,
-/// `await showDiscoveryFilterSheet(...)` will return the payload map.
+/// The "Save Changes" button `Navigator.pop`s with the cubit's draft
+/// payload (a flat query map) — or the sheet returns `null` if dismissed.
 class DiscoveryFilterSheet extends StatelessWidget {
   const DiscoveryFilterSheet({super.key});
 
@@ -47,9 +44,7 @@ Future<Map<String, String>?> showDiscoveryFilterSheet(
     isScrollControlled: true,
     useSafeArea: true,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(AppDimens.p24),
-      ),
+      borderRadius: QeranRadii.domeTop,
     ),
     builder: (_) => const DiscoveryFilterSheet(),
   );
@@ -64,80 +59,10 @@ class _DiscoveryFilterBody extends StatelessWidget {
       heightFactor: 0.92,
       child: Column(
         children: [
-          const _SheetHeader(),
+          FilterSheetHeader(onClose: () => Navigator.of(context).pop()),
           const Expanded(child: _SheetContent()),
           const _SheetFooter(),
         ],
-      ),
-    );
-  }
-}
-
-class _SheetHeader extends StatelessWidget {
-  const _SheetHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppDimens.p16,
-        AppDimens.p16,
-        AppDimens.p16,
-        AppDimens.p8,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              _CircleCloseButton(onTap: () => Navigator.of(context).pop()),
-              const Spacer(),
-              Text(
-                LocaleKeys.discovery_filter_title.t(context),
-                style: AppTextStyles.headlineMedium.copyWith(
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimens.p8),
-          Padding(
-            padding: const EdgeInsets.only(left: AppDimens.p48),
-            child: Text(
-              LocaleKeys.discovery_filter_subtitle.t(context),
-              textAlign: TextAlign.end,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CircleCloseButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _CircleCloseButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.greyLight,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: const SizedBox(
-          width: 40,
-          height: 40,
-          child: Icon(
-            Icons.close_rounded,
-            size: 20,
-            color: AppColors.textPrimary,
-          ),
-        ),
       ),
     );
   }
@@ -164,14 +89,14 @@ class _SheetContent extends StatelessWidget {
           ) =>
             ListView.separated(
               padding: const EdgeInsets.fromLTRB(
-                AppDimens.p16,
-                AppDimens.p12,
-                AppDimens.p16,
-                AppDimens.p24,
+                QeranSpacing.s16,
+                QeranSpacing.s12,
+                QeranSpacing.s16,
+                QeranSpacing.s24,
               ),
               itemCount: qs.length,
               separatorBuilder: (_, _) =>
-                  const SizedBox(height: AppDimens.p12),
+                  const SizedBox(height: QeranSpacing.s12),
               itemBuilder: (_, i) {
                 final q = qs[i];
                 return FilterQuestionRenderer(
@@ -197,13 +122,13 @@ class _SheetFooter extends StatelessWidget {
         final enabled = state is DiscoveryFilterLoaded;
         return Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppDimens.p20,
-            AppDimens.p8,
-            AppDimens.p20,
-            AppDimens.p16,
+            QeranSpacing.s20,
+            QeranSpacing.s8,
+            QeranSpacing.s20,
+            QeranSpacing.s16,
           ),
-          child: QeranButton(
-            label: LocaleKeys.discovery_filter_save_cta.t(context),
+          child: CustomButton(
+            text: LocaleKeys.discovery_filter_save_cta.t(context),
             onPressed: enabled
                 ? () {
                     final payload =
@@ -233,25 +158,20 @@ class _ErrorView extends StatelessWidget {
           const Icon(
             Icons.error_outline_rounded,
             size: 48,
-            color: AppColors.textMuted,
+            color: QeranColors.inkMuted,
           ),
-          const SizedBox(height: AppDimens.p8),
+          const SizedBox(height: QeranSpacing.s8),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
           ),
-          const SizedBox(height: AppDimens.p12),
+          const SizedBox(height: QeranSpacing.s12),
           TextButton(
             onPressed: onRetry,
             child: Text(
               LocaleKeys.discovery_error_retry.t(context),
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
+              style: QeranTypography.label.copyWith(color: QeranColors.wine),
             ),
           ),
         ],

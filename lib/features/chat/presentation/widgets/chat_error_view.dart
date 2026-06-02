@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Calm full-card error view shown for chat load failures.
@@ -24,32 +24,27 @@ class ChatErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppDimens.p24),
+        padding: const EdgeInsets.all(QeranSpacing.s24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
               Icons.error_outline_rounded,
               size: 56,
-              color: AppColors.textMuted,
+              color: QeranColors.inkMuted,
             ),
-            const SizedBox(height: AppDimens.p12),
+            const SizedBox(height: QeranSpacing.s12),
             Text(
               titleKey.t(context),
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
+              style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
             ),
-            const SizedBox(height: AppDimens.p16),
+            const SizedBox(height: QeranSpacing.s16),
             TextButton(
               onPressed: onRetry,
               child: Text(
                 retryKey.t(context),
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: QeranTypography.label.copyWith(color: QeranColors.wine),
               ),
             ),
           ],

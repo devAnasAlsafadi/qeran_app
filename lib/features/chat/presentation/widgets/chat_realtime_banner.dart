@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/realtime_status.dart';
@@ -14,7 +14,7 @@ import '../../domain/entities/realtime_status.dart';
 ///      so the brief initial-connect window never shows a banner.
 ///   2. The current status is `reconnecting` or `disconnected`.
 ///
-/// Calm burgundy pill — matches the rest of the Qeran chrome.
+/// Calm wine pill — matches the rest of the Qeran chrome.
 class ChatRealtimeBanner extends StatelessWidget {
   final RealtimeStatus status;
   final bool hasEverBeenConnected;
@@ -38,10 +38,10 @@ class ChatRealtimeBanner extends StatelessWidget {
         : LocaleKeys.chat_realtime_disconnected;
     return Container(
       width: double.infinity,
-      color: AppColors.primary.withValues(alpha: 0.06),
+      color: QeranColors.wine06,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.p16,
-        vertical: 6,
+        horizontal: QeranSpacing.s16,
+        vertical: QeranSpacing.s6,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -53,23 +53,22 @@ class ChatRealtimeBanner extends StatelessWidget {
               height: 12,
               child: CircularProgressIndicator(
                 strokeWidth: 1.6,
-                color: AppColors.primary,
+                color: QeranColors.wine,
               ),
             )
           else
             const Icon(
               Icons.cloud_off_outlined,
               size: 14,
-              color: AppColors.primary,
+              color: QeranColors.wine,
             ),
-          const SizedBox(width: AppDimens.p8),
+          QeranSpacing.hs8,
           Flexible(
             child: Text(
               labelKey.t(context),
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.primary,
+              style: QeranTypography.caption.copyWith(
+                color: QeranColors.wine,
                 fontWeight: FontWeight.w700,
-                fontSize: 11,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

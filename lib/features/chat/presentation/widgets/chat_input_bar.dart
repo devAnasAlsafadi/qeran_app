@@ -64,7 +64,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: QeranColors.paper,
+        color: QeranColors.creamCanvas,
         border: Border(
           top: BorderSide(color: QeranColors.wine08),
         ),
@@ -81,38 +81,41 @@ class _ChatInputBarState extends State<ChatInputBar> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: QeranSpacing.s16,
-                  vertical: QeranSpacing.s4,
-                ),
-                decoration: BoxDecoration(
-                  color: QeranColors.creamSurface,
-                  borderRadius: QeranRadii.pill,
-                  border: Border.all(color: QeranColors.wine08),
-                ),
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focus,
-                  minLines: 1,
-                  maxLines: 5,
-                  maxLength: ChatInputBar.maxLength,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(ChatInputBar.maxLength),
-                  ],
-                  textInputAction: TextInputAction.newline,
-                  style: QeranTypography.body
-                      .copyWith(color: QeranColors.inkStrong),
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 10),
-                    border: InputBorder.none,
-                    hintText:
-                        LocaleKeys.chat_composer_placeholder.t(context),
-                    hintStyle: QeranTypography.body
-                        .copyWith(color: QeranColors.inkMuted),
-                    counterText: '',
+              child: TextField(
+                controller: _controller,
+                focusNode: _focus,
+                minLines: 1,
+                maxLines: 5,
+                maxLength: ChatInputBar.maxLength,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(ChatInputBar.maxLength),
+                ],
+                textInputAction: TextInputAction.newline,
+                style: QeranTypography.body
+                    .copyWith(color: QeranColors.inkStrong),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: QeranColors.paper,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: QeranSpacing.s16,
+                    vertical: QeranSpacing.s12,
+                  ),
+                  hintText: LocaleKeys.chat_composer_placeholder.t(context),
+                  hintStyle: QeranTypography.body
+                      .copyWith(color: QeranColors.inkMuted),
+                  counterText: '',
+                  enabledBorder: const OutlineInputBorder(
+                    borderRadius: QeranRadii.pill,
+                    borderSide: BorderSide(color: QeranColors.wine08),
+                  ),
+                  border: const OutlineInputBorder(
+                    borderRadius: QeranRadii.pill,
+                    borderSide: BorderSide(color: QeranColors.wine08),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderRadius: QeranRadii.pill,
+                    borderSide: BorderSide(color: QeranColors.wine),
                   ),
                 ),
               ),
@@ -135,8 +138,8 @@ class _SendButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: enabled
-          ? QeranColors.gold
-          : QeranColors.gold.withValues(alpha: 0.35),
+          ? QeranColors.wine
+          : QeranColors.wine.withValues(alpha: 0.35),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: enabled ? onPressed : null,
@@ -148,7 +151,7 @@ class _SendButton extends StatelessWidget {
             child: Icon(
               Icons.send_rounded,
               size: 20,
-              color: QeranColors.wine,
+              color: QeranColors.paper,
             ),
           ),
         ),

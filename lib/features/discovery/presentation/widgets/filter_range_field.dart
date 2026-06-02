@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/discovery_filter_question.dart';
@@ -38,30 +39,27 @@ class FilterRangeField extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.p16,
-        vertical: AppDimens.p12,
+        horizontal: QeranSpacing.s16,
+        vertical: QeranSpacing.s12,
       ),
-      decoration: BoxDecoration(
-        color: AppColors.greyLight,
-        borderRadius: BorderRadius.circular(AppDimens.r12),
+      decoration: const BoxDecoration(
+        color: QeranColors.creamSurface,
+        borderRadius: QeranRadii.controlR,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             question.label,
-            textAlign: TextAlign.end,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
+            textAlign: TextAlign.start,
+            style: QeranTypography.subtitle,
           ),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: AppColors.primary,
-              inactiveTrackColor: AppColors.border,
-              thumbColor: AppColors.white,
-              overlayColor: AppColors.primary.withValues(alpha: 0.12),
+              activeTrackColor: QeranColors.wine,
+              inactiveTrackColor: QeranColors.wine12,
+              thumbColor: QeranColors.wine,
+              overlayColor: QeranColors.wine.withValues(alpha: 0.12),
               rangeThumbShape: const RoundRangeSliderThumbShape(
                 enabledThumbRadius: 10,
                 pressedElevation: 2,
@@ -86,11 +84,8 @@ class FilterRangeField extends StatelessWidget {
                 'unit': _resolveUnit(context),
               },
             ),
-            textAlign: TextAlign.end,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
+            textAlign: TextAlign.start,
+            style: QeranTypography.label.copyWith(color: QeranColors.wine),
           ),
         ],
       ),

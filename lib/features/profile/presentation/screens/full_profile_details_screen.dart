@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -87,11 +87,13 @@ class _Body extends StatelessWidget {
               _Scrollable(
                 profile: seed,
                 entry: args.entry,
+                isLoading: true,
                 onRefresh: () => cubit.refresh(args.userId),
               ),
             ProfileDetailsLoading(:final seed?) => _Scrollable(
                 profile: seed,
                 entry: args.entry,
+                isLoading: true,
                 onRefresh: () => cubit.refresh(args.userId),
               ),
             ProfileDetailsLoaded(:final profile) => _Scrollable(
@@ -112,9 +114,9 @@ class _Body extends StatelessWidget {
               const ProfileDetailsNotAvailableView(),
           },
         ),
-        const Positioned(
-          top: AppDimens.p8,
-          left: AppDimens.p8,
+        const PositionedDirectional(
+          top: QeranSpacing.s8,
+          start: QeranSpacing.s8,
           child: _BackButton(),
         ),
       ],
@@ -125,23 +127,29 @@ class _Body extends StatelessWidget {
 class _Scrollable extends StatelessWidget {
   final OtherProfile profile;
   final ProfileEntrySource entry;
+  final bool isLoading;
   final Future<void> Function() onRefresh;
   const _Scrollable({
     required this.profile,
     required this.entry,
     required this.onRefresh,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: QeranColors.wine,
       onRefresh: onRefresh,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        child: FullProfileBody(profile: profile, entry: entry),
+        child: FullProfileBody(
+          profile: profile,
+          entry: entry,
+          isLoading: isLoading,
+        ),
       ),
     );
   }
@@ -153,18 +161,22 @@ class _BackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.white,
-      shape: const CircleBorder(),
+      color: QeranColors.paper,
+      shape: const CircleBorder(
+        side: BorderSide(color: QeranColors.wine08),
+      ),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: () => NavigationManager.pop(context),
         child: const SizedBox(
           width: 40,
           height: 40,
+          // arrow_back_ios_new auto-mirrors under the ambient Directionality
+          // (matchTextDirection): points right in Arabic/RTL, left in EN/LTR.
           child: Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.primary,
-            size: 22,
+            Icons.arrow_back_ios_new,
+            color: QeranColors.wine,
+            size: 20,
           ),
         ),
       ),

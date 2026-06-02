@@ -340,6 +340,7 @@
     "shared_profile_score_label": "Compatibility {percent}%",
     "shared_profile_shared_by_matchmaker": "Shared by {name}",
     "shared_profile_shared_by_me": "You shared this profile",
+    "shared_profile_view_cta": "View profile",
     "messages_empty": "Say hello to your matchmaker",
     "messages_pagination_failed": "Couldn't load older messages",
     "messages_pagination_retry": "Retry",

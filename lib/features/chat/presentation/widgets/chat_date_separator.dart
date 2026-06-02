@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Subtle inline date row inserted between message groups of
@@ -17,26 +18,22 @@ class ChatDateSeparator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: AppDimens.p12,
-        horizontal: AppDimens.p16,
+        vertical: QeranSpacing.s12,
+        horizontal: QeranSpacing.s16,
       ),
       child: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p12,
-            vertical: 4,
+            horizontal: QeranSpacing.s12,
+            vertical: QeranSpacing.s4,
           ),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(999),
+          decoration: const BoxDecoration(
+            color: QeranColors.wine06,
+            borderRadius: QeranRadii.pill,
           ),
           child: Text(
             _label(context, day),
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-              fontSize: 11,
-            ),
+            style: QeranTypography.caption,
           ),
         ),
       ),

@@ -93,7 +93,10 @@ class _Bubble extends StatelessWidget {
       bottomStart: Radius.circular(isMine ? 18 : 6),
       bottomEnd: Radius.circular(isMine ? 6 : 18),
     );
-    final bg = isMine ? QeranColors.paper : QeranColors.gold;
+    // Identity: my messages are wine with paper text; incoming
+    // (matchmaker) messages are paper with ink text.
+    final bg = isMine ? QeranColors.wine : QeranColors.paper;
+    final textColor = isMine ? QeranColors.paper : QeranColors.inkStrong;
     final isFailed = message.status == MessageSendStatus.failed;
     // Shared-profile messages drop the text body and render a mini
     // profile card instead. We keep the bubble shell so the speaker
@@ -127,7 +130,7 @@ class _Bubble extends StatelessWidget {
             : Text(
                 message.content,
                 style: QeranTypography.body.copyWith(
-                  color: QeranColors.wine,
+                  color: textColor,
                   height: 1.4,
                 ),
               ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
 /// Filter button (placeholder, non-functional this phase) on the leading
 /// side; notifications/messages icon on the trailing side.
@@ -44,9 +44,9 @@ class _CircleIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final disabled = onPressed == null;
     return Material(
-      color: AppColors.white,
-      shape: CircleBorder(
-        side: BorderSide(color: AppColors.border),
+      color: QeranColors.paper,
+      shape: const CircleBorder(
+        side: BorderSide(color: QeranColors.wine08),
       ),
       child: InkWell(
         onTap: onPressed,
@@ -57,8 +57,7 @@ class _CircleIconButton extends StatelessWidget {
           child: Icon(
             icon,
             size: 22,
-            color:
-                disabled ? AppColors.textMuted : AppColors.textPrimary,
+            color: disabled ? QeranColors.inkMuted : QeranColors.wine,
           ),
         ),
       ),

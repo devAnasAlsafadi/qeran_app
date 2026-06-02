@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 
 class PhotoPickerBottomSheet extends StatelessWidget {
   final ValueChanged<String> onImagePicked;
@@ -18,9 +19,7 @@ class PhotoPickerBottomSheet extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimens.p16),
-        ),
+        borderRadius: QeranRadii.domeTop,
       ),
       builder: (context) =>
           PhotoPickerBottomSheet(onImagePicked: onImagePicked),
@@ -39,29 +38,29 @@ class PhotoPickerBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppDimens.p16),
+        padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s16),
         child: Wrap(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppDimens.p8),
+            const Padding(
+              padding: EdgeInsets.only(bottom: QeranSpacing.s8),
               child: Center(
-                child: Container(
+                child: SizedBox(
                   width: 40,
                   height: 5,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: AppDimens.borderRadius12,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: QeranColors.wine20,
+                      borderRadius: QeranRadii.pill,
+                    ),
                   ),
                 ),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppColors.primary),
+              leading: const Icon(Icons.camera_alt, color: QeranColors.wine),
               title: Text(
                 LocaleKeys.auth_photo_camera.t(context),
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+                style: QeranTypography.subtitle,
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -71,13 +70,11 @@ class PhotoPickerBottomSheet extends StatelessWidget {
             ListTile(
               leading: const Icon(
                 Icons.photo_library,
-                color: AppColors.primary,
+                color: QeranColors.wine,
               ),
               title: Text(
                 LocaleKeys.auth_photo_gallery.t(context),
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+                style: QeranTypography.subtitle,
               ),
               onTap: () {
                 Navigator.pop(context);

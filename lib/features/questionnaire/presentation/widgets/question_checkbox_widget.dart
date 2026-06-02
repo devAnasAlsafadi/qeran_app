@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import '../../domain/entities/question_entity.dart';
 
 /// Renders a multi-select checkbox list (matching Figma reference).
@@ -33,7 +34,7 @@ class QuestionCheckboxWidget extends StatelessWidget {
             onChanged(updated);
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppDimens.p12),
+            padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s12),
             child: Row(
               children: [
                 // Checkbox
@@ -41,30 +42,32 @@ class QuestionCheckboxWidget extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: QeranRadii.controlR,
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.border,
+                      color: isSelected
+                          ? QeranColors.wine
+                          : QeranColors.hairline,
                       width: 2,
                     ),
                     color: isSelected
-                        ? AppColors.primary
-                        : AppColors.background,
+                        ? QeranColors.wine
+                        : QeranColors.creamCanvas,
                   ),
                   child: isSelected
                       ? const Icon(
                           Icons.check,
                           size: 16,
-                          color: AppColors.white,
+                          color: QeranColors.paper,
                         )
                       : null,
                 ),
-                const SizedBox(width: AppDimens.p16),
+                QeranSpacing.hs16,
                 Expanded(
                   child: Text(
                     option.text,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
+                    style: isSelected
+                        ? QeranTypography.subtitle
+                        : QeranTypography.body,
                   ),
                 ),
               ],

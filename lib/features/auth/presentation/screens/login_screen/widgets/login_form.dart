@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
@@ -24,7 +25,7 @@ class LoginForm extends StatelessWidget {
           controller: controller.emailController,
           focusNode: controller.emailFocus,
           hintText: LocaleKeys.auth_email_hint,
-          prefixIcon: const Icon(Icons.email, color: AppColors.primary),
+          prefixIcon: const Icon(Icons.email, color: QeranColors.inkMuted),
         ),
         AppDimens.verticalSpace16,
         AuthPasswordField(
@@ -32,8 +33,8 @@ class LoginForm extends StatelessWidget {
           focusNode: controller.passwordFocus,
           obscurePasswordNotifier: controller.obscurePasswordNotifier,
           onToggleVisibility: controller.togglePasswordVisibility,
-          prefixIcon: const Icon(Icons.lock, color: AppColors.primary),
-          iconColor: AppColors.primary,
+          prefixIcon: const Icon(Icons.lock, color: QeranColors.inkMuted),
+          iconColor: QeranColors.inkMuted,
         ),
         _buildForgotPasswordLink(context),
       ],

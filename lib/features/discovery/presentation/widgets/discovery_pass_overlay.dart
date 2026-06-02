@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
 /// Calm grey-X shown over the card during left drags + Pass exits.
 ///
@@ -27,7 +27,7 @@ class DiscoveryPassOverlay extends StatelessWidget {
             child: const Icon(
               Icons.close_rounded,
               size: 120,
-              color: AppColors.textSecondary,
+              color: QeranColors.inkMuted,
             ),
           ),
         ),

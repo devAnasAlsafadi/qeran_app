@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Calm animated affordance that invites first-time Discovery users to
@@ -95,22 +97,14 @@ class _HintPill extends StatelessWidget {
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.p12,
-          vertical: AppDimens.p8,
+          horizontal: QeranSpacing.s12,
+          vertical: QeranSpacing.s8,
         ),
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x14431C33),
-              blurRadius: 16,
-              offset: Offset(0, 4),
-            ),
-          ],
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.10),
-          ),
+          color: QeranColors.paper,
+          borderRadius: QeranRadii.pill,
+          boxShadow: QeranShadows.e2,
+          border: Border.all(color: QeranColors.wine12),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -128,17 +122,13 @@ class _HintPill extends StatelessWidget {
               child: const Icon(
                 Icons.keyboard_arrow_up_rounded,
                 size: 18,
-                color: AppColors.primary,
+                color: QeranColors.wine,
               ),
             ),
-            const SizedBox(width: AppDimens.p8),
+            const SizedBox(width: QeranSpacing.s8),
             Text(
               LocaleKeys.discovery_scroll_hint.t(context),
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
+              style: QeranTypography.label,
             ),
           ],
         ),

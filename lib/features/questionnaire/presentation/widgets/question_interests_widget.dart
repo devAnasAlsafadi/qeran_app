@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import '../../domain/entities/question_entity.dart';
 
 /// Renders a multi-select chip-style list for interests.
@@ -20,13 +22,13 @@ class QuestionInterestsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: AppDimens.p8,
-      runSpacing: AppDimens.p8,
+      spacing: QeranSpacing.s8,
+      runSpacing: QeranSpacing.s8,
       alignment: WrapAlignment.center,
       children: question.options.map((option) {
         final isSelected = selectedOptionIds.contains(option.id);
         return InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: QeranRadii.pill,
           onTap: () {
             final updated = List<String>.from(selectedOptionIds);
             if (isSelected) {
@@ -37,24 +39,24 @@ class QuestionInterestsWidget extends StatelessWidget {
             onChanged(updated);
           },
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: QeranMotion.standard,
+            curve: QeranCurves.standard,
             padding: const EdgeInsets.symmetric(
-              horizontal: AppDimens.p16,
-              vertical: AppDimens.p8,
+              horizontal: QeranSpacing.s16,
+              vertical: QeranSpacing.s8,
             ),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : AppColors.background,
-              borderRadius: BorderRadius.circular(20),
+              color: isSelected ? QeranColors.wine : QeranColors.creamCanvas,
+              borderRadius: QeranRadii.pill,
               border: Border.all(
-                color: isSelected ? AppColors.primary : AppColors.border,
+                color: isSelected ? QeranColors.wine : QeranColors.hairline,
                 width: 1,
               ),
             ),
             child: Text(
               option.text,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: isSelected ? AppColors.white : AppColors.textPrimary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              style: QeranTypography.label.copyWith(
+                color: isSelected ? QeranColors.paper : QeranColors.inkStrong,
               ),
             ),
           ),

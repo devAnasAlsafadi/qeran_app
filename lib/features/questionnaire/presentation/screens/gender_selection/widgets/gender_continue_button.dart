@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/core/enum/gender.dart';
 import '../../../blocs/questionnaire_cubit.dart';
 import '../../../blocs/questionnaire_state.dart';
@@ -22,9 +22,9 @@ class GenderContinueButton extends StatelessWidget {
           builder: (context, selectedGender, _) {
             final isLoading = state is QuestionnaireLoading;
             final isEnabled = selectedGender != null && !isLoading;
-            return QeranButton(
-              label: LocaleKeys.questionnaire_continue_button.t(context),
-              loading: isLoading,
+            return CustomButton(
+              text: LocaleKeys.questionnaire_continue_button.t(context),
+              isLoading: isLoading,
               onPressed: isEnabled
                   ? () async {
                       await controller.saveGender();

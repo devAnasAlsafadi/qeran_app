@@ -8,9 +8,9 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/onboarding_pop_scope.dart';
 import '../../blocs/questionnaire_cubit.dart';
@@ -54,8 +54,8 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.p24,
-                  vertical: AppDimens.p16,
+                  horizontal: QeranSpacing.s24,
+                  vertical: QeranSpacing.s16,
                 ),
                 child: Column(
                   children: [
@@ -63,32 +63,27 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
                     Text(
                       LocaleKeys.questionnaire_welcome.t(context),
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.displayLarge.copyWith(
-                        color: AppColors.textPrimary,
-                      ),
+                      style: QeranTypography.displaySm,
                     ),
-                    AppDimens.verticalSpace8,
+                    QeranSpacing.vs8,
                     Text(
                       LocaleKeys.questionnaire_choose_identity.t(context),
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.headlineMedium.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: QeranTypography.headline,
                     ),
-                    AppDimens.verticalSpace8,
+                    QeranSpacing.vs8,
                     Text(
                       LocaleKeys.questionnaire_identity_info.t(context),
                       textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+                      style: QeranTypography.bodySm.copyWith(
+                        color: QeranColors.inkMuted,
                       ),
                     ),
-                    const SizedBox(height: AppDimens.p32),
+                    QeranSpacing.vs32,
                     GenderRow(controller: _controller),
                     const Spacer(flex: 3),
                     GenderContinueButton(controller: _controller),
-                    const SizedBox(height: AppDimens.p24),
+                    QeranSpacing.vs24,
                   ],
                 ),
               ),

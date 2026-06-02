@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Shown when the deck is empty (`profiles.isEmpty`) or exhausted
@@ -14,29 +14,25 @@ class DiscoveryEmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppDimens.p24),
+        padding: const EdgeInsets.all(QeranSpacing.s24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
               Icons.people_outline_rounded,
               size: 72,
-              color: AppColors.textMuted,
+              color: QeranColors.inkMuted,
             ),
-            const SizedBox(height: AppDimens.p16),
+            const SizedBox(height: QeranSpacing.s16),
             Text(
               LocaleKeys.discovery_empty_title.t(context),
-              style: AppTextStyles.titleLarge.copyWith(
-                color: AppColors.textPrimary,
-              ),
+              style: QeranTypography.title,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppDimens.p8),
+            const SizedBox(height: QeranSpacing.s8),
             Text(
               LocaleKeys.discovery_empty_subtitle.t(context),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
+              style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
               textAlign: TextAlign.center,
             ),
           ],

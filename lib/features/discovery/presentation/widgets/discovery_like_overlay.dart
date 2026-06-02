@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
 /// Calm burgundy heart shown over the card during right drags + Like
 /// exits.
@@ -35,7 +35,7 @@ class DiscoveryLikeOverlay extends StatelessWidget {
             child: const Icon(
               Icons.favorite_rounded,
               size: 120,
-              color: AppColors.primary,
+              color: QeranColors.wine,
             ),
           ),
         ),

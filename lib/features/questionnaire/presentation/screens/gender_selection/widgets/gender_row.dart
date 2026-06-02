@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/enum/gender.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import '../../../controllers/gender_selection_controller.dart';
 import 'gender_card.dart';
 
@@ -23,7 +23,7 @@ class GenderRow extends StatelessWidget {
                 onTap: () => controller.selectGender(Gender.female),
               ),
             ),
-            const SizedBox(width: AppDimens.p16),
+            QeranSpacing.hs16,
             Expanded(
               child: GenderCard(
                 gender: Gender.male,

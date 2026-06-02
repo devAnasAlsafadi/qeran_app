@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
 import 'category_progress_calculator.dart';
 import 'category_step_indicator.dart';
 
 class QuestionnaireAppBar extends StatelessWidget {
   final bool isFirst;
+  final String categoryName;
   final List<CategoryStep> steps;
   final int currentQuestionIndex;
   final List<QuestionEntity> questions;
@@ -15,6 +18,7 @@ class QuestionnaireAppBar extends StatelessWidget {
   const QuestionnaireAppBar({
     super.key,
     required this.isFirst,
+    required this.categoryName,
     required this.steps,
     required this.currentQuestionIndex,
     required this.questions,
@@ -27,14 +31,22 @@ class QuestionnaireAppBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: IconButton(
-            icon: const Icon(Icons.chevron_left, size: 28),
-            onPressed: onBack,
-          ),
+        Row(
+          children: [
+            // Nav sits at the start edge (right in Arabic/RTL, left in LTR).
+            _NavBackButton(onBack: onBack),
+            Expanded(
+              child: Text(
+                categoryName,
+                textAlign: TextAlign.center,
+                style: QeranTypography.title,
+              ),
+            ),
+            // Mirror the nav button's footprint so the title stays centered.
+            const SizedBox(width: QeranSpacing.s48),
+          ],
         ),
-        const SizedBox(height: AppDimens.p8),
+        QeranSpacing.vs12,
         CategoryStepIndicator(
           steps: steps,
           currentQuestionIndex: currentQuestionIndex,
@@ -42,6 +54,27 @@ class QuestionnaireAppBar extends StatelessWidget {
           answers: answers,
         ),
       ],
+    );
+  }
+}
+
+/// Back affordance whose arrow follows the ambient text direction: it points
+/// to the right in RTL (Arabic) and flips to the left in LTR — never hardcoded.
+class _NavBackButton extends StatelessWidget {
+  const _NavBackButton({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    // final bool isRtl = Directionality.of(context) == TextDirection.rtl;
+    return IconButton(
+      icon: Icon(
+        Icons.arrow_back_ios_new   ,
+        size: 20,
+        color: QeranColors.wine,
+      ),
+      onPressed: onBack,
     );
   }
 }

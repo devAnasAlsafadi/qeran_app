@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/utils/validators.dart';
 import 'package:qeran/core/widgets/app_text_form_field.dart';
@@ -23,9 +23,9 @@ class AuthPasswordField extends StatelessWidget {
     required this.onToggleVisibility,
     this.prefixIcon = const Icon(
       Icons.lock_outline,
-      color: AppColors.textSecondary,
+      color: QeranColors.inkMuted,
     ),
-    this.iconColor = AppColors.textSecondary,
+    this.iconColor = QeranColors.inkMuted,
     this.hintText = LocaleKeys.auth_password_hint,
     this.validator = Validators.validatePassword,
   });

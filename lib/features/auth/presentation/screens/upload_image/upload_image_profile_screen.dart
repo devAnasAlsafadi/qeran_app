@@ -9,9 +9,9 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/core/widgets/exit_app_dialog.dart';
@@ -56,21 +56,21 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
           child: Scaffold(
             body: SafeArea(
               child: Padding(
-                padding: AppDimens.paddingAll16,
+                padding: const EdgeInsets.all(QeranSpacing.s16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const QuestionProgressBar(progress: 1.0),
-                    const SizedBox(height: AppDimens.p16),
+                    QeranSpacing.vs16,
 
                     _buildHeader(isUploading: isUploading),
-                    const SizedBox(height: AppDimens.p8),
+                    QeranSpacing.vs8,
 
                     _buildTitleArea(),
-                    const SizedBox(height: AppDimens.p16),
+                    QeranSpacing.vs16,
 
                     const PrivacyInfoBox(),
-                    const SizedBox(height: AppDimens.p24),
+                    QeranSpacing.vs24,
 
                     _buildPhotoGrid(
                       imagePaths: imagePaths,
@@ -82,7 +82,7 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
                       imagePaths: imagePaths,
                       isUploading: isUploading,
                     ),
-                    const SizedBox(height: AppDimens.p12),
+                    QeranSpacing.vs12,
                   ],
                 ),
               ),
@@ -122,15 +122,13 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
       children: [
         GestureDetector(
           onTap: isUploading ? null : () => ExitAppDialog.show(context),
-          child: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          child: const Icon(Icons.arrow_back, color: QeranColors.wine),
         ),
         TextButton(
           onPressed: isUploading ? null : _cubit.skipUpload,
           child: Text(
             LocaleKeys.common_skip.t(context),
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.primaryLight,
-            ),
+            style: QeranTypography.body.copyWith(color: QeranColors.gold),
           ),
         ),
       ],
@@ -143,15 +141,13 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
       children: [
         Text(
           LocaleKeys.auth_photo_upload_title.t(context),
-          style: AppTextStyles.displayLarge.copyWith(
-            color: AppColors.textPrimary,
-          ),
+          style: QeranTypography.displaySm,
         ),
-        const SizedBox(height: AppDimens.p8),
+        QeranSpacing.vs8,
         Text(
           LocaleKeys.auth_photo_upload_subtitle.t(context),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+          style: QeranTypography.bodySm.copyWith(
+            color: QeranColors.inkMuted,
           ),
         ),
       ],
@@ -168,8 +164,8 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: AppDimens.p16,
-          mainAxisSpacing: AppDimens.p16,
+          crossAxisSpacing: QeranSpacing.s16,
+          mainAxisSpacing: QeranSpacing.s16,
           childAspectRatio: 0.9,
         ),
         itemCount: 5,
@@ -208,9 +204,6 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
       onPressed: imagePaths.isNotEmpty && !isUploading
           ? _cubit.uploadImages
           : null,
-      backgroundColor: imagePaths.isNotEmpty
-          ? AppColors.primary
-          : AppColors.border,
     );
   }
 }

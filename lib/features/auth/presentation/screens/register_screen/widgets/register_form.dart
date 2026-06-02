@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/widgets/app_text_form_field.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -28,7 +28,7 @@ class RegisterForm extends StatelessWidget {
           textInputAction: TextInputAction.next,
           prefixIcon: const Icon(
             Icons.person_outline,
-            color: AppColors.textSecondary,
+            color: QeranColors.inkMuted,
           ),
           validator: (v) => (v == null || v.trim().isEmpty)
               ? LocaleKeys.validators_field_required.t(context)

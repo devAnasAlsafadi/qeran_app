@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import '../../domain/entities/placement_item.dart';
 import '../../domain/entities/placement_value.dart';
 import '_placement_icons.dart';
 
-/// White pill chips overlaid at the top of the blurred image. One per
-/// `aboveImage` placement item.
+/// Translucent dark-wine pill chips overlaid at the top of the blurred
+/// image. One per `aboveImage` placement item.
 class DiscoveryChipsAboveImage extends StatelessWidget {
   final List<PlacementItem> items;
 
@@ -18,8 +19,8 @@ class DiscoveryChipsAboveImage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) return const SizedBox.shrink();
     return Wrap(
-      spacing: AppDimens.p8,
-      runSpacing: AppDimens.p8,
+      spacing: QeranSpacing.s8,
+      runSpacing: QeranSpacing.s8,
       children: items.map((i) => _PillChip(item: i)).toList(),
     );
   }
@@ -31,18 +32,20 @@ class _PillChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dark translucent pill, white icon + text. Reads as an image
-    // overlay rather than a white form chip (per Figma `home.png`).
-    // The 35% black backdrop matches the overlay buttons' style so the
-    // top of the image area feels visually consistent.
+    // Dark-wine translucent pill with light text + a light hairline, so
+    // it reads as an image overlay rather than a form chip (per Figma
+    // `home.png`) while staying on the brand wine scrim.
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppDimens.p12,
-        vertical: AppDimens.p4 + 2,
+        horizontal: QeranSpacing.s12,
+        vertical: QeranSpacing.s6,
       ),
       decoration: BoxDecoration(
-        color: AppColors.black.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(30),
+        color: QeranColors.overlayTintDark,
+        borderRadius: QeranRadii.pill,
+        border: Border.all(
+          color: QeranColors.paper.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -50,14 +53,12 @@ class _PillChip extends StatelessWidget {
           Icon(
             iconForQuestionId(item.questionId),
             size: 14,
-            color: AppColors.white,
+            color: QeranColors.paper,
           ),
-          const SizedBox(width: AppDimens.p4 + 2),
+          const SizedBox(width: QeranSpacing.s6),
           Text(
             _displayText(item.display),
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.white,
-            ),
+            style: QeranTypography.label.copyWith(color: QeranColors.paper),
           ),
         ],
       ),

@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+
+import 'photo_primary_badge.dart';
 
 class FilledPhotoSlot extends StatelessWidget {
   final int index;
@@ -30,48 +30,32 @@ class FilledPhotoSlot extends StatelessWidget {
       children: [
         Positioned.fill(
           child: ClipRRect(
-            borderRadius: AppDimens.borderRadius12,
+            borderRadius: QeranRadii.controlR,
             child: Image.file(file, fit: BoxFit.cover),
           ),
         ),
         if (isPrimary)
-          PositionedDirectional(
+          const PositionedDirectional(
             bottom: 0,
             start: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.p12,
-                vertical: AppDimens.p4,
-              ),
-              decoration: const BoxDecoration(
-                color: AppColors.black,
-                borderRadius: BorderRadiusDirectional.only(
-                  topEnd: Radius.circular(8),
-                  bottomStart: Radius.circular(AppDimens.p12),
-                ),
-              ),
-              child: Text(
-                LocaleKeys.auth_photo_primary_label.t(context),
-                style: AppTextStyles.caption.copyWith(color: AppColors.white),
-              ),
-            ),
+            child: PhotoPrimaryBadge(),
           ),
         if (!isUploading)
           PositionedDirectional(
-            top: 4,
-            end: 4,
+            top: QeranSpacing.s4,
+            end: QeranSpacing.s4,
             child: GestureDetector(
               onTap: onRemove,
               child: Container(
                 width: 24,
                 height: 24,
                 decoration: const BoxDecoration(
-                  color: AppColors.black54,
+                  color: QeranColors.wine80,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.close,
-                  color: AppColors.white,
+                  color: QeranColors.paper,
                   size: 14,
                 ),
               ),
@@ -83,12 +67,12 @@ class FilledPhotoSlot extends StatelessWidget {
               onTap: onSetPrimary,
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.black.withValues(alpha: 0.2),
-                  borderRadius: AppDimens.borderRadius12,
+                  color: QeranColors.wine20,
+                  borderRadius: QeranRadii.controlR,
                 ),
                 child: const Icon(
                   Icons.check_circle_outline,
-                  color: AppColors.white,
+                  color: QeranColors.paper,
                   size: 32,
                 ),
               ),

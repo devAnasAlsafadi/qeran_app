@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/utils/validators.dart';
 import 'package:qeran/core/widgets/app_text_form_field.dart';
@@ -18,7 +18,7 @@ class AuthEmailField extends StatelessWidget {
     this.hintText = LocaleKeys.auth_email_hint,
     this.prefixIcon = const Icon(
       Icons.email_outlined,
-      color: AppColors.textSecondary,
+      color: QeranColors.inkMuted,
     ),
   });
 

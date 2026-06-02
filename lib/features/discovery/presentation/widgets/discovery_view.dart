@@ -4,7 +4,10 @@ import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
@@ -12,8 +15,6 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
@@ -75,8 +76,7 @@ class _DiscoveryContent extends StatefulWidget {
 const double _kStackHPad = 18.0;
 const double _kStackTPad = 16.0;
 const double _kPeekHeight = 20.0;
-const double _kCardRadius = 30.0;
-const double _kBodyHPad = AppDimens.p20;
+const double _kBodyHPad = QeranSpacing.s20;
 const double _kNavActionGap = 28.0;
 const double _kActionBarReserve = 120.0;
 const double _kImageHeightFraction = 0.51;
@@ -214,12 +214,12 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
               if (!widget.showTopBar)
                 Positioned(
                   top: 0,
-                  left: AppDimens.p16,
-                  right: AppDimens.p16,
+                  left: QeranSpacing.s16,
+                  right: QeranSpacing.s16,
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: AppDimens.p8),
+                      padding: const EdgeInsets.only(top: QeranSpacing.s8),
                       child: _OverlayControls(
                         onFilterTap: () => _openFilters(context),
                         onNotificationsTap: () =>
@@ -253,7 +253,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
               RouteNames.notificationsDemo,
             ),
           ),
-          const SizedBox(height: AppDimens.p12),
+          const SizedBox(height: QeranSpacing.s12),
           Expanded(
             child: _ScrollableProfile(
               state: state,
@@ -446,9 +446,8 @@ class _ProfilePageState extends State<_ProfilePage> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: QeranColors.paper,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(AppDimens.p24),
-                      topRight: Radius.circular(AppDimens.p24),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(QeranRadii.panel),
                     ),
                     // Soft upward shadow at the sheet's top edge to
                     // separate the body card from the image. The
@@ -465,9 +464,9 @@ class _ProfilePageState extends State<_ProfilePage> {
                   ),
                   padding: const EdgeInsets.fromLTRB(
                     _kBodyHPad,
-                    AppDimens.p32,
+                    QeranSpacing.s32,
                     _kBodyHPad,
-                    AppDimens.p16,
+                    QeranSpacing.s16,
                   ),
                   // Directional fade + slide: old body slides UP and
                   // fades out, new body slides UP from below and fades
@@ -574,12 +573,12 @@ class _ImageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_kCardRadius),
+      decoration: const BoxDecoration(
+        borderRadius: QeranRadii.panelR,
         boxShadow: QeranShadows.e3,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(_kCardRadius),
+        borderRadius: QeranRadii.panelR,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           switchInCurve: Curves.easeOutCubic,
@@ -945,7 +944,7 @@ class _PeekCardLayer extends StatelessWidget {
             );
           },
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(_kCardRadius),
+            borderRadius: QeranRadii.panelR,
             child: DiscoveryImagePanel(
               profile: profile,
               onTap: null,
@@ -974,23 +973,18 @@ class _ErrorView extends StatelessWidget {
           size: 56,
           color: QeranColors.wine40,
         ),
-        const SizedBox(height: AppDimens.p12),
+        const SizedBox(height: QeranSpacing.s12),
         Text(
           message,
           textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: QeranColors.inkBody,
-          ),
+          style: QeranTypography.body,
         ),
-        const SizedBox(height: AppDimens.p16),
+        const SizedBox(height: QeranSpacing.s16),
         TextButton(
           onPressed: onRetry,
           child: Text(
             LocaleKeys.discovery_error_retry.t(context),
-            style: AppTextStyles.labelSmall.copyWith(
-              color: QeranColors.wine,
-              fontWeight: FontWeight.w700,
-            ),
+            style: QeranTypography.label.copyWith(color: QeranColors.wine),
           ),
         ),
       ],

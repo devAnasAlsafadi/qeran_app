@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
 import '../widgets/discovery_view.dart';
 
@@ -17,8 +17,8 @@ class DiscoveryScreen extends StatelessWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p16,
-            vertical: AppDimens.p8,
+            horizontal: QeranSpacing.s16,
+            vertical: QeranSpacing.s8,
           ),
           child: const DiscoveryView(),
         ),

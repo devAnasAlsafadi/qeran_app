@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
 import 'category_progress_calculator.dart';
 
@@ -80,17 +80,17 @@ class _StepDot extends StatelessWidget {
         height: 24,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.primary,
+          color: QeranColors.wine,
         ),
-        child: const Icon(Icons.check, size: 14, color: AppColors.white),
+        child: const Icon(Icons.check, size: 14, color: QeranColors.paper),
       ),
       CategoryStepStatus.current => Container(
         width: 24,
         height: 24,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.background,
-          border: Border.all(color: AppColors.primary, width: 2),
+          color: QeranColors.creamCanvas,
+          border: Border.all(color: QeranColors.wine, width: 2),
         ),
       ),
       CategoryStepStatus.upcoming => Container(
@@ -98,8 +98,8 @@ class _StepDot extends StatelessWidget {
         height: 12,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.background,
-          border: Border.all(color: AppColors.border, width: 2),
+          color: QeranColors.creamCanvas,
+          border: Border.all(color: QeranColors.wine20, width: 2),
         ),
       ),
     };
@@ -144,14 +144,14 @@ class _ProgressConnectorPainter extends CustomPainter {
     final fillEnd = (size.width * fillFraction).clamp(0.0, size.width);
 
     final railPaint = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.12)
+      ..color = QeranColors.wine.withValues(alpha: 0.12)
       ..strokeWidth = _thickness
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(Offset(0, y), Offset(size.width, y), railPaint);
 
     if (fillEnd > 0) {
       final fillPaint = Paint()
-        ..color = AppColors.primary
+        ..color = QeranColors.wine
         ..strokeWidth = _thickness
         ..strokeCap = StrokeCap.round;
       // RTL: anchor the fill at the trailing edge so the connector grows

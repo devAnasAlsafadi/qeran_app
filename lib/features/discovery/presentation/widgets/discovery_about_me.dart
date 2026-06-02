@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 /// Card-body section: header (server-supplied Arabic label) + free text.
 class DiscoveryAboutMe extends StatelessWidget {
@@ -30,25 +30,16 @@ class DiscoveryAboutMe extends StatelessWidget {
             const Icon(
               Icons.person_outline_rounded,
               size: 16,
-              color: AppColors.primary,
+              color: QeranColors.wine,
             ),
-            const SizedBox(width: AppDimens.p4 + 2),
-            Text(
-              header,
-              style: AppTextStyles.labelSmall.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            const SizedBox(width: QeranSpacing.s6),
+            Text(header, style: QeranTypography.label),
           ],
         ),
-        const SizedBox(height: AppDimens.p8),
+        const SizedBox(height: QeranSpacing.s8),
         Text(
           text,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textPrimary,
-            height: 1.55,
-          ),
+          style: QeranTypography.body,
           maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
         ),

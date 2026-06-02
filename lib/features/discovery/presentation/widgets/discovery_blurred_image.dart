@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 
@@ -40,12 +40,12 @@ class DiscoveryBlurredImage extends StatelessWidget {
             imageUrl: url,
             httpHeaders: headers,
             fit: BoxFit.cover,
-            placeholder: (_, _) => Container(color: AppColors.surface),
+            placeholder: (_, _) => Container(color: QeranColors.creamSurface),
             errorWidget: (_, _, _) =>
-                Container(color: AppColors.surface),
+                Container(color: QeranColors.creamSurface),
           ),
         ),
-        Container(color: AppColors.black.withValues(alpha: 0.30)),
+        Container(color: QeranColors.wine.withValues(alpha: 0.35)),
         const Align(
           alignment: Alignment.bottomCenter,
           child: _BottomGradient(),
@@ -85,8 +85,8 @@ class _BottomGradient extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.black.withValues(alpha: 0),
-              AppColors.black.withValues(alpha: 0.55),
+              QeranColors.wine.withValues(alpha: 0),
+              QeranColors.wine.withValues(alpha: 0.65),
             ],
           ),
         ),

@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/exit_app_dialog.dart';
 import '../../../blocs/questionnaire_cubit.dart';
@@ -76,14 +76,15 @@ class QuestionnaireFlowBody extends StatelessWidget {
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.p24,
-                  vertical: AppDimens.p16,
+                  horizontal: QeranSpacing.s24,
+                  vertical: QeranSpacing.s16,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     QuestionnaireAppBar(
                       isFirst: inProgressState.isFirst,
+                      categoryName: inProgressState.currentQuestion.categoryName,
                       steps: categorySteps,
                       currentQuestionIndex: inProgressState.currentIndex,
                       questions: inProgressState.questions,
@@ -96,11 +97,11 @@ class QuestionnaireFlowBody extends StatelessWidget {
                         }
                       },
                     ),
-                    const SizedBox(height: AppDimens.p32),
+                    QeranSpacing.vs32,
                     QuestionHeader(
                       question: inProgressState.currentQuestion,
                     ),
-                    const SizedBox(height: AppDimens.p24),
+                    QeranSpacing.vs24,
                     Expanded(
                       child: SingleChildScrollView(
                         child: QuestionRenderer(
@@ -122,7 +123,7 @@ class QuestionnaireFlowBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: AppDimens.p16),
+                    QeranSpacing.vs16,
                     QuestionnaireNavigationButton(
                       isLast: inProgressState.isLast,
                       isLoading: false,
@@ -133,7 +134,7 @@ class QuestionnaireFlowBody extends StatelessWidget {
                           .read<QuestionnaireCubit>()
                           .prepareForOath(),
                     ),
-                    const SizedBox(height: AppDimens.p16),
+                    QeranSpacing.vs16,
                   ],
                 ),
               ),

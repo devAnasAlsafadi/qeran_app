@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/theme/app_color.dart';
 
 /// Circular translucent-dark button used as an overlay on the discovery
 /// image (filter button on the leading side, notifications on the
@@ -36,12 +35,12 @@ class ImageOverlayButton extends StatelessWidget {
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.black.withValues(alpha: 0.35),
+                color: QeranColors.overlayTintDark,
               ),
               alignment: Alignment.center,
-              child: Icon(icon, color: AppColors.white, size: 20),
+              child: Icon(icon, color: QeranColors.paper, size: 20),
             ),
             if (badge != null)
               PositionedDirectional(
@@ -56,10 +55,9 @@ class ImageOverlayButton extends StatelessWidget {
   }
 }
 
-/// Small gold dot used as the bell's unread marker. The Figma shows a
-/// count badge ("39"); we render a simple dot this phase since the count
-/// is not yet wired to real data. Brand identity contains no green —
-/// unread/attention signals celebrate via gold.
+/// Small unread marker for the bell. Uses the danger token per the
+/// notification-badge convention; bordered with paper so it reads
+/// cleanly over the dark image overlay.
 class OverlayUnreadDot extends StatelessWidget {
   const OverlayUnreadDot({super.key});
 
@@ -70,8 +68,8 @@ class OverlayUnreadDot extends StatelessWidget {
       height: 10,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: QeranColors.gold,
-        border: Border.all(color: AppColors.white, width: 1.5),
+        color: QeranColors.danger,
+        border: Border.all(color: QeranColors.paper, width: 1.5),
       ),
     );
   }

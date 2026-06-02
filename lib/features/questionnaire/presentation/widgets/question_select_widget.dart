@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import '../../domain/entities/question_entity.dart';
 
 /// Renders a single-select list of radio options (matching Figma reference).
@@ -25,7 +25,7 @@ class QuestionSelectWidget extends StatelessWidget {
         return InkWell(
           onTap: () => onChanged(option.id),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppDimens.p12),
+            padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s12),
             child: Row(
               children: [
                 // Radio circle on the left (RTL makes this appear on the right visually)
@@ -35,7 +35,9 @@ class QuestionSelectWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.border,
+                      color: isSelected
+                          ? QeranColors.wine
+                          : QeranColors.hairline,
                       width: 2,
                     ),
                   ),
@@ -46,19 +48,19 @@ class QuestionSelectWidget extends StatelessWidget {
                             height: 12,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.primary,
+                              color: QeranColors.wine,
                             ),
                           ),
                         )
                       : null,
                 ),
-                const SizedBox(width: AppDimens.p16),
+                QeranSpacing.hs16,
                 Expanded(
                   child: Text(
                     option.text,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
+                    style: isSelected
+                        ? QeranTypography.subtitle
+                        : QeranTypography.body,
                   ),
                 ),
               ],

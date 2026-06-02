@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 
 class DashedRectPainter extends CustomPainter {
   final Color color;
@@ -21,7 +22,7 @@ class DashedRectPainter extends CustomPainter {
 
     final RRect rrect = RRect.fromRectAndRadius(
       Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(12),
+      const Radius.circular(QeranRadii.control),
     );
 
     Path path = Path()..addRRect(rrect);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 
 class QuestionProgressBar extends StatelessWidget {
   /// Value between 0.0 and 1.0.
@@ -10,12 +11,12 @@ class QuestionProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
+      borderRadius: QeranRadii.pill,
       child: LinearProgressIndicator(
         value: progress,
         minHeight: 5,
-        backgroundColor: AppColors.border,
-        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+        backgroundColor: QeranColors.wine12,
+        valueColor: const AlwaysStoppedAnimation<Color>(QeranColors.wine),
       ),
     );
   }

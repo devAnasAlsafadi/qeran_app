@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 
 class PrivacyInfoBox extends StatelessWidget {
   const PrivacyInfoBox({super.key});
@@ -11,11 +12,11 @@ class PrivacyInfoBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: AppDimens.paddingAll16,
+      padding: const EdgeInsets.all(QeranSpacing.s16),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: AppDimens.borderRadius8,
-        border: Border.all(color: AppColors.blue, width: 1.5),
+        color: QeranColors.paper,
+        borderRadius: QeranRadii.controlR,
+        border: Border.all(color: QeranColors.wine20, width: 1.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,13 +24,11 @@ class PrivacyInfoBox extends StatelessWidget {
           Expanded(
             child: Text(
               LocaleKeys.auth_photo_privacy_note.t(context),
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textPrimary,
-              ),
+              style: QeranTypography.bodySm,
             ),
           ),
-          const SizedBox(width: AppDimens.p8),
-          const Icon(Icons.lock, color: AppColors.grey, size: 24),
+          QeranSpacing.hs8,
+          const Icon(Icons.lock, color: QeranColors.wine, size: 24),
         ],
       ),
     );

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 
 import '../../domain/entities/discovery_profile.dart';
 import '../../domain/entities/placement.dart';
@@ -71,9 +71,9 @@ class DiscoveryImagePanel extends StatelessWidget {
                   textDirection: TextDirection.ltr,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      AppDimens.p16,
-                      AppDimens.p8,
-                      AppDimens.p16,
+                      QeranSpacing.s16,
+                      QeranSpacing.s8,
+                      QeranSpacing.s16,
                       0,
                     ),
                     child: Row(
@@ -99,15 +99,15 @@ class DiscoveryImagePanel extends StatelessWidget {
             ),
           Positioned(
             // Positioned higher to ensure it sits safely above the overlapping white sheet
-            bottom: AppDimens.p48,
-            left: AppDimens.p16,
-            right: AppDimens.p16,
+            bottom: QeranSpacing.s48,
+            left: QeranSpacing.s16,
+            right: QeranSpacing.s16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 _NameAgeRow(name: profile.name, age: profile.age),
-                const SizedBox(height: AppDimens.p8),
+                const SizedBox(height: QeranSpacing.s8),
                 DiscoveryChipsAboveImage(items: aboveItems),
               ],
             ),
@@ -190,7 +190,7 @@ class DiscoveryInfoPanel extends StatelessWidget {
             maxLines: 2,
           ),
           // Increased breathing room between About Me text and the inside chips
-          const SizedBox(height: AppDimens.p20),
+          const SizedBox(height: QeranSpacing.s20),
         ],
         DiscoveryInsideChips(items: insideItems),
       ],
@@ -239,16 +239,15 @@ class DiscoveryCard extends StatelessWidget {
       children: [
         Expanded(child: DiscoveryImagePanel(profile: profile, onTap: onTap)),
         Transform.translate(
-          offset: const Offset(0, -AppDimens.p16),
+          offset: const Offset(0, -QeranSpacing.s16),
           child: Container(
             decoration: const BoxDecoration(
               color: QeranColors.paper,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(AppDimens.p24),
-                topRight: Radius.circular(AppDimens.p24),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(QeranRadii.panel),
               ),
             ),
-            padding: const EdgeInsets.all(AppDimens.p20),
+            padding: const EdgeInsets.all(QeranSpacing.s20),
             child: DiscoveryInfoPanel(profile: profile),
           ),
         ),

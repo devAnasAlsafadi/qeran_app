@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
@@ -78,16 +79,16 @@ class _MatchesList extends StatelessWidget {
     final bottomInset = MediaQuery.of(context).padding.bottom;
     const navReserve = 96.0;
     return RefreshIndicator(
-      color: AppColors.primary,
+      color: QeranColors.wine,
       onRefresh: () => onRefresh(),
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
         padding: EdgeInsets.fromLTRB(
-          AppDimens.p20,
-          AppDimens.p12,
-          AppDimens.p20,
+          QeranSpacing.s20,
+          QeranSpacing.s12,
+          QeranSpacing.s20,
           bottomInset + navReserve,
         ),
         itemCount: matches.length,
@@ -116,6 +117,12 @@ class _MatchesList extends StatelessWidget {
                 : () => showMatchGallerySheet(context, images: card.images),
             onContactMatchmaker: () =>
                 onContactMatchmaker(context, card.conversationId),
+            onFormalStep: () => cubit.sendFormalStep(
+              card,
+              LocaleKeys.likes_matches_formal_step_message.t(context),
+            ),
+            isFormalStepSending: state.isFormalStepSending(card.likeRequestId),
+            isFormalStepSent: state.isFormalStepSent(card.likeRequestId),
             onOpenProfile: () => _openProfile(context, card),
           );
         },

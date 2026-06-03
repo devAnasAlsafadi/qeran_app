@@ -6,32 +6,21 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 
 import 'like_countdown_formatter.dart';
 
-/// Compact "waiting" chip showing the remaining time on a pending
-/// photo-exchange request.
+/// Compact "waiting" chip showing the remaining time on a pending row.
 ///
 /// Owns its own [Timer.periodic] so the countdown ticks live without a
-/// parent rebuild; the timer is cancelled in `dispose`. Tick cadence is
-/// 30 s — precise enough for the d/h/m bucketing in
-/// [LikeCountdownFormatter]. When the local count reaches zero,
-/// [onExpired] fires once (the caller refreshes; we don't archive
-/// locally).
-class PhotoExchangeCountdownChip extends StatefulWidget {
+/// parent rebuild — only this `setState` runs; the timer is cancelled in
+/// `dispose`. Tick cadence is 30 s, precise enough for the d/h/m
+/// bucketing in [LikeCountdownFormatter] and cheap for a full list.
+class LikeCountdownChip extends StatefulWidget {
   final int initialSeconds;
-  final VoidCallback? onExpired;
-
-  const PhotoExchangeCountdownChip({
-    super.key,
-    required this.initialSeconds,
-    this.onExpired,
-  });
+  const LikeCountdownChip({super.key, required this.initialSeconds});
 
   @override
-  State<PhotoExchangeCountdownChip> createState() =>
-      _PhotoExchangeCountdownChipState();
+  State<LikeCountdownChip> createState() => _LikeCountdownChipState();
 }
 
-class _PhotoExchangeCountdownChipState
-    extends State<PhotoExchangeCountdownChip> {
+class _LikeCountdownChipState extends State<LikeCountdownChip> {
   static const Duration _tick = Duration(seconds: 30);
 
   late int _seconds;
@@ -47,8 +36,10 @@ class _PhotoExchangeCountdownChipState
   }
 
   @override
-  void didUpdateWidget(PhotoExchangeCountdownChip old) {
+  void didUpdateWidget(LikeCountdownChip old) {
     super.didUpdateWidget(old);
+    // Cubit refresh emitted a new remaining value — reset the anchor so
+    // the next tick subtracts from the fresh baseline, not the stale one.
     if (widget.initialSeconds != old.initialSeconds) {
       _seconds = widget.initialSeconds;
       _anchor = DateTime.now();
@@ -67,10 +58,9 @@ class _PhotoExchangeCountdownChipState
     final next = (widget.initialSeconds - elapsed).clamp(0, 1 << 31);
     if (next == _seconds) return;
     setState(() => _seconds = next);
-    if (next == 0) {
-      _timer?.cancel();
-      widget.onExpired?.call();
-    }
+    // Local countdown hit zero — backend owns the final state; the next
+    // refresh moves this row to archived/expired.
+    if (next == 0) _timer?.cancel();
   }
 
   @override

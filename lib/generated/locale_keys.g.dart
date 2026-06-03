@@ -201,6 +201,9 @@ abstract class  LocaleKeys {
   static const likes_matches_formal_last_updated = 'likes.matches_formal_last_updated';
   static const likes_matches_stage_matchmaker_subtitle = 'likes.matches_stage_matchmaker_subtitle';
   static const likes_matches_stage_matchmaker_cta = 'likes.matches_stage_matchmaker_cta';
+  static const likes_matches_inquiry_cta = 'likes.matches_inquiry_cta';
+  static const likes_matches_formal_step_cta = 'likes.matches_formal_step_cta';
+  static const likes_matches_formal_step_message = 'likes.matches_formal_step_message';
   static const likes_matches_stage_matchmaker_will_contact = 'likes.matches_stage_matchmaker_will_contact';
   static const likes_matchmaker_chat_title = 'likes.matchmaker_chat_title';
   static const likes_matchmaker_chat_placeholder = 'likes.matchmaker_chat_placeholder';

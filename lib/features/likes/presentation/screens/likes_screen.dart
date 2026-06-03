@@ -198,7 +198,33 @@ class _LikesView extends StatelessWidget {
               LocaleKeys.likes_matches_action_respond_failed.t(context),
           type: SnackBarType.error,
         );
+      // Formal step (stage 1/2) — on send (or already-sent) just open the
+      // matchmaker chat; never re-post the card.
+      case LikesActionEvent.formalStepSuccess:
+      case LikesActionEvent.formalStepAlreadySent:
+        _openMatchmakerMessages(context);
+      case LikesActionEvent.formalStepFailure:
+        AppSnackBar.show(
+          context,
+          message:
+              LocaleKeys.likes_matches_action_request_failed.t(context),
+          type: SnackBarType.error,
+        );
     }
+  }
+
+  void _openMatchmakerMessages(BuildContext context) {
+    final shell = HomeShellScope.maybeOf(context);
+    if (shell != null) {
+      shell.openMessagesTab();
+      return;
+    }
+    AppSnackBar.show(
+      context,
+      message:
+          LocaleKeys.likes_matches_stage_matchmaker_will_contact.t(context),
+      type: SnackBarType.info,
+    );
   }
 }
 
@@ -237,31 +263,32 @@ class _TabBody extends StatelessWidget {
   }
 
   void _onContactMatchmaker(BuildContext context, String? conversationId) {
-    if (conversationId == null || conversationId.isEmpty) {
-      AppSnackBar.show(
-        context,
-        message: LocaleKeys.likes_matches_stage_matchmaker_will_contact
-            .t(context),
-        type: SnackBarType.info,
-      );
-      return;
-    }
-    // Preferred path: switch the bottom nav to the Messages tab.
-    // The user has exactly one matchmaker conversation; the chat
-    // screen will resolve it via /my-matchmaker. This preserves
-    // navigation state — no extra push, no back-button accumulation.
+    // The user has exactly one matchmaker conversation, resolved by the
+    // chat screen via `/api/chat/my-matchmaker`. `conversationId` is null
+    // until a formalRequest exists (Stage 0), so we no longer gate on it
+    // — the inquiry / formal-step button opens the matchmaker chat at
+    // every stage. Preferred path: switch the bottom nav to the Messages
+    // tab (preserves navigation state — no extra push).
     final shell = HomeShellScope.maybeOf(context);
     if (shell != null) {
       shell.openMessagesTab();
       return;
     }
-    // Fallback for any non-shell scope (deep link, widget test).
-    // Routes to the legacy placeholder route which is still wired in
-    // `AppRouter`; will be removed when the placeholder route is.
-    NavigationManager.navigateTo(
+    // Non-shell scope (deep link / widget test): route directly when we
+    // have an id, else surface the neutral "will contact you" notice.
+    if (conversationId != null && conversationId.isNotEmpty) {
+      NavigationManager.navigateTo(
+        context,
+        RouteNames.matchmakerChat,
+        arguments: MatchmakerChatScreenArgs(conversationId: conversationId),
+      );
+      return;
+    }
+    AppSnackBar.show(
       context,
-      RouteNames.matchmakerChat,
-      arguments: MatchmakerChatScreenArgs(conversationId: conversationId),
+      message:
+          LocaleKeys.likes_matches_stage_matchmaker_will_contact.t(context),
+      type: SnackBarType.info,
     );
   }
 }

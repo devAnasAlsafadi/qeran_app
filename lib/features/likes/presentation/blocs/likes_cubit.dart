@@ -1,9 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
+import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
+import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 
 import '../../domain/entities/like_action_outcome.dart';
 import '../../domain/entities/likes_tab.dart';
+import '../../domain/entities/match_card.dart';
 import '../../domain/entities/photo_exchange_outcome.dart';
 import '../../domain/usecases/accept_like_usecase.dart';
 import '../../domain/usecases/accept_photo_exchange_usecase.dart';
@@ -36,6 +40,9 @@ class LikesCubit extends Cubit<LikesState> {
   final RequestPhotoExchangeUseCase _requestPhotoExchange;
   final AcceptPhotoExchangeUseCase _acceptPhotoExchange;
   final RejectPhotoExchangeUseCase _rejectPhotoExchange;
+  // Chat use-cases (cross-feature) for the formal-step auto-send.
+  final ShareProfileUseCase _shareProfile;
+  final SendTextMessageUseCase _sendText;
 
   LikesCubit({
     required GetIncomingLikesUseCase getIncoming,
@@ -46,6 +53,8 @@ class LikesCubit extends Cubit<LikesState> {
     required RequestPhotoExchangeUseCase requestPhotoExchange,
     required AcceptPhotoExchangeUseCase acceptPhotoExchange,
     required RejectPhotoExchangeUseCase rejectPhotoExchange,
+    required ShareProfileUseCase shareProfile,
+    required SendTextMessageUseCase sendText,
   })  : _getIncoming = getIncoming,
         _getOutgoing = getOutgoing,
         _acceptLike = acceptLike,
@@ -54,6 +63,8 @@ class LikesCubit extends Cubit<LikesState> {
         _requestPhotoExchange = requestPhotoExchange,
         _acceptPhotoExchange = acceptPhotoExchange,
         _rejectPhotoExchange = rejectPhotoExchange,
+        _shareProfile = shareProfile,
+        _sendText = sendText,
         super(const LikesState());
 
   /// Kicks off the active tab if it hasn't loaded yet. Called once
@@ -433,5 +444,95 @@ class LikesCubit extends Cubit<LikesState> {
         true,
       _ => false,
     };
+  }
+
+  // ── Formal step (stage 1/2) — share partner card + accompanying msg ─
+
+  /// Shares the partner's profile card into the user's matchmaker
+  /// conversation and posts an accompanying [message], signalling intent
+  /// to proceed formally. Guarded to once per match this session — a
+  /// repeat tap never re-posts; it emits [LikesActionEvent.formalStepAlreadySent]
+  /// so the screen just opens the chat. The localized [message] is passed
+  /// in from the UI (the cubit has no `BuildContext`).
+  Future<void> sendFormalStep(MatchCard card, String message) async {
+    final id = card.likeRequestId;
+    if (state.isFormalStepSending(id)) return;
+    if (state.isFormalStepSent(id)) {
+      _emitFormalStep(LikesActionEvent.formalStepAlreadySent);
+      return;
+    }
+    final conversationId = int.tryParse(card.conversationId ?? '');
+    if (conversationId == null) {
+      // No conversation yet (defensive — stage 1/2 should always have
+      // one). Open the chat without sharing rather than no-op.
+      _emitFormalStep(LikesActionEvent.formalStepAlreadySent);
+      return;
+    }
+
+    emit(state.copyWith(
+      formalStepInFlightLikeIds: {...state.formalStepInFlightLikeIds, id},
+    ));
+
+    final share = await _shareProfile(
+      conversationId: conversationId,
+      sharedUserId: card.otherUserId,
+    );
+    if (isClosed) return;
+
+    var freshShare = false;
+    var done = false;
+    share.fold(
+      (failure) {
+        AppLogger.warning(
+          'FORMAL-STEP — share failed id=$id raw="${failure.message}"',
+          tag: 'MATCHES',
+        );
+      },
+      (outcome) {
+        switch (outcome) {
+          case ShareProfileSuccess():
+            freshShare = true;
+            done = true;
+          // Rate-limited ⇒ the card was already shared recently; treat as
+          // done so we navigate instead of erroring, and never re-post.
+          case ShareProfileRateLimited():
+            done = true;
+          case ShareProfileNotFound() ||
+                ShareProfileValidationError() ||
+                ShareProfileConversationNotFound() ||
+                ShareProfileUnauthorized() ||
+                ShareProfileFailure():
+            AppLogger.warning(
+              'FORMAL-STEP — share rejected id=$id',
+              tag: 'MATCHES',
+            );
+        }
+      },
+    );
+
+    // Best-effort accompanying message — only after a fresh share.
+    if (freshShare) {
+      await _sendText(conversationId: conversationId, content: message);
+      if (isClosed) return;
+    }
+
+    final cleared = {...state.formalStepInFlightLikeIds}..remove(id);
+    emit(state.copyWith(
+      formalStepInFlightLikeIds: cleared,
+      formalStepSentLikeIds: done
+          ? {...state.formalStepSentLikeIds, id}
+          : state.formalStepSentLikeIds,
+      actionEvent: done
+          ? LikesActionEvent.formalStepSuccess
+          : LikesActionEvent.formalStepFailure,
+      actionEventVersion: state.actionEventVersion + 1,
+    ));
+  }
+
+  void _emitFormalStep(LikesActionEvent event) {
+    emit(state.copyWith(
+      actionEvent: event,
+      actionEventVersion: state.actionEventVersion + 1,
+    ));
   }
 }

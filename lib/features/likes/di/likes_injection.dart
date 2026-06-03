@@ -57,6 +57,10 @@ void initLikesDependencies() {
       requestPhotoExchange: sl(),
       acceptPhotoExchange: sl(),
       rejectPhotoExchange: sl(),
+      // Cross-feature chat use-cases (registered by chat_injection) for
+      // the formal-step auto-send.
+      shareProfile: sl(),
+      sendText: sl(),
     ),
   );
 }

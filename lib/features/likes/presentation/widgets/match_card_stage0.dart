@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
 import '../../domain/entities/photo_exchange_pending.dart';
 import 'like_blurred_image.dart';
-import 'photo_exchange_action_row.dart';
+import 'match_card_scaffold.dart';
 import 'photo_exchange_countdown_chip.dart';
 
-/// Stage 0 — WaitingForPhotoExchange.
-///
-/// * `pendingPhotoExchange == null` → primary CTA "Request photo
-///   exchange".
-/// * `requestedByMe == true` → muted "Awaiting their response" pill
-///   + countdown.
-/// * `canAccept && canReject` → Accept/Reject circular buttons
-///   + countdown (responder path).
-/// * Otherwise → defensive waiting pill + countdown.
+/// Stage 0 — WaitingForPhotoExchange. Three sub-states off
+/// `pendingPhotoExchange`:
+/// * `null` (no request yet) → [طلب تبادل الصور] (gold) + [أرسل استفساراتك]
+///   (wine).
+/// * `requestedByMe` (initiator waiting) → status + countdown, no buttons.
+/// * `canAccept/canReject` (responder) → countdown + [قبول الطلب] (gold) +
+///   [أرسل استفساراتك] (wine) + a subtle reject link.
 class MatchCardStage0 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onRequestPhotoExchange;
@@ -29,6 +27,7 @@ class MatchCardStage0 extends StatelessWidget {
   final bool isAcceptingPhotoExchange;
   final bool isRejectingPhotoExchange;
   final VoidCallback? onPendingExpiredLocally;
+  final VoidCallback? onContactMatchmaker;
 
   const MatchCardStage0({
     super.key,
@@ -40,214 +39,141 @@ class MatchCardStage0 extends StatelessWidget {
     required this.isAcceptingPhotoExchange,
     required this.isRejectingPhotoExchange,
     required this.onPendingExpiredLocally,
+    required this.onContactMatchmaker,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    final pending = card.pendingPhotoExchange;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _Header(card: card),
-        const SizedBox(height: AppDimens.p16),
-        if (pending == null)
-          _RequestCta(
-            isInFlight: isRequestingPhotoExchange,
-            onTap: onRequestPhotoExchange,
-          )
-        else
-          _PendingFooter(
-            pending: pending,
-            onAccept: onAcceptPhotoExchange,
-            onReject: onRejectPhotoExchange,
-            isAccepting: isAcceptingPhotoExchange,
-            isRejecting: isRejectingPhotoExchange,
-            onExpiredLocally: onPendingExpiredLocally,
-          ),
-      ],
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final MatchCard card;
-  const _Header({required this.card});
 
   @override
   Widget build(BuildContext context) {
     final image = card.primaryImage;
-    return Row(
+    final pending = card.pendingPhotoExchange;
+    final secs = pending?.remainingSeconds;
+    final canRespond =
+        pending != null && (pending.canAccept || pending.canReject);
+
+    return MatchCardScaffold(
+      avatar: LikeBlurredImage(url: image?.url, blur: image?.isBlurred ?? true),
+      name: card.otherUserName,
+      statusIcon: _statusIcon(pending, canRespond),
+      statusText: _statusText(context, pending, canRespond),
+      statusColor: QeranColors.goldDeep,
+      topChip: secs == null
+          ? null
+          : PhotoExchangeCountdownChip(
+              initialSeconds: secs,
+              onExpired: onPendingExpiredLocally,
+            ),
+      footer: _footer(context, pending, canRespond),
+    );
+  }
+
+  IconData _statusIcon(PhotoExchangePending? pending, bool canRespond) {
+    if (pending != null && !canRespond) return Icons.access_time_rounded;
+    return Icons.lock_outline_rounded;
+  }
+
+  String _statusText(
+    BuildContext context,
+    PhotoExchangePending? pending,
+    bool canRespond,
+  ) {
+    if (pending != null && !canRespond) {
+      return LocaleKeys.likes_matches_stage_waiting_photos_pending.t(context);
+    }
+    return LocaleKeys.likes_matches_stage_waiting_photos_title.t(context);
+  }
+
+  Widget? _footer(
+    BuildContext context,
+    PhotoExchangePending? pending,
+    bool canRespond,
+  ) {
+    // Initiator waiting → no buttons (only the countdown chip).
+    if (pending != null && !canRespond) return null;
+
+    if (pending == null) {
+      // No request yet (initiator) → request (gold) + inquiry (wine).
+      return _TwoButtonRow(
+        actionLabel:
+            LocaleKeys.likes_matches_stage_waiting_photos_cta.t(context),
+        actionOnTap: onRequestPhotoExchange,
+        actionLoading: isRequestingPhotoExchange,
+        inquiryLabel: LocaleKeys.likes_matches_inquiry_cta.t(context),
+        inquiryOnTap: onContactMatchmaker,
+      );
+    }
+
+    // Responder → accept (gold) + inquiry (wine); subtle reject below.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                card.otherUserName,
-                style: AppTextStyles.titleLarge.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: AppDimens.p8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.lock_outline_rounded,
-                    size: 14,
-                    color: Color(0xFFB18454),
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      LocaleKeys.likes_matches_stage_waiting_photos_title
-                          .t(context),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: const Color(0xFFB18454),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        _TwoButtonRow(
+          actionLabel:
+              LocaleKeys.likes_matches_photo_exchange_action_accept.t(context),
+          actionOnTap: pending.canAccept ? onAcceptPhotoExchange : null,
+          actionLoading: isAcceptingPhotoExchange,
+          inquiryLabel: LocaleKeys.likes_matches_inquiry_cta.t(context),
+          inquiryOnTap: onContactMatchmaker,
+        ),
+        const SizedBox(height: QeranSpacing.s4),
+        Center(
+          child: QeranButton(
+            label: LocaleKeys.likes_matches_photo_exchange_action_reject
+                .t(context),
+            onPressed: pending.canReject ? onRejectPhotoExchange : null,
+            variant: QeranButtonVariant.ghost,
+            size: QeranButtonSize.xs,
+            fullWidth: false,
+            loading: isRejectingPhotoExchange,
           ),
         ),
-        const SizedBox(width: AppDimens.p12),
-        LikeBlurredImage(url: image?.url, blur: true),
       ],
     );
   }
 }
 
-class _RequestCta extends StatelessWidget {
-  final bool isInFlight;
-  final VoidCallback? onTap;
-  const _RequestCta({required this.isInFlight, required this.onTap});
+/// Two stage CTAs — gold action (leading) + wine inquiry (trailing). The
+/// inquiry gets the wider flex so the long "أرسل استفساراتك للخطّابة"
+/// label stays on one line; both use the compact [QeranButtonSize.xs].
+class _TwoButtonRow extends StatelessWidget {
+  final String actionLabel;
+  final VoidCallback? actionOnTap;
+  final bool actionLoading;
+  final String inquiryLabel;
+  final VoidCallback? inquiryOnTap;
 
-  @override
-  Widget build(BuildContext context) {
-    final disabled = isInFlight || onTap == null;
-    return SizedBox(
-      width: double.infinity,
-      child: Material(
-        color: disabled
-            ? AppColors.primary.withValues(alpha: 0.55)
-            : AppColors.primary,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          onTap: disabled ? null : onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Center(
-              child: isInFlight
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(AppColors.white),
-                      ),
-                    )
-                  : Text(
-                      LocaleKeys.likes_matches_stage_waiting_photos_cta
-                          .t(context),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PendingFooter extends StatelessWidget {
-  final PhotoExchangePending pending;
-  final VoidCallback? onAccept;
-  final VoidCallback? onReject;
-  final bool isAccepting;
-  final bool isRejecting;
-  final VoidCallback? onExpiredLocally;
-
-  const _PendingFooter({
-    required this.pending,
-    required this.onAccept,
-    required this.onReject,
-    required this.isAccepting,
-    required this.isRejecting,
-    required this.onExpiredLocally,
+  const _TwoButtonRow({
+    required this.actionLabel,
+    required this.actionOnTap,
+    required this.actionLoading,
+    required this.inquiryLabel,
+    required this.inquiryOnTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final secs = pending.remainingSeconds;
-    // Source-of-truth priority (per product spec):
-    //   1. canAccept || canReject → render Accept/Reject buttons.
-    //   2. requestedByMe          → render "awaiting their response".
-    //   3. otherwise (defensive)  → render same waiting state — receiver
-    //      whose action window has closed; the next refresh will move
-    //      the row off Stage 0.
-    //
-    // Previously this gated `&&` on both flags AND on `!requestedByMe`,
-    // so a single misaligned flag (or a non-actionable Received row)
-    // silently fell through to the waiting state. We now branch on
-    // canAccept/canReject alone.
-    final canRespond = pending.canAccept || pending.canReject;
-    if (canRespond) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (secs != null)
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: PhotoExchangeCountdownChip(
-                initialSeconds: secs,
-                onExpired: onExpiredLocally,
-              ),
-            ),
-          if (secs != null) const SizedBox(height: AppDimens.p12),
-          PhotoExchangeActionRow(
-            onAccept: pending.canAccept ? onAccept : null,
-            onReject: pending.canReject ? onReject : null,
-            isAccepting: isAccepting,
-            isRejecting: isRejecting,
-          ),
-        ],
-      );
-    }
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Flexible(
-          child: Text(
-            LocaleKeys.likes_matches_stage_waiting_photos_pending.t(context),
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        Expanded(
+          flex: 2,
+          child: QeranButton(
+            label: actionLabel,
+            onPressed: actionOnTap,
+            variant: QeranButtonVariant.primaryGold,
+            size: QeranButtonSize.xs,
+            loading: actionLoading,
           ),
         ),
-        if (secs != null) ...[
-          const SizedBox(width: AppDimens.p8),
-          PhotoExchangeCountdownChip(
-            initialSeconds: secs,
-            onExpired: onExpiredLocally,
+        QeranSpacing.hs8,
+        Expanded(
+          flex: 3,
+          child: QeranButton(
+            label: inquiryLabel,
+            onPressed: inquiryOnTap,
+            variant: QeranButtonVariant.primaryWine,
+            size: QeranButtonSize.xs,
           ),
-        ],
+        ),
       ],
     );
   }

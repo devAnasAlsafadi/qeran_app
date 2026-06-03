@@ -7,9 +7,16 @@ import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 import 'qeran_loader.dart';
 
-enum QeranButtonVariant { primary, primaryWine, secondary, ghost, destructive }
+enum QeranButtonVariant {
+  primary,
+  primaryGold,
+  primaryWine,
+  secondary,
+  ghost,
+  destructive,
+}
 
-enum QeranButtonSize { lg, md, sm }
+enum QeranButtonSize { lg, md, sm, xs }
 
 class QeranButton extends StatelessWidget {
   const QeranButton({
@@ -83,18 +90,29 @@ class QeranButton extends StatelessWidget {
         QeranButtonSize.lg => 54,
         QeranButtonSize.md => 46,
         QeranButtonSize.sm => 36,
+        // Compact: dense two-button rows where labels need the width.
+        QeranButtonSize.xs => 40,
       };
 
   static double _hPad(QeranButtonSize s) => switch (s) {
         QeranButtonSize.lg => QeranSpacing.s24,
         QeranButtonSize.md => QeranSpacing.s20,
         QeranButtonSize.sm => QeranSpacing.s16,
+        // Tight horizontal padding so long Arabic labels stay on one line.
+        QeranButtonSize.xs => QeranSpacing.s8,
       };
 
   static _Spec _spec(QeranButtonVariant v) => switch (v) {
         QeranButtonVariant.primary => const _Spec(
             bg: QeranColors.gold,
             fg: QeranColors.wine,
+          ),
+        // Solid gold with white label — pairs with [primaryWine] in the
+        // two-button match rows. Uses [goldDeep] (not the light brand
+        // gold) so white text stays legible.
+        QeranButtonVariant.primaryGold => const _Spec(
+            bg: QeranColors.goldDeep,
+            fg: QeranColors.paper,
           ),
         QeranButtonVariant.primaryWine => const _Spec(
             bg: QeranColors.wine,
@@ -141,11 +159,11 @@ class _Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = (size == QeranButtonSize.sm
-            ? QeranTypography.label
-            : QeranTypography.subtitle)
+    final compact =
+        size == QeranButtonSize.sm || size == QeranButtonSize.xs;
+    final style = (compact ? QeranTypography.label : QeranTypography.subtitle)
         .copyWith(color: color);
-    final iconSize = size == QeranButtonSize.sm ? 16.0 : 18.0;
+    final iconSize = compact ? 16.0 : 18.0;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

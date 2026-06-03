@@ -9,6 +9,11 @@ class QeranColors {
   static const Color wine = Color(0xFF431C33);
   static const Color gold = Color(0xFFE4C094);
 
+  /// Deeper, opaque gold for "pending / waiting" accents (status text,
+  /// countdown chips) that need stronger contrast than [gold] on light
+  /// surfaces. Same warm family, one step toward bronze.
+  static const Color goldDeep = Color(0xFFB18454);
+
   // Canvas tier
   static const Color creamCanvas = Color(0xFFFCEDDD);
   static const Color creamSurface = Color(0xFFFBF4E6);

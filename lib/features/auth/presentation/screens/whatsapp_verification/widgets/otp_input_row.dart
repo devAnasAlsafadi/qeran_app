@@ -15,7 +15,11 @@ class OtpInputRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // OTP codes read left-to-right in every locale, so the boxes stay LTR
+    // (first box on the left) even in Arabic. Scoped to this Row via its own
+    // textDirection — not the forbidden Directionality widget (DESIGN.md §6).
     return Row(
+      textDirection: TextDirection.ltr,
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(controllers.length, (index) {
         return Padding(

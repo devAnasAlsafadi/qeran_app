@@ -15,27 +15,24 @@ class OtpInputRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(controllers.length, (index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppDimens.p8),
-            child: _OtpBox(
-              controller: controllers[index],
-              focusNode: focusNodes[index],
-              onChanged: (value) {
-                if (value.isNotEmpty && index < controllers.length - 1) {
-                  FocusScope.of(context).requestFocus(focusNodes[index + 1]);
-                } else if (value.isEmpty && index > 0) {
-                  FocusScope.of(context).requestFocus(focusNodes[index - 1]);
-                }
-              },
-            ),
-          );
-        }),
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(controllers.length, (index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimens.p8),
+          child: _OtpBox(
+            controller: controllers[index],
+            focusNode: focusNodes[index],
+            onChanged: (value) {
+              if (value.isNotEmpty && index < controllers.length - 1) {
+                FocusScope.of(context).requestFocus(focusNodes[index + 1]);
+              } else if (value.isEmpty && index > 0) {
+                FocusScope.of(context).requestFocus(focusNodes[index - 1]);
+              }
+            },
+          ),
+        );
+      }),
     );
   }
 }

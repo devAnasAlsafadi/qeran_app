@@ -67,32 +67,29 @@ class DiscoveryImagePanel extends StatelessWidget {
               right: 0,
               child: SafeArea(
                 bottom: false,
-                child: Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      QeranSpacing.s16,
-                      QeranSpacing.s8,
-                      QeranSpacing.s16,
-                      0,
-                    ),
-                    child: Row(
-                      children: [
-                        const ImageOverlayButton(
-                          icon: Icons.tune_rounded,
-                          onPressed: null,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    QeranSpacing.s16,
+                    QeranSpacing.s8,
+                    QeranSpacing.s16,
+                    0,
+                  ),
+                  child: Row(
+                    children: [
+                      const ImageOverlayButton(
+                        icon: Icons.tune_rounded,
+                        onPressed: null,
+                      ),
+                      const Spacer(),
+                      ImageOverlayButton(
+                        icon: Icons.notifications_outlined,
+                        onPressed: () => NavigationManager.navigateTo(
+                          context,
+                          RouteNames.notificationsDemo,
                         ),
-                        const Spacer(),
-                        ImageOverlayButton(
-                          icon: Icons.notifications_outlined,
-                          onPressed: () => NavigationManager.navigateTo(
-                            context,
-                            RouteNames.notificationsDemo,
-                          ),
-                          badge: const OverlayUnreadDot(),
-                        ),
-                      ],
-                    ),
+                        badge: const OverlayUnreadDot(),
+                      ),
+                    ],
                   ),
                 ),
               ),

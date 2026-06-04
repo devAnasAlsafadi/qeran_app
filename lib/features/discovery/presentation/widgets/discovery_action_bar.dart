@@ -97,45 +97,41 @@ class DiscoveryActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Direction-locked to LTR so the grouping holds in Arabic too.
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Row(
-        children: [
-          _PressableActionButton(
-            icon: Icons.close_rounded,
-            size: 52,
-            iconSize: 24,
-            tooltip: LocaleKeys.discovery_action_pass_label.t(context),
-            onPressed: onPass,
-            palette: _kPassPalette,
-          ),
-          const SizedBox(width: QeranSpacing.s12),
-          _PressableActionButton(
-            icon: Icons.replay_rounded,
-            size: 44,
-            iconSize: 20,
-            tooltip: LocaleKeys.discovery_action_undo_label.t(context),
-            onPressed: onUndo,
-            rewindRotate: true,
-            palette: _kUndoPalette,
-          ),
-          const Spacer(),
-          _PressableActionButton(
-            icon: Icons.favorite_rounded,
-            size: 72,
-            iconSize: 34,
-            tooltip: LocaleKeys.discovery_action_like_label.t(context),
-            onPressed: onLike,
-            filled: true,
-            overshoot: true,
-            showHalo: true,
-            idlePulse: true,
-            onTapOrigin: onLikeBurst,
-            palette: _kLikePalette,
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        _PressableActionButton(
+          icon: Icons.close_rounded,
+          size: 52,
+          iconSize: 24,
+          tooltip: LocaleKeys.discovery_action_pass_label.t(context),
+          onPressed: onPass,
+          palette: _kPassPalette,
+        ),
+        const SizedBox(width: QeranSpacing.s12),
+        _PressableActionButton(
+          icon: Icons.replay_rounded,
+          size: 44,
+          iconSize: 20,
+          tooltip: LocaleKeys.discovery_action_undo_label.t(context),
+          onPressed: onUndo,
+          rewindRotate: true,
+          palette: _kUndoPalette,
+        ),
+        const Spacer(),
+        _PressableActionButton(
+          icon: Icons.favorite_rounded,
+          size: 72,
+          iconSize: 34,
+          tooltip: LocaleKeys.discovery_action_like_label.t(context),
+          onPressed: onLike,
+          filled: true,
+          overshoot: true,
+          showHalo: true,
+          idlePulse: true,
+          onTapOrigin: onLikeBurst,
+          palette: _kLikePalette,
+        ),
+      ],
     );
   }
 }

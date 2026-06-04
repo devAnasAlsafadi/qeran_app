@@ -7,6 +7,9 @@ class QeranColors {
 
   // Brand anchors
   static const Color wine = Color(0xFF431C33);
+
+  /// Lighter wine for two-tone gradients (paired with [wine]).
+  static const Color wineLight = Color(0xFF4A1F38);
   static const Color gold = Color(0xFFE4C094);
 
   /// Deeper, opaque gold for "pending / waiting" accents (status text,

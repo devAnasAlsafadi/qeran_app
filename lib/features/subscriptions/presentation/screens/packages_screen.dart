@@ -238,7 +238,6 @@ class _PlanTabs extends StatelessWidget {
   static const Duration _animDur = Duration(milliseconds: 280);
   static const double _barHeight = 3.0;
   static const double _barWidth = 40.0;
-  static const double _cardRadius = 22.0;
   static const double _cardHeight = 56.0;
   static const double _innerPad = 4.0;
 
@@ -248,7 +247,7 @@ class _PlanTabs extends StatelessWidget {
       height: _cardHeight,
       decoration: BoxDecoration(
         color: QeranColors.paper,
-        borderRadius: BorderRadius.circular(_cardRadius),
+        borderRadius: QeranRadii.cardR,
         border: Border.all(color: QeranColors.wine08),
         boxShadow: QeranShadows.e2,
       ),
@@ -271,7 +270,7 @@ class _PlanTabs extends StatelessWidget {
                   child: const DecoratedBox(
                     decoration: BoxDecoration(
                       color: QeranColors.gold,
-                      borderRadius: BorderRadius.all(Radius.circular(2)),
+                      borderRadius: QeranRadii.pill,
                     ),
                   ),
                 ),

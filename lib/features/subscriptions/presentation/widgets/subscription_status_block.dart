@@ -79,7 +79,7 @@ class _PromoCard extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF4A1F38), QeranColors.wine],
+          colors: [QeranColors.wineLight, QeranColors.wine],
         ),
       ),
       padding: const EdgeInsets.all(QeranSpacing.s24),

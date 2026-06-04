@@ -147,7 +147,7 @@ class _DragHandle extends StatelessWidget {
         height: 4,
         decoration: BoxDecoration(
           color: QeranColors.wine.withValues(alpha: 0.25),
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: QeranRadii.pill,
         ),
       ),
     );

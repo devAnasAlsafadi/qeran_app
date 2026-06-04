@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
@@ -27,7 +28,6 @@ class LikesSegmentedTabs extends StatelessWidget {
   static const Duration _kAnimDur = Duration(milliseconds: 280);
   static const double _kBarHeight = 3.0;
   static const double _kBarWidth = 40.0;
-  static const double _kCardRadius = 22.0;
   static const double _kCardHeight = 56.0;
   static const double _kInnerPad = 4.0;
 
@@ -62,7 +62,7 @@ class LikesSegmentedTabs extends StatelessWidget {
         height: _kCardHeight,
         decoration: BoxDecoration(
           color: QeranColors.paper,
-          borderRadius: BorderRadius.circular(_kCardRadius),
+          borderRadius: QeranRadii.cardR,
           border: Border.all(color: QeranColors.wine08),
           boxShadow: QeranShadows.e2,
         ),
@@ -85,7 +85,7 @@ class LikesSegmentedTabs extends StatelessWidget {
                     child: const DecoratedBox(
                       decoration: BoxDecoration(
                         color: QeranColors.gold,
-                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                        borderRadius: QeranRadii.pill,
                       ),
                     ),
                   ),

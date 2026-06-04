@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
 /// Safe parsing helpers for the dashboard-controlled `plan.color` (any
 /// `#RRGGBB`) and `plan.icon` (emoji or absolute URL) so a malformed
@@ -10,10 +10,10 @@ class PlanVisual {
   static final RegExp _hexColorRegex = RegExp(r'^#[0-9A-Fa-f]{6}$');
 
   /// Parses `#RRGGBB` into a Flutter [Color]. Falls back to
-  /// [AppColors.primary] for any malformed value (empty, wrong length,
+  /// [QeranColors.wine] for any malformed value (empty, wrong length,
   /// non-hex characters, missing `#`).
   static Color parseColor(String raw) {
-    if (!_hexColorRegex.hasMatch(raw)) return AppColors.primary;
+    if (!_hexColorRegex.hasMatch(raw)) return QeranColors.wine;
     return Color(int.parse(raw.substring(1), radix: 16) | 0xFF000000);
   }
 

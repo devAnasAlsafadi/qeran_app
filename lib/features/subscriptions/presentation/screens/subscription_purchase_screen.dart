@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
@@ -174,7 +175,7 @@ class _PromoSection extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: QeranColors.paper,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: QeranRadii.cardR,
         border: Border.all(color: QeranColors.hairline),
       ),
       child: const DiscountCodeField(),
@@ -205,7 +206,7 @@ class _BottomCta extends StatelessWidget {
         color: QeranColors.paper,
         boxShadow: [
           BoxShadow(
-            color: Color(0x14431C33),
+            color: QeranColors.wine08,
             blurRadius: 18,
             offset: Offset(0, -4),
           ),

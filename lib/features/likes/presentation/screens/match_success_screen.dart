@@ -202,7 +202,7 @@ class _Portrait extends StatelessWidget {
         border: Border.all(color: QeranColors.gold, width: 2),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x33E4C094),
+            color: QeranColors.gold20,
             blurRadius: 36,
             spreadRadius: 2,
           ),

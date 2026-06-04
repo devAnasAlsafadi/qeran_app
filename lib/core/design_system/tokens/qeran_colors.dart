@@ -15,7 +15,7 @@ class QeranColors {
   static const Color goldDeep = Color(0xFFB18454);
 
   // Canvas tier
-  static const Color creamCanvas = Color(0xFFFCEDDD);
+  static const Color creamCanvas = Color(0xFFFEFCFA);
   static const Color creamSurface = Color(0xFFFBF4E6);
   static const Color paper = Color(0xFFFFFFFF);
 

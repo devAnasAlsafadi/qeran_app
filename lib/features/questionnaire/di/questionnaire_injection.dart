@@ -4,7 +4,9 @@ import '../data/datasources/questionnaire_remote_datasource.dart';
 import '../data/repositories/questionnaire_repository_impl.dart';
 import '../domain/repositories/questionnaire_repository.dart';
 import '../domain/usecases/fetch_questions_usecase.dart';
+import '../domain/usecases/get_edit_form_usecase.dart';
 import '../domain/usecases/submit_answers_usecase.dart';
+import '../presentation/blocs/profile_edit/profile_edit_cubit.dart';
 import '../presentation/blocs/questionnaire_cubit.dart';
 
 void initQuestionnaireDependencies() {
@@ -20,6 +22,7 @@ void initQuestionnaireDependencies() {
 
   //! UseCases
   sl.registerLazySingleton(() => FetchQuestionsUseCase(sl()));
+  sl.registerLazySingleton(() => GetEditFormUseCase(sl()));
   sl.registerLazySingleton(() => SubmitAnswersUseCase(sl()));
 
   //! Cubits
@@ -29,4 +32,5 @@ void initQuestionnaireDependencies() {
       sharedPrefs: sl<SharedPrefService>(),
     ),
   );
+  sl.registerFactory(() => ProfileEditCubit(getEditForm: sl(), submit: sl()));
 }

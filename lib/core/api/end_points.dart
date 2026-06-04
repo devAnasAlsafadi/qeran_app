@@ -30,6 +30,12 @@ class EndPoints {
   static const String questions = "Questions";
   static const String submitAnswers = "Questions/submit";
 
+  /// `GET /api/questions/edit-form` — the profile-edit schema: every
+  /// active question for my gender, grouped by category, each carrying my
+  /// current answer (`selectedOptionIds` / `textAnswer`). Written back via
+  /// [submitAnswers], which replaces ALL answers (send every question).
+  static const String editForm = "Questions/edit-form";
+
   // Profile
   static const String profileImages = "users/profile-images";
 

@@ -24,7 +24,7 @@ import 'package:qeran/features/notifications/presentation/screens/notifications_
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
-import 'package:qeran/features/profile/presentation/screens/my_profile_screen.dart';
+import 'package:qeran/features/profile/presentation/screens/profile_hub_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_language_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_support_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_terms_screen.dart';
@@ -241,7 +241,7 @@ class AppRouter {
       case RouteNames.myProfile:
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => const MyProfileScreen(),
+          builder: (context) => const ProfileHubScreen(),
         );
       case RouteNames.settingsLanguage:
         return MaterialPageRoute(

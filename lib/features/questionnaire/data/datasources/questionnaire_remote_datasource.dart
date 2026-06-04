@@ -6,11 +6,13 @@ import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../../core/api/api_response.dart';
 import '../../../../core/domain/entities/success_response.dart';
+import '../models/editable_category_model.dart';
 import '../models/question_category_model.dart';
 import '../models/question_model.dart';
 
 abstract interface class QuestionnaireRemoteDataSource {
   Future<List<QuestionModel>> fetchQuestions({required Gender gender});
+  Future<List<EditableCategoryModel>> fetchEditForm();
   Future<dynamic> submitAnswers({required List<Map<String, dynamic>> answers});
 }
 
@@ -53,6 +55,37 @@ class QuestionnaireRemoteDataSourceImpl
 
     AppLogger.info(
       'Parsed ${apiResponse.data!.length} questions from response',
+      tag: 'QUESTIONNAIRE',
+    );
+
+    return apiResponse.data!;
+  }
+
+  @override
+  Future<List<EditableCategoryModel>> fetchEditForm() async {
+    AppLogger.debug('FETCH EDIT FORM', tag: 'QUESTIONNAIRE');
+
+    final response = await _apiConsumer.get(EndPoints.editForm);
+
+    final apiResponse = ApiResponse<List<EditableCategoryModel>>.fromJson(
+      response,
+      (json) {
+        final categoriesList = json as List<dynamic>;
+        return categoriesList
+            .map((c) =>
+                EditableCategoryModel.fromJson(c as Map<String, dynamic>))
+            .toList();
+      },
+    );
+
+    if (apiResponse.data == null) {
+      throw ServerException(
+        message: apiResponse.message ?? LocaleKeys.errors_questions_load_failed,
+      );
+    }
+
+    AppLogger.info(
+      'Parsed ${apiResponse.data!.length} edit-form categories',
       tag: 'QUESTIONNAIRE',
     );
 

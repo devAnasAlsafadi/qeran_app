@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/utils/validators.dart';
-import 'package:qeran/core/widgets/app_text_form_field.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 class AuthEmailField extends StatelessWidget {
   final TextEditingController controller;
@@ -24,14 +24,13 @@ class AuthEmailField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppTextFormField(
+    return QeranTextField(
       controller: controller,
       focusNode: focusNode,
-      hintText: hintText.t(context),
-      obscureText: false,
+      hint: hintText.t(context),
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
-      prefixIcon: prefixIcon,
+      prefix: prefixIcon,
       validator: Validators.validateEmail,
     );
   }

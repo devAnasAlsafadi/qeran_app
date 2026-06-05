@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/utils/validators.dart';
-import 'package:qeran/core/widgets/app_text_form_field.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 class AuthPasswordField extends StatelessWidget {
   final TextEditingController controller;
@@ -35,15 +35,17 @@ class AuthPasswordField extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: obscurePasswordNotifier,
       builder: (context, obscurePassword, child) {
-        return AppTextFormField(
+        return QeranTextField(
           controller: controller,
           focusNode: focusNode,
-          hintText: hintText.t(context),
+          hint: hintText.t(context),
           obscureText: obscurePassword,
           keyboardType: TextInputType.visiblePassword,
           textInputAction: TextInputAction.done,
-          prefixIcon: prefixIcon,
-          suffixIcon: IconButton(
+          prefix: prefixIcon,
+          // External notifier still drives visibility for now; the built-in
+          // showObscureToggle is adopted in sub-step c with the screens.
+          suffix: IconButton(
             icon: Icon(
               obscurePassword
                   ? Icons.visibility_off_outlined

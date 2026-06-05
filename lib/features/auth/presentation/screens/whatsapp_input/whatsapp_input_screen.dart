@@ -6,8 +6,8 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/widgets/exit_app_dialog.dart';
 import 'package:qeran/core/widgets/onboarding_pop_scope.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
@@ -56,8 +56,8 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
             body: SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimens.p24,
-                  vertical: AppDimens.p16,
+                  horizontal: QeranSpacing.s24,
+                  vertical: QeranSpacing.s16,
                 ),
                 child: Form(
                   key: _controller.formKey,
@@ -67,26 +67,27 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
                       AuthBackButton(
                         onPressed: () => ExitAppDialog.show(context),
                       ),
-                      AppDimens.verticalSpace16,
+                      QeranSpacing.vs16,
                       const AuthLogoHeader(),
-                      AppDimens.verticalSpace24,
+                      QeranSpacing.vs24,
                       AuthTitleSubtitle(
                         title: LocaleKeys.auth_whatsapp_title.t(context),
                         subtitle: LocaleKeys.auth_whatsapp_subtitle.t(context),
                       ),
-                      const SizedBox(height: AppDimens.p32),
+                      QeranSpacing.vs32,
                       AuthPhoneInput(
                         controller: _controller.phoneController,
                         focusNode: _controller.phoneFocus,
                         countryCodeNotifier: _controller.countryCodeNotifier,
                       ),
-                      const SizedBox(height: AppDimens.p48),
+                      QeranSpacing.vs48,
                       BlocBuilder<WhatsappBloc, WhatsappState>(
                         builder: (context, state) {
                           final isLoading = state is WhatsappLoading;
-                          return CustomButton(
-                            text: LocaleKeys.common_send.t(context),
-                            isLoading: isLoading,
+                          return QeranButton(
+                            label: LocaleKeys.common_send.t(context),
+                            variant: QeranButtonVariant.primaryWine,
+                            loading: isLoading,
                             onPressed: isLoading
                                 ? null
                                 : () => _onSendPressed(context),

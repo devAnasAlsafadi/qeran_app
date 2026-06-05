@@ -5,10 +5,10 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
@@ -100,34 +100,34 @@ class _WhatsappVerificationScreenState
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppDimens.p24,
-              vertical: AppDimens.p16,
+              horizontal: QeranSpacing.s24,
+              vertical: QeranSpacing.s16,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AuthBackButton(onPressed: () => NavigationManager.pop(context)),
-                AppDimens.verticalSpace16,
+                QeranSpacing.vs16,
                 const AuthLogoHeader(),
-                AppDimens.verticalSpace24,
+                QeranSpacing.vs24,
                 AuthTitleSubtitle(
                   title: LocaleKeys.auth_otp_screen_title.t(context),
                 ),
-                AppDimens.verticalSpace16,
+                QeranSpacing.vs16,
                 _buildSubtitle(),
-                const SizedBox(height: AppDimens.p32),
+                QeranSpacing.vs32,
                 OtpInputRow(
                   controllers: _controller.otpControllers,
                   focusNodes: _controller.otpFocusNodes,
                 ),
-                AppDimens.verticalSpace24,
+                QeranSpacing.vs24,
                 BlocBuilder<WhatsappBloc, WhatsappState>(
                   builder: (context, state) => OtpResendRow(
                     onResend: () => _onResend(context),
                     isLoading: state is WhatsappLoading,
                   ),
                 ),
-                const SizedBox(height: AppDimens.p48),
+                QeranSpacing.vs48,
                 _buildNextButton(),
               ],
             ),
@@ -141,15 +141,15 @@ class _WhatsappVerificationScreenState
     return RichText(
       textAlign: TextAlign.start,
       text: TextSpan(
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.textSecondary,
+        style: QeranTypography.body.copyWith(
+          color: QeranColors.inkMuted,
         ),
         children: [
           TextSpan(text: LocaleKeys.auth_otp_sent_to_prefix.t(context)),
           TextSpan(
             text: _phoneNumber,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
+            style: QeranTypography.body.copyWith(
+              color: QeranColors.inkStrong,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -167,9 +167,10 @@ class _WhatsappVerificationScreenState
               final isLoading =
                   whatsappState is WhatsappLoading ||
                   resetState is PasswordResetLoading;
-              return CustomButton(
-                text: LocaleKeys.common_next.t(ctx),
-                isLoading: isLoading,
+              return QeranButton(
+                label: LocaleKeys.common_next.t(ctx),
+                variant: QeranButtonVariant.primaryWine,
+                loading: isLoading,
                 onPressed: isLoading ? null : () => _onNextPressed(ctx),
               );
             },
@@ -177,9 +178,10 @@ class _WhatsappVerificationScreenState
         }
 
         final isLoading = whatsappState is WhatsappLoading;
-        return CustomButton(
-          text: LocaleKeys.common_next.t(context),
-          isLoading: isLoading,
+        return QeranButton(
+          label: LocaleKeys.common_next.t(context),
+          variant: QeranButtonVariant.primaryWine,
+          loading: isLoading,
           onPressed: isLoading ? null : () => _onNextPressed(context),
         );
       },

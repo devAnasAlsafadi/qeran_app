@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -67,18 +67,18 @@ class _OtpResendRowState extends State<OtpResendRow> {
                     namedArgs: {'seconds': _secondsRemaining.toString()},
                   )
                 : LocaleKeys.auth_otp_resend.t(context),
-            style: AppTextStyles.bodyMedium.copyWith(
+            style: QeranTypography.body.copyWith(
               color: _canResend
-                  ? AppColors.primaryLight
-                  : AppColors.textSecondary.withValues(alpha: 0.5),
+                  ? QeranColors.gold
+                  : QeranColors.inkMuted.withValues(alpha: 0.5),
             ),
           ),
         ),
-        const SizedBox(width: AppDimens.p4),
+        QeranSpacing.hs4,
         Text(
           LocaleKeys.auth_otp_no_code.t(context),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+          style: QeranTypography.body.copyWith(
+            color: QeranColors.inkMuted,
           ),
         ),
       ],

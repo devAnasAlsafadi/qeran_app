@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 class OtpInputRow extends StatelessWidget {
   final List<TextEditingController> controllers;
@@ -23,7 +25,7 @@ class OtpInputRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(controllers.length, (index) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.p8),
+          padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s8),
           child: _OtpBox(
             controller: controllers[index],
             focusNode: focusNodes[index],
@@ -65,23 +67,23 @@ class _OtpBox extends StatelessWidget {
         maxLength: 1,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onChanged: onChanged,
-        style: Theme.of(context).textTheme.headlineSmall,
-        decoration: InputDecoration(
+        style: QeranTypography.headline,
+        decoration: const InputDecoration(
           counterText: '',
           contentPadding: EdgeInsets.zero,
           enabledBorder: OutlineInputBorder(
-            borderRadius: AppDimens.borderRadius12,
-            borderSide: const BorderSide(color: AppColors.border),
+            borderRadius: QeranRadii.controlR,
+            borderSide: BorderSide(color: QeranColors.hairline),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: AppDimens.borderRadius12,
+            borderRadius: QeranRadii.controlR,
             borderSide: BorderSide(
-              color: Theme.of(context).colorScheme.primary,
+              color: QeranColors.wine,
               width: 2,
             ),
           ),
           filled: true,
-          fillColor: AppColors.background,
+          fillColor: QeranColors.paper,
         ),
       ),
     );

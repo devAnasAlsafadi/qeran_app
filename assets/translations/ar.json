@@ -54,6 +54,8 @@
     "password_hint": "كلمة السر",
     "phone_hint": "رقم الهاتف",
     "name_hint": "الاسم",
+    "name_label": "الاسم",
+    "email_label": "البريد الإلكتروني",
     "policy_agree": "موافق على ",
     "privacy_policy": "سياسات الخصوصية",
     "country_search_hint": "ابحث عن دولة أو رمز الاتصال",

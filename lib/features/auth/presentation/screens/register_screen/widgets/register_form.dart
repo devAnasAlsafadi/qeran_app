@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_text_form_field.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../widgets/auth_email_field.dart';
 import '../../../widgets/auth_password_field.dart';
@@ -19,14 +19,13 @@ class RegisterForm extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AppTextFormField(
+        QeranTextField(
           controller: controller.nameController,
           focusNode: controller.nameFocus,
-          hintText: LocaleKeys.auth_name_hint.t(context),
-          obscureText: false,
+          label: LocaleKeys.auth_name_label.t(context),
           keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
-          prefixIcon: const Icon(
+          prefix: const Icon(
             Icons.person_outline,
             color: QeranColors.inkMuted,
           ),
@@ -38,14 +37,14 @@ class RegisterForm extends StatelessWidget {
         AuthEmailField(
           controller: controller.emailController,
           focusNode: controller.emailFocus,
+          labelText: LocaleKeys.auth_email_label,
           hintText: LocaleKeys.auth_email_hint,
         ),
         AppDimens.verticalSpace16,
         AuthPasswordField(
           controller: controller.passwordController,
           focusNode: controller.passwordFocus,
-          obscurePasswordNotifier: controller.obscurePasswordNotifier,
-          onToggleVisibility: controller.togglePasswordVisibility,
+          labelText: LocaleKeys.auth_password_label,
         ),
         RegisterPolicyCheckbox(
           acceptedPolicyNotifier: controller.acceptedPolicyNotifier,

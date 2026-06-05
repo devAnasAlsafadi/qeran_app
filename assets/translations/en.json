@@ -54,6 +54,8 @@
     "password_hint": "Password",
     "phone_hint": "Phone Number",
     "name_hint": "Name",
+    "name_label": "Name",
+    "email_label": "Email",
     "policy_agree": "I agree to the ",
     "privacy_policy": "Privacy Policy",
     "country_search_hint": "Search for a country or dial code",

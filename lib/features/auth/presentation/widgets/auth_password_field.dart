@@ -8,10 +8,11 @@ import 'package:qeran/generated/locale_keys.g.dart';
 class AuthPasswordField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
-  final ValueNotifier<bool> obscurePasswordNotifier;
-  final VoidCallback onToggleVisibility;
+
+  /// Optional label above the field. `null` renders the field with no label
+  /// (e.g. the reset screen, which supplies its own label widget for now).
+  final String? labelText;
   final Widget prefixIcon;
-  final Color iconColor;
   final String hintText;
   final FormFieldValidator<String>? validator;
 
@@ -19,44 +20,29 @@ class AuthPasswordField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.focusNode,
-    required this.obscurePasswordNotifier,
-    required this.onToggleVisibility,
+    this.labelText,
     this.prefixIcon = const Icon(
       Icons.lock_outline,
       color: QeranColors.inkMuted,
     ),
-    this.iconColor = QeranColors.inkMuted,
     this.hintText = LocaleKeys.auth_password_hint,
     this.validator = Validators.validatePassword,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: obscurePasswordNotifier,
-      builder: (context, obscurePassword, child) {
-        return QeranTextField(
-          controller: controller,
-          focusNode: focusNode,
-          hint: hintText.t(context),
-          obscureText: obscurePassword,
-          keyboardType: TextInputType.visiblePassword,
-          textInputAction: TextInputAction.done,
-          prefix: prefixIcon,
-          // External notifier still drives visibility for now; the built-in
-          // showObscureToggle is adopted in sub-step c with the screens.
-          suffix: IconButton(
-            icon: Icon(
-              obscurePassword
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              color: iconColor,
-            ),
-            onPressed: onToggleVisibility,
-          ),
-          validator: validator,
-        );
-      },
+    return QeranTextField(
+      controller: controller,
+      focusNode: focusNode,
+      label: labelText?.t(context),
+      hint: hintText.t(context),
+      // Field owns visibility via the built-in eye — no external notifier.
+      obscureText: true,
+      showObscureToggle: true,
+      keyboardType: TextInputType.visiblePassword,
+      textInputAction: TextInputAction.done,
+      prefix: prefixIcon,
+      validator: validator,
     );
   }
 }

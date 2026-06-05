@@ -130,9 +130,6 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     return AuthPasswordField(
       controller: _controller.passwordController,
       focusNode: _controller.passwordFocus,
-      obscurePasswordNotifier: _controller.obscurePasswordNotifier,
-      onToggleVisibility: () => _controller.obscurePasswordNotifier.value =
-          !_controller.obscurePasswordNotifier.value,
       hintText: LocaleKeys.auth_new_password_hint,
     );
   }
@@ -149,9 +146,6 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     return AuthPasswordField(
       controller: _controller.confirmPasswordController,
       focusNode: _controller.confirmFocus,
-      obscurePasswordNotifier: _controller.obscureConfirmNotifier,
-      onToggleVisibility: () => _controller.obscureConfirmNotifier.value =
-          !_controller.obscureConfirmNotifier.value,
       hintText: LocaleKeys.auth_confirm_password_hint,
       validator: (v) {
         if (v == null || v.isEmpty) {

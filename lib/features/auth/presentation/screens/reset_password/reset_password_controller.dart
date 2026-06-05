@@ -7,9 +7,6 @@ class ResetPasswordController {
   final passwordFocus = FocusNode();
   final confirmFocus = FocusNode();
 
-  final ValueNotifier<bool> obscurePasswordNotifier = ValueNotifier<bool>(true);
-  final ValueNotifier<bool> obscureConfirmNotifier = ValueNotifier<bool>(true);
-
   bool validate() => formKey.currentState?.validate() ?? false;
 
   void dispose() {
@@ -17,7 +14,5 @@ class ResetPasswordController {
     confirmPasswordController.dispose();
     passwordFocus.dispose();
     confirmFocus.dispose();
-    obscurePasswordNotifier.dispose();
-    obscureConfirmNotifier.dispose();
   }
 }

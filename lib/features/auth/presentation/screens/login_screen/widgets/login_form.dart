@@ -24,6 +24,7 @@ class LoginForm extends StatelessWidget {
         AuthEmailField(
           controller: controller.emailController,
           focusNode: controller.emailFocus,
+          labelText: LocaleKeys.auth_email_label,
           hintText: LocaleKeys.auth_email_hint,
           prefixIcon: const Icon(Icons.email, color: QeranColors.inkMuted),
         ),
@@ -31,10 +32,8 @@ class LoginForm extends StatelessWidget {
         AuthPasswordField(
           controller: controller.passwordController,
           focusNode: controller.passwordFocus,
-          obscurePasswordNotifier: controller.obscurePasswordNotifier,
-          onToggleVisibility: controller.togglePasswordVisibility,
+          labelText: LocaleKeys.auth_password_label,
           prefixIcon: const Icon(Icons.lock, color: QeranColors.inkMuted),
-          iconColor: QeranColors.inkMuted,
         ),
         _buildForgotPasswordLink(context),
       ],

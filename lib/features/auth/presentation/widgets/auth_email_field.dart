@@ -8,6 +8,9 @@ import 'package:qeran/generated/locale_keys.g.dart';
 class AuthEmailField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
+
+  /// Optional label above the field. `null` renders the field with no label.
+  final String? labelText;
   final String hintText;
   final Widget prefixIcon;
 
@@ -15,6 +18,7 @@ class AuthEmailField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.focusNode,
+    this.labelText,
     this.hintText = LocaleKeys.auth_email_hint,
     this.prefixIcon = const Icon(
       Icons.email_outlined,
@@ -27,6 +31,7 @@ class AuthEmailField extends StatelessWidget {
     return QeranTextField(
       controller: controller,
       focusNode: focusNode,
+      label: labelText?.t(context),
       hint: hintText.t(context),
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,

@@ -22,7 +22,7 @@ class AuthEmailField extends StatelessWidget {
     this.hintText = LocaleKeys.auth_email_hint,
     this.prefixIcon = const Icon(
       Icons.email_outlined,
-      color: QeranColors.inkMuted,
+      color: QeranColors.inkFaint,
     ),
   });
 

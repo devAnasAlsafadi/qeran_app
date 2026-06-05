@@ -174,7 +174,7 @@ class _QeranTextFieldState extends State<QeranTextField> {
         QeranSpacing.s16,
       ),
       hintText: widget.hint,
-      hintStyle: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
+      hintStyle: QeranTypography.bodySm.copyWith(color: QeranColors.inkFaint),
       errorText: widget.errorText,
       errorStyle: QeranTypography.caption.copyWith(color: QeranColors.danger),
       counterStyle:
@@ -199,7 +199,7 @@ class _QeranTextFieldState extends State<QeranTextField> {
           _obscured
               ? Icons.visibility_off_outlined
               : Icons.visibility_outlined,
-          color: QeranColors.inkMuted,
+          color: QeranColors.inkFaint,
         ),
       );
     }

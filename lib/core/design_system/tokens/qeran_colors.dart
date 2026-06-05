@@ -18,7 +18,7 @@ class QeranColors {
   static const Color goldDeep = Color(0xFFB18454);
 
   // Canvas tier
-  static const Color creamCanvas = Color(0xFFFEFCFA);
+  static const Color creamCanvas = Color(0xFFF8F8F8);
   static const Color creamSurface = Color(0xFFFBF4E6);
   static const Color paper = Color(0xFFFFFFFF);
 
@@ -26,6 +26,10 @@ class QeranColors {
   static const Color inkStrong = Color(0xFF431C33);
   static const Color inkBody = Color(0xFF5A3B4E);
   static const Color inkMuted = Color(0xFF8A7984);
+
+  /// Lightest wine-tinted neutral — placeholders/hints and the soft icons
+  /// inside input fields. One step lighter than [inkMuted].
+  static const Color inkFaint = Color(0xFFB3A8AF);
 
   // Wine alpha shades
   static const Color wine90 = Color(0xE6431C33);

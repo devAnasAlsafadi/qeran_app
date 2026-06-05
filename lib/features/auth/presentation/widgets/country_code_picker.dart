@@ -53,7 +53,7 @@ class CountryCodePicker extends StatelessWidget {
             const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
-              color: QeranColors.inkMuted,
+              color: QeranColors.inkFaint,
             ),
           ],
         ),
@@ -73,7 +73,7 @@ class CountryCodePicker extends StatelessWidget {
         inputDecoration: InputDecoration(
           hintText: 'auth.country_search_hint'.t(context),
           hintTextDirection: TextDirection.rtl,
-          prefixIcon: const Icon(Icons.search, color: QeranColors.inkMuted),
+          prefixIcon: const Icon(Icons.search, color: QeranColors.inkFaint),
           filled: true,
           fillColor: QeranColors.paper,
           contentPadding: const EdgeInsets.symmetric(

@@ -24,8 +24,12 @@
 - **OTP دايماً LTR:** خانات كود الـ OTP تنعرض يسار→يمين بكل اللغات (أول خانة على اليسار) لأن الأكواد الرقمية تُقرأ LTR. مطبّقة عبر `textDirection` على الـ Row نفسه (مش الـ Directionality widget الممنوع). (`878f5cc`)
 - **`wineLight` `#4A1F38`:** توكن جديد لون لتدرّجات الواين ثنائية اللون (يُقرَن مع `wine`). (`f26e078`)
 - **swipe-deck ميت ومحذوف** — `discovery/` هو الـ deck الحي؛ `home_screen.dart` يحتضن `DiscoveryView`. (`7a8ec1f`)
-- **حقل كلمة المرور (password) — يبقى على الـ API الخارجي مؤقتاً:** `AuthPasswordField` لسا ياخد `obscurePasswordNotifier` + `onToggleVisibility` من برّا (العين عبر `suffix` slot بالـ `QeranTextField`). الـ `showObscureToggle` المدمج + حذف الـ notifier ينعملوا بـ **sub-step c** لما نهاجر الـ 3 شاشات + الـ 3 controllers (تجنّب كسر call-sites + تسرّب سكوب). (`95b4d88`)
-- **`auth_phone_input` مؤجّل (sub-step b2):** يُهاجَر **مع** `CountryCodePicker` (لسا legacy، 55px) بنفس الباس — تجنّباً لمزيج حقل-DS بجانب picker-legacy (mismatch بالـ fill/radius/height).
+- **AUTH FIELD STYLE (مهم — لا توحّده):** حقول auth = `pill` + بلا border + ظل `e1` (تعبئة `paper` بيضاء، حلقة `danger` على الخطأ فقط). يختلف **عمداً** عن أسطح غير-auth (questionnaire/discovery/checkout) = `paper` + `hairline border`. معالجتان مقصودتان — لا "توحّدهما". (`5b80df4`)
+- **labels الحقول:** نمط فيجما = label **فوق** الحقل + hint **داخله**؛ يحملها `QeranTextField.label` / `AuthPasswordField.labelText`.
+- **توكنز جديدة:** `inkFaint` (#B3A8AF — أفتح محايد، للـ hints والأيقونات الناعمة)؛ `appleBlack` (#000000 — الأسود الوحيد المسموح بالتطبيق، glyph Apple فقط).
+- **أزرار CTA (recovery/login/register):** `QeranButton` `primaryWine` (واين + نص أبيض).
+- **العين المدمجة (محسوم، كان مؤجّل):** `AuthPasswordField` تبنّى `showObscureToggle` المدمج؛ حُذف `obscurePasswordNotifier`/`onToggleVisibility` من الـ widget + login/register/reset controllers. (sub-step c)
+- **phone + `CountryCodePicker` (محسوم، كان مؤجّل b2):** هوجرا معاً بنفس معالجة الحقل. (`60f85f5`)
 - **السؤال vs المضي:** اسأل على أي قرار (دلالي أو تجميلي). فقط التعديلات المحددة تماماً تمشي مباشرة. (الافتراض القديم "امشِ بالتجميلي" ملغى.)
 - **Figma = الشكل، الهوية = الألوان.** صفر تسامح — كل شيء من الـ design system.
 
@@ -36,6 +40,8 @@
 - الدين التقني على جهة المستخدم؛ الخطّابة ~95% موحّدة أصلاً.
 - `MATCHMAKER_DIAGNOSTIC.md` القديم stale — أشياء قال "ناقصة" صارت معمولة. ثق بالكود.
 - **Profile hub — تاب العرض ما بيتحدّث بعد الحفظ:** `MyProfileCubit` لسا داخل `ProfileSelfView` (مش مرفوع فوق الـ `TabBarView` بالـ hub)، فالتابّان لهما instances منفصلة. الإصلاح المقترح: ارفع `MyProfileCubit` فوق الـ hub ليتشارك التابّان نفس الـ cubit ويعيد التحميل بعد الحفظ. (متحقَّق منه هذه الجلسة — لسا غير معمول.)
+- **reset_pass متحقَّق:** بعد تبنّي العين المدمجة (sub-step c/d) الشاشة تُصرّف صح والعين تبدّل — لا إجراء مطلوب.
+- **`'auth.country_search_hint'` كنص خام** في `country_code_picker` (مش عبر `LocaleKeys`) — موجود مسبقاً؛ تحقّق إنه يُحَل AR+EN.
 
 ---
 
@@ -79,6 +85,12 @@
 - `a19ce3d` — توكن `appleBlack` (#000000) = الأسود الوحيد المسموح بالتطبيق، استثناء التزام بعلامة Apple (HIG) — على glyph الـ Apple فقط.
 - `0a4681a` — **sub-step a:** هجرة الـ leaves البصرية المشتركة (`or_divider`, `auth_footer_link`, `auth_title_subtitle`, `social_login_buttons`, `oath_title_ornament`؛ `auth_back_button` + `auth_logo_header` نظاف أصلاً).
 - `95b4d88` — **sub-step b:** هجرة wrappers الإيميل + كلمة المرور للـ `QeranTextField`.
+- `60f85f5` — **sub-step b2:** هجرة حقل الهاتف + `CountryCodePicker` معاً.
+- `3f4fd19` — أسطح الحقول/الكروت `creamSurface` → `paper` أبيض + `hairline border` (مراجعة تصميم).
+- `e3ddd3d` + `5b80df4` — **sub-step c:** login/register يطابقوا فيجما (label فوق الحقل، تبنّي العين المدمجة `showObscureToggle`، حذف الـ notifier من الـ controllers)؛ والحقول صارت `pill`/borderless + ظل `e1` + hint الاسم من فيجما.
+- `657dee9` — hints أصغر/أفتح + توكن `inkFaint` (مراجعة تصميم).
+- `469e9c5` — disc جوجل → `paper` أبيض + ظل `e2` (مراجعة تصميم).
+- `e812c8f` — **sub-step d:** هجرة شاشتي forgot/reset password.
 
-**الحالة:** 0 ✅ · a ✅ · b ✅ (email + password)
-**الباقي:** b2 (phone + `CountryCodePicker`) · c (شاشات login/register + تبنّي العين المدمجة) · d (forgot/reset) · e (whatsapp/OTP + إصلاح deprecation `otp_input_row:84` background) · f (oath) · g (upload-image).
+**الحالة:** 0 ✅ · a ✅ · b ✅ · b2 ✅ · c ✅ · d ✅
+**الباقي:** e (whatsapp/OTP + إصلاح deprecation `otp_input_row:84` background) · f (oath) · g (upload-image).

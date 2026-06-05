@@ -23,6 +23,7 @@ class RegisterForm extends StatelessWidget {
           controller: controller.nameController,
           focusNode: controller.nameFocus,
           label: LocaleKeys.auth_name_label.t(context),
+          hint: LocaleKeys.auth_name_hint.t(context),
           keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
           prefix: const Icon(

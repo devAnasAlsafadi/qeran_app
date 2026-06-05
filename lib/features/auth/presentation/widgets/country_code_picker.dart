@@ -2,6 +2,7 @@ import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -22,20 +23,20 @@ class CountryCodePicker extends StatelessWidget {
       selectedCode.replaceFirst('+', ''),
     );
 
-    // Mirrors QeranTextField's box (paper fill, control radius,
-    // hairline border, s12 vertical rhythm) so the picker and the phone
-    // field read as one matched pair, top-aligned in the row.
+    // Mirrors QeranTextField's box (paper fill, borderless pill on a soft
+    // e1 lift) so the picker and the phone field read as one matched pair,
+    // top-aligned in the row.
     return GestureDetector(
       onTap: () => _showPicker(context),
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: QeranSpacing.s12,
-          vertical: QeranSpacing.s12,
+          horizontal: QeranSpacing.s16,
+          vertical: QeranSpacing.s16,
         ),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: QeranColors.paper,
-          borderRadius: QeranRadii.controlR,
-          border: Border.all(color: QeranColors.hairline),
+          borderRadius: QeranRadii.pill,
+          boxShadow: QeranShadows.e1,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_radii.dart';
+import '../tokens/qeran_shadows.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 
 /// Brand text field — the design-system replacement for the legacy
 /// `AppTextFormField`. Wraps a [TextFormField] so `Form.validate()` keeps
-/// working, paints only from tokens (paper fill + hairline border, wine
-/// focus border, wine-tinted neutrals, control radius), and mirrors with the
-/// locale (`EdgeInsetsDirectional`, no manual RTL swap).
+/// working, paints only from tokens (paper fill, borderless pill resting on a
+/// soft [QeranShadows.e1] lift, wine-tinted neutrals, danger ring only on
+/// error), and mirrors with the locale (`EdgeInsetsDirectional`, no manual
+/// RTL swap).
 ///
 /// Stateful because it owns the password-visibility state for the built-in
 /// eye ([showObscureToggle]) and disposes an internally-created [FocusNode]
@@ -129,26 +131,35 @@ class _QeranTextFieldState extends State<QeranTextField> {
     );
   }
 
-  TextFormField _buildField() {
-    return TextFormField(
-      controller: widget.controller,
-      focusNode: _focusNode,
-      validator: widget.validator,
-      obscureText: widget.obscureText && _obscured,
-      keyboardType: widget.keyboardType,
-      textInputAction: widget.textInputAction,
-      onChanged: widget.onChanged,
-      onFieldSubmitted: widget.onSubmitted,
-      onTap: widget.onTap,
-      enabled: widget.enabled,
-      readOnly: widget.readOnly,
-      maxLength: widget.maxLength,
-      // Obscured input must stay single-line.
-      maxLines: widget.obscureText ? 1 : widget.maxLines,
-      autofillHints: widget.autofillHints,
-      cursorColor: QeranColors.wine,
-      style: QeranTypography.body.copyWith(color: QeranColors.inkStrong),
-      decoration: _decoration(),
+  Widget _buildField() {
+    // The pill + soft lift live on the wrapper so the shadow follows the
+    // rounded box; the field itself is borderless (Figma: floating white
+    // pills, no outline). A danger ring appears only on validation error.
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        borderRadius: QeranRadii.pill,
+        boxShadow: QeranShadows.e1,
+      ),
+      child: TextFormField(
+        controller: widget.controller,
+        focusNode: _focusNode,
+        validator: widget.validator,
+        obscureText: widget.obscureText && _obscured,
+        keyboardType: widget.keyboardType,
+        textInputAction: widget.textInputAction,
+        onChanged: widget.onChanged,
+        onFieldSubmitted: widget.onSubmitted,
+        onTap: widget.onTap,
+        enabled: widget.enabled,
+        readOnly: widget.readOnly,
+        maxLength: widget.maxLength,
+        // Obscured input must stay single-line.
+        maxLines: widget.obscureText ? 1 : widget.maxLines,
+        autofillHints: widget.autofillHints,
+        cursorColor: QeranColors.wine,
+        style: QeranTypography.body.copyWith(color: QeranColors.inkStrong),
+        decoration: _decoration(),
+      ),
     );
   }
 
@@ -156,12 +167,11 @@ class _QeranTextFieldState extends State<QeranTextField> {
     return InputDecoration(
       filled: true,
       fillColor: QeranColors.paper,
-      isDense: true,
       contentPadding: const EdgeInsetsDirectional.fromSTEB(
+        QeranSpacing.s20,
         QeranSpacing.s16,
-        QeranSpacing.s12,
+        QeranSpacing.s20,
         QeranSpacing.s16,
-        QeranSpacing.s12,
       ),
       hintText: widget.hint,
       hintStyle: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
@@ -171,11 +181,13 @@ class _QeranTextFieldState extends State<QeranTextField> {
           QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
       prefixIcon: widget.prefix,
       suffixIcon: _suffix(),
-      enabledBorder: _border(QeranColors.hairline),
-      focusedBorder: _border(QeranColors.wine, width: 1.5),
-      disabledBorder: _border(QeranColors.hairline),
-      errorBorder: _border(QeranColors.danger),
-      focusedErrorBorder: _border(QeranColors.danger, width: 1.5),
+      // Borderless at rest/focus; the wrapper's shadow defines the field.
+      enabledBorder: _border(),
+      focusedBorder: _border(),
+      disabledBorder: _border(),
+      errorBorder: _border(const BorderSide(color: QeranColors.danger)),
+      focusedErrorBorder:
+          _border(const BorderSide(color: QeranColors.danger, width: 1.5)),
     );
   }
 
@@ -194,10 +206,10 @@ class _QeranTextFieldState extends State<QeranTextField> {
     return widget.suffix;
   }
 
-  static OutlineInputBorder _border(Color color, {double width = 1.0}) {
+  static OutlineInputBorder _border([BorderSide side = BorderSide.none]) {
     return OutlineInputBorder(
-      borderRadius: QeranRadii.controlR,
-      borderSide: BorderSide(color: color, width: width),
+      borderRadius: QeranRadii.pill,
+      borderSide: side,
     );
   }
 }

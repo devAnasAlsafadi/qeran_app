@@ -53,7 +53,7 @@
     "email_hint": "Email",
     "password_hint": "Password",
     "phone_hint": "Phone Number",
-    "name_hint": "Name",
+    "name_hint": "Your full name",
     "name_label": "Name",
     "email_label": "Email",
     "policy_agree": "I agree to the ",

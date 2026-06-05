@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 class OathFooter extends StatelessWidget {
@@ -24,22 +24,21 @@ class OathFooter extends StatelessWidget {
         Text(
           LocaleKeys.auth_oath_footer.t(context),
           textAlign: TextAlign.center,
-          style: AppTextStyles.caption.copyWith(
-            color: AppColors.textSecondary,
+          style: QeranTypography.caption.copyWith(
+            color: QeranColors.inkMuted,
             height: 1.6,
           ),
         ),
-        const SizedBox(height: AppDimens.p24),
-        // `CustomButton.disabledBackgroundColor` is the supplied
-        // `backgroundColor` at 60 % alpha. Always passing burgundy keeps
-        // the disabled state on-brand (faded plum) instead of generic
-        // grey, while `onPressed: null` still gates interactivity.
-        CustomButton(
-          text: LocaleKeys.auth_oath_button.t(context),
-          backgroundColor: AppColors.primary,
+        QeranSpacing.vs24,
+        // Gating is unchanged: `onPressed: null` until the oath is agreed.
+        // QeranButton renders that disabled state as the wine CTA at 50 %
+        // opacity (faded plum) — on-brand, not generic grey.
+        QeranButton(
+          label: LocaleKeys.auth_oath_button.t(context),
+          variant: QeranButtonVariant.primaryWine,
           onPressed: isChecked ? onSwear : null,
         ),
-        const SizedBox(height: AppDimens.p24),
+        QeranSpacing.vs24,
       ],
     );
   }

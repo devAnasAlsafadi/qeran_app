@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Premium oath card — warm cream→beige gradient surface, soft burgundy
@@ -14,41 +16,30 @@ class OathTextBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        AppDimens.p24,
-        AppDimens.p24,
-        AppDimens.p24,
-        AppDimens.p24,
-      ),
+      padding: const EdgeInsets.all(QeranSpacing.s24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFFBF5), Color(0xFFF4E9DC)],
+          colors: [QeranColors.paper, QeranColors.creamSurface],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: QeranRadii.panelR,
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.25),
+          color: QeranColors.wine.withValues(alpha: 0.25),
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1F431C33),
-            blurRadius: 28,
-            offset: Offset(0, 10),
-          ),
-        ],
+        boxShadow: QeranShadows.e3,
       ),
       child: Column(
         children: [
           const _BasmalaRow(),
-          const SizedBox(height: AppDimens.p16),
+          QeranSpacing.vs16,
           _Divider(),
-          const SizedBox(height: AppDimens.p16),
+          QeranSpacing.vs16,
           Text(
             LocaleKeys.auth_oath_text.t(context),
             textAlign: TextAlign.center,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
+            style: QeranTypography.body.copyWith(
+              color: QeranColors.inkStrong,
               height: 1.9,
               fontSize: 16,
               letterSpacing: 0.1,
@@ -72,24 +63,24 @@ class _BasmalaRow extends StatelessWidget {
         const Icon(
           Icons.diamond_outlined,
           size: 10,
-          color: AppColors.primary,
+          color: QeranColors.wine,
         ),
-        const SizedBox(width: AppDimens.p8),
+        QeranSpacing.hs8,
         Flexible(
           child: Text(
             LocaleKeys.auth_oath_basmala.t(context),
             textAlign: TextAlign.center,
-            style: AppTextStyles.headlineMedium.copyWith(
-              color: AppColors.primary,
+            style: QeranTypography.headline.copyWith(
+              color: QeranColors.wine,
               fontWeight: FontWeight.w800,
             ),
           ),
         ),
-        const SizedBox(width: AppDimens.p8),
+        QeranSpacing.hs8,
         const Icon(
           Icons.diamond_outlined,
           size: 10,
-          color: AppColors.primary,
+          color: QeranColors.wine,
         ),
       ],
     );
@@ -104,9 +95,9 @@ class _Divider extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withValues(alpha: 0.0),
-            AppColors.primary.withValues(alpha: 0.25),
-            AppColors.primary.withValues(alpha: 0.0),
+            QeranColors.wine.withValues(alpha: 0.0),
+            QeranColors.wine.withValues(alpha: 0.25),
+            QeranColors.wine.withValues(alpha: 0.0),
           ],
         ),
       ),

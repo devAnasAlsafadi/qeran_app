@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
-/// Five semantic radii — collapses the 30+ ad-hoc values in the codebase.
+/// Six semantic radii — collapses the 30+ ad-hoc values in the codebase.
 class QeranRadii {
   const QeranRadii._();
 
+  /// Smallest rounding — tiny controls like the oath agreement checkbox.
+  static const double xs = 6.0;
   static const double chip = 999.0;
   static const double control = 14.0;
   static const double card = 20.0;
   static const double panel = 28.0;
   static const double dome = 36.0;
 
+  static const BorderRadius xsR = BorderRadius.all(Radius.circular(xs));
   static const BorderRadius pill = BorderRadius.all(Radius.circular(chip));
   static const BorderRadius controlR = BorderRadius.all(
     Radius.circular(control),

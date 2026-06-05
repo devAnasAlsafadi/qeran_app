@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Premium agreement row — custom 24×24 burgundy check box (no Material
@@ -22,25 +23,25 @@ class OathCheckboxRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.transparent,
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.transparent,
+      borderRadius: QeranRadii.controlR,
       child: InkWell(
         onTap: () => onChanged(!isChecked),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: QeranRadii.controlR,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p16,
-            vertical: AppDimens.p12,
+            horizontal: QeranSpacing.s16,
+            vertical: QeranSpacing.s12,
           ),
           decoration: BoxDecoration(
             color: isChecked
-                ? AppColors.primary.withValues(alpha: 0.06)
-                : AppColors.transparent,
-            borderRadius: BorderRadius.circular(14),
+                ? QeranColors.wine.withValues(alpha: 0.06)
+                : Colors.transparent,
+            borderRadius: QeranRadii.controlR,
             border: Border.all(
-              color: AppColors.primary.withValues(
+              color: QeranColors.wine.withValues(
                 alpha: isChecked ? 0.20 : 0.10,
               ),
             ),
@@ -49,12 +50,12 @@ class OathCheckboxRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _OathCheckBox(isChecked: isChecked),
-              const SizedBox(width: AppDimens.p12),
+              QeranSpacing.hs12,
               Expanded(
                 child: Text(
                   LocaleKeys.auth_oath_checkbox.t(context),
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
+                  style: QeranTypography.body.copyWith(
+                    color: QeranColors.inkStrong,
                     height: 1.5,
                   ),
                 ),
@@ -79,12 +80,12 @@ class _OathCheckBox extends StatelessWidget {
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: isChecked ? AppColors.primary : AppColors.white,
-        borderRadius: BorderRadius.circular(6),
+        color: isChecked ? QeranColors.wine : QeranColors.paper,
+        borderRadius: QeranRadii.xsR,
         border: Border.all(
           color: isChecked
-              ? AppColors.primary
-              : AppColors.primary.withValues(alpha: 0.35),
+              ? QeranColors.wine
+              : QeranColors.wine.withValues(alpha: 0.35),
           width: 1.5,
         ),
       ),
@@ -96,7 +97,7 @@ class _OathCheckBox extends StatelessWidget {
         child: const Icon(
           Icons.check_rounded,
           size: 16,
-          color: AppColors.white,
+          color: QeranColors.paper,
         ),
       ),
     );

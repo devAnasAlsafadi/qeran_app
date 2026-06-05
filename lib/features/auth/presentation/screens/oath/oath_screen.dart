@@ -5,10 +5,11 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/utils/app_assets.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/onboarding_pop_scope.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -96,14 +97,8 @@ class _OathScreenState extends State<OathScreen> {
                       ),
                       if (isSubmitting)
                         Container(
-                          color: AppColors.primary.withValues(alpha: 0.25),
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.primary,
-                              ),
-                            ),
-                          ),
+                          color: QeranColors.wine.withValues(alpha: 0.25),
+                          child: const Center(child: QeranLoader()),
                         ),
                     ],
                   ),
@@ -137,39 +132,37 @@ class _OathBody extends StatelessWidget {
         return SingleChildScrollView(
           physics: const ClampingScrollPhysics(),
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p24,
-            vertical: AppDimens.p16,
+            horizontal: QeranSpacing.s24,
+            vertical: QeranSpacing.s16,
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: AppDimens.p24),
+                QeranSpacing.vs24,
                 Center(
                   child: Image.asset(AppAssets.logo, width: 140),
                 ),
-                const SizedBox(height: AppDimens.p32),
+                QeranSpacing.vs32,
                 Center(
                   child: Text(
                     LocaleKeys.auth_oath_title.t(context),
-                    style: AppTextStyles.displayLarge.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w800,
+                    style: QeranTypography.displayLg.copyWith(
                       letterSpacing: 0.2,
                     ),
                   ),
                 ),
-                const SizedBox(height: AppDimens.p12),
+                QeranSpacing.vs12,
                 const Center(child: OathTitleOrnament()),
-                const SizedBox(height: AppDimens.p32),
+                QeranSpacing.vs32,
                 const OathTextBox(),
-                const SizedBox(height: AppDimens.p24),
+                QeranSpacing.vs24,
                 OathCheckboxRow(
                   isChecked: isChecked,
                   onChanged: isSubmitting ? (_) {} : onChecked,
                 ),
-                const SizedBox(height: AppDimens.p32),
+                QeranSpacing.vs32,
                 OathFooter(
                   isChecked: isChecked && !isSubmitting,
                   onSwear: onSwear,

@@ -2,7 +2,7 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 4 يونيو 2026
+> آخر تحديث: 5 يونيو 2026
 
 ---
 
@@ -10,7 +10,7 @@
 التركيز انتقل من الخطّابة إلى **مراجعة الالتزام بالـ design system في تطبيق المستخدم (compliance sweep)** — نلف شاشة شاشة ونرجّع كل شي للهوية والتوكنز. الخطّابة **محجوبة** على ردود طارق على توثيق v2.2.
 
 ## 🗺️ الخطوات الجاية (بالأولوية)
-1. **هجرة auth/ الكاملة ⭐ (التالي)** — أكبر تجمّع legacy (~150 ref: login/register/oath/forgot-reset/whatsapp/country-picker/OTP/social). فيه `CustomButton` + `AppTextFormField` ممنوعين + Material `AlertDialog` داخل `share_with_matchmaker_button`. يحتاج **خطوات فرعية، مش باس واحد.**
+1. **هجرة auth/ الكاملة ⭐ (جارية)** — أكبر تجمّع legacy (~150 ref: login/register/oath/forgot-reset/whatsapp/country-picker/OTP/social). فيه `CustomButton` + `AppTextFormField` ممنوعين + Material `AlertDialog` داخل `share_with_matchmaker_button`. خطوات فرعية — **انظر قسم «🔧 هجرة auth — التقدّم» أدناه.**
 2. **باقي الـ sweep** — onboarding، notifications، subscriptions (الـ widgets الـ legacy)، questionnaire widgets… شاشة شاشة (legacy-grep gate يخدم هذا).
 3. **الخطّابة** — محجوبة على ردود طارق (v2.2) — انظر بنود الباك إند.
 4. **الاهتمامات — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
@@ -24,6 +24,8 @@
 - **OTP دايماً LTR:** خانات كود الـ OTP تنعرض يسار→يمين بكل اللغات (أول خانة على اليسار) لأن الأكواد الرقمية تُقرأ LTR. مطبّقة عبر `textDirection` على الـ Row نفسه (مش الـ Directionality widget الممنوع). (`878f5cc`)
 - **`wineLight` `#4A1F38`:** توكن جديد لون لتدرّجات الواين ثنائية اللون (يُقرَن مع `wine`). (`f26e078`)
 - **swipe-deck ميت ومحذوف** — `discovery/` هو الـ deck الحي؛ `home_screen.dart` يحتضن `DiscoveryView`. (`7a8ec1f`)
+- **حقل كلمة المرور (password) — يبقى على الـ API الخارجي مؤقتاً:** `AuthPasswordField` لسا ياخد `obscurePasswordNotifier` + `onToggleVisibility` من برّا (العين عبر `suffix` slot بالـ `QeranTextField`). الـ `showObscureToggle` المدمج + حذف الـ notifier ينعملوا بـ **sub-step c** لما نهاجر الـ 3 شاشات + الـ 3 controllers (تجنّب كسر call-sites + تسرّب سكوب). (`95b4d88`)
+- **`auth_phone_input` مؤجّل (sub-step b2):** يُهاجَر **مع** `CountryCodePicker` (لسا legacy، 55px) بنفس الباس — تجنّباً لمزيج حقل-DS بجانب picker-legacy (mismatch بالـ fill/radius/height).
 - **السؤال vs المضي:** اسأل على أي قرار (دلالي أو تجميلي). فقط التعديلات المحددة تماماً تمشي مباشرة. (الافتراض القديم "امشِ بالتجميلي" ملغى.)
 - **Figma = الشكل، الهوية = الألوان.** صفر تسامح — كل شيء من الـ design system.
 
@@ -67,4 +69,16 @@
 - `1299c8b` — حذف 3 `Directionality` widgets ممنوعة (otp + 2 discovery).
 - `c932de5` + `f26e078` — إصلاحات توكنز: أضفنا `wineLight`، وربطنا الـ radii الشاردة بالـ scale (22→card، أشرطة 2px→pill).
 - `878f5cc` — خانات OTP مقفولة LTR بكل اللغات.
-- **legacy refs:** ~390 → ~315 بعد الجلسة. التالي: هجرة `auth/`.
+- **legacy refs:** ~390 → ~315. ثم بدأت هجرة `auth/` (تحت).
+
+---
+
+## 🔧 هجرة auth — التقدّم (sub-steps)
+**معمول:**
+- `079d077` — أضفنا `QeranTextField` للـ DS (بديل `AppTextFormField`؛ creamSurface fill + control radius + عين `showObscureToggle` مدمجة، RTL-aware).
+- `a19ce3d` — توكن `appleBlack` (#000000) = الأسود الوحيد المسموح بالتطبيق، استثناء التزام بعلامة Apple (HIG) — على glyph الـ Apple فقط.
+- `0a4681a` — **sub-step a:** هجرة الـ leaves البصرية المشتركة (`or_divider`, `auth_footer_link`, `auth_title_subtitle`, `social_login_buttons`, `oath_title_ornament`؛ `auth_back_button` + `auth_logo_header` نظاف أصلاً).
+- `95b4d88` — **sub-step b:** هجرة wrappers الإيميل + كلمة المرور للـ `QeranTextField`.
+
+**الحالة:** 0 ✅ · a ✅ · b ✅ (email + password)
+**الباقي:** b2 (phone + `CountryCodePicker`) · c (شاشات login/register + تبنّي العين المدمجة) · d (forgot/reset) · e (whatsapp/OTP + إصلاح deprecation `otp_input_row:84` background) · f (oath) · g (upload-image).

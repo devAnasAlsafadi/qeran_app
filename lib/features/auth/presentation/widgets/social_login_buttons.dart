@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/utils/app_assets.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 
 class SocialLoginButtons extends StatelessWidget {
   final VoidCallback onGoogleTap;
@@ -26,10 +27,14 @@ class SocialLoginButtons extends StatelessWidget {
           child: SvgPicture.asset(AppAssets.googleLogo),
         ),
         if (Platform.isIOS) ...[
-          AppDimens.horizontalSpace8,
+          QeranSpacing.hs8,
           _SocialButton(
             onTap: onAppleTap,
-            child: const Icon(Icons.apple, size: 28, color: AppColors.black),
+            child: const Icon(
+              Icons.apple,
+              size: 28,
+              color: QeranColors.inkStrong,
+            ),
           ),
         ],
       ],
@@ -50,9 +55,9 @@ class _SocialButton extends StatelessWidget {
       child: Container(
         width: 60,
         height: 60,
-        decoration: BoxDecoration(
-          color: AppColors.greyLight,
-          borderRadius: AppDimens.borderRadius12,
+        decoration: const BoxDecoration(
+          color: QeranColors.creamSurface,
+          borderRadius: QeranRadii.controlR,
         ),
         child: Center(child: child),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_color.dart';
-import '../../../../core/theme/app_text_style.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 class AuthTitleSubtitle extends StatelessWidget {
   final String title;
@@ -19,14 +20,12 @@ class AuthTitleSubtitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(title, style: AppTextStyles.headlineMedium, textAlign: textAlign),
+        Text(title, style: QeranTypography.headline, textAlign: textAlign),
         if (subtitle != null) ...[
-          const SizedBox(height: 8),
+          QeranSpacing.vs8,
           Text(
             subtitle!,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
             textAlign: textAlign,
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
 /// Decorative `─ ◆ ─` motif used in place of the flat 2×60 divider under
 /// the oath title. Two short burgundy hair-lines flank a small diamond
@@ -16,13 +17,13 @@ class OathTitleOrnament extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         _OrnamentLine(width: lineLength),
-        const SizedBox(width: 8),
+        QeranSpacing.hs8,
         const Icon(
           Icons.diamond_outlined,
           size: 12,
-          color: AppColors.primary,
+          color: QeranColors.wine,
         ),
-        const SizedBox(width: 8),
+        QeranSpacing.hs8,
         _OrnamentLine(width: lineLength),
       ],
     );
@@ -41,8 +42,8 @@ class _OrnamentLine extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.primary.withValues(alpha: 0.0),
-            AppColors.primary.withValues(alpha: 0.55),
+            QeranColors.wine.withValues(alpha: 0.0),
+            QeranColors.wine.withValues(alpha: 0.55),
           ],
         ),
       ),

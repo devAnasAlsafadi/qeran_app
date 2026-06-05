@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 
 class OrDivider extends StatelessWidget {
   const OrDivider({super.key});
@@ -11,17 +12,15 @@ class OrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppColors.border)),
+        const Expanded(child: Divider(color: QeranColors.divider)),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimens.p12),
+          padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s12),
           child: Text(
             LocaleKeys.common_or.t(context),
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+            style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
           ),
         ),
-        const Expanded(child: Divider(color: AppColors.border)),
+        const Expanded(child: Divider(color: QeranColors.divider)),
       ],
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 /// A footer row used across auth screens with a prompt label and a tappable action link.
 /// Example: "لا يوجد لديك حساب ؟  [التسجيل]"
@@ -24,18 +24,14 @@ class AuthFooterLink extends StatelessWidget {
       children: [
         Text(
           promptText,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
+          style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
         ),
-        const SizedBox(width: AppDimens.p4),
+        const SizedBox(width: QeranSpacing.s4),
         GestureDetector(
           onTap: onTap,
           child: Text(
             actionText,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.primaryLight,
-            ),
+            style: QeranTypography.body.copyWith(color: QeranColors.gold),
           ),
         ),
       ],

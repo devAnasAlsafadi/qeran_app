@@ -1,8 +1,10 @@
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 
 class CountryCodePicker extends StatelessWidget {
   final String selectedCode;
@@ -20,30 +22,37 @@ class CountryCodePicker extends StatelessWidget {
       selectedCode.replaceFirst('+', ''),
     );
 
+    // Mirrors QeranTextField's box (creamSurface fill, control radius,
+    // hairline border, s12 vertical rhythm) so the picker and the phone
+    // field read as one matched pair, top-aligned in the row.
     return GestureDetector(
       onTap: () => _showPicker(context),
       child: Container(
-        height: 55,
-        padding: const EdgeInsets.symmetric(horizontal: AppDimens.p12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: QeranSpacing.s12,
+          vertical: QeranSpacing.s12,
+        ),
         decoration: BoxDecoration(
-          color: AppColors.greyLight,
-          borderRadius: AppDimens.borderRadius12,
-          border: Border.all(color: AppColors.border),
+          color: QeranColors.creamSurface,
+          borderRadius: QeranRadii.controlR,
+          border: Border.all(color: QeranColors.hairline),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Flag is an emoji glyph — only its size matters and no typography
+            // token expresses size-only, so a raw fontSize is used here.
             Text(country.flagEmoji, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: AppDimens.p4),
+            const SizedBox(width: QeranSpacing.s4),
             Text(
               '+${country.phoneCode}',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: QeranTypography.body.copyWith(color: QeranColors.inkStrong),
             ),
-            const SizedBox(width: AppDimens.p4),
+            const SizedBox(width: QeranSpacing.s4),
             const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
-              color: AppColors.textSecondary,
+              color: QeranColors.inkMuted,
             ),
           ],
         ),
@@ -58,26 +67,28 @@ class CountryCodePicker extends StatelessWidget {
       showPhoneCode: true,
       countryListTheme: CountryListThemeData(
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(AppDimens.r16),
+          top: Radius.circular(QeranRadii.dome),
         ),
         inputDecoration: InputDecoration(
           hintText: 'auth.country_search_hint'.t(context),
           hintTextDirection: TextDirection.rtl,
-          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+          prefixIcon: const Icon(Icons.search, color: QeranColors.inkMuted),
           filled: true,
-          fillColor: AppColors.greyLight,
-          contentPadding: const EdgeInsets.symmetric(vertical: AppDimens.p12),
+          fillColor: QeranColors.creamSurface,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: QeranSpacing.s12,
+          ),
           border: OutlineInputBorder(
-            borderRadius: AppDimens.borderRadius12,
-            borderSide: const BorderSide(color: AppColors.border),
+            borderRadius: QeranRadii.controlR,
+            borderSide: const BorderSide(color: QeranColors.hairline),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: AppDimens.borderRadius12,
-            borderSide: const BorderSide(color: AppColors.border),
+            borderRadius: QeranRadii.controlR,
+            borderSide: const BorderSide(color: QeranColors.hairline),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: AppDimens.borderRadius12,
-            borderSide: const BorderSide(color: AppColors.primary),
+            borderRadius: QeranRadii.controlR,
+            borderSide: const BorderSide(color: QeranColors.wine),
           ),
         ),
       ),

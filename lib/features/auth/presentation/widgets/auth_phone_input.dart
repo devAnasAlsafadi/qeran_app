@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/phone_validator.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import '../../../../core/extensions/localization_extension.dart';
-import '../../../../core/utils/app_dimens.dart';
-import '../../../../core/utils/phone_validator.dart';
-import '../../../../core/widgets/app_text_form_field.dart';
+
 import 'country_code_picker.dart';
 
 class AuthPhoneInput extends StatelessWidget {
@@ -26,9 +27,9 @@ class AuthPhoneInput extends StatelessWidget {
       valueListenable: countryCodeNotifier,
       builder: (context, countryCode, child) {
         // Phone numbers are universally LTR — the country code sits on the
-        // left of the digits regardless of UI language. Force this row's
-        // text direction (and the children's order) to LTR so the layout
-        // does not flip between Arabic and English.
+        // left of the digits regardless of UI language. Lock this row to LTR
+        // so the layout does not flip between Arabic and English. Scoped to
+        // the Row via textDirection — not the forbidden Directionality widget.
         return Row(
           textDirection: TextDirection.ltr,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,13 +38,12 @@ class AuthPhoneInput extends StatelessWidget {
               selectedCode: countryCode,
               onChanged: (code) => countryCodeNotifier.value = code,
             ),
-            const SizedBox(width: AppDimens.p8),
+            const SizedBox(width: QeranSpacing.s8),
             Expanded(
-              child: AppTextFormField(
+              child: QeranTextField(
                 controller: controller,
                 focusNode: focusNode,
-                hintText: LocaleKeys.auth_phone_hint.t(context),
-                obscureText: false,
+                hint: LocaleKeys.auth_phone_hint.t(context),
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
                 validator: validator ?? PhoneValidator.validate,

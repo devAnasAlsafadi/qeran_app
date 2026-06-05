@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/utils/app_assets.dart';
 
@@ -57,8 +58,9 @@ class _SocialButton extends StatelessWidget {
         width: 60,
         height: 60,
         decoration: const BoxDecoration(
-          color: QeranColors.creamSurface,
+          color: QeranColors.paper,
           borderRadius: QeranRadii.controlR,
+          boxShadow: QeranShadows.e2,
         ),
         child: Center(child: child),
       ),

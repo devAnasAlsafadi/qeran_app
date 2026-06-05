@@ -33,7 +33,8 @@ class SocialLoginButtons extends StatelessWidget {
             child: const Icon(
               Icons.apple,
               size: 28,
-              color: QeranColors.inkStrong,
+              // Apple HIG requires the Apple mark in true black/white.
+              color: QeranColors.appleBlack,
             ),
           ),
         ],

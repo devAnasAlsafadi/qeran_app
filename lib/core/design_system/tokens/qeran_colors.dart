@@ -61,4 +61,10 @@ class QeranColors {
   static const Color overlayTintLight = Color(0xB3F8EDDA); // cream @ ~70%
   static const Color photoScrimTop = Color(0x33000000);
   static const Color photoScrimBottom = Color(0x99000000);
+
+  /// The ONE sanctioned opaque black in the app — a brand-compliance
+  /// exception for the Apple sign-in glyph (Apple HIG mandates a pure
+  /// black/white Apple mark). Do NOT use for app chrome, text, or icons;
+  /// the palette's dark is [inkStrong] (wine). New uses need sign-off.
+  static const Color appleBlack = Color(0xFF000000);
 }

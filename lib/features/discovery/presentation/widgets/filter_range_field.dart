@@ -42,9 +42,10 @@ class FilterRangeField extends StatelessWidget {
         horizontal: QeranSpacing.s16,
         vertical: QeranSpacing.s12,
       ),
-      decoration: const BoxDecoration(
-        color: QeranColors.creamSurface,
+      decoration: BoxDecoration(
+        color: QeranColors.paper,
         borderRadius: QeranRadii.controlR,
+        border: Border.all(color: QeranColors.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

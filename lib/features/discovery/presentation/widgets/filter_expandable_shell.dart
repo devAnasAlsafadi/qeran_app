@@ -31,9 +31,10 @@ class _FilterExpandableShellState extends State<FilterExpandableShell> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: QeranColors.creamSurface,
+      decoration: BoxDecoration(
+        color: QeranColors.paper,
         borderRadius: QeranRadii.controlR,
+        border: Border.all(color: QeranColors.hairline),
       ),
       child: Column(
         children: [

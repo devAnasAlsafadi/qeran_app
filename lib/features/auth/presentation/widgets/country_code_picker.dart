@@ -22,7 +22,7 @@ class CountryCodePicker extends StatelessWidget {
       selectedCode.replaceFirst('+', ''),
     );
 
-    // Mirrors QeranTextField's box (creamSurface fill, control radius,
+    // Mirrors QeranTextField's box (paper fill, control radius,
     // hairline border, s12 vertical rhythm) so the picker and the phone
     // field read as one matched pair, top-aligned in the row.
     return GestureDetector(
@@ -33,7 +33,7 @@ class CountryCodePicker extends StatelessWidget {
           vertical: QeranSpacing.s12,
         ),
         decoration: BoxDecoration(
-          color: QeranColors.creamSurface,
+          color: QeranColors.paper,
           borderRadius: QeranRadii.controlR,
           border: Border.all(color: QeranColors.hairline),
         ),
@@ -74,7 +74,7 @@ class CountryCodePicker extends StatelessWidget {
           hintTextDirection: TextDirection.rtl,
           prefixIcon: const Icon(Icons.search, color: QeranColors.inkMuted),
           filled: true,
-          fillColor: QeranColors.creamSurface,
+          fillColor: QeranColors.paper,
           contentPadding: const EdgeInsets.symmetric(
             vertical: QeranSpacing.s12,
           ),

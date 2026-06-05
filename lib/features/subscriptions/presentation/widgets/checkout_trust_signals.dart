@@ -17,8 +17,9 @@ class CheckoutTrustSignals extends StatelessWidget {
         vertical: QeranSpacing.s12,
       ),
       decoration: BoxDecoration(
-        color: QeranColors.creamSurface,
+        color: QeranColors.paper,
         borderRadius: QeranRadii.cardR,
+        border: Border.all(color: QeranColors.hairline),
       ),
       child: const Row(
         children: [

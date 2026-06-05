@@ -24,8 +24,11 @@ class EditFieldShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasValue = value.isNotEmpty;
     return Material(
-      color: QeranColors.creamSurface,
-      borderRadius: QeranRadii.controlR,
+      color: QeranColors.paper,
+      shape: const RoundedRectangleBorder(
+        borderRadius: QeranRadii.controlR,
+        side: BorderSide(color: QeranColors.hairline),
+      ),
       child: InkWell(
         borderRadius: QeranRadii.controlR,
         onTap: onTap,

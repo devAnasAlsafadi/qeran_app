@@ -7,8 +7,8 @@ import '../tokens/qeran_typography.dart';
 
 /// Brand text field — the design-system replacement for the legacy
 /// `AppTextFormField`. Wraps a [TextFormField] so `Form.validate()` keeps
-/// working, paints only from tokens (creamSurface fill, wine focus border,
-/// wine-tinted neutrals, control radius), and mirrors automatically with the
+/// working, paints only from tokens (paper fill + hairline border, wine
+/// focus border, wine-tinted neutrals, control radius), and mirrors with the
 /// locale (`EdgeInsetsDirectional`, no manual RTL swap).
 ///
 /// Stateful because it owns the password-visibility state for the built-in
@@ -155,7 +155,7 @@ class _QeranTextFieldState extends State<QeranTextField> {
   InputDecoration _decoration() {
     return InputDecoration(
       filled: true,
-      fillColor: QeranColors.creamSurface,
+      fillColor: QeranColors.paper,
       isDense: true,
       contentPadding: const EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s16,

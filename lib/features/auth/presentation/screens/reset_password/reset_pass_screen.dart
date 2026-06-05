@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-
-import 'package:qeran/core/widgets/app_button.dart';
-
 import 'package:qeran/core/di/injection_container.dart';
 import '../../blocs/password_reset/password_reset_bloc.dart';
 import '../../blocs/password_reset/password_reset_event.dart';
@@ -20,6 +16,7 @@ import 'reset_password_controller.dart';
 import '../../widgets/auth_logo_header.dart';
 import '../../widgets/auth_back_button.dart';
 import '../../widgets/auth_password_field.dart';
+import '../../widgets/auth_title_subtitle.dart';
 
 class ResetPassScreen extends StatefulWidget {
   const ResetPassScreen({super.key});
@@ -65,8 +62,8 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.p24,
-                vertical: AppDimens.p16,
+                horizontal: QeranSpacing.s24,
+                vertical: QeranSpacing.s16,
               ),
               child: Form(
                 key: _controller.formKey,
@@ -76,21 +73,19 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
                     AuthBackButton(
                       onPressed: () => NavigationManager.pop(context),
                     ),
-                    AppDimens.verticalSpace16,
+                    QeranSpacing.vs16,
                     const AuthLogoHeader(),
-                    AppDimens.verticalSpace24,
-                    _buildTitle(),
-                    AppDimens.verticalSpace16,
-                    _buildSubtitle(),
-                    const SizedBox(height: AppDimens.p32),
-                    _buildPasswordLabel(),
-                    AppDimens.verticalSpace8,
+                    QeranSpacing.vs24,
+                    AuthTitleSubtitle(
+                      title: LocaleKeys.auth_reset_password_title.t(context),
+                      subtitle:
+                          LocaleKeys.auth_reset_password_subtitle.t(context),
+                    ),
+                    QeranSpacing.vs32,
                     _buildPasswordField(),
-                    AppDimens.verticalSpace16,
-                    _buildConfirmLabel(),
-                    AppDimens.verticalSpace8,
+                    QeranSpacing.vs16,
                     _buildConfirmField(),
-                    const SizedBox(height: AppDimens.p32),
+                    QeranSpacing.vs32,
                     _buildResetButton(context, _phoneNumber, _otp),
                   ],
                 ),
@@ -102,43 +97,12 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     );
   }
 
-  Widget _buildTitle() {
-    return Text(
-      LocaleKeys.auth_reset_password_title.t(context),
-      style: AppTextStyles.displayLarge,
-      textAlign: TextAlign.start,
-    );
-  }
-
-  Widget _buildSubtitle() {
-    return Text(
-      LocaleKeys.auth_reset_password_subtitle.t(context),
-      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-      textAlign: TextAlign.start,
-    );
-  }
-
-  Widget _buildPasswordLabel() {
-    return Text(
-      LocaleKeys.auth_password_label.t(context),
-      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-      textAlign: TextAlign.start,
-    );
-  }
-
   Widget _buildPasswordField() {
     return AuthPasswordField(
       controller: _controller.passwordController,
       focusNode: _controller.passwordFocus,
+      labelText: LocaleKeys.auth_password_label,
       hintText: LocaleKeys.auth_new_password_hint,
-    );
-  }
-
-  Widget _buildConfirmLabel() {
-    return Text(
-      LocaleKeys.auth_confirm_password_label.t(context),
-      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-      textAlign: TextAlign.start,
     );
   }
 
@@ -146,6 +110,7 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     return AuthPasswordField(
       controller: _controller.confirmPasswordController,
       focusNode: _controller.confirmFocus,
+      labelText: LocaleKeys.auth_confirm_password_label,
       hintText: LocaleKeys.auth_confirm_password_hint,
       validator: (v) {
         if (v == null || v.isEmpty) {
@@ -167,9 +132,10 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     return BlocBuilder<PasswordResetBloc, PasswordResetState>(
       builder: (ctx, state) {
         final isLoading = state is PasswordResetLoading;
-        return CustomButton(
-          text: LocaleKeys.auth_reset_password_button.t(ctx),
-          isLoading: isLoading,
+        return QeranButton(
+          label: LocaleKeys.auth_reset_password_button.t(ctx),
+          variant: QeranButtonVariant.primaryWine,
+          loading: isLoading,
           onPressed: isLoading
               ? null
               : () => _onResetPressed(ctx, phoneNumber, otp),

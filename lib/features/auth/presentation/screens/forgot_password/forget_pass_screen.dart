@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import '../../blocs/password_reset/password_reset_bloc.dart';
 import '../../blocs/password_reset/password_reset_event.dart';
@@ -54,8 +54,8 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.p24,
-                vertical: AppDimens.p16,
+                horizontal: QeranSpacing.s24,
+                vertical: QeranSpacing.s16,
               ),
               child: Form(
                 key: _controller.formKey,
@@ -65,28 +65,29 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
                     AuthBackButton(
                       onPressed: () => NavigationManager.pop(context),
                     ),
-                    AppDimens.verticalSpace16,
+                    QeranSpacing.vs16,
                     const AuthLogoHeader(),
-                    AppDimens.verticalSpace24,
+                    QeranSpacing.vs24,
                     AuthTitleSubtitle(
                       title: LocaleKeys.auth_forgot_password_title.t(context),
-                      subtitle: LocaleKeys.auth_forgot_password_subtitle.t(context),
+                      subtitle:
+                          LocaleKeys.auth_forgot_password_subtitle.t(context),
                     ),
-                    const SizedBox(height: AppDimens.p32),
+                    QeranSpacing.vs32,
                     Text(
                       LocaleKeys.auth_whatsapp_number_label.t(context),
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
+                      style: QeranTypography.bodySm.copyWith(
+                        color: QeranColors.inkBody,
                       ),
                       textAlign: TextAlign.start,
                     ),
-                    AppDimens.verticalSpace8,
+                    QeranSpacing.vs8,
                     AuthPhoneInput(
                       controller: _controller.phoneController,
                       focusNode: _controller.phoneFocus,
                       countryCodeNotifier: _controller.countryCodeNotifier,
                     ),
-                    const SizedBox(height: AppDimens.p32),
+                    QeranSpacing.vs32,
                     _buildSendButton(),
                   ],
                 ),
@@ -102,12 +103,11 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
     return BlocBuilder<PasswordResetBloc, PasswordResetState>(
       builder: (context, state) {
         final isLoading = state is PasswordResetLoading;
-        return CustomButton(
-          text: LocaleKeys.common_send.t(context),
-          isLoading: isLoading,
-          onPressed: isLoading
-              ? null
-              : () => _submitPhone(context),
+        return QeranButton(
+          label: LocaleKeys.common_send.t(context),
+          variant: QeranButtonVariant.primaryWine,
+          loading: isLoading,
+          onPressed: isLoading ? null : () => _submitPhone(context),
         );
       },
     );

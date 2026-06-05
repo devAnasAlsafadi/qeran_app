@@ -12,8 +12,8 @@ import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/core/widgets/exit_app_dialog.dart';
 import 'package:qeran/core/widgets/onboarding_pop_scope.dart';
 import 'package:qeran/core/widgets/question_progress_bar.dart';
@@ -198,9 +198,10 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
     required List<String> imagePaths,
     required bool isUploading,
   }) {
-    return CustomButton(
-      text: LocaleKeys.auth_photo_upload_button.t(context),
-      isLoading: isUploading,
+    return QeranButton(
+      label: LocaleKeys.auth_photo_upload_button.t(context),
+      variant: QeranButtonVariant.primaryWine,
+      loading: isUploading,
       onPressed: imagePaths.isNotEmpty && !isUploading
           ? _cubit.uploadImages
           : null,

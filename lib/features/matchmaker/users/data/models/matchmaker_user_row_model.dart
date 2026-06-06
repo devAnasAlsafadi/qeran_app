@@ -30,18 +30,24 @@ class MatchmakerUserRowModel {
     required this.subscriptionExpiresAt,
   });
 
-  factory MatchmakerUserRowModel.fromJson(Map<String, dynamic> json) =>
-      MatchmakerUserRowModel(
-        userId: parseString(json['userId']),
-        fullName: parseString(json['fullName']),
-        profileImageUrl: parseNullableString(json['profileImageUrl']),
-        assignedAt: parseNullableDateTime(json['assignedAt']),
-        hasProfileImage: parseNullableBool(json['hasProfileImage']),
-        chatConversationId: parseNullableInt(json['chatConversationId']),
-        subscriptionPlanName: parseNullableString(json['subscriptionPlanName']),
-        subscriptionExpiresAt:
-            parseNullableDateTime(json['subscriptionExpiresAt']),
-      );
+  factory MatchmakerUserRowModel.fromJson(Map<String, dynamic> json) {
+    // Subscription is a nested object — `{ planName, expiresAt }` — present
+    // only on approved-subscribed rows; `null` on pending + approved-
+    // unsubscribed. A null map yields null fields, so this is safe across
+    // all three lists.
+    final subscription = parseNullableMap(json['subscription']);
+    return MatchmakerUserRowModel(
+      userId: parseString(json['userId']),
+      fullName: parseString(json['fullName']),
+      profileImageUrl: parseNullableString(json['profileImageUrl']),
+      assignedAt: parseNullableDateTime(json['assignedAt']),
+      hasProfileImage: parseNullableBool(json['hasProfileImage']),
+      chatConversationId: parseNullableInt(json['chatConversationId']),
+      subscriptionPlanName: parseNullableString(subscription?['planName']),
+      subscriptionExpiresAt:
+          parseNullableDateTime(subscription?['expiresAt']),
+    );
+  }
 
   MatchmakerUserRow toEntity() {
     final raw = profileImageUrl;

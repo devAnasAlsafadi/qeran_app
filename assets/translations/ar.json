@@ -396,6 +396,7 @@
     "users_tab_approved_subscribed": "مشتركون",
     "users_subscription_expires": "تنتهي",
     "users_assigned_at": "أُسنِد في",
+    "users_age_years": "عندي {age} سنة",
     "users_error_title": "تعذّر تحميل القائمة",
     "users_retry": "إعادة المحاولة",
     "users_empty_message": "ستظهر البطاقات هنا عند توفّرها.",

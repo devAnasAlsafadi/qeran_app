@@ -1,9 +1,13 @@
 import 'package:equatable/equatable.dart';
 
+import 'matchmaker_card_answer.dart';
+
 /// A single row in any of the three matchmaker user lists. The common
-/// fields ([userId], [fullName], [profileImageUrl], [assignedAt]) are
-/// present on every list; the per-list extras are nullable and only set
-/// for the list that carries them:
+/// fields ([userId], [fullName], [profileImageUrl], [assignedAt], [age],
+/// [answers]) are present on every list ([age] is `null` when the user has
+/// no Date answer; [answers] is `const []`, never null, when none are
+/// flagged); the per-list extras are nullable and only set for the list
+/// that carries them:
 ///   • [hasProfileImage]        → pending only
 ///   • [chatConversationId]     → approved-unsubscribed + approved-subscribed
 ///   • [subscriptionPlanName]   → approved-subscribed only
@@ -17,6 +21,8 @@ class MatchmakerUserRow extends Equatable {
   final String fullName;
   final String? profileImageUrl;
   final DateTime? assignedAt;
+  final int? age;
+  final List<MatchmakerCardAnswer> answers;
 
   final bool? hasProfileImage;
   final int? chatConversationId;
@@ -28,6 +34,8 @@ class MatchmakerUserRow extends Equatable {
     required this.fullName,
     required this.profileImageUrl,
     required this.assignedAt,
+    this.age,
+    this.answers = const [],
     this.hasProfileImage,
     this.chatConversationId,
     this.subscriptionPlanName,
@@ -43,6 +51,8 @@ class MatchmakerUserRow extends Equatable {
         fullName,
         profileImageUrl,
         assignedAt,
+        age,
+        answers,
         hasProfileImage,
         chatConversationId,
         subscriptionPlanName,

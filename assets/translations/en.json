@@ -396,6 +396,7 @@
     "users_tab_approved_subscribed": "Subscribed",
     "users_subscription_expires": "Expires",
     "users_assigned_at": "Assigned on",
+    "users_age_years": "{age} years old",
     "users_error_title": "Couldn't load the list",
     "users_retry": "Retry",
     "users_empty_message": "Cards will appear here when available.",

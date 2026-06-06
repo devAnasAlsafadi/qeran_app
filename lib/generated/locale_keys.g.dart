@@ -385,6 +385,7 @@ abstract class  LocaleKeys {
   static const matchmaker_users_tab_approved_subscribed = 'matchmaker.users_tab_approved_subscribed';
   static const matchmaker_users_subscription_expires = 'matchmaker.users_subscription_expires';
   static const matchmaker_users_assigned_at = 'matchmaker.users_assigned_at';
+  static const matchmaker_users_age_years = 'matchmaker.users_age_years';
   static const matchmaker_users_error_title = 'matchmaker.users_error_title';
   static const matchmaker_users_retry = 'matchmaker.users_retry';
   static const matchmaker_users_empty_message = 'matchmaker.users_empty_message';

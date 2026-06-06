@@ -13,6 +13,8 @@ import '../conversations/data/datasources/matchmaker_conversations_remote_dataso
 import '../conversations/data/repositories/matchmaker_conversations_repository_impl.dart';
 import '../conversations/domain/repositories/matchmaker_conversations_repository.dart';
 import '../conversations/domain/usecases/get_user_conversations_usecase.dart';
+import '../conversations/domain/usecases/open_user_chat_usecase.dart';
+import '../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
 import '../conversations/presentation/blocs/matchmaker_user_conversations_cubit.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
@@ -169,6 +171,10 @@ Future<void> initMatchmakerDependencies() async {
     () => MatchmakerConversationsRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetUserConversationsUseCase(sl()));
+  sl.registerLazySingleton(() => OpenUserChatUseCase(sl()));
+  // One open-chat cubit per user list (M3c) — resolves the lazy
+  // /matchmaker/users/{id}/chat conversation, then the host navigates with it.
+  sl.registerFactory(() => MatchmakerOpenChatCubit(openUserChat: sl()));
   // One cubit per conversations tab mount — the caller passes the current
   // user's id (from UserSessionCubit) via param1 so self-sent live messages
   // don't bump unread. The realtime port (4c-1) is reused.

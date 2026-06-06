@@ -26,4 +26,8 @@ class MatchmakerConversationsRepositoryImpl
       return model.toEntity();
     });
   }
+
+  @override
+  Future<Either<Failure, int>> openChatWithUser(String userId) =>
+      executeApiCall(() => _dataSource.openChatWithUser(userId));
 }

@@ -8,10 +8,13 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
+import '../../../conversations/presentation/widgets/matchmaker_open_chat_host.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/matchmaker_user_row.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import '../blocs/matchmaker_users_list_cubit.dart';
+import 'matchmaker_card_action_row.dart';
 import 'matchmaker_user_row_card.dart';
 import 'matchmaker_users_list_skeleton.dart';
 
@@ -26,9 +29,10 @@ class MatchmakerUsersListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<MatchmakerUsersListCubit>(
-      create: (_) =>
-          sl<MatchmakerUsersListCubit>(param1: list)..loadFirst(),
-      child: _ListBody(list: list),
+      create: (_) => sl<MatchmakerUsersListCubit>(param1: list)..loadFirst(),
+      // The host provides the open-chat cubit + navigates/snackbars on its
+      // outcome; descendant cards drive it via onMessage (M3c).
+      child: MatchmakerOpenChatHost(child: _ListBody(list: list)),
     );
   }
 }
@@ -44,6 +48,10 @@ class _ListBody extends StatelessWidget {
         PaginatedListState<MatchmakerUserRow>>(
       builder: (context, state) {
         final cubit = context.read<MatchmakerUsersListCubit>();
+        // Drives the inline loader on the tapped card's مراسلة button while its
+        // conversation resolves (M3c).
+        final openingUserId =
+            context.watch<MatchmakerOpenChatCubit>().state.openingUserId;
 
         if (state.isLoading && state.items.isEmpty) {
           return const MatchmakerUsersListSkeleton();
@@ -85,11 +93,21 @@ class _ListBody extends StatelessWidget {
               final row = state.items[index];
               // Card body isn't tappable; actions live on the card's buttons.
               // onMutated re-runs the list fetch after an approve/reject so the
-              // user drops off this (pending) list. (عرض nav lands in M3e.)
+              // user drops off this (pending) list. onMessage resolves + opens
+              // the chat (M3c). (عرض nav lands in M3e.)
               return MatchmakerUserRowCard(
                 row: row,
                 list: list,
                 onMutated: () => cubit.refresh(),
+                onMessage: () =>
+                    context.read<MatchmakerOpenChatCubit>().open(
+                          userId: row.userId,
+                          fullName: row.fullName,
+                          profileImageUrl: row.profileImageUrl,
+                        ),
+                loadingAction: openingUserId == row.userId
+                    ? MatchmakerCardAction.message
+                    : null,
               );
             },
           ),

@@ -24,10 +24,15 @@ class MatchmakerCardActionRow extends StatelessWidget {
     super.key,
     required this.list,
     required this.onAction,
+    this.loadingAction,
   });
 
   final MatchmakerUsersList list;
   final void Function(MatchmakerCardAction action) onAction;
+
+  /// The action whose button shows an inline loader (and is disabled) while it
+  /// resolves — e.g. مراسلة while its conversation opens. Null when idle.
+  final MatchmakerCardAction? loadingAction;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +58,7 @@ class MatchmakerCardActionRow extends StatelessWidget {
           : QeranButtonVariant.neutral,
       size: QeranButtonSize.xs,
       leadingIcon: spec.icon,
+      loading: spec.action == loadingAction,
       // Content-sized so the full label always shows; the Wrap handles overflow.
       fullWidth: false,
     );

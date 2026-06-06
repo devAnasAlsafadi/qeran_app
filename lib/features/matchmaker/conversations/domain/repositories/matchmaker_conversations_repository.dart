@@ -10,4 +10,8 @@ abstract interface class MatchmakerConversationsRepository {
     required int page,
     required int pageSize,
   });
+
+  /// Lazily opens the matchmaker↔user conversation for [userId]. Right with
+  /// its `conversationId` on success, Left on transport / auth failure.
+  Future<Either<Failure, int>> openChatWithUser(String userId);
 }

@@ -13,6 +13,7 @@ enum QeranButtonVariant {
   primaryWine,
   secondary,
   ghost,
+  neutral,
   destructive,
 }
 
@@ -125,6 +126,12 @@ class QeranButton extends StatelessWidget {
           ),
         QeranButtonVariant.ghost => const _Spec(
             bg: Colors.transparent,
+            fg: QeranColors.wine,
+          ),
+        // Soft wine-tinted "chip" fill — the matchmaker card's secondary
+        // action buttons (a modern soft neutral, never cold grey).
+        QeranButtonVariant.neutral => const _Spec(
+            bg: QeranColors.softFill,
             fg: QeranColors.wine,
           ),
         QeranButtonVariant.destructive => const _Spec(

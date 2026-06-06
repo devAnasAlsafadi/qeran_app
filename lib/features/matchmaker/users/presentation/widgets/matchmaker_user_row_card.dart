@@ -13,6 +13,7 @@ import '../../domain/entities/matchmaker_card_answer.dart';
 import '../../domain/entities/matchmaker_user_row.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import 'matchmaker_card_action_row.dart';
+import 'matchmaker_review_action_sheet.dart';
 
 /// One user row: unblurred avatar + name + flagged answers/age, with a
 /// per-list [MatchmakerCardActionRow] beneath. The card body itself is NOT
@@ -24,12 +25,17 @@ class MatchmakerUserRowCard extends StatelessWidget {
     super.key,
     required this.row,
     required this.list,
+    this.onMutated,
   });
 
   final MatchmakerUserRow row;
 
   /// Which of the three lists this card belongs to — selects the button set.
   final MatchmakerUsersList list;
+
+  /// Called after an on-card action mutates the user (approve/reject) so the
+  /// list can refresh and drop the row. Null on lists without such actions.
+  final VoidCallback? onMutated;
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +87,35 @@ class MatchmakerUserRowCard extends StatelessWidget {
           QeranSpacing.vs12,
           Container(height: 1, color: QeranColors.divider),
           QeranSpacing.vs12,
-          MatchmakerCardActionRow(list: list),
+          MatchmakerCardActionRow(
+            list: list,
+            onAction: (action) => _onAction(context, action),
+          ),
         ],
       ),
     );
+  }
+
+  void _onAction(BuildContext context, MatchmakerCardAction action) {
+    switch (action) {
+      case MatchmakerCardAction.approve:
+        _openReviewSheet(context);
+      case MatchmakerCardAction.message:
+      case MatchmakerCardAction.view:
+      case MatchmakerCardAction.notes:
+      case MatchmakerCardAction.interests:
+        break; // wired in M3c–f
+    }
+  }
+
+  /// موافقة → confirm sheet (approve / reject-with-reason). On success the
+  /// sheet pops `true`; we bubble it up via [onMutated] so the list refreshes.
+  Future<void> _openReviewSheet(BuildContext context) async {
+    final mutated = await showMatchmakerReviewSheet(
+      context,
+      userId: row.userId,
+    );
+    if (mutated == true) onMutated?.call();
   }
 
   /// Subscribed rows surface the subscription expiry under the plan chip.

@@ -402,6 +402,8 @@
     "users_action_view": "عرض",
     "users_action_notes": "ملاحظات",
     "users_action_interests": "الإهتمامات",
+    "users_review_title": "مراجعة الطلب",
+    "users_review_subtitle": "وافق على العضو، أو ارفضه برسالة توضّح السبب.",
     "users_error_title": "تعذّر تحميل القائمة",
     "users_retry": "إعادة المحاولة",
     "users_empty_message": "ستظهر البطاقات هنا عند توفّرها.",

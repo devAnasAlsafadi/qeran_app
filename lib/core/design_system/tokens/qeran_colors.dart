@@ -52,6 +52,13 @@ class QeranColors {
   // Semantics (wine/gold-leaning, never Material)
   static const Color divider = wine08;
   static const Color hairline = wine12;
+
+  /// Soft wine-tinted neutral fill for chip-style controls (e.g. the
+  /// matchmaker card's secondary action buttons) — a modern soft "grey" that
+  /// stays on-identity (wine @ ~10%), never a cold grey. Sits between
+  /// [wine08] and [wine12].
+  static const Color softFill = Color(0x1A431C33);
+
   static const Color danger = Color(0xFFA33949);
 
   /// Success in Qeran wears gold, not green.

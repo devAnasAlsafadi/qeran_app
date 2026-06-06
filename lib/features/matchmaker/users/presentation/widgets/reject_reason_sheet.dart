@@ -6,8 +6,9 @@ import '../../../../../core/design_system/tokens/qeran_shadows.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
+import '../../../../../core/design_system/widgets/qeran_sheet_handle.dart';
+import '../../../../../core/design_system/widgets/qeran_text_field.dart';
 import '../../../../../core/extensions/localization_extension.dart';
-import '../../../../../core/widgets/app_text_form_field.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
 /// Bottom sheet that collects the rejection reason. Returns the trimmed
@@ -45,8 +46,11 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
   void _submit() {
     final text = _controller.text.trim();
     if (text.isEmpty) {
-      setState(() => _error =
-          LocaleKeys.matchmaker_profile_reject_validation_empty.t(context));
+      setState(
+        () => _error = LocaleKeys.matchmaker_profile_reject_validation_empty.t(
+          context,
+        ),
+      );
       return;
     }
     Navigator.of(context).pop(text);
@@ -55,8 +59,9 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: QeranColors.paper,
@@ -73,7 +78,7 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _DragHandle(),
+            const QeranSheetHandle(),
             QeranSpacing.vs20,
             Text(
               LocaleKeys.matchmaker_profile_reject_title.t(context),
@@ -85,17 +90,15 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
               style: QeranTypography.body,
             ),
             QeranSpacing.vs16,
-            AppTextFormField(
+            QeranTextField(
               controller: _controller,
-              hintText: LocaleKeys.matchmaker_profile_reject_hint.t(context),
-              obscureText: false,
+              hint: LocaleKeys.matchmaker_profile_reject_hint.t(context),
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
               maxLines: 5,
               maxLength: 500,
-              errorMsg: _error,
-              fillColor: QeranColors.creamSurface,
-              onChange: (_) {
+              errorText: _error,
+              onChanged: (_) {
                 if (_error != null) setState(() => _error = null);
               },
             ),
@@ -113,24 +116,6 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DragHandle extends StatelessWidget {
-  const _DragHandle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 44,
-        height: 4,
-        decoration: BoxDecoration(
-          color: QeranColors.wine.withValues(alpha: 0.25),
-          borderRadius: QeranRadii.pill,
         ),
       ),
     );

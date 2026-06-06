@@ -83,11 +83,14 @@ class _ListBody extends StatelessWidget {
                 return const MatchmakerLoadMoreFooter();
               }
               final row = state.items[index];
-              // Card body is no longer tappable (M3a) — navigation moves to
-              // the on-card عرض button in M3e. The list's refresh-on-mutate
-              // mechanism (`cubit.refresh()`) is untouched and will be
-              // re-triggered by the approve/reject buttons in M3b.
-              return MatchmakerUserRowCard(row: row, list: list);
+              // Card body isn't tappable; actions live on the card's buttons.
+              // onMutated re-runs the list fetch after an approve/reject so the
+              // user drops off this (pending) list. (عرض nav lands in M3e.)
+              return MatchmakerUserRowCard(
+                row: row,
+                list: list,
+                onMutated: () => cubit.refresh(),
+              );
             },
           ),
         );

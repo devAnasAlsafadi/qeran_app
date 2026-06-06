@@ -402,6 +402,8 @@
     "users_action_view": "View",
     "users_action_notes": "Notes",
     "users_action_interests": "Interests",
+    "users_review_title": "Review request",
+    "users_review_subtitle": "Approve this member, or reject with a message explaining why.",
     "users_error_title": "Couldn't load the list",
     "users_retry": "Retry",
     "users_empty_message": "Cards will appear here when available.",

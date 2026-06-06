@@ -127,6 +127,28 @@ class HttpConsumer extends ApiConsumer {
   }
 
   @override
+  Future<dynamic> put(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    final uri = Uri.parse(
+      "${EndPoints.baseUrl}$path",
+    ).replace(queryParameters: _convertQueryParams(queryParameters));
+    AppLogger.info('PUT $uri', tag: 'HTTP');
+    try {
+      final response = await client
+          .put(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .timeout(_timeout);
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      AppLogger.error('PUT $uri failed', error: e, tag: 'HTTP');
+      throw ServerException(message: _errorMessage(e));
+    }
+  }
+
+  @override
   Future<dynamic> patch(
     String path, {
     Object? body,

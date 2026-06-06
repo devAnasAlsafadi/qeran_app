@@ -113,6 +113,13 @@ class _QeranTextFieldState extends State<QeranTextField> {
 
   void _toggleObscure() => setState(() => _obscured = !_obscured);
 
+  /// Pill for single-line; a softer [QeranRadii.controlR] for multiline text
+  /// areas (a stadium looks wrong on a tall box). Obscured input is always
+  /// single-line, so it stays a pill regardless of [QeranTextField.maxLines].
+  BorderRadius get _radius => (widget.maxLines > 1 && !widget.obscureText)
+      ? QeranRadii.controlR
+      : QeranRadii.pill;
+
   @override
   Widget build(BuildContext context) {
     final field = _buildField();
@@ -136,8 +143,8 @@ class _QeranTextFieldState extends State<QeranTextField> {
     // rounded box; the field itself is borderless (Figma: floating white
     // pills, no outline). A danger ring appears only on validation error.
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        borderRadius: QeranRadii.pill,
+      decoration: BoxDecoration(
+        borderRadius: _radius,
         boxShadow: QeranShadows.e1,
       ),
       child: TextFormField(
@@ -206,9 +213,9 @@ class _QeranTextFieldState extends State<QeranTextField> {
     return widget.suffix;
   }
 
-  static OutlineInputBorder _border([BorderSide side = BorderSide.none]) {
+  OutlineInputBorder _border([BorderSide side = BorderSide.none]) {
     return OutlineInputBorder(
-      borderRadius: QeranRadii.pill,
+      borderRadius: _radius,
       borderSide: side,
     );
   }

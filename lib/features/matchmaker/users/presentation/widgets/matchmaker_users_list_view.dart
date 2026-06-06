@@ -15,6 +15,7 @@ import '../../domain/entities/matchmaker_user_row.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import '../blocs/matchmaker_users_list_cubit.dart';
 import 'matchmaker_card_action_row.dart';
+import 'matchmaker_notes_sheet.dart';
 import 'matchmaker_user_row_card.dart';
 import 'matchmaker_users_list_skeleton.dart';
 
@@ -105,6 +106,8 @@ class _ListBody extends StatelessWidget {
                           fullName: row.fullName,
                           profileImageUrl: row.profileImageUrl,
                         ),
+                onNotes: () =>
+                    showMatchmakerNotesSheet(context, userId: row.userId),
                 loadingAction: openingUserId == row.userId
                     ? MatchmakerCardAction.message
                     : null,

@@ -25,28 +25,35 @@ import '../shared/data/datasources/matchmaker_realtime_signalr_service.dart';
 import '../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../users/data/datasources/matchmaker_editable_answers_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_user_actions_remote_datasource.dart';
+import '../users/data/datasources/matchmaker_user_notes_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_user_profile_remote_datasource.dart';
 import '../users/data/datasources/matchmaker_users_remote_datasource.dart';
 import '../users/data/repositories/matchmaker_editable_answers_repository_impl.dart';
 import '../users/data/repositories/matchmaker_user_actions_repository_impl.dart';
+import '../users/data/repositories/matchmaker_user_notes_repository_impl.dart';
 import '../users/data/repositories/matchmaker_user_profile_repository_impl.dart';
 import '../users/data/repositories/matchmaker_users_repository_impl.dart';
 import '../users/domain/entities/matchmaker_users_list.dart';
 import '../users/domain/repositories/matchmaker_editable_answers_repository.dart';
 import '../users/domain/repositories/matchmaker_user_actions_repository.dart';
+import '../users/domain/repositories/matchmaker_user_notes_repository.dart';
 import '../users/domain/repositories/matchmaker_user_profile_repository.dart';
 import '../users/domain/repositories/matchmaker_users_repository.dart';
 import '../users/domain/usecases/approve_user_usecase.dart';
+import '../users/domain/usecases/delete_user_note_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_user_profile_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_users_usecase.dart';
 import '../users/domain/usecases/get_editable_answers_usecase.dart';
+import '../users/domain/usecases/get_user_note_usecase.dart';
 import '../users/domain/usecases/reject_user_usecase.dart';
 import '../users/domain/usecases/request_image_user_usecase.dart';
+import '../users/domain/usecases/save_user_note_usecase.dart';
 import '../users/domain/usecases/update_text_answer_usecase.dart';
 import '../users/presentation/blocs/matchmaker_answer_save_cubit.dart';
 import '../users/presentation/blocs/matchmaker_editable_answers_cubit.dart';
 import '../users/presentation/blocs/matchmaker_profile_detail_cubit.dart';
 import '../users/presentation/blocs/matchmaker_user_actions_cubit.dart';
+import '../users/presentation/blocs/matchmaker_user_notes_cubit.dart';
 import '../users/presentation/blocs/matchmaker_users_list_cubit.dart';
 
 /// Matchmaker (role=Moderator) feature DI registration.
@@ -140,6 +147,26 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerFactoryParam<MatchmakerAnswerSaveCubit, String, void>(
     (userId, _) =>
         MatchmakerAnswerSaveCubit(userId: userId, updateTextAnswer: sl()),
+  );
+
+  //! ── M3d · User notes (view / save / delete) ──────────────────────
+  sl.registerLazySingleton<MatchmakerUserNotesRemoteDataSource>(
+    () => MatchmakerUserNotesRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerUserNotesRepository>(
+    () => MatchmakerUserNotesRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetUserNoteUseCase(sl()));
+  sl.registerLazySingleton(() => SaveUserNoteUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteUserNoteUseCase(sl()));
+  // One cubit per opened notes sheet — the caller passes the userId via param1.
+  sl.registerFactoryParam<MatchmakerUserNotesCubit, String, void>(
+    (userId, _) => MatchmakerUserNotesCubit(
+      userId: userId,
+      getNote: sl(),
+      saveNote: sl(),
+      deleteNote: sl(),
+    ),
   );
 
   //! ── M3 · Compatibility cases ─────────────────────────────────────

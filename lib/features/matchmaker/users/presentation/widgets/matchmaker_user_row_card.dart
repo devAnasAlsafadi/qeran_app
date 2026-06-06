@@ -26,6 +26,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
     required this.list,
     this.onMutated,
     this.onMessage,
+    this.onNotes,
     this.loadingAction,
   });
 
@@ -41,6 +42,10 @@ class MatchmakerUserRowCard extends StatelessWidget {
   /// Called when مراسلة is tapped — the list resolves + opens the chat (M3c).
   /// Null on contexts without messaging.
   final VoidCallback? onMessage;
+
+  /// Called when ملاحظات is tapped — the list opens the notes sheet (M3d).
+  /// Null on contexts without notes.
+  final VoidCallback? onNotes;
 
   /// Which action's button shows a loader, driven by the list's open-chat
   /// state. Null when idle.
@@ -115,10 +120,11 @@ class MatchmakerUserRowCard extends StatelessWidget {
         _openReviewSheet(context);
       case MatchmakerCardAction.message:
         onMessage?.call();
-      case MatchmakerCardAction.view:
       case MatchmakerCardAction.notes:
+        onNotes?.call();
+      case MatchmakerCardAction.view:
       case MatchmakerCardAction.interests:
-        break; // wired in M3d–f
+        break; // wired in M3e–f
     }
   }
 

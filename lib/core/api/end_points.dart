@@ -216,6 +216,12 @@ class EndPoints {
   static String matchmakerUserChat(String userId) =>
       "matchmaker/users/$userId/chat";
 
+  /// `GET|PUT|DELETE /api/matchmaker/users/{id}/note` — assigned-users only.
+  /// GET → note or `data:null`; PUT body `{content}` (≤2000, trimmed) upserts;
+  /// DELETE is idempotent.
+  static String matchmakerUserNote(String userId) =>
+      "matchmaker/users/$userId/note";
+
   /// `GET /api/matchmaker/compatibility-cases?page=N&pageSize=M`
   static const String matchmakerCompatibilityCases =
       "matchmaker/compatibility-cases";

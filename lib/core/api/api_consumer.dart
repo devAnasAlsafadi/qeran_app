@@ -28,6 +28,14 @@ abstract class ApiConsumer {
     Object? body,
     Map<String, dynamic>? queryParameters,
   });
+
+  /// Standard `PUT` with `status == 1` envelope enforcement (mirrors [post]).
+  /// Used for idempotent upserts like the matchmaker user-note endpoint.
+  Future<dynamic> put(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+  });
   Future<dynamic> patch(
     String path, {
     Object? body,

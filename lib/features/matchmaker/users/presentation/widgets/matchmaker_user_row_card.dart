@@ -27,6 +27,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
     this.onMutated,
     this.onMessage,
     this.onNotes,
+    this.onView,
     this.loadingAction,
   });
 
@@ -46,6 +47,10 @@ class MatchmakerUserRowCard extends StatelessWidget {
   /// Called when ملاحظات is tapped — the list opens the notes sheet (M3d).
   /// Null on contexts without notes.
   final VoidCallback? onNotes;
+
+  /// Called when عرض is tapped — the list opens the (view-only) profile (M3e).
+  /// Null on contexts without a profile view.
+  final VoidCallback? onView;
 
   /// Which action's button shows a loader, driven by the list's open-chat
   /// state. Null when idle.
@@ -123,8 +128,9 @@ class MatchmakerUserRowCard extends StatelessWidget {
       case MatchmakerCardAction.notes:
         onNotes?.call();
       case MatchmakerCardAction.view:
+        onView?.call();
       case MatchmakerCardAction.interests:
-        break; // wired in M3e–f
+        break; // wired in M3f
     }
   }
 

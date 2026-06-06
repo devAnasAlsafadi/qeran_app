@@ -13,6 +13,5 @@ enum ProfileEntrySource {
   likes,
   matches,
   settings,
-  matchmaker,
   mine,
 }

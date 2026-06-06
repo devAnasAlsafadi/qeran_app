@@ -6,6 +6,8 @@ import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../core/routes/navigation_manager.dart';
+import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
@@ -93,9 +95,9 @@ class _ListBody extends StatelessWidget {
               }
               final row = state.items[index];
               // Card body isn't tappable; actions live on the card's buttons.
-              // onMutated re-runs the list fetch after an approve/reject so the
-              // user drops off this (pending) list. onMessage resolves + opens
-              // the chat (M3c). (عرض nav lands in M3e.)
+              // onMutated re-runs the list fetch after approve/reject; onMessage
+              // opens the chat (M3c); onNotes the notes sheet (M3d); onView the
+              // view-only profile (M3e).
               return MatchmakerUserRowCard(
                 row: row,
                 list: list,
@@ -108,6 +110,11 @@ class _ListBody extends StatelessWidget {
                         ),
                 onNotes: () =>
                     showMatchmakerNotesSheet(context, userId: row.userId),
+                onView: () => NavigationManager.navigateTo(
+                  context,
+                  RouteNames.matchmakerUserProfile,
+                  arguments: row.userId,
+                ),
                 loadingAction: openingUserId == row.userId
                     ? MatchmakerCardAction.message
                     : null,

@@ -41,7 +41,6 @@ class FullProfileBody extends StatelessWidget {
       case ProfileEntrySource.discovery:
       case ProfileEntrySource.likes:
       case ProfileEntrySource.matches:
-      case ProfileEntrySource.matchmaker:
         return true;
       case ProfileEntrySource.chat:
       case ProfileEntrySource.settings:

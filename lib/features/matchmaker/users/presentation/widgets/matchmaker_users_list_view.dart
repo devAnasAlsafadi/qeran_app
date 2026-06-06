@@ -6,8 +6,6 @@ import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
-import '../../../../../core/routes/navigation_manager.dart';
-import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
@@ -85,21 +83,11 @@ class _ListBody extends StatelessWidget {
                 return const MatchmakerLoadMoreFooter();
               }
               final row = state.items[index];
-              return MatchmakerUserRowCard(
-                row: row,
-                onTap: () async {
-                  final mutated = await NavigationManager.navigateTo(
-                    context,
-                    RouteNames.matchmakerUserProfile,
-                    arguments: row.userId,
-                  );
-                  // Approve / reject pop with `true` — the user left this
-                  // (pending) list, so refresh it on return.
-                  if (mutated == true && context.mounted) {
-                    context.read<MatchmakerUsersListCubit>().refresh();
-                  }
-                },
-              );
+              // Card body is no longer tappable (M3a) — navigation moves to
+              // the on-card عرض button in M3e. The list's refresh-on-mutate
+              // mechanism (`cubit.refresh()`) is untouched and will be
+              // re-triggered by the approve/reject buttons in M3b.
+              return MatchmakerUserRowCard(row: row, list: list);
             },
           ),
         );

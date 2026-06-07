@@ -39,6 +39,7 @@ import '../explore/data/repositories/matchmaker_explore_repository_impl.dart';
 import '../explore/domain/repositories/matchmaker_explore_repository.dart';
 import '../explore/domain/usecases/get_explore_filters_usecase.dart';
 import '../explore/domain/usecases/get_explore_usecase.dart';
+import '../explore/presentation/blocs/matchmaker_explore_cubit.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
@@ -287,6 +288,9 @@ Future<void> initMatchmakerDependencies() async {
   );
   sl.registerLazySingleton(() => GetExploreUseCase(sl()));
   sl.registerLazySingleton(() => GetExploreFiltersUseCase(sl()));
+  // S4c · explore screen list cubit (one per mount). The filter-sheet cubit is
+  // constructed inline by the sheet (it carries an initialSelections param).
+  sl.registerFactory(() => MatchmakerExploreCubit(getExplore: sl()));
 
   //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────
   // A SEPARATE SignalR connection from the user-side chat realtime port:

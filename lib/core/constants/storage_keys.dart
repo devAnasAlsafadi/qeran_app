@@ -24,4 +24,9 @@ class StorageKeys {
   static const String lastRegisteredLang = 'last_registered_lang';
   static const String lastLinkedFcm = 'last_linked_fcm';
   static const String notifPermissionAsked = 'notif_permission_asked';
+
+  /// Local "last seen" total notification count for the matchmaker inbox.
+  /// Unread = max(0, currentTotal − this) — the backend exposes no read-state.
+  static const String matchmakerNotifLastSeenCount =
+      'matchmaker_notif_last_seen_count';
 }

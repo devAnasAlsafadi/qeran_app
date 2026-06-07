@@ -382,6 +382,8 @@
     "nav_conversations": "المحادثات",
     "nav_explore": "استكشاف",
     "notifications_title": "الإشعارات",
+    "notifications_error_title": "تعذّر تحميل الإشعارات",
+    "notifications_retry": "إعادة المحاولة",
     "account_title": "حسابي",
     "dashboard_pending": "بانتظار المراجعة",
     "dashboard_approved_subscribed": "معتمدون مشتركون",

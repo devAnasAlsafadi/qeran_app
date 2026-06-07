@@ -284,4 +284,12 @@ class EndPoints {
 
   /// `POST /api/matchmaker/me/deactivate` — body empty.
   static const String matchmakerMeDeactivate = "matchmaker/me/deactivate";
+
+  /// `GET /api/notifications?page=N&pageSize=M` — shared inbox (not
+  /// matchmaker-namespaced). Items carry no read-state; the unread badge is a
+  /// local heuristic (see the matchmaker notifications feature).
+  static const String notifications = "notifications";
+
+  /// `GET /api/notifications/count` — `{ count }` (total, not unread).
+  static const String notificationsCount = "notifications/count";
 }

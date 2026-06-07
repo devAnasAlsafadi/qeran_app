@@ -14,6 +14,7 @@ import '../../../conversations/presentation/screens/matchmaker_conversations_tab
 import '../../../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
 import '../../../dashboard/presentation/screens/matchmaker_dashboard_tab.dart';
 import '../../../explore/presentation/screens/matchmaker_explore_tab.dart';
+import '../../../notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
 import '../../../shared/data/matchmaker_notification_router.dart';
 import '../../../shared/domain/entities/matchmaker_realtime_status.dart';
 import '../../../shared/domain/ports/matchmaker_realtime_port.dart';
@@ -59,6 +60,8 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     _realtimePort = sl<MatchmakerRealtimePort>();
     WidgetsBinding.instance.addObserver(this);
     unawaited(_safeConnect());
+    // Prime the bell badge (unread = total − last-seen). Silent on failure.
+    unawaited(sl<MatchmakerNotificationBadgeCubit>().refresh());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {
@@ -110,9 +113,11 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     // Keep-alive on pause (no teardown — simplest robust option). On
     // resume, re-establish only if the socket dropped while backgrounded;
     // the cases cubit catches up via its own reconnect listener.
-    if (state == AppLifecycleState.resumed &&
-        _realtimePort.status == MatchmakerRealtimeStatus.disconnected) {
-      unawaited(_safeConnect());
+    if (state == AppLifecycleState.resumed) {
+      unawaited(sl<MatchmakerNotificationBadgeCubit>().refresh());
+      if (_realtimePort.status == MatchmakerRealtimeStatus.disconnected) {
+        unawaited(_safeConnect());
+      }
     }
   }
 

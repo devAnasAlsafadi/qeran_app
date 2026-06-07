@@ -52,6 +52,13 @@ import '../interests/domain/usecases/get_interest_archived_matches_usecase.dart'
 import '../interests/domain/usecases/get_interest_likes_usecase.dart';
 import '../interests/domain/usecases/get_interest_matches_usecase.dart';
 import '../interests/presentation/blocs/matchmaker_interests_cubit.dart';
+import '../notifications/data/datasources/matchmaker_notifications_remote_datasource.dart';
+import '../notifications/data/repositories/matchmaker_notifications_repository_impl.dart';
+import '../notifications/domain/repositories/matchmaker_notifications_repository.dart';
+import '../notifications/domain/usecases/get_notification_count_usecase.dart';
+import '../notifications/domain/usecases/get_notifications_usecase.dart';
+import '../notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
+import '../notifications/presentation/blocs/matchmaker_notifications_cubit.dart';
 import '../shared/data/datasources/matchmaker_realtime_signalr_service.dart';
 import '../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../users/data/datasources/matchmaker_editable_answers_remote_datasource.dart';
@@ -291,6 +298,25 @@ Future<void> initMatchmakerDependencies() async {
   // S4c · explore screen list cubit (one per mount). The filter-sheet cubit is
   // constructed inline by the sheet (it carries an initialSelections param).
   sl.registerFactory(() => MatchmakerExploreCubit(getExplore: sl()));
+
+  //! ── F5 · Notifications (shared inbox + local unread badge) ───────
+  sl.registerLazySingleton<MatchmakerNotificationsRemoteDataSource>(
+    () => MatchmakerNotificationsRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerNotificationsRepository>(
+    () => MatchmakerNotificationsRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetNotificationsUseCase(sl()));
+  sl.registerLazySingleton(() => GetNotificationCountUseCase(sl()));
+  // One inbox cubit per screen mount.
+  sl.registerFactory(
+    () => MatchmakerNotificationsCubit(getNotifications: sl()),
+  );
+  // Shared bell-badge source — SINGLETON so every MatchmakerAppBar + the inbox
+  // observe the same unread count. `prefs` resolves the SharedPrefService.
+  sl.registerLazySingleton(
+    () => MatchmakerNotificationBadgeCubit(getCount: sl(), prefs: sl()),
+  );
 
   //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────
   // A SEPARATE SignalR connection from the user-side chat realtime port:

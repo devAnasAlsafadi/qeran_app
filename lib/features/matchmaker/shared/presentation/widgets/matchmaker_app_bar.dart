@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
+import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/routes/route_name.dart';
+import '../../../notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
 
 /// App bar for every Matchmaker shell screen.
 ///
@@ -46,29 +49,36 @@ class MatchmakerAppBar extends StatelessWidget implements PreferredSizeWidget {
 class _BellAction extends StatelessWidget {
   const _BellAction({required this.showDot});
 
+  /// Caller-forced dot (legacy flag). OR'd with the live unread badge below.
   final bool showDot;
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          const Icon(
-            Icons.notifications_none_rounded,
-            size: 24,
-            color: QeranColors.wine,
+    return BlocBuilder<MatchmakerNotificationBadgeCubit, int>(
+      bloc: sl<MatchmakerNotificationBadgeCubit>(),
+      builder: (context, unread) {
+        final dot = showDot || unread > 0;
+        return IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(
+                Icons.notifications_none_rounded,
+                size: 24,
+                color: QeranColors.wine,
+              ),
+              if (dot)
+                const PositionedDirectional(
+                  top: -1,
+                  end: -1,
+                  child: _GoldDot(),
+                ),
+            ],
           ),
-          if (showDot)
-            const PositionedDirectional(
-              top: -1,
-              end: -1,
-              child: _GoldDot(),
-            ),
-        ],
-      ),
-      onPressed: () => Navigator.of(context)
-          .pushNamed(RouteNames.matchmakerNotifications),
+          onPressed: () => Navigator.of(context)
+              .pushNamed(RouteNames.matchmakerNotifications),
+        );
+      },
     );
   }
 }

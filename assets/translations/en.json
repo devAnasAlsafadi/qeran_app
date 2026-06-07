@@ -382,6 +382,8 @@
     "nav_conversations": "Messages",
     "nav_explore": "Explore",
     "notifications_title": "Notifications",
+    "notifications_error_title": "Couldn't load notifications",
+    "notifications_retry": "Retry",
     "account_title": "Account",
     "dashboard_pending": "Pending review",
     "dashboard_approved_subscribed": "Approved · subscribed",

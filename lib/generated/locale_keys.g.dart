@@ -371,6 +371,8 @@ abstract class  LocaleKeys {
   static const matchmaker_nav_conversations = 'matchmaker.nav_conversations';
   static const matchmaker_nav_explore = 'matchmaker.nav_explore';
   static const matchmaker_notifications_title = 'matchmaker.notifications_title';
+  static const matchmaker_notifications_error_title = 'matchmaker.notifications_error_title';
+  static const matchmaker_notifications_retry = 'matchmaker.notifications_retry';
   static const matchmaker_account_title = 'matchmaker.account_title';
   static const matchmaker_dashboard_pending = 'matchmaker.dashboard_pending';
   static const matchmaker_dashboard_approved_subscribed = 'matchmaker.dashboard_approved_subscribed';

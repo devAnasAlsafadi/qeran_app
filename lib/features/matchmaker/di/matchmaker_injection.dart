@@ -34,6 +34,11 @@ import '../conversations/domain/usecases/get_user_conversations_usecase.dart';
 import '../conversations/domain/usecases/open_user_chat_usecase.dart';
 import '../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
 import '../conversations/presentation/blocs/matchmaker_user_conversations_cubit.dart';
+import '../explore/data/datasources/matchmaker_explore_remote_datasource.dart';
+import '../explore/data/repositories/matchmaker_explore_repository_impl.dart';
+import '../explore/domain/repositories/matchmaker_explore_repository.dart';
+import '../explore/domain/usecases/get_explore_filters_usecase.dart';
+import '../explore/domain/usecases/get_explore_usecase.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
@@ -270,6 +275,18 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerFactory(
     () => MatchmakerColleagueOpenChatCubit(openColleagueChat: sl()),
   );
+
+  //! ── S4a · Explore (search + dynamic filters) ─────────────────────
+  // Data/domain only here; the filter sheet + screen cubits land in S4b/S4c.
+  // Filters reuse the discovery filter entity/model — same `/filters` shape.
+  sl.registerLazySingleton<MatchmakerExploreRemoteDataSource>(
+    () => MatchmakerExploreRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerExploreRepository>(
+    () => MatchmakerExploreRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetExploreUseCase(sl()));
+  sl.registerLazySingleton(() => GetExploreFiltersUseCase(sl()));
 
   //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────
   // A SEPARATE SignalR connection from the user-side chat realtime port:

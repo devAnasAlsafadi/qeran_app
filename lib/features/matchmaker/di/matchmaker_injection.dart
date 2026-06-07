@@ -2,6 +2,13 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/services/storage_service.dart';
 
+import '../account/data/datasources/matchmaker_account_remote_datasource.dart';
+import '../account/data/repositories/matchmaker_account_repository_impl.dart';
+import '../account/domain/repositories/matchmaker_account_repository.dart';
+import '../account/domain/usecases/deactivate_account_usecase.dart';
+import '../account/domain/usecases/get_me_usecase.dart';
+import '../account/domain/usecases/update_name_usecase.dart';
+import '../account/domain/usecases/upload_account_photo_usecase.dart';
 import '../compatibility_cases/data/datasources/compatibility_cases_remote_datasource.dart';
 import '../compatibility_cases/data/repositories/compatibility_cases_repository_impl.dart';
 import '../compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
@@ -254,4 +261,18 @@ Future<void> initMatchmakerDependencies() async {
       getArchivedMatches: sl(),
     ),
   );
+
+  //! ── S1a · Account (matchmaker/me) ────────────────────────────────
+  // Data/domain only here; the MatchmakerAccountCubit (+ its screen wiring)
+  // is registered in S1b once the cubit class exists.
+  sl.registerLazySingleton<MatchmakerAccountRemoteDataSource>(
+    () => MatchmakerAccountRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerAccountRepository>(
+    () => MatchmakerAccountRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetMeUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateNameUseCase(sl()));
+  sl.registerLazySingleton(() => UploadAccountPhotoUseCase(sl()));
+  sl.registerLazySingleton(() => DeactivateAccountUseCase(sl()));
 }

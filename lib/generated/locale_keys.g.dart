@@ -535,6 +535,10 @@ abstract class  LocaleKeys {
   static const matchmaker_conversations_retry = 'matchmaker.conversations_retry';
   static const matchmaker_conversations_colleagues_empty_title = 'matchmaker.conversations_colleagues_empty_title';
   static const matchmaker_conversations_colleagues_empty_message = 'matchmaker.conversations_colleagues_empty_message';
+  static const matchmaker_conversations_colleagues_new = 'matchmaker.conversations_colleagues_new';
+  static const matchmaker_conversations_colleagues_directory_title = 'matchmaker.conversations_colleagues_directory_title';
+  static const matchmaker_conversations_colleagues_directory_empty_title = 'matchmaker.conversations_colleagues_directory_empty_title';
+  static const matchmaker_conversations_colleagues_directory_empty_message = 'matchmaker.conversations_colleagues_directory_empty_message';
   static const matchmaker_conversations_time_now = 'matchmaker.conversations_time_now';
   static const matchmaker_conversations_time_minute = 'matchmaker.conversations_time_minute';
   static const matchmaker_conversations_time_hour = 'matchmaker.conversations_time_hour';

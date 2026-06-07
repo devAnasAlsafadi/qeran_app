@@ -17,6 +17,9 @@ import '../colleagues/domain/repositories/matchmaker_colleagues_repository.dart'
 import '../colleagues/domain/usecases/get_colleague_conversations_usecase.dart';
 import '../colleagues/domain/usecases/get_colleagues_usecase.dart';
 import '../colleagues/domain/usecases/open_colleague_chat_usecase.dart';
+import '../colleagues/presentation/blocs/matchmaker_colleague_conversations_cubit.dart';
+import '../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cubit.dart';
+import '../colleagues/presentation/blocs/matchmaker_colleagues_directory_cubit.dart';
 import '../compatibility_cases/data/datasources/compatibility_cases_remote_datasource.dart';
 import '../compatibility_cases/data/repositories/compatibility_cases_repository_impl.dart';
 import '../compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
@@ -249,6 +252,24 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(() => GetColleaguesUseCase(sl()));
   sl.registerLazySingleton(() => GetColleagueConversationsUseCase(sl()));
   sl.registerLazySingleton(() => OpenColleagueChatUseCase(sl()));
+  // S2b · colleague-conversations segment — one cubit per mount; the caller
+  // passes the current user's id (param1) so self-sent live messages don't
+  // bump unread. Reuses the shared realtime port (4c-1).
+  sl.registerFactoryParam<MatchmakerColleagueConversationsCubit, String, void>(
+    (myUserId, _) => MatchmakerColleagueConversationsCubit(
+      getConversations: sl(),
+      realtimePort: sl(),
+      myUserId: myUserId,
+    ),
+  );
+  // S2b · colleague directory list (paginated roster).
+  sl.registerFactory(
+    () => MatchmakerColleaguesDirectoryCubit(getColleagues: sl()),
+  );
+  // S2b · resolves a colleague's conversation before navigating to chat.
+  sl.registerFactory(
+    () => MatchmakerColleagueOpenChatCubit(openColleagueChat: sl()),
+  );
 
   //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────
   // A SEPARATE SignalR connection from the user-side chat realtime port:

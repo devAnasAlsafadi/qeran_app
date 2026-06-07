@@ -1,5 +1,5 @@
 class EndPoints {
-  static const String baseUrl = "http://qeranadmin-001-site1.rtempurl.com/api/";
+  static const String baseUrl = "https://qeranadmin-001-site1.rtempurl.com/api/";
 
   /// Resolves a server-supplied relative path (e.g.
   /// `/api/users/profile-images/{id}`) to an absolute URL by joining it

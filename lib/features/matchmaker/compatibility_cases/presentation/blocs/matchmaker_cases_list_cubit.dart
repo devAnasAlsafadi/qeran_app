@@ -47,6 +47,14 @@ class MatchmakerCasesListCubit
     _statusSub = _realtimePort.statusStream.listen(_onStatus);
   }
 
+  /// Raised toward the 100 max so the CLIENT-SIDE cases filter (F3) sees the
+  /// full set in one page — cases are few per matchmaker. The endpoint exposes
+  /// no `status`/`search`, so filtering is done over loaded items; with this
+  /// page size the first page is effectively the whole list. Scrolling still
+  /// loads further pages, widening what the filter can see.
+  @override
+  int get pageSize => 100;
+
   @override
   Future<({List<CompatibilityCase> items, bool hasMore})> fetchPage(
     int page,

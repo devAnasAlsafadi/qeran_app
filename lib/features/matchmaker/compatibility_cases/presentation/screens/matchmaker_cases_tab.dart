@@ -2,25 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
-import '../../../../../core/routes/navigation_manager.dart';
-import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/compatibility_case.dart';
+import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
-import '../widgets/matchmaker_case_card.dart';
+import '../widgets/matchmaker_cases_filter_bar.dart';
 import '../widgets/matchmaker_cases_list_skeleton.dart';
+import '../widgets/matchmaker_cases_list_view.dart';
 
-/// Matchmaker compatibility-cases tab (M3a) — a single paginated, read-only
-/// list of active cases. Cards are tappable but lead nowhere yet; the case
-/// detail + server-validated status-update flow land in 3b.
+/// Matchmaker compatibility-cases tab (M3a / F3) — a single paginated list of
+/// active cases with a CLIENT-SIDE filter (status multi-select + name search)
+/// over the loaded items. Tapping a card opens the detail + status-update flow.
 class MatchmakerCasesTab extends StatelessWidget {
   const MatchmakerCasesTab({super.key});
 
@@ -33,8 +32,15 @@ class MatchmakerCasesTab extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
-        child: BlocProvider<MatchmakerCasesListCubit>(
-          create: (_) => sl<MatchmakerCasesListCubit>()..loadFirst(),
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<MatchmakerCasesListCubit>(
+              create: (_) => sl<MatchmakerCasesListCubit>()..loadFirst(),
+            ),
+            BlocProvider<MatchmakerCasesFilterCubit>(
+              create: (_) => MatchmakerCasesFilterCubit(),
+            ),
+          ],
           child: const _CasesListBody(),
         ),
       ),
@@ -51,6 +57,7 @@ class _CasesListBody extends StatelessWidget {
         PaginatedListState<CompatibilityCase>>(
       builder: (context, state) {
         final cubit = context.read<MatchmakerCasesListCubit>();
+        final filter = context.watch<MatchmakerCasesFilterCubit>().state;
 
         if (state.isLoading && state.items.isEmpty) {
           return const MatchmakerCasesListSkeleton();
@@ -66,52 +73,24 @@ class _CasesListBody extends StatelessWidget {
         if (state.items.isEmpty) {
           return _EmptyRefreshable(onRefresh: cubit.refresh);
         }
-        return MatchmakerPaginatedList(
-          hasMore: state.hasMore,
-          onRefresh: cubit.refresh,
-          onLoadMore: cubit.loadMore,
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(
-              QeranSpacing.s20,
-              QeranSpacing.s8,
-              QeranSpacing.s20,
-              QeranSpacing.s20,
+
+        final visible = filter.apply(state.items);
+        return Column(
+          children: [
+            MatchmakerCasesFilterBar(isActive: filter.isActive),
+            Expanded(
+              child: visible.isEmpty
+                  ? const MatchmakerCasesFilteredEmpty()
+                  : MatchmakerCasesListView(state: state, visible: visible),
             ),
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= state.items.length) {
-                return const MatchmakerLoadMoreFooter();
-              }
-              final caseItem = state.items[index];
-              return MatchmakerCaseCard(
-                caseItem: caseItem,
-                onTap: () async {
-                  final changed = await NavigationManager.navigateTo(
-                    context,
-                    RouteNames.matchmakerCaseDetail,
-                    arguments: caseItem,
-                  );
-                  // Detail pops `true` after a status update (or an invalid
-                  // transition that may have moved the case) — refresh so the
-                  // list reflects the new / now-filtered state.
-                  if (changed == true && context.mounted) {
-                    context.read<MatchmakerCasesListCubit>().refresh();
-                  }
-                },
-              );
-            },
-          ),
+          ],
         );
       },
     );
   }
 }
 
-/// Empty state that still scrolls, so pull-to-refresh works on an empty
-/// list.
+/// Empty state that still scrolls, so pull-to-refresh works on an empty list.
 class _EmptyRefreshable extends StatelessWidget {
   const _EmptyRefreshable({required this.onRefresh});
 

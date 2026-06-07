@@ -222,6 +222,22 @@ class EndPoints {
   static String matchmakerUserNote(String userId) =>
       "matchmaker/users/$userId/note";
 
+  /// `GET /api/matchmaker/users/{id}/likes/outgoing` — likes this user sent.
+  static String matchmakerUserLikesOutgoing(String userId) =>
+      "matchmaker/users/$userId/likes/outgoing";
+
+  /// `GET /api/matchmaker/users/{id}/likes/incoming` — likes this user got.
+  static String matchmakerUserLikesIncoming(String userId) =>
+      "matchmaker/users/$userId/likes/incoming";
+
+  /// `GET /api/matchmaker/users/{id}/matches` — this user's active matches.
+  static String matchmakerUserMatches(String userId) =>
+      "matchmaker/users/$userId/matches";
+
+  /// `GET /api/matchmaker/users/{id}/matches/archived` — closed/cancelled.
+  static String matchmakerUserMatchesArchived(String userId) =>
+      "matchmaker/users/$userId/matches/archived";
+
   /// `GET /api/matchmaker/compatibility-cases?page=N&pageSize=M`
   static const String matchmakerCompatibilityCases =
       "matchmaker/compatibility-cases";

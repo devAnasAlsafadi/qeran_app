@@ -21,6 +21,12 @@ import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
 import '../dashboard/domain/usecases/get_matchmaker_dashboard_usecase.dart';
 import '../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
+import '../interests/data/datasources/matchmaker_interests_remote_datasource.dart';
+import '../interests/data/repositories/matchmaker_interests_repository_impl.dart';
+import '../interests/domain/repositories/matchmaker_interests_repository.dart';
+import '../interests/domain/usecases/get_interest_archived_matches_usecase.dart';
+import '../interests/domain/usecases/get_interest_likes_usecase.dart';
+import '../interests/domain/usecases/get_interest_matches_usecase.dart';
 import '../shared/data/datasources/matchmaker_realtime_signalr_service.dart';
 import '../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../users/data/datasources/matchmaker_editable_answers_remote_datasource.dart';
@@ -225,4 +231,16 @@ Future<void> initMatchmakerDependencies() async {
           sl<StorageService>().get<String>(StorageKeys.token),
     ),
   );
+
+  //! ── M3f · Interests mirror (read-only) ───────────────────────────
+  // Data/domain only here; the cubit (per userId) is registered in M3f-b.
+  sl.registerLazySingleton<MatchmakerInterestsRemoteDataSource>(
+    () => MatchmakerInterestsRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<MatchmakerInterestsRepository>(
+    () => MatchmakerInterestsRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetInterestLikesUseCase(sl()));
+  sl.registerLazySingleton(() => GetInterestMatchesUseCase(sl()));
+  sl.registerLazySingleton(() => GetInterestArchivedMatchesUseCase(sl()));
 }

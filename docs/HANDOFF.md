@@ -2,20 +2,24 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 6 يونيو 2026
+> آخر تحديث: 7 يونيو 2026
 
 ---
 
 ## 🎯 النية / المهمة الحالية
-التركيز الحالي = **الخطّابة: إعادة تصميم بطاقة العضو + توحيد 3 ميزات (سلسلة M3)**. وصلت **وثيقة الباك إند الموحّدة من طارق** ففُكّ الحجب القديم. M3a–c **معمولة**؛ الجاي M3d/e/f (تفاصيل بقسم «🧩 الخطّابة — M3»). بالتوازي **sweep الـ design system بتطبيق المستخدم** مستمر (auth ✅ مكتملة؛ بقي onboarding/notifications/subscriptions/questionnaire/settings).
+**سلسلة M3 للخطّابة مكتملة 🏁** (إعادة تصميم بطاقة العضو + توحيد كل الميزات: موافقة/رفض + مراسلة + ملاحظات + عرض + مرآة الاهتمامات). تفاصيل وكل الـ commits بقسم «🧩 الخطّابة — M3». **الجاي** (الترتيب محسوم تحت): باقي الخطّابة غير-M3 (الزميلات/الاستكشاف/شريط تابات الباقات — محجوب على طارق) + باقي sweep تطبيق المستخدم (onboarding/notifications/subscriptions-legacy/questionnaire + `share_with_matchmaker` dialog) + إعداد المنصّات (iOS Firebase/push، توقيع Android). auth ✅ مكتملة.
+
+**التركيز الحالي (مُحسوم — خطة إغلاق الخطّابة):** الإعدادات → الزميلات → فلتر الحالات → الاستكشاف → الإشعارات (الترتيب من خطة الإغلاق). **S1a** (طبقة data/domain لحساب الخطّابة `matchmaker/me`) ✅ معمولة (`395213e`)؛ الجاي **S1b** (cubit + شاشة الحساب). **الدفع = IAP** (In-App Purchase) — يحتاج تحقّق إيصال على الباك إند لاحقاً.
 
 ## 🗺️ الخطوات الجاية (بالأولوية)
 1. ~~**هجرة auth/ الكاملة**~~ ✅ **مكتملة** (0→g كلها معمولة — انظر «🔧 هجرة auth — التقدّم»). يبقى فقط: `share_with_matchmaker_button._confirmDialog` (مؤجّل — انظر Deferred).
-2. **باقي الـ sweep (بالتوازي / بعد M3)** — onboarding، notifications، subscriptions (widgets legacy: `discount_code_field`/`pricing_segment`/`feature_row`/`plan_visual`…)، questionnaire widgets، settings (بسيط). شاشة شاشة (legacy-grep gate يخدم هذا).
-3. **الخطّابة — سلسلة M3 ⭐ (الجاري/الأولوية):** M3a–c ✅. الجاي بالترتيب: **M3d** (الملاحظات — full-stack، الباك إند جاهز)، **M3e** (عرض → سلك تنقّل واحد للشاشة الموجودة + **حذف** action-bar الموافقة من داخل الملف)، **M3f** (مرآة الاهتمامات — 3 تابات، إعادة استخدام كروت تطبيق المستخدم read-only؛ الأكبر، يعتمد على M3e). تفاصيل بقسم «🧩 الخطّابة — M3».
-4. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
-5. **الإعدادات:** إكمال المتبقّي.
-6. **الباقات:** ربط ببوابات الدفع.
+2. ~~**الخطّابة — سلسلة M3 ⭐**~~ ✅ **مكتملة 🏁** (M3a→M3f-c — انظر «🧩 الخطّابة — M3»).
+3. **الخطّابة — المتبقّي (ليس M3):** شاشة الزميلات (colleagues) · شاشة الاستكشاف (explore) · شريط تابات باقات الاشتراك — **محجوب على طارق** (subscription-plans endpoint).
+4. **باقي الـ sweep (تطبيق المستخدم)** — onboarding، notifications، subscriptions (widgets legacy: `discount_code_field`/`pricing_segment`/`feature_row`/`plan_visual`…)، questionnaire widgets، settings (بسيط) + `share_with_matchmaker` dialog. شاشة شاشة (legacy-grep gate يخدم هذا).
+5. **إعداد المنصّات:** iOS (Firebase/push) + توقيع Android (signing).
+6. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
+7. **الإعدادات:** إكمال المتبقّي.
+8. **الباقات:** ربط الدفع عبر **IAP** (In-App Purchase) — تحقّق الإيصال على الباك إند لاحقاً.
 
 ---
 
@@ -37,8 +41,10 @@
 - **Figma = الشكل، الهوية = الألوان.** صفر تسامح — كل شيء من الـ design system.
 - **— الخطّابة (قرارات M3، حرجة وغير مستنتَجة):**
   - **عرض الملف — معكوس:** الخطّابة تستخدم `GET /matchmaker/users/{id}/profile` (`ProfileResponseDto`، `OwnerImage` فيه `isApproved`، **بلا** `isBlurred`). **ممنوع** `/discovery/profiles/{id}` — يرجّع `matchingScore` بلا معنى **و**يُحتسب على حدّ المشاهدات اليومي للمستخدم. التوحيد = **renderers مشتركة** (`PlacementRenderer`/`ProfileHeaderGallery`) مش شاشة مشتركة. ستاك ملف الخطّابة **موجود وصحيح**.
-  - **الملف = عرض فقط:** action-bar الموافقة/الرفض **داخل** الملف **يُحذف** — كل الموافقة/الرفض على **الكرت** (M3b). ينطبق أينما فُتح الملف (عرض من القائمة + نقر كرت الاهتمامات). احذف سقالة `ProfileEntrySource.matchmaker` الميتة.
-  - **توكنز/widgets جديدة بالـ DS:** `softFill` (`#1A431C33`، ~10% واين، تعبئة chip ناعمة) + `QeranButtonVariant.neutral` (الـ variants صارت **7 مش 6** — `DESIGN.md` stale بهالنقطة) + `QeranSheetHandle` مشترك + `MatchmakerCardAnswersBlock` (يعيد استخدامه M3f).
+  - **الملف = عرض فقط (معمول M3e):** action-bar الموافقة/الرفض **داخل** الملف **محذوف** — كل الموافقة/الرفض على **الكرت** (M3b). يبقى زر تعديل-الإجابات. سقالة `ProfileEntrySource.matchmaker` الميتة **محذوفة**.
+  - **request-photo → شيت المراجعة (M3e2):** بعد حذف action-bar الملف، قدرة «طلب صورة» انتقلت لشيت مراجعة الكرت (pending) — زرّ ghost **مشروط بعدم وجود صورة** (`hasProfileImage == false`).
+  - **مرآة الاهتمامات — ميزة منفصلة read-only (M3f):** `lib/features/matchmaker/interests/` مستقلة. **إعادة استخدام building blocks** (`LikeBlurredImage`/`MatchCardScaffold`/`MatchmakerCardAnswersBlock`) **لا** كروت تطبيق المستخدم الكاملة — كرت الماتش يعرض CTAs شبحية معطّلة (مش مخفية) فما ينفع read-only. **3 تابات** (لا «زوّار»). `isLocked` يُخفي الطرف الآخر (صورة مغبّشة + إخفاء الاسم/الإجابات) **بلا أي CTA اشتراك** (الخطّابة ليست المشتري). الـ countdown **مكتوم**. نقر الكرت → الملف (`otherPartyId`؛ يعمل لأي مستخدم — `…/profile` **ليس** assigned-only، فقط الملاحظات assigned-only). الأرشيف = قسم «الأرشيف» inline تحت النشِط.
+  - **توكنز/widgets جديدة بالـ DS (هذه السلسلة):** `softFill` (`#1A431C33`، ~10% واين، تعبئة chip ناعمة) + `QeranButtonVariant.neutral` (الـ variants صارت **7 مش 6** — `DESIGN.md` stale بهالنقطة) + `QeranSheetHandle` مشترك + `MatchmakerCardAnswersBlock` (أُعيد استخدامه بـ M3f) + `QeranTextField` يبدّل تلقائياً لـ `controlR` على `maxLines>1` (يصلح pill الشيت متعدد الأسطر).
   - **قاعدة أزرار الكرت:** **زر مملوء واحد** `primaryWine` لكل قائمة (pending = موافقة، الباقي = مراسلة)، والباقي chips `neutral`؛ داخل `Wrap` فالـ labels ما تنقص أبداً.
 
 ---
@@ -62,7 +68,9 @@
 ## 📨 معلّق على طارق (Backend)
 | البند | الحالة |
 |-------|--------|
-| `GET /users/subscription-plans` منشور؟ + فلتر `?planId=` شغّال؟ | معلّق |
+| **الخطّابة — endpoint الملاحظات يفشل على السيرفر الجديد** | ⚠️ **محجوب** — يحتاج deploy/إصلاح (متحقَّق عبر Swagger)؛ كود M3d جاهز وينتظر |
+| **الخطّابة — نص `status` بالأرشيف:** مترجَم حسب `Accept-Language` ولا عربي فقط؟ | معلّق — يحدّد هل نعرض نص الباك إند أم label الـ `reason` عندنا (M3f-c يعرض النص الخام حالياً) |
+| `GET /users/subscription-plans` منشور؟ + فلتر `?planId=` شغّال؟ | معلّق — يحجب شريط تابات الباقات بالخطّابة |
 | **الخطّابة — شكل رد** `GET …/{id}/chat`: `data:123` ولا `{conversationId}`؟ | معلّق — **non-blocking** (parser دفاعي يغطّي الاثنين) |
 | (product) بلد الزميلة (colleague country)؟ | معلّق — مش بالـ DTO |
 | (product) unread لكل بطاقة بقوائم الأعضاء؟ | معلّق — موجود بالمحادثات فقط |
@@ -106,7 +114,9 @@
 
 ---
 
-## 🧩 الخطّابة — M3 (إعادة تصميم البطاقة + التوحيد)
+## 🧩 الخطّابة — M3 (إعادة تصميم البطاقة + التوحيد) — ✅ مكتملة 🏁
+**الحالة:** السلسلة **كاملة** — إعادة تصميم الكرت + موافقة/رفض + مراسلة + ملاحظات + عرض + مرآة الاهتمامات، كلها معمولة ومـcommitted.
+
 **معمول (commits على main):**
 - `e4a9a82` — **sub-step 1:** إصلاح parser الاشتراك flat → nested (`{planName, expiresAt}`).
 - `44c0e80` — **sub-step 2:** `age` + `answers[]` على كرت العضو (data+domain+widget؛ سطر العمر مستقل «عندي {age} سنة»، الإجابات نص حرفي ≤3).
@@ -114,13 +124,13 @@
 - `644929d` — **M3b:** موافقة/رفض عبر **شيت تأكيد** (approve / reject-with-reason)؛ هجرة `reject_reason_sheet` لـ `QeranTextField`؛ توكن `softFill` + variant `neutral` + `QeranSheetHandle`.
 - `940d5bc` — تحويل الـ base URL للسيرفر الجديد (`qeranadmin-001-site1.rtempurl.com/api/`).
 - `1c83cd9` — **M3c:** زر المراسلة يفتح المحادثة (lazy-open بالـ `userId` → الشاشة الموجودة عبر `MatchmakerConversation` رفيعة؛ host على مستوى القائمة)؛ استخراج `MatchmakerCardAnswersBlock`.
+- `835403e` — **M3d:** الملاحظات full-stack (`GET/PUT/DELETE …/note`، assigned-only، عدّاد 2000 حرف، تأكيد-قبل-حذف، 4 مسارات أخطاء)؛ أضفنا `put()` للـ ApiConsumer + `QeranTextField` auto `controlR`.
+- `4d8a469` — **M3e:** عرض → الملف (سلك تنقّل واحد) + الملف **عرض-فقط** (حذف action-bar) + حذف سقالة `ProfileEntrySource.matchmaker`.
+- `17a8c82` — **M3e2:** إعادة «طلب صورة» لشيت مراجعة الكرت (مشروط `hasProfileImage == false`).
+- `e1de2fb` — **M3f-a:** طبقة data/domain لمرآة الاهتمامات (4 endpoints، 8 entities، 6 models، datasource بـ `_page` helper، repo، 3 usecases، DI).
+- `0440908` — **M3f-b:** cubit/state + شاشة + 3 تابات + route + سلك «الإهتمامات» (تاب حي واحد).
+- `68cfedc` — **M3f-c:** الكروت read-only الحقيقية (like/match/archive) + قسم «الأرشيف» inline + نقر→الملف + تصحيح أسماء حقول M3f-a لوثيقة طارق (archive: `type`+`reason`، إسقاط age الوهمي؛ like: `profileId`؛ match: `formalRequest`).
 
-**الوثيقة الموحّدة (طارق) — 3 ميزات فُكّ حجبها** (أكّدت age+answers / subscription nested / notes؛ شيلناهم من جدول الباك إند):
-- **مرآة الاهتمامات:** 4 endpoints، `MatchmakerUserPageDto`، read-only، `isLocked`، يعيد استخدام `MatchmakerCardAnswer`. أسقط تاب «الزوّار» (فيجما) — بلا باك إند → **3 تابات**.
-- **الملاحظات:** `GET/PUT/DELETE …/note`، **assigned-only**، 2000 حرف.
-- **الملف:** انظر القرارات (عرض معكوس + عرض-فقط).
-
-**الخطة (الجاي):**
-- **M3d — الملاحظات:** صارت **full-stack** (الباك إند جاهز، كانت UI-only).
-- **M3e — عرض:** سلك تنقّل واحد للشاشة الموجودة + **حذف** action-bar الموافقة + إزالة سقالة `ProfileEntrySource.matchmaker`.
-- **M3f — مرآة الاهتمامات:** 3 تابات، إعادة استخدام كروت تطبيق المستخدم read-only (callbacks = null) + كتلة الإجابات؛ **الأكبر**، يعتمد على M3e.
+**ملاحظات تنفيذية (للمتابعة):**
+- مرآة الاهتمامات: نص الأرشيف `status` يُعرض **خام من الباك إند**؛ إن كان عربي-فقط فالإنجليزية ستعرضه عربياً — قرار معلّق على طارق (انظر الجدول). الـ `reason` label مترجَم عندنا كاحتياطي.
+- إعادة استخدام `LikeBlurredImage` (من ميزة likes) يحمل `AppColors` legacy **داخلياً** — موجود مسبقاً، ما لمسناه (legacy-grep على ملفاتنا = صفر).

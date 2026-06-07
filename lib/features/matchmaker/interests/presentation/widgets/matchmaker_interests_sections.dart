@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../generated/locale_keys.g.dart';
+import '../../domain/entities/matchmaker_like_activity.dart';
 import '../blocs/matchmaker_interests_cubit.dart';
 import '../blocs/matchmaker_interests_state.dart';
+import 'matchmaker_interest_archive_card.dart';
+import 'matchmaker_interest_like_card.dart';
+import 'matchmaker_interest_match_card.dart';
 import 'matchmaker_interest_section_shell.dart';
 
-/// The active-matches tab. M3f-b renders minimal placeholder cards to prove the
-/// cubit→screen→tab flow; the real read-only match cards + inline archive land
-/// in M3f-c.
+/// The active-matches tab: active matches, then an inline "الأرشيف" section
+/// (archived matches) below when present.
 class MatchmakerMatchesSection extends StatelessWidget {
   const MatchmakerMatchesSection({super.key});
 
@@ -18,23 +21,26 @@ class MatchmakerMatchesSection extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<MatchmakerInterestsCubit>();
         final matches = state.matches ?? const [];
+        final archived = state.matchesArchived ?? const [];
         return MatchmakerInterestSectionShell(
           status: state.matchesStatus,
           hasData: state.matches != null,
-          isEmpty:
-              matches.isEmpty && (state.matchesArchived?.isEmpty ?? true),
+          isEmpty: matches.isEmpty && archived.isEmpty,
           emptyTitleKey: LocaleKeys.matchmaker_interests_empty_matches_title,
           errorKey: state.matchesErrorKey,
           onRefresh: cubit.refresh,
           onRetry: cubit.loadMatches,
-          builder: (_) => MatchmakerInterestPlaceholderList(
+          builder: (_) => MatchmakerInterestList(
             onRefresh: cubit.refresh,
-            items: [
-              for (final m in matches)
-                MatchmakerInterestPlaceholderCard(
-                  name: m.name,
-                  imageUrl: m.isLocked ? null : m.primaryImage?.url,
+            children: [
+              for (final m in matches) MatchmakerInterestMatchCard(match: m),
+              if (archived.isNotEmpty) ...[
+                const MatchmakerInterestSectionHeader(
+                  titleKey: LocaleKeys.matchmaker_interests_section_archive,
                 ),
+                for (final a in archived)
+                  MatchmakerInterestArchiveCard(item: a),
+              ],
             ],
           ),
         );
@@ -43,7 +49,7 @@ class MatchmakerMatchesSection extends StatelessWidget {
   }
 }
 
-/// The "received likes" tab (lazy). Placeholder list for M3f-b.
+/// The "received likes" tab (lazy).
 class MatchmakerIncomingLikesSection extends StatelessWidget {
   const MatchmakerIncomingLikesSection({super.key});
 
@@ -59,7 +65,7 @@ class MatchmakerIncomingLikesSection extends StatelessWidget {
   }
 }
 
-/// The "sent likes" tab (lazy). Placeholder list for M3f-b.
+/// The "sent likes" tab (lazy).
 class MatchmakerOutgoingLikesSection extends StatelessWidget {
   const MatchmakerOutgoingLikesSection({super.key});
 
@@ -75,7 +81,9 @@ class MatchmakerOutgoingLikesSection extends StatelessWidget {
   }
 }
 
-/// Shared body for the two like tabs — they differ only in which slot they read.
+/// Shared body for the two like tabs — pending likes, then an inline "الأرشيف"
+/// section (archived likes) below when present. They differ only in which slot
+/// they read.
 class _LikesSection extends StatelessWidget {
   const _LikesSection({
     required this.titleKey,
@@ -86,7 +94,7 @@ class _LikesSection extends StatelessWidget {
   });
 
   final String titleKey;
-  final dynamic Function(MatchmakerInterestsState) select;
+  final MatchmakerLikeActivity? Function(MatchmakerInterestsState) select;
   final MatchmakerInterestsAsyncStatus Function(MatchmakerInterestsState) status;
   final String? Function(MatchmakerInterestsState) errorKey;
   final VoidCallback Function(MatchmakerInterestsCubit) onRetry;
@@ -105,14 +113,18 @@ class _LikesSection extends StatelessWidget {
           errorKey: errorKey(state),
           onRefresh: cubit.refresh,
           onRetry: onRetry(cubit),
-          builder: (_) => MatchmakerInterestPlaceholderList(
+          builder: (_) => MatchmakerInterestList(
             onRefresh: cubit.refresh,
-            items: [
+            children: [
               for (final like in activity!.pending)
-                MatchmakerInterestPlaceholderCard(
-                  name: like.name,
-                  imageUrl: like.isLocked ? null : like.image?.url,
+                MatchmakerInterestLikeCard(like: like),
+              if (activity.archived.isNotEmpty) ...[
+                const MatchmakerInterestSectionHeader(
+                  titleKey: LocaleKeys.matchmaker_interests_section_archive,
                 ),
+                for (final like in activity.archived)
+                  MatchmakerInterestLikeCard(like: like),
+              ],
             ],
           ),
         );

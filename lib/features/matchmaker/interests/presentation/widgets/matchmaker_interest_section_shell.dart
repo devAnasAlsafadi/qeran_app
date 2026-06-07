@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
-import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
-import '../../../shared/presentation/widgets/matchmaker_user_avatar.dart';
 import '../blocs/matchmaker_interests_state.dart';
 
 /// Loader / error / empty / content switch shared by all three interest tabs.
@@ -57,16 +56,17 @@ class MatchmakerInterestSectionShell extends StatelessWidget {
   }
 }
 
-/// Temporary placeholder list of minimal cards (replaced in M3f-c).
-class MatchmakerInterestPlaceholderList extends StatelessWidget {
-  const MatchmakerInterestPlaceholderList({
+/// Pull-to-refresh ListView shell for an interests tab. The caller passes the
+/// already-built rows (active cards, then optionally an archive header + cards).
+class MatchmakerInterestList extends StatelessWidget {
+  const MatchmakerInterestList({
     super.key,
     required this.onRefresh,
-    required this.items,
+    required this.children,
   });
 
   final Future<void> Function() onRefresh;
-  final List<Widget> items;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -84,41 +84,34 @@ class MatchmakerInterestPlaceholderList extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        children: items,
+        children: children,
       ),
     );
   }
 }
 
-/// Minimal placeholder row — avatar + name. Stand-in until the real read-only
-/// interest cards (blur / answers / status) arrive in M3f-c.
-class MatchmakerInterestPlaceholderCard extends StatelessWidget {
-  const MatchmakerInterestPlaceholderCard({
-    super.key,
-    required this.name,
-    this.imageUrl,
-  });
+/// Inline section divider label (e.g. "الأرشيف") between active rows and the
+/// archived rows. Horizontal padding is inherited from the list.
+class MatchmakerInterestSectionHeader extends StatelessWidget {
+  const MatchmakerInterestSectionHeader({super.key, required this.titleKey});
 
-  final String name;
-  final String? imageUrl;
+  final String titleKey;
 
   @override
   Widget build(BuildContext context) {
-    return QeranCard(
-      margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
-      padding: const EdgeInsets.all(QeranSpacing.s12),
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: QeranSpacing.s8,
+        bottom: QeranSpacing.s12,
+      ),
       child: Row(
         children: [
-          MatchmakerUserAvatar(url: imageUrl, size: 48),
-          QeranSpacing.hs12,
-          Expanded(
-            child: Text(
-              name,
-              style: QeranTypography.subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          Text(
+            titleKey.t(context),
+            style: QeranTypography.subtitle.copyWith(color: QeranColors.wine),
           ),
+          QeranSpacing.hs8,
+          const Expanded(child: Divider(color: QeranColors.divider, height: 1)),
         ],
       ),
     );

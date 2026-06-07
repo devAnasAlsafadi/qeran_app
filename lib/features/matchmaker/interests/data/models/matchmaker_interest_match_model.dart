@@ -1,14 +1,15 @@
 import '../../../shared/data/json_parsers.dart';
 import '../../../users/domain/entities/matchmaker_card_answer.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
+import '../../domain/entities/matchmaker_interest_formal_request.dart';
 import '../../domain/entities/matchmaker_interest_image.dart';
 import '../../domain/entities/matchmaker_interest_match.dart';
 import '../interest_parsers.dart';
 
 /// Wire model for the matchmaker MatchCardDto — read-only fields only
-/// (pendingPhotoExchange / formalRequest / conversationId ignored). ⚠️ Field
-/// names to confirm: otherUserId / otherUserName|name / images / stage /
-/// isLocked / age / answers (parsed across likely aliases).
+/// (pendingPhotoExchange / conversationId ignored; the match DTO has no age).
+/// Confirmed fields: otherUserId / otherUserName / images / stage (0-2) /
+/// isLocked / answers / formalRequest{status,statusNameAr,statusNameEn}.
 class MatchmakerInterestMatchModel {
   final String otherUserId;
   final String name;
@@ -17,6 +18,7 @@ class MatchmakerInterestMatchModel {
   final bool isLocked;
   final int? age;
   final List<MatchmakerCardAnswer> answers;
+  final MatchmakerInterestFormalRequest? formalRequest;
 
   const MatchmakerInterestMatchModel({
     required this.otherUserId,
@@ -26,6 +28,7 @@ class MatchmakerInterestMatchModel {
     required this.isLocked,
     required this.age,
     required this.answers,
+    required this.formalRequest,
   });
 
   factory MatchmakerInterestMatchModel.fromJson(Map<String, dynamic> json) =>
@@ -37,7 +40,18 @@ class MatchmakerInterestMatchModel {
         isLocked: parseBool(json['isLocked']),
         age: parseNullableInt(json['age']),
         answers: parseInterestAnswers(json['answers']),
+        formalRequest: _parseFormalRequest(json['formalRequest']),
       );
+
+  static MatchmakerInterestFormalRequest? _parseFormalRequest(Object? raw) {
+    final map = parseNullableMap(raw);
+    if (map == null) return null;
+    return MatchmakerInterestFormalRequest(
+      status: parseInt(map['status']),
+      statusNameAr: parseString(map['statusNameAr']),
+      statusNameEn: parseString(map['statusNameEn']),
+    );
+  }
 
   MatchmakerInterestMatch toEntity() => MatchmakerInterestMatch(
         otherUserId: otherUserId,
@@ -47,5 +61,6 @@ class MatchmakerInterestMatchModel {
         isLocked: isLocked,
         age: age,
         answers: answers,
+        formalRequest: formalRequest,
       );
 }

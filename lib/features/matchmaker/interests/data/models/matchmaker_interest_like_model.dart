@@ -6,9 +6,9 @@ import '../../domain/entities/matchmaker_interest_like.dart';
 import '../interest_parsers.dart';
 
 /// Wire model for the matchmaker LikeRequestCardDto — read-only fields only
-/// (actions[] + remainingSeconds are ignored). ⚠️ Field names to confirm:
-/// otherUserId / name / profileImage / status / isLocked / age / answers
-/// (parsed across likely aliases).
+/// (actions[] + remainingSeconds + createdAt are ignored; the like DTO has no
+/// age). Confirmed fields: profileId / name / profileImage / status (0-3) /
+/// isLocked / answers. Aliases kept as a defensive fallback.
 class MatchmakerInterestLikeModel {
   final String otherUserId;
   final String name;
@@ -31,7 +31,7 @@ class MatchmakerInterestLikeModel {
   factory MatchmakerInterestLikeModel.fromJson(Map<String, dynamic> json) =>
       MatchmakerInterestLikeModel(
         otherUserId: parseString(
-          json['otherUserId'] ?? json['profileId'] ?? json['userId'],
+          json['profileId'] ?? json['otherUserId'] ?? json['userId'],
         ),
         name: parseString(json['name'] ?? json['fullName']),
         image: parseInterestImage(json['profileImage'] ?? json['image']),

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../users/domain/entities/matchmaker_card_answer.dart';
 import 'matchmaker_interest_enums.dart';
+import 'matchmaker_interest_formal_request.dart';
 import 'matchmaker_interest_image.dart';
 
 /// One active match in the read-only matchmaker mirror — the OTHER party, their
@@ -17,6 +18,9 @@ class MatchmakerInterestMatch extends Equatable {
   final int? age;
   final List<MatchmakerCardAnswer> answers;
 
+  /// Backend-provided formal-request progress; `null` before any formal step.
+  final MatchmakerInterestFormalRequest? formalRequest;
+
   const MatchmakerInterestMatch({
     required this.otherUserId,
     required this.name,
@@ -25,6 +29,7 @@ class MatchmakerInterestMatch extends Equatable {
     this.isLocked = false,
     this.age,
     this.answers = const [],
+    this.formalRequest,
   });
 
   /// Profile image first, else the first image, else null.
@@ -37,5 +42,5 @@ class MatchmakerInterestMatch extends Equatable {
 
   @override
   List<Object?> get props =>
-      [otherUserId, name, images, stage, isLocked, age, answers];
+      [otherUserId, name, images, stage, isLocked, age, answers, formalRequest];
 }

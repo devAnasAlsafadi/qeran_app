@@ -59,3 +59,27 @@ MatchmakerInterestMatchStage matchmakerMatchStageFromWire(Object? raw) {
     _ => MatchmakerInterestMatchStage.unknown,
   };
 }
+
+/// Which kind of archived item — distinguishes a closed like from a closed
+/// photo-exchange (ArchiveItemDto.type).
+enum MatchmakerArchiveType { like, photoExchange, unknown }
+
+MatchmakerArchiveType matchmakerArchiveTypeFromWire(Object? raw) {
+  return switch (raw?.toString().toLowerCase().trim()) {
+    'like' => MatchmakerArchiveType.like,
+    'photo_exchange' || 'photoexchange' => MatchmakerArchiveType.photoExchange,
+    _ => MatchmakerArchiveType.unknown,
+  };
+}
+
+/// Why an item was archived (ArchiveItemDto.reason) — drives the status chip
+/// colour and a fallback label when no `status` text is provided.
+enum MatchmakerArchiveReason { rejected, expired, unknown }
+
+MatchmakerArchiveReason matchmakerArchiveReasonFromWire(Object? raw) {
+  return switch (raw?.toString().toLowerCase().trim()) {
+    'rejected' => MatchmakerArchiveReason.rejected,
+    'expired' => MatchmakerArchiveReason.expired,
+    _ => MatchmakerArchiveReason.unknown,
+  };
+}

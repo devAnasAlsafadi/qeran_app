@@ -140,6 +140,8 @@ class MatchmakerUserRowCard extends StatelessWidget {
     final mutated = await showMatchmakerReviewSheet(
       context,
       userId: row.userId,
+      // Pending rows carry hasProfileImage; offer request-photo when absent.
+      hasNoImage: row.hasProfileImage == false,
     );
     if (mutated == true) onMutated?.call();
   }

@@ -27,6 +27,7 @@ import '../interests/domain/repositories/matchmaker_interests_repository.dart';
 import '../interests/domain/usecases/get_interest_archived_matches_usecase.dart';
 import '../interests/domain/usecases/get_interest_likes_usecase.dart';
 import '../interests/domain/usecases/get_interest_matches_usecase.dart';
+import '../interests/presentation/blocs/matchmaker_interests_cubit.dart';
 import '../shared/data/datasources/matchmaker_realtime_signalr_service.dart';
 import '../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../users/data/datasources/matchmaker_editable_answers_remote_datasource.dart';
@@ -243,4 +244,14 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(() => GetInterestLikesUseCase(sl()));
   sl.registerLazySingleton(() => GetInterestMatchesUseCase(sl()));
   sl.registerLazySingleton(() => GetInterestArchivedMatchesUseCase(sl()));
+  // One cubit per opened interests screen — the caller passes the viewed
+  // user's id via param1 (M3f-b).
+  sl.registerFactoryParam<MatchmakerInterestsCubit, String, void>(
+    (userId, _) => MatchmakerInterestsCubit(
+      userId: userId,
+      getLikes: sl(),
+      getMatches: sl(),
+      getArchivedMatches: sl(),
+    ),
+  );
 }

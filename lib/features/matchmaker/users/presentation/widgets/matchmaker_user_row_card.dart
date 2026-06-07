@@ -28,6 +28,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
     this.onMessage,
     this.onNotes,
     this.onView,
+    this.onInterests,
     this.loadingAction,
   });
 
@@ -51,6 +52,10 @@ class MatchmakerUserRowCard extends StatelessWidget {
   /// Called when عرض is tapped — the list opens the (view-only) profile (M3e).
   /// Null on contexts without a profile view.
   final VoidCallback? onView;
+
+  /// Called when الإهتمامات is tapped — the list opens the interests mirror
+  /// (M3f). Only the subscribed list renders this button.
+  final VoidCallback? onInterests;
 
   /// Which action's button shows a loader, driven by the list's open-chat
   /// state. Null when idle.
@@ -130,7 +135,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
       case MatchmakerCardAction.view:
         onView?.call();
       case MatchmakerCardAction.interests:
-        break; // wired in M3f
+        onInterests?.call();
     }
   }
 

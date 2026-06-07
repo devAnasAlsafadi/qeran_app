@@ -115,6 +115,13 @@ class _ListBody extends StatelessWidget {
                   RouteNames.matchmakerUserProfile,
                   arguments: row.userId,
                 ),
+                // الإهتمامات — only the subscribed list shows this button, so
+                // the action only ever fires there (M3f).
+                onInterests: () => NavigationManager.navigateTo(
+                  context,
+                  RouteNames.matchmakerInterests,
+                  arguments: row.userId,
+                ),
                 loadingAction: openingUserId == row.userId
                     ? MatchmakerCardAction.message
                     : null,

@@ -1,29 +1,45 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
-import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
-import '../../../../../core/design_system/widgets/qeran_button.dart';
-import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
+import '../../../../../core/design_system/widgets/qeran_error_state.dart';
+import '../../../../../core/design_system/widgets/qeran_loader.dart';
+import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
+import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../../auth/presentation/screens/upload_image/widgets/photo_picker_bottom_sheet.dart';
+import '../blocs/matchmaker_account_cubit.dart';
+import '../blocs/matchmaker_account_state.dart';
+import '../widgets/matchmaker_account_body.dart';
+import '../widgets/matchmaker_confirm_dialog.dart';
+import '../widgets/matchmaker_edit_name_sheet.dart';
 
-/// Matchmaker account / settings screen. The full profile/edit flows are
-/// M6; for now it hosts the working **logout** action, reusing the user
-/// app's exact mechanism — `UserSessionCubit.signOut()` (clears token +
-/// prefs) then a login redirect that clears the nav stack.
+/// Matchmaker account / settings screen (pushed from the app-bar). Loads `/me`,
+/// renders the header + settings rows, and wires name / photo / language /
+/// support / terms / deactivate / logout. Edit-name uses a minimal inline sheet
+/// for S1b; S1c formalizes it (+ change-password).
 class MatchmakerAccountScreen extends StatelessWidget {
   const MatchmakerAccountScreen({super.key});
 
-  // The shell uses `extendBody: true` with a curved bottom-nav, so the tab
-  // body extends behind it — reserve space so the CTA clears the nav.
-  static const double _navReserve = 96;
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<MatchmakerAccountCubit>(
+      create: (_) => sl<MatchmakerAccountCubit>()..load(),
+      child: const _AccountView(),
+    );
+  }
+}
+
+class _AccountView extends StatelessWidget {
+  const _AccountView();
 
   @override
   Widget build(BuildContext context) {
@@ -32,102 +48,125 @@ class MatchmakerAccountScreen extends StatelessWidget {
       appBar: QeranAppBar(
         title: LocaleKeys.matchmaker_account_title.t(context),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: QeranEmptyState(
-              icon: Icons.person_outline_rounded,
-              title: LocaleKeys.matchmaker_empty_account_title.t(context),
-              message: LocaleKeys.matchmaker_empty_account_message.t(context),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              QeranSpacing.s20,
-              QeranSpacing.s8,
-              QeranSpacing.s20,
-              MediaQuery.of(context).padding.bottom + _navReserve,
-            ),
-            child: QeranButton(
-              label: LocaleKeys.common_logout.t(context),
-              variant: QeranButtonVariant.destructive,
-              leadingIcon: Icons.logout_rounded,
-              onPressed: () => _handleLogout(context),
-            ),
-          ),
-        ],
+      body: BlocConsumer<MatchmakerAccountCubit, MatchmakerAccountState>(
+        listenWhen: (prev, curr) => prev.eventVersion != curr.eventVersion,
+        listener: _onOutcome,
+        builder: _buildBody,
       ),
     );
   }
 
-  /// Confirm → clear the session via the shared [UserSessionCubit.signOut]
-  /// (same path the user app uses) → redirect to login, removing every
-  /// route so back can't re-enter the authenticated shell. Removing the
-  /// `matchmakerHome` route disposes `MatchmakerHomeScreen`, which tears
-  /// down the matchmaker SignalR connection it owns (4c-1) automatically.
-  Future<void> _handleLogout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => const _LogoutConfirmDialog(),
+  Widget _buildBody(BuildContext context, MatchmakerAccountState state) {
+    final cubit = context.read<MatchmakerAccountCubit>();
+    final me = state.me;
+    if (me == null) {
+      if (state.status == MatchmakerAccountStatus.failure) {
+        return QeranErrorState(
+          title: LocaleKeys.matchmaker_account_load_error.t(context),
+          message: (state.loadErrorKey ?? LocaleKeys.errors_generic).t(context),
+          retryLabel: LocaleKeys.matchmaker_users_retry.t(context),
+          onRetry: cubit.load,
+        );
+      }
+      return const Center(child: QeranLoader());
+    }
+    return MatchmakerAccountBody(
+      me: me,
+      onEditName: () => _editName(context),
+      onChangePhoto: () => _changePhoto(context),
+      onLanguage: () =>
+          NavigationManager.navigateTo(context, RouteNames.settingsLanguage),
+      onComingSoon: () => AppSnackBar.show(
+        context,
+        message: LocaleKeys.settings_coming_soon.t(context),
+        type: SnackBarType.info,
+      ),
+      onSupport: () =>
+          NavigationManager.navigateTo(context, RouteNames.settingsSupport),
+      onTerms: () =>
+          NavigationManager.navigateTo(context, RouteNames.settingsTerms),
+      onDeactivate: () => _deactivate(context),
+      onLogout: () => _logout(context),
+      bottomReserve: MediaQuery.of(context).padding.bottom,
     );
-    if (confirmed != true || !context.mounted) return;
+  }
+
+  void _onOutcome(BuildContext context, MatchmakerAccountState state) {
+    switch (state.outcome) {
+      case MatchmakerAccountOutcome.saveNameSuccess:
+        _toast(context, LocaleKeys.matchmaker_account_name_saved,
+            SnackBarType.success);
+      case MatchmakerAccountOutcome.uploadPhotoSuccess:
+        _toast(context, LocaleKeys.matchmaker_account_photo_updated,
+            SnackBarType.success);
+      case MatchmakerAccountOutcome.deactivateSuccess:
+        _clearSessionAndExit(
+          context,
+          successKey: LocaleKeys.matchmaker_account_deactivate_success,
+        );
+      case MatchmakerAccountOutcome.failure:
+        _toast(context, state.actionErrorKey ?? LocaleKeys.errors_generic,
+            SnackBarType.error);
+      case MatchmakerAccountOutcome.none:
+        break;
+    }
+  }
+
+  void _toast(BuildContext context, String key, SnackBarType type) =>
+      AppSnackBar.show(context, message: key.t(context), type: type);
+
+  Future<void> _editName(BuildContext context) async {
+    final cubit = context.read<MatchmakerAccountCubit>();
+    final me = cubit.state.me;
+    if (me == null) return;
+    final name =
+        await showMatchmakerEditNameSheet(context, currentName: me.name);
+    if (name != null && context.mounted) cubit.updateName(name);
+  }
+
+  void _changePhoto(BuildContext context) {
+    final cubit = context.read<MatchmakerAccountCubit>();
+    PhotoPickerBottomSheet.show(
+      context,
+      onImagePicked: (path) => cubit.uploadPhoto(File(path)),
+    );
+  }
+
+  Future<void> _deactivate(BuildContext context) async {
+    final cubit = context.read<MatchmakerAccountCubit>();
+    final confirmed = await MatchmakerConfirmDialog.show(
+      context,
+      titleKey: LocaleKeys.matchmaker_account_deactivate_confirm_title,
+      messageKey: LocaleKeys.matchmaker_account_deactivate_confirm_message,
+      confirmKey: LocaleKeys.matchmaker_account_row_deactivate,
+    );
+    if (confirmed && context.mounted) cubit.deactivate();
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await MatchmakerConfirmDialog.show(
+      context,
+      titleKey: LocaleKeys.dialogs_logout_title,
+      messageKey: LocaleKeys.dialogs_logout_message,
+      confirmKey: LocaleKeys.common_logout,
+    );
+    if (!confirmed || !context.mounted) return;
     await context.read<UserSessionCubit>().signOut();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
   }
-}
 
-/// Identity-styled logout confirm — mirrors the M3b terminal-status dialog
-/// (DS tokens, ghost cancel + destructive confirm). Pops `true` to confirm.
-class _LogoutConfirmDialog extends StatelessWidget {
-  const _LogoutConfirmDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: QeranColors.paper,
-      elevation: 0,
-      shape: const RoundedRectangleBorder(borderRadius: QeranRadii.cardR),
-      child: Padding(
-        padding: const EdgeInsets.all(QeranSpacing.s24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              LocaleKeys.dialogs_logout_title.t(context),
-              style: QeranTypography.title,
-            ),
-            QeranSpacing.vs8,
-            Text(
-              LocaleKeys.dialogs_logout_message.t(context),
-              style: QeranTypography.body,
-            ),
-            QeranSpacing.vs20,
-            Row(
-              children: [
-                Expanded(
-                  child: QeranButton(
-                    label: LocaleKeys.common_cancel.t(context),
-                    variant: QeranButtonVariant.ghost,
-                    size: QeranButtonSize.md,
-                    onPressed: () => Navigator.of(context).pop(false),
-                  ),
-                ),
-                QeranSpacing.hs12,
-                Expanded(
-                  child: QeranButton(
-                    label: LocaleKeys.common_logout.t(context),
-                    variant: QeranButtonVariant.destructive,
-                    size: QeranButtonSize.md,
-                    onPressed: () => Navigator.of(context).pop(true),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+  /// Deactivate succeeded — clear the session (same path as logout; removing
+  /// `matchmakerHome` tears down the matchmaker SignalR it owns) and redirect to
+  /// login, then surface the confirmation on the root overlay (survives the pop).
+  Future<void> _clearSessionAndExit(
+    BuildContext context, {
+    required String successKey,
+  }) async {
+    final message = successKey.t(context);
+    await context.read<UserSessionCubit>().signOut();
+    if (!context.mounted) return;
+    NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
+    await AppSnackBar.showOnRoot(message: message, type: SnackBarType.success);
   }
 }

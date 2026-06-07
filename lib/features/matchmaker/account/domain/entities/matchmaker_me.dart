@@ -30,6 +30,22 @@ class MatchmakerMe extends Equatable {
     required this.image,
   });
 
+  /// Optimistic update after a successful name change / photo upload (the PUT
+  /// returns no body and the upload returns only the image).
+  MatchmakerMe copyWith({String? name, MatchmakerMeImage? image}) {
+    return MatchmakerMe(
+      userId: userId,
+      name: name ?? this.name,
+      email: email,
+      phoneNumber: phoneNumber,
+      gender: gender,
+      isActive: isActive,
+      isPhoneVerified: isPhoneVerified,
+      createdAt: createdAt,
+      image: image ?? this.image,
+    );
+  }
+
   @override
   List<Object?> get props => [
         userId,

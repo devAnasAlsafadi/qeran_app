@@ -9,6 +9,7 @@ import '../account/domain/usecases/deactivate_account_usecase.dart';
 import '../account/domain/usecases/get_me_usecase.dart';
 import '../account/domain/usecases/update_name_usecase.dart';
 import '../account/domain/usecases/upload_account_photo_usecase.dart';
+import '../account/presentation/blocs/matchmaker_account_cubit.dart';
 import '../compatibility_cases/data/datasources/compatibility_cases_remote_datasource.dart';
 import '../compatibility_cases/data/repositories/compatibility_cases_repository_impl.dart';
 import '../compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
@@ -275,4 +276,13 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(() => UpdateNameUseCase(sl()));
   sl.registerLazySingleton(() => UploadAccountPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeactivateAccountUseCase(sl()));
+  // One cubit per account-screen mount (S1b).
+  sl.registerFactory(
+    () => MatchmakerAccountCubit(
+      getMe: sl(),
+      updateName: sl(),
+      uploadPhoto: sl(),
+      deactivate: sl(),
+    ),
+  );
 }

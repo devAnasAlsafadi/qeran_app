@@ -560,6 +560,12 @@ abstract class  LocaleKeys {
   static const matchmaker_empty_conversations_message = 'matchmaker.empty_conversations_message';
   static const matchmaker_empty_explore_title = 'matchmaker.empty_explore_title';
   static const matchmaker_empty_explore_message = 'matchmaker.empty_explore_message';
+  static const matchmaker_explore_filter_title = 'matchmaker.explore_filter_title';
+  static const matchmaker_explore_filter_apply = 'matchmaker.explore_filter_apply';
+  static const matchmaker_explore_filter_clear = 'matchmaker.explore_filter_clear';
+  static const matchmaker_explore_filter_error = 'matchmaker.explore_filter_error';
+  static const matchmaker_explore_filter_retry = 'matchmaker.explore_filter_retry';
+  static const matchmaker_explore_filter_empty = 'matchmaker.explore_filter_empty';
   static const matchmaker_empty_notifications_title = 'matchmaker.empty_notifications_title';
   static const matchmaker_empty_notifications_message = 'matchmaker.empty_notifications_message';
   static const matchmaker_empty_account_title = 'matchmaker.empty_account_title';

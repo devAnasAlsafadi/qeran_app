@@ -15,4 +15,9 @@ abstract interface class MatchmakerAccountRepository {
   Future<Either<Failure, MatchmakerMeImage>> uploadPhoto(File image);
 
   Future<Either<Failure, Unit>> deactivate();
+
+  Future<Either<Failure, Unit>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }

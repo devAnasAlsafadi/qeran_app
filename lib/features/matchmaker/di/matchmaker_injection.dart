@@ -5,6 +5,7 @@ import 'package:qeran/core/services/storage_service.dart';
 import '../account/data/datasources/matchmaker_account_remote_datasource.dart';
 import '../account/data/repositories/matchmaker_account_repository_impl.dart';
 import '../account/domain/repositories/matchmaker_account_repository.dart';
+import '../account/domain/usecases/change_password_usecase.dart';
 import '../account/domain/usecases/deactivate_account_usecase.dart';
 import '../account/domain/usecases/get_me_usecase.dart';
 import '../account/domain/usecases/update_name_usecase.dart';
@@ -276,13 +277,15 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(() => UpdateNameUseCase(sl()));
   sl.registerLazySingleton(() => UploadAccountPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeactivateAccountUseCase(sl()));
-  // One cubit per account-screen mount (S1b).
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
+  // One cubit per account-screen mount (S1b/S1c).
   sl.registerFactory(
     () => MatchmakerAccountCubit(
       getMe: sl(),
       updateName: sl(),
       uploadPhoto: sl(),
       deactivate: sl(),
+      changePassword: sl(),
     ),
   );
 }

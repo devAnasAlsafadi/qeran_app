@@ -19,6 +19,7 @@ import '../../../../auth/presentation/screens/upload_image/widgets/photo_picker_
 import '../blocs/matchmaker_account_cubit.dart';
 import '../blocs/matchmaker_account_state.dart';
 import '../widgets/matchmaker_account_body.dart';
+import '../widgets/matchmaker_change_password_sheet.dart';
 import '../widgets/matchmaker_confirm_dialog.dart';
 import '../widgets/matchmaker_edit_name_sheet.dart';
 
@@ -74,6 +75,7 @@ class _AccountView extends StatelessWidget {
       me: me,
       onEditName: () => _editName(context),
       onChangePhoto: () => _changePhoto(context),
+      onChangePassword: () => _changePassword(context),
       onLanguage: () =>
           NavigationManager.navigateTo(context, RouteNames.settingsLanguage),
       onComingSoon: () => AppSnackBar.show(
@@ -85,6 +87,7 @@ class _AccountView extends StatelessWidget {
           NavigationManager.navigateTo(context, RouteNames.settingsSupport),
       onTerms: () =>
           NavigationManager.navigateTo(context, RouteNames.settingsTerms),
+      onContact: () => _contact(context),
       onDeactivate: () => _deactivate(context),
       onLogout: () => _logout(context),
       bottomReserve: MediaQuery.of(context).padding.bottom,
@@ -93,9 +96,11 @@ class _AccountView extends StatelessWidget {
 
   void _onOutcome(BuildContext context, MatchmakerAccountState state) {
     switch (state.outcome) {
+      // Name / password successes + their inline validation are owned by their
+      // sheets (toast + close / inline) — the screen ignores them here.
       case MatchmakerAccountOutcome.saveNameSuccess:
-        _toast(context, LocaleKeys.matchmaker_account_name_saved,
-            SnackBarType.success);
+      case MatchmakerAccountOutcome.changePasswordSuccess:
+        break;
       case MatchmakerAccountOutcome.uploadPhotoSuccess:
         _toast(context, LocaleKeys.matchmaker_account_photo_updated,
             SnackBarType.success);
@@ -105,6 +110,12 @@ class _AccountView extends StatelessWidget {
           successKey: LocaleKeys.matchmaker_account_deactivate_success,
         );
       case MatchmakerAccountOutcome.failure:
+        // Validation (edit-name) / incorrect-password (change-password) show
+        // inline in their sheets; only toast the rest (photo / deactivate / …).
+        if (state.errorKind == MatchmakerAccountErrorKind.validation ||
+            state.errorKind == MatchmakerAccountErrorKind.incorrectPassword) {
+          break;
+        }
         _toast(context, state.actionErrorKey ?? LocaleKeys.errors_generic,
             SnackBarType.error);
       case MatchmakerAccountOutcome.none:
@@ -115,13 +126,11 @@ class _AccountView extends StatelessWidget {
   void _toast(BuildContext context, String key, SnackBarType type) =>
       AppSnackBar.show(context, message: key.t(context), type: type);
 
-  Future<void> _editName(BuildContext context) async {
+  void _editName(BuildContext context) {
     final cubit = context.read<MatchmakerAccountCubit>();
     final me = cubit.state.me;
     if (me == null) return;
-    final name =
-        await showMatchmakerEditNameSheet(context, currentName: me.name);
-    if (name != null && context.mounted) cubit.updateName(name);
+    showMatchmakerEditNameSheet(context, cubit: cubit, currentName: me.name);
   }
 
   void _changePhoto(BuildContext context) {
@@ -131,6 +140,16 @@ class _AccountView extends StatelessWidget {
       onImagePicked: (path) => cubit.uploadPhoto(File(path)),
     );
   }
+
+  void _changePassword(BuildContext context) {
+    showMatchmakerChangePasswordSheet(
+      context,
+      cubit: context.read<MatchmakerAccountCubit>(),
+    );
+  }
+
+  void _contact(BuildContext context) =>
+      NavigationManager.navigateTo(context, RouteNames.matchmakerContact);
 
   Future<void> _deactivate(BuildContext context) async {
     final cubit = context.read<MatchmakerAccountCubit>();

@@ -21,10 +21,12 @@ class MatchmakerAccountBody extends StatelessWidget {
     required this.me,
     required this.onEditName,
     required this.onChangePhoto,
+    required this.onChangePassword,
     required this.onLanguage,
     required this.onComingSoon,
     required this.onSupport,
     required this.onTerms,
+    required this.onContact,
     required this.onDeactivate,
     required this.onLogout,
     required this.bottomReserve,
@@ -33,10 +35,12 @@ class MatchmakerAccountBody extends StatelessWidget {
   final MatchmakerMe me;
   final VoidCallback onEditName;
   final VoidCallback onChangePhoto;
+  final VoidCallback onChangePassword;
   final VoidCallback onLanguage;
   final VoidCallback onComingSoon;
   final VoidCallback onSupport;
   final VoidCallback onTerms;
+  final VoidCallback onContact;
   final VoidCallback onDeactivate;
   final VoidCallback onLogout;
   final double bottomReserve;
@@ -80,6 +84,13 @@ class MatchmakerAccountBody extends StatelessWidget {
               ),
               const MatchmakerSettingsRowDivider(),
               MatchmakerSettingsRow(
+                icon: Icons.lock_outline_rounded,
+                title:
+                    LocaleKeys.matchmaker_account_change_password.t(context),
+                onTap: onChangePassword,
+              ),
+              const MatchmakerSettingsRowDivider(),
+              MatchmakerSettingsRow(
                 icon: Icons.language_rounded,
                 title: LocaleKeys.settings_language_row.t(context),
                 subtitle: langSubtitle,
@@ -105,6 +116,12 @@ class MatchmakerAccountBody extends StatelessWidget {
                 title: LocaleKeys.settings_terms_row.t(context),
                 subtitle: LocaleKeys.settings_terms_sub.t(context),
                 onTap: onTerms,
+              ),
+              const MatchmakerSettingsRowDivider(),
+              MatchmakerSettingsRow(
+                icon: Icons.connect_without_contact_outlined,
+                title: LocaleKeys.matchmaker_account_contact.t(context),
+                onTap: onContact,
               ),
               const MatchmakerSettingsRowDivider(),
               MatchmakerSettingsRow(

@@ -15,14 +15,13 @@ import '../../../../../generated/locale_keys.g.dart';
 import '../blocs/matchmaker_account_cubit.dart';
 import '../blocs/matchmaker_account_state.dart';
 
-/// Edit-name bottom sheet — shares the screen's [MatchmakerAccountCubit] (passed
-/// via `BlocProvider.value`). Prefilled, ≤100 chars, save → `updateName`. On
-/// success: toast + close. A VALIDATION_ERROR shows inline (the cubit preserves
-/// the errorCode); the screen ignores that kind so it isn't double-toasted.
-Future<void> showMatchmakerEditNameSheet(
+/// Change-password bottom sheet — shares the screen's [MatchmakerAccountCubit].
+/// Current + new password (obscured, with the built-in eye). On success: toast +
+/// close. A wrong current password (the endpoint has no errorCode) shows the
+/// server message inline under the current-password field.
+Future<void> showMatchmakerChangePasswordSheet(
   BuildContext context, {
   required MatchmakerAccountCubit cubit,
-  required String currentName,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -31,52 +30,54 @@ Future<void> showMatchmakerEditNameSheet(
     shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
     builder: (_) => BlocProvider.value(
       value: cubit,
-      child: _EditNameSheet(currentName: currentName),
+      child: const _ChangePasswordSheet(),
     ),
   );
 }
 
-class _EditNameSheet extends StatefulWidget {
-  const _EditNameSheet({required this.currentName});
-
-  final String currentName;
+class _ChangePasswordSheet extends StatefulWidget {
+  const _ChangePasswordSheet();
 
   @override
-  State<_EditNameSheet> createState() => _EditNameSheetState();
+  State<_ChangePasswordSheet> createState() => _ChangePasswordSheetState();
 }
 
-class _EditNameSheetState extends State<_EditNameSheet> {
-  late final TextEditingController _controller =
-      TextEditingController(text: widget.currentName);
+class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
+  final TextEditingController _current = TextEditingController();
+  final TextEditingController _newPassword = TextEditingController();
   String? _inlineError;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _current.dispose();
+    _newPassword.dispose();
     super.dispose();
   }
 
-  bool get _canSave => _controller.text.trim().isNotEmpty;
+  bool get _canSave =>
+      _current.text.isNotEmpty && _newPassword.text.isNotEmpty;
 
   void _onChanged(String _) {
     if (_inlineError != null) setState(() => _inlineError = null);
   }
 
   void _save(MatchmakerAccountCubit cubit) {
-    final name = _controller.text.trim();
-    if (name.isEmpty) return;
-    cubit.updateName(name);
+    if (!_canSave) return;
+    cubit.changePassword(
+      currentPassword: _current.text,
+      newPassword: _newPassword.text,
+    );
   }
 
   void _onOutcome(BuildContext context, MatchmakerAccountState state) {
-    if (state.outcome == MatchmakerAccountOutcome.saveNameSuccess) {
+    if (state.outcome == MatchmakerAccountOutcome.changePasswordSuccess) {
       AppSnackBar.showOnRoot(
-        message: LocaleKeys.matchmaker_account_name_saved.t(context),
+        message: LocaleKeys.matchmaker_account_password_changed.t(context),
         type: SnackBarType.success,
       );
       Navigator.of(context).pop();
     } else if (state.outcome == MatchmakerAccountOutcome.failure &&
-        state.errorKind == MatchmakerAccountErrorKind.validation) {
+        state.errorKind == MatchmakerAccountErrorKind.incorrectPassword) {
       setState(() => _inlineError =
           (state.actionErrorKey ?? LocaleKeys.errors_generic).t(context));
     }
@@ -97,7 +98,7 @@ class _EditNameSheetState extends State<_EditNameSheet> {
         listener: _onOutcome,
         builder: (context, state) {
           final saving =
-              state.inFlight == MatchmakerAccountAction.savingName;
+              state.inFlight == MatchmakerAccountAction.changingPassword;
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,16 +106,28 @@ class _EditNameSheetState extends State<_EditNameSheet> {
               const Center(child: QeranSheetHandle()),
               QeranSpacing.vs16,
               Text(
-                LocaleKeys.matchmaker_account_edit_name_title.t(context),
+                LocaleKeys.matchmaker_account_change_password_title.t(context),
                 style: QeranTypography.title,
               ),
               QeranSpacing.vs16,
               QeranTextField(
-                controller: _controller,
-                hint: LocaleKeys.matchmaker_account_name_hint.t(context),
-                textInputAction: TextInputAction.done,
-                maxLength: 100,
+                controller: _current,
+                hint: LocaleKeys.matchmaker_account_current_password_hint
+                    .t(context),
+                obscureText: true,
+                showObscureToggle: true,
+                textInputAction: TextInputAction.next,
                 errorText: _inlineError,
+                onChanged: _onChanged,
+              ),
+              QeranSpacing.vs12,
+              QeranTextField(
+                controller: _newPassword,
+                hint:
+                    LocaleKeys.matchmaker_account_new_password_hint.t(context),
+                obscureText: true,
+                showObscureToggle: true,
+                textInputAction: TextInputAction.done,
                 onChanged: _onChanged,
                 onSubmitted: (_) => _save(cubit),
               ),

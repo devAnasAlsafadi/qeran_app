@@ -26,6 +26,14 @@ abstract interface class MatchmakerAccountRemoteDataSource {
   /// `POST /matchmaker/me/deactivate` (empty body). The JWT stays valid, so
   /// the caller clears the session locally on success.
   Future<void> deactivate();
+
+  /// `POST /api/auth/change-password` — body `{currentPassword, newPassword}`.
+  /// Shared auth endpoint. A wrong current password surfaces as a
+  /// status==0 envelope → [CodedServerException] carrying the server message.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }
 
 class MatchmakerAccountRemoteDataSourceImpl
@@ -82,5 +90,22 @@ class MatchmakerAccountRemoteDataSourceImpl
   Future<void> deactivate() async {
     AppLogger.debug('MATCHMAKER — deactivate', tag: 'MATCHMAKER');
     await _apiConsumer.post(EndPoints.matchmakerMeDeactivate);
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    AppLogger.debug('MATCHMAKER — change password', tag: 'MATCHMAKER');
+    // `post()` enforces status==1; a wrong password throws CodedServerException
+    // carrying the localized server message (the endpoint has no errorCode).
+    await _apiConsumer.post(
+      EndPoints.changePassword,
+      body: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      },
+    );
   }
 }

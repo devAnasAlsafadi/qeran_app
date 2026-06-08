@@ -80,10 +80,19 @@ class MatchmakerExploreRemoteDataSourceImpl
     final response = await _apiConsumer.get(EndPoints.matchmakerExploreFilters);
     final apiResponse = ApiResponse<List<DiscoveryFilterQuestionModel>>.fromJson(
       response as Map<String, dynamic>,
-      (json) => (json as List<dynamic>? ?? const [])
-          .whereType<Map<String, dynamic>>()
-          .map(DiscoveryFilterQuestionModel.fromJson)
-          .toList(),
+      (json) {
+        // Explore returns `data` as an OBJECT { gender, questions } — DIFFERENT
+        // from discovery's flat List. Gender is a screen-level hardcoded
+        // segment, so the gender facet is intentionally ignored here.
+        final rawQuestions = (json as Map<String, dynamic>?)?['questions'];
+        return (rawQuestions as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            // Explore sends the question text as `label`; the shared model
+            // reads `question` (discovery's field) — alias so titles render.
+            .map((q) => {...q, 'question': q['question'] ?? q['label']})
+            .map(DiscoveryFilterQuestionModel.fromJson)
+            .toList();
+      },
     );
     final data = apiResponse.data;
     if (data == null) {

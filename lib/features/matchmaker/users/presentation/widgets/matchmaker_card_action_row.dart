@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/widgets/qeran_button.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
+import 'matchmaker_action_chip.dart';
 
 /// The action a card button triggers. The card maps each to its handler
 /// (wired progressively across M3b–f).
@@ -50,24 +50,12 @@ class MatchmakerCardActionRow extends StatelessWidget {
   };
 
   Widget _button(BuildContext context, _BtnSpec spec) {
-    // `fullWidth: false` alone is NOT enough: QeranButton centers its content
-    // in a `Center`, which expands to the loose max width the Wrap hands each
-    // child — so every chip claimed the full row and stacked vertically.
-    // `IntrinsicWidth` pins each button to a tight content width, so the chips
-    // size to their icon+label and the Wrap flows them horizontally, wrapping
-    // only when a line is full. (Handled here — the shared button is untouched.)
-    return IntrinsicWidth(
-      child: QeranButton(
-        label: spec.labelKey.t(context),
-        onPressed: () => onAction(spec.action),
-        variant: spec.primary
-            ? QeranButtonVariant.primaryWine
-            : QeranButtonVariant.neutral,
-        size: QeranButtonSize.xs,
-        leadingIcon: spec.icon,
-        loading: spec.action == loadingAction,
-        fullWidth: false,
-      ),
+    return MatchmakerActionChip(
+      label: spec.labelKey.t(context),
+      icon: spec.icon,
+      primary: spec.primary,
+      loading: spec.action == loadingAction,
+      onTap: () => onAction(spec.action),
     );
   }
 }

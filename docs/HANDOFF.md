@@ -2,12 +2,12 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 7 يونيو 2026
+> آخر تحديث: 8 يونيو 2026
 
 ---
 
 ## 🎯 النية / المهمة الحالية
-**تطبيق الخطّابة مكتمل الميزات 🏁** — سلسلة M3 + **خطة الإغلاق (5 ميزات) كلها معمولة**. تفاصيل M3 بقسم «🧩 الخطّابة — M3»، والإغلاق بقسم «🧩 الخطّابة — الإغلاق (5 ميزات)». **الجاي** (post-close-out): QA تشغيلي كامل على حساب Moderator حقيقي (انظر «⚠️ أعلام التحقّق التشغيلي») + باقي sweep تطبيق المستخدم (onboarding/notifications/subscriptions-legacy/questionnaire + `share_with_matchmaker` dialog) + إعداد المنصّات (iOS Firebase/push، توقيع Android) + بناء الباقات/paywall + IAP. auth ✅ مكتملة.
+**تطبيق الخطّابة مكتمل الميزات + الملف موحّد 🏁** — سلسلة M3 + خطة الإغلاق (5 ميزات) + **Part 2 (توحيد ملف الخطّابة) كلها معمولة**. ملف الخطّابة (عرض/استكشاف/اهتمامات) صار **نفس شكل ملف تطبيق المستخدم** (hero gallery + scrim + overlay + main-card + section cards) عبر **building-blocks مشتركة لا شاشة مشتركة**، مع **تعديل الإجابات النصية inline** على الملف. تفاصيل بقسم «🧩 الخطّابة — توحيد الملف (Part 2)». **الجاي** (post-close-out): QA تشغيلي كامل على حساب Moderator حقيقي (انظر «⚠️ أعلام التحقّق التشغيلي») + باقي sweep تطبيق المستخدم (onboarding/notifications/subscriptions-legacy/questionnaire + `share_with_matchmaker` dialog + هجرة dialog الخروج للموحّد — انظر Deferred) + إعداد المنصّات (iOS Firebase/push، توقيع Android) + بناء الباقات/paywall + IAP. auth ✅ مكتملة.
 
 **الدفع = IAP** (In-App Purchase) — محسوم؛ يحتاج تحقّق إيصال على الباك إند (طارق) وقت ربط ميزة الباقات/paywall.
 
@@ -15,12 +15,13 @@
 1. ~~**هجرة auth/ الكاملة**~~ ✅ **مكتملة** (0→g كلها معمولة — انظر «🔧 هجرة auth — التقدّم»). يبقى فقط: `share_with_matchmaker_button._confirmDialog` (مؤجّل — انظر Deferred).
 2. ~~**الخطّابة — سلسلة M3 ⭐**~~ ✅ **مكتملة 🏁** (M3a→M3f-c — انظر «🧩 الخطّابة — M3»).
 3. ~~**الخطّابة — خطة الإغلاق (5 ميزات)**~~ ✅ **مكتملة 🏁** (الإعدادات → الزميلات → فلتر الحالات → الاستكشاف → الإشعارات — انظر «🧩 الخطّابة — الإغلاق»).
-4. **QA تشغيلي على حساب Moderator** — تشغيل التطبيق + المرور على الميزات الخمس + أعلام التحقّق (انظر «⚠️ أعلام التحقّق التشغيلي»). لا شيء منها يحجب.
-5. **باقي الـ sweep (تطبيق المستخدم)** — onboarding، notifications، subscriptions (widgets legacy: `discount_code_field`/`pricing_segment`/`feature_row`/`plan_visual`…)، questionnaire widgets، settings (بسيط) + `share_with_matchmaker` dialog. شاشة شاشة (legacy-grep gate يخدم هذا).
-6. **إعداد المنصّات:** iOS (Firebase/push) + توقيع Android (signing).
-7. **الباقات/paywall + IAP:** ربط الدفع عبر **IAP** — تحقّق الإيصال على الباك إند (طارق).
-8. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
-9. **الإعدادات:** إكمال المتبقّي.
+4. ~~**الخطّابة — توحيد الملف (Part 2: PV1–PV4)**~~ ✅ **مكتملة 🏁** (نفس شكل ملف المستخدم عبر building-blocks + تعديل الإجابات inline — انظر «🧩 الخطّابة — توحيد الملف»).
+5. **QA تشغيلي على حساب Moderator** — تشغيل التطبيق + المرور على الميزات الخمس + أعلام التحقّق (انظر «⚠️ أعلام التحقّق التشغيلي»). لا شيء منها يحجب.
+6. **باقي الـ sweep (تطبيق المستخدم)** — onboarding، notifications، subscriptions (widgets legacy: `discount_code_field`/`pricing_segment`/`feature_row`/`plan_visual`…)، questionnaire widgets، settings (بسيط) + `share_with_matchmaker` dialog + **هجرة dialog الخروج للموحّد `QeranConfirmDialog`** (+ تنظيف legacy في `profile_screen` — انظر Deferred). شاشة شاشة (legacy-grep gate يخدم هذا).
+7. **إعداد المنصّات:** iOS (Firebase/push) + توقيع Android (signing).
+8. **الباقات/paywall + IAP:** ربط الدفع عبر **IAP** — تحقّق الإيصال على الباك إند (طارق).
+9. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
+10. **الإعدادات:** إكمال المتبقّي.
 
 ---
 
@@ -55,6 +56,12 @@
   - **الإشعارات — unread محلي:** الباك إند بلا `isRead`/mark-as-read (count = الإجمالي)، فالـ badge heuristic محلي: `max(0, currentTotal − lastSeenCount)` مخزّن بـ prefs (`matchmakerNotifLastSeenCount`). الـ badge cubit **singleton** (كل `MatchmakerAppBar` + الصندوق يشتركون نفس النسخة). **لا نقطة unread لكل صف** (لا حالة قراءة من الباك إند — نعرض فقط ما يدعمه). الصندوق يبني tile موازٍ DS-pure (ما لمسنا `notification_tile` القديم legacy).
   - **baseUrl صار `https`** — مقصود (commit مع F3).
   - **الدفع = IAP** — محسوم؛ تحقّق إيصال على الباك إند (طارق) عند بناء paywall.
+- **— الخطّابة (قرارات توحيد الملف، Part 2 — غير مستنتَجة):**
+  - **توحيد عبر building-blocks لا شاشة مشتركة (Option C):** ملف الخطّابة يعيد تركيب نفس شكل ملف المستخدم من الـ **leaf widgets المشتركة** (`ProfileHeaderGallery` + `ProfileImageScrim` + `ProfileOverlayChip` + `PlacementRenderer asCards` + main-card) — **بلا لمس أي ملف ملف-مستخدم** (صفر regression). رُفض إعادة استخدام `FullProfileBody`/الـhero مباشرة (يحتاج `OtherProfile` + verified مثبّت + slots للإيميل/الحالة) ورُفض refactor مشترك (أعلى مخاطرة). الـ hero يُسقط verified + match-pill (لا تنطبق على ملف تحت المراجعة)؛ صور الخطّابة غير مغبّشة دائماً (لا lock).
+  - **تعديل الإجابات النصية inline عبر `TextAnswerEditScope` (InheritedWidget):** قلم تعديل بجانب عناصر `type==text` **فقط**، يظهر **فقط** إذا رُكّب الـ scope. الـ scope معرَّف في feature الملف (بلا تبعية profile→matchmaker)، ويُركّبه **host خطّابة فقط** ومحصور بـ `profileStatus ∈ {pendingReview, rejected}`. تطبيق المستخدم **لا يركّبه أبداً** → لا أقلام هناك (مُثبَت بالكود). يعيد استخدام `MatchmakerAnswerSaveCubit`؛ النجاح → snackbar + refresh. شاشة الإجابات المستقلّة + الزر العلوي **محذوفة** (PV4).
+  - **chips «inside» صارت بيضاء عالمياً:** الـ default للـ `InsideChipsSection` صار `QeranChipVariant.inside` (paper + hairline) بدل `interest` الذهبي — الذهبي كان **عدم اتساق** (الـ DS فيه variant أبيض مخصّص لـ inside-card)؛ الأبيض يطابق اتجاه «لا لطخة بيج» (نفس إصلاح حقول auth). يحسّن **كل التطبيق** (مستخدم + my-profile + خطّابة)، قابل للعكس.
+  - **`QeranConfirmDialog` = dialog التأكيد الموحّد:** الأزرار **تلتفّ** (no ellipsis) + ارتفاع موحّد عبر `IntrinsicHeight` → نص عربي طويل ما ينقطع أبداً (إصلاح «تسجيل خر…»). كل dialogs تأكيد الخطّابة (خروج/تعطيل/حذف ملاحظة/إغلاق حالة) صارت تستخدمه؛ `MatchmakerConfirmDialog` المكسور محذوف. **السبب الجذري:** الـ dialogs القديمة استخدمت `QeranButton` (نصّه `maxLines:1 + ellipsis`) داخل `Expanded` بعرض نصف-dialog ضيّق.
+  - **بطاقة عضو الخطّابة:** أفاتار أكبر (56→72) + توسيط عمودي؛ صفّ الأزرار `Wrap` من الحافة البادئة بعرض كامل (إصلاح `92f7a20`).
 
 ---
 
@@ -82,13 +89,14 @@
 ## ⏸️ مؤجّل (Deferred)
 - **ملفّا اختبار likes قديمان** (`match_card_stage0_test`, `likes_cubit_test`) متأخران عن refactor `32ba51d` (حُذف `PhotoExchangeActionRow`، تغيّرت توقيعات الـ cubit/MatchCard). **الإنتاج نظيف** (`flutter analyze lib` = 0 errors) — اختبارات فقط، تحتاج تحديث/حذف.
 - **`share_with_matchmaker_button`:** الـ `_confirmDialog` ملف مختلط نظامين (الزر الرئيسي `QeranButton` بس الـ dialog لسا Material + `AppColors`) — يحتاج هجرة كاملة، مش إصلاح سطر.
+- **هجرة dialog خروج تطبيق المستخدم → `QeranConfirmDialog`** (مع sweep تطبيق المستخدم): `LogoutConfirmationDialog` (في `core/widgets/`) **يعرض صح** لكنه legacy (`AppColors`/`Color(0x`/`BorderRadius.circular`) + خاص-بالخروج. هجرته لـ `QeranConfirmDialog` + حذف الملف legacy = ربح DS، لكن call-site `profile_screen.dart` فيه **3 refs legacy** (لمسه يكسر بوابة legacy-grep) فيُؤجَّل لـ sweep تطبيق المستخدم. بُق الخطّابة **مُصلَح أصلاً** عبر `QeranConfirmDialog`.
 
 ---
 
 ## 📨 معلّق على طارق (Backend)
 | البند | الحالة |
 |-------|--------|
-| **الخطّابة — endpoint الملاحظات يفشل على السيرفر الجديد** | ⚠️ **محجوب** — يحتاج deploy/إصلاح (متحقَّق عبر Swagger)؛ كود M3d جاهز وينتظر |
+| **الخطّابة — `/note` و `/chat` يفشلان على السيرفر (server-side)** | ⚠️ **محجوب — يحتاج deploy/إصلاح من طارق.** كلاهما يرجّع **401** بلا auth (مُسجَّلان + مُنشَران + المسارات صحيحة — مش 404)، لكن النداء المُصادَق يفشل server-side فيظهر «حدث خطأ». الكود متحقَّق صحيح (الملاحظات M3d؛ زر مراسلة → `GET /matchmaker/users/{id}/chat`). نفس الباكِت — يحتاج إصلاح الـ handler/deploy. للتمييز 5xx مقابل status≠1: اقرأ سطر log `[HTTP] <status> <url>` عند الضغط. |
 | **الخطّابة — نص `status` بالأرشيف:** مترجَم حسب `Accept-Language` ولا عربي فقط؟ | معلّق — يحدّد هل نعرض نص الباك إند أم label الـ `reason` عندنا (M3f-c يعرض النص الخام حالياً) |
 | `GET /users/subscription-plans` منشور؟ + فلتر `?planId=` شغّال؟ | معلّق — يحجب شريط تابات الباقات + paywall/IAP |
 | **الخطّابة — تحقّق إيصال IAP** على الباك إند | معلّق — مطلوب وقت بناء paywall (الدفع = IAP محسوم) |
@@ -173,3 +181,21 @@
 **ملاحظات تنفيذية (للمتابعة):**
 - كل الميزات: gates خضراء (`flutter analyze lib` = 0 errors عدا lint `notification_tile:26` القديم؛ legacy-grep صفر على ملفاتنا؛ ملفات <200).
 - الـ DS الجديد بهالإغلاق: `MatchmakerExploreFilterRenderer` (renderer خطّابة موازٍ)، `MatchmakerNotificationTile` (tile DS موازٍ)، badge cubit singleton.
+
+---
+
+## 🧩 الخطّابة — توحيد الملف (Part 2) + إصلاحات dialog/بطاقة — ✅ مكتملة 🏁
+**الحالة:** ملف الخطّابة (يُفتَح من «عرض» + نقر كرت الاستكشاف + كرت الاهتمامات — **كل المداخل موحّدة على `RouteNames.matchmakerUserProfile`**) صار **نفس شكل ملف تطبيق المستخدم**، عبر **building-blocks مشتركة لا شاشة مشتركة** (Option C). القرارات بقسم «القرارات الثابتة → الخطّابة (قرارات توحيد الملف)».
+
+**معمول (commits على main):**
+- **PV1 — `44d2980`:** hero overlay — `MatchmakerProfileHero` يعيد تركيب الهوية فوق الصورة (gallery + scrim + اسم/عمر + chips فوق-الصورة) من الـ leaf widgets؛ يُسقط verified + match-pill.
+- **PV2 — `d0cf801`:** main-card composition — كرت نبذة واحد متّصل تحت الصورة (status chip + email + نبذة + inside chips) + باقي الأقسام كروت (`asCards:true, includeNarrative:false`)؛ توحيد كل المداخل؛ حذف `matchmaker_profile_header` + `matchmaker_above_image_section` + `matchmaker_profile_status_banner` (أُدمجت).
+- **PV2.5 — `6cbcb41`:** `TextAnswerEditScope` (InheritedWidget، في feature الملف) + `PlacementItemRenderer` يقرأه (additive، null-guarded) → قلم لعناصر `type==text` فقط عند وجود الـ scope. infra فقط — لا شيء يركّبه (تطبيق المستخدم بلا أقلام، مُثبَت).
+- **PV3 — `d95fefc`:** تعديل inline — sheet (`QeranTextField` معبّأ، يعيد استخدام `MatchmakerAnswerSaveCubit`) + host يركّب الـ scope (محصور pendingReview/rejected) → حفظ → snackbar + refresh. + ترقية chips «inside» للأبيض **عالمياً** (default الـ variant).
+- **PV4 — `246b67f`:** حذف flow الإجابات المستقلّ (الشاشة + الزر العلوي + list cubit + GET usecase/models/entities + route + DI)؛ **إبقاء stack الحفظ** (`updateTextAnswer` + `MatchmakerAnswerSaveCubit`). جرّاحة دقيقة على datasource/repo (حذف GET، إبقاء save).
+- **`e878073`:** `QeranConfirmDialog` الموحّد (يصلح نص الأزرار المقطوع «تسجيل خر…») — كل dialogs تأكيد الخطّابة عليه؛ حذف `MatchmakerConfirmDialog`.
+- **`5c749a3`:** موازنة بطاقة عضو الخطّابة (أفاتار 56→72 + توسيط).
+
+**ملاحظات تنفيذية (للمتابعة):**
+- كل الـ steps: gates خضراء (`flutter analyze lib` = 0 errors عدا lint `notification_tile:26` القديم؛ legacy-grep صفر على ملفاتنا؛ ملفات <200 — عدا aggregators موجودة مسبقاً `injection`/`app_router` قلّصناها).
+- **صفر لمس لملفات ملف-المستخدم** بالـ Part 2 (الاستثناء الوحيد: `inside_chips_section` default الـ variant — ترقية عالمية مقصودة).

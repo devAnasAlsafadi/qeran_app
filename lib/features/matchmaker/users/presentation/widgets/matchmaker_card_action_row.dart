@@ -50,17 +50,24 @@ class MatchmakerCardActionRow extends StatelessWidget {
   };
 
   Widget _button(BuildContext context, _BtnSpec spec) {
-    return QeranButton(
-      label: spec.labelKey.t(context),
-      onPressed: () => onAction(spec.action),
-      variant: spec.primary
-          ? QeranButtonVariant.primaryWine
-          : QeranButtonVariant.neutral,
-      size: QeranButtonSize.xs,
-      leadingIcon: spec.icon,
-      loading: spec.action == loadingAction,
-      // Content-sized so the full label always shows; the Wrap handles overflow.
-      fullWidth: false,
+    // `fullWidth: false` alone is NOT enough: QeranButton centers its content
+    // in a `Center`, which expands to the loose max width the Wrap hands each
+    // child — so every chip claimed the full row and stacked vertically.
+    // `IntrinsicWidth` pins each button to a tight content width, so the chips
+    // size to their icon+label and the Wrap flows them horizontally, wrapping
+    // only when a line is full. (Handled here — the shared button is untouched.)
+    return IntrinsicWidth(
+      child: QeranButton(
+        label: spec.labelKey.t(context),
+        onPressed: () => onAction(spec.action),
+        variant: spec.primary
+            ? QeranButtonVariant.primaryWine
+            : QeranButtonVariant.neutral,
+        size: QeranButtonSize.xs,
+        leadingIcon: spec.icon,
+        loading: spec.action == loadingAction,
+        fullWidth: false,
+      ),
     );
   }
 }

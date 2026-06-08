@@ -58,10 +58,8 @@ class MatchmakerProfileMainCard extends StatelessWidget {
           ],
           if (hasInside) ...[
             QeranSpacing.vs16,
-            InsideChipsSection(
-              placement: inside,
-              variant: QeranChipVariant.inside,
-            ),
+            // Inside chips now render white app-wide (the DS default).
+            InsideChipsSection(placement: inside),
           ],
         ],
       ),

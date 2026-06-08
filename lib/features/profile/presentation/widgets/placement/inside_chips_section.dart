@@ -19,16 +19,16 @@ import '../../../domain/entities/placement_value.dart';
 class InsideChipsSection extends StatelessWidget {
   final Placement placement;
 
-  /// Chip fill variant. Defaults to [QeranChipVariant.interest] (the gold-tint
-  /// used by the user-app + my-profile surfaces — UNCHANGED). The matchmaker
-  /// profile passes [QeranChipVariant.inside] (clean white + hairline) so the
-  /// chips don't read as a beige smudge against the wine identity.
+  /// Chip fill variant. Defaults to [QeranChipVariant.inside] — clean white +
+  /// hairline, the DS's purpose-built inside-card chip. (Promoted app-wide from
+  /// the old gold `interest` fill, which read as a beige smudge; white matches
+  /// the project's "no beige smudge" direction.) Overridable per caller.
   final QeranChipVariant variant;
 
   const InsideChipsSection({
     super.key,
     required this.placement,
-    this.variant = QeranChipVariant.interest,
+    this.variant = QeranChipVariant.inside,
   });
 
   @override

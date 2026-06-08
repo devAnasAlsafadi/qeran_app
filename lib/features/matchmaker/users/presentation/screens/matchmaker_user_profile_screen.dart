@@ -8,10 +8,12 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../blocs/matchmaker_answer_save_cubit.dart';
 import '../blocs/matchmaker_profile_detail_cubit.dart';
 import '../blocs/matchmaker_profile_detail_state.dart';
 import '../widgets/matchmaker_edit_answers_button.dart';
 import '../widgets/matchmaker_profile_body.dart';
+import '../widgets/matchmaker_profile_edit_host.dart';
 
 /// Read-only matchmaker view of a user's full profile
 /// (`GET /matchmaker/users/{id}/profile`). Images are never blurred and the
@@ -25,8 +27,17 @@ class MatchmakerUserProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<MatchmakerProfileDetailCubit>(param1: userId)..load(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) =>
+              sl<MatchmakerProfileDetailCubit>(param1: userId)..load(),
+        ),
+        // Shared by the inline text-answer pencils + their editor sheet.
+        BlocProvider(
+          create: (_) => sl<MatchmakerAnswerSaveCubit>(param1: userId),
+        ),
+      ],
       child: const _ProfileDetailView(),
     );
   }
@@ -58,7 +69,13 @@ class _ProfileDetailView extends StatelessWidget {
                         physics: const AlwaysScrollableScrollPhysics(
                           parent: BouncingScrollPhysics(),
                         ),
-                        child: MatchmakerProfileBody(profile: profile),
+                        // Installs the edit scope (pencils on text answers) only
+                        // when the profile is editable; user app never mounts
+                        // this, so it never shows pencils.
+                        child: MatchmakerProfileEditHost(
+                          profile: profile,
+                          child: MatchmakerProfileBody(profile: profile),
+                        ),
                       ),
                     ),
                   MatchmakerProfileDetailError(:final message) =>

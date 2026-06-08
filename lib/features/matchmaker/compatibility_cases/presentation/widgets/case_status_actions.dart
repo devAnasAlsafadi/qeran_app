@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
+import '../../../../../core/design_system/widgets/qeran_confirm_dialog.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/compatibility_case.dart';
@@ -89,11 +89,14 @@ class CaseStatusActions extends StatelessWidget {
     MatchmakerCaseStatusCubit cubit,
     FormalRequestStatus target,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => const _TerminalConfirmDialog(),
+    final confirmed = await QeranConfirmDialog.show(
+      context,
+      title: LocaleKeys.matchmaker_cases_confirm_title.t(context),
+      message: LocaleKeys.matchmaker_cases_confirm_message.t(context),
+      confirmLabel: LocaleKeys.matchmaker_cases_confirm_confirm.t(context),
+      cancelLabel: LocaleKeys.matchmaker_cases_confirm_dismiss.t(context),
     );
-    if (confirmed == true && context.mounted) cubit.submit(target);
+    if (confirmed && context.mounted) cubit.submit(target);
   }
 }
 
@@ -118,63 +121,6 @@ class _NoActionsNote extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Identity-styled confirm dialog for the terminal closures (no Material
-/// defaults). Pops `true` to confirm, `false`/`null` to dismiss.
-class _TerminalConfirmDialog extends StatelessWidget {
-  const _TerminalConfirmDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: QeranColors.paper,
-      elevation: 0,
-      shape: const RoundedRectangleBorder(borderRadius: QeranRadii.cardR),
-      child: Padding(
-        padding: const EdgeInsets.all(QeranSpacing.s24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              LocaleKeys.matchmaker_cases_confirm_title.t(context),
-              style: QeranTypography.title,
-            ),
-            QeranSpacing.vs8,
-            Text(
-              LocaleKeys.matchmaker_cases_confirm_message.t(context),
-              style: QeranTypography.body,
-            ),
-            QeranSpacing.vs20,
-            Row(
-              children: [
-                Expanded(
-                  child: QeranButton(
-                    label:
-                        LocaleKeys.matchmaker_cases_confirm_dismiss.t(context),
-                    variant: QeranButtonVariant.ghost,
-                    size: QeranButtonSize.md,
-                    onPressed: () => Navigator.of(context).pop(false),
-                  ),
-                ),
-                QeranSpacing.hs12,
-                Expanded(
-                  child: QeranButton(
-                    label:
-                        LocaleKeys.matchmaker_cases_confirm_confirm.t(context),
-                    variant: QeranButtonVariant.destructive,
-                    size: QeranButtonSize.md,
-                    onPressed: () => Navigator.of(context).pop(true),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

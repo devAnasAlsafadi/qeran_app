@@ -20,7 +20,7 @@ import '../blocs/matchmaker_account_cubit.dart';
 import '../blocs/matchmaker_account_state.dart';
 import '../widgets/matchmaker_account_body.dart';
 import '../widgets/matchmaker_change_password_sheet.dart';
-import '../widgets/matchmaker_confirm_dialog.dart';
+import '../../../../../core/design_system/widgets/qeran_confirm_dialog.dart';
 import '../widgets/matchmaker_edit_name_sheet.dart';
 
 /// Matchmaker account / settings screen (pushed from the app-bar). Loads `/me`,
@@ -153,21 +153,24 @@ class _AccountView extends StatelessWidget {
 
   Future<void> _deactivate(BuildContext context) async {
     final cubit = context.read<MatchmakerAccountCubit>();
-    final confirmed = await MatchmakerConfirmDialog.show(
+    final confirmed = await QeranConfirmDialog.show(
       context,
-      titleKey: LocaleKeys.matchmaker_account_deactivate_confirm_title,
-      messageKey: LocaleKeys.matchmaker_account_deactivate_confirm_message,
-      confirmKey: LocaleKeys.matchmaker_account_row_deactivate,
+      title: LocaleKeys.matchmaker_account_deactivate_confirm_title.t(context),
+      message:
+          LocaleKeys.matchmaker_account_deactivate_confirm_message.t(context),
+      confirmLabel: LocaleKeys.matchmaker_account_row_deactivate.t(context),
+      icon: Icons.person_off_outlined,
     );
     if (confirmed && context.mounted) cubit.deactivate();
   }
 
   Future<void> _logout(BuildContext context) async {
-    final confirmed = await MatchmakerConfirmDialog.show(
+    final confirmed = await QeranConfirmDialog.show(
       context,
-      titleKey: LocaleKeys.dialogs_logout_title,
-      messageKey: LocaleKeys.dialogs_logout_message,
-      confirmKey: LocaleKeys.common_logout,
+      title: LocaleKeys.dialogs_logout_title.t(context),
+      message: LocaleKeys.dialogs_logout_message.t(context),
+      confirmLabel: LocaleKeys.common_logout.t(context),
+      icon: Icons.logout_rounded,
     );
     if (!confirmed || !context.mounted) return;
     await context.read<UserSessionCubit>().signOut();

@@ -65,12 +65,18 @@ class MatchmakerConversationsRemoteDataSourceImpl
     final response = await _apiConsumer.get(
       EndPoints.matchmakerUserChat(userId),
     );
-    // `get()` enforced the OUTER envelope (status == 1). The endpoint doc says
-    // the payload is the conversationId — tolerate both a raw int
-    // (`data: 123`) and a wrapped object (`data: {conversationId: 123}`).
+    // `get()` enforced the OUTER envelope (status == 1). This endpoint is
+    // DOUBLE-wrapped (like `getUserConversations`): `data` is itself a
+    // {status,data,...} envelope whose inner `data` holds the conversationId.
+    // Route through the same `unwrapInnerEnvelope` (honours the inner status);
+    // that helper only returns Maps, so for the raw-scalar inner payload also
+    // read the inner `data` directly. Both fall back to the outer `data` so a
+    // future flattened response (raw int OR {conversationId}) still parses.
     final data = (response as Map<String, dynamic>)['data'];
-    final conversationId = parseNullableInt(data) ??
-        parseNullableInt(parseNullableMap(data)?['conversationId']);
+    final unwrapped =
+        unwrapInnerEnvelope(data) ?? parseNullableMap(data)?['data'] ?? data;
+    final conversationId = parseNullableInt(unwrapped) ??
+        parseNullableInt(parseNullableMap(unwrapped)?['conversationId']);
     if (conversationId == null) {
       AppLogger.error(
         'MATCHMAKER — open chat ok but no conversationId in data',

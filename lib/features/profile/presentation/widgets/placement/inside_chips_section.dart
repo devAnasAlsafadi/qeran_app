@@ -18,7 +18,18 @@ import '../../../domain/entities/placement_value.dart';
 /// the server never regresses an unknown row to a broken visual.
 class InsideChipsSection extends StatelessWidget {
   final Placement placement;
-  const InsideChipsSection({super.key, required this.placement});
+
+  /// Chip fill variant. Defaults to [QeranChipVariant.interest] (the gold-tint
+  /// used by the user-app + my-profile surfaces — UNCHANGED). The matchmaker
+  /// profile passes [QeranChipVariant.inside] (clean white + hairline) so the
+  /// chips don't read as a beige smudge against the wine identity.
+  final QeranChipVariant variant;
+
+  const InsideChipsSection({
+    super.key,
+    required this.placement,
+    this.variant = QeranChipVariant.interest,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +47,7 @@ class InsideChipsSection extends StatelessWidget {
     final label = _withUnit(raw, meta.unit);
     return QeranChip(
       label: label,
-      variant: QeranChipVariant.interest,
+      variant: variant,
       icon: meta.icon,
     );
   }

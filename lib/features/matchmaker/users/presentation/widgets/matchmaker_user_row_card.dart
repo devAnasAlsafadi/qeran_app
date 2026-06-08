@@ -72,8 +72,11 @@ class MatchmakerUserRowCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            // Larger avatar, vertically centred with the text block so the
+            // image balances the leading edge instead of floating small.
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              MatchmakerUserAvatar(url: row.profileImageUrl, size: 56),
+              MatchmakerUserAvatar(url: row.profileImageUrl, size: 72),
               QeranSpacing.hs12,
               Expanded(
                 child: Column(

@@ -69,6 +69,10 @@
 - **رسائل الـ commit بتكذب:** commits قديمة تدّعي توحيد auth/onboarding — لسا legacy. تأكّد من الكود دايماً.
 - الدين التقني على جهة المستخدم؛ الخطّابة ~95% موحّدة أصلاً.
 - `MATCHMAKER_DIAGNOSTIC.md` القديم stale — أشياء قال "ناقصة" صارت معمولة. ثق بالكود.
+- **⭐ نمط متكرّر — أشكال wire الخطّابة تخالف افتراض تطبيق المستخدم/discovery:** endpoints الخطّابة كثيراً ترجّع شكلاً مختلفاً عن نظيرها بتطبيق المستخدم، فالـ parser المنسوخ من discovery يفشل بصمت (TypeError → «خطأ غير متوقع») — **مش بالضرورة فشل سيرفر**. **مُصلَح هذه الجلسة:**
+  - **`/chat`** — كان **مغلّفاً مزدوجاً** (`data.data` = الـ id)؛ unwrap على العميل (commit `4cc7f27`).
+  - **`/explore/filters`** — `data` كان **object** `{gender, questions}` لا List مسطّحة (زي discovery)؛ الـ parser صار يقرأ `data['questions']` ويحوّل `label→question` (حقل النص يختلف عن discovery الذي يستخدم `question`) — commit `facb32a`. الـ gender facet موجود بالرد لكنه **مُتجاهَل عمداً** (Tier-C — سيغمنت الجنس يدوي حالياً — انظر Deferred).
+  - **القاعدة:** قبل اعتبار أي فشل خطّابة بند سيرفر (طارق)، **سجّل الـ RAW envelope** أولاً وتأكّد إنه مش bug شكل على العميل. **ينطبق على `/note`** — أعد فحص الـ envelope الخام قبل افتراض 5xx (غالباً نفس الصنف العميل).
 - **Profile hub — تاب العرض ما بيتحدّث بعد الحفظ:** `MyProfileCubit` لسا داخل `ProfileSelfView` (مش مرفوع فوق الـ `TabBarView` بالـ hub)، فالتابّان لهما instances منفصلة. الإصلاح المقترح: ارفع `MyProfileCubit` فوق الـ hub ليتشارك التابّان نفس الـ cubit ويعيد التحميل بعد الحفظ. (متحقَّق منه هذه الجلسة — لسا غير معمول.)
 - **reset_pass متحقَّق:** بعد تبنّي العين المدمجة (sub-step c/d) الشاشة تُصرّف صح والعين تبدّل — لا إجراء مطلوب.
 - **`'auth.country_search_hint'` كنص خام** في `country_code_picker` (مش عبر `LocaleKeys`) — موجود مسبقاً؛ تحقّق إنه يُحَل AR+EN.
@@ -90,6 +94,8 @@
 - **ملفّا اختبار likes قديمان** (`match_card_stage0_test`, `likes_cubit_test`) متأخران عن refactor `32ba51d` (حُذف `PhotoExchangeActionRow`، تغيّرت توقيعات الـ cubit/MatchCard). **الإنتاج نظيف** (`flutter analyze lib` = 0 errors) — اختبارات فقط، تحتاج تحديث/حذف.
 - **`share_with_matchmaker_button`:** الـ `_confirmDialog` ملف مختلط نظامين (الزر الرئيسي `QeranButton` بس الـ dialog لسا Material + `AppColors`) — يحتاج هجرة كاملة، مش إصلاح سطر.
 - **هجرة dialog خروج تطبيق المستخدم → `QeranConfirmDialog`** (مع sweep تطبيق المستخدم): `LogoutConfirmationDialog` (في `core/widgets/`) **يعرض صح** لكنه legacy (`AppColors`/`Color(0x`/`BorderRadius.circular`) + خاص-بالخروج. هجرته لـ `QeranConfirmDialog` + حذف الملف legacy = ربح DS، لكن call-site `profile_screen.dart` فيه **3 refs legacy** (لمسه يكسر بوابة legacy-grep) فيُؤجَّل لـ sweep تطبيق المستخدم. بُق الخطّابة **مُصلَح أصلاً** عبر `QeranConfirmDialog`.
+- **(Tier B) ربط gender facet الاستكشاف backend-driven:** الباك إند يرسل `data.gender` (`{key, label, options:[{value,display}]}`) بردّ `/explore/filters`، لكننا **نتجاهله** ونستخدم سيغمنت يدوي (الكل/ذكر/أنثى — hardcoded بالشاشة). الربط = إضافة slot للـ facet بالـ state + تمريره للشاشة بدل السيغمنت اليدوي + mapping `value→Gender` enum.
+- **التحقّق: سيغمنت الجنس بالاستكشاف يفلتر فعلاً** (يرسل Male/Female للباك إند ويغيّر النتائج) لا مجرد تبديل بصري — يحتاج تأكيد تشغيلي على حساب Moderator.
 
 ---
 
@@ -101,7 +107,6 @@
 | `GET /users/subscription-plans` منشور؟ + فلتر `?planId=` شغّال؟ | معلّق — يحجب شريط تابات الباقات + paywall/IAP |
 | **الخطّابة — تحقّق إيصال IAP** على الباك إند | معلّق — مطلوب وقت بناء paywall (الدفع = IAP محسوم) |
 | **الخطّابة — روابط «تواصل معنا» الحقيقية** (product) | معلّق — حالياً placeholders |
-| **الخطّابة — شكل رد** `GET …/{id}/chat`: `data:123` ولا `{conversationId}`؟ | معلّق — **non-blocking** (parser دفاعي يغطّي الاثنين) |
 | **الخطّابة — أشكال colleagues/notifications** (مسطّح vs متداخل، array vs paged) | معلّق — **non-blocking** (parsers دفاعية تغطّي) |
 | (product) بلد الزميلة (colleague country)؟ | معلّق — مش بالـ DTO |
 | (product) unread لكل بطاقة بقوائم الأعضاء؟ | معلّق — موجود بالمحادثات فقط |

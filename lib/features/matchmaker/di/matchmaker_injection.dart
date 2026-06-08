@@ -81,14 +81,12 @@ import '../users/domain/usecases/approve_user_usecase.dart';
 import '../users/domain/usecases/delete_user_note_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_user_profile_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_users_usecase.dart';
-import '../users/domain/usecases/get_editable_answers_usecase.dart';
 import '../users/domain/usecases/get_user_note_usecase.dart';
 import '../users/domain/usecases/reject_user_usecase.dart';
 import '../users/domain/usecases/request_image_user_usecase.dart';
 import '../users/domain/usecases/save_user_note_usecase.dart';
 import '../users/domain/usecases/update_text_answer_usecase.dart';
 import '../users/presentation/blocs/matchmaker_answer_save_cubit.dart';
-import '../users/presentation/blocs/matchmaker_editable_answers_cubit.dart';
 import '../users/presentation/blocs/matchmaker_profile_detail_cubit.dart';
 import '../users/presentation/blocs/matchmaker_user_actions_cubit.dart';
 import '../users/presentation/blocs/matchmaker_user_notes_cubit.dart';
@@ -167,21 +165,16 @@ Future<void> initMatchmakerDependencies() async {
     ),
   );
 
-  //! ── M2e · Editable text answers ──────────────────────────────────
+  //! ── M2e / PV3 · Text-answer save (inline editor) ─────────────────
+  // Read-side listing removed with the standalone screen (PV4); the save
+  // stack powers the inline profile editor.
   sl.registerLazySingleton<MatchmakerEditableAnswersRemoteDataSource>(
     () => MatchmakerEditableAnswersRemoteDataSourceImpl(apiConsumer: sl()),
   );
   sl.registerLazySingleton<MatchmakerEditableAnswersRepository>(
     () => MatchmakerEditableAnswersRepositoryImpl(sl()),
   );
-  sl.registerLazySingleton(() => GetEditableAnswersUseCase(sl()));
   sl.registerLazySingleton(() => UpdateTextAnswerUseCase(sl()));
-  sl.registerFactoryParam<MatchmakerEditableAnswersCubit, String, void>(
-    (userId, _) => MatchmakerEditableAnswersCubit(
-      userId: userId,
-      getEditableAnswers: sl(),
-    ),
-  );
   sl.registerFactoryParam<MatchmakerAnswerSaveCubit, String, void>(
     (userId, _) =>
         MatchmakerAnswerSaveCubit(userId: userId, updateTextAnswer: sl()),

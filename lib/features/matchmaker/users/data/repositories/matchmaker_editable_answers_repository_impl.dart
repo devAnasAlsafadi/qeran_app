@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 
-import '../../domain/entities/matchmaker_editable_answers_page.dart';
 import '../../domain/repositories/matchmaker_editable_answers_repository.dart';
 import '../datasources/matchmaker_editable_answers_remote_datasource.dart';
 
@@ -12,22 +11,6 @@ class MatchmakerEditableAnswersRepositoryImpl
   final MatchmakerEditableAnswersRemoteDataSource _dataSource;
 
   const MatchmakerEditableAnswersRepositoryImpl(this._dataSource);
-
-  @override
-  Future<Either<Failure, MatchmakerEditableAnswersPage>> getEditableAnswers({
-    required String userId,
-    required int page,
-    required int pageSize,
-  }) {
-    return executeApiCall(() async {
-      final model = await _dataSource.getEditableAnswers(
-        userId: userId,
-        page: page,
-        pageSize: pageSize,
-      );
-      return model.toEntity();
-    });
-  }
 
   @override
   Future<Either<Failure, String>> updateTextAnswer({

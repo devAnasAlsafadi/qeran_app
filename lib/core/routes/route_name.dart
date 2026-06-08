@@ -40,8 +40,6 @@ class RouteNames {
   static const String matchmakerNotifications = '/matchmaker/notifications';
   static const String matchmakerAccount = '/matchmaker/account';
   static const String matchmakerUserProfile = '/matchmaker/user-profile';
-  static const String matchmakerEditableAnswers =
-      '/matchmaker/editable-answers';
   static const String matchmakerCaseDetail = '/matchmaker/case-detail';
   static const String matchmakerUserChat = '/matchmaker/user-chat';
   static const String matchmakerInterests = '/matchmaker/interests';

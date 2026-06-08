@@ -207,10 +207,6 @@ class EndPoints {
   static String matchmakerUserRequestImage(String userId) =>
       "matchmaker/users/$userId/request-image";
 
-  /// `GET /api/matchmaker/users/{id}/editable-answers?page=N&pageSize=M`
-  static String matchmakerUserEditableAnswers(String userId) =>
-      "matchmaker/users/$userId/editable-answers";
-
   /// `POST /api/matchmaker/users/{id}/text-answer` — body `{questionId, textAnswer}`.
   static String matchmakerUserTextAnswer(String userId) =>
       "matchmaker/users/$userId/text-answer";

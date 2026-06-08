@@ -11,15 +11,15 @@ import '../../../../../generated/locale_keys.g.dart';
 import '../blocs/matchmaker_answer_save_cubit.dart';
 import '../blocs/matchmaker_profile_detail_cubit.dart';
 import '../blocs/matchmaker_profile_detail_state.dart';
-import '../widgets/matchmaker_edit_answers_button.dart';
 import '../widgets/matchmaker_profile_body.dart';
 import '../widgets/matchmaker_profile_edit_host.dart';
 
-/// Read-only matchmaker view of a user's full profile
+/// Matchmaker view of a user's full profile
 /// (`GET /matchmaker/users/{id}/profile`). Images are never blurred and the
 /// email is visible — both matchmaker privileges. Approve / reject live on the
-/// list card (M3b), so this screen is view-only; the top-end edit-answers
-/// button (a separate matchmaker privilege) stays.
+/// list card (M3b). Text answers are edited INLINE on the profile (PV3, gated
+/// to pendingReview / rejected) — the standalone edit-answers screen was
+/// removed in PV4.
 class MatchmakerUserProfileScreen extends StatelessWidget {
   const MatchmakerUserProfileScreen({super.key, required this.userId});
 
@@ -97,11 +97,6 @@ class _ProfileDetailView extends StatelessWidget {
               top: 8,
               start: 8,
               child: _BackButton(),
-            ),
-            const PositionedDirectional(
-              top: 8,
-              end: 8,
-              child: MatchmakerEditAnswersButton(),
             ),
           ],
         ),

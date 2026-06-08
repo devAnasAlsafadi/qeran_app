@@ -20,7 +20,6 @@ import 'package:qeran/features/matchmaker/conversations/presentation/screens/mat
 import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_home_screen.dart';
 import 'package:qeran/features/matchmaker/interests/presentation/screens/matchmaker_interests_screen.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
-import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_editable_answers_screen.dart';
 import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_user_profile_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/matchmaker_chat_screen.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_demo_screen.dart';
@@ -141,18 +140,6 @@ class AppRouter {
                   ),
                 )
               : MatchmakerUserProfileScreen(userId: userId),
-        );
-      case RouteNames.matchmakerEditableAnswers:
-        final userId = settings.arguments as String?;
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => userId == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
-              : MatchmakerEditableAnswersScreen(userId: userId),
         );
       case RouteNames.matchmakerCaseDetail:
         final caseArg = settings.arguments as CompatibilityCase?;

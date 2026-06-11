@@ -4,16 +4,13 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
-import 'formal_step_button.dart';
 import 'like_blurred_image.dart';
 import 'match_card_scaffold.dart';
 
 /// Stage 1 — PhotosExchanged (photo exchange accepted). Photos are
 /// CLEAR (`image.isBlurred == false`) and a formalRequest is active.
-/// Tapping the avatar opens the gallery. Per the mobile display rule we
-/// don't surface formal-status details — just the single
-/// [خطوة رسمية عبر الخطّابة] CTA, which shares the partner card into the
-/// matchmaker chat and opens it.
+/// Tapping the avatar opens the gallery.
+/// Surfaces a single [خطوة رسمية عبر الخطّابة] primaryWine CTA.
 class MatchCardStage1 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onOpenGallery;
@@ -46,11 +43,10 @@ class MatchCardStage1 extends StatelessWidget {
       statusText: LocaleKeys.likes_matches_stage_photos_exchanged_subtitle
           .t(context),
       statusColor: QeranColors.wine,
-      footer: FormalStepButton(
-        onTap: onFormalStep,
-        sending: isFormalStepSending,
-        sent: isFormalStepSent,
-      ),
+      primaryLabel: LocaleKeys.likes_matches_formal_step_cta.t(context),
+      onPrimaryPressed: onFormalStep,
+      primaryLoading: isFormalStepSending,
+      primaryTrailingIcon: isFormalStepSent ? Icons.check_rounded : null,
     );
   }
 }

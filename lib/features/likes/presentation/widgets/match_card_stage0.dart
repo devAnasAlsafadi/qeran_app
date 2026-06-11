@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -13,11 +12,10 @@ import 'photo_exchange_countdown_chip.dart';
 
 /// Stage 0 — WaitingForPhotoExchange. Three sub-states off
 /// `pendingPhotoExchange`:
-/// * `null` (no request yet) → [طلب تبادل الصور] (gold) + [أرسل استفساراتك]
-///   (wine).
-/// * `requestedByMe` (initiator waiting) → status + countdown, no buttons.
-/// * `canAccept/canReject` (responder) → countdown + [قبول الطلب] (gold) +
-///   [أرسل استفساراتك] (wine) + a subtle reject link.
+/// * `null` (no request yet) → [طلب تبادل الصور] (primaryWine) + [أرسل استفساراتك] (ghost).
+/// * `requestedByMe` (initiator waiting) → status + countdown, no actions.
+/// * `canAccept/canReject` (responder) → countdown + [قبول الطلب] (primaryWine) +
+///   [أرسل استفساراتك] (ghost) + [رفض] (ghost).
 class MatchCardStage0 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onRequestPhotoExchange;
@@ -50,19 +48,74 @@ class MatchCardStage0 extends StatelessWidget {
     final canRespond =
         pending != null && (pending.canAccept || pending.canReject);
 
+    // Map header data
+    final avatarWidget = LikeBlurredImage(url: image?.url, blur: image?.isBlurred ?? true);
+    final nameText = card.otherUserName;
+    final statusIconData = _statusIcon(pending, canRespond);
+    final statusTextString = _statusText(context, pending, canRespond);
+    final statusColor = QeranColors.goldDeep;
+    final topChipWidget = secs == null
+        ? null
+        : PhotoExchangeCountdownChip(
+            initialSeconds: secs,
+            onExpired: onPendingExpiredLocally,
+          );
+
+    // Map footer actions
+    String? primaryLabel;
+    VoidCallback? onPrimaryPressed;
+    bool primaryLoading = false;
+    List<Widget>? secondaryActions;
+
+    if (pending == null) {
+      // No request yet -> Request (primary) + Inquiry (secondary)
+      primaryLabel = LocaleKeys.likes_matches_stage_waiting_photos_cta.t(context);
+      onPrimaryPressed = onRequestPhotoExchange;
+      primaryLoading = isRequestingPhotoExchange;
+      secondaryActions = [
+        QeranButton(
+          label: LocaleKeys.likes_matches_inquiry_cta.t(context),
+          onPressed: onContactMatchmaker,
+          variant: QeranButtonVariant.ghost,
+          size: QeranButtonSize.xs,
+          fullWidth: false,
+        ),
+      ];
+    } else if (canRespond) {
+      // Responder -> Accept (primary) + Inquiry & Decline (secondary)
+      primaryLabel = LocaleKeys.likes_matches_photo_exchange_action_accept.t(context);
+      onPrimaryPressed = pending.canAccept ? onAcceptPhotoExchange : null;
+      primaryLoading = isAcceptingPhotoExchange;
+      secondaryActions = [
+        QeranButton(
+          label: LocaleKeys.likes_matches_inquiry_cta.t(context),
+          onPressed: onContactMatchmaker,
+          variant: QeranButtonVariant.ghost,
+          size: QeranButtonSize.xs,
+          fullWidth: false,
+        ),
+        QeranButton(
+          label: LocaleKeys.likes_matches_photo_exchange_action_reject.t(context),
+          onPressed: pending.canReject ? onRejectPhotoExchange : null,
+          variant: QeranButtonVariant.ghost,
+          size: QeranButtonSize.xs,
+          fullWidth: false,
+          loading: isRejectingPhotoExchange,
+        ),
+      ];
+    }
+
     return MatchCardScaffold(
-      avatar: LikeBlurredImage(url: image?.url, blur: image?.isBlurred ?? true),
-      name: card.otherUserName,
-      statusIcon: _statusIcon(pending, canRespond),
-      statusText: _statusText(context, pending, canRespond),
-      statusColor: QeranColors.goldDeep,
-      topChip: secs == null
-          ? null
-          : PhotoExchangeCountdownChip(
-              initialSeconds: secs,
-              onExpired: onPendingExpiredLocally,
-            ),
-      footer: _footer(context, pending, canRespond),
+      avatar: avatarWidget,
+      name: nameText,
+      statusIcon: statusIconData,
+      statusText: statusTextString,
+      statusColor: statusColor,
+      topChip: topChipWidget,
+      primaryLabel: primaryLabel,
+      onPrimaryPressed: onPrimaryPressed,
+      primaryLoading: primaryLoading,
+      secondaryActions: secondaryActions,
     );
   }
 
@@ -80,101 +133,5 @@ class MatchCardStage0 extends StatelessWidget {
       return LocaleKeys.likes_matches_stage_waiting_photos_pending.t(context);
     }
     return LocaleKeys.likes_matches_stage_waiting_photos_title.t(context);
-  }
-
-  Widget? _footer(
-    BuildContext context,
-    PhotoExchangePending? pending,
-    bool canRespond,
-  ) {
-    // Initiator waiting → no buttons (only the countdown chip).
-    if (pending != null && !canRespond) return null;
-
-    if (pending == null) {
-      // No request yet (initiator) → request (gold) + inquiry (wine).
-      return _TwoButtonRow(
-        actionLabel:
-            LocaleKeys.likes_matches_stage_waiting_photos_cta.t(context),
-        actionOnTap: onRequestPhotoExchange,
-        actionLoading: isRequestingPhotoExchange,
-        inquiryLabel: LocaleKeys.likes_matches_inquiry_cta.t(context),
-        inquiryOnTap: onContactMatchmaker,
-      );
-    }
-
-    // Responder → accept (gold) + inquiry (wine); subtle reject below.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _TwoButtonRow(
-          actionLabel:
-              LocaleKeys.likes_matches_photo_exchange_action_accept.t(context),
-          actionOnTap: pending.canAccept ? onAcceptPhotoExchange : null,
-          actionLoading: isAcceptingPhotoExchange,
-          inquiryLabel: LocaleKeys.likes_matches_inquiry_cta.t(context),
-          inquiryOnTap: onContactMatchmaker,
-        ),
-        const SizedBox(height: QeranSpacing.s4),
-        Center(
-          child: QeranButton(
-            label: LocaleKeys.likes_matches_photo_exchange_action_reject
-                .t(context),
-            onPressed: pending.canReject ? onRejectPhotoExchange : null,
-            variant: QeranButtonVariant.ghost,
-            size: QeranButtonSize.xs,
-            fullWidth: false,
-            loading: isRejectingPhotoExchange,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Two stage CTAs — gold action (leading) + wine inquiry (trailing). The
-/// inquiry gets the wider flex so the long "أرسل استفساراتك للخطّابة"
-/// label stays on one line; both use the compact [QeranButtonSize.xs].
-class _TwoButtonRow extends StatelessWidget {
-  final String actionLabel;
-  final VoidCallback? actionOnTap;
-  final bool actionLoading;
-  final String inquiryLabel;
-  final VoidCallback? inquiryOnTap;
-
-  const _TwoButtonRow({
-    required this.actionLabel,
-    required this.actionOnTap,
-    required this.actionLoading,
-    required this.inquiryLabel,
-    required this.inquiryOnTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: QeranButton(
-            label: actionLabel,
-            onPressed: actionOnTap,
-            variant: QeranButtonVariant.primaryGold,
-            size: QeranButtonSize.xs,
-            loading: actionLoading,
-          ),
-        ),
-        QeranSpacing.hs8,
-        Expanded(
-          flex: 3,
-          child: QeranButton(
-            label: inquiryLabel,
-            onPressed: inquiryOnTap,
-            variant: QeranButtonVariant.primaryWine,
-            size: QeranButtonSize.xs,
-          ),
-        ),
-      ],
-    );
   }
 }

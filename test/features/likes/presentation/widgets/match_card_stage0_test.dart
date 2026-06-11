@@ -7,8 +7,8 @@ import 'package:qeran/features/likes/domain/entities/photo_exchange_direction.da
 import 'package:qeran/features/likes/domain/entities/photo_exchange_pending.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_status.dart';
 import 'package:qeran/features/likes/presentation/widgets/match_card_stage0.dart';
-import 'package:qeran/features/likes/presentation/widgets/photo_exchange_action_row.dart';
 import 'package:qeran/features/likes/presentation/widgets/photo_exchange_countdown_chip.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Returns no translations — `context.tr(key)` falls back to the key
@@ -78,6 +78,7 @@ Future<void> _pump(WidgetTester tester, MatchCard card) async {
               isAcceptingPhotoExchange: false,
               isRejectingPhotoExchange: false,
               onPendingExpiredLocally: null,
+              onContactMatchmaker: () {},
             ),
           ),
         ),
@@ -98,7 +99,7 @@ void main() {
       'pendingPhotoExchange == null → request CTA (no action row, no chip)',
       (tester) async {
     await _pump(tester, _card(pending: null));
-    expect(find.byType(PhotoExchangeActionRow), findsNothing);
+    expect(find.byType(QeranButton), findsNWidgets(2));
     expect(find.byType(PhotoExchangeCountdownChip), findsNothing);
   });
 
@@ -115,7 +116,7 @@ void main() {
       ),
     );
     await _pump(tester, card);
-    expect(find.byType(PhotoExchangeActionRow), findsOneWidget);
+    expect(find.byType(QeranButton), findsNWidgets(3));
     expect(find.byType(PhotoExchangeCountdownChip), findsOneWidget);
   });
 
@@ -131,7 +132,7 @@ void main() {
       ),
     );
     await _pump(tester, card);
-    expect(find.byType(PhotoExchangeActionRow), findsNothing);
+    expect(find.byType(QeranButton), findsNothing);
     expect(find.byType(PhotoExchangeCountdownChip), findsOneWidget);
   });
 
@@ -148,7 +149,7 @@ void main() {
       ),
     );
     await _pump(tester, card);
-    expect(find.byType(PhotoExchangeActionRow), findsNothing);
+    expect(find.byType(QeranButton), findsNothing);
     expect(find.byType(PhotoExchangeCountdownChip), findsOneWidget);
   });
 
@@ -164,6 +165,6 @@ void main() {
       ),
     );
     await _pump(tester, card);
-    expect(find.byType(PhotoExchangeActionRow), findsOneWidget);
+    expect(find.byType(QeranButton), findsNWidgets(3));
   });
 }

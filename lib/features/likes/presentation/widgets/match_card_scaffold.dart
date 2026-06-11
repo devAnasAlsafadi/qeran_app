@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 
 /// Shared body for every Matches-tab card so all stages read with one
-/// padding + alignment rhythm — only the stage-specific [footer] (CTA /
-/// button rows) and the optional [topChip] (pending countdown) change.
+/// padding + alignment rhythm.
 ///
 /// Layout mirrors automatically by locale: the avatar sits on the
-/// leading edge; the trailing column carries an optional countdown chip,
-/// the name, and a status line. Token gaps: countdown→name = s8,
-/// name→status = s6, status→[footer] = s8.
+/// leading edge; the trailing side carries the live countdown chip
+/// (if present) to keep headers consistent across states.
 class MatchCardScaffold extends StatelessWidget {
   final Widget avatar;
   final String name;
@@ -18,11 +17,21 @@ class MatchCardScaffold extends StatelessWidget {
   final String statusText;
   final Color statusColor;
 
-  /// Optional pending-countdown chip, shown on its own line above the
-  /// name (leading).
+  /// Optional pending-countdown chip, shown on the trailing edge of the row.
   final Widget? topChip;
 
-  /// Optional stage action(s) below the header.
+  /// Optional primary action parameters (unified to primaryWine).
+  final String? primaryLabel;
+  final VoidCallback? onPrimaryPressed;
+  final bool primaryLoading;
+  final IconData? primaryTrailingIcon;
+
+  /// Optional list of secondary actions (ghost buttons / text links)
+  /// placed below the primary button.
+  final List<Widget>? secondaryActions;
+
+  /// Optional arbitrary footer content rendered below the action buttons.
+  /// Used by the matchmaker interest card for answers + formal-status chips.
   final Widget? footer;
 
   const MatchCardScaffold({
@@ -33,6 +42,11 @@ class MatchCardScaffold extends StatelessWidget {
     required this.statusText,
     required this.statusColor,
     this.topChip,
+    this.primaryLabel,
+    this.onPrimaryPressed,
+    this.primaryLoading = false,
+    this.primaryTrailingIcon,
+    this.secondaryActions,
     this.footer,
   });
 
@@ -52,10 +66,6 @@ class MatchCardScaffold extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (topChip != null) ...[
-                    topChip!,
-                    const SizedBox(height: QeranSpacing.s8),
-                  ],
                   Text(
                     name,
                     textAlign: TextAlign.start,
@@ -64,7 +74,7 @@ class MatchCardScaffold extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: QeranSpacing.s4),
+                  const SizedBox(height: QeranSpacing.s6),
                   _StatusLine(
                     icon: statusIcon,
                     text: statusText,
@@ -73,10 +83,34 @@ class MatchCardScaffold extends StatelessWidget {
                 ],
               ),
             ),
+            if (topChip != null) ...[
+              QeranSpacing.hs12,
+              topChip!,
+            ],
           ],
         ),
-        if (footer != null) ...[
+        if (primaryLabel != null) ...[
+          const SizedBox(height: QeranSpacing.s12),
+          QeranButton(
+            label: primaryLabel!,
+            onPressed: onPrimaryPressed,
+            variant: QeranButtonVariant.primaryWine,
+            size: QeranButtonSize.xs,
+            loading: primaryLoading,
+            trailingIcon: primaryTrailingIcon,
+          ),
+        ],
+        if (secondaryActions != null && secondaryActions!.isNotEmpty) ...[
           const SizedBox(height: QeranSpacing.s8),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: QeranSpacing.s8,
+            runSpacing: QeranSpacing.s4,
+            children: secondaryActions!,
+          ),
+        ],
+        if (footer != null) ...[
+          const SizedBox(height: QeranSpacing.s12),
           footer!,
         ],
       ],

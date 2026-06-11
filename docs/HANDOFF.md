@@ -76,6 +76,7 @@
 - **Profile hub — تاب العرض ما بيتحدّث بعد الحفظ:** `MyProfileCubit` لسا داخل `ProfileSelfView` (مش مرفوع فوق الـ `TabBarView` بالـ hub)، فالتابّان لهما instances منفصلة. الإصلاح المقترح: ارفع `MyProfileCubit` فوق الـ hub ليتشارك التابّان نفس الـ cubit ويعيد التحميل بعد الحفظ. (متحقَّق منه هذه الجلسة — لسا غير معمول.)
 - **reset_pass متحقَّق:** بعد تبنّي العين المدمجة (sub-step c/d) الشاشة تُصرّف صح والعين تبدّل — لا إجراء مطلوب.
 - **`'auth.country_search_hint'` كنص خام** في `country_code_picker` (مش عبر `LocaleKeys`) — موجود مسبقاً؛ تحقّق إنه يُحَل AR+EN.
+- **كروت الاهتمامات (تطبيق المستخدم) أُعيد تصميمها ✅ (متحقَّقة AR+EN على الإيمولِيتور):** `MatchCardScaffold` موحّد — **زر `primaryWine` واحد + secondaries شبحية** + **countdown على الحافة اللاحقة** + اسم `subtitle` (متّسق عبر Matches/Received/Sent) + **حالة تلتفّ سطرين بلا اقتطاع** (لا «…»). الاختبارات المتأخرة (`match_card_stage0_test`, `likes_cubit_test`) حُدّثت ضمن الـ refactor. (commits `8108c60` refactor + `23d92d7` fixes.)
 
 ---
 
@@ -87,11 +88,11 @@
 - **روابط «تواصل معنا» placeholders** (`https://qeran.com`, `instagram.com/qeran`…) — تحتاج حسابات Qeran الحقيقية من product (نسخ-للحافظة يعمل؛ فتح الرابط يحتاج `url_launcher` لاحقاً).
 - **deep-link «الحالات» من الصندوق ما يقفز لتاب الحالات** (shell scope غير مكشوف للـ route المدفوع) — بسيط؛ مسار FCM-tap بالـ shell يملك deep-links اختيار-التاب.
 - **خيوط الزميلات realtime** تحتاج حسابَي Moderator حيّين للتحقّق.
+- **كرت الخطّابة-اهتمامات (5th consumer لـ `MatchCardScaffold`)** — بعد إعادة تصميم كروت اهتمامات تطبيق المستخدم، الكرت **نظيف-كوداً** (`flutter analyze` نظيف، يشارك الـ scaffold الموحّد) **لكنه لم يُتحقَّق بصرياً** — يحتاج فحص بصري على حساب Moderator (تاب اهتمامات الخطّابة، AR+EN).
 
 ---
 
 ## ⏸️ مؤجّل (Deferred)
-- **ملفّا اختبار likes قديمان** (`match_card_stage0_test`, `likes_cubit_test`) متأخران عن refactor `32ba51d` (حُذف `PhotoExchangeActionRow`، تغيّرت توقيعات الـ cubit/MatchCard). **الإنتاج نظيف** (`flutter analyze lib` = 0 errors) — اختبارات فقط، تحتاج تحديث/حذف.
 - **`share_with_matchmaker_button`:** الـ `_confirmDialog` ملف مختلط نظامين (الزر الرئيسي `QeranButton` بس الـ dialog لسا Material + `AppColors`) — يحتاج هجرة كاملة، مش إصلاح سطر.
 - **هجرة dialog خروج تطبيق المستخدم → `QeranConfirmDialog`** (مع sweep تطبيق المستخدم): `LogoutConfirmationDialog` (في `core/widgets/`) **يعرض صح** لكنه legacy (`AppColors`/`Color(0x`/`BorderRadius.circular`) + خاص-بالخروج. هجرته لـ `QeranConfirmDialog` + حذف الملف legacy = ربح DS، لكن call-site `profile_screen.dart` فيه **3 refs legacy** (لمسه يكسر بوابة legacy-grep) فيُؤجَّل لـ sweep تطبيق المستخدم. بُق الخطّابة **مُصلَح أصلاً** عبر `QeranConfirmDialog`.
 - **(Tier B) ربط gender facet الاستكشاف backend-driven:** الباك إند يرسل `data.gender` (`{key, label, options:[{value,display}]}`) بردّ `/explore/filters`، لكننا **نتجاهله** ونستخدم سيغمنت يدوي (الكل/ذكر/أنثى — hardcoded بالشاشة). الربط = إضافة slot للـ facet بالـ state + تمريره للشاشة بدل السيغمنت اليدوي + mapping `value→Gender` enum.

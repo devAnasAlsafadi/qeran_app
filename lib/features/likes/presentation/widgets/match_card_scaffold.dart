@@ -66,13 +66,28 @@ class MatchCardScaffold extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    name,
-                    textAlign: TextAlign.start,
-                    style: QeranTypography.subtitle
-                        .copyWith(color: QeranColors.wine),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  // Name + countdown chip share the top line; the status sits
+                  // below at FULL column width so a long Arabic status wraps to
+                  // two lines instead of being squeezed by the trailing chip
+                  // and clipped with an ellipsis.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          name,
+                          textAlign: TextAlign.start,
+                          style: QeranTypography.subtitle
+                              .copyWith(color: QeranColors.wine),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (topChip != null) ...[
+                        QeranSpacing.hs12,
+                        topChip!,
+                      ],
+                    ],
                   ),
                   const SizedBox(height: QeranSpacing.s6),
                   _StatusLine(
@@ -83,10 +98,6 @@ class MatchCardScaffold extends StatelessWidget {
                 ],
               ),
             ),
-            if (topChip != null) ...[
-              QeranSpacing.hs12,
-              topChip!,
-            ],
           ],
         ),
         if (primaryLabel != null) ...[

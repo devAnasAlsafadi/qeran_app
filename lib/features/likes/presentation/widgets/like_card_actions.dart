@@ -69,7 +69,10 @@ class _CircularButton extends StatelessWidget {
     required this.tooltipKey,
   });
 
-  static const double _size = 44;
+  /// Tap target stays ~40 for usability; the painted circle is smaller so
+  /// the controls read as refined secondary actions, not dominant.
+  static const double _tapSize = 40;
+  static const double _circleSize = 36;
 
   @override
   Widget build(BuildContext context) {
@@ -78,14 +81,9 @@ class _CircularButton extends StatelessWidget {
       button: true,
       child: Tooltip(
         message: tooltipKey.t(context),
-        child: Container(
-          width: _size,
-          height: _size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: background,
-            boxShadow: hasShadow ? QeranShadows.e1 : null,
-          ),
+        child: SizedBox(
+          width: _tapSize,
+          height: _tapSize,
           child: Material(
             color: Colors.transparent,
             shape: const CircleBorder(),
@@ -93,9 +91,20 @@ class _CircularButton extends StatelessWidget {
               customBorder: const CircleBorder(),
               onTap: onTap,
               child: Center(
-                child: showSpinner
-                    ? const QeranLoader.inline(color: QeranColors.wine)
-                    : Icon(icon, color: QeranColors.wine, size: 24),
+                child: Container(
+                  width: _circleSize,
+                  height: _circleSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: background,
+                    boxShadow: hasShadow ? QeranShadows.e1 : null,
+                  ),
+                  child: Center(
+                    child: showSpinner
+                        ? const QeranLoader.inline(color: QeranColors.wine)
+                        : Icon(icon, color: QeranColors.wine, size: 18),
+                  ),
+                ),
               ),
             ),
           ),

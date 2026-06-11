@@ -110,7 +110,7 @@ class _VisibleContent extends StatelessWidget {
         children: [
           if (showTimer)
             LikeCountdownChip(initialSeconds: card.remainingSeconds!),
-          if (showTimer && showActions) QeranSpacing.vs8,
+          if (showTimer && showActions) QeranSpacing.vs12,
           if (showActions)
             LikeCardActions(
               onAccept: onAccept,
@@ -135,7 +135,8 @@ class _VisibleContent extends StatelessWidget {
               Text(
                 card.name,
                 textAlign: TextAlign.start,
-                style: QeranTypography.title.copyWith(color: QeranColors.wine),
+                style:
+                    QeranTypography.subtitle.copyWith(color: QeranColors.wine),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

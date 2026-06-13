@@ -16,6 +16,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
@@ -222,11 +223,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
                       padding: const EdgeInsets.only(top: QeranSpacing.s8),
                       child: _OverlayControls(
                         onFilterTap: () => _openFilters(context),
-                        onNotificationsTap: () =>
-                            NavigationManager.navigateTo(
-                          context,
-                          RouteNames.notificationsDemo,
-                        ),
+                        onNotificationsTap: () => openNotifications(context),
                       ),
                     ),
                   ),
@@ -248,10 +245,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
         children: [
           DiscoveryTopBar(
             onFilterTap: () => _openFilters(context),
-            onNotificationsTap: () => NavigationManager.navigateTo(
-              context,
-              RouteNames.notificationsDemo,
-            ),
+            onNotificationsTap: () => openNotifications(context),
           ),
           const SizedBox(height: QeranSpacing.s12),
           Expanded(

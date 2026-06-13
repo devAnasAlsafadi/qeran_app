@@ -22,7 +22,7 @@ import 'package:qeran/features/matchmaker/interests/presentation/screens/matchma
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_user_profile_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/matchmaker_chat_screen.dart';
-import 'package:qeran/features/notifications/presentation/screens/notifications_demo_screen.dart';
+import 'package:qeran/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
@@ -187,10 +187,10 @@ class AppRouter {
           settings: settings,
           builder: (context) => const UploadImageProfileScreen(),
         );
-      case RouteNames.notificationsDemo:
+      case RouteNames.notifications:
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => const NotificationsDemoScreen(),
+          builder: (context) => const NotificationsScreen(),
         );
       case RouteNames.packagesScreen:
         return MaterialPageRoute(

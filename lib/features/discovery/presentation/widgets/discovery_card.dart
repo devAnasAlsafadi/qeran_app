@@ -3,8 +3,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/routes/navigation_manager.dart';
-import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 
 import '../../domain/entities/discovery_profile.dart';
 import '../../domain/entities/placement.dart';
@@ -83,10 +82,7 @@ class DiscoveryImagePanel extends StatelessWidget {
                       const Spacer(),
                       ImageOverlayButton(
                         icon: Icons.notifications_outlined,
-                        onPressed: () => NavigationManager.navigateTo(
-                          context,
-                          RouteNames.notificationsDemo,
-                        ),
+                        onPressed: () => openNotifications(context),
                         badge: const OverlayUnreadDot(),
                       ),
                     ],

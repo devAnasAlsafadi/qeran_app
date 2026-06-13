@@ -15,7 +15,7 @@ class RouteNames {
   static const String oathScreen = '/oath';
   static const String photoUploadScreen = '/photoUpload';
 
-  static const String notificationsDemo = '/notificationsDemo';
+  static const String notifications = '/notifications';
 
   // Subscriptions
   static const String packagesScreen = '/packages';

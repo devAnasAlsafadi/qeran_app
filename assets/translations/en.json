@@ -136,9 +136,17 @@
   },
   "notifications": {
     "title": "Notifications",
-    "mark_all_read": "Mark all as read",
     "empty_title": "No notifications yet",
-    "empty_subtitle": "New matches, likes, and messages will appear here."
+    "empty_subtitle": "New matches, likes, and messages will appear here.",
+    "error_title": "Couldn't load notifications",
+    "error_message": "Something went wrong. Please try again.",
+    "retry": "Try again"
+  },
+  "time": {
+    "now": "Now",
+    "minute": "m",
+    "hour": "h",
+    "day": "d"
   },
   "discovery": {
     "privacy_message": "Photo available upon mutual interest",

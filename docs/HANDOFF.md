@@ -2,7 +2,7 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 8 يونيو 2026
+> آخر تحديث: 13 يونيو 2026
 
 ---
 
@@ -17,7 +17,7 @@
 3. ~~**الخطّابة — خطة الإغلاق (5 ميزات)**~~ ✅ **مكتملة 🏁** (الإعدادات → الزميلات → فلتر الحالات → الاستكشاف → الإشعارات — انظر «🧩 الخطّابة — الإغلاق»).
 4. ~~**الخطّابة — توحيد الملف (Part 2: PV1–PV4)**~~ ✅ **مكتملة 🏁** (نفس شكل ملف المستخدم عبر building-blocks + تعديل الإجابات inline — انظر «🧩 الخطّابة — توحيد الملف»).
 5. **QA تشغيلي على حساب Moderator** — تشغيل التطبيق + المرور على الميزات الخمس + أعلام التحقّق (انظر «⚠️ أعلام التحقّق التشغيلي»). لا شيء منها يحجب.
-6. **باقي الـ sweep (تطبيق المستخدم)** — onboarding، notifications، subscriptions (widgets legacy: `discount_code_field`/`pricing_segment`/`feature_row`/`plan_visual`…)، questionnaire widgets، settings (بسيط) + `share_with_matchmaker` dialog + **هجرة dialog الخروج للموحّد `QeranConfirmDialog`** (+ تنظيف legacy في `profile_screen` — انظر Deferred). شاشة شاشة (legacy-grep gate يخدم هذا).
+6. **باقي الـ sweep (تطبيق المستخدم)** — onboarding، ~~notifications~~ ✅ (أُعيد بناؤها — انظر القسم تحت)، subscriptions (widgets legacy: `discount_code_field`/`pricing_segment`/`feature_row`/`plan_visual`…)، questionnaire widgets، settings (بسيط) + `share_with_matchmaker` dialog + **هجرة dialog الخروج للموحّد `QeranConfirmDialog`** (+ تنظيف legacy في `profile_screen` — انظر Deferred). شاشة شاشة (legacy-grep gate يخدم هذا).
 7. **إعداد المنصّات:** iOS (Firebase/push) + توقيع Android (signing).
 8. **الباقات/paywall + IAP:** ربط الدفع عبر **IAP** — تحقّق الإيصال على الباك إند (طارق).
 9. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
@@ -77,6 +77,7 @@
 - **reset_pass متحقَّق:** بعد تبنّي العين المدمجة (sub-step c/d) الشاشة تُصرّف صح والعين تبدّل — لا إجراء مطلوب.
 - **`'auth.country_search_hint'` كنص خام** في `country_code_picker` (مش عبر `LocaleKeys`) — موجود مسبقاً؛ تحقّق إنه يُحَل AR+EN.
 - **كروت الاهتمامات (تطبيق المستخدم) أُعيد تصميمها ✅ (متحقَّقة AR+EN على الإيمولِيتور):** `MatchCardScaffold` موحّد — **زر `primaryWine` واحد + secondaries شبحية** + **countdown على الحافة اللاحقة** + اسم `subtitle` (متّسق عبر Matches/Received/Sent) + **حالة تلتفّ سطرين بلا اقتطاع** (لا «…»). الاختبارات المتأخرة (`match_card_stage0_test`, `likes_cubit_test`) حُدّثت ضمن الـ refactor. (commits `8108c60` refactor + `23d92d7` fixes.)
+- **إشعارات تطبيق المستخدم أُعيد بناؤها ✅ (متحقَّقة AR+EN على الإيمولِيتور — شاشة حيّة ببيانات حقيقية):** بدل الـ mock القديم (legacy tokens) → شاشة مرقّمة حقيقية على `GET /api/notifications` (infinite scroll + pull-to-refresh + empty/loading/error) تستهلك `NotificationsCubit` (نفس `PaginatedListCubitMixin` المشترك). **tile مدفوع بالنوع/الـ action على الـ DS** (`NotificationInboxTile`): Match = chip ذهبي صلب (hero)، Chat/Offer = ذهبي ناعم، Profile/Announcement/General = واين خفيف؛ أيقونة Match تتغيّر بالـ `data.action` (قلب/احتفال/كاميرا/مصافحة)، ورفض الملف **هادئ بلا أحمر**. **deep-link عند النقر → تبديل تاب الـ bottom-nav** (Likes/Messages/Profile) عبر `openNotifications`: الشاشة المدفوعة تُرجع الـ intent بالـ `pop` والمُستدعي (داخل الـ shell) يبدّل التاب — يحلّ مشكلة «shell scope غير مكشوف للـ route المدفوع» (نفس عقبة صندوق الخطّابة). `route notificationsDemo → notifications`؛ أزرار الجرس الثلاثة بالـ discovery تستدعي `openNotifications`. **حُذف** الـ mock + الـ tile/entity القديمة + مفتاح `mark_all_read` (لا حالة قراءة بالباك إند — نعرض فقط ما يدعمه). formatter وقت نسبي مشترك جديد `QeranRelativeTime` + مفاتيح `time.*` محايدة. badge الـ unread (Step 5) + مسار FCM-tap (Step 6) **مؤجّلان**. (commits notifications a–d.)
 
 ---
 
@@ -109,6 +110,7 @@
 | **الخطّابة — تحقّق إيصال IAP** على الباك إند | معلّق — مطلوب وقت بناء paywall (الدفع = IAP محسوم) |
 | **الخطّابة — روابط «تواصل معنا» الحقيقية** (product) | معلّق — حالياً placeholders |
 | **الخطّابة — أشكال colleagues/notifications** (مسطّح vs متداخل، array vs paged) | معلّق — **non-blocking** (parsers دفاعية تغطّي) |
+| **تطبيق المستخدم — `data.action` بإشعارات Match فارغ/غير مطابق** | معلّق — **non-blocking.** الإشعارات الحيّة من نوع Match ترجع `data.action` فارغاً أو غير مطابق للقيم الموثّقة (`like`/`like_accepted`/`photo_exchange_requested\|accepted\|rejected`/`compatibility_case_updated`)، فأيقونات الـ action (قلب-جديد/احتفال/كاميرا/مصافحة) ترجع كلها للقلب الافتراضي. الباك إند يرسل قيم الـ action الموثّقة في `data` لكل إشعار Match. (التوجيه نفسه يعمل عبر `data.screen`/النوع، فالعطل تجميلي فقط — تمايز الأيقونات.) |
 | (product) بلد الزميلة (colleague country)؟ | معلّق — مش بالـ DTO |
 | (product) unread لكل بطاقة بقوائم الأعضاء؟ | معلّق — موجود بالمحادثات فقط |
 | مسارات الصور (حذف/تعيين رئيسية) | معلّق — تعارض user-images / profile-images |

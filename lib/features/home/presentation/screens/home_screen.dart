@@ -30,7 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _currentTab = index);
   }
 
+  void _openLikesTab() => _selectTab(_likesTabIndex);
   void _openMessagesTab() => _selectTab(_messagesTabIndex);
+  void _openProfileTab() => _selectTab(_profileTabIndex);
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +59,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ];
     return HomeShellScope(
+      openLikesTab: _openLikesTab,
       openMessagesTab: _openMessagesTab,
+      openProfileTab: _openProfileTab,
       child: Scaffold(
         extendBody: true,
         body: _bodyFor(_currentTab),

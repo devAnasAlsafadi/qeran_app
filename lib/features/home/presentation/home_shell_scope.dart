@@ -3,17 +3,28 @@ import 'package:flutter/widgets.dart';
 /// Inherited handle exposed by `HomeScreen` so descendants can switch
 /// the bottom-nav tab without pushing a new route.
 ///
-/// Today's only consumer is the Stage-2 Match card's "Contact the
-/// matchmaker" CTA inside Likes — it switches to the Messages tab
-/// instead of pushing a placeholder chat screen, so the user's
-/// `ChatEntryScreen` cubit state is preserved across the navigation.
+/// Consumers:
+/// * The Stage-2 Match card's "Contact the matchmaker" CTA inside Likes —
+///   switches to the Messages tab instead of pushing a placeholder chat
+///   screen, so the `ChatEntryScreen` cubit state survives the navigation.
+/// * The notifications inbox deep-link router — a tapped row switches to the
+///   tab its `data.screen` points at (Likes / Messages / Profile) rather than
+///   pushing a route, keeping every destination inside the shell.
 class HomeShellScope extends InheritedWidget {
+  /// Switch the bottom navigation to the Likes tab.
+  final VoidCallback openLikesTab;
+
   /// Switch the bottom navigation to the Messages tab.
   final VoidCallback openMessagesTab;
 
+  /// Switch the bottom navigation to the Profile tab.
+  final VoidCallback openProfileTab;
+
   const HomeShellScope({
     super.key,
+    required this.openLikesTab,
     required this.openMessagesTab,
+    required this.openProfileTab,
     required super.child,
   });
 

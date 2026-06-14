@@ -27,7 +27,7 @@ class ChatEmptyNoMatchmaker extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: ColoredBox(
-                color: QeranColors.creamSurface,
+                color: QeranColors.creamCanvas,
                 child: Padding(
                   padding: const EdgeInsets.all(QeranSpacing.s32),
                   child: Center(

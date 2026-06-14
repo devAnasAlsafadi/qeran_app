@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_card.dart';
+import 'package:qeran/core/utils/relative_time.dart';
+import 'package:qeran/features/notifications/domain/entities/notification_action.dart';
+import 'package:qeran/features/notifications/domain/entities/notification_type.dart';
+import 'package:qeran/features/notifications/presentation/widgets/notification_tile_visuals.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
-import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
-import '../../../../../core/design_system/widgets/qeran_card.dart';
-import '../../../../../core/extensions/localization_extension.dart';
-import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/matchmaker_notification.dart';
 
-/// One inbox row — DS-token clone of the legacy `notification_tile` layout
-/// (leading type icon + title + body + time). No per-row unread dot: the
-/// backend exposes no read-state, so the only unread signal is the bell badge
-/// (rule: render only what the backend backs).
+/// One inbox row — on the shared notification design system (same tone families
+/// + per-action icons + relative time + layout as the user-app
+/// `NotificationInboxTile`). No per-row unread dot: the backend exposes no
+/// read-state, so the only unread signal is the bell badge.
 class MatchmakerNotificationTile extends StatelessWidget {
   const MatchmakerNotificationTile({
     super.key,
@@ -27,7 +28,7 @@ class MatchmakerNotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = _time(context);
+    final time = QeranRelativeTime.format(notification.createdAt, context);
     return QeranCard(
       onTap: onTap,
       margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
@@ -35,35 +36,45 @@ class MatchmakerNotificationTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LeadingIcon(type: notification.type),
+          _LeadingChip(notification: notification),
           QeranSpacing.hs12,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  notification.title(isArabic: isArabic),
-                  style: QeranTypography.subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        notification.title(isArabic: isArabic),
+                        textAlign: TextAlign.start,
+                        style: QeranTypography.subtitle
+                            .copyWith(color: QeranColors.wine),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (time != null) ...[
+                      QeranSpacing.hs8,
+                      Text(
+                        time,
+                        style: QeranTypography.caption
+                            .copyWith(color: QeranColors.inkMuted),
+                      ),
+                    ],
+                  ],
                 ),
                 QeranSpacing.vs4,
                 Text(
                   notification.body(isArabic: isArabic),
-                  style:
-                      QeranTypography.bodySm.copyWith(color: QeranColors.inkBody),
-                  maxLines: 3,
+                  textAlign: TextAlign.start,
+                  style: QeranTypography.bodySm
+                      .copyWith(color: QeranColors.inkBody),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (time != null) ...[
-                  QeranSpacing.vs8,
-                  Text(
-                    time,
-                    style: QeranTypography.caption
-                        .copyWith(color: QeranColors.inkMuted),
-                  ),
-                ],
               ],
             ),
           ),
@@ -71,61 +82,30 @@ class MatchmakerNotificationTile extends StatelessWidget {
       ),
     );
   }
-
-  /// Compact relative time (now / Nm / Nh / Nd → short date), reusing the
-  /// conversations time tokens.
-  String? _time(BuildContext context) {
-    final at = notification.createdAt;
-    if (at == null) return null;
-    final local = at.toLocal();
-    final diff = DateTime.now().difference(local);
-    if (diff.inMinutes < 1) {
-      return LocaleKeys.matchmaker_conversations_time_now.t(context);
-    }
-    if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}'
-          '${LocaleKeys.matchmaker_conversations_time_minute.t(context)}';
-    }
-    if (diff.inHours < 24) {
-      return '${diff.inHours}'
-          '${LocaleKeys.matchmaker_conversations_time_hour.t(context)}';
-    }
-    if (diff.inDays < 7) {
-      return '${diff.inDays}'
-          '${LocaleKeys.matchmaker_conversations_time_day.t(context)}';
-    }
-    final m = local.month.toString().padLeft(2, '0');
-    final d = local.day.toString().padLeft(2, '0');
-    return '${local.year}/$m/$d';
-  }
 }
 
-class _LeadingIcon extends StatelessWidget {
-  const _LeadingIcon({required this.type});
+/// 44px circular icon-chip via the shared [NotificationTileVisuals]. The
+/// matchmaker `type` maps 1:1 to the user-app [NotificationType] by name; the
+/// per-action glyph comes from `data.action` (empty/old records → default).
+class _LeadingChip extends StatelessWidget {
+  const _LeadingChip({required this.notification});
 
-  final MatchmakerNotificationType type;
+  final MatchmakerNotification notification;
 
   @override
   Widget build(BuildContext context) {
+    final type = NotificationType.fromWire(notification.type.name);
+    final action =
+        NotificationAction.fromWire(notification.data['action']?.toString());
+    final style = NotificationTileVisuals.of(type, action);
     return Container(
-      width: 40,
-      height: 40,
-      decoration: const BoxDecoration(
-        color: QeranColors.wine08,
-        borderRadius: QeranRadii.pill,
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: style.background,
+        shape: BoxShape.circle,
       ),
-      child: Icon(_iconFor(type), color: QeranColors.wine, size: 20),
+      child: Icon(style.icon, color: style.foreground, size: 22),
     );
   }
-
-  IconData _iconFor(MatchmakerNotificationType type) => switch (type) {
-        MatchmakerNotificationType.chat => Icons.chat_bubble_outline_rounded,
-        MatchmakerNotificationType.match => Icons.favorite_border_rounded,
-        MatchmakerNotificationType.profile => Icons.person_outline_rounded,
-        MatchmakerNotificationType.announcement => Icons.campaign_outlined,
-        MatchmakerNotificationType.offer => Icons.local_offer_outlined,
-        MatchmakerNotificationType.general ||
-        MatchmakerNotificationType.unknown =>
-          Icons.notifications_none_rounded,
-      };
 }

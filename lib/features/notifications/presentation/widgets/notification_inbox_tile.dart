@@ -5,9 +5,8 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/utils/relative_time.dart';
 
-import '../../domain/entities/notification_action.dart';
 import '../../domain/entities/notification_item.dart';
-import '../../domain/entities/notification_type.dart';
+import 'notification_tile_visuals.dart';
 
 /// One inbox row, on the design system. A 44px leading icon-chip whose TONE
 /// signals meaning (not a rainbow), a title + relative-time top line, and a
@@ -93,8 +92,9 @@ class NotificationInboxTile extends StatelessWidget {
   }
 }
 
-/// The 44px circular icon-chip. Tone (background + foreground) is decided by
-/// [_Tone.of]; the glyph by [_iconFor].
+/// The 44px circular icon-chip. Tone (background + foreground) and glyph come
+/// from the shared [NotificationTileVisuals] (same mapping as the matchmaker
+/// inbox tile).
 class _LeadingChip extends StatelessWidget {
   const _LeadingChip({required this.notification});
 
@@ -102,80 +102,18 @@ class _LeadingChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tone = _Tone.of(notification.type);
+    final style = NotificationTileVisuals.of(
+      notification.type,
+      notification.action,
+    );
     return Container(
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: tone.background,
+        color: style.background,
         shape: BoxShape.circle,
       ),
-      child: Icon(_iconFor(notification), color: tone.foreground, size: 22),
+      child: Icon(style.icon, color: style.foreground, size: 22),
     );
   }
-
-  IconData _iconFor(NotificationItem n) {
-    switch (n.type) {
-      case NotificationType.match:
-        return _matchIcon(n.action);
-      case NotificationType.chat:
-        return Icons.chat_bubble_outline_rounded;
-      case NotificationType.offer:
-        return Icons.local_offer_outlined;
-      case NotificationType.profile:
-        return _profileIcon(n.action);
-      case NotificationType.announcement:
-        return Icons.campaign_outlined;
-      case NotificationType.general:
-      case NotificationType.unknown:
-        return Icons.notifications_none_rounded;
-    }
-  }
-
-  /// Within `Match`, the glyph tells the specific story.
-  IconData _matchIcon(NotificationAction action) => switch (action) {
-        NotificationAction.like => Icons.favorite_border_rounded,
-        NotificationAction.likeAccepted => Icons.celebration_rounded,
-        NotificationAction.photoExchangeRequested ||
-        NotificationAction.photoExchangeAccepted ||
-        NotificationAction.photoExchangeRejected =>
-          Icons.photo_camera_outlined,
-        NotificationAction.compatibilityCaseUpdated =>
-          Icons.handshake_rounded,
-        _ => Icons.favorite_rounded,
-      };
-
-  /// Profile approve/reject — both calm; rejection never wears red.
-  IconData _profileIcon(NotificationAction action) => switch (action) {
-        NotificationAction.profileApproved => Icons.verified_user_outlined,
-        NotificationAction.profileRejected => Icons.info_outline_rounded,
-        _ => Icons.person_outline_rounded,
-      };
-}
-
-/// A chip tone pair (background + foreground), derived from the type.
-class _Tone {
-  const _Tone({required this.background, required this.foreground});
-
-  final Color background;
-  final Color foreground;
-
-  /// Solid gold = the Match hero. Soft gold = Chat / Offer. Wine tint =
-  /// Profile / Announcement / General (and any unknown future type).
-  static _Tone of(NotificationType type) => switch (type) {
-        NotificationType.match =>
-          const _Tone(background: QeranColors.gold, foreground: QeranColors.wine),
-        NotificationType.chat || NotificationType.offer => const _Tone(
-            background: QeranColors.gold20,
-            foreground: QeranColors.goldDeep,
-          ),
-        NotificationType.profile ||
-        NotificationType.announcement ||
-        NotificationType.general ||
-        NotificationType.unknown =>
-          const _Tone(
-            background: QeranColors.wine08,
-            foreground: QeranColors.wine,
-          ),
-      };
 }

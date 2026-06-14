@@ -65,8 +65,11 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
 
 /// Three-button action bar under the Discovery card.
 ///
-/// Layout: pass (X, paper with wine outline) — undo (cream-lifted,
-/// smaller) — like (gold-filled, primary CTA, larger).
+/// Children are declared like (gold-filled primary, larger) → undo
+/// (cream-lifted, smaller) → pass (X, paper with wine outline). The Row
+/// mirrors automatically by locale via natural Directionality (no manual
+/// flip / textDirection override): LTR renders like (leading) … undo · pass
+/// (trailing); RTL mirrors it so pass · undo … like reads right-to-left.
 ///
 /// Each button owns its own `AnimationController` for press feedback
 /// and is fully independent — a press on one button never affects the
@@ -100,25 +103,6 @@ class DiscoveryActionBar extends StatelessWidget {
     return Row(
       children: [
         _PressableActionButton(
-          icon: Icons.close_rounded,
-          size: 52,
-          iconSize: 24,
-          tooltip: LocaleKeys.discovery_action_pass_label.t(context),
-          onPressed: onPass,
-          palette: _kPassPalette,
-        ),
-        const SizedBox(width: QeranSpacing.s12),
-        _PressableActionButton(
-          icon: Icons.replay_rounded,
-          size: 44,
-          iconSize: 20,
-          tooltip: LocaleKeys.discovery_action_undo_label.t(context),
-          onPressed: onUndo,
-          rewindRotate: true,
-          palette: _kUndoPalette,
-        ),
-        const Spacer(),
-        _PressableActionButton(
           icon: Icons.favorite_rounded,
           size: 72,
           iconSize: 34,
@@ -130,6 +114,25 @@ class DiscoveryActionBar extends StatelessWidget {
           idlePulse: true,
           onTapOrigin: onLikeBurst,
           palette: _kLikePalette,
+        ),
+        const Spacer(),
+        _PressableActionButton(
+          icon: Icons.replay_rounded,
+          size: 44,
+          iconSize: 20,
+          tooltip: LocaleKeys.discovery_action_undo_label.t(context),
+          onPressed: onUndo,
+          rewindRotate: true,
+          palette: _kUndoPalette,
+        ),
+        const SizedBox(width: QeranSpacing.s12),
+        _PressableActionButton(
+          icon: Icons.close_rounded,
+          size: 52,
+          iconSize: 24,
+          tooltip: LocaleKeys.discovery_action_pass_label.t(context),
+          onPressed: onPass,
+          palette: _kPassPalette,
         ),
       ],
     );

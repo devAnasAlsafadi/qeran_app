@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
@@ -28,8 +29,13 @@ class MatchmakerInterestArchiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final reason = _reasonSpec(item.reason);
     final type = _typeSpec(item.type);
-    final statusLabel =
-        item.status.isNotEmpty ? item.status : reason.fallbackKey?.t(context);
+    // Prefer the backend's pre-translated, locale-aware label; fall back to the
+    // raw status (old records) then the reason label.
+    final translated =
+        item.statusName(isArabic: context.locale.languageCode == 'ar');
+    final statusLabel = translated.isNotEmpty
+        ? translated
+        : (item.status.isNotEmpty ? item.status : reason.fallbackKey?.t(context));
     return QeranCard(
       margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
       padding: const EdgeInsets.all(QeranSpacing.s12),

@@ -117,7 +117,7 @@ class _ProcessingBody extends StatelessWidget {
         const QeranLoader(size: 56),
         const SizedBox(height: QeranSpacing.s20),
         Text(
-          'جارٍ معالجة الدفع...',
+          LocaleKeys.subscriptions_fake_payment_processing.t(context),
           textAlign: TextAlign.center,
           style: QeranTypography.title.copyWith(color: QeranColors.wine),
         ),
@@ -164,7 +164,7 @@ class _SuccessBody extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'تم الاشتراك بنجاح',
+              LocaleKeys.subscriptions_fake_payment_success_title.t(context),
               style: QeranTypography.title.copyWith(color: QeranColors.wine),
             ),
             const SizedBox(width: QeranSpacing.s8),
@@ -177,13 +177,13 @@ class _SuccessBody extends StatelessWidget {
         ),
         const SizedBox(height: QeranSpacing.s8),
         Text(
-          'أهلاً بك. استمتع بمزايا اشتراكك الجديد.',
+          LocaleKeys.subscriptions_fake_payment_success_body.t(context),
           textAlign: TextAlign.center,
           style: QeranTypography.body.copyWith(color: QeranColors.inkBody),
         ),
         const SizedBox(height: QeranSpacing.s24),
         QeranButton(
-          label: 'ابدأ الآن',
+          label: LocaleKeys.subscriptions_fake_payment_start.t(context),
           onPressed: onContinue,
         ),
         const SizedBox(height: QeranSpacing.s8),

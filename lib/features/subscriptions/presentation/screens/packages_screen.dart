@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
@@ -171,11 +172,8 @@ class _LoadedBody extends StatelessWidget {
               ),
             ],
             QeranSpacing.vs24,
-            // Section title. Hardcoded — locale keys for the new
-            // packages strings are deferred per the implementation
-            // roadmap.
             Text(
-              'اختر باقتك',
+              LocaleKeys.subscriptions_title.t(context),
               style: QeranTypography.title.copyWith(color: QeranColors.wine),
             ),
             QeranSpacing.vs12,
@@ -279,7 +277,8 @@ class _PlanTabs extends StatelessWidget {
                     for (var i = 0; i < plans.length; i++)
                       Expanded(
                         child: _PlanTabCell(
-                          label: plans[i].nameAr,
+                          label: plans[i]
+                              .name(isArabic: context.locale.languageCode == 'ar'),
                           isActive: i == activeIndex,
                           onTap: () => onChanged(i),
                         ),
@@ -450,8 +449,7 @@ class _PricingRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currency = LocaleKeys.subscriptions_currency.t(context);
-    final label = pricing.labelAr ??
-        pricing.labelEn ??
+    final label = pricing.label(isArabic: context.locale.languageCode == 'ar') ??
         LocaleKeys.subscriptions_duration_days
             .t(context)
             .replaceFirst('{days}', '${pricing.durationDays}');
@@ -532,7 +530,12 @@ class _PricingRow extends StatelessWidget {
                   if (pricing.hasDiscountBadge) ...[
                     QeranSpacing.vs4,
                     QeranChip(
-                      label: 'خصم ${pricing.discountPercent}٪',
+                      label: LocaleKeys.subscriptions_discount_badge
+                          .t(context)
+                          .replaceFirst(
+                            '{percent}',
+                            '${pricing.discountPercent}',
+                          ),
                       variant: QeranChipVariant.interest,
                       compact: true,
                     ),

@@ -4,6 +4,8 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Stateful visual-only payment selector. Default selection is "card"
 /// (Visa/Mastercard). Selection has no behavioural effect today — every
@@ -29,13 +31,13 @@ class _CheckoutPaymentMethodsState extends State<CheckoutPaymentMethods> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'طريقة الدفع',
+          LocaleKeys.subscriptions_payment_method.t(context),
           style: QeranTypography.subtitle.copyWith(color: QeranColors.wine),
         ),
         const SizedBox(height: QeranSpacing.s12),
         _MethodTile(
           icon: Icons.credit_card_rounded,
-          label: 'بطاقة ائتمان',
+          label: LocaleKeys.subscriptions_payment_card.t(context),
           subtitle: 'Visa, Mastercard',
           selected: _selected == _PaymentMethod.card,
           onTap: () => setState(() => _selected = _PaymentMethod.card),
@@ -43,8 +45,8 @@ class _CheckoutPaymentMethodsState extends State<CheckoutPaymentMethods> {
         const SizedBox(height: QeranSpacing.s8),
         _MethodTile(
           icon: Icons.account_balance_rounded,
-          label: 'مدى',
-          subtitle: 'بطاقات بنوك سعودية',
+          label: LocaleKeys.subscriptions_payment_mada.t(context),
+          subtitle: LocaleKeys.subscriptions_payment_mada_subtitle.t(context),
           selected: _selected == _PaymentMethod.mada,
           onTap: () => setState(() => _selected = _PaymentMethod.mada),
         ),
@@ -52,7 +54,7 @@ class _CheckoutPaymentMethodsState extends State<CheckoutPaymentMethods> {
         _MethodTile(
           icon: Icons.apple,
           label: 'Apple Pay',
-          subtitle: 'دفع سريع وآمن',
+          subtitle: LocaleKeys.subscriptions_payment_apple_subtitle.t(context),
           selected: _selected == _PaymentMethod.applePay,
           onTap: () => setState(() => _selected = _PaymentMethod.applePay),
         ),

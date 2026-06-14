@@ -4,8 +4,11 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_features.dart';
+import '../../domain/helpers/subscription_format.dart';
 
 /// Lists the four feature allowances the user unlocks with the
 /// selected plan. Renders "غير محدود" for the unlimited sentinel —
@@ -16,7 +19,7 @@ class CheckoutFeaturesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rows = _rows();
+    final rows = _rows(context);
     return Container(
       padding: const EdgeInsets.all(QeranSpacing.s16),
       decoration: BoxDecoration(
@@ -28,7 +31,7 @@ class CheckoutFeaturesCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'ماذا ستحصل عليه',
+            LocaleKeys.subscriptions_checkout_features_title.t(context),
             style: QeranTypography.subtitle.copyWith(
               color: QeranColors.wine,
             ),
@@ -43,36 +46,34 @@ class CheckoutFeaturesCard extends StatelessWidget {
     );
   }
 
-  List<String> _rows() {
+  /// One localized line per allowance — `label: count unit`, or
+  /// `label: unlimited` for the `-1` sentinel. Reuses the same feature keys +
+  /// [SubscriptionFormat] as the plan card so wording stays consistent.
+  List<String> _rows(BuildContext context) {
+    String line(String label, String noun, int value) =>
+        '$label: ${SubscriptionFormat.formatAllowed(context, value, noun)}';
     return <String>[
-      _format(features.likesAllowed, 'إعجاب', 'إعجابات', 'شهرياً'),
-      _format(
+      line(
+        LocaleKeys.subscriptions_feature_likes_label.t(context),
+        LocaleKeys.subscriptions_feature_likes.t(context),
+        features.likesAllowed,
+      ),
+      line(
+        LocaleKeys.subscriptions_feature_serious_interests_label.t(context),
+        LocaleKeys.subscriptions_feature_serious_interests.t(context),
         features.seriousInterestsAllowed,
-        'اهتمام جدي',
-        'اهتمامات جدية',
-        'شهرياً',
       ),
-      _format(
+      line(
+        LocaleKeys.subscriptions_feature_photo_exchanges_label.t(context),
+        LocaleKeys.subscriptions_feature_photo_exchanges.t(context),
         features.photoExchangesAllowed,
-        'تبادل صور',
-        'تبادلات صور',
-        'شهرياً',
       ),
-      _format(
+      line(
+        LocaleKeys.subscriptions_feature_daily_profile_views_label.t(context),
+        LocaleKeys.subscriptions_feature_daily_profile_views.t(context),
         features.dailyProfileViewsAllowed,
-        'مشاهدة ملف',
-        'مشاهدات ملفات',
-        'يومياً',
       ),
     ];
-  }
-
-  static String _format(int value, String singular, String plural, String period) {
-    if (SubscriptionFeatures.isUnlimited(value)) {
-      return '$plural غير محدودة';
-    }
-    final unit = value == 1 ? singular : plural;
-    return '$value $unit $period';
   }
 }
 

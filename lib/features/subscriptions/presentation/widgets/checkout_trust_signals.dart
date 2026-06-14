@@ -3,6 +3,8 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Three equal-width trust badges below the payment selector —
 /// reassures the user right before the confirm CTA.
@@ -21,24 +23,24 @@ class CheckoutTrustSignals extends StatelessWidget {
         borderRadius: QeranRadii.cardR,
         border: Border.all(color: QeranColors.hairline),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Expanded(
             child: _Badge(
               icon: Icons.security_rounded,
-              label: 'دفع آمن مشفر',
+              label: LocaleKeys.subscriptions_trust_secure.t(context),
             ),
           ),
           Expanded(
             child: _Badge(
               icon: Icons.refresh_rounded,
-              label: 'إلغاء في أي وقت',
+              label: LocaleKeys.subscriptions_trust_cancel_anytime.t(context),
             ),
           ),
           Expanded(
             child: _Badge(
               icon: Icons.account_balance_wallet_rounded,
-              label: 'استرداد خلال 7 أيام',
+              label: LocaleKeys.subscriptions_trust_refund.t(context),
             ),
           ),
         ],

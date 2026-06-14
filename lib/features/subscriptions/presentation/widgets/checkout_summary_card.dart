@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
@@ -30,11 +31,11 @@ class CheckoutSummaryCard extends StatelessWidget {
     final currency = LocaleKeys.subscriptions_currency.t(context);
     final discounted = effectivePrice < pricing.price;
     final discountAmount = pricing.price - effectivePrice;
-    final durationLabel = pricing.labelAr ??
-        pricing.labelEn ??
-        LocaleKeys.subscriptions_duration_days
-            .t(context)
-            .replaceFirst('{days}', '${pricing.durationDays}');
+    final durationLabel =
+        pricing.label(isArabic: context.locale.languageCode == 'ar') ??
+            LocaleKeys.subscriptions_duration_days
+                .t(context)
+                .replaceFirst('{days}', '${pricing.durationDays}');
 
     return Container(
       padding: const EdgeInsets.all(QeranSpacing.s20),
@@ -52,14 +53,14 @@ class CheckoutSummaryCard extends StatelessWidget {
           const SizedBox(height: QeranSpacing.s16),
           if (discounted) ...[
             _LineRow(
-              label: 'السعر الأصلي',
+              label: LocaleKeys.subscriptions_original_price.t(context),
               value: '${pricing.price.toStringAsFixed(2)} $currency',
               valueColor: QeranColors.inkMuted,
               strike: true,
             ),
             const SizedBox(height: QeranSpacing.s8),
             _LineRow(
-              label: 'الخصم',
+              label: LocaleKeys.subscriptions_discount.t(context),
               value: '- ${discountAmount.toStringAsFixed(2)} $currency',
               valueColor: QeranColors.gold,
             ),
@@ -109,14 +110,14 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'ملخص الطلب',
+                LocaleKeys.subscriptions_summary_title.t(context),
                 style: QeranTypography.title.copyWith(
                   color: QeranColors.wine,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
-                '${plan.nameAr} · $durationLabel',
+                '${plan.name(isArabic: context.locale.languageCode == 'ar')} · $durationLabel',
                 style: QeranTypography.bodySm.copyWith(
                   color: QeranColors.inkMuted,
                 ),

@@ -228,7 +228,7 @@ class _BottomCta extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: QeranSpacing.s8),
                 child: Text(
-                  'الإجمالي · $priceLabel',
+                  '${LocaleKeys.subscriptions_total.t(context)} · $priceLabel',
                   textAlign: TextAlign.center,
                   style: QeranTypography.caption.copyWith(
                     color: QeranColors.inkMuted,

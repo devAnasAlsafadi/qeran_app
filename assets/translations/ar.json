@@ -385,7 +385,7 @@
     "date_yesterday": "أمس",
     "shared_profile_age_format": "{name} · {age}",
     "shared_profile_score_label": "توافق {percent}٪",
-    "shared_profile_shared_by_matchmaker": "مشاركة من {name}",
+    "shared_profile_shared_by_matchmaker": "تمت المشاركة من {name}",
     "shared_profile_shared_by_me": "شاركت هذا البروفايل",
     "shared_profile_view_cta": "عرض الملف الشخصي",
     "messages_empty": "ابدأ المحادثة مع خطّابتك",

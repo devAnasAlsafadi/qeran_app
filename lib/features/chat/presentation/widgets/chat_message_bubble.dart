@@ -125,6 +125,7 @@ class _Bubble extends StatelessWidget {
             ? SharedProfileMessageCard(
                 profile: message.sharedProfile!,
                 isMine: isMine,
+                sharerName: message.senderName,
                 onTap: () => _openSharedProfile(context, message),
               )
             : Text(

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
@@ -19,6 +20,10 @@ class SharedProfileMessageCard extends StatelessWidget {
   final SharedProfile profile;
   final bool isMine;
 
+  /// Display name of whoever shared this profile — fills the "Shared by …"
+  /// label on incoming cards. Ignored when [isMine] (the label is name-less).
+  final String sharerName;
+
   /// Opens the reusable full-profile screen with this profile as a seed.
   final VoidCallback? onTap;
 
@@ -26,6 +31,7 @@ class SharedProfileMessageCard extends StatelessWidget {
     super.key,
     required this.profile,
     required this.isMine,
+    this.sharerName = '',
     this.onTap,
   });
 
@@ -147,7 +153,10 @@ class SharedProfileMessageCard extends StatelessWidget {
     if (isMine) {
       return LocaleKeys.chat_shared_profile_shared_by_me.t(context);
     }
-    return LocaleKeys.chat_shared_profile_shared_by_matchmaker.t(context);
+    return context.tr(
+      LocaleKeys.chat_shared_profile_shared_by_matchmaker,
+      namedArgs: {'name': sharerName},
+    );
   }
 }
 

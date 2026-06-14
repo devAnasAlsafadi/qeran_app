@@ -38,18 +38,36 @@ class QuestionnaireCubit extends Cubit<QuestionnaireState> {
   // ── Start Flow ─────────────────────────────────────────────────
 
   /// Called by the FlowScreen when it receives questions via route arguments.
-  /// Every question returned by the API is preserved — no filtering based on
-  /// type, options, or any other field. The renderer is responsible for
-  /// providing a safe fallback when a question type/payload is incomplete.
+  ///
+  /// Defensively drops any question that is NOT answerable — i.e. an
+  /// option-driven type (select / radio / checkbox / interests) whose options
+  /// array is empty. Such a question renders nothing to select, so the Next
+  /// button would never enable and the user would be trapped. Dropping them
+  /// here (before draft restoration) keeps currentIndex / isLast / progress /
+  /// category steps derived from the answerable list. All other types are
+  /// always answerable and preserved.
   Future<void> startFlow(List<QuestionEntity> questions) async {
     AppLogger.info(
       'Questionnaire received ${questions.length} question(s).',
       tag: 'QUESTIONNAIRE',
     );
 
-    if (questions.isEmpty) {
+    final answerable = <QuestionEntity>[];
+    for (final q in questions) {
+      if (q.isAnswerable) {
+        answerable.add(q);
+      } else {
+        AppLogger.warning(
+          'Dropped unanswerable question (backend data gap): '
+          'id=${q.questionId} type=${q.type.name} — option-type with no options.',
+          tag: 'QUESTIONNAIRE',
+        );
+      }
+    }
+
+    if (answerable.isEmpty) {
       AppLogger.info(
-        'No questions received — proceeding to oath with empty payload.',
+        'No answerable questions — proceeding to oath with empty payload.',
         tag: 'QUESTIONNAIRE',
       );
       _questions = const [];
@@ -58,7 +76,7 @@ class QuestionnaireCubit extends Cubit<QuestionnaireState> {
       return;
     }
 
-    _questions = questions;
+    _questions = answerable;
     _answers.clear();
     _currentIndex = 0;
 
@@ -83,7 +101,7 @@ class QuestionnaireCubit extends Cubit<QuestionnaireState> {
         });
 
         final savedIndex = draft['currentIndex'] as int? ?? 0;
-        _currentIndex = savedIndex.clamp(0, questions.length - 1);
+        _currentIndex = savedIndex.clamp(0, _questions.length - 1);
       }
     } catch (e) {
       AppLogger.warning(

@@ -32,7 +32,7 @@ class LikeCardStatus extends StatelessWidget {
               color: color,
               fontWeight: FontWeight.w700,
             ),
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ),

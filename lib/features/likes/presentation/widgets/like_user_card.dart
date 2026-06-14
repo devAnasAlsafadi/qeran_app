@@ -102,52 +102,65 @@ class _VisibleContent extends StatelessWidget {
     final showTimer = _isPending && card.remainingSeconds != null;
     final showActions = _isPending && (card.canAccept || card.canReject);
 
-    Widget? trailing;
-    if (showTimer || showActions) {
-      trailing = Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (showTimer)
-            LikeCountdownChip(initialSeconds: card.remainingSeconds!),
-          if (showTimer && showActions) QeranSpacing.vs12,
-          if (showActions)
-            LikeCardActions(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LikeCardAvatar(image: card.profileImage),
+            QeranSpacing.hs12,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Name + countdown chip share the top line; the status sits
+                  // below at FULL column width so it wraps instead of being
+                  // squeezed by the trailing chip and clipped with an ellipsis.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          card.name,
+                          textAlign: TextAlign.start,
+                          style: QeranTypography.subtitle
+                              .copyWith(color: QeranColors.wine),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (showTimer) ...[
+                        QeranSpacing.hs12,
+                        LikeCountdownChip(
+                          initialSeconds: card.remainingSeconds!,
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: QeranSpacing.s6),
+                  LikeCardStatus(card: card),
+                ],
+              ),
+            ),
+          ],
+        ),
+        // Accept / reject move to their own row below so the name + status
+        // above take the full width. END-aligned; mirrors per locale (right
+        // in LTR, left in RTL).
+        if (showActions) ...[
+          QeranSpacing.vs8,
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: LikeCardActions(
               onAccept: onAccept,
               onReject: onReject,
               isAccepting: isAccepting,
               isRejecting: isRejecting,
             ),
-        ],
-      );
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        LikeCardAvatar(image: card.profileImage),
-        QeranSpacing.hs12,
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                card.name,
-                textAlign: TextAlign.start,
-                style:
-                    QeranTypography.subtitle.copyWith(color: QeranColors.wine),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: QeranSpacing.s6),
-              LikeCardStatus(card: card),
-            ],
           ),
-        ),
-        if (trailing != null) ...[
-          QeranSpacing.hs12,
-          trailing,
         ],
       ],
     );

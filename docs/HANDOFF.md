@@ -2,12 +2,12 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 13 يونيو 2026
+> آخر تحديث: 14 يونيو 2026
 
 ---
 
 ## 🎯 النية / المهمة الحالية
-**تطبيق الخطّابة مكتمل الميزات + الملف موحّد 🏁** — سلسلة M3 + خطة الإغلاق (5 ميزات) + **Part 2 (توحيد ملف الخطّابة) كلها معمولة**. ملف الخطّابة (عرض/استكشاف/اهتمامات) صار **نفس شكل ملف تطبيق المستخدم** (hero gallery + scrim + overlay + main-card + section cards) عبر **building-blocks مشتركة لا شاشة مشتركة**، مع **تعديل الإجابات النصية inline** على الملف. تفاصيل بقسم «🧩 الخطّابة — توحيد الملف (Part 2)». **الجاي** (post-close-out): QA تشغيلي كامل على حساب Moderator حقيقي (انظر «⚠️ أعلام التحقّق التشغيلي») + باقي sweep تطبيق المستخدم (onboarding/notifications/subscriptions-legacy/questionnaire + `share_with_matchmaker` dialog + هجرة dialog الخروج للموحّد — انظر Deferred) + إعداد المنصّات (iOS Firebase/push، توقيع Android) + بناء الباقات/paywall + IAP. auth ✅ مكتملة.
+**تطبيق الخطّابة مكتمل الميزات + الملف موحّد 🏁** — سلسلة M3 + خطة الإغلاق (5 ميزات) + **Part 2 (توحيد ملف الخطّابة) كلها معمولة**. ملف الخطّابة (عرض/استكشاف/اهتمامات) صار **نفس شكل ملف تطبيق المستخدم** (hero gallery + scrim + overlay + main-card + section cards) عبر **building-blocks مشتركة لا شاشة مشتركة**، مع **تعديل الإجابات النصية inline** على الملف. تفاصيل بقسم «🧩 الخطّابة — توحيد الملف (Part 2)». **الجاي** (post-close-out): QA تشغيلي كامل على حساب Moderator حقيقي (انظر «⚠️ أعلام التحقّق التشغيلي») + باقي sweep تطبيق المستخدم (onboarding/subscriptions-legacy widgets/questionnaire widgets + `share_with_matchmaker` dialog + هجرة dialog الخروج للموحّد — انظر Deferred؛ **notifications أُعيد بناؤها ولغة الاشتراكات مُصلَحة هذه الجلسة**) + إعداد المنصّات (iOS Firebase/push، توقيع Android) + بناء الباقات/paywall + IAP. auth ✅ مكتملة.
 
 **الدفع = IAP** (In-App Purchase) — محسوم؛ يحتاج تحقّق إيصال على الباك إند (طارق) وقت ربط ميزة الباقات/paywall.
 
@@ -78,6 +78,16 @@
 - **`'auth.country_search_hint'` كنص خام** في `country_code_picker` (مش عبر `LocaleKeys`) — موجود مسبقاً؛ تحقّق إنه يُحَل AR+EN.
 - **كروت الاهتمامات (تطبيق المستخدم) أُعيد تصميمها ✅ (متحقَّقة AR+EN على الإيمولِيتور):** `MatchCardScaffold` موحّد — **زر `primaryWine` واحد + secondaries شبحية** + **countdown على الحافة اللاحقة** + اسم `subtitle` (متّسق عبر Matches/Received/Sent) + **حالة تلتفّ سطرين بلا اقتطاع** (لا «…»). الاختبارات المتأخرة (`match_card_stage0_test`, `likes_cubit_test`) حُدّثت ضمن الـ refactor. (commits `8108c60` refactor + `23d92d7` fixes.)
 - **إشعارات تطبيق المستخدم أُعيد بناؤها ✅ (متحقَّقة AR+EN على الإيمولِيتور — شاشة حيّة ببيانات حقيقية):** بدل الـ mock القديم (legacy tokens) → شاشة مرقّمة حقيقية على `GET /api/notifications` (infinite scroll + pull-to-refresh + empty/loading/error) تستهلك `NotificationsCubit` (نفس `PaginatedListCubitMixin` المشترك). **tile مدفوع بالنوع/الـ action على الـ DS** (`NotificationInboxTile`): Match = chip ذهبي صلب (hero)، Chat/Offer = ذهبي ناعم، Profile/Announcement/General = واين خفيف؛ أيقونة Match تتغيّر بالـ `data.action` (قلب/احتفال/كاميرا/مصافحة)، ورفض الملف **هادئ بلا أحمر**. **deep-link عند النقر → تبديل تاب الـ bottom-nav** (Likes/Messages/Profile) عبر `openNotifications`: الشاشة المدفوعة تُرجع الـ intent بالـ `pop` والمُستدعي (داخل الـ shell) يبدّل التاب — يحلّ مشكلة «shell scope غير مكشوف للـ route المدفوع» (نفس عقبة صندوق الخطّابة). `route notificationsDemo → notifications`؛ أزرار الجرس الثلاثة بالـ discovery تستدعي `openNotifications`. **حُذف** الـ mock + الـ tile/entity القديمة + مفتاح `mark_all_read` (لا حالة قراءة بالباك إند — نعرض فقط ما يدعمه). formatter وقت نسبي مشترك جديد `QeranRelativeTime` + مفاتيح `time.*` محايدة. badge الـ unread (Step 5) + مسار FCM-tap (Step 6) **مؤجّلان**. (commits notifications a–d.)
+- **إصلاح لغة الاشتراكات ✅ (متحقَّق AR+EN على الإيمولِيتور — مُكوميت):** الباك إند يرسل حقولاً ثنائية اللغة لكن الـ UI كان يثبّت العربية فتتسرّب للإنجليزية. (a) اختيار locale-aware: `SubscriptionPlan.name(isArabic:)` + `SubscriptionPricing.label(isArabic:)` (fallback للمتوفّر) — مستهلَك في plan card + status block + ملخص الـ checkout + صف البروفايل؛ صف البروفايل الآن: اسم الباقة + «المتبقي» + حالتا «منتهٍ»/«لا اشتراك» مترجمة. (b) هجرة كل النص العربي المثبّت → `LocaleKeys` عبر مسار الـ checkout/الباقات: ملخص الطلب/السعر الأصلي/الخصم، طريقة الدفع + أسماء الطرق + العناوين الفرعية، شريط الثقة، الإجمالي، dialogs الدفع الوهمي (معالجة/نجاح/ابدأ)، رأس قسم الباقات + شارة الخصم. **الاشتراكات الآن صفر نص عربي مثبّت.** (commits `694528d` + `e08edeb`.) ملاحظة: `BorderRadius.circular` legacy في هذه الملفات باقٍ لـ DS sweep (الخطوة 6) — ليس جزءاً من مهمة اللغة.
+- **إصلاحات طارق (14 يونيو) — استُهلكت + تأكّدت ✅ (على حساب Moderator حي، AR+EN):**
+  - **أرشيف الماتشات صار مترجَماً ✅ (مُكوميت `b31a7fa`):** طارق أضاف `statusNameAr`/`statusNameEn` على `ArchiveItemDto` (مترجَمة جاهزة). استهلكناها في `matchmaker_interest_archive_item` (model+entity+`statusName(isArabic:)`) والكرت يعرض حسب اللغة (fallback: raw `status` → reason label). **الـ endpoint بقي `GET /api/matchmaker/users/{id}/matches/archived`** (طارق وثّق `/archived-matches` كـ alias؛ مسارنا يرجّع الحقول الجديدة 200 — لا تغيير endpoint). متحقَّق: AR «منتهي الصلاحية» · EN «Expired». (يحلّ فجوة ترجمة الأرشيف القديمة.)
+  - **`data` بالإشعارات صار يُحفَظ/يُرجَع كـ JSON string (كان null) ✅:** كودنا **مسبقاً دفاعي** — `notification_model._decodeData` يعمل `jsonDecode` للـ string ويتسامح مع null/فارغ/تالف → `{}` (السجلات القديمة تبقى null → لا deep-link، لا crash). الـ wiring مؤكَّد: `NotificationItem.action = NotificationAction.fromWire(data['action'])` يطابق قيم طارق بالضبط؛ الراوتر يقرأ `data['screen']`. **لا تغيير كود** — مؤكَّد بالكود + مسار null الحي (24 سجل كلها pre-fix null، لا crash).
+  - **`titleEn`/`bodyEn` مؤكّدة على كل الأنواع ✅:** طارق أكّد ثنائية اللغة 100% (Chat/Match/Profile/Announcement/Offer/General). (صف رفض البروفايل صار body «السبب: …» + `data.reason`.)
+  - **كرت ماتش الخطّابة (5th consumer لـ `MatchCardScaffold`) متحقَّق بصرياً ✅ (AR+EN):** يطابق نظام كروت تطبيق المستخدم (gold accent + stage line + formal-status chip مترجَم «طلب موعد مع الأهل»/«Waiting for parent appointment») — لا كسر من توحيد الـ scaffold.
+- **⚠️ عمل مُنجَز بالكود لكنه غير مُكوميت — لا تفقده (كوّمه قبل بدء جلسة جديدة):** شجرة العمل فيها تغييرات معمولة (وغير مرتبطة بالـ notifications/subscriptions/أرشيف-الخطّابة المكوميتة) لم تُكوميت بعد:
+  - **فلتر الأسئلة الدفاعي (questionnaire):** `question_entity.dart` (`isAnswerable`) + `questionnaire_cubit.dart` (`startFlow` يُسقط أسئلة option-type بلا options **قبل** استعادة المسودّة + يسجّل تحذيراً لكل سؤال مُسقَط) + اختبار `questionnaire_cubit_test.dart` (untracked). متحقَّق + analyze نظيف.
+  - **إصلاحات UI صغيرة (متحقَّقة بصرياً سابقاً):** `chat_empty_no_matchmaker` (خلفية الانتظار `creamSurface→creamCanvas`) · `discovery_action_bar` (ترتيب أطفال الـ Row like→undo→pass؛ mirroring طبيعي بلا flip يدوي) · `like_card_status` (الحالة `maxLines 1→2`) · `like_user_card` (كرت Received المعلّق: أزرار القبول/الرفض بصف أسفل، end-aligned).
+  - **لا تُكوميت أبداً:** `.metadata` · `android/…/MainActivity.kt` (untracked) · `web/` (untracked).
 
 ---
 
@@ -89,7 +99,8 @@
 - **روابط «تواصل معنا» placeholders** (`https://qeran.com`, `instagram.com/qeran`…) — تحتاج حسابات Qeran الحقيقية من product (نسخ-للحافظة يعمل؛ فتح الرابط يحتاج `url_launcher` لاحقاً).
 - **deep-link «الحالات» من الصندوق ما يقفز لتاب الحالات** (shell scope غير مكشوف للـ route المدفوع) — بسيط؛ مسار FCM-tap بالـ shell يملك deep-links اختيار-التاب.
 - **خيوط الزميلات realtime** تحتاج حسابَي Moderator حيّين للتحقّق.
-- **كرت الخطّابة-اهتمامات (5th consumer لـ `MatchCardScaffold`)** — بعد إعادة تصميم كروت اهتمامات تطبيق المستخدم، الكرت **نظيف-كوداً** (`flutter analyze` نظيف، يشارك الـ scaffold الموحّد) **لكنه لم يُتحقَّق بصرياً** — يحتاج فحص بصري على حساب Moderator (تاب اهتمامات الخطّابة، AR+EN).
+- ~~**كرت الخطّابة-اهتمامات (5th consumer لـ `MatchCardScaffold`) لم يُتحقَّق بصرياً**~~ ✅ **متحقَّق هذه الجلسة (AR+EN، حساب Moderator)** — يطابق نظام كروت تطبيق المستخدم، لا كسر.
+- **اهتمامات الخطّابة متحقَّقة بصرياً ✅ (كرت الماتش + الأرشيف المترجَم، AR+EN).** **يبقى:** صندوق إشعارات الخطّابة لا يزال على الـ tile القديم (type-only) — يحتاج تطبيق نظام التصميم الجديد (انظر Deferred)؛ والتحقّق الحي لأيقونات الـ per-action + توجيه deep-link لـ `data` معبّأ مؤجّل لحين توفّر إشعار post-fix (انظر Deferred + جدول طارق).
 
 ---
 
@@ -98,6 +109,11 @@
 - **هجرة dialog خروج تطبيق المستخدم → `QeranConfirmDialog`** (مع sweep تطبيق المستخدم): `LogoutConfirmationDialog` (في `core/widgets/`) **يعرض صح** لكنه legacy (`AppColors`/`Color(0x`/`BorderRadius.circular`) + خاص-بالخروج. هجرته لـ `QeranConfirmDialog` + حذف الملف legacy = ربح DS، لكن call-site `profile_screen.dart` فيه **3 refs legacy** (لمسه يكسر بوابة legacy-grep) فيُؤجَّل لـ sweep تطبيق المستخدم. بُق الخطّابة **مُصلَح أصلاً** عبر `QeranConfirmDialog`.
 - **(Tier B) ربط gender facet الاستكشاف backend-driven:** الباك إند يرسل `data.gender` (`{key, label, options:[{value,display}]}`) بردّ `/explore/filters`، لكننا **نتجاهله** ونستخدم سيغمنت يدوي (الكل/ذكر/أنثى — hardcoded بالشاشة). الربط = إضافة slot للـ facet بالـ state + تمريره للشاشة بدل السيغمنت اليدوي + mapping `value→Gender` enum.
 - **التحقّق: سيغمنت الجنس بالاستكشاف يفلتر فعلاً** (يرسل Male/Female للباك إند ويغيّر النتائج) لا مجرد تبديل بصري — يحتاج تأكيد تشغيلي على حساب Moderator.
+- **إشعارات تطبيق المستخدم — badge غير المقروء (Step 5) + معالجة نقر FCM (Step 6):** مؤجّلان. الـ badge = heuristic محلي `lastSeenId` (موثّق بالباك إند: لا حالة قراءة)؛ مسار FCM-tap يعيد استخدام نفس الراوتر + `openNotifications`. usecase الـ count مربوط لكن غير مستهلَك بعد.
+- **(متابعة 1) تطبيق نظام تصميم الإشعارات الجديد على صندوق الخطّابة:** **مؤكَّد هذه الجلسة (AR+EN) إنه لا يزال على `MatchmakerNotificationTile` القديم (type-only، أيقونة عامة، وقت بسطر مستقل، بلا tones/action-icons).** التوحيد مع `NotificationInboxTile` الجديد (tones + أيقونات per-action + `QeranRelativeTime`) لاحقاً — لم يُبنَ.
+- **(متابعة 2) التحقّق الحي من أيقونات per-action (كاميرا/احتفال/مصافحة) + توجيه deep-link لـ `data` معبّأ:** لم يُلاحَظ بعد — كل السجلات الحالية pre-fix (`data:null`)، وtile الخطّابة يتجاهل `action` أصلاً. يحتاج **إشعار post-fix بـ `data` معبّأ** + **حساب مستخدم** (حيث `NotificationInboxTile._matchIcon` يقرأ `n.action`). الـ wiring مؤكَّد كوداً (يطابق قيم طارق).
+- **(متابعة 3) محادثة الخطّابة — placeholder غير مترجَم `Shared by {name}`:** كرت «شارك بروفايلاً» داخل الشات يعرض `{name}` حرفياً (وسيط الاستيفاء ناقص/غير ممرَّر). bug منفصل عن الإشعارات — لم يُصلَح (تشخيص فقط).
+- **شاشة ما بعد «قبول الإعجاب» (فكرة المستخدم — يريد عملها):** حالة/شاشة بعد قبول الإعجاب (post-like-accepted). غير مبدوءة — بانتظار تصوّر المستخدم.
 
 ---
 
@@ -105,12 +121,14 @@
 | البند | الحالة |
 |-------|--------|
 | **الخطّابة — `/note` يفشل على السيرفر؟ (server-side)** | ⚠️ **معلّق — أعد الفحص قبل اعتباره بند طارق.** يرجّع **401** بلا auth (مُسجَّل + منشور + المسار صحيح — مش 404)، والنداء المُصادَق أظهر «حدث خطأ» (M3d). **لكن:** تبيّن أن جذر مشكلة `/chat` كان **تغليفاً مزدوجاً** (`data.data` = الـ id) — **إصلاح عميل لا فشل سيرفر** (محلول، commit `4cc7f27`). فقد يكون `/note` **نفس bug الشكل على العميل** لا 5xx حقيقي. **أعد فحص الـ envelope الخام لـ `/note`** (سجّل الـ response كاملاً) قبل معاملته كبند طارق. للتمييز 5xx مقابل status≠1: اقرأ سطر log `[HTTP] <status> <url>` عند الضغط. |
-| **الخطّابة — نص `status` بالأرشيف:** مترجَم حسب `Accept-Language` ولا عربي فقط؟ | معلّق — يحدّد هل نعرض نص الباك إند أم label الـ `reason` عندنا (M3f-c يعرض النص الخام حالياً) |
+| ~~**الخطّابة — نص `status` بالأرشيف مترجَم؟**~~ | ✅ **محلول (طارق، 14 يونيو)** — أضاف `statusNameAr`/`statusNameEn` مترجَمَين على `ArchiveItemDto`؛ استهلكناهما (commit `b31a7fa`)، نعرض حسب اللغة. |
 | `GET /users/subscription-plans` منشور؟ + فلتر `?planId=` شغّال؟ | معلّق — يحجب شريط تابات الباقات + paywall/IAP |
 | **الخطّابة — تحقّق إيصال IAP** على الباك إند | معلّق — مطلوب وقت بناء paywall (الدفع = IAP محسوم) |
 | **الخطّابة — روابط «تواصل معنا» الحقيقية** (product) | معلّق — حالياً placeholders |
 | **الخطّابة — أشكال colleagues/notifications** (مسطّح vs متداخل، array vs paged) | معلّق — **non-blocking** (parsers دفاعية تغطّي) |
-| **تطبيق المستخدم — `data.action` بإشعارات Match فارغ/غير مطابق** | معلّق — **non-blocking.** الإشعارات الحيّة من نوع Match ترجع `data.action` فارغاً أو غير مطابق للقيم الموثّقة (`like`/`like_accepted`/`photo_exchange_requested\|accepted\|rejected`/`compatibility_case_updated`)، فأيقونات الـ action (قلب-جديد/احتفال/كاميرا/مصافحة) ترجع كلها للقلب الافتراضي. الباك إند يرسل قيم الـ action الموثّقة في `data` لكل إشعار Match. (التوجيه نفسه يعمل عبر `data.screen`/النوع، فالعطل تجميلي فقط — تمايز الأيقونات.) |
+| ~~**تطبيق المستخدم — `data` بالإشعارات null / `data.action` فارغ**~~ | ✅ **محلول (طارق، 14 يونيو)** — الجذر كان `data` ما يُحفَظ بالـ DB؛ صار يُرجَع كـ JSON string بالقيم الموثّقة. السجلات القديمة تبقى `data:null` (fallback عندنا: لا deep-link، لا crash). **يبقى تحقّق حي** لأيقونات per-action + توجيه `data` معبّأ على إشعار post-fix (انظر Deferred متابعة 2). |
+| ~~**تطبيق المستخدم — `titleEn`/`bodyEn` فارغة ببعض السجلات**~~ | ✅ **محلول (طارق، 14 يونيو)** — أكّد ثنائية اللغة 100% على كل الأنواع (Chat/Match/Profile/Announcement/Offer/General). رفض البروفايل صار body «السبب: …» + `data.reason`. |
+| **تطبيق المستخدم — تدقيق الحقول ثنائية اللغة (شامل APIs)** | **مستمر** — الإشعارات + الأرشيف أُغلقا (طارق 14 يونيو). الاصطلاح المعتمد: **المحتوى المعروض = حقول ثنائية اللغة تُملأ دائماً (العميل يختار بالـ locale)؛ رسائل النظام = عبر `Accept-Language`.** يبقى مسح باقي الـ APIs لأي `*En` فارغ. |
 | (product) بلد الزميلة (colleague country)؟ | معلّق — مش بالـ DTO |
 | (product) unread لكل بطاقة بقوائم الأعضاء؟ | معلّق — موجود بالمحادثات فقط |
 | مسارات الصور (حذف/تعيين رئيسية) | معلّق — تعارض user-images / profile-images |

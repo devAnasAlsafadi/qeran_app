@@ -84,10 +84,13 @@
   - **`data` بالإشعارات صار يُحفَظ/يُرجَع كـ JSON string (كان null) ✅:** كودنا **مسبقاً دفاعي** — `notification_model._decodeData` يعمل `jsonDecode` للـ string ويتسامح مع null/فارغ/تالف → `{}` (السجلات القديمة تبقى null → لا deep-link، لا crash). الـ wiring مؤكَّد: `NotificationItem.action = NotificationAction.fromWire(data['action'])` يطابق قيم طارق بالضبط؛ الراوتر يقرأ `data['screen']`. **لا تغيير كود** — مؤكَّد بالكود + مسار null الحي (24 سجل كلها pre-fix null، لا crash).
   - **`titleEn`/`bodyEn` مؤكّدة على كل الأنواع ✅:** طارق أكّد ثنائية اللغة 100% (Chat/Match/Profile/Announcement/Offer/General). (صف رفض البروفايل صار body «السبب: …» + `data.reason`.)
   - **كرت ماتش الخطّابة (5th consumer لـ `MatchCardScaffold`) متحقَّق بصرياً ✅ (AR+EN):** يطابق نظام كروت تطبيق المستخدم (gold accent + stage line + formal-status chip مترجَم «طلب موعد مع الأهل»/«Waiting for parent appointment») — لا كسر من توحيد الـ scaffold.
-- **⚠️ عمل مُنجَز بالكود لكنه غير مُكوميت — لا تفقده (كوّمه قبل بدء جلسة جديدة):** شجرة العمل فيها تغييرات معمولة (وغير مرتبطة بالـ notifications/subscriptions/أرشيف-الخطّابة المكوميتة) لم تُكوميت بعد:
-  - **فلتر الأسئلة الدفاعي (questionnaire):** `question_entity.dart` (`isAnswerable`) + `questionnaire_cubit.dart` (`startFlow` يُسقط أسئلة option-type بلا options **قبل** استعادة المسودّة + يسجّل تحذيراً لكل سؤال مُسقَط) + اختبار `questionnaire_cubit_test.dart` (untracked). متحقَّق + analyze نظيف.
-  - **إصلاحات UI صغيرة (متحقَّقة بصرياً سابقاً):** `chat_empty_no_matchmaker` (خلفية الانتظار `creamSurface→creamCanvas`) · `discovery_action_bar` (ترتيب أطفال الـ Row like→undo→pass؛ mirroring طبيعي بلا flip يدوي) · `like_card_status` (الحالة `maxLines 1→2`) · `like_user_card` (كرت Received المعلّق: أزرار القبول/الرفض بصف أسفل، end-aligned).
-  - **لا تُكوميت أبداً:** `.metadata` · `android/…/MainActivity.kt` (untracked) · `web/` (untracked).
+- **✅ تجميع الشجرة (consolidation) — كل العمل المعمول صار مُكوميت على `main`:** الوحدات الأربع المتأخّرة كُوميتت بـ 4 commits منطقية:
+  - **فلتر الأسئلة الدفاعي (`5e71b0c`):** `QuestionEntity.isAnswerable` + `questionnaire_cubit.startFlow` يُسقط أسئلة option-type بلا options (قبل استعادة المسودّة، مع تحذير لكل مُسقَط) + اختبار الـ cubit.
+  - **تحسين كرت الاهتمامات-المستلَم (`7b4a596`):** `like_user_card` (أزرار القبول/الرفض بصف أسفل end-aligned، الاسم+العدّاد بالأعلى، الحالة بعرض كامل) + `like_card_status` (`maxLines 1→2`).
+  - **شريط أكشن الاستكشاف (`7a59045`):** ترتيب like→undo→pass عبر Directionality طبيعي (بلا flip يدوي).
+  - **خلفية فراغ الشات (`ca0277d`):** `creamSurface→creamCanvas`.
+- **فرع واحد فقط الآن:** `main` هو فرع العمل الوحيد. حُذف الفرعان القديمان المدموجان (`claude/clever-lehmann`, `claude/zealous-montalcini`). (يبقى `claude/crazy-bartik` فيه commit social-auth قديم — قرار حذفه معلّق على المستخدم؛ firebase-signin مربوط أصلاً بـ `main`.)
+- **لا تُكوميت أبداً (تبقى خارج git):** `.metadata` · `android/…/MainActivity.kt` (untracked) · `web/` (untracked).
 
 ---
 

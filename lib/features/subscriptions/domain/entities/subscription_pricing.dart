@@ -57,6 +57,17 @@ class SubscriptionPricing extends Equatable {
   /// True when the "خصم %" pill should be rendered. Centralised likewise.
   bool get hasDiscountBadge => discountPercent > 0;
 
+  /// Locale-aware duration label: the active-locale field, falling back to the
+  /// other when empty. Returns null when neither is set — callers then fall
+  /// back to the "{days} days" string.
+  String? label({required bool isArabic}) {
+    final primary = isArabic ? labelAr : labelEn;
+    if (primary != null && primary.isNotEmpty) return primary;
+    final other = isArabic ? labelEn : labelAr;
+    if (other != null && other.isNotEmpty) return other;
+    return null;
+  }
+
   @override
   List<Object?> get props => [
         id,

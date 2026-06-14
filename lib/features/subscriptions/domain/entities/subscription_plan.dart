@@ -49,6 +49,15 @@ class SubscriptionPlan extends Equatable {
   List<SubscriptionPricing> get activePricings =>
       pricings.where((p) => p.isActive).toList();
 
+  /// Locale-aware plan name: the active-locale field, falling back to the
+  /// other when the primary is empty. The backend ships both; the UI must
+  /// never hardcode one.
+  String name({required bool isArabic}) {
+    final primary = isArabic ? nameAr : nameEn;
+    if (primary.isNotEmpty) return primary;
+    return isArabic ? nameEn : nameAr;
+  }
+
   @override
   List<Object?> get props => [
         id,

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
@@ -113,7 +114,7 @@ class _PlanHeader extends StatelessWidget {
         QeranSpacing.hs12,
         Expanded(
           child: Text(
-            plan.nameAr,
+            plan.name(isArabic: context.locale.languageCode == 'ar'),
             style: QeranTypography.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

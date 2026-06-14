@@ -231,8 +231,8 @@ class _ActiveCard extends StatelessWidget {
     final dateFmt = DateFormat.yMMMMd(context.locale.toString());
     final expiresAt = dateFmt.format(subscription.expiresAt);
     final daysRemaining = subscription.daysRemaining;
-    final pricingLabel = subscription.pricing.labelAr ??
-        subscription.pricing.labelEn ??
+    final pricingLabel = subscription.pricing
+            .label(isArabic: context.locale.languageCode == 'ar') ??
         LocaleKeys.subscriptions_duration_days.t(context).replaceFirst(
               '{days}',
               '${subscription.pricing.durationDays}',
@@ -268,7 +268,10 @@ class _ActiveCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              subscription.plan.nameAr,
+                              subscription.plan.name(
+                                isArabic:
+                                    context.locale.languageCode == 'ar',
+                              ),
                               style: QeranTypography.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

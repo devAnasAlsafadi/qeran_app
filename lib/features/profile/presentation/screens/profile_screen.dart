@@ -369,7 +369,7 @@ class _SubscriptionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
       builder: (context, state) {
-        final (subtitle, showUpgrade) = _resolve(state);
+        final (subtitle, showUpgrade) = _resolve(context, state);
         return _SettingsRow(
           icon: Icons.workspace_premium_rounded,
           iconAccent: _IconAccent.gold,
@@ -391,23 +391,42 @@ class _SubscriptionRow extends StatelessWidget {
     );
   }
 
-  /// Returns `(subtitle, showUpgradePill)` per state.
-  (String, bool) _resolve(CurrentSubscriptionState state) {
+  /// Returns `(subtitle, showUpgradePill)` per state. Locale-aware: plan name
+  /// + "days remaining" follow `context.locale` (the backend ships bilingual
+  /// fields; never hardcode one).
+  (String, bool) _resolve(BuildContext context, CurrentSubscriptionState state) {
+    final isArabic = context.locale.languageCode == 'ar';
+    String activeSubtitle(String name, int daysRemaining) {
+      final days = LocaleKeys.subscriptions_status_days_remaining
+          .t(context)
+          .replaceFirst('{days}', '$daysRemaining');
+      return '$name · $days';
+    }
+
     return switch (state) {
       CurrentSubscriptionLoaded(:final subscription) =>
         subscription.isCurrentlyActive
             ? (
-                '${subscription.plan.nameAr} - ${subscription.daysRemaining} يوم متبقي',
+                activeSubtitle(
+                  subscription.plan.name(isArabic: isArabic),
+                  subscription.daysRemaining,
+                ),
                 false,
               )
-            : ('انتهت صلاحية الاشتراك', true),
+            : (
+                LocaleKeys.subscriptions_status_expired_subtitle.t(context),
+                true,
+              ),
       CurrentSubscriptionFailure(:final lastKnown)
           when lastKnown != null && lastKnown.isCurrentlyActive =>
         (
-          '${lastKnown.plan.nameAr} - ${lastKnown.daysRemaining} يوم متبقي',
+          activeSubtitle(
+            lastKnown.plan.name(isArabic: isArabic),
+            lastKnown.daysRemaining,
+          ),
           false,
         ),
-      _ => ('لا يوجد اشتراك نشط', true),
+      _ => (LocaleKeys.subscriptions_status_none_subtitle.t(context), true),
     };
   }
 }

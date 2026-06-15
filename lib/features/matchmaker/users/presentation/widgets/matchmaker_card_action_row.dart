@@ -10,15 +10,17 @@ import 'matchmaker_action_chip.dart';
 /// (wired progressively across M3b–f).
 enum MatchmakerCardAction { approve, message, view, notes, interests }
 
-/// The per-list action row beneath a user card. Exactly ONE filled
-/// (primaryWine) button — the list's primary action — with the rest as soft
-/// wine-tinted "chip" buttons ([QeranButtonVariant.neutral]):
-///   • pending               → موافقة* · مراسلة · عرض · ملاحظات
-///   • approved-unsubscribed → مراسلة* · عرض · ملاحظات
-///   • approved-subscribed   → مراسلة* · عرض · ملاحظات · الإهتمامات
-/// (* = the filled primary). Buttons are content-sized and flow in a [Wrap]
-/// so labels NEVER truncate — the chips sit on one line when they fit, else
-/// they wrap to a second line. Mirrors automatically (RTL/LTR).
+/// The per-list action block beneath a user card — a clear 1 + N hierarchy:
+///   • Row 1 — the list's lone primary action, a FULL-WIDTH filled wine chip:
+///       pending → موافقة · approved-(un)subscribed → مراسلة
+///   • Row 2 — the secondary actions as content-sized soft chips in a [Wrap]:
+///       pending → مراسلة · عرض · ملاحظات
+///       approved-unsubscribed → عرض · ملاحظات
+///       approved-subscribed   → عرض · ملاحظات · الإهتمامات
+///
+/// The primary leads (dominant, full-width); the secondaries group beneath and
+/// wrap so labels NEVER truncate — balanced at any label width across all three
+/// lists (3 or 4 actions). Mirrors automatically (RTL/LTR).
 class MatchmakerCardActionRow extends StatelessWidget {
   const MatchmakerCardActionRow({
     super.key,
@@ -36,10 +38,36 @@ class MatchmakerCardActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: QeranSpacing.s8,
-      runSpacing: QeranSpacing.s8,
-      children: [for (final spec in _specsFor(list)) _button(context, spec)],
+    final specs = _specsFor(list);
+    final primary = specs.firstWhere((s) => s.primary);
+    final secondaries = specs.where((s) => !s.primary).toList(growable: false);
+    return Column(
+      // Stretch lets the primary row + Wrap span full width; both then centre
+      // their content horizontally.
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Primary centred at ~70% width (3 : 14 : 3) — prominent but not a
+        // heavy full-width bar; equal side gaps mirror with the row.
+        Row(
+          children: [
+            const Spacer(flex: 3),
+            Expanded(
+              flex: 14,
+              child: _button(context, primary, fullWidth: true),
+            ),
+            const Spacer(flex: 3),
+          ],
+        ),
+        QeranSpacing.vs8,
+        // Secondaries centred beneath; content-sized chips, never truncate.
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: QeranSpacing.s8,
+          runSpacing: QeranSpacing.s8,
+          children: [for (final spec in secondaries) _button(context, spec)],
+        ),
+      ],
     );
   }
 
@@ -49,11 +77,12 @@ class MatchmakerCardActionRow extends StatelessWidget {
     MatchmakerUsersList.approvedSubscribed => _subscribedActions,
   };
 
-  Widget _button(BuildContext context, _BtnSpec spec) {
+  Widget _button(BuildContext context, _BtnSpec spec, {bool fullWidth = false}) {
     return MatchmakerActionChip(
       label: spec.labelKey.t(context),
       icon: spec.icon,
       primary: spec.primary,
+      fullWidth: fullWidth,
       loading: spec.action == loadingAction,
       onTap: () => onAction(spec.action),
     );

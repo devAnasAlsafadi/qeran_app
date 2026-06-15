@@ -21,6 +21,7 @@ class MatchmakerActionChip extends StatelessWidget {
     required this.primary,
     required this.loading,
     required this.onTap,
+    this.fullWidth = false,
   });
 
   final String label;
@@ -28,6 +29,11 @@ class MatchmakerActionChip extends StatelessWidget {
   final bool primary;
   final bool loading;
   final VoidCallback onTap;
+
+  /// When true the chip fills its parent's width and centres its content —
+  /// used for a card's lone primary action sitting on its own row. Otherwise
+  /// the chip is content-sized and flows in a [Wrap].
+  final bool fullWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +53,9 @@ class MatchmakerActionChip extends StatelessWidget {
             vertical: QeranSpacing.s6,
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
+            mainAxisAlignment:
+                fullWidth ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
               SizedBox(
                 width: 15,

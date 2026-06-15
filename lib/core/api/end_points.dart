@@ -187,9 +187,15 @@ class EndPoints {
   static const String matchmakerUsersApprovedUnsubscribed =
       "matchmaker/users/approved-unsubscribed";
 
-  /// `GET /api/matchmaker/users/approved-subscribed?page=N&pageSize=M`
+  /// `GET /api/matchmaker/users/approved-subscribed?page=N&pageSize=M&planId=P`
+  /// (`planId` optional — filters subscribers to that plan, server-side).
   static const String matchmakerUsersApprovedSubscribed =
       "matchmaker/users/approved-subscribed";
+
+  /// `GET /api/matchmaker/users/subscription-plans` — the dynamic plan list
+  /// (planId/nameAr/nameEn/subscriberCount) backing the plan-filter rail.
+  static const String matchmakerUsersSubscriptionPlans =
+      "matchmaker/users/subscription-plans";
 
   /// `GET /api/matchmaker/users/{id}/profile` — full profile (never blurred).
   static String matchmakerUserProfile(String userId) =>

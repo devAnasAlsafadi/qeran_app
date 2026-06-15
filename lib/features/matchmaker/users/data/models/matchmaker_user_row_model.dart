@@ -21,6 +21,7 @@ class MatchmakerUserRowModel {
   final List<MatchmakerCardAnswer> answers;
   final bool? hasProfileImage;
   final int? chatConversationId;
+  final int? subscriptionPlanId;
   final String? subscriptionPlanName;
   final DateTime? subscriptionExpiresAt;
 
@@ -33,6 +34,7 @@ class MatchmakerUserRowModel {
     required this.answers,
     required this.hasProfileImage,
     required this.chatConversationId,
+    required this.subscriptionPlanId,
     required this.subscriptionPlanName,
     required this.subscriptionExpiresAt,
   });
@@ -63,6 +65,9 @@ class MatchmakerUserRowModel {
           .toList(growable: false),
       hasProfileImage: parseNullableBool(json['hasProfileImage']),
       chatConversationId: parseNullableInt(json['chatConversationId']),
+      // Stable plan key (for cross-locale plan filtering); `null` off the
+      // approved-subscribed list, where the subscription map is absent.
+      subscriptionPlanId: parseNullableInt(subscription?['planId']),
       subscriptionPlanName: parseNullableString(subscription?['planName']),
       subscriptionExpiresAt:
           parseNullableDateTime(subscription?['expiresAt']),
@@ -83,6 +88,7 @@ class MatchmakerUserRowModel {
       answers: answers,
       hasProfileImage: hasProfileImage,
       chatConversationId: chatConversationId,
+      subscriptionPlanId: subscriptionPlanId,
       subscriptionPlanName: subscriptionPlanName,
       subscriptionExpiresAt: subscriptionExpiresAt,
     );

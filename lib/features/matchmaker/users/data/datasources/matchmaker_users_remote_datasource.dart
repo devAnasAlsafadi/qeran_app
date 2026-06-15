@@ -5,15 +5,21 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../../../shared/data/json_parsers.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import '../models/matchmaker_users_page_model.dart';
+import '../models/subscription_plan_model.dart';
 
 abstract interface class MatchmakerUsersRemoteDataSource {
   Future<MatchmakerUsersPageModel> getUsers({
     required MatchmakerUsersList list,
     required int page,
     required int pageSize,
+    int? planId,
   });
+
+  /// The dynamic plan list backing the مشتركون plan-filter rail.
+  Future<List<SubscriptionPlanModel>> getSubscriptionPlans();
 }
 
 class MatchmakerUsersRemoteDataSourceImpl
@@ -28,6 +34,7 @@ class MatchmakerUsersRemoteDataSourceImpl
     required MatchmakerUsersList list,
     required int page,
     required int pageSize,
+    int? planId,
   }) async {
     final path = switch (list) {
       MatchmakerUsersList.pending => EndPoints.matchmakerUsersPending,
@@ -37,12 +44,19 @@ class MatchmakerUsersRemoteDataSourceImpl
         EndPoints.matchmakerUsersApprovedSubscribed,
     };
     AppLogger.debug(
-      'MATCHMAKER — get users ${list.name} page=$page size=$pageSize',
+      'MATCHMAKER — get users ${list.name} page=$page size=$pageSize'
+      '${planId == null ? '' : ' planId=$planId'}',
       tag: 'MATCHMAKER',
     );
     final response = await _apiConsumer.get(
       path,
-      queryParameters: {'page': page, 'pageSize': pageSize},
+      queryParameters: {
+        'page': page,
+        'pageSize': pageSize,
+        // Server-side plan filter — only the subscribed list ever passes it;
+        // the null-aware value drops the entry entirely when planId is null.
+        'planId': ?planId,
+      },
     );
     final apiResponse = ApiResponse<MatchmakerUsersPageModel>.fromJson(
       response as Map<String, dynamic>,
@@ -52,6 +66,29 @@ class MatchmakerUsersRemoteDataSourceImpl
     if (data == null) {
       AppLogger.error(
         'MATCHMAKER — users ${list.name} ok but data was null',
+        tag: 'MATCHMAKER',
+      );
+      throw ServerException(message: LocaleKeys.errors_generic);
+    }
+    return data;
+  }
+
+  @override
+  Future<List<SubscriptionPlanModel>> getSubscriptionPlans() async {
+    AppLogger.debug('MATCHMAKER — get subscription plans', tag: 'MATCHMAKER');
+    final response = await _apiConsumer.get(
+      EndPoints.matchmakerUsersSubscriptionPlans,
+    );
+    final apiResponse = ApiResponse<List<SubscriptionPlanModel>>.fromJson(
+      response as Map<String, dynamic>,
+      (json) => parseMapList(json)
+          .map(SubscriptionPlanModel.fromJson)
+          .toList(growable: false),
+    );
+    final data = apiResponse.data;
+    if (data == null) {
+      AppLogger.error(
+        'MATCHMAKER — subscription plans ok but data was null',
         tag: 'MATCHMAKER',
       );
       throw ServerException(message: LocaleKeys.errors_generic);

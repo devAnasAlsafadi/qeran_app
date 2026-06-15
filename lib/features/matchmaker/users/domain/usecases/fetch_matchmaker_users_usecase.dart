@@ -13,6 +13,12 @@ class FetchMatchmakerUsersUseCase {
     required MatchmakerUsersList list,
     required int page,
     required int pageSize,
+    int? planId,
   }) =>
-      _repository.getUsers(list: list, page: page, pageSize: pageSize);
+      _repository.getUsers(
+        list: list,
+        page: page,
+        pageSize: pageSize,
+        planId: planId,
+      );
 }

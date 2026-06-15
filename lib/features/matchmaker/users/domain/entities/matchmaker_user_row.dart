@@ -10,6 +10,7 @@ import 'matchmaker_card_answer.dart';
 /// that carries them:
 ///   • [hasProfileImage]        → pending only
 ///   • [chatConversationId]     → approved-unsubscribed + approved-subscribed
+///   • [subscriptionPlanId]     → approved-subscribed only
 ///   • [subscriptionPlanName]   → approved-subscribed only
 ///   • [subscriptionExpiresAt]  → approved-subscribed only
 ///
@@ -26,6 +27,10 @@ class MatchmakerUserRow extends Equatable {
 
   final bool? hasProfileImage;
   final int? chatConversationId;
+
+  /// Stable plan key for cross-locale plan matching — pair against
+  /// `SubscriptionPlan.planId`, NOT the displayed [subscriptionPlanName].
+  final int? subscriptionPlanId;
   final String? subscriptionPlanName;
   final DateTime? subscriptionExpiresAt;
 
@@ -38,6 +43,7 @@ class MatchmakerUserRow extends Equatable {
     this.answers = const [],
     this.hasProfileImage,
     this.chatConversationId,
+    this.subscriptionPlanId,
     this.subscriptionPlanName,
     this.subscriptionExpiresAt,
   });
@@ -55,6 +61,7 @@ class MatchmakerUserRow extends Equatable {
         answers,
         hasProfileImage,
         chatConversationId,
+        subscriptionPlanId,
         subscriptionPlanName,
         subscriptionExpiresAt,
       ];

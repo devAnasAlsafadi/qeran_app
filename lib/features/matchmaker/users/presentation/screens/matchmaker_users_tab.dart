@@ -8,14 +8,15 @@ import '../../../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
 import '../../../dashboard/presentation/blocs/matchmaker_dashboard_state.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
-import '../widgets/matchmaker_users_list_view.dart';
 import '../widgets/matchmaker_users_segmented_tabs.dart';
+import '../widgets/matchmaker_users_tab_pager.dart';
 
 /// Users management tab — three paginated sub-tabs. Controlled: the
 /// active sub-tab lives in the shell so both the segmented control and
-/// the dashboard card shortcuts drive it. All three lists sit in an
-/// IndexedStack, so each keeps its pagination + scroll alive across
-/// sub-tab switches.
+/// the dashboard card shortcuts drive it. The three lists sit in a
+/// controlled, non-swipeable [MatchmakerUsersTabPager] (keep-alive pages),
+/// which slides directionally between them while preserving each list's
+/// pagination + scroll across switches.
 class MatchmakerUsersTab extends StatelessWidget {
   const MatchmakerUsersTab({
     super.key,
@@ -50,17 +51,9 @@ class MatchmakerUsersTab extends StatelessWidget {
               pendingBadge: pendingBadge,
             ),
             Expanded(
-              child: IndexedStack(
-                index: subTab.index,
-                children: const [
-                  MatchmakerUsersListView(list: MatchmakerUsersList.pending),
-                  MatchmakerUsersListView(
-                    list: MatchmakerUsersList.approvedUnsubscribed,
-                  ),
-                  MatchmakerUsersListView(
-                    list: MatchmakerUsersList.approvedSubscribed,
-                  ),
-                ],
+              child: MatchmakerUsersTabPager(
+                activeIndex: subTab.index,
+                onPageChanged: onSubTabChanged,
               ),
             ),
           ],

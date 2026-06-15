@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
+import '../../../../../core/design_system/tokens/qeran_motion.dart';
 import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_shadows.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
@@ -34,7 +35,10 @@ class MatchmakerSegmentedTabs extends StatelessWidget {
   final int activeIndex;
   final ValueChanged<int> onChanged;
 
-  static const Duration _kAnimDur = Duration(milliseconds: 280);
+  // Indicator glide + label cross-fade. Same tokens as the content slide, so
+  // the bar travels in lockstep with the page transition.
+  static const Duration _kAnimDur = QeranMotion.standard;
+  static const Curve _kAnimCurve = QeranCurves.standard;
   static const double _kBarHeight = 3.0;
   static const double _kBarWidth = 40.0;
   static const double _kCardHeight = 56.0;
@@ -68,7 +72,7 @@ class MatchmakerSegmentedTabs extends StatelessWidget {
                 children: [
                   AnimatedPositionedDirectional(
                     duration: _kAnimDur,
-                    curve: Curves.easeOutCubic,
+                    curve: _kAnimCurve,
                     start: barStart,
                     bottom: 6,
                     width: _kBarWidth,
@@ -128,7 +132,7 @@ class _TabCell extends StatelessWidget {
             Flexible(
               child: AnimatedDefaultTextStyle(
                 duration: MatchmakerSegmentedTabs._kAnimDur,
-                curve: Curves.easeOutCubic,
+                curve: MatchmakerSegmentedTabs._kAnimCurve,
                 style: QeranTypography.subtitle.copyWith(
                   fontSize: 14,
                   color: isActive ? QeranColors.wine : QeranColors.inkMuted,

@@ -44,8 +44,22 @@ class NoDeepLink extends NotificationDeepLink {
 class NotificationDeepLinkRouter {
   const NotificationDeepLinkRouter._();
 
-  static NotificationDeepLink resolve(NotificationItem item) {
-    final screen = (item.data['screen']?.toString() ?? '').toLowerCase();
+  static NotificationDeepLink resolve(NotificationItem item) =>
+      _fromData(item.data, fallbackType: item.type);
+
+  /// Map-based sibling of [resolve] for an FCM `RemoteMessage.data` payload
+  /// (a flat map, not a [NotificationItem]). Same `screen` contract; the type
+  /// fallback reads the raw `data.type` since no typed value is available.
+  static NotificationDeepLink resolveData(Map<String, dynamic> data) =>
+      _fromData(data, fallbackType: NotificationType.fromWire(data['type']?.toString()));
+
+  /// Shared core: route by `data.screen`, falling back to [fallbackType] when
+  /// `screen` is absent/unknown. Never throws.
+  static NotificationDeepLink _fromData(
+    Map<String, dynamic> data, {
+    required NotificationType fallbackType,
+  }) {
+    final screen = (data['screen']?.toString() ?? '').toLowerCase();
     switch (screen) {
       case 'incoming_likes':
       case 'matches':
@@ -56,7 +70,7 @@ class NotificationDeepLinkRouter {
       case 'profile':
         return const OpenProfileTab();
     }
-    return _fromType(item.type);
+    return _fromType(fallbackType);
   }
 
   /// Fallback when `screen` is absent/unknown — route by notification type.

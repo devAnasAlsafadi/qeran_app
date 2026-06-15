@@ -1,10 +1,17 @@
+import 'dart:async';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
+import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
+import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -24,6 +31,53 @@ class _HomeScreenState extends State<HomeScreen> {
   static const int _messagesTabIndex = 2;
   static const int _profileTabIndex = 3;
   int _currentTab = _discoveryTabIndex;
+
+  // FCM deep-linking. Confined to the shell — mirrors the matchmaker shell
+  // (no main.dart bootstrap changes). Role-guarded so a matchmaker-targeted
+  // push never acts on the user tree. The user app has no SignalR, so the
+  // foreground stream refreshes the bell badge here (live-update equivalent).
+  StreamSubscription<RemoteMessage>? _notifTapSub;
+  StreamSubscription<RemoteMessage>? _notifForegroundSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Background-tap (app alive) + terminated/cold-start (launched by tap).
+    _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
+    FirebaseMessaging.instance.getInitialMessage().then((m) {
+      if (m != null) _route(m);
+    });
+    // Foreground push → refresh the unread bell dot (no auto-navigation).
+    _notifForegroundSub = FirebaseMessaging.onMessage.listen((_) {
+      unawaited(sl<NotificationBadgeCubit>().refresh());
+    });
+  }
+
+  @override
+  void dispose() {
+    unawaited(_notifTapSub?.cancel());
+    unawaited(_notifForegroundSub?.cancel());
+    super.dispose();
+  }
+
+  /// Route a tapped notification into a bottom-nav tab. Defensive role guard:
+  /// only the regular user shell acts (a Moderator push routes elsewhere).
+  /// Non-actionable payloads ([NoDeepLink]) do nothing.
+  void _route(RemoteMessage message) {
+    if (!mounted) return;
+    final role = sl<UserSessionCubit>().currentUser?.role;
+    if ((role ?? '').toLowerCase() == 'moderator') return;
+    switch (NotificationDeepLinkRouter.resolveData(message.data)) {
+      case OpenLikesTab():
+        _openLikesTab();
+      case OpenMessagesTab():
+        _openMessagesTab();
+      case OpenProfileTab():
+        _openProfileTab();
+      case NoDeepLink():
+        break;
+    }
+  }
 
   void _selectTab(int index) {
     if (index == _currentTab) return;

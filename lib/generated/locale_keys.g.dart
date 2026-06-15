@@ -412,6 +412,7 @@ abstract class  LocaleKeys {
   static const matchmaker_users_tab_pending = 'matchmaker.users_tab_pending';
   static const matchmaker_users_tab_approved_unsubscribed = 'matchmaker.users_tab_approved_unsubscribed';
   static const matchmaker_users_tab_approved_subscribed = 'matchmaker.users_tab_approved_subscribed';
+  static const matchmaker_users_plan_filter_all = 'matchmaker.users_plan_filter_all';
   static const matchmaker_users_subscription_expires = 'matchmaker.users_subscription_expires';
   static const matchmaker_users_assigned_at = 'matchmaker.users_assigned_at';
   static const matchmaker_users_age_years = 'matchmaker.users_age_years';

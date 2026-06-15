@@ -14,12 +14,30 @@ class MatchmakerUsersListCubit extends Cubit<PaginatedListState<MatchmakerUserRo
   final MatchmakerUsersList _list;
   final FetchMatchmakerUsersUseCase _fetchUsers;
 
+  /// Active server-side plan filter (subscribed list only; `null` = All).
+  /// Read by [fetchPage] so refresh / load-more keep the same filter.
+  int? _planId;
+
   MatchmakerUsersListCubit({
     required MatchmakerUsersList list,
     required FetchMatchmakerUsersUseCase fetchUsers,
   })  : _list = list,
         _fetchUsers = fetchUsers,
         super(const PaginatedListState());
+
+  /// Applies a plan filter and reloads from page 1. No-op when unchanged so a
+  /// redundant chip tap doesn't refetch. Only the subscribed list uses this.
+  ///
+  /// Clears the current items first so the refetch surfaces the calm list
+  /// skeleton (the `isLoading && items.isEmpty` branch) rather than freezing
+  /// the previous plan's rows until the new page lands — the view fades
+  /// skeleton→list. Distinct from pull-to-refresh, which keeps rows visible.
+  Future<void> applyPlanFilter(int? planId) async {
+    if (planId == _planId) return;
+    _planId = planId;
+    emit(state.copyWith(items: const [], clearError: true));
+    await loadFirst();
+  }
 
   @override
   Future<({List<MatchmakerUserRow> items, bool hasMore})> fetchPage(
@@ -29,6 +47,7 @@ class MatchmakerUsersListCubit extends Cubit<PaginatedListState<MatchmakerUserRo
       list: _list,
       page: page,
       pageSize: pageSize,
+      planId: _planId,
     );
     // The mixin contract is throw-on-failure: it catches and surfaces the
     // message into `errorMessage`. `_UsersFetchException.toString()`

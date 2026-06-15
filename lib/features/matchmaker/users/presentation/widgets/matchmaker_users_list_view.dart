@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/design_system/tokens/qeran_motion.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -17,17 +17,27 @@ import '../../domain/entities/matchmaker_user_row.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import '../blocs/matchmaker_users_list_cubit.dart';
 import 'matchmaker_card_action_row.dart';
+import 'matchmaker_plan_filter_listener.dart';
 import 'matchmaker_notes_sheet.dart';
 import 'matchmaker_user_row_card.dart';
+import 'matchmaker_users_empty_refreshable.dart';
 import 'matchmaker_users_list_skeleton.dart';
 
 /// One user list: owns its own [MatchmakerUsersListCubit] and renders the
 /// loading / error / empty / populated states. Kept alive by the parent
 /// IndexedStack so pagination + scroll survive sub-tab switches.
 class MatchmakerUsersListView extends StatelessWidget {
-  const MatchmakerUsersListView({super.key, required this.list});
+  const MatchmakerUsersListView({
+    super.key,
+    required this.list,
+    this.planFiltered = false,
+  });
 
   final MatchmakerUsersList list;
+
+  /// When true (subscribed list only), the view listens to an ancestor
+  /// [SubscriptionPlansCubit] and re-fetches with the selected `planId`.
+  final bool planFiltered;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +45,11 @@ class MatchmakerUsersListView extends StatelessWidget {
       create: (_) => sl<MatchmakerUsersListCubit>(param1: list)..loadFirst(),
       // The host provides the open-chat cubit + navigates/snackbars on its
       // outcome; descendant cards drive it via onMessage (M3c).
-      child: MatchmakerOpenChatHost(child: _ListBody(list: list)),
+      child: MatchmakerOpenChatHost(
+        child: planFiltered
+            ? MatchmakerPlanFilterListener(child: _ListBody(list: list))
+            : _ListBody(list: list),
+      ),
     );
   }
 }
@@ -56,29 +70,53 @@ class _ListBody extends StatelessWidget {
         final openingUserId =
             context.watch<MatchmakerOpenChatCubit>().state.openingUserId;
 
-        if (state.isLoading && state.items.isEmpty) {
-          return const MatchmakerUsersListSkeleton();
-        }
-        if (state.errorMessage != null && state.items.isEmpty) {
-          return QeranErrorState(
-            title: LocaleKeys.matchmaker_users_error_title.t(context),
-            message: state.errorMessage!.t(context),
-            retryLabel: LocaleKeys.matchmaker_users_retry.t(context),
-            onRetry: cubit.loadFirst,
-          );
-        }
-        if (state.items.isEmpty) {
-          return _EmptyRefreshable(
-            onRefresh: cubit.refresh,
-            title: _emptyTitleKey(list).t(context),
-            message: LocaleKeys.matchmaker_users_empty_message.t(context),
-          );
-        }
-        return MatchmakerPaginatedList(
-          hasMore: state.hasMore,
-          onRefresh: cubit.refresh,
-          onLoadMore: cubit.loadMore,
-          child: ListView.builder(
+        // Fade-through between phases (skeleton → empty/error → list) so a
+        // plan-filter change cross-fades instead of snapping. Gentle fade
+        // only, at the app's content-swap tempo; each phase carries a stable
+        // key so the switcher knows when to animate. Pagination load-more
+        // doesn't change the key, so appended pages don't re-fade.
+        return AnimatedSwitcher(
+          duration: QeranMotion.standard,
+          switchInCurve: QeranCurves.standard,
+          switchOutCurve: QeranCurves.standard,
+          child: _phase(context, state, cubit, openingUserId),
+        );
+      },
+    );
+  }
+
+  Widget _phase(
+    BuildContext context,
+    PaginatedListState<MatchmakerUserRow> state,
+    MatchmakerUsersListCubit cubit,
+    String? openingUserId,
+  ) {
+    if (state.isLoading && state.items.isEmpty) {
+      return const MatchmakerUsersListSkeleton(key: ValueKey('skeleton'));
+    }
+    if (state.errorMessage != null && state.items.isEmpty) {
+      return QeranErrorState(
+        key: const ValueKey('error'),
+        title: LocaleKeys.matchmaker_users_error_title.t(context),
+        message: state.errorMessage!.t(context),
+        retryLabel: LocaleKeys.matchmaker_users_retry.t(context),
+        onRetry: cubit.loadFirst,
+      );
+    }
+    if (state.items.isEmpty) {
+      return MatchmakerUsersEmptyRefreshable(
+        key: const ValueKey('empty'),
+        onRefresh: cubit.refresh,
+        title: _emptyTitleKey(list).t(context),
+        message: LocaleKeys.matchmaker_users_empty_message.t(context),
+      );
+    }
+    return MatchmakerPaginatedList(
+      key: const ValueKey('list'),
+      hasMore: state.hasMore,
+      onRefresh: cubit.refresh,
+      onLoadMore: cubit.loadMore,
+      child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(
               QeranSpacing.s20,
               QeranSpacing.s8,
@@ -127,9 +165,7 @@ class _ListBody extends StatelessWidget {
                     : null,
               );
             },
-          ),
-        );
-      },
+      ),
     );
   }
 
@@ -143,40 +179,3 @@ class _ListBody extends StatelessWidget {
       };
 }
 
-/// Empty state that still scrolls, so pull-to-refresh works on an empty
-/// list.
-class _EmptyRefreshable extends StatelessWidget {
-  const _EmptyRefreshable({
-    required this.onRefresh,
-    required this.title,
-    required this.message,
-  });
-
-  final Future<void> Function() onRefresh;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
-      hasMore: false,
-      onRefresh: onRefresh,
-      onLoadMore: () async {},
-      child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: QeranEmptyState(
-              icon: Icons.people_outline_rounded,
-              title: title,
-              message: message,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

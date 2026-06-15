@@ -13,6 +13,7 @@ import 'package:qeran/core/state/paginated_list_state.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/notification_item.dart';
+import '../blocs/notification_badge_cubit.dart';
 import '../blocs/notifications_cubit.dart';
 import '../routing/notification_deep_link.dart';
 import '../widgets/notification_inbox_tile.dart';
@@ -33,6 +34,9 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late final NotificationsCubit _cubit;
 
+  /// Guards the one-shot "mark seen" — fires once the list first loads.
+  bool _markedSeen = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +47,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void dispose() {
     _cubit.close();
     super.dispose();
+  }
+
+  /// Persists the newest loaded id as last-seen and clears the bell badge.
+  /// One-shot: only the first non-empty load matters (newest id is highest).
+  void _markSeen(List<NotificationItem> items) {
+    if (_markedSeen || items.isEmpty) return;
+    _markedSeen = true;
+    final newest = items.fold<int>(0, (max, n) => n.id > max ? n.id : max);
+    sl<NotificationBadgeCubit>().markSeen(newest);
   }
 
   /// Resolve the deep-link; actionable rows pop the intent (handled by
@@ -65,7 +78,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         body: SafeArea(
           top: false,
-          child: _Body(isArabic: isArabic, onTap: _onTap),
+          child: BlocListener<NotificationsCubit,
+              PaginatedListState<NotificationItem>>(
+            listenWhen: (prev, curr) =>
+                prev.items.isEmpty && curr.items.isNotEmpty,
+            listener: (_, state) => _markSeen(state.items),
+            child: _Body(isArabic: isArabic, onTap: _onTap),
+          ),
         ),
       ),
     );

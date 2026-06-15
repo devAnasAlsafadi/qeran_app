@@ -29,4 +29,9 @@ class StorageKeys {
   /// Unread = max(0, currentTotal − this) — the backend exposes no read-state.
   static const String matchmakerNotifLastSeenCount =
       'matchmaker_notif_last_seen_count';
+
+  /// Local "last seen" highest notification id for the USER-app inbox. Unread =
+  /// newest server id > this — the backend exposes no read-state. Distinct from
+  /// the matchmaker count heuristic above (the user app keys off the id).
+  static const String notifLastSeenId = 'notif_last_seen_id';
 }

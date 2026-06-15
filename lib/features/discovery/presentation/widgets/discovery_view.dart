@@ -16,6 +16,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
@@ -58,8 +59,17 @@ class DiscoveryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DiscoveryCubit>(
-      create: (_) => sl<DiscoveryCubit>()..loadInitial(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<DiscoveryCubit>(
+          create: (_) => sl<DiscoveryCubit>()..loadInitial(),
+        ),
+        // App-wide unread-badge singleton (refreshed in initState + on resume,
+        // not per build). `.value` so the shared singleton is never closed here.
+        BlocProvider<NotificationBadgeCubit>.value(
+          value: sl<NotificationBadgeCubit>(),
+        ),
+      ],
       child: _DiscoveryContent(showTopBar: showTopBar),
     );
   }
@@ -93,7 +103,8 @@ const double _kOverlayClearance = 52.0;
 /// overlapping the image" look from the previous layout.
 const double _kBodyOverlap = 20.0;
 
-class _DiscoveryContentState extends State<_DiscoveryContent> {
+class _DiscoveryContentState extends State<_DiscoveryContent>
+    with WidgetsBindingObserver {
   late final DiscoveryDeckAnimationController _animController =
       DiscoveryDeckAnimationController();
 
@@ -104,7 +115,24 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
   bool _likeBurstInFlight = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // First unread check on mount (app open / return to the discovery tab).
+    sl<NotificationBadgeCubit>().refresh();
+  }
+
+  /// Re-check the unread badge when the app returns to the foreground.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      sl<NotificationBadgeCubit>().refresh();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _animController.dispose();
     super.dispose();
   }
@@ -850,9 +878,12 @@ class _OverlayControls extends StatelessWidget {
           onPressed: onFilterTap,
         ),
         const Spacer(),
-        _OverlayCircleIcon(
-          icon: Icons.notifications_none_rounded,
-          onPressed: onNotificationsTap,
+        BlocBuilder<NotificationBadgeCubit, bool>(
+          builder: (context, hasUnread) => _OverlayCircleIcon(
+            icon: Icons.notifications_none_rounded,
+            onPressed: onNotificationsTap,
+            badge: hasUnread ? const _BellUnreadDot() : null,
+          ),
         ),
       ],
     );
@@ -863,11 +894,18 @@ class _OverlayCircleIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
 
-  const _OverlayCircleIcon({required this.icon, required this.onPressed});
+  /// Small unread marker drawn at the top-trailing corner (directional).
+  final Widget? badge;
+
+  const _OverlayCircleIcon({
+    required this.icon,
+    required this.onPressed,
+    this.badge,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    final button = DecoratedBox(
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         boxShadow: QeranShadows.e2,
@@ -890,6 +928,33 @@ class _OverlayCircleIcon extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+    if (badge == null) return button;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        button,
+        PositionedDirectional(top: 1, end: 1, child: badge!),
+      ],
+    );
+  }
+}
+
+/// Subtle on-brand unread dot for the discovery bell — wine with a paper ring
+/// so it reads cleanly on the white bell.
+class _BellUnreadDot extends StatelessWidget {
+  const _BellUnreadDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 9,
+      height: 9,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: QeranColors.wine,
+        border: Border.all(color: QeranColors.paper, width: 1.5),
       ),
     );
   }

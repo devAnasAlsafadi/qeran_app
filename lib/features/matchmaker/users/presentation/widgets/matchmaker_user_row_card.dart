@@ -14,16 +14,18 @@ import 'matchmaker_card_action_row.dart';
 import 'matchmaker_card_answers_block.dart';
 import 'matchmaker_review_action_sheet.dart';
 
-/// One user row: unblurred avatar + name + flagged answers/age, with a
+/// One user row: an unblurred avatar + name + flagged answers/age, with a
+/// quiet expiry timestamp pinned to the top-END corner (subscribed only) and a
 /// per-list [MatchmakerCardActionRow] beneath. The card body itself is NOT
 /// tappable — every action lives on its own button (scaffolded in M3a,
-/// wired in M3b–f). The subscribed list also shows a gold plan chip + the
-/// subscription-expiry line.
+/// wired in M3b–f). The subscribed list also shows a gold plan chip — hidden
+/// when the rail has filtered to a specific plan (then it's redundant).
 class MatchmakerUserRowCard extends StatelessWidget {
   const MatchmakerUserRowCard({
     super.key,
     required this.row,
     required this.list,
+    this.showPlanChip = true,
     this.onMutated,
     this.onMessage,
     this.onNotes,
@@ -36,6 +38,12 @@ class MatchmakerUserRowCard extends StatelessWidget {
 
   /// Which of the three lists this card belongs to — selects the button set.
   final MatchmakerUsersList list;
+
+  /// Whether to render the plan chip on a subscribed row. False when the rail
+  /// has filtered to one plan (every card is that plan, so the chip adds
+  /// nothing). Only the subscribed list ever passes false; ignored elsewhere
+  /// (non-subscribed rows have no plan chip anyway).
+  final bool showPlanChip;
 
   /// Called after an on-card action mutates the user (approve/reject) so the
   /// list can refresh and drop the row. Null on lists without such actions.
@@ -63,7 +71,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final caption = _caption(context);
+    final expiry = _expiryLabel(context);
     return QeranCard(
       margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
       padding: const EdgeInsets.all(QeranSpacing.s12),
@@ -72,9 +80,9 @@ class MatchmakerUserRowCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            // Larger avatar, vertically centred with the text block so the
-            // image balances the leading edge instead of floating small.
-            crossAxisAlignment: CrossAxisAlignment.center,
+            // Top-align so the expiry timestamp pins to the top-END corner,
+            // level with the avatar's top edge.
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               MatchmakerUserAvatar(url: row.profileImageUrl, size: 72),
               QeranSpacing.hs12,
@@ -96,7 +104,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
                         age: row.age,
                       ),
                     ],
-                    if (row.isSubscribed) ...[
+                    if (row.isSubscribed && showPlanChip) ...[
                       QeranSpacing.vs8,
                       QeranChip(
                         label: row.subscriptionPlanName!,
@@ -105,13 +113,20 @@ class MatchmakerUserRowCard extends StatelessWidget {
                         icon: Icons.workspace_premium_outlined,
                       ),
                     ],
-                    if (caption != null) ...[
-                      QeranSpacing.vs4,
-                      Text(caption, style: QeranTypography.caption),
-                    ],
                   ],
                 ),
               ),
+              // Quiet expiry timestamp in the top-END corner — mirrors
+              // automatically (end = left in RTL, right in LTR).
+              if (expiry != null) ...[
+                QeranSpacing.hs8,
+                Text(
+                  expiry,
+                  style: QeranTypography.caption.copyWith(
+                    color: QeranColors.inkFaint,
+                  ),
+                ),
+              ],
             ],
           ),
           QeranSpacing.vs12,
@@ -154,11 +169,9 @@ class MatchmakerUserRowCard extends StatelessWidget {
     if (mutated == true) onMutated?.call();
   }
 
-  /// Subscribed rows surface the subscription expiry under the plan chip.
-  /// The M3a redesign dropped the assignedAt caption (the old "date in the
-  /// corner"); `null` on the non-subscribed lists. Expiry is kept here since
-  /// it pairs with the plan chip.
-  String? _caption(BuildContext context) {
+  /// The subscription-expiry label shown as the top-end corner timestamp.
+  /// `null` on the non-subscribed lists (or when the backend omits the date).
+  String? _expiryLabel(BuildContext context) {
     if (row.isSubscribed && row.subscriptionExpiresAt != null) {
       return '${LocaleKeys.matchmaker_users_subscription_expires.t(context)} '
           '${_formatDate(row.subscriptionExpiresAt!)}';

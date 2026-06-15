@@ -31,6 +31,7 @@ class MatchmakerUsersListView extends StatelessWidget {
     super.key,
     required this.list,
     this.planFiltered = false,
+    this.showPlanChip = true,
   });
 
   final MatchmakerUsersList list;
@@ -38,6 +39,10 @@ class MatchmakerUsersListView extends StatelessWidget {
   /// When true (subscribed list only), the view listens to an ancestor
   /// [SubscriptionPlansCubit] and re-fetches with the selected `planId`.
   final bool planFiltered;
+
+  /// Whether subscribed cards render their plan chip — false when the rail has
+  /// filtered to one plan (redundant). Defaulted true for the other lists.
+  final bool showPlanChip;
 
   @override
   Widget build(BuildContext context) {
@@ -47,17 +52,20 @@ class MatchmakerUsersListView extends StatelessWidget {
       // outcome; descendant cards drive it via onMessage (M3c).
       child: MatchmakerOpenChatHost(
         child: planFiltered
-            ? MatchmakerPlanFilterListener(child: _ListBody(list: list))
-            : _ListBody(list: list),
+            ? MatchmakerPlanFilterListener(
+                child: _ListBody(list: list, showPlanChip: showPlanChip),
+              )
+            : _ListBody(list: list, showPlanChip: showPlanChip),
       ),
     );
   }
 }
 
 class _ListBody extends StatelessWidget {
-  const _ListBody({required this.list});
+  const _ListBody({required this.list, this.showPlanChip = true});
 
   final MatchmakerUsersList list;
+  final bool showPlanChip;
 
   @override
   Widget build(BuildContext context) {
@@ -139,6 +147,7 @@ class _ListBody extends StatelessWidget {
               return MatchmakerUserRowCard(
                 row: row,
                 list: list,
+                showPlanChip: showPlanChip,
                 onMutated: () => cubit.refresh(),
                 onMessage: () =>
                     context.read<MatchmakerOpenChatCubit>().open(

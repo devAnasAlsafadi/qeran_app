@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import '../blocs/subscription_plans_cubit.dart';
+import '../blocs/subscription_plans_state.dart';
 import 'matchmaker_plan_filter_rail.dart';
 import 'matchmaker_users_list_view.dart';
 
@@ -20,12 +21,20 @@ class MatchmakerSubscribedWithPlanFilter extends StatelessWidget {
     return BlocProvider<SubscriptionPlansCubit>(
       create: (_) => sl<SubscriptionPlansCubit>()..load(),
       child: Column(
-        children: const [
-          MatchmakerPlanFilterRail(),
+        children: [
+          const MatchmakerPlanFilterRail(),
+          // Hide the per-card plan chip once a specific plan is selected (then
+          // every card is that plan — the chip is redundant). `isAll` rebuilds
+          // only the list-view, not its cubit (BlocProvider create is stable).
           Expanded(
-            child: MatchmakerUsersListView(
-              list: MatchmakerUsersList.approvedSubscribed,
-              planFiltered: true,
+            child: BlocSelector<SubscriptionPlansCubit, SubscriptionPlansState,
+                bool>(
+              selector: (state) => state.selectedPlanId == null,
+              builder: (context, isAll) => MatchmakerUsersListView(
+                list: MatchmakerUsersList.approvedSubscribed,
+                planFiltered: true,
+                showPlanChip: isAll,
+              ),
             ),
           ),
         ],

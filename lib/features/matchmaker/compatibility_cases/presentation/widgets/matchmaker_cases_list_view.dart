@@ -18,10 +18,11 @@ import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
 import 'matchmaker_case_card.dart';
 
-/// Hidden until the backend returns a conversationId from
-/// POST /colleagues/{id}/open-chat (it currently 200s with none, so the chat
-/// can't resolve). Wiring stays intact — flip to true to restore the button.
-const bool _matchmakerButtonEnabled = false;
+/// Gates the "message the matchmaker" button. Re-enabled now that the backend
+/// returns a usable conversationId from POST /colleagues/{id}/open-chat
+/// (unified `{ data: { conversationId } }` shape). Gating below still hides it
+/// per-case when `otherMatchmakerId` is null (no colleague to message).
+const bool _matchmakerButtonEnabled = true;
 
 /// The populated cases list — renders the [visible] (already filtered) items
 /// over the underlying paginated [state]. Pagination still operates on the full
@@ -77,7 +78,8 @@ class MatchmakerCasesListView extends StatelessWidget {
                 context.read<MatchmakerCasesListCubit>().refresh();
               }
             },
-            // Matchmaker button temporarily disabled — see [_matchmakerButtonEnabled].
+            // Shown only when a colleague exists to message — see
+            // [_matchmakerButtonEnabled] for the feature gate.
             onMessageMatchmaker: (!_matchmakerButtonEnabled ||
                     (chat.otherMatchmakerId?.isEmpty ?? true))
                 ? null

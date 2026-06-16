@@ -517,6 +517,7 @@
     "account_change_password_title": "تغيير كلمة المرور",
     "account_current_password_hint": "كلمة المرور الحالية",
     "account_new_password_hint": "كلمة المرور الجديدة",
+    "account_password_too_short": "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل",
     "account_password_changed": "تم تغيير كلمة المرور",
     "account_contact": "تواصل معنا",
     "account_contact_copied": "تم نسخ الرابط",

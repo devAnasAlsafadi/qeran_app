@@ -119,6 +119,15 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> {
     required String newPassword,
   }) async {
     if (state.isBusy) return;
+    // Backend requires newPassword.minLength == 6 — block early with a clear
+    // message instead of letting a short password 400 and read as a confusing
+    // "wrong current password". (Mirrors the photo pre-network validation.)
+    if (newPassword.length < 6) {
+      _emitFailure('password length',
+          LocaleKeys.matchmaker_account_password_too_short,
+          MatchmakerAccountErrorKind.generic);
+      return;
+    }
     _emitInFlight(MatchmakerAccountAction.changingPassword);
     final result = await _changePassword(
       currentPassword: currentPassword,

@@ -517,6 +517,7 @@
     "account_change_password_title": "Change password",
     "account_current_password_hint": "Current password",
     "account_new_password_hint": "New password",
+    "account_password_too_short": "New password must be at least 6 characters",
     "account_password_changed": "Password changed",
     "account_contact": "Contact us",
     "account_contact_copied": "Link copied",

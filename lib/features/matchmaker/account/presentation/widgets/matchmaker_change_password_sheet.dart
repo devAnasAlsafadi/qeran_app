@@ -58,7 +58,11 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
       _current.text.isNotEmpty && _newPassword.text.isNotEmpty;
 
   void _onChanged(String _) {
-    if (_inlineError != null) setState(() => _inlineError = null);
+    // Always rebuild so the Save button's `_canSave` re-evaluates per keystroke
+    // (also clears any inline error once present).
+    setState(() {
+      if (_inlineError != null) _inlineError = null;
+    });
   }
 
   void _save(MatchmakerAccountCubit cubit) {

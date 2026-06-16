@@ -26,7 +26,8 @@ class EndPoints {
   static const String resetPassword = "Auth/reset-password";
   static const String firebaseSignIn = "Auth/firebase-signin";
 
-  /// `POST /api/auth/change-password` — body `{currentPassword, newPassword}`.
+  /// `POST /api/auth/change-password` — body
+  /// `{oldPassword, newPassword, confirmNewPassword}`.
   /// Shared auth endpoint; consumed by the matchmaker account feature (S1c).
   static const String changePassword = "Auth/change-password";
 

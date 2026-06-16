@@ -505,6 +505,7 @@ abstract class  LocaleKeys {
   static const matchmaker_account_change_password_title = 'matchmaker.account_change_password_title';
   static const matchmaker_account_current_password_hint = 'matchmaker.account_current_password_hint';
   static const matchmaker_account_new_password_hint = 'matchmaker.account_new_password_hint';
+  static const matchmaker_account_password_too_short = 'matchmaker.account_password_too_short';
   static const matchmaker_account_password_changed = 'matchmaker.account_password_changed';
   static const matchmaker_account_contact = 'matchmaker.account_contact';
   static const matchmaker_account_contact_copied = 'matchmaker.account_contact_copied';

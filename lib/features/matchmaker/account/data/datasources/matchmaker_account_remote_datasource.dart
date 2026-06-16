@@ -27,7 +27,9 @@ abstract interface class MatchmakerAccountRemoteDataSource {
   /// the caller clears the session locally on success.
   Future<void> deactivate();
 
-  /// `POST /api/auth/change-password` — body `{currentPassword, newPassword}`.
+  /// `POST /api/auth/change-password` — body
+  /// `{oldPassword, newPassword, confirmNewPassword}` (the DTO requires all
+  /// three; the UI's single new-password field feeds both new + confirm).
   /// Shared auth endpoint. A wrong current password surfaces as a
   /// status==0 envelope → [CodedServerException] carrying the server message.
   Future<void> changePassword({
@@ -103,8 +105,11 @@ class MatchmakerAccountRemoteDataSourceImpl
     await _apiConsumer.post(
       EndPoints.changePassword,
       body: {
-        'currentPassword': currentPassword,
+        'oldPassword': currentPassword,
         'newPassword': newPassword,
+        // No confirm field in the UI — the single new-password field is the
+        // source of truth, so it satisfies the DTO's required confirm too.
+        'confirmNewPassword': newPassword,
       },
     );
   }

@@ -55,10 +55,13 @@ class MatchmakerOpenChatHost extends StatelessWidget {
           ),
         );
       case MatchmakerOpenChatOutcome.failure:
+        // Calm "notice" tone, not the loud danger banner — failing to open a
+        // chat is a minor heads-up, not a serious error. Friendly text only;
+        // the raw server payload here can be a bare code (e.g. "0") or empty.
         AppSnackBar.show(
           context,
-          message: (state.errorMessage ?? LocaleKeys.errors_generic).t(context),
-          type: SnackBarType.error,
+          message: LocaleKeys.matchmaker_chat_open_failed.t(context),
+          type: SnackBarType.notice,
         );
       case MatchmakerOpenChatOutcome.none:
         break;

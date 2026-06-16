@@ -55,10 +55,13 @@ class MatchmakerColleagueOpenChatHost extends StatelessWidget {
           ),
         );
       case MatchmakerOpenChatOutcome.failure:
+        // Calm "notice" tone with friendly text — identical to the person
+        // open-chat host; the raw server payload here can be a bare code or
+        // empty, never user-facing.
         AppSnackBar.show(
           context,
-          message: (state.errorMessage ?? LocaleKeys.errors_generic).t(context),
-          type: SnackBarType.error,
+          message: LocaleKeys.matchmaker_chat_open_failed.t(context),
+          type: SnackBarType.notice,
         );
       case MatchmakerOpenChatOutcome.none:
         break;

@@ -20,7 +20,6 @@ class MatchmakerAccountBody extends StatelessWidget {
     super.key,
     required this.me,
     required this.onEditName,
-    required this.onChangePhoto,
     required this.onChangePassword,
     required this.onLanguage,
     required this.onComingSoon,
@@ -34,7 +33,6 @@ class MatchmakerAccountBody extends StatelessWidget {
 
   final MatchmakerMe me;
   final VoidCallback onEditName;
-  final VoidCallback onChangePhoto;
   final VoidCallback onChangePassword;
   final VoidCallback onLanguage;
   final VoidCallback onComingSoon;
@@ -75,12 +73,6 @@ class MatchmakerAccountBody extends StatelessWidget {
                 icon: Icons.badge_outlined,
                 title: LocaleKeys.matchmaker_account_row_edit_name.t(context),
                 onTap: onEditName,
-              ),
-              const MatchmakerSettingsRowDivider(),
-              MatchmakerSettingsRow(
-                icon: Icons.photo_camera_outlined,
-                title: LocaleKeys.matchmaker_account_row_change_photo.t(context),
-                onTap: onChangePhoto,
               ),
               const MatchmakerSettingsRowDivider(),
               MatchmakerSettingsRow(

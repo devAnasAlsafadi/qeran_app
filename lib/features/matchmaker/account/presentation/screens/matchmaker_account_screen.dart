@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
@@ -15,7 +13,6 @@ import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../../auth/presentation/screens/upload_image/widgets/photo_picker_bottom_sheet.dart';
 import '../blocs/matchmaker_account_cubit.dart';
 import '../blocs/matchmaker_account_state.dart';
 import '../widgets/matchmaker_account_body.dart';
@@ -24,7 +21,7 @@ import '../../../../../core/design_system/widgets/qeran_confirm_dialog.dart';
 import '../widgets/matchmaker_edit_name_sheet.dart';
 
 /// Matchmaker account / settings screen (pushed from the app-bar). Loads `/me`,
-/// renders the header + settings rows, and wires name / photo / language /
+/// renders the header + settings rows, and wires name / language /
 /// support / terms / deactivate / logout. Edit-name uses a minimal inline sheet
 /// for S1b; S1c formalizes it (+ change-password).
 class MatchmakerAccountScreen extends StatelessWidget {
@@ -74,7 +71,6 @@ class _AccountView extends StatelessWidget {
     return MatchmakerAccountBody(
       me: me,
       onEditName: () => _editName(context),
-      onChangePhoto: () => _changePhoto(context),
       onChangePassword: () => _changePassword(context),
       onLanguage: () =>
           NavigationManager.navigateTo(context, RouteNames.settingsLanguage),
@@ -131,14 +127,6 @@ class _AccountView extends StatelessWidget {
     final me = cubit.state.me;
     if (me == null) return;
     showMatchmakerEditNameSheet(context, cubit: cubit, currentName: me.name);
-  }
-
-  void _changePhoto(BuildContext context) {
-    final cubit = context.read<MatchmakerAccountCubit>();
-    PhotoPickerBottomSheet.show(
-      context,
-      onImagePicked: (path) => cubit.uploadPhoto(File(path)),
-    );
   }
 
   void _changePassword(BuildContext context) {

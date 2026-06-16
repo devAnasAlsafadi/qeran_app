@@ -8,6 +8,8 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../colleagues/presentation/widgets/matchmaker_colleague_open_chat_host.dart';
+import '../../../conversations/presentation/widgets/matchmaker_open_chat_host.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/compatibility_case.dart';
@@ -41,7 +43,12 @@ class MatchmakerCasesTab extends StatelessWidget {
               create: (_) => MatchmakerCasesFilterCubit(),
             ),
           ],
-          child: const _CasesListBody(),
+          // Two open-chat hosts (person via users path, matchmaker via the
+          // colleague path) — each provides its cubit + handles nav/snackbar so
+          // an early-stage card can resolve-or-create either conversation on tap.
+          child: const MatchmakerOpenChatHost(
+            child: MatchmakerColleagueOpenChatHost(child: _CasesListBody()),
+          ),
         ),
       ),
     );

@@ -23,6 +23,7 @@ class CaseContactActions extends StatelessWidget {
     this.onNotes,
     this.personLoading = false,
     this.matchmakerLoading = false,
+    this.hasNote = false,
   });
 
   /// The other person's display name for their chip (the card falls back to a
@@ -36,6 +37,10 @@ class CaseContactActions extends StatelessWidget {
   /// chip's loader.
   final bool personLoading;
   final bool matchmakerLoading;
+
+  /// Whether THIS matchmaker has a private note on the case — fills the Notes
+  /// chip icon (outlined → solid) as a subtle "has content" signal.
+  final bool hasNote;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +62,7 @@ class CaseContactActions extends StatelessWidget {
       if (onNotes != null)
         _chip(
           LocaleKeys.matchmaker_cases_action_notes.t(context),
-          Icons.note_alt_outlined,
+          hasNote ? Icons.note_alt : Icons.note_alt_outlined,
           onNotes!,
         ),
     ];

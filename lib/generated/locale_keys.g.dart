@@ -465,6 +465,10 @@ abstract class  LocaleKeys {
   static const matchmaker_notes_load_error = 'matchmaker.notes_load_error';
   static const matchmaker_notes_delete_confirm_title = 'matchmaker.notes_delete_confirm_title';
   static const matchmaker_notes_delete_confirm_message = 'matchmaker.notes_delete_confirm_message';
+  static const matchmaker_case_note_subtitle = 'matchmaker.case_note_subtitle';
+  static const matchmaker_case_note_not_found = 'matchmaker.case_note_not_found';
+  static const matchmaker_case_note_not_involved = 'matchmaker.case_note_not_involved';
+  static const matchmaker_case_note_last_edited = 'matchmaker.case_note_last_edited';
   static const matchmaker_interests_title = 'matchmaker.interests_title';
   static const matchmaker_interests_header_age = 'matchmaker.interests_header_age';
   static const matchmaker_interests_tab_matches = 'matchmaker.interests_tab_matches';

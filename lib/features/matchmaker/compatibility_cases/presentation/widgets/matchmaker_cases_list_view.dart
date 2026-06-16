@@ -16,6 +16,7 @@ import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
+import 'case_note_sheet.dart';
 import 'matchmaker_case_card.dart';
 
 /// Gates the "message the matchmaker" button. Re-enabled now that the backend
@@ -92,12 +93,24 @@ class MatchmakerCasesListView extends StatelessWidget {
                 ? null
                 : () => _messagePerson(context, caseItem),
             personLoading: openingUserId == caseItem.otherUser.userId,
-            // Placeholder — notes UI not built yet.
-            onNotes: () {},
+            onNotes: () => _openNotes(context, caseItem),
           );
         },
       ),
     );
+  }
+
+  /// Opens the private per-case note sheet and reflects the result on the
+  /// card's note indicator in place — `true` → has note, `false` → removed,
+  /// `null` (cancel / terminal failure) → no change. No list reload.
+  Future<void> _openNotes(
+    BuildContext context,
+    CompatibilityCase caseItem,
+  ) async {
+    final cubit = context.read<MatchmakerCasesListCubit>();
+    final result = await showCaseNoteSheet(context, caseId: caseItem.caseId);
+    if (result == null) return;
+    cubit.markNoteState(caseItem.caseId, result);
   }
 
   /// Opens the other-person chat — direct nav when it exists, else

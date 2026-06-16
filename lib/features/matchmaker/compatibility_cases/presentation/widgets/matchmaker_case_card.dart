@@ -92,6 +92,7 @@ class MatchmakerCaseCard extends StatelessWidget {
             personLoading: personLoading,
             matchmakerLoading: matchmakerLoading,
             onNotes: onNotes,
+            hasNote: caseItem.hasMyNote,
           ),
         ],
       ),

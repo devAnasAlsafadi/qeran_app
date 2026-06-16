@@ -22,6 +22,11 @@ class CompatibilityCase extends Equatable {
   final CaseChat chat;
   final bool canUpdateFormalRequestStatus;
 
+  /// Whether THIS matchmaker has a private note on the case (drives the
+  /// list-card notes-chip indicator). Strictly per-matchmaker — never
+  /// reflects a colleague's note.
+  final bool hasMyNote;
+
   const CompatibilityCase({
     required this.caseId,
     required this.myUser,
@@ -32,12 +37,17 @@ class CompatibilityCase extends Equatable {
     required this.formalRequest,
     required this.chat,
     required this.canUpdateFormalRequestStatus,
+    required this.hasMyNote,
   });
 
-  /// Minimal additive copy — only [formalRequest] is overridable, which
-  /// is all the live `CompatibilityCaseUpdated` flow (4c) needs to apply
-  /// a status change in place. All other fields are carried through.
-  CompatibilityCase copyWith({CaseFormalRequest? formalRequest}) {
+  /// Minimal additive copy — [formalRequest] supports the live
+  /// `CompatibilityCaseUpdated` flow (4c); [hasMyNote] supports the in-place
+  /// notes-indicator update after the note sheet saves/deletes (M3-notes).
+  /// All other fields are carried through.
+  CompatibilityCase copyWith({
+    CaseFormalRequest? formalRequest,
+    bool? hasMyNote,
+  }) {
     return CompatibilityCase(
       caseId: caseId,
       myUser: myUser,
@@ -48,6 +58,7 @@ class CompatibilityCase extends Equatable {
       formalRequest: formalRequest ?? this.formalRequest,
       chat: chat,
       canUpdateFormalRequestStatus: canUpdateFormalRequestStatus,
+      hasMyNote: hasMyNote ?? this.hasMyNote,
     );
   }
 
@@ -62,5 +73,6 @@ class CompatibilityCase extends Equatable {
         formalRequest,
         chat,
         canUpdateFormalRequestStatus,
+        hasMyNote,
       ];
 }

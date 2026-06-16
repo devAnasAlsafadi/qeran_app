@@ -99,6 +99,19 @@ class MatchmakerCasesListCubit
     );
   }
 
+  /// Reflect a note save/delete from the note sheet on the card's indicator
+  /// in place — no list reload (same single-row replace as [_onCaseUpdate]).
+  /// Unknown / off-page caseId, or no actual change, is a no-op.
+  void markNoteState(int caseId, bool hasNote) {
+    if (isClosed) return;
+    final index = state.items.indexWhere((c) => c.caseId == caseId);
+    if (index < 0 || state.items[index].hasMyNote == hasNote) return;
+    emit(state.copyWith(
+      items: [...state.items]
+        ..[index] = state.items[index].copyWith(hasMyNote: hasNote),
+    ));
+  }
+
   /// Catch-up: on re-entry into `connected` after a prior connection
   /// (reconnect / resume-from-background), re-fetch page 1 — SignalR does
   /// NOT replay events missed while the socket was down. The first-ever

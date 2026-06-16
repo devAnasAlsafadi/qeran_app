@@ -20,11 +20,18 @@ import '../colleagues/domain/usecases/open_colleague_chat_usecase.dart';
 import '../colleagues/presentation/blocs/matchmaker_colleague_conversations_cubit.dart';
 import '../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cubit.dart';
 import '../colleagues/presentation/blocs/matchmaker_colleagues_directory_cubit.dart';
+import '../compatibility_cases/data/datasources/case_note_remote_datasource.dart';
 import '../compatibility_cases/data/datasources/compatibility_cases_remote_datasource.dart';
+import '../compatibility_cases/data/repositories/case_note_repository_impl.dart';
 import '../compatibility_cases/data/repositories/compatibility_cases_repository_impl.dart';
+import '../compatibility_cases/domain/repositories/case_note_repository.dart';
 import '../compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
+import '../compatibility_cases/domain/usecases/delete_case_note_usecase.dart';
+import '../compatibility_cases/domain/usecases/get_case_note_usecase.dart';
 import '../compatibility_cases/domain/usecases/get_compatibility_cases_usecase.dart';
+import '../compatibility_cases/domain/usecases/save_case_note_usecase.dart';
 import '../compatibility_cases/domain/usecases/update_formal_request_status_usecase.dart';
+import '../compatibility_cases/presentation/blocs/case_note/case_note_cubit.dart';
 import '../compatibility_cases/presentation/blocs/matchmaker_case_status_cubit.dart';
 import '../compatibility_cases/presentation/blocs/matchmaker_cases_list_cubit.dart';
 import '../conversations/data/datasources/matchmaker_conversations_remote_datasource.dart';
@@ -202,6 +209,26 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerFactoryParam<MatchmakerUserNotesCubit, String, void>(
     (userId, _) => MatchmakerUserNotesCubit(
       userId: userId,
+      getNote: sl(),
+      saveNote: sl(),
+      deleteNote: sl(),
+    ),
+  );
+
+  //! ── Compatibility-case notes (view / save / delete) ──────────────
+  sl.registerLazySingleton<CaseNoteRemoteDataSource>(
+    () => CaseNoteRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<CaseNoteRepository>(
+    () => CaseNoteRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetCaseNoteUseCase(sl()));
+  sl.registerLazySingleton(() => SaveCaseNoteUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteCaseNoteUseCase(sl()));
+  // One cubit per opened notes sheet — the caller passes the caseId via param1.
+  sl.registerFactoryParam<CaseNoteCubit, int, void>(
+    (caseId, _) => CaseNoteCubit(
+      caseId: caseId,
       getNote: sl(),
       saveNote: sl(),
       deleteNote: sl(),

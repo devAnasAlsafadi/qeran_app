@@ -21,6 +21,7 @@ class CompatibilityCaseModel {
   final CaseFormalRequestModel? formalRequest;
   final CaseChatModel chat;
   final bool canUpdateFormalRequestStatus;
+  final bool hasMyNote;
 
   const CompatibilityCaseModel({
     required this.caseId,
@@ -32,6 +33,7 @@ class CompatibilityCaseModel {
     required this.formalRequest,
     required this.chat,
     required this.canUpdateFormalRequestStatus,
+    required this.hasMyNote,
   });
 
   factory CompatibilityCaseModel.fromJson(Map<String, dynamic> json) {
@@ -58,6 +60,7 @@ class CompatibilityCaseModel {
       ),
       canUpdateFormalRequestStatus:
           parseBool(json['canUpdateFormalRequestStatus']),
+      hasMyNote: parseBool(json['hasMyNote']),
     );
   }
 
@@ -71,5 +74,6 @@ class CompatibilityCaseModel {
         formalRequest: formalRequest?.toEntity(),
         chat: chat.toEntity(),
         canUpdateFormalRequestStatus: canUpdateFormalRequestStatus,
+        hasMyNote: hasMyNote,
       );
 }

@@ -266,6 +266,13 @@ class EndPoints {
   static String matchmakerCompatibilityCaseStatus(int formalRequestId) =>
       "matchmaker/compatibility-cases/$formalRequestId/status";
 
+  /// `GET|PUT|DELETE /api/matchmaker/compatibility-cases/{caseId}/my-note`
+  /// — the matchmaker's OWN private per-case note (strictly per-matchmaker).
+  /// GET → note or `data:null`; PUT body `{content}` (≤2000, trimmed) upserts;
+  /// DELETE is idempotent.
+  static String matchmakerCompatibilityCaseNote(int caseId) =>
+      "matchmaker/compatibility-cases/$caseId/my-note";
+
   /// `GET /api/matchmaker/explore?page=N&pageSize=M&search=...&gender=...`
   static const String matchmakerExplore = "matchmaker/explore";
 

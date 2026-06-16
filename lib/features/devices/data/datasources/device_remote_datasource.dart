@@ -12,6 +12,10 @@ abstract interface class DeviceRemoteDataSource {
   );
 
   Future<SuccessResponse<void>> linkDevice(LinkDeviceRequestModel request);
+
+  /// Unlinks this device's FCM token from the user (stop push) — best-effort,
+  /// used during account deletion. Reuses [LinkDeviceRequestModel] (`{token}`).
+  Future<SuccessResponse<void>> unlinkDevice(LinkDeviceRequestModel request);
 }
 
 class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
@@ -38,6 +42,18 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
   ) async {
     final response = await _apiConsumer.post(
       EndPoints.linkDevice,
+      body: request.toJson(),
+    );
+    final apiResponse = ApiResponse<void>.fromJson(response, (_) {});
+    return SuccessResponse.fromApiResponse(apiResponse);
+  }
+
+  @override
+  Future<SuccessResponse<void>> unlinkDevice(
+    LinkDeviceRequestModel request,
+  ) async {
+    final response = await _apiConsumer.post(
+      EndPoints.unlinkDevice,
       body: request.toJson(),
     );
     final apiResponse = ApiResponse<void>.fromJson(response, (_) {});

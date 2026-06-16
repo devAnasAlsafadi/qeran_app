@@ -11,6 +11,7 @@ import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
 import 'package:qeran/features/devices/domain/usecases/link_device_usecase.dart';
 import 'package:qeran/features/devices/domain/usecases/register_device_usecase.dart';
+import 'package:qeran/features/devices/domain/usecases/unlink_device_usecase.dart';
 
 class MockNotificationService extends Mock implements NotificationService {}
 
@@ -20,6 +21,8 @@ class MockRegisterDeviceUseCase extends Mock
     implements RegisterDeviceUseCase {}
 
 class MockLinkDeviceUseCase extends Mock implements LinkDeviceUseCase {}
+
+class MockUnlinkDeviceUseCase extends Mock implements UnlinkDeviceUseCase {}
 
 class MockSharedPrefService extends Mock implements SharedPrefService {}
 
@@ -32,6 +35,7 @@ void main() {
   late MockDeviceInfoService deviceInfo;
   late MockRegisterDeviceUseCase registerDevice;
   late MockLinkDeviceUseCase linkDevice;
+  late MockUnlinkDeviceUseCase unlinkDevice;
   late MockSharedPrefService sharedPrefs;
   late MockStorageService secureStorage;
   late MockLanguageService language;
@@ -45,6 +49,7 @@ void main() {
     deviceInfo = MockDeviceInfoService();
     registerDevice = MockRegisterDeviceUseCase();
     linkDevice = MockLinkDeviceUseCase();
+    unlinkDevice = MockUnlinkDeviceUseCase();
     sharedPrefs = MockSharedPrefService();
     secureStorage = MockStorageService();
     language = MockLanguageService();
@@ -91,12 +96,15 @@ void main() {
         )).thenAnswer((_) async => const Right<Failure, Unit>(unit));
     when(() => linkDevice(token: any(named: 'token')))
         .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+    when(() => unlinkDevice(token: any(named: 'token')))
+        .thenAnswer((_) async => const Right<Failure, Unit>(unit));
 
     service = DeviceBootstrapService(
       notifications: notifications,
       deviceInfo: deviceInfo,
       registerDevice: registerDevice,
       linkDevice: linkDevice,
+      unlinkDevice: unlinkDevice,
       sharedPrefs: sharedPrefs,
       secureStorage: secureStorage,
       language: language,

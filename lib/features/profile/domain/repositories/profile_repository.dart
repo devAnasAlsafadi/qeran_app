@@ -21,4 +21,8 @@ abstract interface class ProfileRepository {
   /// `GET /api/users/{id}`. Lightweight tuple — no images, no
   /// placements. `null` on documented USER_NOT_FOUND.
   Future<Either<Failure, BasicUser?>> getBasicUser(String id);
+
+  /// `DELETE /api/Profile`. Permanent, non-recoverable account deletion.
+  /// `Right(unit)` on success; `Left(Failure)` on any error.
+  Future<Either<Failure, Unit>> deleteAccount();
 }

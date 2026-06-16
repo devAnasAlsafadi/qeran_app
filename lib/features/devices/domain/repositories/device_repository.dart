@@ -18,4 +18,8 @@ abstract interface class DeviceRepository {
   /// user. Bearer is attached automatically by `HttpConsumer` from
   /// `StorageKeys.token`.
   Future<Either<Failure, Unit>> linkDevice({required String token});
+
+  /// Protected — unlinks the device's FCM token from the user (stop push).
+  /// Best-effort; used during account deletion.
+  Future<Either<Failure, Unit>> unlinkDevice({required String token});
 }

@@ -1,3 +1,7 @@
+/// ⚠️ When adding an ACCOUNT-level key here, also add it to
+/// `UserSessionCubit.wipeAllLocalData()` (the permanent-delete wipe list).
+/// DEVICE-level keys (FCM registration markers, onboarding, OS-permission,
+/// and easy_localization's locale) are intentionally PRESERVED across a delete.
 class StorageKeys {
   static const String token = 'token';
   static const String userId = 'user_id';

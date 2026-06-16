@@ -29,6 +29,11 @@ abstract interface class ProfileRemoteDataSource {
   Future<MyProfileModel> getMyProfile();
   Future<GetProfileByIdResult> getProfileById(String userId);
   Future<BasicUserModel?> getBasicUser(String id);
+
+  /// `DELETE /api/Profile` — permanent, non-recoverable account deletion
+  /// (no body). `delete()` enforces the status envelope, so a failure throws
+  /// a [ServerException]; success returns nothing.
+  Future<void> deleteAccount();
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -102,5 +107,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    AppLogger.debug('DELETE ACCOUNT', tag: 'PROFILE');
+    // No body. `delete()` enforces the status envelope, so a non-success
+    // throws a ServerException the repository maps to a Failure.
+    await _apiConsumer.delete(EndPoints.deleteProfile);
+    AppLogger.info('Account deleted', tag: 'PROFILE');
   }
 }

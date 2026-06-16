@@ -18,6 +18,7 @@ import 'package:qeran/features/auth/presentation/blocs/user_session/user_session
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
+import 'package:qeran/features/profile/presentation/widgets/delete_account_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Settings tab content. Three stacked surfaces: a premium profile
@@ -349,11 +350,25 @@ class _SettingsCard extends StatelessWidget {
             icon: Icons.delete_outline_rounded,
             title: LocaleKeys.settings_delete_account.t(context),
             subtitle: null,
-            onTap: onComingSoon,
+            onTap: () => _openDeleteAccount(context),
             destructive: true,
           ),
         ],
       ),
+    );
+  }
+
+  /// Opens the permanent-delete confirmation sheet, passing the current
+  /// subscription's active state + expiry (read from the already-hydrated
+  /// cubit) so the sheet can warn about forfeiting the remaining time.
+  void _openDeleteAccount(BuildContext context) {
+    final state = context.read<CurrentSubscriptionCubit>().state;
+    final sub = state is CurrentSubscriptionLoaded ? state.subscription : null;
+    final active = sub?.isCurrentlyActive ?? false;
+    showDeleteAccountSheet(
+      context,
+      subscriptionActive: active,
+      expiresAt: active ? sub!.expiresAt : null,
     );
   }
 }

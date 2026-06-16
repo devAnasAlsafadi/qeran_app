@@ -11,6 +11,7 @@ import '../data/repositories/device_repository_impl.dart';
 import '../domain/repositories/device_repository.dart';
 import '../domain/usecases/link_device_usecase.dart';
 import '../domain/usecases/register_device_usecase.dart';
+import '../domain/usecases/unlink_device_usecase.dart';
 
 void initDevicesDependencies() {
   //! DataSources
@@ -26,6 +27,7 @@ void initDevicesDependencies() {
   //! UseCases
   sl.registerLazySingleton(() => RegisterDeviceUseCase(sl<DeviceRepository>()));
   sl.registerLazySingleton(() => LinkDeviceUseCase(sl<DeviceRepository>()));
+  sl.registerLazySingleton(() => UnlinkDeviceUseCase(sl<DeviceRepository>()));
 
   //! Orchestrator
   sl.registerLazySingleton<DeviceBootstrapService>(
@@ -34,6 +36,7 @@ void initDevicesDependencies() {
       deviceInfo: sl<DeviceInfoService>(),
       registerDevice: sl(),
       linkDevice: sl(),
+      unlinkDevice: sl(),
       sharedPrefs: sl<SharedPrefService>(),
       secureStorage: sl<StorageService>(),
       language: sl<LanguageService>(),

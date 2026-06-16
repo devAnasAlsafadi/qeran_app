@@ -50,6 +50,12 @@ class EndPoints {
   /// wrapped in `ApiResponse`.
   static const String myProfile = "profile";
 
+  /// `DELETE /api/Profile` — permanent, non-recoverable account soft-delete
+  /// (cancels any active subscription with no refund; chats/likes/archive
+  /// disappear for everyone). Same resource as [myProfile]; aliased for a
+  /// self-documenting call site.
+  static const String deleteProfile = myProfile;
+
   /// `GET /api/discovery/profiles/{userId}` — another user's full
   /// profile (other-shape: id, name, age, matchingScore,
   /// images[isBlurred], placements). On failure backend returns
@@ -66,6 +72,12 @@ class EndPoints {
   // Devices / FCM
   static const String registerDevice = "Devices/register";
   static const String linkDevice = "Devices/link";
+
+  /// `POST /Devices/unlink` — unlinks this device's FCM token (stop push),
+  /// used best-effort during account deletion.
+  /// ⚠️ Not yet in Swagger; body shape assumed `{token}` like link — confirm
+  /// with backend (Tariq).
+  static const String unlinkDevice = "Devices/unlink";
 
   // Discovery
   static const String discovery = "Discovery";

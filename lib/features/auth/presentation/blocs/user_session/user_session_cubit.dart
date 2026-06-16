@@ -121,4 +121,53 @@ class UserSessionCubit extends Cubit<UserSessionState> {
     await _sharedPrefs.remove(StorageKeys.finishedQuestions);
     emit(const UserSessionUnauthenticated());
   }
+
+  /// Full local wipe for a PERMANENT account deletion — stronger than
+  /// [signOut]. Clears every account/session value, then emits
+  /// `Unauthenticated`. Used by the delete-account flow after the server
+  /// `DELETE /api/Profile` succeeds.
+  ///
+  /// Secure storage is cleared wholesale (only sensitive auth lives there).
+  /// Shared-prefs are wiped by an EXPLICIT account-key list (Approach A) so
+  /// DEVICE-level keys survive the delete and are deliberately PRESERVED:
+  /// `seen_onboarding`, `notif_permission_asked`, `latest_fcm_token`,
+  /// `device_registered`, `last_registered_fcm`, `last_registered_lang`, and
+  /// easy_localization's `__locale__` (the user's language).
+  ///
+  /// ⚠️ Keep in sync: a NEW account-level key in [StorageKeys] must be added to
+  /// [_accountPrefKeys] below (see the note in StorageKeys).
+  Future<void> wipeAllLocalData() async {
+    // Secure: only the JWT (+ any sensitive auth) — safe to clear wholesale.
+    await _secureStorage.clear();
+    for (final key in _accountPrefKeys) {
+      await _sharedPrefs.remove(key);
+    }
+    AppLogger.info('Local data wiped (account deletion)', tag: 'SESSION');
+    emit(const UserSessionUnauthenticated());
+  }
+
+  /// Account/session shared-prefs keys removed on a permanent delete. Device-
+  /// level keys are intentionally absent here (preserved across the delete).
+  static const List<String> _accountPrefKeys = [
+    // Session / identity
+    StorageKeys.userId,
+    StorageKeys.userName,
+    StorageKeys.userEmail,
+    StorageKeys.userRole,
+    StorageKeys.firebaseUid,
+    // Account state / profile
+    StorageKeys.isWhatsappVerified,
+    StorageKeys.finishedQuestions,
+    StorageKeys.gender,
+    StorageKeys.signedOath,
+    StorageKeys.questionnaireDraft,
+    StorageKeys.uploadedPhotos,
+    StorageKeys.pendingUserId,
+    // Notification read-state heuristics (account-level)
+    StorageKeys.notifLastSeenId,
+    StorageKeys.matchmakerNotifLastSeenCount,
+    // Account-LINK marker only — the device REGISTRATION markers are preserved
+    // so the next login re-links cleanly without a redundant re-register.
+    StorageKeys.lastLinkedFcm,
+  ];
 }

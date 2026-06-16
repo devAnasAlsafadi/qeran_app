@@ -48,4 +48,12 @@ class ProfileRepositoryImpl
       return model?.toEntity();
     });
   }
+
+  @override
+  Future<Either<Failure, Unit>> deleteAccount() {
+    return executeApiCall(() async {
+      await _dataSource.deleteAccount();
+      return unit;
+    });
+  }
 }

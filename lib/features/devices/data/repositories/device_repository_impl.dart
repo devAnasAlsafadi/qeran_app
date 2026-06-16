@@ -45,4 +45,12 @@ class DeviceRepositoryImpl with BaseRepository implements DeviceRepository {
       return unit;
     });
   }
+
+  @override
+  Future<Either<Failure, Unit>> unlinkDevice({required String token}) {
+    return executeApiCall(() async {
+      await _dataSource.unlinkDevice(LinkDeviceRequestModel(token: token));
+      return unit;
+    });
+  }
 }

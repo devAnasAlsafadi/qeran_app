@@ -9,6 +9,7 @@ import 'package:qeran/core/services/storage_service.dart';
 
 import '../domain/usecases/link_device_usecase.dart';
 import '../domain/usecases/register_device_usecase.dart';
+import '../domain/usecases/unlink_device_usecase.dart';
 
 /// Single entry point used by Splash + auth blocs + locale changes to drive
 /// the FCM/Devices lifecycle. All public methods are fire-and-forget — they
@@ -18,6 +19,7 @@ class DeviceBootstrapService {
   final DeviceInfoService _deviceInfo;
   final RegisterDeviceUseCase _registerDevice;
   final LinkDeviceUseCase _linkDevice;
+  final UnlinkDeviceUseCase _unlinkDevice;
   final SharedPrefService _sharedPrefs;
   final StorageService _secureStorage;
   final LanguageService _language;
@@ -29,6 +31,7 @@ class DeviceBootstrapService {
     required DeviceInfoService deviceInfo,
     required RegisterDeviceUseCase registerDevice,
     required LinkDeviceUseCase linkDevice,
+    required UnlinkDeviceUseCase unlinkDevice,
     required SharedPrefService sharedPrefs,
     required StorageService secureStorage,
     required LanguageService language,
@@ -36,6 +39,7 @@ class DeviceBootstrapService {
        _deviceInfo = deviceInfo,
        _registerDevice = registerDevice,
        _linkDevice = linkDevice,
+       _unlinkDevice = unlinkDevice,
        _sharedPrefs = sharedPrefs,
        _secureStorage = secureStorage,
        _language = language;
@@ -68,6 +72,25 @@ class DeviceBootstrapService {
       await _linkIfAuthenticated(token, force: force);
     } catch (e, s) {
       AppLogger.error('linkSilently failed', error: e, stack: s, tag: 'DEVICE');
+    }
+  }
+
+  /// Best-effort unlink of this device's push token — called during account
+  /// deletion. Fire-and-forget: catches/logs, never throws. Reads the cached
+  /// (or fresh) token; no-op when none. Local link markers are cleared by the
+  /// full wipe, not here.
+  Future<void> unlinkSilently() async {
+    try {
+      final token = await _readOrFetchToken();
+      if (token == null) return;
+      final result = await _unlinkDevice(token: token);
+      result.fold(
+        (failure) =>
+            AppLogger.warning('unlink failed: ${failure.message}', tag: 'DEVICE'),
+        (_) => AppLogger.info('Device unlinked', tag: 'DEVICE'),
+      );
+    } catch (e, s) {
+      AppLogger.error('unlinkSilently failed', error: e, stack: s, tag: 'DEVICE');
     }
   }
 

@@ -11,7 +11,9 @@ import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cubit.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
+import '../../../users/presentation/widgets/matchmaker_notes_sheet.dart';
 import '../../domain/entities/matchmaker_explore_user.dart';
 import '../blocs/matchmaker_explore_cubit.dart';
 import 'matchmaker_explore_card.dart';
@@ -28,6 +30,9 @@ class MatchmakerExploreList extends StatelessWidget {
         PaginatedListState<MatchmakerExploreUser>>(
       builder: (context, state) {
         final cubit = context.read<MatchmakerExploreCubit>();
+        // The matchmaker whose chat is resolving on tap — drives the chip loader.
+        final colleagueOpeningId =
+            context.watch<MatchmakerColleagueOpenChatCubit>().state.openingUserId;
 
         if (state.isLoading && state.items.isEmpty) {
           return const Center(child: QeranLoader());
@@ -65,17 +70,42 @@ class MatchmakerExploreList extends StatelessWidget {
               final user = state.items[index];
               return MatchmakerExploreCard(
                 user: user,
-                onTap: () => NavigationManager.navigateTo(
+                onView: () => NavigationManager.navigateTo(
                   context,
                   RouteNames.matchmakerUserProfile,
                   arguments: user.userId,
                 ),
+                // Notes are assigned-only (the endpoint returns UNAUTHORIZED
+                // otherwise) — hidden for users assigned to another matchmaker.
+                onNotes: user.isMyAssigned
+                    ? () => showMatchmakerNotesSheet(context, userId: user.userId)
+                    : null,
+                // Matchmaker chat — only when the user has a DIFFERENT
+                // matchmaker (mutually exclusive with Notes).
+                onMessageMatchmaker: (!user.isMyAssigned &&
+                        (user.assignedMatchmakerId?.isNotEmpty ?? false))
+                    ? () => _messageMatchmaker(context, user)
+                    : null,
+                matchmakerLoading:
+                    colleagueOpeningId == user.assignedMatchmakerId,
               );
             },
           ),
         );
       },
     );
+  }
+
+  /// Resolve-or-create the chat with [user]'s matchmaker via the shared
+  /// colleague open-chat flow (host handles nav / the calm notice). The peer
+  /// identity is echoed from the row; the image is null until the backend
+  /// populates `assignedMatchmakerImageUrl` (then it flows through unchanged).
+  void _messageMatchmaker(BuildContext context, MatchmakerExploreUser user) {
+    context.read<MatchmakerColleagueOpenChatCubit>().open(
+          colleagueId: user.assignedMatchmakerId ?? '',
+          fullName: user.assignedMatchmakerName ?? '',
+          profileImageUrl: user.assignedMatchmakerImageUrl,
+        );
   }
 }
 

@@ -16,6 +16,11 @@ class MatchmakerExploreUserModel {
   final String? gender;
   final String? assignedMatchmakerId;
   final String? assignedMatchmakerName;
+
+  /// RAW relative path — absolutized in [toEntity]. Null today (backend doesn't
+  /// send it yet); kept defensive so it lights up automatically when added.
+  final String? assignedMatchmakerImageUrl;
+
   final bool isMyAssigned;
   final int? age;
   final List<MatchmakerCardAnswer> answers;
@@ -27,6 +32,7 @@ class MatchmakerExploreUserModel {
     required this.gender,
     required this.assignedMatchmakerId,
     required this.assignedMatchmakerName,
+    required this.assignedMatchmakerImageUrl,
     required this.isMyAssigned,
     required this.age,
     required this.answers,
@@ -42,6 +48,8 @@ class MatchmakerExploreUserModel {
             parseNullableString(json['assignedMatchmakerId']),
         assignedMatchmakerName:
             parseNullableString(json['assignedMatchmakerName']),
+        assignedMatchmakerImageUrl:
+            parseNullableString(json['assignedMatchmakerImageUrl']),
         isMyAssigned: parseBool(json['isMyAssigned']),
         age: parseNullableInt(json['age']),
         answers: parseMapList(json['answers'])
@@ -65,6 +73,11 @@ class MatchmakerExploreUserModel {
       gender: Gender.fromString(gender),
       assignedMatchmakerId: assignedMatchmakerId,
       assignedMatchmakerName: assignedMatchmakerName,
+      assignedMatchmakerImageUrl:
+          (assignedMatchmakerImageUrl == null ||
+                  assignedMatchmakerImageUrl!.isEmpty)
+              ? null
+              : EndPoints.absoluteUrl(assignedMatchmakerImageUrl!),
       isMyAssigned: isMyAssigned,
       age: age,
       answers: answers,

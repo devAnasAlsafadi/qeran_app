@@ -8,6 +8,8 @@ import '../../../../discovery/presentation/widgets/filter_expandable_multi.dart'
 import '../../../../discovery/presentation/widgets/filter_expandable_select.dart';
 import '../../../../discovery/presentation/widgets/filter_text_field.dart';
 import '../blocs/matchmaker_explore_filter_cubit.dart';
+import 'matchmaker_explore_date_field.dart';
+import 'matchmaker_explore_number_field.dart';
 
 /// Parallel to discovery's `FilterQuestionRenderer` — same leaf sub-widgets
 /// (reused, they're callback-driven), but wired to
@@ -56,10 +58,24 @@ class MatchmakerExploreFilterRenderer extends StatelessWidget {
           onChanged: (value) => cubit.setSingleValue(question.id, value),
         );
       case FilterQuestionType.date:
+        // EXACT match on TextAnswer (yyyy-MM-dd) — single value, not a range.
+        return MatchmakerExploreDateField(
+          question: question,
+          selection: selection is SingleValueSelection
+              ? selection as SingleValueSelection
+              : null,
+          onChanged: (value) => cubit.setSingleValue(question.id, value),
+        );
       case FilterQuestionType.height:
       case FilterQuestionType.weight:
-        // Dropped on load (range types) — defensive, never expected here.
-        return const SizedBox.shrink();
+        // EXACT match on a numeric TextAnswer — single value, not a range.
+        return MatchmakerExploreNumberField(
+          question: question,
+          selection: selection is SingleValueSelection
+              ? selection as SingleValueSelection
+              : null,
+          onChanged: (value) => cubit.setSingleValue(question.id, value),
+        );
     }
   }
 }

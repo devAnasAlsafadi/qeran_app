@@ -20,6 +20,13 @@ class MatchmakerExploreUser extends Equatable {
   final Gender? gender;
   final String? assignedMatchmakerId;
   final String? assignedMatchmakerName;
+
+  /// The assigned matchmaker's avatar, already absolute (the data layer runs
+  /// the relative path through `EndPoints.absoluteUrl`). Null today — the
+  /// backend doesn't send it yet; wired through so the matchmaker-chat header
+  /// gains a photo the moment it's populated.
+  final String? assignedMatchmakerImageUrl;
+
   final bool isMyAssigned;
   final int? age;
   final List<MatchmakerCardAnswer> answers;
@@ -31,6 +38,7 @@ class MatchmakerExploreUser extends Equatable {
     required this.gender,
     required this.assignedMatchmakerId,
     required this.assignedMatchmakerName,
+    required this.assignedMatchmakerImageUrl,
     required this.isMyAssigned,
     required this.age,
     required this.answers,
@@ -44,6 +52,7 @@ class MatchmakerExploreUser extends Equatable {
         gender,
         assignedMatchmakerId,
         assignedMatchmakerName,
+        assignedMatchmakerImageUrl,
         isMyAssigned,
         age,
         answers,

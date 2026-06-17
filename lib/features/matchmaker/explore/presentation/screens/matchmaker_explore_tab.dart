@@ -9,6 +9,7 @@ import '../../../../../core/enum/gender.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../../discovery/domain/entities/discovery_filter_selection.dart';
+import '../../../colleagues/presentation/widgets/matchmaker_colleague_open_chat_host.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../blocs/matchmaker_explore_cubit.dart';
 import '../blocs/matchmaker_explore_filter_cubit.dart';
@@ -84,18 +85,23 @@ class _MatchmakerExploreTabState extends State<MatchmakerExploreTab> {
         ),
         body: SafeArea(
           top: false,
-          child: Column(
-            children: [
-              MatchmakerExploreControls(
-                searchController: _searchController,
-                genderIndex: _genderIndex,
-                filterActive: _selections.isNotEmpty,
-                onSearchChanged: _onSearchChanged,
-                onGenderChanged: _onGenderChanged,
-                onFilterTap: _onFilterTap,
-              ),
-              const Expanded(child: MatchmakerExploreList()),
-            ],
+          bottom: false,
+          // Provides MatchmakerColleagueOpenChatCubit + handles nav/snackbar for
+          // the card's matchmaker-chat action (same as the cases tab).
+          child: MatchmakerColleagueOpenChatHost(
+            child: Column(
+              children: [
+                MatchmakerExploreControls(
+                  searchController: _searchController,
+                  genderIndex: _genderIndex,
+                  filterActive: _selections.isNotEmpty,
+                  onSearchChanged: _onSearchChanged,
+                  onGenderChanged: _onGenderChanged,
+                  onFilterTap: _onFilterTap,
+                ),
+                const Expanded(child: MatchmakerExploreList()),
+              ],
+            ),
           ),
         ),
       ),

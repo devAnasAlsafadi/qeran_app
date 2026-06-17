@@ -598,10 +598,12 @@ abstract class  LocaleKeys {
   static const matchmaker_explore_filter_error = 'matchmaker.explore_filter_error';
   static const matchmaker_explore_filter_retry = 'matchmaker.explore_filter_retry';
   static const matchmaker_explore_filter_empty = 'matchmaker.explore_filter_empty';
+  static const matchmaker_explore_filter_date_select = 'matchmaker.explore_filter_date_select';
   static const matchmaker_explore_search_hint = 'matchmaker.explore_search_hint';
   static const matchmaker_explore_gender_all = 'matchmaker.explore_gender_all';
   static const matchmaker_explore_gender_male = 'matchmaker.explore_gender_male';
   static const matchmaker_explore_gender_female = 'matchmaker.explore_gender_female';
+  static const matchmaker_explore_assigned_to_me = 'matchmaker.explore_assigned_to_me';
   static const matchmaker_explore_error_title = 'matchmaker.explore_error_title';
   static const matchmaker_explore_retry = 'matchmaker.explore_retry';
   static const matchmaker_explore_no_results_title = 'matchmaker.explore_no_results_title';

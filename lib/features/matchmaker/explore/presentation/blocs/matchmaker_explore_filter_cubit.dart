@@ -59,11 +59,13 @@ class MatchmakerExploreFilterCubit
     );
   }
 
-  /// Keeps only the question types the matchmaker sheet renders: select /
-  /// radio / checkbox / interests / text (+ unknown WITH options as a
-  /// single-choice fallback). Range-flagged questions and the range types
-  /// (height/weight/date) are DROPPED — explore filtering is QuestionFilters
-  /// + search + gender only (decision locked for S4b).
+  /// Keeps the question types the matchmaker sheet renders: select / radio /
+  /// checkbox / interests / text, PLUS date / height / weight as EXACT-match
+  /// single values (Tariq's explore contract — not ranges; date sent as
+  /// `yyyy-MM-dd`, height/weight as a numeric string). `unknown` is kept only
+  /// when it has options (single-choice fallback). A question explicitly
+  /// flagged `isRange` is still dropped — explore has no range UI (defensive;
+  /// explore `/filters` never sets it).
   List<DiscoveryFilterQuestion> _usableQuestions(
     List<DiscoveryFilterQuestion> all,
   ) {
@@ -71,7 +73,7 @@ class MatchmakerExploreFilterCubit
     for (final q in all) {
       if (q.isRange) {
         AppLogger.warning(
-          'skip explore filter id=${q.id} — range (out of scope)',
+          'skip explore filter id=${q.id} — range (no range UI in explore)',
           tag: 'MM-EXPLORE-FILTERS',
         );
         continue;
@@ -82,13 +84,12 @@ class MatchmakerExploreFilterCubit
         case FilterQuestionType.checkbox:
         case FilterQuestionType.interests:
         case FilterQuestionType.text:
+        case FilterQuestionType.date:
+        case FilterQuestionType.height:
+        case FilterQuestionType.weight:
           kept.add(q);
         case FilterQuestionType.unknown:
           if (q.options != null && q.options!.isNotEmpty) kept.add(q);
-        case FilterQuestionType.height:
-        case FilterQuestionType.weight:
-        case FilterQuestionType.date:
-          break; // range types — out of scope
       }
     }
     return kept;

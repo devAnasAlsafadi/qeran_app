@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_motion.dart';
+import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_typography.dart';
 
 /// Tab descriptor for [QeranBottomNav].
@@ -51,7 +52,15 @@ class QeranBottomNav extends StatefulWidget {
   static const double discLift = -7;
   static const double notchRadius = discRadius + 10;
   static const double hMargin = 16;
-  static const double bMargin = 12;
+  static const double bMargin = 16;
+
+  /// Bottom inset a tab scrollable needs so its LAST item clears the floating
+  /// island + the device gesture area, while items above still scroll under it.
+  /// [totalHeight] ≈ bar + bottom margin + breathing; [viewPadding].bottom
+  /// re-adds the home-indicator inset the tab body no longer reserves (its
+  /// `SafeArea` drops `bottom`). Used as the scrollables' bottom padding.
+  static double contentClearance(BuildContext context) =>
+      totalHeight + MediaQuery.of(context).viewPadding.bottom;
 
   @override
   State<QeranBottomNav> createState() => _QeranBottomNavState();
@@ -245,7 +254,7 @@ class _NotchedBarPainter extends CustomPainter {
     final discriminant = (notchRadius * notchRadius - discLift * discLift)
         .clamp(0.0, double.infinity);
     final entryX = discriminant == 0 ? 0.0 : math.sqrt(discriminant);
-    const cornerR = 28.0;
+    const cornerR = QeranRadii.card;
 
     final barPath = Path()
       ..moveTo(0, cornerR)
@@ -266,10 +275,12 @@ class _NotchedBarPainter extends CustomPainter {
       ..quadraticBezierTo(0, size.height, 0, size.height - cornerR)
       ..close();
 
+    // Raised lift so the white island reads clearly above white content
+    // (white-on-white needs a stronger, more elevated shadow than e3).
     canvas.drawShadow(
       barPath,
-      QeranColors.wine.withValues(alpha: 0.22),
-      22,
+      QeranColors.wine.withValues(alpha: 0.18),
+      24,
       false,
     );
     canvas.drawPath(barPath, Paint()..color = QeranColors.paper);

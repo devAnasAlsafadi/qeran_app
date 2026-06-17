@@ -34,6 +34,7 @@ class MatchmakerCasesTab extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
+        bottom: false,
         child: MultiBlocProvider(
           providers: [
             BlocProvider<MatchmakerCasesListCubit>(

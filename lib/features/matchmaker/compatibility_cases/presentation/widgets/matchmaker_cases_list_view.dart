@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_nav.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
 import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -51,11 +52,11 @@ class MatchmakerCasesListView extends StatelessWidget {
       onRefresh: cubit.refresh,
       onLoadMore: cubit.loadMore,
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           QeranSpacing.s20,
           QeranSpacing.s8,
           QeranSpacing.s20,
-          QeranSpacing.s20,
+          QeranBottomNav.contentClearance(context),
         ),
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),

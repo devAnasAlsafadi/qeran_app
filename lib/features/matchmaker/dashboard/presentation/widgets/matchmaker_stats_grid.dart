@@ -4,6 +4,7 @@ import '../../../../../core/design_system/motion/soft_scale_in.dart';
 import '../../../../../core/design_system/tokens/qeran_motion.dart';
 import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_nav.dart';
 import '../../../../../core/design_system/widgets/qeran_skeleton.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
@@ -62,10 +63,6 @@ int _activeCases(MatchmakerDashboardStats s) => s.activeCompatibilityCasesCount;
 int _unread(MatchmakerDashboardStats s) => s.unreadMessagesCount;
 int _total(MatchmakerDashboardStats s) => s.totalAssignedUsers;
 
-const EdgeInsets _gridPadding =
-    EdgeInsets.fromLTRB(QeranSpacing.s20, QeranSpacing.s16, QeranSpacing.s20,
-        QeranSpacing.s32);
-
 /// The 6-counter grid. Each card reveals with the signature soft
 /// scale-in, staggered by position. Scrollable so the parent's
 /// `RefreshIndicator` can drive pull-to-refresh.
@@ -82,7 +79,12 @@ class MatchmakerStatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.count(
-      padding: _gridPadding,
+      padding: EdgeInsets.fromLTRB(
+        QeranSpacing.s20,
+        QeranSpacing.s16,
+        QeranSpacing.s20,
+        QeranBottomNav.contentClearance(context),
+      ),
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
@@ -118,7 +120,12 @@ class MatchmakerStatsGridSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.count(
-      padding: _gridPadding,
+      padding: EdgeInsets.fromLTRB(
+        QeranSpacing.s20,
+        QeranSpacing.s16,
+        QeranSpacing.s20,
+        QeranBottomNav.contentClearance(context),
+      ),
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       mainAxisSpacing: QeranSpacing.s16,

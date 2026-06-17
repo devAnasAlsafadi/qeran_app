@@ -37,6 +37,7 @@ class _MatchmakerConversationsTabState
       floatingActionButton: _segment == 1 ? const _NewColleagueChatFab() : null,
       body: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           children: [
             MatchmakerSegmentedTabs(

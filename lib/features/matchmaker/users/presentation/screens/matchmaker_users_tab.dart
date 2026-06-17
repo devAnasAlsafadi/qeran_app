@@ -43,6 +43,7 @@ class MatchmakerUsersTab extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
+        bottom: false,
         child: Column(
           children: [
             MatchmakerUsersSegmentedTabs(

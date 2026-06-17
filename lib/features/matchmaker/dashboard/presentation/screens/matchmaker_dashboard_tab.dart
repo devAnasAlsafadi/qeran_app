@@ -29,6 +29,7 @@ class MatchmakerDashboardTab extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
+        bottom: false,
         child: BlocBuilder<MatchmakerDashboardCubit, MatchmakerDashboardState>(
           builder: (context, state) => switch (state) {
             MatchmakerDashboardLoaded(:final stats) => RefreshIndicator(

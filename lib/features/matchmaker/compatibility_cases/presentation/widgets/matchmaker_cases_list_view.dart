@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/api/end_points.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_nav.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
@@ -138,18 +139,32 @@ class MatchmakerCasesListView extends StatelessWidget {
 
   /// Opens the OTHER side's matchmaker chat via the colleague path — direct nav
   /// when it exists, else resolve-or-create by colleague id (host handles both).
+  /// Carries the real peer identity from the case so the header shows the
+  /// matchmaker's name + avatar; name null → '' (the header's generic-label
+  /// fallback), image null/empty → null (default avatar).
   void _messageMatchmaker(BuildContext context, CompatibilityCase caseItem) {
     final chat = caseItem.chat;
     final id = chat.otherMatchmakerId ?? '';
+    final name = chat.otherMatchmakerName ?? '';
+    final rawImage = chat.otherMatchmakerImageUrl;
+    final imageUrl = (rawImage == null || rawImage.isEmpty)
+        ? null
+        : EndPoints.absoluteUrl(rawImage);
     final existingId = chat.otherMatchmakerConversationId;
     if (existingId != null) {
-      _openChat(context, conversationId: existingId, peerId: id, name: '');
+      _openChat(
+        context,
+        conversationId: existingId,
+        peerId: id,
+        name: name,
+        imageUrl: imageUrl,
+      );
       return;
     }
     context.read<MatchmakerColleagueOpenChatCubit>().open(
           colleagueId: id,
-          fullName: '',
-          profileImageUrl: null,
+          fullName: name,
+          profileImageUrl: imageUrl,
         );
   }
 

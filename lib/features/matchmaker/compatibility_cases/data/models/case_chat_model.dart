@@ -8,12 +8,19 @@ class CaseChatModel {
   final int? otherUserConversationId;
   final String? otherMatchmakerId;
   final int? otherMatchmakerConversationId;
+  final String? otherMatchmakerName;
+
+  /// RAW relative image path (same format as user images) — absolutized at the
+  /// call site via `EndPoints.absoluteUrl`, kept raw here.
+  final String? otherMatchmakerImageUrl;
 
   const CaseChatModel({
     required this.myUserConversationId,
     required this.otherUserConversationId,
     required this.otherMatchmakerId,
     required this.otherMatchmakerConversationId,
+    required this.otherMatchmakerName,
+    required this.otherMatchmakerImageUrl,
   });
 
   factory CaseChatModel.fromJson(Map<String, dynamic> json) => CaseChatModel(
@@ -23,6 +30,9 @@ class CaseChatModel {
         otherMatchmakerId: parseNullableString(json['otherMatchmakerId']),
         otherMatchmakerConversationId:
             parseNullableInt(json['otherMatchmakerConversationId']),
+        otherMatchmakerName: parseNullableString(json['otherMatchmakerName']),
+        otherMatchmakerImageUrl:
+            parseNullableString(json['otherMatchmakerImageUrl']),
       );
 
   CaseChat toEntity() => CaseChat(
@@ -30,5 +40,7 @@ class CaseChatModel {
         otherUserConversationId: otherUserConversationId,
         otherMatchmakerId: otherMatchmakerId,
         otherMatchmakerConversationId: otherMatchmakerConversationId,
+        otherMatchmakerName: otherMatchmakerName,
+        otherMatchmakerImageUrl: otherMatchmakerImageUrl,
       );
 }

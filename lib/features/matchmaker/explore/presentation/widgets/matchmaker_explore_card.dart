@@ -22,6 +22,7 @@ class MatchmakerExploreCard extends StatelessWidget {
     super.key,
     required this.user,
     required this.onView,
+    required this.onShare,
     this.onNotes,
     this.onMessageMatchmaker,
     this.matchmakerLoading = false,
@@ -32,6 +33,9 @@ class MatchmakerExploreCard extends StatelessWidget {
   /// Opens the full profile (the explore primary action — replaces the former
   /// whole-card tap).
   final VoidCallback onView;
+
+  /// Opens the recipient picker to share this profile with my users.
+  final VoidCallback onShare;
 
   /// Opens the private notes sheet — null (hidden) unless the user is assigned
   /// to me (the note endpoint is assigned-only).
@@ -107,6 +111,7 @@ class MatchmakerExploreCard extends StatelessWidget {
           QeranSpacing.vs12,
           MatchmakerExploreActionRow(
             onView: onView,
+            onShare: onShare,
             onNotes: onNotes,
             onMessageMatchmaker: onMessageMatchmaker,
             matchmakerLoading: matchmakerLoading,

@@ -47,6 +47,7 @@ import '../explore/domain/repositories/matchmaker_explore_repository.dart';
 import '../explore/domain/usecases/get_explore_filters_usecase.dart';
 import '../explore/domain/usecases/get_explore_usecase.dart';
 import '../explore/presentation/blocs/matchmaker_explore_cubit.dart';
+import '../explore/presentation/blocs/share/matchmaker_share_cubit.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
@@ -326,6 +327,17 @@ Future<void> initMatchmakerDependencies() async {
   // S4c · explore screen list cubit (one per mount). The filter-sheet cubit is
   // constructed inline by the sheet (it carries an initialSelections param).
   sl.registerFactory(() => MatchmakerExploreCubit(getExplore: sl()));
+  // Share recipient picker — one per opened sheet; the caller passes the
+  // browsed (shared) userId via param1. Recipients come from the existing
+  // users-list use-case (approved lists only).
+  sl.registerFactoryParam<MatchmakerShareCubit, String, void>(
+    (sharedUserId, _) => MatchmakerShareCubit(
+      sharedUserId: sharedUserId,
+      fetchUsers: sl(),
+      openChat: sl(),
+      shareProfile: sl(),
+    ),
+  );
 
   //! ── F5 · Notifications (shared inbox + local unread badge) ───────
   sl.registerLazySingleton<MatchmakerNotificationsRemoteDataSource>(

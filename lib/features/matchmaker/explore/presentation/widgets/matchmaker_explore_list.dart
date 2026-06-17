@@ -17,6 +17,7 @@ import '../../../users/presentation/widgets/matchmaker_notes_sheet.dart';
 import '../../domain/entities/matchmaker_explore_user.dart';
 import '../blocs/matchmaker_explore_cubit.dart';
 import 'matchmaker_explore_card.dart';
+import 'matchmaker_share_sheet.dart';
 
 /// The explore results body: loader / error / no-results / paginated list of
 /// [MatchmakerExploreCard]s. Reads the [MatchmakerExploreCubit] from context;
@@ -75,6 +76,9 @@ class MatchmakerExploreList extends StatelessWidget {
                   RouteNames.matchmakerUserProfile,
                   arguments: user.userId,
                 ),
+                // Share is independent of assignment — available on every card.
+                onShare: () =>
+                    showMatchmakerShareSheet(context, sharedUserId: user.userId),
                 // Notes are assigned-only (the endpoint returns UNAUTHORIZED
                 // otherwise) — hidden for users assigned to another matchmaker.
                 onNotes: user.isMyAssigned

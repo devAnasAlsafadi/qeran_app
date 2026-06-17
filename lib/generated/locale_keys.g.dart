@@ -608,6 +608,14 @@ abstract class  LocaleKeys {
   static const matchmaker_explore_retry = 'matchmaker.explore_retry';
   static const matchmaker_explore_no_results_title = 'matchmaker.explore_no_results_title';
   static const matchmaker_explore_no_results_message = 'matchmaker.explore_no_results_message';
+  static const matchmaker_explore_action_share = 'matchmaker.explore_action_share';
+  static const matchmaker_explore_share_title = 'matchmaker.explore_share_title';
+  static const matchmaker_explore_share_send = 'matchmaker.explore_share_send';
+  static const matchmaker_explore_share_empty = 'matchmaker.explore_share_empty';
+  static const matchmaker_explore_share_error = 'matchmaker.explore_share_error';
+  static const matchmaker_explore_share_success = 'matchmaker.explore_share_success';
+  static const matchmaker_explore_share_partial = 'matchmaker.explore_share_partial';
+  static const matchmaker_explore_share_failed = 'matchmaker.explore_share_failed';
   static const matchmaker_empty_notifications_title = 'matchmaker.empty_notifications_title';
   static const matchmaker_empty_notifications_message = 'matchmaker.empty_notifications_message';
   static const matchmaker_empty_account_title = 'matchmaker.empty_account_title';

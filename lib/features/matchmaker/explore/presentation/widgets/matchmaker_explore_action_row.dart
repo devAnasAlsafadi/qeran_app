@@ -16,6 +16,7 @@ class MatchmakerExploreActionRow extends StatelessWidget {
   const MatchmakerExploreActionRow({
     super.key,
     required this.onView,
+    required this.onShare,
     this.onNotes,
     this.onMessageMatchmaker,
     this.matchmakerLoading = false,
@@ -23,6 +24,10 @@ class MatchmakerExploreActionRow extends StatelessWidget {
 
   /// Always present — opens the full profile (the explore primary verb).
   final VoidCallback onView;
+
+  /// Always present — opens the recipient picker to share this profile with the
+  /// matchmaker's own users (independent of who the browsed user is assigned to).
+  final VoidCallback onShare;
 
   /// Opens the private notes sheet — null (hidden) unless the user is assigned
   /// to me (the note endpoint is assigned-only).
@@ -56,6 +61,13 @@ class MatchmakerExploreActionRow extends StatelessWidget {
           loading: matchmakerLoading,
           onTap: onMessageMatchmaker!,
         ),
+      MatchmakerActionChip(
+        label: LocaleKeys.matchmaker_explore_action_share.t(context),
+        icon: Icons.ios_share_rounded,
+        primary: false,
+        loading: false,
+        onTap: onShare,
+      ),
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -36,6 +36,9 @@ class _MatchmakerExploreTabState extends State<MatchmakerExploreTab> {
   Timer? _debounce;
   int _genderIndex = 0;
   Map<int, DiscoveryFilterSelection> _selections = const {};
+  // Effective filters present (question filters OR a trimmed range edge) —
+  // drives the active dot; a full-range selection trims to nothing → inactive.
+  bool _filtersActive = false;
 
   @override
   void initState() {
@@ -70,8 +73,19 @@ class _MatchmakerExploreTabState extends State<MatchmakerExploreTab> {
       initialSelections: _selections,
     );
     if (result == null) return; // dismissed — keep current filters
-    setState(() => _selections = result);
-    _cubit.setQuestionFilters(exploreQuestionFiltersFromSelections(result));
+    final questionFilters =
+        exploreQuestionFiltersFromSelections(result.selections);
+    setState(() {
+      _selections = result.selections;
+      _filtersActive = questionFilters.isNotEmpty ||
+          result.rangeFrom.isNotEmpty ||
+          result.rangeTo.isNotEmpty;
+    });
+    _cubit.setFilters(
+      questionFilters: questionFilters,
+      rangeFrom: result.rangeFrom,
+      rangeTo: result.rangeTo,
+    );
   }
 
   @override
@@ -94,7 +108,7 @@ class _MatchmakerExploreTabState extends State<MatchmakerExploreTab> {
                 MatchmakerExploreControls(
                   searchController: _searchController,
                   genderIndex: _genderIndex,
-                  filterActive: _selections.isNotEmpty,
+                  filterActive: _filtersActive,
                   onSearchChanged: _onSearchChanged,
                   onGenderChanged: _onGenderChanged,
                   onFilterTap: _onFilterTap,

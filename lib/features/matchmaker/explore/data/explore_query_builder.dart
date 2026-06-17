@@ -9,17 +9,20 @@ import 'package:qeran/core/enum/gender.dart';
 /// search               = "<text>"
 /// gender               = "Male" | "Female"
 /// QuestionFilters[<id>] = "<v1>,<v2>,<v3>"   (comma-joined OR for multi)
+/// RangeFrom[<id>]       = "<min>"            (numeric range — age/height/weight)
+/// RangeTo[<id>]         = "<max>"
 /// ```
 ///
 /// Empty/blank values are dropped, so a no-op filter yields a map carrying only
-/// `page`/`pageSize` once merged by the datasource. (Range filters —
-/// `RangeFrom[id]`/`RangeTo[id]` — are not part of this signature; the explore
-/// doc's filter example uses only `QuestionFilters`/`search`/`gender`. If S4b's
-/// sheet surfaces ranges, extend here mirroring buildPayload's range branch.)
+/// `page`/`pageSize` once merged by the datasource. The range maps are already
+/// trimmed by the filter cubit (an edge is present only when the user moved it
+/// off the question's min/max), so a one-sided range sends just one edge.
 Map<String, String> buildExploreQuery({
   String? search,
   Gender? gender,
   Map<int, List<String>> questionFilters = const {},
+  Map<int, double> rangeFrom = const {},
+  Map<int, double> rangeTo = const {},
 }) {
   final query = <String, String>{};
   final trimmedSearch = search?.trim();
@@ -35,5 +38,11 @@ Map<String, String> buildExploreQuery({
       query['QuestionFilters[$id]'] = nonEmpty.join(',');
     }
   });
+  rangeFrom.forEach((id, v) => query['RangeFrom[$id]'] = _num(v));
+  rangeTo.forEach((id, v) => query['RangeTo[$id]'] = _num(v));
   return query;
 }
+
+/// Whole numbers send without a trailing `.0` (the server reads them as ints
+/// for age/height/weight); fractional values keep their decimals.
+String _num(double v) => v == v.roundToDouble() ? '${v.toInt()}' : '$v';

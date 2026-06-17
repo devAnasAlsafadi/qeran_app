@@ -17,17 +17,25 @@ import '../blocs/matchmaker_explore_filter_cubit.dart';
 import '../blocs/matchmaker_explore_filter_state.dart';
 import '../widgets/matchmaker_explore_filter_renderer.dart';
 
+/// The filter sheet's result: the raw [selections] (to re-seed the sheet +
+/// derive `QuestionFilters`) plus the already-trimmed numeric [rangeFrom] /
+/// [rangeTo] maps (`RangeFrom[id]`/`RangeTo[id]`).
+typedef ExploreFilterResult = ({
+  Map<int, DiscoveryFilterSelection> selections,
+  Map<int, double> rangeFrom,
+  Map<int, double> rangeTo,
+});
+
 /// Parallel explore filter sheet — provides a [MatchmakerExploreFilterCubit]
 /// (mirroring discovery's, but discovery is untouched) and reuses the discovery
 /// leaf sub-widgets via [MatchmakerExploreFilterRenderer]. Returns the chosen
-/// selections (`{questionId: selection}`) on apply so the screen can both
-/// re-seed the sheet and derive the `QuestionFilters` query; an empty map from
-/// "clear"; `null` if dismissed.
-Future<Map<int, DiscoveryFilterSelection>?> showMatchmakerExploreFilterSheet(
+/// [ExploreFilterResult] on apply (an all-empty result from "clear"); `null` if
+/// dismissed.
+Future<ExploreFilterResult?> showMatchmakerExploreFilterSheet(
   BuildContext context, {
   Map<int, DiscoveryFilterSelection> initialSelections = const {},
 }) {
-  return showModalBottomSheet<Map<int, DiscoveryFilterSelection>>(
+  return showModalBottomSheet<ExploreFilterResult>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -153,6 +161,17 @@ class _Content extends StatelessWidget {
 class _Footer extends StatelessWidget {
   const _Footer();
 
+  /// Pops the current selections + the trimmed range maps.
+  void _apply(BuildContext context) {
+    final cubit = context.read<MatchmakerExploreFilterCubit>();
+    final ranges = cubit.buildRangeFilters();
+    Navigator.of(context).pop((
+      selections: cubit.currentSelections(),
+      rangeFrom: ranges.from,
+      rangeTo: ranges.to,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MatchmakerExploreFilterCubit,
@@ -173,20 +192,17 @@ class _Footer extends StatelessWidget {
               QeranButton(
                 label: LocaleKeys.matchmaker_explore_filter_apply.t(context),
                 variant: QeranButtonVariant.primaryWine,
-                onPressed: loaded
-                    ? () => Navigator.of(context).pop(
-                          context
-                              .read<MatchmakerExploreFilterCubit>()
-                              .currentSelections(),
-                        )
-                    : null,
+                onPressed: loaded ? () => _apply(context) : null,
               ),
               QeranSpacing.vs8,
               QeranButton(
                 label: LocaleKeys.matchmaker_explore_filter_clear.t(context),
                 variant: QeranButtonVariant.ghost,
-                onPressed: () => Navigator.of(context)
-                    .pop(const <int, DiscoveryFilterSelection>{}),
+                onPressed: () => Navigator.of(context).pop((
+                  selections: const <int, DiscoveryFilterSelection>{},
+                  rangeFrom: const <int, double>{},
+                  rangeTo: const <int, double>{},
+                )),
               ),
             ],
           ),

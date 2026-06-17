@@ -610,7 +610,6 @@
     "explore_filter_error": "تعذّر تحميل عوامل التصفية",
     "explore_filter_retry": "إعادة المحاولة",
     "explore_filter_empty": "لا توجد عوامل تصفية متاحة.",
-    "explore_filter_date_select": "اختر تاريخاً",
     "explore_search_hint": "ابحثي بالاسم",
     "explore_gender_all": "الكل",
     "explore_gender_male": "ذكر",

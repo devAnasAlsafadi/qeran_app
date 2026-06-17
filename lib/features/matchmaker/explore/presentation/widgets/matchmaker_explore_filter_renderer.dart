@@ -6,10 +6,9 @@ import '../../../../discovery/domain/entities/discovery_filter_selection.dart';
 import '../../../../discovery/domain/entities/filter_question_type.dart';
 import '../../../../discovery/presentation/widgets/filter_expandable_multi.dart';
 import '../../../../discovery/presentation/widgets/filter_expandable_select.dart';
+import '../../../../discovery/presentation/widgets/filter_range_field.dart';
 import '../../../../discovery/presentation/widgets/filter_text_field.dart';
 import '../blocs/matchmaker_explore_filter_cubit.dart';
-import 'matchmaker_explore_date_field.dart';
-import 'matchmaker_explore_number_field.dart';
 
 /// Parallel to discovery's `FilterQuestionRenderer` — same leaf sub-widgets
 /// (reused, they're callback-driven), but wired to
@@ -29,6 +28,17 @@ class MatchmakerExploreFilterRenderer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<MatchmakerExploreFilterCubit>();
+
+    // Range FIRST — age/height/weight come back with isRange:true and use the
+    // shared discovery slider (RangeFrom/RangeTo), regardless of base type.
+    if (question.isRange) {
+      return FilterRangeField(
+        question: question,
+        selection:
+            selection is RangeSelection ? selection as RangeSelection : null,
+        onChanged: (min, max) => cubit.setRange(question.id, min, max),
+      );
+    }
 
     switch (question.type) {
       case FilterQuestionType.checkbox:
@@ -58,24 +68,11 @@ class MatchmakerExploreFilterRenderer extends StatelessWidget {
           onChanged: (value) => cubit.setSingleValue(question.id, value),
         );
       case FilterQuestionType.date:
-        // EXACT match on TextAnswer (yyyy-MM-dd) — single value, not a range.
-        return MatchmakerExploreDateField(
-          question: question,
-          selection: selection is SingleValueSelection
-              ? selection as SingleValueSelection
-              : null,
-          onChanged: (value) => cubit.setSingleValue(question.id, value),
-        );
       case FilterQuestionType.height:
       case FilterQuestionType.weight:
-        // EXACT match on a numeric TextAnswer — single value, not a range.
-        return MatchmakerExploreNumberField(
-          question: question,
-          selection: selection is SingleValueSelection
-              ? selection as SingleValueSelection
-              : null,
-          onChanged: (value) => cubit.setSingleValue(question.id, value),
-        );
+        // These arrive as ranges (handled above); a non-range one is dropped
+        // upstream by the filter cubit, so this is a defensive no-op.
+        return const SizedBox.shrink();
     }
   }
 }

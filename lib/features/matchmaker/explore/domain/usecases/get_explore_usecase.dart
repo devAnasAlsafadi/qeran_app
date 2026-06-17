@@ -17,6 +17,8 @@ class GetExploreUseCase {
     String? search,
     Gender? gender,
     Map<int, List<String>> questionFilters = const {},
+    Map<int, double> rangeFrom = const {},
+    Map<int, double> rangeTo = const {},
   }) =>
       _repository.getExplore(
         page: page,
@@ -24,5 +26,7 @@ class GetExploreUseCase {
         search: search,
         gender: gender,
         questionFilters: questionFilters,
+        rangeFrom: rangeFrom,
+        rangeTo: rangeTo,
       );
 }

@@ -19,6 +19,8 @@ class MatchmakerExploreCubit
   String _search = '';
   Gender? _gender;
   Map<int, List<String>> _questionFilters = const {};
+  Map<int, double> _rangeFrom = const {};
+  Map<int, double> _rangeTo = const {};
 
   MatchmakerExploreCubit({required GetExploreUseCase getExplore})
       : _getExplore = getExplore,
@@ -34,6 +36,8 @@ class MatchmakerExploreCubit
       search: _search.isEmpty ? null : _search,
       gender: _gender,
       questionFilters: _questionFilters,
+      rangeFrom: _rangeFrom,
+      rangeTo: _rangeTo,
     );
     return result.fold(
       (failure) => throw _ExploreFetchException(failure.message),
@@ -54,8 +58,16 @@ class MatchmakerExploreCubit
     _reload();
   }
 
-  void setQuestionFilters(Map<int, List<String>> filters) {
-    _questionFilters = filters;
+  /// Applies the filter sheet's result in one shot: exact-match question
+  /// filters + the trimmed numeric ranges (`RangeFrom`/`RangeTo`).
+  void setFilters({
+    required Map<int, List<String>> questionFilters,
+    required Map<int, double> rangeFrom,
+    required Map<int, double> rangeTo,
+  }) {
+    _questionFilters = questionFilters;
+    _rangeFrom = rangeFrom;
+    _rangeTo = rangeTo;
     _reload();
   }
 

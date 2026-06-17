@@ -14,6 +14,8 @@ abstract interface class MatchmakerExploreRepository {
     String? search,
     Gender? gender,
     Map<int, List<String>> questionFilters,
+    Map<int, double> rangeFrom,
+    Map<int, double> rangeTo,
   });
 
   /// Fetches the active explore filter questions (reuses the discovery

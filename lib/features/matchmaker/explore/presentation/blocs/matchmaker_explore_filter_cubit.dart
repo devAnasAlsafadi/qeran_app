@@ -59,23 +59,19 @@ class MatchmakerExploreFilterCubit
     );
   }
 
-  /// Keeps the question types the matchmaker sheet renders: select / radio /
-  /// checkbox / interests / text, PLUS date / height / weight as EXACT-match
-  /// single values (Tariq's explore contract — not ranges; date sent as
-  /// `yyyy-MM-dd`, height/weight as a numeric string). `unknown` is kept only
-  /// when it has options (single-choice fallback). A question explicitly
-  /// flagged `isRange` is still dropped — explore has no range UI (defensive;
-  /// explore `/filters` never sets it).
+  /// Keeps the question types the matchmaker sheet renders: any `isRange`
+  /// question (age/height/weight → a range slider) PLUS select / radio /
+  /// checkbox / interests / text. `unknown` is kept only when it has options
+  /// (single-choice fallback). A `date`/`height`/`weight` arriving WITHOUT
+  /// `isRange` is dropped — there's no single-value leaf for it (mirrors
+  /// discovery; explore `/filters` now always flags these as ranges).
   List<DiscoveryFilterQuestion> _usableQuestions(
     List<DiscoveryFilterQuestion> all,
   ) {
     final kept = <DiscoveryFilterQuestion>[];
     for (final q in all) {
       if (q.isRange) {
-        AppLogger.warning(
-          'skip explore filter id=${q.id} — range (no range UI in explore)',
-          tag: 'MM-EXPLORE-FILTERS',
-        );
+        kept.add(q);
         continue;
       }
       switch (q.type) {
@@ -84,15 +80,29 @@ class MatchmakerExploreFilterCubit
         case FilterQuestionType.checkbox:
         case FilterQuestionType.interests:
         case FilterQuestionType.text:
-        case FilterQuestionType.date:
-        case FilterQuestionType.height:
-        case FilterQuestionType.weight:
           kept.add(q);
         case FilterQuestionType.unknown:
           if (q.options != null && q.options!.isNotEmpty) kept.add(q);
+        case FilterQuestionType.date:
+        case FilterQuestionType.height:
+        case FilterQuestionType.weight:
+          AppLogger.warning(
+            'skip explore filter id=${q.id} — ${q.type.name} sent with '
+            'isRange=false (expected true)',
+            tag: 'MM-EXPLORE-FILTERS',
+          );
       }
     }
     return kept;
+  }
+
+  /// Sets a numeric range (age/height/weight) — mirrors discovery's slider.
+  void setRange(int questionId, int min, int max) {
+    final loaded = _loaded();
+    if (loaded == null) return;
+    final next = Map<int, DiscoveryFilterSelection>.from(loaded.selections);
+    next[questionId] = RangeSelection(min: min, max: max);
+    emit(loaded.copyWith(selections: next));
   }
 
   /// Sets a single-value question (select/radio/text). Empty clears it;
@@ -142,6 +152,25 @@ class MatchmakerExploreFilterCubit
     final loaded = _loaded();
     if (loaded == null) return const {};
     return exploreQuestionFiltersFromSelections(loaded.selections);
+  }
+
+  /// The trimmed numeric range maps for the request — an edge is emitted only
+  /// when the user moved it off the question's bound, so a full-range selection
+  /// sends nothing and a one-sided range sends just one edge.
+  ({Map<int, double> from, Map<int, double> to}) buildRangeFilters() {
+    final loaded = _loaded();
+    if (loaded == null) return (from: const {}, to: const {});
+    final from = <int, double>{};
+    final to = <int, double>{};
+    final byId = {for (final q in loaded.questions) q.id: q};
+    loaded.selections.forEach((id, sel) {
+      if (sel is! RangeSelection) return;
+      final q = byId[id];
+      if (q == null) return;
+      if (sel.min > q.effectiveMin) from[id] = sel.min.toDouble();
+      if (sel.max < q.effectiveMax) to[id] = sel.max.toDouble();
+    });
+    return (from: from, to: to);
   }
 
   /// Snapshot of the raw selections (so the screen can re-seed the sheet).

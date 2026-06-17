@@ -22,6 +22,8 @@ class MatchmakerExploreRepositoryImpl
     String? search,
     Gender? gender,
     Map<int, List<String>> questionFilters = const {},
+    Map<int, double> rangeFrom = const {},
+    Map<int, double> rangeTo = const {},
   }) {
     return executeApiCall(() async {
       final model = await _dataSource.getExplore(
@@ -30,6 +32,8 @@ class MatchmakerExploreRepositoryImpl
         search: search,
         gender: gender,
         questionFilters: questionFilters,
+        rangeFrom: rangeFrom,
+        rangeTo: rangeTo,
       );
       return model.toEntity();
     });

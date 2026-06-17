@@ -19,6 +19,8 @@ abstract interface class MatchmakerExploreRemoteDataSource {
     String? search,
     Gender? gender,
     Map<int, List<String>> questionFilters,
+    Map<int, double> rangeFrom,
+    Map<int, double> rangeTo,
   });
 
   /// The active filter questions (same shape + parser as discovery's /filters).
@@ -39,6 +41,8 @@ class MatchmakerExploreRemoteDataSourceImpl
     String? search,
     Gender? gender,
     Map<int, List<String>> questionFilters = const {},
+    Map<int, double> rangeFrom = const {},
+    Map<int, double> rangeTo = const {},
   }) async {
     final query = <String, dynamic>{
       'page': page,
@@ -47,6 +51,8 @@ class MatchmakerExploreRemoteDataSourceImpl
         search: search,
         gender: gender,
         questionFilters: questionFilters,
+        rangeFrom: rangeFrom,
+        rangeTo: rangeTo,
       ),
     };
     AppLogger.debug(

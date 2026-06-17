@@ -610,7 +610,6 @@
     "explore_filter_error": "Couldn't load filters",
     "explore_filter_retry": "Retry",
     "explore_filter_empty": "No filters available.",
-    "explore_filter_date_select": "Select a date",
     "explore_search_hint": "Search by name",
     "explore_gender_all": "All",
     "explore_gender_male": "Male",

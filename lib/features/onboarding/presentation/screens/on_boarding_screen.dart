@@ -5,6 +5,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/core/theme/app_text_style.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -39,6 +40,20 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     );
   }
 
+  /// Where to land after onboarding finishes. Normally the unauthenticated
+  /// path → login. But if a real session is already in memory (e.g. onboarding
+  /// was ever shown to an authenticated user), route to their role's home
+  /// instead of dumping them back to login.
+  String _postOnboardingRoute() {
+    final user = sl<UserSessionCubit>().currentUser;
+    if (user == null || (user.token?.isEmpty ?? true)) {
+      return RouteNames.loginScreen;
+    }
+    return user.role?.toLowerCase() == 'moderator'
+        ? RouteNames.matchmakerHome
+        : RouteNames.homeScreen;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -50,7 +65,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           if (state is OnboardingDone) {
             NavigationManager.pushNamedAndRemoveUntil(
               context,
-              RouteNames.loginScreen,
+              _postOnboardingRoute(),
             );
             return;
           }

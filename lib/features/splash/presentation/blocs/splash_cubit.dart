@@ -18,17 +18,15 @@ class SplashCubit extends Cubit<SplashState> {
   void checkAuthStatus() async {
     await Future.delayed(const Duration(seconds: 3));
 
-    final bool? seenOnboarding = await sharedPrefs.get<bool>(
-      StorageKeys.seenOnboarding,
-    );
-    if (seenOnboarding != true) {
-      emit(NavigateToOnboarding());
-      return;
-    }
-
+    // Session FIRST: a user with a valid token is past onboarding by
+    // definition and must never be sent back to it. Onboarding is only for
+    // the unauthenticated, and only until they've seen it once.
     final String? token = await secureStorage.get<String>(StorageKeys.token);
     if (token == null || token.isEmpty) {
-      emit(NavigateToLogin());
+      final bool? seenOnboarding = await sharedPrefs.get<bool>(
+        StorageKeys.seenOnboarding,
+      );
+      emit(seenOnboarding == true ? NavigateToLogin() : NavigateToOnboarding());
       return;
     }
 

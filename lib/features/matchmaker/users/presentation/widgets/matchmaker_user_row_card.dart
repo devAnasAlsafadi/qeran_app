@@ -72,6 +72,13 @@ class MatchmakerUserRowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expiry = _expiryLabel(context);
+    // Whether the name column carries any content beneath the name. When it
+    // doesn't (a sparse user — no flagged answers, no age, no plan chip), the
+    // 72px avatar would otherwise dwarf the lone name pinned to the top, so we
+    // centre the row and show a quiet placeholder instead of leaving a gap.
+    final hasDetails = row.answers.isNotEmpty ||
+        row.age != null ||
+        (row.isSubscribed && showPlanChip);
     return QeranCard(
       margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
       padding: const EdgeInsets.all(QeranSpacing.s12),
@@ -80,9 +87,11 @@ class MatchmakerUserRowCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            // Top-align so the expiry timestamp pins to the top-END corner,
-            // level with the avatar's top edge.
-            crossAxisAlignment: CrossAxisAlignment.start,
+            // With details, top-align so the expiry timestamp pins to the
+            // top-END corner level with the avatar's top edge; when sparse,
+            // centre the lone name + placeholder against the avatar.
+            crossAxisAlignment:
+                hasDetails ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
               MatchmakerUserAvatar(url: row.profileImageUrl, size: 72),
               QeranSpacing.hs12,
@@ -113,6 +122,19 @@ class MatchmakerUserRowCard extends StatelessWidget {
                         icon: Icons.workspace_premium_outlined,
                       ),
                     ],
+                    // Quiet "no details yet" line for a sparse user, so the
+                    // card reads as intentionally minimal rather than broken.
+                    if (!hasDetails) ...[
+                      QeranSpacing.vs4,
+                      Text(
+                        LocaleKeys.matchmaker_users_no_details_yet.t(context),
+                        style: QeranTypography.bodySm.copyWith(
+                          color: QeranColors.inkFaint,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -129,8 +151,6 @@ class MatchmakerUserRowCard extends StatelessWidget {
               ],
             ],
           ),
-          QeranSpacing.vs12,
-          Container(height: 1, color: QeranColors.divider),
           QeranSpacing.vs12,
           MatchmakerCardActionRow(
             list: list,

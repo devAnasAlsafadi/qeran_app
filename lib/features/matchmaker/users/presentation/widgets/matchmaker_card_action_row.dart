@@ -83,6 +83,9 @@ class MatchmakerCardActionRow extends StatelessWidget {
       icon: spec.icon,
       primary: spec.primary,
       fullWidth: fullWidth,
+      // Secondaries wear the lighter ghost (hairline-outlined) look; the
+      // primary stays filled wine.
+      ghost: !spec.primary,
       loading: spec.action == loadingAction,
       onTap: () => onAction(spec.action),
     );

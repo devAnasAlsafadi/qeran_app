@@ -428,6 +428,7 @@
     "users_subscription_expires": "Expires",
     "users_assigned_at": "Assigned on",
     "users_age_years": "{age} years old",
+    "users_no_details_yet": "No details yet",
     "users_action_approve": "Approve",
     "users_action_message": "Message",
     "users_action_view": "View",

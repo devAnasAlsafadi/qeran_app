@@ -10,9 +10,10 @@ import '../../../../../core/design_system/widgets/qeran_loader.dart';
 /// QeranButton, whose `xs` size is intentionally chunkier and used elsewhere).
 /// Content-sized by construction (`Row(min)`, no expanding `Center`), so it
 /// flows naturally in a parent [Wrap] without an `IntrinsicWidth`. Filled
-/// `wine` for a list's primary action, soft `softFill` chip otherwise. Mirrors
-/// automatically (RTL/LTR). While [loading] the icon becomes an inline loader
-/// and taps are suppressed.
+/// `wine` for a list's primary action, soft `softFill` chip otherwise — or, for
+/// [ghost] secondaries, a transparent fill with a hairline outline (a lighter
+/// look). Mirrors automatically (RTL/LTR). While [loading] the icon becomes an
+/// inline loader and taps are suppressed.
 class MatchmakerActionChip extends StatelessWidget {
   const MatchmakerActionChip({
     super.key,
@@ -22,6 +23,7 @@ class MatchmakerActionChip extends StatelessWidget {
     required this.loading,
     required this.onTap,
     this.fullWidth = false,
+    this.ghost = false,
   });
 
   final String label;
@@ -35,13 +37,27 @@ class MatchmakerActionChip extends StatelessWidget {
   /// the chip is content-sized and flows in a [Wrap].
   final bool fullWidth;
 
+  /// Lighter secondary treatment: transparent fill + a hairline outline instead
+  /// of the [QeranColors.softFill] background. Only affects non-[primary] chips
+  /// (a primary stays filled wine). Opt-in so other call sites keep the soft
+  /// look.
+  final bool ghost;
+
   @override
   Widget build(BuildContext context) {
+    final isGhost = ghost && !primary;
     final fg = primary ? QeranColors.paper : QeranColors.wine;
-    final bg = primary ? QeranColors.wine : QeranColors.softFill;
+    final bg = primary
+        ? QeranColors.wine
+        : (isGhost ? Colors.transparent : QeranColors.softFill);
     return Material(
       color: bg,
-      borderRadius: QeranRadii.pill,
+      shape: isGhost
+          ? const RoundedRectangleBorder(
+              borderRadius: QeranRadii.pill,
+              side: BorderSide(color: QeranColors.hairline),
+            )
+          : const RoundedRectangleBorder(borderRadius: QeranRadii.pill),
       child: InkWell(
         borderRadius: QeranRadii.pill,
         onTap: loading ? null : onTap,

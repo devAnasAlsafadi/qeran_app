@@ -5,10 +5,12 @@
   "version": "1.0.0",
   "description": "Build-time rasterizer: brand SVG sources -> platform PNG/vector assets.",
   "scripts": {
-    "generate:icons": "node generate_icons.mjs"
+    "generate:icons": "node generate_icons.mjs",
+    "generate:notification": "node generate_notification.mjs"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "svg2vectordrawable": "^2.9.1"
   }
 }

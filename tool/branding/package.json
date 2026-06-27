@@ -1,0 +1,14 @@
+{
+  "name": "qeran-branding-tools",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Build-time rasterizer: brand SVG sources -> platform PNG/vector assets.",
+  "scripts": {
+    "generate:icons": "node generate_icons.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "sharp": "^0.33.5"
+  }
+}

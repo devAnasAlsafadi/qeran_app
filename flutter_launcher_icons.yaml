@@ -1,0 +1,15 @@
+# App icon generation (Group A). Masters are produced from the brand SVGs by
+# tool/branding/generate_icons.mjs into branding/out/. Regenerate icons with:
+#   dart run flutter_launcher_icons
+#
+# Brand: gold symbol (#E4C094) on wine (#431C33). iOS icon is flattened opaque
+# (no alpha — App Store requirement).
+flutter_launcher_icons:
+  image_path: "branding/out/ic_ios_1024.png"
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  min_sdk_android: 21
+  adaptive_icon_background: "#431C33"
+  adaptive_icon_foreground: "branding/out/ic_adaptive_fg.png"
+  adaptive_icon_monochrome: "branding/out/ic_monochrome.png"

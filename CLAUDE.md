@@ -18,7 +18,7 @@ This file is the index and is always loaded. The detail docs are **not** pre-loa
 
 1. **Figma = shape only. OUR identity = all colors/type/spacing/radii.** Match Figma's structure, paint in our identity. (`DESIGN.md`)
 2. **Design system is law — ZERO tolerance.** No `Color(0x..)`, no Material colors/widgets, no legacy `AppColors`/`AppTextStyles`/`AppDimens`/`CustomButton`/`AppTextFormField`. Tokens + Qeran widgets only. If a token is missing, ADD it to the design system — never fall back to legacy. (`DESIGN.md`)
-3. **Identity:** wine `#431C33` · gold `#E4C094` · soft-white canvas `#FEFCFA` (locked — intentional override of the brand guide's cream). Success/verified = gold (no green). Overlays = dark wine (no black). Danger = `#A33949`. **6** QeranButton variants (incl. `primaryGold`).
+3. **Identity:** wine `#431C33` · gold `#E4C094` · soft-white canvas `#F8F8F8` (locked — intentional override of the brand guide's cream). Success/verified = gold (no green). Overlays = dark wine (no black). Danger = `#A33949`. **6** QeranButton variants (incl. `primaryGold`).
 4. **Bidirectional / locale-aware ALWAYS** (ar RTL + en LTR, more later). `*Directional` everywhere; never hardcode left/right; never combine manual `isRtl` swap with auto-mirroring (double-flip). No `Directionality` widget.
 5. **Backend-driven / DYNAMIC.** Render only what the backend backs — never fabricate fields/states/buttons; if unbacked, omit. (Canonical: `ENGINEERING.md §4`.)
 6. **Architecture:** `UI → ScreenController → Cubit/Bloc → UseCase → Repository → DataSource → ApiConsumer`. No layer bypass. Models in data only, Entities in domain only. `Either` via `.fold` only. (`ENGINEERING.md`)

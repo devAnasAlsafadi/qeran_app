@@ -42,7 +42,7 @@ Warm, premium, calm, trustworthy, marriage-focused. Luxurious without being flas
 > Full hex table + alpha shades + semantic map in `QERAN_DESIGN_SYSTEM.md`. The rules:
 
 - **Two colors carry the brand:** wine `#431C33` (primary) + gold `#E4C094` (accent/verified/celebrate). Over a soft-white canvas.
-- **Canvas = soft white `#FEFCFA`.** ⭐ **IMPORTANT — locked final decision.** This is an **intentional override** of the brand guide (which specifies warm cream `#FCEDDD`). We ship the soft white. Do not "correct" it back to cream.
+- **Canvas = soft white `#F8F8F8`.** ⭐ **IMPORTANT — locked final decision.** This is an **intentional override** of the brand guide (which specifies warm cream `#FCEDDD`). We ship the soft white (the live `QeranColors.creamCanvas` value — the code is the source of truth). Do not "correct" it back to cream.
 - **Cream tier is for lifted surfaces** (`creamSurface #FBF4E6`) — meta chips, skeleton base, icon discs. **White (`paper #FFFFFF`)** is a lifted surface (cards, nav). Never white-on-white flatly.
 - **No greys, ever.** Text neutrals are wine-tinted ink (`inkStrong/inkBody/inkMuted`), never cold grey. Shadows are wine-tinted, never grey.
 - **Semantic overrides of the brand guide / intuition:**

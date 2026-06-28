@@ -18,7 +18,7 @@
 ### Canvas tier
 | Token | Hex | Use |
 |-------|-----|-----|
-| `creamCanvas` | `#FEFCFA` ⭐ | Scaffold background (the canvas). **Soft white — locked final decision** (intentional override of the brand guide's warm cream `#FCEDDD`). |
+| `creamCanvas` | `#F8F8F8` ⭐ | Scaffold background (the canvas). **Soft white — locked final decision** (intentional override of the brand guide's warm cream `#FCEDDD`). |
 | `creamSurface` | `#FBF4E6` | Lifted cream — meta chips, skeleton base, icon discs, nav cradle. |
 | `paper` | `#FFFFFF` | White lifted surface — cards, bottom-nav bar. |
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
 
 class RegisterPolicyCheckbox extends StatelessWidget {
   final ValueNotifier<bool> acceptedPolicyNotifier;
@@ -24,15 +24,15 @@ class RegisterPolicyCheckbox extends StatelessWidget {
           children: [
             RichText(
               text: TextSpan(
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textSecondary,
+                style: QeranTypography.caption.copyWith(
+                  color: QeranColors.inkMuted,
                 ),
                 children: [
                   TextSpan(text: LocaleKeys.auth_policy_agree.t(context)),
                   TextSpan(
                     text: LocaleKeys.auth_privacy_policy.t(context),
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primaryLight,
+                    style: QeranTypography.caption.copyWith(
+                      color: QeranColors.gold,
                     ),
                   ),
                 ],

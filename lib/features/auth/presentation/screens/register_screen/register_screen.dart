@@ -5,8 +5,8 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../blocs/login/login_bloc.dart';
@@ -67,9 +67,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsetsDirectional.only(
-                    start: AppDimens.p24,
-                    end: AppDimens.p24,
-                    top: AppDimens.p16,
+                    start: QeranSpacing.s24,
+                    end: QeranSpacing.s24,
+                    top: QeranSpacing.s16,
                   ),
                   child: AuthBackButton(
                     onPressed: () => NavigationManager.pop(context),
@@ -79,8 +79,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Center(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimens.p24,
-                        vertical: AppDimens.p16,
+                        horizontal: QeranSpacing.s24,
+                        vertical: QeranSpacing.s16,
                       ),
                       child: Form(
                         key: _controller.formKey,
@@ -88,15 +88,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             AuthLogoHeader(),
-                            AppDimens.verticalSpace16,
+                            QeranSpacing.vs16,
                             Text(
                               LocaleKeys.auth_register_title.t(context),
-                              style: AppTextStyles.displayLarge,
+                              style: QeranTypography.displaySm,
                               textAlign: TextAlign.start,
                             ),
-                            AppDimens.verticalSpace24,
+                            QeranSpacing.vs24,
                             RegisterForm(controller: _controller),
-                            AppDimens.verticalSpace16,
+                            QeranSpacing.vs16,
                             RegisterActions(
                               onRegisterPressed: () =>
                                   _onRegisterPressed(context),

@@ -5,8 +5,8 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../blocs/login/login_bloc.dart';
@@ -56,8 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Center(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimens.p24,
-                      vertical: AppDimens.p32,
+                      horizontal: QeranSpacing.s24,
+                      vertical: QeranSpacing.s32,
                     ),
                     child: Form(
                       key: _controller.formKey,
@@ -71,22 +71,22 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           const AuthLogoHeader(),
-                          AppDimens.verticalSpace24,
+                          QeranSpacing.vs24,
                           Text(
                             LocaleKeys.auth_login_title.t(context),
-                            style: AppTextStyles.displayLarge.copyWith(
+                            style: QeranTypography.displaySm.copyWith(
                               fontSize: 35,
                             ),
                           ),
                           Text(
                             LocaleKeys.auth_login_subtitle.t(context),
-                            style: AppTextStyles.displayLarge.copyWith(
+                            style: QeranTypography.displaySm.copyWith(
                               fontSize: 35,
                             ),
                           ),
-                          AppDimens.verticalSpace24,
+                          QeranSpacing.vs24,
                           LoginForm(controller: _controller),
-                          AppDimens.verticalSpace24,
+                          QeranSpacing.vs24,
                           LoginActions(
                             onLoginPressed: () => _onLoginPressed(context),
                           ),

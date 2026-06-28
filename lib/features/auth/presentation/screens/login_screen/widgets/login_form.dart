@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../widgets/auth_email_field.dart';
 import '../../../widgets/auth_password_field.dart';
@@ -28,7 +27,7 @@ class LoginForm extends StatelessWidget {
           hintText: LocaleKeys.auth_email_hint,
           prefixIcon: const Icon(Icons.email, color: QeranColors.inkFaint),
         ),
-        AppDimens.verticalSpace16,
+        QeranSpacing.vs16,
         AuthPasswordField(
           controller: controller.passwordController,
           focusNode: controller.passwordFocus,
@@ -51,8 +50,8 @@ class LoginForm extends StatelessWidget {
         style: TextButton.styleFrom(padding: EdgeInsets.zero),
         child: Text(
           LocaleKeys.auth_forgot_password.t(context),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.primaryLight,
+          style: QeranTypography.body.copyWith(
+            color: QeranColors.gold,
             fontWeight: FontWeight.bold,
           ),
         ),

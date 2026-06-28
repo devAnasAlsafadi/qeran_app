@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../widgets/auth_email_field.dart';
 import '../../../widgets/auth_password_field.dart';
@@ -34,14 +34,14 @@ class RegisterForm extends StatelessWidget {
               ? LocaleKeys.validators_field_required.t(context)
               : null,
         ),
-        AppDimens.verticalSpace16,
+        QeranSpacing.vs16,
         AuthEmailField(
           controller: controller.emailController,
           focusNode: controller.emailFocus,
           labelText: LocaleKeys.auth_email_label,
           hintText: LocaleKeys.auth_email_hint,
         ),
-        AppDimens.verticalSpace16,
+        QeranSpacing.vs16,
         AuthPasswordField(
           controller: controller.passwordController,
           focusNode: controller.passwordFocus,

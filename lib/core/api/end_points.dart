@@ -314,4 +314,11 @@ class EndPoints {
 
   /// `GET /api/notifications/count` — `{ count }` (total, not unread).
   static const String notificationsCount = "notifications/count";
+
+  // Legal documents — public (no JWT), bilingual sectioned content.
+  /// `GET /api/privacy-policy` — `{ lastUpdatedAt, sections[] }`.
+  static const String privacyPolicy = "privacy-policy";
+
+  /// `GET /api/terms-and-conditions` — same shape as [privacyPolicy].
+  static const String termsAndConditions = "terms-and-conditions";
 }

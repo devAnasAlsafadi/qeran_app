@@ -9,6 +9,7 @@ import '../../features/auth/presentation/blocs/user_session/user_session_cubit.d
 import '../../features/chat/di/chat_injection.dart';
 import '../../features/devices/di/devices_injection.dart';
 import '../../features/discovery/di/discovery_injection.dart';
+import '../../features/legal/di/legal_injection.dart';
 import '../../features/likes/di/likes_injection.dart';
 import '../../features/matchmaker/di/matchmaker_injection.dart';
 import '../../features/notifications/di/notifications_injection.dart';
@@ -129,6 +130,9 @@ Future<void> init() async {
 
   //! Features - Notifications (user-app shared inbox)
   initNotificationsDependencies();
+
+  //! Features - Legal (privacy-policy + terms-and-conditions)
+  initLegalDependencies();
 
   //! Features - Matchmaker (role=Moderator) — foundation only.
   // Currently a no-op; each subsequent milestone fills it.

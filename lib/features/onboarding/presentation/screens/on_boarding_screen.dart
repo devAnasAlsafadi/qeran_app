@@ -4,10 +4,10 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../on_boarding_model.dart';
 import '../cubit/onboarding_cubit.dart';
@@ -93,22 +93,22 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                 ),
                 if (!state.isLastPage) ...[
                   PositionedDirectional(
-                    top: MediaQuery.of(context).padding.top + AppDimens.p8,
-                    start: AppDimens.p16,
+                    top: MediaQuery.of(context).padding.top + QeranSpacing.s8,
+                    start: QeranSpacing.s16,
                     child: TextButton(
                       onPressed: cubit.skip,
                       child: Text(
                         LocaleKeys.common_skip.t(context),
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.white,
+                        style: QeranTypography.body.copyWith(
+                          color: QeranColors.paper,
                           letterSpacing: 0,
                         ),
                       ),
                     ),
                   ),
                   PositionedDirectional(
-                    top: MediaQuery.of(context).padding.top + AppDimens.p8,
-                    end: AppDimens.p16,
+                    top: MediaQuery.of(context).padding.top + QeranSpacing.s8,
+                    end: QeranSpacing.s16,
                     child: const LanguageSwitchButton(
                       variant: LanguageSwitchVariant.light,
                     ),

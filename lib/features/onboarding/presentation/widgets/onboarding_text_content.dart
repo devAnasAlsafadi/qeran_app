@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/localization_extension.dart';
-import '../../../../core/theme/app_color.dart';
-import '../../../../core/theme/app_text_style.dart';
-import '../../../../core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import '../../on_boarding_model.dart';
 
 /// Displays the title and description for the current onboarding page.
@@ -31,10 +31,10 @@ class OnboardingTextContent extends StatelessWidget {
           child: Text(
             page.title.t(context),
             key: ValueKey<int>(currentPageIndex),
-            style: AppTextStyles.displayLarge.copyWith(color: AppColors.white),
+            style: QeranTypography.displaySm.copyWith(color: QeranColors.paper),
           ),
         ),
-        AppDimens.verticalSpace8,
+        QeranSpacing.vs8,
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
           transitionBuilder: (child, animation) =>
@@ -42,8 +42,9 @@ class OnboardingTextContent extends StatelessWidget {
           child: Text(
             page.description.t(context),
             key: ValueKey<String>('desc_$currentPageIndex'),
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.white.withValues(alpha: 0.85),
+            style: QeranTypography.subtitle.copyWith(
+              color: QeranColors.paper.withValues(alpha: 0.85),
+              fontWeight: FontWeight.w400,
             ),
           ),
         ),

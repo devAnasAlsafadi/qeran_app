@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/localization_extension.dart';
-import '../../../../core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import '../../../../core/theme/app_text_style.dart';
-import '../../../../core/utils/app_dimens.dart';
 import '../../on_boarding_model.dart';
 import '../cubit/onboarding_cubit.dart';
 import 'custom_dot_indicator.dart';
@@ -39,8 +40,8 @@ class OnboardingNavRow extends StatelessWidget {
             : _NavCircleButton(
                 onTap: onPrevious,
                 pointForward: false,
-                backgroundColor: AppColors.white.withValues(alpha: 0.2),
-                iconColor: AppColors.white,
+                backgroundColor: QeranColors.paper.withValues(alpha: 0.2),
+                iconColor: QeranColors.paper,
               ),
 
         CustomDotIndicator(
@@ -54,8 +55,8 @@ class OnboardingNavRow extends StatelessWidget {
             : _NavCircleButton(
                 onTap: onNext,
                 pointForward: true,
-                backgroundColor: AppColors.primaryLight,
-                iconColor: AppColors.primary,
+                backgroundColor: QeranColors.gold,
+                iconColor: QeranColors.wine,
               ),
       ],
     );
@@ -118,16 +119,16 @@ class _GetStartedButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: AppDimens.p24,
-          vertical: AppDimens.p12,
+          horizontal: QeranSpacing.s24,
+          vertical: QeranSpacing.s12,
         ),
-        decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: AppDimens.borderRadius16,
+        decoration: const BoxDecoration(
+          color: QeranColors.gold,
+          borderRadius: QeranRadii.controlR,
         ),
         child: Text(
           LocaleKeys.onboarding_get_started.t(context),
-          style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+          style: QeranTypography.title.copyWith(color: QeranColors.wine),
         ),
       ),
     );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import '../../../../on_boarding_model.dart';
 import '../../../cubit/onboarding_cubit.dart';
 import '../../../widgets/onboarding_nav_row.dart';
@@ -29,10 +29,10 @@ class OnboardingBottomPanel extends StatelessWidget {
       end: 0,
       child: Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(
-          AppDimens.p24,
-          AppDimens.p16,
-          AppDimens.p24,
-          AppDimens.p48,
+          QeranSpacing.s24,
+          QeranSpacing.s16,
+          QeranSpacing.s24,
+          QeranSpacing.s48,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,7 +42,7 @@ class OnboardingBottomPanel extends StatelessWidget {
               page: onboardingData[state.currentPage],
               currentPageIndex: state.currentPage,
             ),
-            AppDimens.verticalSpace24,
+            QeranSpacing.vs24,
             OnboardingNavRow(
               state: state,
               pageController: pageController,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 /// Drum-style date picker with three scroll wheels (day, month, year).
 /// Matches the Figma reference with center-highlighted row.
@@ -94,7 +94,7 @@ class _QuestionDateWidgetState extends State<QuestionDateWidget> {
               height: _itemExtent,
               decoration: BoxDecoration(
                 border: Border.symmetric(
-                  horizontal: BorderSide(color: AppColors.border, width: 1),
+                  horizontal: BorderSide(color: QeranColors.hairline, width: 1),
                 ),
               ),
             ),
@@ -162,8 +162,8 @@ class _QuestionDateWidgetState extends State<QuestionDateWidget> {
           return Center(
             child: Text(
               labelBuilder(index),
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textPrimary,
+              style: QeranTypography.subtitle.copyWith(
+                color: QeranColors.inkStrong,
                 fontWeight: FontWeight.w600,
               ),
             ),

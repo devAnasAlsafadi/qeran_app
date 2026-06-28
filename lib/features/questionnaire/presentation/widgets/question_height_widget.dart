@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Single drum-style picker for height in cm.
@@ -58,7 +58,7 @@ class _QuestionHeightWidgetState extends State<QuestionHeightWidget> {
               height: _itemExtent,
               decoration: BoxDecoration(
                 border: Border.symmetric(
-                  horizontal: BorderSide(color: AppColors.border, width: 1),
+                  horizontal: BorderSide(color: QeranColors.hairline, width: 1),
                 ),
               ),
             ),
@@ -80,8 +80,8 @@ class _QuestionHeightWidgetState extends State<QuestionHeightWidget> {
                 return Center(
                   child: Text(
                     isCenter ? '$value ${LocaleKeys.questionnaire_height_unit.t(context)}' : '$value',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textPrimary,
+                    style: QeranTypography.subtitle.copyWith(
+                      color: QeranColors.inkStrong,
                       fontWeight: isCenter ? FontWeight.bold : FontWeight.w400,
                     ),
                   ),

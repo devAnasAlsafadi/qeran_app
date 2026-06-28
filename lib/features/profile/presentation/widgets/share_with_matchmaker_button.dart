@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -90,13 +90,13 @@ class _Button extends StatelessWidget {
             onPressed: () => Navigator.pop(dialogCtx, false),
             child: Text(
               LocaleKeys.profile_share_confirm_cancel.t(dialogCtx),
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: const TextStyle(color: QeranColors.inkMuted),
             ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: QeranColors.wine,
             ),
             child: Text(LocaleKeys.profile_share_confirm_send.t(dialogCtx)),
           ),

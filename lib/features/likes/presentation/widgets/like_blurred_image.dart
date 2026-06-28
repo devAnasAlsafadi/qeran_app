@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 
@@ -108,16 +108,16 @@ class LikeBlurredImage extends StatelessWidget {
 
   Widget _placeholder() {
     return ColoredBox(
-      color: AppColors.primary.withValues(alpha: 0.06),
+      color: QeranColors.wine.withValues(alpha: 0.06),
     );
   }
 
   Widget _fallback() {
     final iconSize = (size == null) ? 36.0 : size! * 0.55;
     return Container(
-      color: AppColors.primary.withValues(alpha: 0.06),
+      color: QeranColors.wine.withValues(alpha: 0.06),
       alignment: Alignment.center,
-      child: Icon(fallbackIcon, size: iconSize, color: AppColors.textMuted),
+      child: Icon(fallbackIcon, size: iconSize, color: QeranColors.inkFaint),
     );
   }
 }

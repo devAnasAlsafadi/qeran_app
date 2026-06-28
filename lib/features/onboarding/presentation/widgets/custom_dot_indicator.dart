@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-import '../../../../core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
 class CustomDotIndicator extends StatelessWidget {
   final PageController controller;
@@ -19,8 +19,8 @@ class CustomDotIndicator extends StatelessWidget {
       controller: controller,
       count: count,
       effect: ExpandingDotsEffect(
-        activeDotColor: AppColors.primaryLight,
-        dotColor: AppColors.white.withValues(alpha: 0.4),
+        activeDotColor: QeranColors.gold,
+        dotColor: QeranColors.paper.withValues(alpha: 0.4),
         dotHeight: 8,
         dotWidth: 8,
         expansionFactor: 3,

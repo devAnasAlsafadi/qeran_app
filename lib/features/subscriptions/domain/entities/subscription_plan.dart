@@ -17,7 +17,8 @@ class SubscriptionPlan extends Equatable {
   /// UI detects which via [Uri.tryParse] + scheme check.
   final String icon;
 
-  /// `#RRGGBB`. Validated and falls back to `AppColors.primary` if malformed.
+  /// `#RRGGBB`. Validated and falls back to `QeranColors.wine` if malformed
+  /// (see `PlanVisual.parseColor`).
   final String color;
 
   final int sortOrder;

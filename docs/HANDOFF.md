@@ -2,14 +2,30 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 15 يونيو 2026
+> آخر تحديث: 28 يونيو 2026
 
 ---
 
 ## 🎯 النية / المهمة الحالية
-**تطبيق الخطّابة مكتمل الميزات + الملف موحّد 🏁** — سلسلة M3 + خطة الإغلاق (5 ميزات) + **Part 2 (توحيد ملف الخطّابة) كلها معمولة**. ملف الخطّابة (عرض/استكشاف/اهتمامات) صار **نفس شكل ملف تطبيق المستخدم** (hero gallery + scrim + overlay + main-card + section cards) عبر **building-blocks مشتركة لا شاشة مشتركة**، مع **تعديل الإجابات النصية inline** على الملف. تفاصيل بقسم «🧩 الخطّابة — توحيد الملف (Part 2)». **الجاي** (post-close-out): QA تشغيلي كامل على حساب Moderator حقيقي (انظر «⚠️ أعلام التحقّق التشغيلي») + باقي sweep تطبيق المستخدم (onboarding/subscriptions-legacy widgets/questionnaire widgets + `share_with_matchmaker` dialog + هجرة dialog الخروج للموحّد — انظر Deferred؛ **notifications أُعيد بناؤها ولغة الاشتراكات مُصلَحة هذه الجلسة**) + إعداد المنصّات (iOS Firebase/push، توقيع Android) + بناء الباقات/paywall + IAP. auth ✅ مكتملة.
+**تطبيق الخطّابة مكتمل الميزات + الملف موحّد 🏁** — سلسلة M3 + خطة الإغلاق (5 ميزات) + **Part 2 (توحيد ملف الخطّابة) كلها معمولة**. ملف الخطّابة (عرض/استكشاف/اهتمامات) صار **نفس شكل ملف تطبيق المستخدم** (hero gallery + scrim + overlay + main-card + section cards) عبر **building-blocks مشتركة لا شاشة مشتركة**، مع **تعديل الإجابات النصية inline** على الملف. تفاصيل بقسم «🧩 الخطّابة — توحيد الملف (Part 2)». **الجاي** (post-close-out): QA تشغيلي كامل على حساب Moderator حقيقي (انظر «⚠️ أعلام التحقّق التشغيلي») + **إعداد متجر Google Play** (توقيع الإصدار + بناء AAB + إنشاء منتجات IAP — جوجل يطلب AAB أولاً) + **RevenueCat P2–P6** (مؤجّلة لحين منتجات المتجر + webhook طارق) + iOS (Firebase/push) + **native splash** (Group C — الأصول جاهزة، غير مبدوء) + اختبار أيقونة الإشعار بـ push حقيقي. **تقاعد الثيم القديم مكتمل بالكامل هذه الجلسة 🏁** — الـ design system هو المصدر الوحيد للون/الخط/المسافة. auth ✅ مكتملة.
 
-**الدفع = IAP** (In-App Purchase) — محسوم؛ يحتاج تحقّق إيصال على الباك إند (طارق) وقت ربط ميزة الباقات/paywall.
+**الدفع = IAP / RevenueCat** — محسوم؛ يحتاج منتجات المتجر + webhook طارق قبل P2+. P1 (boot + هوية) مربوط ومتحقَّق هذه الجلسة.
+
+---
+
+## ✅ جلسة 28 يونيو — تقاعد الثيم القديم + تغييرات الجلسة (النية فقط)
+**العنوان: تقاعد نظام الثيم القديم مكتمل بالكامل 🏁** — ما عاد أحد يقدر يستورد الكلاسات القديمة لأنها انحذفت؛ الـ design system هو المصدر الوحيد.
+
+- **تقاعد الثيم القديم — مكتمل (166→0):** كل مراجع `AppColors`/`AppTextStyles`/`AppDimens` انهاجرت لتوكنز Qeran عبر **10 دفعات + 11 commit**. **25 ملف هوجر**، **7 ملفات legacy انحذفت** (`app_color.dart`/`app_text_style.dart`/`app_dimens.dart` + `logout_confirmation_dialog`/`app_button`/`app_text_form_field` + placeholder محادثة الماتش)، و`exit_app_dialog` أُعيد كتابته داخلياً وأُبقي (يملك سلوك مشترك platform-branch — DRY). تطبيق الخطّابة لم يُلمس (كان أصلاً 100% على الـ DS). الخريطة المثبّتة: `primary→wine`، `primaryLight→gold`، `textPrimary→inkStrong`، `error→danger #A33949`، `success→gold` (لا أخضر)، `white→paper`، overlays السوداء→واين؛ والخط صار locale-resolved (Montserrat بالإنجليزية، Kufi بالعربية — إصلاح تثبيت الخط العربي القديم الخاطئ).
+- **إصلاح ثبات التوكن:** `flutter_secure_storage` v10.3.1 + تثبيت ciphers صريح → الـ JWT يصمد عبر إعادة التشغيل (كان يُمحى كل cold start → 401 → ارتداد للـ onboarding).
+- **RevenueCat P1 مربوط ومتحقَّق ✅:** boot مجهول + مزامنة الهوية لـ `user.id` الباك إند — شغّال (3 عملاء بالـ dashboard).
+- **Help & Support مربوط بالباك إند الحقيقي:** كان stub وهمي يزوّر النجاح → الآن `GET /support/categories` + `POST /support/tickets` (Clean Architecture، حالات حقيقية incl. حدّ الـ 5 تذاكر المفتوحة).
+- **الإشعارات موحّدة الجهتين** (مستخدم + خطّابة).
+- **Privacy/Terms ديناميكية من الباك إند** (`terms-and-conditions` + `privacy-policy`) على الجهتين.
+- **«تواصل معنا» الخطّابة تقاعدت** (الشاشة اليتيمة + route + keys انحذفت).
+- **placeholder محادثة الماتش** صار يوجّه للـ `ChatConversationScreen` الحقيقي (نفس قناة الخطّابة المتوسِّطة، لا تواصل مباشر user-to-user).
+- **أيقونة العلامة (gold-on-wine) + أيقونة إشعار أحادية اللون:** الأصول مولَّدة؛ **أيقونة التطبيق متحقَّقة على الجهاز**، أيقونة الإشعار لم تُختبر بعد بـ push حقيقي.
+- **canvas hex موثّق صح `#F8F8F8`** (قيمة الكود `QeranColors.creamCanvas`، لا `#FEFCFA` المنحرفة بالوثائق القديمة — صُحِّحت بكل الوثائق).
 
 ## 🗺️ الخطوات الجاية (بالأولوية)
 1. ~~**هجرة auth/ الكاملة**~~ ✅ **مكتملة** (0→g كلها معمولة — انظر «🔧 هجرة auth — التقدّم»). يبقى فقط: `share_with_matchmaker_button._confirmDialog` (مؤجّل — انظر Deferred).
@@ -17,9 +33,9 @@
 3. ~~**الخطّابة — خطة الإغلاق (5 ميزات)**~~ ✅ **مكتملة 🏁** (الإعدادات → الزميلات → فلتر الحالات → الاستكشاف → الإشعارات — انظر «🧩 الخطّابة — الإغلاق»).
 4. ~~**الخطّابة — توحيد الملف (Part 2: PV1–PV4)**~~ ✅ **مكتملة 🏁** (نفس شكل ملف المستخدم عبر building-blocks + تعديل الإجابات inline — انظر «🧩 الخطّابة — توحيد الملف»).
 5. **QA تشغيلي على حساب Moderator** — تشغيل التطبيق + المرور على الميزات الخمس + أعلام التحقّق (انظر «⚠️ أعلام التحقّق التشغيلي»). لا شيء منها يحجب.
-6. **باقي الـ sweep (تطبيق المستخدم)** — onboarding، ~~notifications~~ ✅ (أُعيد بناؤها — انظر القسم تحت)، subscriptions (widgets legacy: `discount_code_field`/`pricing_segment`/`feature_row`/`plan_visual`…)، questionnaire widgets، settings (بسيط) + `share_with_matchmaker` dialog + **هجرة dialog الخروج للموحّد `QeranConfirmDialog`** (+ تنظيف legacy في `profile_screen` — انظر Deferred). شاشة شاشة (legacy-grep gate يخدم هذا).
-7. **إعداد المنصّات:** iOS (Firebase/push) + توقيع Android (signing).
-8. **الباقات/paywall + IAP:** ربط الدفع عبر **IAP** — تحقّق الإيصال على الباك إند (طارق).
+6. ~~**هجرة الثيم القديم بالكامل (تطبيق المستخدم)**~~ ✅ **مكتملة 🏁** (166→0، 10 دفعات/11 commit — انظر «✅ جلسة 28 يونيو»). يبقى فقط: `share_with_matchmaker` dialog (Material→`QeranConfirmDialog`) + تنظيف `BorderRadius.circular` literals بالاشتراكات — انظر Deferred.
+7. **إعداد متجر Google Play:** توقيع الإصدار (release signing) + بناء ورفع AAB + إنشاء منتجات IAP (جوجل يطلب AAB أولاً) → ثم **RevenueCat P2–P6** (مؤجّلة لحين منتجات المتجر + webhook طارق).
+8. **إعداد المنصّات + الإطلاق:** iOS (Firebase/push) + **native splash** (Group C — الأصول جاهزة) + اختبار أيقونة الإشعار بـ push حقيقي.
 9. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
 10. **الإعدادات:** إكمال المتبقّي.
 
@@ -118,8 +134,13 @@
 ---
 
 ## ⏸️ مؤجّل (Deferred)
-- **`share_with_matchmaker_button`:** الـ `_confirmDialog` ملف مختلط نظامين (الزر الرئيسي `QeranButton` بس الـ dialog لسا Material + `AppColors`) — يحتاج هجرة كاملة، مش إصلاح سطر.
-- **هجرة dialog خروج تطبيق المستخدم → `QeranConfirmDialog`** (مع sweep تطبيق المستخدم): `LogoutConfirmationDialog` (في `core/widgets/`) **يعرض صح** لكنه legacy (`AppColors`/`Color(0x`/`BorderRadius.circular`) + خاص-بالخروج. هجرته لـ `QeranConfirmDialog` + حذف الملف legacy = ربح DS، لكن call-site `profile_screen.dart` فيه **3 refs legacy** (لمسه يكسر بوابة legacy-grep) فيُؤجَّل لـ sweep تطبيق المستخدم. بُق الخطّابة **مُصلَح أصلاً** عبر `QeranConfirmDialog`.
+- **`share_with_matchmaker_button` — dialog التأكيد:** ألوان الـ legacy انهاجرت لتوكنز هذه الجلسة (دفعة 6)، لكن `_confirmDialog` لسا **بنية Material `AlertDialog`** (`TextButton`/`FilledButton`) لا `QeranConfirmDialog` — متابعة اتساق dialogs بعد تقاعد الثيم (مش legacy-theme).
+- ~~**هجرة dialog خروج/خروج تطبيق المستخدم → `QeranConfirmDialog`**~~ ✅ **معمول (دفعة 2):** `LogoutConfirmationDialog` انحذف (استُبدل بـ `QeranConfirmDialog` في `profile_screen`)؛ `ExitAppDialog` أُعيد كتابته داخلياً ليفوّض التنسيق لـ `QeranConfirmDialog` و**أُبقي** (يملك السلوك المشترك platform-branch + side-effects لـ 4 مستدعين — حذفه يكرّر المنطق 4×).
+- **تنظيف `BorderRadius.circular` literals بالاشتراكات:** `discount_code_field`/`pricing_segment` فيهم `BorderRadius.circular(12/16/20)` خام — ليست legacy-theme (انهاجرت ألوانها/خطّها)، فتُركت لمتابعة radius-literal منفصلة.
+- **اختبار أيقونة الإشعار بـ push حقيقي:** الأيقونة أحادية اللون مولَّدة لكن لم تُختبر بإشعار FCM حقيقي على الجهاز (نفس قيد علَم per-action icons — `adb` لا يحاكي التسليم بأمانة).
+- **native splash (Group C):** الأصول جاهزة، الشاشة غير مبدوءة.
+- **Google Play:** توقيع الإصدار غير مُعدّ؛ AAB لم يُبنَ/يُرفَع؛ منتجات IAP لم تُنشأ (جوجل يطلب AAB أولاً).
+- **RevenueCat P2–P6:** مؤجّلة لحين منتجات المتجر + webhook طارق (P1 = boot + هوية، معمول ومتحقَّق).
 - **(Tier B) ربط gender facet الاستكشاف backend-driven:** الباك إند يرسل `data.gender` (`{key, label, options:[{value,display}]}`) بردّ `/explore/filters`، لكننا **نتجاهله** ونستخدم سيغمنت يدوي (الكل/ذكر/أنثى — hardcoded بالشاشة). الربط = إضافة slot للـ facet بالـ state + تمريره للشاشة بدل السيغمنت اليدوي + mapping `value→Gender` enum.
 - **التحقّق: سيغمنت الجنس بالاستكشاف يفلتر فعلاً** (يرسل Male/Female للباك إند ويغيّر النتائج) لا مجرد تبديل بصري — يحتاج تأكيد تشغيلي على حساب Moderator.
 - ~~**إشعارات تطبيق المستخدم — badge غير المقروء (Step 5) + معالجة نقر FCM (Step 6)**~~ ✅ **معمولان (متحقَّقان بصرياً/وحدوياً):** **Step 5** — badge جرس الـ discovery = heuristic محلي `lastSeenId` عبر `NotificationBadgeCubit` singleton (لا حالة قراءة بالباك إند)؛ يُحدَّث على فتح/استئناف التطبيق ويُمسح عند فتح الصندوق؛ متحقَّق بالـ 4 حالات (AR+EN، بـ/بلا). usecase الـ count القديم **حُذف**. (commit `2079867`). **Step 6** — معالجة نقر FCM داخل shell المستخدم (مرآة shell الخطّابة، **بلا لمس `main.dart`**): `onMessageOpenedApp` (نقر خلفي) + `getInitialMessage` (cold-start) → `_route` → role-guard (يتجاهل moderator) → `NotificationDeepLinkRouter.resolveData(map)` → اختيار تاب Likes/Messages/Profile؛ و`onMessage` (foreground) → `NotificationBadgeCubit.refresh()` (تحديث الجرس حياً — لا SignalR بتطبيق المستخدم؛ بلا توجيه تلقائي). الـ parser مُغطّى بـ **13 اختبار وحدة**. ⚠️ **مسار نقر FCM الحي مؤجّل التحقّق** — انظر العلَم تحت.
@@ -149,8 +170,8 @@
 | (product) بلد الزميلة (colleague country)؟ | معلّق — مش بالـ DTO |
 | (product) unread لكل بطاقة بقوائم الأعضاء؟ | معلّق — موجود بالمحادثات فقط |
 | مسارات الصور (حذف/تعيين رئيسية) | معلّق — تعارض user-images / profile-images |
-| Help & Support endpoint | معلّق — الإرسال وهمي |
-| Terms & Privacy — النص الحقيقي | معلّق |
+| ~~Help & Support endpoint~~ | ✅ **محلول + مربوط (28 يونيو)** — `GET /support/categories` + `POST /support/tickets` (JWT) حيّان (تأكّد بـ 401 vs 404). مربوط Clean-Architecture؛ كان stub وهمي. أخطاء حقيقية incl. `SUPPORT_TICKETS_LIMIT_REACHED` (حدّ 5 مفتوحة). الأشكال من وثيقة طارق (الـ body غير قابل للـ probe بلا توكن). |
+| ~~Terms & Privacy — النص الحقيقي~~ | ✅ **محلول + مربوط** — `terms-and-conditions` + `privacy-policy` (public، ثنائية اللغة) ديناميكية على الجهتين. |
 | Verified-badge flag | معلّق — hardcoded حالياً |
 | Delete-account flow | غير مؤكد |
 | حد الماتشات | backend-only — نأكد الرقم |

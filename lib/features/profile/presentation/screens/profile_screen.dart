@@ -10,7 +10,7 @@ import 'package:qeran/core/design_system/widgets/qeran_section_header.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/widgets/logout_confirmation_dialog.dart';
+import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
@@ -98,7 +98,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    final confirmed = await LogoutConfirmationDialog.show(context);
+    final confirmed = await QeranConfirmDialog.show(
+      context,
+      title: LocaleKeys.dialogs_logout_title.t(context),
+      message: LocaleKeys.dialogs_logout_message.t(context),
+      confirmLabel: LocaleKeys.common_logout.t(context),
+      icon: Icons.logout_rounded,
+    );
     if (!confirmed || !context.mounted) return;
     await context.read<UserSessionCubit>().signOut();
     // Drop the cached subscription so a future sign-in re-hydrates

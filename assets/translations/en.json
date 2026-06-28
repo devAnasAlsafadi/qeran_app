@@ -679,16 +679,15 @@
     "support_submit": "Send request",
     "support_footer": "We aim to respond within 24-48 business hours. Don't hesitate to reach out with any question.",
     "support_validation": "Please fill in all fields",
-    "support_success": "Your request was sent successfully. We'll be in touch soon.",
-    "terms_title": "Terms & Privacy Policy",
-    "terms_updated": "Last updated: 1 March 2026",
-    "terms_s1_title": "Introduction",
-    "terms_s1_body": "Welcome to our matrimony platform. By using this app you agree to the following terms and conditions. Please read them carefully before using the service.",
-    "terms_s2_title": "Nature of the service",
-    "terms_s2_body": "We provide an introduction platform for the purpose of marriage only. All interactions take place under the supervision of an approved matchmaker.",
-    "terms_s3_title": "Privacy & data protection",
-    "terms_s3_body": "We respect your privacy and are committed to protecting your personal data. Your information will not be shared with third parties without your consent.",
-    "terms_s4_title": "Contact us",
-    "terms_s4_body": "For any questions or feedback about these terms, please reach us via the Help & Support page inside the app."
+    "support_success": "Your request was sent successfully. We'll be in touch soon."
+  },
+  "legal": {
+    "title": "Terms & Privacy",
+    "tab_terms": "Terms",
+    "tab_privacy": "Privacy",
+    "last_updated": "Last updated: {date}",
+    "error_title": "Couldn't load the content",
+    "error_retry": "Retry",
+    "empty": "No content yet"
   }
 }

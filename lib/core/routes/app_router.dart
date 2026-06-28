@@ -29,7 +29,7 @@ import 'package:qeran/features/profile/presentation/screens/full_profile_details
 import 'package:qeran/features/profile/presentation/screens/profile_hub_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_language_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_support_screen.dart';
-import 'package:qeran/features/settings/presentation/screens/settings_terms_screen.dart';
+import 'package:qeran/features/legal/presentation/screens/legal_screen.dart';
 import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart';
@@ -268,7 +268,7 @@ class AppRouter {
       case RouteNames.settingsTerms:
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => const SettingsTermsScreen(),
+          builder: (context) => const LegalScreen(),
         );
       default:
         return MaterialPageRoute(

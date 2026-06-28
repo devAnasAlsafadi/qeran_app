@@ -667,16 +667,14 @@ abstract class  LocaleKeys {
   static const settings_support_footer = 'settings.support_footer';
   static const settings_support_validation = 'settings.support_validation';
   static const settings_support_success = 'settings.support_success';
-  static const settings_terms_title = 'settings.terms_title';
-  static const settings_terms_updated = 'settings.terms_updated';
-  static const settings_terms_s1_title = 'settings.terms_s1_title';
-  static const settings_terms_s1_body = 'settings.terms_s1_body';
-  static const settings_terms_s2_title = 'settings.terms_s2_title';
-  static const settings_terms_s2_body = 'settings.terms_s2_body';
-  static const settings_terms_s3_title = 'settings.terms_s3_title';
-  static const settings_terms_s3_body = 'settings.terms_s3_body';
-  static const settings_terms_s4_title = 'settings.terms_s4_title';
-  static const settings_terms_s4_body = 'settings.terms_s4_body';
   static const settings = 'settings';
+  static const legal_title = 'legal.title';
+  static const legal_tab_terms = 'legal.tab_terms';
+  static const legal_tab_privacy = 'legal.tab_privacy';
+  static const legal_last_updated = 'legal.last_updated';
+  static const legal_error_title = 'legal.error_title';
+  static const legal_error_retry = 'legal.error_retry';
+  static const legal_empty = 'legal.empty';
+  static const legal = 'legal';
 
 }

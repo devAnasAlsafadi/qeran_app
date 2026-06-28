@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/widgets/app_text_form_field.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Renders a long-form text answer. All `QuestionType.text` questions in the
@@ -49,15 +49,14 @@ class _QuestionTextWidgetState extends State<QuestionTextWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return AppTextFormField(
+    return QeranTextField(
       controller: _controller,
-      hintText: widget.hintText ?? LocaleKeys.questionnaire_answer_hint.t(context),
-      obscureText: false,
+      hint: widget.hintText ?? LocaleKeys.questionnaire_answer_hint.t(context),
       keyboardType: TextInputType.multiline,
       textInputAction: TextInputAction.newline,
       maxLines: 5,
       maxLength: widget.maxLength,
-      onChange: widget.onChanged,
+      onChanged: widget.onChanged,
     );
   }
 }

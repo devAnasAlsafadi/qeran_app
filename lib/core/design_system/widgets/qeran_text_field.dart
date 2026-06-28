@@ -6,8 +6,8 @@ import '../tokens/qeran_shadows.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 
-/// Brand text field — the design-system replacement for the legacy
-/// `AppTextFormField`. Wraps a [TextFormField] so `Form.validate()` keeps
+/// Brand text field — the design-system input (it superseded the former
+/// legacy `AppTextFormField`). Wraps a [TextFormField] so `Form.validate()` keeps
 /// working, paints only from tokens (paper fill, borderless pill resting on a
 /// soft [QeranShadows.e1] lift, wine-tinted neutrals, danger ring only on
 /// error), and mirrors with the locale (`EdgeInsetsDirectional`, no manual

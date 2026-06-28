@@ -11,7 +11,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
-import 'package:qeran/core/widgets/app_text_form_field.dart';
+import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/features/support/domain/entities/support_category.dart';
 import 'package:qeran/features/support/presentation/blocs/support_cubit.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -201,22 +201,18 @@ class _Form extends StatelessWidget {
                 QeranSpacing.vs16,
                 _Label(LocaleKeys.settings_support_subject_label.t(context)),
                 QeranSpacing.vs8,
-                AppTextFormField(
+                QeranTextField(
                   controller: subject,
-                  hintText:
-                      LocaleKeys.settings_support_subject_hint.t(context),
-                  obscureText: false,
+                  hint: LocaleKeys.settings_support_subject_hint.t(context),
                   keyboardType: TextInputType.text,
                   maxLength: subjectMax,
                 ),
                 QeranSpacing.vs16,
                 _Label(LocaleKeys.settings_support_details_label.t(context)),
                 QeranSpacing.vs8,
-                AppTextFormField(
+                QeranTextField(
                   controller: details,
-                  hintText:
-                      LocaleKeys.settings_support_details_hint.t(context),
-                  obscureText: false,
+                  hint: LocaleKeys.settings_support_details_hint.t(context),
                   keyboardType: TextInputType.multiline,
                   maxLines: 5,
                   maxLength: detailsMax,

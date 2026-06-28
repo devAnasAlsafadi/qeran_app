@@ -619,7 +619,6 @@ abstract class  LocaleKeys {
   static const settings_view_edit_profile = 'settings.view_edit_profile';
   static const settings_verified = 'settings.verified';
   static const settings_upgrade = 'settings.upgrade';
-  static const settings_coming_soon = 'settings.coming_soon';
   static const settings_language_row = 'settings.language_row';
   static const settings_notifications_row = 'settings.notifications_row';
   static const settings_notifications_sub = 'settings.notifications_sub';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
-/// Filter button (placeholder, non-functional this phase) on the leading
-/// side; notifications/messages icon on the trailing side.
+/// Filter button on the leading side (opens the filter sheet when wired);
+/// notifications/messages icon on the trailing side.
 class DiscoveryTopBar extends StatelessWidget {
   final VoidCallback? onNotificationsTap;
-  final VoidCallback? onFilterTap; // null this phase
+  final VoidCallback? onFilterTap;
 
   const DiscoveryTopBar({
     super.key,

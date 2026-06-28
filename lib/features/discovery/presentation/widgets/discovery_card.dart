@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
@@ -211,40 +210,5 @@ class DiscoveryInfoPanel extends StatelessWidget {
       PlacementSingle(value: final s) => s,
       PlacementMulti(values: final vs) => vs.join('\n'),
     };
-  }
-}
-
-/// Backward-compatible composition: image panel above a content-hugging
-/// white sheet containing the info panel. Used by the standalone
-/// `DiscoveryScreen` route. The `HomeScreen` path embeds the panels
-/// directly through `DiscoveryView` so the white sheet can also wrap
-/// the action bar.
-class DiscoveryCard extends StatelessWidget {
-  final DiscoveryProfile profile;
-  final VoidCallback? onTap;
-
-  const DiscoveryCard({super.key, required this.profile, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: DiscoveryImagePanel(profile: profile, onTap: onTap)),
-        Transform.translate(
-          offset: const Offset(0, -QeranSpacing.s16),
-          child: Container(
-            decoration: const BoxDecoration(
-              color: QeranColors.paper,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(QeranRadii.panel),
-              ),
-            ),
-            padding: const EdgeInsets.all(QeranSpacing.s20),
-            child: DiscoveryInfoPanel(profile: profile),
-          ),
-        ),
-      ],
-    );
   }
 }

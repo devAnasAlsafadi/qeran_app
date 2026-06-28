@@ -43,7 +43,6 @@ class RouteNames {
   static const String matchmakerCaseDetail = '/matchmaker/case-detail';
   static const String matchmakerUserChat = '/matchmaker/user-chat';
   static const String matchmakerInterests = '/matchmaker/interests';
-  static const String matchmakerContact = '/matchmaker/contact';
   static const String matchmakerColleaguesDirectory =
       '/matchmaker/colleagues-directory';
 }

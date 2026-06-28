@@ -512,13 +512,6 @@ abstract class  LocaleKeys {
   static const matchmaker_account_new_password_hint = 'matchmaker.account_new_password_hint';
   static const matchmaker_account_password_too_short = 'matchmaker.account_password_too_short';
   static const matchmaker_account_password_changed = 'matchmaker.account_password_changed';
-  static const matchmaker_account_contact = 'matchmaker.account_contact';
-  static const matchmaker_account_contact_copied = 'matchmaker.account_contact_copied';
-  static const matchmaker_account_contact_website = 'matchmaker.account_contact_website';
-  static const matchmaker_account_contact_instagram = 'matchmaker.account_contact_instagram';
-  static const matchmaker_account_contact_whatsapp = 'matchmaker.account_contact_whatsapp';
-  static const matchmaker_account_contact_facebook = 'matchmaker.account_contact_facebook';
-  static const matchmaker_account_contact_x = 'matchmaker.account_contact_x';
   static const matchmaker_cases_error_title = 'matchmaker.cases_error_title';
   static const matchmaker_cases_retry = 'matchmaker.cases_retry';
   static const matchmaker_cases_filter_title = 'matchmaker.cases_filter_title';

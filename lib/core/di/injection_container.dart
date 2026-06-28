@@ -44,7 +44,24 @@ Future<void> init() async {
   //! External
   final sharedPrefs = await SharedPreferences.getInstance();
   sl.registerSingleton<SharedPreferences>(sharedPrefs);
-  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  // Pin explicit Android ciphers so the cipher is deterministic across
+  // launches — the v10 default's auto-detected "algorithm change" was
+  // wiping the JWT every cold start (RSA→AES_GCM migration → "Migrated 0
+  // items" → token gone → 401 → splash bounced to onboarding). resetOnError
+  // stays true so the one legacy undecryptable entry is cleared cleanly
+  // (without throwing) on the first launch after the fix; a single re-login
+  // then persists across all subsequent restarts. iOS uses the Keychain and
+  // is unaffected.
+  sl.registerLazySingleton(
+    () => const FlutterSecureStorage(
+      aOptions: AndroidOptions(
+        resetOnError: true,
+        keyCipherAlgorithm:
+            KeyCipherAlgorithm.RSA_ECB_OAEPwithSHA_256andMGF1Padding,
+        storageCipherAlgorithm: StorageCipherAlgorithm.AES_GCM_NoPadding,
+      ),
+    ),
+  );
   sl.registerLazySingleton(() => http.Client());
 
   //! Storage

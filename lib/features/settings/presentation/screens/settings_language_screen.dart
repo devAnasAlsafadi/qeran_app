@@ -6,7 +6,7 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
-import 'package:qeran/core/widgets/app_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../widgets/settings_screen_header.dart';
@@ -92,8 +92,9 @@ class _SettingsLanguageScreenState extends State<SettingsLanguageScreen> {
                       style: QeranTypography.caption,
                     ),
                     QeranSpacing.vs32,
-                    CustomButton(
-                      text: LocaleKeys.settings_save_changes.t(context),
+                    QeranButton(
+                      label: LocaleKeys.settings_save_changes.t(context),
+                      variant: QeranButtonVariant.primaryWine,
                       onPressed: _save,
                     ),
                     QeranSpacing.vs24,

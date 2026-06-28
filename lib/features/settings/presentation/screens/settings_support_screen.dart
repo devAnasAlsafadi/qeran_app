@@ -10,7 +10,7 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
-import 'package:qeran/core/widgets/app_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/widgets/app_text_form_field.dart';
 import 'package:qeran/features/support/domain/entities/support_category.dart';
 import 'package:qeran/features/support/presentation/blocs/support_cubit.dart';
@@ -235,9 +235,10 @@ class _Form extends StatelessWidget {
           ),
           child: Column(
             children: [
-              CustomButton(
-                text: LocaleKeys.settings_support_submit.t(context),
-                isLoading: loading,
+              QeranButton(
+                label: LocaleKeys.settings_support_submit.t(context),
+                variant: QeranButtonVariant.primaryWine,
+                loading: loading,
                 onPressed: loading ? null : onSubmit,
               ),
               QeranSpacing.vs12,

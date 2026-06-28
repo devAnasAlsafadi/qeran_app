@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/widgets/app_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -21,11 +21,12 @@ class QuestionnaireNavigationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomButton(
-      text: isLast
+    return QeranButton(
+      label: isLast
           ? LocaleKeys.questionnaire_finish_button.t(context)
           : LocaleKeys.common_next.t(context),
-      isLoading: isLoading,
+      variant: QeranButtonVariant.primaryWine,
+      loading: isLoading,
       onPressed: enabled ? (isLast ? onFinish : onNext) : null,
     );
   }

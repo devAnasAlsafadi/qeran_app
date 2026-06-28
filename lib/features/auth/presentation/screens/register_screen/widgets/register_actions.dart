@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/utils/app_dimens.dart';
-import 'package:qeran/core/widgets/app_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../blocs/login/login_bloc.dart';
 import '../../../blocs/login/login_event.dart';
@@ -28,9 +28,10 @@ class RegisterActions extends StatelessWidget {
         BlocBuilder<RegisterBloc, RegisterState>(
           builder: (context, state) {
             final isLoading = state is RegisterLoading;
-            return CustomButton(
-              text: LocaleKeys.auth_register_title.t(context),
-              isLoading: isLoading,
+            return QeranButton(
+              label: LocaleKeys.auth_register_title.t(context),
+              variant: QeranButtonVariant.primaryWine,
+              loading: isLoading,
               onPressed: isLoading ? null : onRegisterPressed,
             );
           },

@@ -7,7 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/widgets/app_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/discovery_filter_cubit.dart';
@@ -127,8 +127,9 @@ class _SheetFooter extends StatelessWidget {
             QeranSpacing.s20,
             QeranSpacing.s16,
           ),
-          child: CustomButton(
-            text: LocaleKeys.discovery_filter_save_cta.t(context),
+          child: QeranButton(
+            label: LocaleKeys.discovery_filter_save_cta.t(context),
+            variant: QeranButtonVariant.primaryWine,
             onPressed: enabled
                 ? () {
                     final payload =

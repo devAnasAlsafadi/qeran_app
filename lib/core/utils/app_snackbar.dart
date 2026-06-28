@@ -129,7 +129,7 @@ class _SnackBarWidget extends StatelessWidget {
               ),
               IconButton(
                 icon: Icon(
-                  Icons.close,
+                  Icons.close_rounded,
                   color: spec.foreground.withValues(alpha: 0.6),
                   size: 18,
                 ),

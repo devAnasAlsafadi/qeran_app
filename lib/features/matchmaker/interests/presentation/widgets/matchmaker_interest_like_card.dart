@@ -97,7 +97,7 @@ class _NameLine extends StatelessWidget {
         ),
         if (locked) ...[
           QeranSpacing.hs4,
-          const Icon(Icons.lock_outline, size: 14, color: QeranColors.inkMuted),
+          const Icon(Icons.lock_outline_rounded, size: 14, color: QeranColors.inkMuted),
         ],
       ],
     );

@@ -27,7 +27,7 @@ class RegisterForm extends StatelessWidget {
           keyboardType: TextInputType.name,
           textInputAction: TextInputAction.next,
           prefix: const Icon(
-            Icons.person_outline,
+            Icons.person_outline_rounded,
             color: QeranColors.inkFaint,
           ),
           validator: (v) => (v == null || v.trim().isEmpty)

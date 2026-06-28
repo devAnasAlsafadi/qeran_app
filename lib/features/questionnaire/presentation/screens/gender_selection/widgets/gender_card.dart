@@ -115,7 +115,7 @@ class _SelectedBadge extends StatelessWidget {
         shape: BoxShape.circle,
         color: QeranColors.wine,
       ),
-      child: const Icon(Icons.check, size: 14, color: QeranColors.paper),
+      child: const Icon(Icons.check_rounded, size: 14, color: QeranColors.paper),
     );
   }
 }

@@ -57,7 +57,7 @@ class PhotoPickerBottomSheet extends StatelessWidget {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: QeranColors.wine),
+              leading: const Icon(Icons.camera_alt_rounded, color: QeranColors.wine),
               title: Text(
                 LocaleKeys.auth_photo_camera.t(context),
                 style: QeranTypography.subtitle,
@@ -69,7 +69,7 @@ class PhotoPickerBottomSheet extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(
-                Icons.photo_library,
+                Icons.photo_library_rounded,
                 color: QeranColors.wine,
               ),
               title: Text(

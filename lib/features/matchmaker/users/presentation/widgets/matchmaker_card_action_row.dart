@@ -108,7 +108,7 @@ const _pendingActions = <_BtnSpec>[
   _BtnSpec(
     MatchmakerCardAction.approve,
     LocaleKeys.matchmaker_users_action_approve,
-    Icons.check_circle_outline,
+    Icons.check_circle_outline_rounded,
     primary: true,
   ),
   _BtnSpec(

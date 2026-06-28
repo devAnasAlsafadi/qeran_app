@@ -54,7 +54,7 @@ class FilledPhotoSlot extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.close,
+                  Icons.close_rounded,
                   color: QeranColors.paper,
                   size: 14,
                 ),
@@ -71,7 +71,7 @@ class FilledPhotoSlot extends StatelessWidget {
                   borderRadius: QeranRadii.controlR,
                 ),
                 child: const Icon(
-                  Icons.check_circle_outline,
+                  Icons.check_circle_outline_rounded,
                   color: QeranColors.paper,
                   size: 32,
                 ),

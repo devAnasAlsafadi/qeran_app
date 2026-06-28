@@ -55,7 +55,7 @@ class QuestionCheckboxWidget extends StatelessWidget {
                   ),
                   child: isSelected
                       ? const Icon(
-                          Icons.check,
+                          Icons.check_rounded,
                           size: 16,
                           color: QeranColors.paper,
                         )

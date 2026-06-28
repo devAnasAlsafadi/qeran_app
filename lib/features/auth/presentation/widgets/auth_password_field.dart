@@ -22,7 +22,7 @@ class AuthPasswordField extends StatelessWidget {
     required this.focusNode,
     this.labelText,
     this.prefixIcon = const Icon(
-      Icons.lock_outline,
+      Icons.lock_outline_rounded,
       color: QeranColors.inkFaint,
     ),
     this.hintText = LocaleKeys.auth_password_hint,

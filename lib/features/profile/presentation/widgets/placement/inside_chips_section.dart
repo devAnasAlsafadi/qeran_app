@@ -97,7 +97,7 @@ class InsideChipsSection extends StatelessWidget {
       return const _ChipMeta(icon: Icons.accessibility_new_rounded);
     }
     if (question.contains('الحالة الاجتماعية')) {
-      return const _ChipMeta(icon: Icons.favorite_border);
+      return const _ChipMeta(icon: Icons.favorite_border_rounded);
     }
     if (question.contains('التدخين')) {
       return const _ChipMeta(icon: Icons.smoking_rooms_outlined);

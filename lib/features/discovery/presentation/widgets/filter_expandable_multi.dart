@@ -93,7 +93,7 @@ class _MultiRow extends StatelessWidget {
               ),
               child: isSelected
                   ? const Icon(
-                      Icons.check,
+                      Icons.check_rounded,
                       size: 14,
                       color: QeranColors.paper,
                     )

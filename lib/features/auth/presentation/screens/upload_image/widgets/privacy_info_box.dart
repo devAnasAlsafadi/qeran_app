@@ -28,7 +28,7 @@ class PrivacyInfoBox extends StatelessWidget {
             ),
           ),
           QeranSpacing.hs8,
-          const Icon(Icons.lock, color: QeranColors.wine, size: 24),
+          const Icon(Icons.lock_rounded, color: QeranColors.wine, size: 24),
         ],
       ),
     );

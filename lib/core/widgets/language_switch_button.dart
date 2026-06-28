@@ -45,7 +45,7 @@ class LanguageSwitchButton extends StatelessWidget {
             horizontal: QeranSpacing.s12,
             vertical: QeranSpacing.s8,
           ),
-          child: Icon(Icons.language, size: 24, color: iconColor),
+          child: Icon(Icons.language_rounded, size: 24, color: iconColor),
         ),
         itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
           PopupMenuItem<Locale>(

@@ -141,7 +141,7 @@ class _ReviewButtons extends StatelessWidget {
             QeranButton(
               label: LocaleKeys.matchmaker_users_action_approve.t(context),
               variant: QeranButtonVariant.primaryWine,
-              leadingIcon: Icons.check_circle_outline,
+              leadingIcon: Icons.check_circle_outline_rounded,
               loading: state.inFlight == MatchmakerUserAction.approve,
               onPressed: busy ? null : cubit.approve,
             ),

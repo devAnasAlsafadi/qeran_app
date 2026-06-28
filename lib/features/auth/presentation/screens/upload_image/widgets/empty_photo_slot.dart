@@ -30,7 +30,7 @@ class EmptyPhotoSlot extends StatelessWidget {
                 gap: 5.0,
               ),
               child: const Center(
-                child: Icon(Icons.add, color: QeranColors.wine, size: 28),
+                child: Icon(Icons.add_rounded, color: QeranColors.wine, size: 28),
               ),
             ),
           ),

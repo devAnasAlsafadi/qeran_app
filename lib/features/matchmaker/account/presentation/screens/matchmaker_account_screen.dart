@@ -82,7 +82,6 @@ class _AccountView extends StatelessWidget {
           NavigationManager.navigateTo(context, RouteNames.settingsSupport),
       onTerms: () =>
           NavigationManager.navigateTo(context, RouteNames.settingsTerms),
-      onContact: () => _contact(context),
       onDeactivate: () => _deactivate(context),
       onLogout: () => _logout(context),
       bottomReserve: MediaQuery.of(context).padding.bottom,
@@ -134,9 +133,6 @@ class _AccountView extends StatelessWidget {
       cubit: context.read<MatchmakerAccountCubit>(),
     );
   }
-
-  void _contact(BuildContext context) =>
-      NavigationManager.navigateTo(context, RouteNames.matchmakerContact);
 
   Future<void> _deactivate(BuildContext context) async {
     final cubit = context.read<MatchmakerAccountCubit>();

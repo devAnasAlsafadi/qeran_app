@@ -25,7 +25,6 @@ class MatchmakerAccountBody extends StatelessWidget {
     required this.onNotifications,
     required this.onSupport,
     required this.onTerms,
-    required this.onContact,
     required this.onDeactivate,
     required this.onLogout,
     required this.bottomReserve,
@@ -38,7 +37,6 @@ class MatchmakerAccountBody extends StatelessWidget {
   final VoidCallback onNotifications;
   final VoidCallback onSupport;
   final VoidCallback onTerms;
-  final VoidCallback onContact;
   final VoidCallback onDeactivate;
   final VoidCallback onLogout;
   final double bottomReserve;
@@ -108,12 +106,6 @@ class MatchmakerAccountBody extends StatelessWidget {
                 title: LocaleKeys.settings_terms_row.t(context),
                 subtitle: LocaleKeys.settings_terms_sub.t(context),
                 onTap: onTerms,
-              ),
-              const MatchmakerSettingsRowDivider(),
-              MatchmakerSettingsRow(
-                icon: Icons.connect_without_contact_outlined,
-                title: LocaleKeys.matchmaker_account_contact.t(context),
-                onTap: onContact,
               ),
               const MatchmakerSettingsRowDivider(),
               MatchmakerSettingsRow(

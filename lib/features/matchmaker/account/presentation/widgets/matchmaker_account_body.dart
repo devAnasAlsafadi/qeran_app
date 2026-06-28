@@ -22,7 +22,7 @@ class MatchmakerAccountBody extends StatelessWidget {
     required this.onEditName,
     required this.onChangePassword,
     required this.onLanguage,
-    required this.onComingSoon,
+    required this.onNotifications,
     required this.onSupport,
     required this.onTerms,
     required this.onContact,
@@ -35,7 +35,7 @@ class MatchmakerAccountBody extends StatelessWidget {
   final VoidCallback onEditName;
   final VoidCallback onChangePassword;
   final VoidCallback onLanguage;
-  final VoidCallback onComingSoon;
+  final VoidCallback onNotifications;
   final VoidCallback onSupport;
   final VoidCallback onTerms;
   final VoidCallback onContact;
@@ -93,7 +93,7 @@ class MatchmakerAccountBody extends StatelessWidget {
                 icon: Icons.notifications_outlined,
                 title: LocaleKeys.settings_notifications_row.t(context),
                 subtitle: LocaleKeys.settings_notifications_sub.t(context),
-                onTap: onComingSoon,
+                onTap: onNotifications,
               ),
               const MatchmakerSettingsRowDivider(),
               MatchmakerSettingsRow(

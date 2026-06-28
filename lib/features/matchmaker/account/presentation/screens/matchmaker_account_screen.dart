@@ -74,10 +74,9 @@ class _AccountView extends StatelessWidget {
       onChangePassword: () => _changePassword(context),
       onLanguage: () =>
           NavigationManager.navigateTo(context, RouteNames.settingsLanguage),
-      onComingSoon: () => AppSnackBar.show(
+      onNotifications: () => NavigationManager.navigateTo(
         context,
-        message: LocaleKeys.settings_coming_soon.t(context),
-        type: SnackBarType.info,
+        RouteNames.matchmakerNotifications,
       ),
       onSupport: () =>
           NavigationManager.navigateTo(context, RouteNames.settingsSupport),

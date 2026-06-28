@@ -24,6 +24,7 @@ import '../datasources/secure_storage_service.dart';
 import '../services/device_info_service.dart';
 import '../services/language_service.dart';
 import '../services/notification_service.dart';
+import '../services/revenuecat_service.dart';
 import '../services/storage_service.dart';
 
 final sl = GetIt.instance;
@@ -65,6 +66,11 @@ Future<void> init() async {
   //! Devices / FCM infrastructure
   sl.registerLazySingleton<NotificationService>(() => NotificationService());
   sl.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
+
+  //! Payments — RevenueCat (P1: init + identity only). Configured from
+  //  main(); identity bound to UserSessionCubit. The PaymentGateway binding
+  //  is unchanged (FakePaymentGateway) until P3.
+  sl.registerLazySingleton<RevenueCatService>(() => RevenueCatService());
 
   //! Features - Auth
   await initAuthDependencies();

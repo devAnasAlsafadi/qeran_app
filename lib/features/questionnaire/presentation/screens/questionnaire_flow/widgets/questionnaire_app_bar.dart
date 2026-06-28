@@ -70,7 +70,7 @@ class _NavBackButton extends StatelessWidget {
     // final bool isRtl = Directionality.of(context) == TextDirection.rtl;
     return IconButton(
       icon: Icon(
-        Icons.arrow_back_ios_new   ,
+        Icons.chevron_left_rounded   ,
         size: 20,
         color: QeranColors.wine,
       ),

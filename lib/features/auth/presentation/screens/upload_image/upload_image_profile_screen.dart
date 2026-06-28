@@ -122,7 +122,7 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
       children: [
         GestureDetector(
           onTap: isUploading ? null : () => ExitAppDialog.show(context),
-          child: const Icon(Icons.arrow_back, color: QeranColors.wine),
+          child: const Icon(Icons.chevron_left_rounded, color: QeranColors.wine),
         ),
         TextButton(
           onPressed: isUploading ? null : _cubit.skipUpload,

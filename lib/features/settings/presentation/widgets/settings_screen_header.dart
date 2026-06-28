@@ -59,7 +59,7 @@ class _BackButton extends StatelessWidget {
           width: 40,
           height: 40,
           child: Icon(
-            Icons.arrow_back_ios_new,
+            Icons.chevron_left_rounded,
             color: QeranColors.wine,
             size: 18,
           ),

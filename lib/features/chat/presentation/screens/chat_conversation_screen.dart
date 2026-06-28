@@ -247,7 +247,7 @@ class _HeaderBackButton extends StatelessWidget {
           height: 40,
           child: Center(
             child: Icon(
-              Icons.arrow_back_rounded,
+              Icons.chevron_left_rounded,
               color: QeranColors.wine,
               size: 24,
             ),

@@ -16,7 +16,7 @@ class AuthBackButton extends StatelessWidget {
       child: IconButton(
         onPressed: onPressed,
         icon: const Icon(
-          Icons.arrow_back_ios_new,
+          Icons.chevron_left_rounded,
           color: QeranColors.wine,
         ),
         padding: EdgeInsets.zero,

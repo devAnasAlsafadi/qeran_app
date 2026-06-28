@@ -104,9 +104,9 @@ class _BackButton extends StatelessWidget {
         child: const SizedBox(
           width: 40,
           height: 40,
-          // arrow_back_ios_new auto-mirrors under the ambient Directionality.
+          // chevron_left_rounded auto-mirrors under the ambient Directionality.
           child: Icon(
-            Icons.arrow_back_ios_new,
+            Icons.chevron_left_rounded,
             color: QeranColors.wine,
             size: 20,
           ),

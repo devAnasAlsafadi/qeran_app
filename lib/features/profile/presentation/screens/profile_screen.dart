@@ -7,17 +7,16 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_section_header.dart';
-import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
-import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/logout_confirmation_dialog.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
+import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/presentation/widgets/delete_account_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -86,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: LocaleKeys.settings_account_management.t(context),
                   ),
                   QeranSpacing.vs12,
-                  _SettingsCard(onComingSoon: () => _showComingSoon(context)),
+                  const _SettingsCard(),
                   QeranSpacing.vs24,
                   _LogoutCard(onTap: () => _handleLogout(context)),
                 ],
@@ -95,14 +94,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context) {
-    AppSnackBar.show(
-      context,
-      message: LocaleKeys.settings_coming_soon.t(context),
-      type: SnackBarType.info,
     );
   }
 
@@ -296,8 +287,7 @@ class _EditProfileLink extends StatelessWidget {
 /// preference rows, with the destructive `delete account` row last so
 /// it doesn't sit next to logout in the visual scan.
 class _SettingsCard extends StatelessWidget {
-  final VoidCallback onComingSoon;
-  const _SettingsCard({required this.onComingSoon});
+  const _SettingsCard();
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +313,7 @@ class _SettingsCard extends StatelessWidget {
             icon: Icons.notifications_outlined,
             title: LocaleKeys.settings_notifications_row.t(context),
             subtitle: LocaleKeys.settings_notifications_sub.t(context),
-            onTap: onComingSoon,
+            onTap: () => openNotifications(context),
           ),
           const _RowDivider(),
           _SettingsRow(

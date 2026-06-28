@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_pricing.dart';
@@ -25,8 +25,8 @@ class PricingSegment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: AppDimens.p8,
-      runSpacing: AppDimens.p8,
+      spacing: QeranSpacing.s8,
+      runSpacing: QeranSpacing.s8,
       children: pricings
           .map((p) => _PricingChip(
                 pricing: p,
@@ -59,7 +59,7 @@ class _PricingChip extends StatelessWidget {
             );
 
     return Material(
-      color: AppColors.transparent,
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -67,18 +67,18 @@ class _PricingChip extends StatelessWidget {
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppDimens.p16,
-            vertical: AppDimens.p12,
+            horizontal: QeranSpacing.s16,
+            vertical: QeranSpacing.s12,
           ),
           decoration: BoxDecoration(
             color: selected
-                ? AppColors.primary
-                : AppColors.primary.withValues(alpha: 0.06),
+                ? QeranColors.wine
+                : QeranColors.wine.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected
-                  ? AppColors.primary
-                  : AppColors.primary.withValues(alpha: 0.18),
+                  ? QeranColors.wine
+                  : QeranColors.wine.withValues(alpha: 0.18),
             ),
           ),
           child: Column(
@@ -91,8 +91,8 @@ class _PricingChip extends StatelessWidget {
               ],
               Text(
                 label,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: selected ? AppColors.white : AppColors.textPrimary,
+                style: QeranTypography.body.copyWith(
+                  color: selected ? QeranColors.paper : QeranColors.inkStrong,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -114,14 +114,14 @@ class _PopularPricingBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: selected
-            ? AppColors.white.withValues(alpha: 0.18)
-            : AppColors.primary.withValues(alpha: 0.10),
+            ? QeranColors.paper.withValues(alpha: 0.18)
+            : QeranColors.wine.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         LocaleKeys.subscriptions_popular_pricing.t(context),
-        style: AppTextStyles.labelSmall.copyWith(
-          color: selected ? AppColors.white : AppColors.primary,
+        style: QeranTypography.caption.copyWith(
+          color: selected ? QeranColors.paper : QeranColors.wine,
           fontWeight: FontWeight.w700,
           fontSize: 10,
         ),

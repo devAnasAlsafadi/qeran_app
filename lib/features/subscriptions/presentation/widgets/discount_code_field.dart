@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/theme/app_color.dart';
-import 'package:qeran/core/theme/app_text_style.dart';
-import 'package:qeran/core/utils/app_dimens.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/purchase/subscription_purchase_cubit.dart';
@@ -64,7 +64,7 @@ class _DiscountCodeFieldState extends State<DiscountCodeField> {
               onTap: _toggle,
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppDimens.p8),
+                padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s8),
                 child: Row(
                   children: [
                     Icon(
@@ -72,17 +72,17 @@ class _DiscountCodeFieldState extends State<DiscountCodeField> {
                           ? Icons.local_offer_rounded
                           : Icons.local_offer_outlined,
                       size: 18,
-                      color: AppColors.primary,
+                      color: QeranColors.wine,
                     ),
-                    const SizedBox(width: AppDimens.p8),
+                    const SizedBox(width: QeranSpacing.s8),
                     Expanded(
                       child: Text(
                         hasApplied
                             ? LocaleKeys.subscriptions_discount_applied
                                 .t(context)
                             : LocaleKeys.subscriptions_have_discount.t(context),
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.primary,
+                        style: QeranTypography.body.copyWith(
+                          color: QeranColors.wine,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -91,7 +91,7 @@ class _DiscountCodeFieldState extends State<DiscountCodeField> {
                       _expanded
                           ? Icons.expand_less_rounded
                           : Icons.expand_more_rounded,
-                      color: AppColors.primary,
+                      color: QeranColors.wine,
                     ),
                   ],
                 ),
@@ -134,7 +134,7 @@ class _Field extends StatelessWidget {
     final invalid = state is SubscriptionPurchaseDiscountInvalid;
 
     return Padding(
-      padding: const EdgeInsets.only(top: AppDimens.p8),
+      padding: const EdgeInsets.only(top: QeranSpacing.s8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -154,27 +154,27 @@ class _Field extends StatelessWidget {
                     hintText: LocaleKeys.subscriptions_discount_placeholder
                         .t(context),
                     filled: true,
-                    fillColor: AppColors.white,
+                    fillColor: QeranColors.paper,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppDimens.p16,
-                      vertical: AppDimens.p12,
+                      horizontal: QeranSpacing.s16,
+                      vertical: QeranSpacing.s12,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: AppColors.primary.withValues(alpha: 0.20),
+                        color: QeranColors.wine.withValues(alpha: 0.20),
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: AppColors.primary.withValues(alpha: 0.20),
+                        color: QeranColors.wine.withValues(alpha: 0.20),
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: AppDimens.p8),
+              const SizedBox(width: QeranSpacing.s8),
               SizedBox(
                 height: 48,
                 child: hasApplied
@@ -189,11 +189,11 @@ class _Field extends StatelessWidget {
           ),
           if (invalid)
             Padding(
-              padding: const EdgeInsets.only(top: AppDimens.p8),
+              padding: const EdgeInsets.only(top: QeranSpacing.s8),
               child: Text(
                 LocaleKeys.subscriptions_discount_invalid.t(context),
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.error,
+                style: QeranTypography.caption.copyWith(
+                  color: QeranColors.danger,
                 ),
               ),
             ),
@@ -218,13 +218,13 @@ class _ApplyButton extends StatelessWidget {
     // to its content (with a 48 dp tap-friendly minimum height).
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
+        backgroundColor: QeranColors.wine,
+        foregroundColor: QeranColors.paper,
         minimumSize: const Size(0, 48),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: AppDimens.p20),
+        padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
         elevation: 0,
       ),
       onPressed: onPressed,
@@ -235,13 +235,13 @@ class _ApplyButton extends StatelessWidget {
               child: CircularProgressIndicator(
                 strokeWidth: 2.4,
                 valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColors.white),
+                    AlwaysStoppedAnimation<Color>(QeranColors.paper),
               ),
             )
           : Text(
               LocaleKeys.subscriptions_discount_apply.t(context),
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.white,
+              style: QeranTypography.body.copyWith(
+                color: QeranColors.paper,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -266,12 +266,12 @@ class _RemoveButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: AppDimens.p16),
+        padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s16),
       ),
       child: Text(
         LocaleKeys.subscriptions_discount_remove.t(context),
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.primary,
+        style: QeranTypography.body.copyWith(
+          color: QeranColors.wine,
           fontWeight: FontWeight.w700,
         ),
       ),

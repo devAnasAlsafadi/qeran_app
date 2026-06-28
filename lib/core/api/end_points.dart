@@ -321,4 +321,16 @@ class EndPoints {
 
   /// `GET /api/terms-and-conditions` — same shape as [privacyPolicy].
   static const String termsAndConditions = "terms-and-conditions";
+
+  // Support / Help (JWT-gated). Not in the published Swagger yet — verified
+  // live (404 for unknown sub-paths vs 401 here confirms the routes exist).
+  /// `GET /api/support/categories` — problem-type list
+  /// (`[{id, nameAr, nameEn, icon}]`) backing the form dropdown.
+  static const String supportCategories = "support/categories";
+
+  /// `POST /api/support/tickets` — body `{categoryId, subject(≤200),
+  /// details(≤4000)}`. Failure envelope carries `errorCode`
+  /// (`SUPPORT_TICKETS_LIMIT_REACHED` past 5 open tickets,
+  /// `SUPPORT_CATEGORY_NOT_FOUND`, `VALIDATION_ERROR`).
+  static const String supportTickets = "support/tickets";
 }

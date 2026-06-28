@@ -18,6 +18,7 @@ import '../../features/questionnaire/di/questionnaire_injection.dart';
 import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import '../../features/splash/presentation/blocs/splash_cubit.dart';
 import '../../features/subscriptions/di/subscriptions_injection.dart';
+import '../../features/support/di/support_injection.dart';
 import '../api/api_consumer.dart';
 import '../api/http_consumer.dart';
 import '../datasources/shared_pref_service.dart';
@@ -133,6 +134,9 @@ Future<void> init() async {
 
   //! Features - Legal (privacy-policy + terms-and-conditions)
   initLegalDependencies();
+
+  //! Features - Support (Help & Support — categories + ticket submission)
+  initSupportDependencies();
 
   //! Features - Matchmaker (role=Moderator) — foundation only.
   // Currently a no-op; each subsequent milestone fills it.

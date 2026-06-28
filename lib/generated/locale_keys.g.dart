@@ -648,10 +648,6 @@ abstract class  LocaleKeys {
   static const settings_support_intro = 'settings.support_intro';
   static const settings_support_type_label = 'settings.support_type_label';
   static const settings_support_type_placeholder = 'settings.support_type_placeholder';
-  static const settings_support_type_matchmaker = 'settings.support_type_matchmaker';
-  static const settings_support_type_technical = 'settings.support_type_technical';
-  static const settings_support_type_account = 'settings.support_type_account';
-  static const settings_support_type_other = 'settings.support_type_other';
   static const settings_support_subject_label = 'settings.support_subject_label';
   static const settings_support_subject_hint = 'settings.support_subject_hint';
   static const settings_support_details_label = 'settings.support_details_label';
@@ -660,6 +656,8 @@ abstract class  LocaleKeys {
   static const settings_support_footer = 'settings.support_footer';
   static const settings_support_validation = 'settings.support_validation';
   static const settings_support_success = 'settings.support_success';
+  static const settings_support_categories_error = 'settings.support_categories_error';
+  static const settings_support_retry = 'settings.support_retry';
   static const settings = 'settings';
   static const legal_title = 'legal.title';
   static const legal_tab_terms = 'legal.tab_terms';

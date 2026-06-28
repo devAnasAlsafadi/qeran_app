@@ -661,10 +661,6 @@
     "support_intro": "صف مشكلتك أو استفسارك وسنقوم بالرد عليك في أقرب وقت.",
     "support_type_label": "اختر نوع المشكلة",
     "support_type_placeholder": "اختر نوع المشكلة",
-    "support_type_matchmaker": "شكوى على الخطّابة",
-    "support_type_technical": "مشكلة تقنية",
-    "support_type_account": "مشكلة في الحساب",
-    "support_type_other": "أخرى",
     "support_subject_label": "الموضوع",
     "support_subject_hint": "موضوع المشكلة باختصار",
     "support_details_label": "تفاصيل المشكلة",
@@ -672,7 +668,9 @@
     "support_submit": "إرسال الطلب",
     "support_footer": "نحرص على الرد خلال 24-48 ساعة عمل، لا تتردد في التواصل معنا لأي استفسار.",
     "support_validation": "يرجى تعبئة جميع الحقول",
-    "support_success": "تم إرسال طلبك بنجاح، سنتواصل معك قريباً."
+    "support_success": "تم إرسال طلبك بنجاح، سنتواصل معك قريباً.",
+    "support_categories_error": "تعذّر تحميل أنواع المشاكل",
+    "support_retry": "حاول مجدداً"
   },
   "legal": {
     "title": "الشروط والخصوصية",

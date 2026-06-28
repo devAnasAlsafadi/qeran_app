@@ -661,10 +661,6 @@
     "support_intro": "Describe your issue or question and we'll get back to you as soon as possible.",
     "support_type_label": "Problem type",
     "support_type_placeholder": "Select a problem type",
-    "support_type_matchmaker": "Complaint about the matchmaker",
-    "support_type_technical": "Technical issue",
-    "support_type_account": "Account issue",
-    "support_type_other": "Other",
     "support_subject_label": "Subject",
     "support_subject_hint": "Brief subject of the issue",
     "support_details_label": "Issue details",
@@ -672,7 +668,9 @@
     "support_submit": "Send request",
     "support_footer": "We aim to respond within 24-48 business hours. Don't hesitate to reach out with any question.",
     "support_validation": "Please fill in all fields",
-    "support_success": "Your request was sent successfully. We'll be in touch soon."
+    "support_success": "Your request was sent successfully. We'll be in touch soon.",
+    "support_categories_error": "Couldn't load problem types",
+    "support_retry": "Try again"
   },
   "legal": {
     "title": "Terms & Privacy",

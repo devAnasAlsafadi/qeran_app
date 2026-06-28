@@ -221,8 +221,6 @@
     "matches_formal_step_cta": "Formal step via the matchmaker",
     "matches_formal_step_message": "I'd like to proceed formally to the next step with this person",
     "matches_stage_matchmaker_will_contact": "The matchmaker will contact you soon",
-    "matchmaker_chat_title": "Matchmaker chat",
-    "matchmaker_chat_placeholder": "Your conversation with the matchmaker will appear here soon.",
     "matches_action_request_success": "Photo exchange requested",
     "matches_action_request_already_pending": "A photo exchange is already pending",
     "matches_action_request_like_not_accepted": "This match isn't ready for photo exchange yet",

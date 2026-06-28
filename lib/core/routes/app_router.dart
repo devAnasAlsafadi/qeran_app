@@ -20,7 +20,6 @@ import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_h
 import 'package:qeran/features/matchmaker/interests/presentation/screens/matchmaker_interests_screen.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_user_profile_screen.dart';
-import 'package:qeran/features/likes/presentation/screens/matchmaker_chat_screen.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
@@ -219,18 +218,6 @@ class AppRouter {
           transitionsBuilder: (_, animation, _, child) {
             return FadeTransition(opacity: animation, child: child);
           },
-        );
-      case RouteNames.matchmakerChat:
-        final chatArgs = settings.arguments as MatchmakerChatScreenArgs?;
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => chatArgs == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
-              : MatchmakerChatScreen(args: chatArgs),
         );
       case RouteNames.fullProfileDetails:
         final args = settings.arguments as FullProfileDetailsArgs?;

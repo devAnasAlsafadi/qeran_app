@@ -23,7 +23,6 @@ class RouteNames {
   static const String subscriptionDetails = '/subscription/details';
 
   // Likes / Matches
-  static const String matchmakerChat = '/matchmakerChat';
   static const String matchSuccess = '/match/success';
 
   // Profile (shared)

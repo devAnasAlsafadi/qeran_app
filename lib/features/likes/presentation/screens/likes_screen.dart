@@ -21,7 +21,7 @@ import 'likes_received_section.dart';
 import 'likes_sent_section.dart';
 import 'match_success_screen.dart';
 import 'matches_section.dart';
-import 'matchmaker_chat_screen.dart';
+import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 
 /// Likes / Interests screen — entry point from the bottom nav (index 1).
 ///
@@ -274,13 +274,15 @@ class _TabBody extends StatelessWidget {
       shell.openMessagesTab();
       return;
     }
-    // Non-shell scope (deep link / widget test): route directly when we
-    // have an id, else surface the neutral "will contact you" notice.
+    // Non-shell scope (deep link / widget test): push the real chat entry,
+    // which self-resolves the single matchmaker conversation via
+    // `/api/chat/my-matchmaker` (so the id arg isn't needed here).
     if (conversationId != null && conversationId.isNotEmpty) {
-      NavigationManager.navigateTo(
-        context,
-        RouteNames.matchmakerChat,
-        arguments: MatchmakerChatScreenArgs(conversationId: conversationId),
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (ctx) =>
+              ChatEntryScreen(onBack: () => Navigator.of(ctx).pop()),
+        ),
       );
       return;
     }

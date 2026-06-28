@@ -12,20 +12,28 @@ import 'chat_conversation_screen.dart';
 /// Tab entry. Resolves `/api/chat/my-matchmaker` and renders one of:
 /// loading / no-matchmaker / failure / conversation. Embedded by
 /// `HomeScreen` for the Messages bottom-nav tab.
+///
+/// [onBack] is forwarded to the conversation so a *pushed* instance (e.g. the
+/// likes non-shell fallback) gets a back button; the bottom-nav tab leaves it
+/// null (a tab can't pop).
 class ChatEntryScreen extends StatelessWidget {
-  const ChatEntryScreen({super.key});
+  const ChatEntryScreen({super.key, this.onBack});
+
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<ChatEntryCubit>(
       create: (_) => sl<ChatEntryCubit>()..load(),
-      child: const _ChatEntryView(),
+      child: _ChatEntryView(onBack: onBack),
     );
   }
 }
 
 class _ChatEntryView extends StatelessWidget {
-  const _ChatEntryView();
+  const _ChatEntryView({this.onBack});
+
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +58,7 @@ class _ChatEntryView extends StatelessWidget {
           case ChatEntryReady(:final info):
             return KeyedSubtree(
               key: ValueKey<int>(info.conversationId),
-              child: ChatConversationScreen(info: info),
+              child: ChatConversationScreen(info: info, onBack: onBack),
             );
         }
       },

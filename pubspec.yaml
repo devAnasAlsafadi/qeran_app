@@ -77,6 +77,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   change_app_package_name: ^1.5.0
   flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.6
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -111,3 +112,27 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoKufiArabic-Bold.ttf
           weight: 700
+
+# Native (OS) splash — the warm-up surface the OS draws before the Flutter
+# engine boots. Shows the quiet gold symbol on the soft-white canvas so the
+# native -> Flutter handoff has no hard cut. Regenerate after any change:
+#   dart run flutter_native_splash:create   (undo: :remove)
+#
+# ⚠️ LOTTIE FRAME-0 CONTRACT: the Flutter splash will later become a Lottie
+# animation. Its FIRST FRAME must match this still EXACTLY — same symbol,
+# same centre, same scale, same #F8F8F8 canvas — so the native splash reads
+# as the animation's starting state, not a separate screen. Do not change
+# the symbol / scale / colour here without updating the Lottie frame 0 to
+# match (and vice-versa).
+flutter_native_splash:
+  color: "#F8F8F8"
+  color_dark: "#F8F8F8"
+  image: assets/images/splash_symbol.png
+  image_dark: assets/images/splash_symbol.png
+  android_12:
+    color: "#F8F8F8"
+    color_dark: "#F8F8F8"
+    image: assets/images/splash_symbol.png
+    image_dark: assets/images/splash_symbol.png
+  android: true
+  ios: true

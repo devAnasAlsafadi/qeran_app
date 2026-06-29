@@ -11,6 +11,8 @@
 
 **الدفع = IAP / RevenueCat** — محسوم؛ يحتاج منتجات المتجر + webhook طارق قبل P2+. P1 (boot + هوية) مربوط ومتحقَّق هذه الجلسة.
 
+**▶️ نقطة الدخول للجلسة الجاية:** العميل عنده تعديلات/تغييرات جديدة يناقشها بجلسة جديدة. أنظف نقطة إنهاء لمسار الأيقونات = **P1c** (انظر Deferred)، أو خذ توجيهاً جديداً من المستخدم. ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down + الـ ~95 commit غير المدفوعة).
+
 ---
 
 ## ✅ جلسة 28 يونيو — تقاعد الثيم القديم + تغييرات الجلسة (النية فقط)
@@ -26,6 +28,23 @@
 - **placeholder محادثة الماتش** صار يوجّه للـ `ChatConversationScreen` الحقيقي (نفس قناة الخطّابة المتوسِّطة، لا تواصل مباشر user-to-user).
 - **أيقونة العلامة (gold-on-wine) + أيقونة إشعار أحادية اللون:** الأصول مولَّدة؛ **أيقونة التطبيق متحقَّقة على الجهاز**، أيقونة الإشعار لم تُختبر بعد بـ push حقيقي.
 - **canvas hex موثّق صح `#F8F8F8`** (قيمة الكود `QeranColors.creamCanvas`، لا `#FEFCFA` المنحرفة بالوثائق القديمة — صُحِّحت بكل الوثائق).
+- **تحسين أيقونات التطبيق — P1a + P1b معمولان:** (P1a) **23 أيقونة bare** (15 من القائمة + 8 لقطها الـ grep) صارت `_rounded` — `email`/`lock`/`person_outline`/`close`/`check`/`photo_library`/`camera_alt`/`language`… (إزالة كاسرات-العائلة من auth/snackbar/photo-picker)؛ بقي عمداً `public`/`apple` (لا variant rounded) و`circle` (نقطة هندسية). (P1b) **5 أشكال سهم-رجوع موحّدة** على `Icons.chevron_left_rounded` بكل مواضع screen-back (auth عبر `auth_back_button` + chat + ملف-الخطّابة + questionnaire app-bar + settings header + profile hub + upload-image)؛ RTL يـmirror تلقائياً. أسهم pager الـ onboarding (forward/back) **مُبقاة عمداً** (تماثل اتجاهي، pager لا screen-back). **الجاي P1c** (انظر Deferred). تدقيق الأيقونات الكامل (330 `Icons.*`، صفر Material colors، صفر QeranIcon wrapper) محفوظ بالشات.
+
+---
+
+## 🏬 حالة المتجر / الإطلاق (Store / Release)
+- **Apple App Store Connect:** حساب العميل `info@qeran.ae` (Team `4C9GL7WLY7`)؛ تطبيق Qeran منشأ، Bundle ID `com.qeran.app` (Apple ID `6783272039`)؛ مجموعة اشتراك «Qeran Membership» (`22177601`)؛ **3 منتجات نهائية** منشأة (Apple لا يحتاج رفع build): `qeran_vip_monthly` $49.99 · `qeran_basic_monthly` $34.99 · `qeran_vip_3month` $119.99. Free Apps Agreement: **Active**. Paid Apps Agreement: **معلّق** (ضريبة + بنك — على العميل). Sanctions hold: **معلّق** مراجعة Apple (العميل قدّم الهوية).
+- **Google Play Console:** حساب `Qeran.Dev` (Personal، `4886994776950416347`)؛ تحقّق الهوية **مكتمل** (إيميل+هاتف+هوية كلها خضراء)؛ التطبيق منشأ (اسم+package+Free+لغة). **لم يُرفع بعد:** يحتاج Android release signing (keystore) → `flutter build appbundle` → رفع لـ Internal testing → **ثم** تُنشأ منتجات IAP (**جوجل يطلب AAB قبل الاشتراكات، عكس Apple**). قاعدة 12-tester × 14-يوم تنطبق على **Production فقط**؛ Internal testing فوري ويكفي لاختبار الدفع.
+- **RevenueCat:** مشروع «Qeran» (`7d2b2aec`)؛ مفاتيح **TEST** مهيّأة، التطبيق يـboot ويعرّف المستخدمين (3 عملاء بالـ dashboard). مفاتيح Production + offerings (ربط الباقات الحقيقي) = **P2** (بعد وجود منتجات المتجر). مجاني حتى $2,500/شهر MTR.
+
+---
+
+## 🔴 أعلام حرجة / حاجبات (نهاية الجلسة)
+- 🔴 **السيرفر DOWN:** `qeranadmin-001-site1.rtempurl.com` يرجّع «No route to host» (errno 113) على كل الطلبات — استضافة rtempurl المجانية سقطت (المشكلة المتكرّرة). طارق مُبلَّغ.
+- 🔴 **استضافة إنتاج مطلوبة قبل الإطلاق:** rtempurl المجاني غير موثوق (ينام، يفقد بيانات — صور اختبار قديمة ضاعت أصلاً). العميل لازم يرتّب استضافة مدفوعة قبل إطلاق المتجر.
+- ⚠️ **~95+ commit محلي غير مدفوع** لـ `origin/main` (علَم متكرّر). `git push` متأخّر — يُنصح بدفعها أول الجلسة الجاية.
+
+---
 
 ## 🗺️ الخطوات الجاية (بالأولوية)
 1. ~~**هجرة auth/ الكاملة**~~ ✅ **مكتملة** (0→g كلها معمولة — انظر «🔧 هجرة auth — التقدّم»). يبقى فقط: `share_with_matchmaker_button._confirmDialog` (مؤجّل — انظر Deferred).
@@ -57,6 +76,11 @@
 - **خانات OTP تبقى بحدود (NOT pill):** صناديق الرقم-الواحد تحتاج حدّاً مرئياً — `paper` + `hairline` + `controlR` + رقم `headline`؛ معالجة مختلفة عمداً عن حقول النص الـ pill. (`8b87d07`)
 - **السؤال vs المضي:** اسأل على أي قرار (دلالي أو تجميلي). فقط التعديلات المحددة تماماً تمشي مباشرة. (الافتراض القديم "امشِ بالتجميلي" ملغى.)
 - **Figma = الشكل، الهوية = الألوان.** صفر تسامح — كل شيء من الـ design system.
+- **الـ design system = المصدر الوحيد (نهائي):** صفر `AppColors`/`AppTextStyles`/`AppDimens` — الملفات **انحذفت**، فأي استخدام مستقبلي مستحيل تقنياً.
+- **تواصل user-to-user مباشر = ممنوع:** كل المحادثة عبر الخطّابة (محادثة `/api/chat/my-matchmaker` الوحيدة لكل مستخدم).
+- **أكواد الإحالة (affiliate) داخلية:** تُدار عبر الـ dashboard/الباك إند، **لا** عبر store offer codes (Apple يحدّ 10 offers نشطة/اشتراك — ما يتوسّع لكل خطّابة).
+- **RevenueCat = خيار الـ IAP** — مجاني حتى $2,500/شهر MTR.
+- **عائلة الأيقونات rounded-dominant؛ سهم الرجوع = `chevron_left_rounded`** (موحّد P1b)؛ كل الأيقونات inline تحمل لاحقة `_rounded`/`_outlined_rounded`.
 - **— الخطّابة (قرارات M3، حرجة وغير مستنتَجة):**
   - **عرض الملف — معكوس:** الخطّابة تستخدم `GET /matchmaker/users/{id}/profile` (`ProfileResponseDto`، `OwnerImage` فيه `isApproved`، **بلا** `isBlurred`). **ممنوع** `/discovery/profiles/{id}` — يرجّع `matchingScore` بلا معنى **و**يُحتسب على حدّ المشاهدات اليومي للمستخدم. التوحيد = **renderers مشتركة** (`PlacementRenderer`/`ProfileHeaderGallery`) مش شاشة مشتركة. ستاك ملف الخطّابة **موجود وصحيح**.
   - **الملف = عرض فقط (معمول M3e):** action-bar الموافقة/الرفض **داخل** الملف **محذوف** — كل الموافقة/الرفض على **الكرت** (M3b). يبقى زر تعديل-الإجابات. سقالة `ProfileEntrySource.matchmaker` الميتة **محذوفة**.
@@ -136,9 +160,12 @@
 ## ⏸️ مؤجّل (Deferred)
 - **`share_with_matchmaker_button` — dialog التأكيد:** ألوان الـ legacy انهاجرت لتوكنز هذه الجلسة (دفعة 6)، لكن `_confirmDialog` لسا **بنية Material `AlertDialog`** (`TextButton`/`FilledButton`) لا `QeranConfirmDialog` — متابعة اتساق dialogs بعد تقاعد الثيم (مش legacy-theme).
 - ~~**هجرة dialog خروج/خروج تطبيق المستخدم → `QeranConfirmDialog`**~~ ✅ **معمول (دفعة 2):** `LogoutConfirmationDialog` انحذف (استُبدل بـ `QeranConfirmDialog` في `profile_screen`)؛ `ExitAppDialog` أُعيد كتابته داخلياً ليفوّض التنسيق لـ `QeranConfirmDialog` و**أُبقي** (يملك السلوك المشترك platform-branch + side-effects لـ 4 مستدعين — حذفه يكرّر المنطق 4×).
-- **تنظيف `BorderRadius.circular` literals بالاشتراكات:** `discount_code_field`/`pricing_segment` فيهم `BorderRadius.circular(12/16/20)` خام — ليست legacy-theme (انهاجرت ألوانها/خطّها)، فتُركت لمتابعة radius-literal منفصلة.
+- **تنظيف `BorderRadius.circular` literals بالاشتراكات:** `discount_code_field`/`pricing_segment`/`feature_row` فيهم `BorderRadius.circular(12/16/20)` خام — ليست legacy-theme (انهاجرت ألوانها/خطّها)، فتُركت لمتابعة radius-literal منفصلة.
+- **أيقونات P1c (آخر خطوة P1 — معلّق التحقّق):** `favorite_outline_rounded → favorite_border_rounded` (موضعان، توحيد على الـ 9-use variant) + صفّ إشعارات إعدادات الخطّابة → `notifications_none_rounded` (لمطابقة جرس الـ app-bar). (`lock_outline` أُنجز في P1a.)
+- **أيقونات P2 (مؤجّل):** توكن `QeranIconSizes` (sm/md/lg) + sweep أحجام أيقونات **جهة المستخدم** عليه (الخطّابة منضبطة أصلاً 24/20/14) + توثيق قاعدة filled/outlined (active=filled، inactive/inline=outlined — كما في bottom-nav).
+- **أيقونات P3 (مؤجّل):** قرار confetti الـ `celebration_rounded` (يبقى على شاشة نجاح-الماتش الكاملة — celebration مقصودة؛ يُعاد النظر على tile الصندوق + نجاح الدفع الوهمي)؛ ثوابت `QeranGlyphs` اختيارية لـ back/close/check/bell لمنع الانحراف مستقبلاً.
 - **اختبار أيقونة الإشعار بـ push حقيقي:** الأيقونة أحادية اللون مولَّدة لكن لم تُختبر بإشعار FCM حقيقي على الجهاز (نفس قيد علَم per-action icons — `adb` لا يحاكي التسليم بأمانة).
-- **native splash (Group C):** الأصول جاهزة، الشاشة غير مبدوءة.
+- **native splash (Group C):** الأصول جاهزة (`qeran_symbol_wine.svg` + `qeran_symbol_transparent.svg` في `branding/src/`)، الشاشة غير مبدوءة. الخطة: ربط `flutter_native_splash` بخلفية `#431C33` + الرمز الشفّاف + variant آمن-للدائرة لـ android_12 + تدفّق `FlutterNativeSplash.preserve()`/`remove()` في `main.dart`.
 - **Google Play:** توقيع الإصدار غير مُعدّ؛ AAB لم يُبنَ/يُرفَع؛ منتجات IAP لم تُنشأ (جوجل يطلب AAB أولاً).
 - **RevenueCat P2–P6:** مؤجّلة لحين منتجات المتجر + webhook طارق (P1 = boot + هوية، معمول ومتحقَّق).
 - **(Tier B) ربط gender facet الاستكشاف backend-driven:** الباك إند يرسل `data.gender` (`{key, label, options:[{value,display}]}`) بردّ `/explore/filters`، لكننا **نتجاهله** ونستخدم سيغمنت يدوي (الكل/ذكر/أنثى — hardcoded بالشاشة). الربط = إضافة slot للـ facet بالـ state + تمريره للشاشة بدل السيغمنت اليدوي + mapping `value→Gender` enum.

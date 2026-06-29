@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../entities/current_subscription.dart';
-import '../entities/discount_validation.dart';
 import '../entities/subscription_plan.dart';
 
 abstract interface class SubscriptionsRepository {
@@ -12,14 +11,6 @@ abstract interface class SubscriptionsRepository {
 
   /// Current subscription, or `Right(null)` when the user has none.
   Future<Either<Failure, CurrentSubscription?>> getCurrent();
-
-  /// Validates [code] against the selected [pricingId]. Invalid codes
-  /// arrive as `Right(DiscountValidation(isValid: false, ...))` — only
-  /// network / parsing failures surface as `Left`.
-  Future<Either<Failure, DiscountValidation>> validateDiscount({
-    required String code,
-    required int pricingId,
-  });
 
   /// Subscribe to the given [pricingId] with an optional [discountCode].
   /// Returns the new `CurrentSubscription` on success.

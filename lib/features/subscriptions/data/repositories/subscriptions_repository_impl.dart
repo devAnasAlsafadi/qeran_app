@@ -3,7 +3,6 @@ import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../../domain/entities/current_subscription.dart';
-import '../../domain/entities/discount_validation.dart';
 import '../../domain/entities/subscription_plan.dart';
 import '../../domain/repositories/subscriptions_repository.dart';
 import '../datasources/subscriptions_remote_datasource.dart';
@@ -28,20 +27,6 @@ class SubscriptionsRepositoryImpl
     return executeApiCall(() async {
       final model = await _dataSource.getCurrent();
       return model?.toEntity();
-    });
-  }
-
-  @override
-  Future<Either<Failure, DiscountValidation>> validateDiscount({
-    required String code,
-    required int pricingId,
-  }) {
-    return executeApiCall(() async {
-      final model = await _dataSource.validateDiscount(
-        code: code,
-        pricingId: pricingId,
-      );
-      return model.toEntity();
     });
   }
 

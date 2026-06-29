@@ -4,6 +4,7 @@ import 'package:qeran/core/errors/errors.dart';
 import '../entities/current_subscription.dart';
 import '../repositories/subscriptions_repository.dart';
 
+// TODO(payments-1b): reserved. After a successful RevenueCat purchase the client POSTs /subscriptions/subscribe to record the entitlement; the backend applies discount/affiliate codes server-side.
 class SubscribeUseCase {
   final SubscriptionsRepository _repository;
   const SubscribeUseCase(this._repository);

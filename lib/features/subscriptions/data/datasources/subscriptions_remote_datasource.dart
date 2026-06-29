@@ -5,7 +5,6 @@ import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../models/current_subscription_model.dart';
-import '../models/discount_validation_model.dart';
 import '../models/subscription_plan_model.dart';
 
 abstract interface class SubscriptionsRemoteDataSource {
@@ -18,14 +17,6 @@ abstract interface class SubscriptionsRemoteDataSource {
   /// object or a literal `null` body for non-subscribers. Returns
   /// `null` for the not-subscribed case; throws on transport errors.
   Future<CurrentSubscriptionModel?> getCurrent();
-
-  /// `GET /api/subscriptions/discount-codes/{code}/validate?pricingId=X`.
-  /// Always returns a `DiscountValidationModel`; invalid codes encode
-  /// the failure inside `isValid: false`, not as an HTTP error.
-  Future<DiscountValidationModel> validateDiscount({
-    required String code,
-    required int pricingId,
-  });
 
   /// `POST /api/subscriptions/subscribe { pricingId, discountCode }`.
   /// Returns the resulting `CurrentSubscription`. The HTTP consumer's
@@ -80,25 +71,6 @@ class SubscriptionsRemoteDataSourceImpl
       tag: 'SUBSCRIPTIONS',
     );
     return model;
-  }
-
-  @override
-  Future<DiscountValidationModel> validateDiscount({
-    required String code,
-    required int pricingId,
-  }) async {
-    AppLogger.debug(
-      'VALIDATE DISCOUNT code=$code pricingId=$pricingId',
-      tag: 'SUBSCRIPTIONS',
-    );
-    final body = await _apiConsumer.getRaw(
-      EndPoints.validateDiscountCode(code),
-      queryParameters: {'pricingId': pricingId},
-    );
-    if (body is! Map<String, dynamic>) {
-      throw ServerException(message: LocaleKeys.errors_generic);
-    }
-    return DiscountValidationModel.fromJson(body);
   }
 
   @override

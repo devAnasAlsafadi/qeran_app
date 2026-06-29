@@ -112,10 +112,6 @@ class _PaywallSheet extends StatelessWidget {
               title: LocaleKeys.subscriptions_paywall_like_title,
               body: LocaleKeys.subscriptions_paywall_like_body,
             ),
-      PaywallIntent.seriousInterest => const _PaywallCopy(
-          title: LocaleKeys.subscriptions_paywall_serious_interest_title,
-          body: LocaleKeys.subscriptions_paywall_serious_interest_body,
-        ),
       PaywallIntent.photoExchange => const _PaywallCopy(
           title: LocaleKeys.subscriptions_paywall_photo_title,
           body: LocaleKeys.subscriptions_paywall_photo_body,
@@ -123,10 +119,6 @@ class _PaywallSheet extends StatelessWidget {
       PaywallIntent.acceptLike => const _PaywallCopy(
           title: LocaleKeys.subscriptions_paywall_accept_title,
           body: LocaleKeys.subscriptions_paywall_accept_body,
-        ),
-      PaywallIntent.promo => const _PaywallCopy(
-          title: LocaleKeys.subscriptions_status_not_subscribed_title,
-          body: LocaleKeys.subscriptions_status_not_subscribed_body,
         ),
     };
   }
@@ -162,10 +154,8 @@ class _BadgeIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = switch (intent) {
       PaywallIntent.like => Icons.favorite_rounded,
-      PaywallIntent.seriousInterest => Icons.workspace_premium_rounded,
       PaywallIntent.photoExchange => Icons.photo_camera_rounded,
       PaywallIntent.acceptLike => Icons.handshake_rounded,
-      PaywallIntent.promo => Icons.diamond_outlined,
     };
     return Center(
       child: SizedBox(

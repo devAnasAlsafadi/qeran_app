@@ -142,8 +142,6 @@ class EndPoints {
   static const String subscriptionPlans = "subscriptions/plans";
   static const String currentSubscription = "subscriptions/current";
   static const String subscribe = "subscriptions/subscribe";
-  static String validateDiscountCode(String code) =>
-      "subscriptions/discount-codes/$code/validate";
 
   // Chat (User ↔ Matchmaker only)
 

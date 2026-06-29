@@ -5,15 +5,9 @@ enum PaywallIntent {
   /// User tried to send a Like — no subscription / limit reached.
   like,
 
-  /// User tried Serious Interest.
-  seriousInterest,
-
   /// User tried Photo Exchange.
   photoExchange,
 
   /// User tried to accept an incoming like (future feature surface).
   acceptLike,
-
-  /// User explicitly tapped the "discover packages" promo from Profile.
-  promo,
 }

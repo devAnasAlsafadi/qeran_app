@@ -37,8 +37,8 @@ Future<void> init() async {
 
   //! App-wide navigator key — attached to MaterialApp.navigatorKey and
   //  used by infrastructure that needs a navigator without a build
-  //  context (e.g. the dev-only FakePaymentGateway to show a dialog
-  //  without the screen having to bind/unbind a static reference).
+  //  context (e.g. showing a dialog without the screen having to
+  //  bind/unbind a static reference).
   sl.registerSingleton<GlobalKey<NavigatorState>>(
     GlobalKey<NavigatorState>(debugLabel: 'rootNavigator'),
   );
@@ -87,8 +87,9 @@ Future<void> init() async {
   sl.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
 
   //! Payments — RevenueCat (P1: init + identity only). Configured from
-  //  main(); identity bound to UserSessionCubit. The PaymentGateway binding
-  //  is unchanged (FakePaymentGateway) until P3.
+  //  main(); identity bound to UserSessionCubit. The custom-checkout +
+  //  client-discount layer was retired ahead of the IAP rebuild (P1b);
+  //  purchasing will route through RevenueCat.
   sl.registerLazySingleton<RevenueCatService>(() => RevenueCatService());
 
   //! Features - Auth

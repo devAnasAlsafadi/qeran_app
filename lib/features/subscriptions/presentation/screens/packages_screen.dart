@@ -14,9 +14,9 @@ import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/design_system/widgets/qeran_premium_banner.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/routes/navigation_manager.dart';
-import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_plan.dart';
@@ -24,7 +24,6 @@ import '../../domain/entities/subscription_pricing.dart';
 import '../../domain/helpers/subscription_format.dart';
 import '../blocs/plans/subscription_plans_cubit.dart';
 import '../blocs/plans/subscription_plans_state.dart';
-import '../screens/subscription_purchase_screen.dart';
 
 /// Full-route packages screen.
 ///
@@ -42,13 +41,14 @@ import '../screens/subscription_purchase_screen.dart';
 ///   currently-selected row gets a gold border + cream-surface fill;
 ///   the trailing radio is gold-filled. Discounted rows get a small
 ///   gold "خصم ٢٠٪" chip.
-/// * **Sticky CTA** — `QeranButton.primary` "اشترك الآن" that routes
-///   to the existing `subscriptionPurchase` route with the active
-///   plan + currently-selected pricing.
+/// * **Sticky CTA** — `QeranButton.primary` "اشترك الآن". Tier
+///   selection stays fully functional (`selectPricing`, `pricingFor`);
+///   the CTA currently shows a "coming soon" notice instead of routing
+///   to checkout. The custom-checkout layer was retired ahead of the
+///   RevenueCat IAP rebuild (Phase 1b).
 ///
 /// Business logic preserved verbatim from the previous list-of-cards
-/// layout — same cubit calls (`selectPricing`, `pricingFor`), same
-/// navigation arguments (`SubscriptionPurchaseArgs`).
+/// layout — same cubit calls (`selectPricing`, `pricingFor`).
 class PackagesScreen extends StatelessWidget {
   const PackagesScreen({super.key});
 
@@ -193,11 +193,7 @@ class _LoadedBody extends StatelessWidget {
               variant: QeranButtonVariant.primary,
               onPressed: selectedPricing == null
                   ? null
-                  : () => _openPurchase(
-                        context,
-                        plan: activePlan,
-                        pricing: selectedPricing,
-                      ),
+                  : () => _openPurchase(context),
             ),
           ],
         ),
@@ -205,15 +201,12 @@ class _LoadedBody extends StatelessWidget {
     );
   }
 
-  void _openPurchase(
-    BuildContext context, {
-    required SubscriptionPlan plan,
-    required SubscriptionPricing pricing,
-  }) {
-    NavigationManager.navigateTo(
+  void _openPurchase(BuildContext context) {
+    // TODO(payments-1b): replace with RevenueCat purchasePackage(...) for the selected pricing.
+    AppSnackBar.show(
       context,
-      RouteNames.subscriptionPurchase,
-      arguments: SubscriptionPurchaseArgs(plan: plan, pricing: pricing),
+      message: LocaleKeys.subscription_coming_soon.t(context),
+      type: SnackBarType.notice,
     );
   }
 }

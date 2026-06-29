@@ -34,7 +34,6 @@ import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_
 import 'package:qeran/features/splash/presentation/screens/splash_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/screens/packages_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/screens/subscription_details_screen.dart';
-import 'package:qeran/features/subscriptions/presentation/screens/subscription_purchase_screen.dart';
 
 class AppRouter {
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -194,18 +193,6 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const SubscriptionDetailsScreen(),
-        );
-      case RouteNames.subscriptionPurchase:
-        final args = settings.arguments as SubscriptionPurchaseArgs?;
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => args == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
-              : SubscriptionPurchaseScreen(args: args),
         );
       case RouteNames.matchSuccess:
         final args = settings.arguments as MatchSuccessArgs?;

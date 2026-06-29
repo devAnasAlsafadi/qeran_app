@@ -5,6 +5,7 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
@@ -78,10 +79,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: 35,
                             ),
                           ),
+                          QeranSpacing.vs8,
                           Text(
                             LocaleKeys.auth_login_subtitle.t(context),
-                            style: QeranTypography.displaySm.copyWith(
-                              fontSize: 35,
+                            style: QeranTypography.title.copyWith(
+                              color: QeranColors.inkMuted,
                             ),
                           ),
                           QeranSpacing.vs24,

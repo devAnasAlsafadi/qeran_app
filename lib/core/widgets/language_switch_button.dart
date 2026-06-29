@@ -18,49 +18,87 @@ class LanguageSwitchButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isLight = variant == LanguageSwitchVariant.light;
-    final iconColor = isLight ? QeranColors.paper : QeranColors.wine;
-    final borderColor =
-        isLight ? QeranColors.paper.withValues(alpha: 0.5) : QeranColors.wine20;
-    final bgColor =
-        isLight ? QeranColors.paper.withValues(alpha: 0.1) : QeranColors.wine06;
+
+    return PopupMenuButton<Locale>(
+      initialValue: context.locale,
+      tooltip: 'Select Language',
+      offset: const Offset(0, 45),
+      shape: const RoundedRectangleBorder(
+        borderRadius: QeranRadii.controlR,
+      ),
+      onSelected: (Locale newLocale) {
+        context.setLocale(newLocale);
+      },
+      child: isLight ? _buildLightChild() : _buildDarkChild(context),
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
+        PopupMenuItem<Locale>(
+          value: const Locale('en'),
+          child: Text(
+            'English',
+            style: QeranTypography.label.copyWith(color: QeranColors.wine),
+          ),
+        ),
+        PopupMenuItem<Locale>(
+          value: const Locale('ar'),
+          child: Text(
+            'العربية',
+            style: QeranTypography.label.copyWith(color: QeranColors.wine),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Onboarding variant: icon-only pill over imagery (unchanged).
+  Widget _buildLightChild() {
+    return Container(
+      decoration: BoxDecoration(
+        color: QeranColors.paper.withValues(alpha: 0.1),
+        borderRadius: QeranRadii.pill,
+        border: Border.all(color: QeranColors.paper.withValues(alpha: 0.5)),
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: QeranSpacing.s12,
+        vertical: QeranSpacing.s8,
+      ),
+      child: const Icon(
+        Icons.language_rounded,
+        size: 24,
+        color: QeranColors.paper,
+      ),
+    );
+  }
+
+  // Login variant: labeled pill — current language + chevron signals the
+  // dropdown. Resolves the label from the active locale (RTL-safe via Row).
+  Widget _buildDarkChild(BuildContext context) {
+    final bool isArabic = context.locale.languageCode == 'ar';
+    final String label = isArabic ? 'العربية' : 'English';
 
     return Container(
       decoration: BoxDecoration(
-        color: bgColor,
+        color: QeranColors.paper,
         borderRadius: QeranRadii.pill,
-        border: Border.all(color: borderColor),
+        border: Border.all(color: QeranColors.wine12),
       ),
-      child: PopupMenuButton<Locale>(
-        initialValue: context.locale,
-        tooltip: 'Select Language',
-        offset: const Offset(0, 45),
-        shape: const RoundedRectangleBorder(
-          borderRadius: QeranRadii.controlR,
-        ),
-        onSelected: (Locale newLocale) {
-          context.setLocale(newLocale);
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: QeranSpacing.s12,
-            vertical: QeranSpacing.s8,
+      padding: const EdgeInsets.symmetric(
+        horizontal: QeranSpacing.s12,
+        vertical: QeranSpacing.s8,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.language_rounded, size: 16, color: QeranColors.wine),
+          QeranSpacing.hs8,
+          Text(
+            label,
+            style: QeranTypography.label.copyWith(color: QeranColors.wine),
           ),
-          child: Icon(Icons.language_rounded, size: 24, color: iconColor),
-        ),
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
-          PopupMenuItem<Locale>(
-            value: const Locale('en'),
-            child: Text(
-              'English',
-              style: QeranTypography.label.copyWith(color: QeranColors.wine),
-            ),
-          ),
-          PopupMenuItem<Locale>(
-            value: const Locale('ar'),
-            child: Text(
-              'العربية',
-              style: QeranTypography.label.copyWith(color: QeranColors.wine),
-            ),
+          QeranSpacing.hs4,
+          const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 16,
+            color: QeranColors.wine,
           ),
         ],
       ),

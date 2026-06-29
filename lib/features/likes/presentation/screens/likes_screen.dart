@@ -13,15 +13,11 @@ import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import '../../domain/entities/likes_tab.dart';
 import '../blocs/likes_cubit.dart';
 import '../blocs/likes_state.dart';
 import '../widgets/likes_segmented_tabs.dart';
-import 'likes_received_section.dart';
-import 'likes_sent_section.dart';
+import '../widgets/likes_swipeable_tab_body.dart';
 import 'match_success_screen.dart';
-import 'matches_section.dart';
-import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 
 /// Likes / Interests screen — entry point from the bottom nav (index 1).
 ///
@@ -62,9 +58,12 @@ class _LikesView extends StatelessWidget {
                 _Header(),
                 LikesSegmentedTabs(
                   active: state.activeTab,
+                  // Tap path: just write cubit state. `_SwipeableTabBody`
+                  // reconciles the PageController in `didUpdateWidget`, so
+                  // tap and swipe share one source of truth (`activeTab`).
                   onChanged: context.read<LikesCubit>().switchTab,
                 ),
-                Expanded(child: _TabBody(state: state)),
+                Expanded(child: LikesSwipeableTabBody(state: state)),
               ],
             );
           },
@@ -243,54 +242,3 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _TabBody extends StatelessWidget {
-  final LikesState state;
-  const _TabBody({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    switch (state.activeTab) {
-      case LikesTab.sent:
-        return LikesSentSection(state: state);
-      case LikesTab.received:
-        return LikesReceivedSection(state: state);
-      case LikesTab.matches:
-        return MatchesSection(
-          state: state,
-          onContactMatchmaker: _onContactMatchmaker,
-        );
-    }
-  }
-
-  void _onContactMatchmaker(BuildContext context, String? conversationId) {
-    // The user has exactly one matchmaker conversation, resolved by the
-    // chat screen via `/api/chat/my-matchmaker`. `conversationId` is null
-    // until a formalRequest exists (Stage 0), so we no longer gate on it
-    // — the inquiry / formal-step button opens the matchmaker chat at
-    // every stage. Preferred path: switch the bottom nav to the Messages
-    // tab (preserves navigation state — no extra push).
-    final shell = HomeShellScope.maybeOf(context);
-    if (shell != null) {
-      shell.openMessagesTab();
-      return;
-    }
-    // Non-shell scope (deep link / widget test): push the real chat entry,
-    // which self-resolves the single matchmaker conversation via
-    // `/api/chat/my-matchmaker` (so the id arg isn't needed here).
-    if (conversationId != null && conversationId.isNotEmpty) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) =>
-              ChatEntryScreen(onBack: () => Navigator.of(ctx).pop()),
-        ),
-      );
-      return;
-    }
-    AppSnackBar.show(
-      context,
-      message:
-          LocaleKeys.likes_matches_stage_matchmaker_will_contact.t(context),
-      type: SnackBarType.info,
-    );
-  }
-}

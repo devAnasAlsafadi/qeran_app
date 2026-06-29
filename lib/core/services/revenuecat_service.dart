@@ -57,4 +57,45 @@ class RevenueCatService {
           error: e, stack: s, tag: 'RC');
     }
   }
+
+  /// Fetches the configured offerings (products grouped into packages).
+  /// Defensive: returns null + logs on failure so a store hiccup degrades
+  /// to a clear "store unavailable" message rather than a crash.
+  Future<Offerings?> getOfferings() async {
+    if (!_configured) return null;
+    try {
+      return await Purchases.getOfferings();
+    } catch (e, s) {
+      AppLogger.error('RevenueCat getOfferings failed',
+          error: e, stack: s, tag: 'RC');
+      return null;
+    }
+  }
+
+  /// Purchases [package] via the store (the RevenueCat Test Store in dev).
+  /// Intentionally NOT wrapped in try/catch — the [PlatformException] must
+  /// propagate so the caller can classify cancel / network / already-owned
+  /// via `PurchasesErrorHelper`. Returns the post-purchase [CustomerInfo],
+  /// whose `entitlements` reflect the newly-granted access.
+  Future<CustomerInfo> purchasePackage(Package package) async {
+    final result = await Purchases.purchase(PurchaseParams.package(package));
+    return result.customerInfo;
+  }
+
+  /// True when [info] carries the premium entitlement as active.
+  bool hasPremium(CustomerInfo info) => info.entitlements.active
+      .containsKey(RevenueCatConfig.premiumEntitlementId);
+
+  /// Restores prior purchases — recovers the entitlement after a reinstall
+  /// or on a new device, and reconciles any client/RC desync. Defensive.
+  Future<CustomerInfo?> restorePurchases() async {
+    if (!_configured) return null;
+    try {
+      return await Purchases.restorePurchases();
+    } catch (e, s) {
+      AppLogger.error('RevenueCat restore failed',
+          error: e, stack: s, tag: 'RC');
+      return null;
+    }
+  }
 }

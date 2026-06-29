@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/app_logger.dart';
 
 import '../../../domain/entities/subscription_plan.dart';
 import '../../../domain/entities/subscription_pricing.dart';
@@ -28,6 +29,7 @@ class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> {
         // sorts but we re-sort defensively).
         final active = plans.where((p) => p.isActive).toList()
           ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+        _logPlanIdentifiersOnce(active);
         final selection = <int, int>{};
         for (final plan in active) {
           final defaultPricing = _defaultPricingFor(plan);
@@ -68,6 +70,26 @@ class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> {
       if (p.id == pricingId) return p;
     }
     return null;
+  }
+
+  // TODO(payments-mapping): one-shot debug log — prints the real backend
+  // (planId, nameEn, nameAr, pricingId, durationDays, price) so the RC
+  // product map can be keyed off verified values rather than assumptions.
+  // Remove once the backend exposes `storeProductId` on each pricing.
+  static bool _loggedIdsOnce = false;
+  static void _logPlanIdentifiersOnce(List<SubscriptionPlan> plans) {
+    if (_loggedIdsOnce) return;
+    _loggedIdsOnce = true;
+    for (final p in plans) {
+      for (final pr in p.pricings) {
+        AppLogger.debug(
+          '[PLANS_DEBUG] planId=${p.id} nameEn=${p.nameEn} '
+          'nameAr=${p.nameAr} pricingId=${pr.id} '
+          'durationDays=${pr.durationDays} price=${pr.price}',
+          tag: 'PAYMENTS',
+        );
+      }
+    }
   }
 
   static SubscriptionPricing? _defaultPricingFor(SubscriptionPlan plan) {

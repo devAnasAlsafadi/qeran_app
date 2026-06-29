@@ -28,6 +28,12 @@ class RevenueCatConfig {
     defaultValue: _testKey,
   );
 
+  /// The RevenueCat entitlement that unlocks premium features. Created in
+  /// the RC dashboard (Product catalog → Entitlements) and attached to all
+  /// paid products. The app gates on "has this entitlement", not on which
+  /// tier was bought.
+  static const String premiumEntitlementId = 'premium';
+
   /// The key for the current platform. RevenueCat supports only iOS + Android;
   /// Android is the default for any other target.
   static String apiKeyForPlatform() =>

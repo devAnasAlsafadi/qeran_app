@@ -1,15 +1,44 @@
+﻿import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import '../enum/snakebar_tybe.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'widgets/qeran_snack_bar_widget.dart';
 
 class AppSnackBar {
+  /// Hold time before auto-dismiss (matches the in/out animation timing).
+  static const Duration _holdDuration = Duration(seconds: 3);
+
+  // Single-toast state (max 1 visible + dedup). Only one toast lives at a
+  // time regardless of which [OverlayState] hosts it (`show`/`showOnRoot` may
+  // resolve different overlays), so this is the single source of truth and
+  // every removal is guarded by `.mounted`.
+  static OverlayEntry? _currentEntry;
+  static Timer? _currentTimer;
+  static String? _currentSignature;
+
+  /// (Re)starts the auto-dismiss timer for [entry]; on fire it dismisses it.
+  static void _startTimer(OverlayEntry entry) {
+    _currentTimer?.cancel();
+    _currentTimer = Timer(_holdDuration, () => _dismissIfCurrent(entry));
+  }
+
+  /// Removes [entry] (guarded) and clears tracked state â€” but only if [entry]
+  /// is still the live one (a newer toast may have replaced it meanwhile).
+  static void _dismissIfCurrent(OverlayEntry entry) {
+    if (entry.mounted) entry.remove();
+    if (identical(_currentEntry, entry)) {
+      _currentTimer?.cancel();
+      _currentTimer = null;
+      _currentEntry = null;
+      _currentSignature = null;
+    }
+  }
+
   /// Show a snackbar. [overlay] defaults to `Overlay.of(context)`; pass it
   /// explicitly to bind to a specific [OverlayState] (e.g. the root overlay
-  /// so the entry survives a route pop).
+  /// so the entry survives a route pop). Max 1 visible: identical back-to-back
+  /// calls reset the timer (dedup); a different one replaces the live toast.
   static Future<void> show(
     BuildContext context, {
     required String message,
@@ -17,6 +46,18 @@ class AppSnackBar {
     String? title,
     OverlayState? overlay,
   }) async {
+    final signature = '$message|$type';
+
+    // Dedup: same content already on screen â†’ just restart its hold timer.
+    final current = _currentEntry;
+    if (_currentSignature == signature && current != null && current.mounted) {
+      _startTimer(current);
+      return;
+    }
+
+    // Replace: drop any live toast before inserting the new one.
+    if (current != null) _dismissIfCurrent(current);
+
     final overlayToUse = overlay ?? Overlay.of(context);
     late OverlayEntry overlayEntry;
 
@@ -27,26 +68,25 @@ class AppSnackBar {
         end: 20,
         child: Material(
           color: Colors.transparent,
-          child: _SnackBarWidget(
+          child: QeranSnackBarWidget(
             message: message,
             title: title,
             type: type,
-            onDismiss: () => overlayEntry.remove(),
+            onDismiss: () => _dismissIfCurrent(overlayEntry),
           ),
         ),
       ),
     );
 
     overlayToUse.insert(overlayEntry);
-
-    Future.delayed(const Duration(seconds: 3), () {
-      if (overlayEntry.mounted) overlayEntry.remove();
-    });
+    _currentEntry = overlayEntry;
+    _currentSignature = signature;
+    _startTimer(overlayEntry);
   }
 
   /// Shows a snackbar that survives a route pop (e.g. fired by a listener
   /// about to pop its own screen). Resolves the root navigator's
-  /// [OverlayState] via `NavigatorState.overlay` — `navigatorKey.currentContext`
+  /// [OverlayState] via `NavigatorState.overlay` â€” `navigatorKey.currentContext`
   /// sits ABOVE the Overlay, so `Overlay.of(...)` can't find one upward.
   static Future<void> showOnRoot({
     required String message,
@@ -65,135 +105,4 @@ class AppSnackBar {
       overlay: overlayState,
     );
   }
-}
-
-class _SnackBarWidget extends StatelessWidget {
-  final String? title;
-  final String message;
-  final SnackBarType type;
-  final VoidCallback onDismiss;
-
-  const _SnackBarWidget({
-    required this.message,
-    this.title,
-    required this.type,
-    required this.onDismiss,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Tone per identity (see [_spec]): wine for success/info, danger for
-    // error, soft cream for the calm notice channel — never Material red.
-    final spec = _spec(type);
-
-    return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: spec.surface,
-            borderRadius: QeranRadii.controlR,
-            border: spec.border,
-            boxShadow: [
-              BoxShadow(
-                color: spec.surface.withValues(alpha: 0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(spec.icon, color: spec.iconColor, size: 28)
-                  .animate(target: type == SnackBarType.success ? 1 : 0)
-                  .scale(duration: 400.ms, curve: Curves.easeOutBack),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (title != null)
-                      Text(
-                        title!,
-                        style: QeranTypography.subtitle.copyWith(
-                          color: spec.foreground,
-                        ),
-                      ),
-                    Text(
-                      message,
-                      style: QeranTypography.caption.copyWith(
-                        color: spec.foreground.withValues(alpha: 0.75),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.close_rounded,
-                  color: spec.foreground.withValues(alpha: 0.6),
-                  size: 18,
-                ),
-                onPressed: onDismiss,
-              ),
-            ],
-          ),
-        )
-        .animate()
-        .slideY(
-          begin: -1,
-          end: 0,
-          duration: 400.ms,
-          curve: Curves.easeOutBack,
-        ) // Slide down
-        .then(delay: 2500.ms) // Wait
-        .slideY(begin: 0, end: -1, duration: 400.ms, curve: Curves.easeInBack)
-        .shake(); // Slide up to exit
-  }
-
-  /// Surface + foreground + icon per tone. [notice] uses a soft cream surface
-  /// with wine ink (+ hairline edge); the rest sit on a dark surface.
-  _SnackSpec _spec(SnackBarType type) => switch (type) {
-        SnackBarType.error => const _SnackSpec(
-            surface: QeranColors.danger,
-            foreground: QeranColors.paper,
-            iconColor: QeranColors.paper,
-            icon: Icons.error_outline_rounded,
-          ),
-        SnackBarType.success => const _SnackSpec(
-            surface: QeranColors.wine,
-            foreground: QeranColors.paper,
-            iconColor: QeranColors.gold,
-            icon: Icons.check_circle_rounded,
-          ),
-        SnackBarType.info => const _SnackSpec(
-            surface: QeranColors.wine,
-            foreground: QeranColors.paper,
-            iconColor: QeranColors.paper,
-            icon: Icons.info_outline_rounded,
-          ),
-        SnackBarType.notice => _SnackSpec(
-            surface: QeranColors.creamSurface,
-            foreground: QeranColors.wine,
-            iconColor: QeranColors.wine,
-            icon: Icons.info_outline_rounded,
-            border: Border.all(color: QeranColors.hairline),
-          ),
-      };
-}
-
-/// Resolved visual tone for a snackbar.
-class _SnackSpec {
-  const _SnackSpec({
-    required this.surface,
-    required this.foreground,
-    required this.iconColor,
-    required this.icon,
-    this.border,
-  });
-
-  final Color surface;
-  final Color foreground;
-  final Color iconColor;
-  final IconData icon;
-  final BoxBorder? border;
 }

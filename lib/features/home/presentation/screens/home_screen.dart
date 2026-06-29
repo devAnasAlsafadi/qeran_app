@@ -118,7 +118,22 @@ class _HomeScreenState extends State<HomeScreen> {
       openProfileTab: _openProfileTab,
       child: Scaffold(
         extendBody: true,
-        body: _bodyFor(_currentTab),
+        // IndexedStack keeps each tab's state alive across switches —
+        // mirrors the matchmaker shell. This kills the refetch spinner on
+        // every tab change AND keeps the Discovery deck (and its animation
+        // controllers) mounted, so a rapid like/skip mash that overlaps a
+        // tab switch can't orphan an in-flight animation. Trade-off: all
+        // four tabs build once on shell mount. Order = tab-index order
+        // (0 discovery · 1 likes · 2 messages · 3 profile).
+        body: IndexedStack(
+          index: _currentTab,
+          children: const [
+            DiscoveryView(showTopBar: false),
+            LikesScreen(),
+            ChatEntryScreen(),
+            ProfileScreen(),
+          ],
+        ),
         bottomNavigationBar: QeranBottomNav(
           items: items,
           currentIndex: _currentTab,
@@ -126,12 +141,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  Widget _bodyFor(int tab) {
-    if (tab == _profileTabIndex) return const ProfileScreen();
-    if (tab == _likesTabIndex) return const LikesScreen();
-    if (tab == _messagesTabIndex) return const ChatEntryScreen();
-    return const DiscoveryView(showTopBar: false);
   }
 }

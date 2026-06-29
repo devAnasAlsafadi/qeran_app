@@ -49,10 +49,27 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
 
   /// Blocks a second [like] from racing the first while the API call
   /// is in flight. Released in `like`'s `finally` block. `pass` does
-  /// NOT take this guard — it advances optimistically and fires the
-  /// network call in the background, so each pass call naturally
-  /// targets a different profile.
+  /// NOT take this guard — it has its own [_passCooldown] throttle and
+  /// fires the network call in the background. The two guards are
+  /// independent: a like never blocks a pass and vice versa.
   bool _mutationInFlight = false;
+
+  /// Minimum spacing between two ACCEPTED passes. Taps arriving inside
+  /// this window are dropped (no-op), throttling the burst of parallel
+  /// `POST /skip/{id}` calls — and the queue advances — that rapid
+  /// like/skip tapping (~100 taps/s) otherwise produces.
+  static const Duration _passCooldown = Duration(milliseconds: 250);
+
+  /// Timestamp of the last ACCEPTED pass; `null` until the first one.
+  /// Compared against `DateTime.now()` at the top of [pass] to enforce
+  /// [_passCooldown] without a [Timer] (nothing to dispose).
+  DateTime? _lastPassAcceptedAt;
+
+  /// Target ids with a skip request currently in flight. Dedups the
+  /// fire-and-forget `_passProfile` calls so a single profile can never
+  /// have two concurrent `POST /skip/{id}` requests. Ids are added
+  /// before the call and removed in its `finally`.
+  final Set<String> _skipInFlight = {};
 
   DiscoveryCubit({
     required FetchDiscoveryPageUseCase fetchPage,
@@ -250,6 +267,14 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
   /// even if the network call later fails; on the next Discovery
   /// fetch the server's persisted skip list takes over.
   ///
+  /// Two throttles keep a tap burst (~100 taps/s) from racing ahead of
+  /// the deck animation and flooding the backend:
+  ///   * a [_passCooldown] re-entry guard at the top — taps arriving
+  ///     within the window are dropped (pure no-op, current card
+  ///     stays); only accepted passes advance and fire a skip;
+  ///   * [_skipInFlight] dedup around the network call — a profile can
+  ///     never have two concurrent `POST /skip/{id}` requests.
+  ///
   /// **Known backend issue**: `POST /api/discovery/skip/{id}` has been
   /// observed returning HTTP 500 with an empty body. The log line
   /// below is the single place a backend report can be lifted from —
@@ -257,11 +282,19 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
   /// response body via `_handleRawResponse`, so the two together give
   /// enough context (endpoint, target id, status, body) for a ticket.
   Future<void> pass() async {
+    final now = DateTime.now();
+    if (_lastPassAcceptedAt != null &&
+        now.difference(_lastPassAcceptedAt!) < _passCooldown) {
+      return;
+    }
+    _lastPassAcceptedAt = now;
     final current = state;
     if (current is! DiscoveryLoaded) return;
     final profile = current.current;
     if (profile == null) return;
     _advance(current);
+    if (_skipInFlight.contains(profile.id)) return;
+    _skipInFlight.add(profile.id);
     unawaited(_passProfile(profile.id).then((result) {
       result.fold(
         (failure) => AppLogger.warning(
@@ -274,7 +307,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> {
         ),
         (_) => null,
       );
-    }));
+    }).whenComplete(() => _skipInFlight.remove(profile.id)));
   }
 
   /// Pure visual rewind (per `DISCOVERY_PLAN.md` Q1 answer): decrements

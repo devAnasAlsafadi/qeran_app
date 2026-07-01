@@ -5,13 +5,17 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'core/connectivity/connectivity_cubit.dart';
 import 'core/constants/app_constants.dart';
 import 'core/design_system/theme/qeran_theme.dart';
+import 'core/design_system/widgets/qeran_connectivity_banner.dart';
 import 'core/di/injection_container.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_name.dart';
+import 'core/services/connectivity_service.dart';
 import 'core/services/language_service.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'features/devices/application/device_bootstrap_service.dart';
 import 'features/splash/presentation/blocs/splash_cubit.dart';
 import 'features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
@@ -40,6 +44,9 @@ class QeranApp extends StatelessWidget {
         BlocProvider<CurrentSubscriptionCubit>.value(
           value: sl<CurrentSubscriptionCubit>(),
         ),
+        BlocProvider<ConnectivityCubit>(
+          create: (_) => ConnectivityCubit(service: sl<ConnectivityService>()),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: sl<GlobalKey<NavigatorState>>(),
@@ -55,16 +62,52 @@ class QeranApp extends StatelessWidget {
         themeMode: ThemeMode.light,
         initialRoute: RouteNames.splashScreen,
         onGenerateRoute: AppRouter().onGenerateRoute,
-        builder: (context, child) => ResponsiveBreakpoints.builder(
-          child: child!,
-          breakpoints: [
-            const Breakpoint(start: 0, end: 450, name: MOBILE),
-            const Breakpoint(start: 451, end: 800, name: TABLET),
-            const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-            const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
-          ],
-        ),
+        builder: (context, child) {
+          final responsive = ResponsiveBreakpoints.builder(
+            child: child!,
+            breakpoints: [
+              const Breakpoint(start: 0, end: 450, name: MOBILE),
+              const Breakpoint(start: 451, end: 800, name: TABLET),
+              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+              const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+            ],
+          );
+          return _ConnectivityBannerHost(child: responsive);
+        },
       ),
+    );
+  }
+}
+
+/// Overlays [QeranConnectivityBanner] above every route. Post-login gate (S9):
+/// the banner shows only when the session is authenticated AND offline, so
+/// splash and the pre-login auth flow never surface it.
+class _ConnectivityBannerHost extends StatelessWidget {
+  const _ConnectivityBannerHost({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(child: child),
+        PositionedDirectional(
+          top: 0,
+          start: 0,
+          end: 0,
+          child: BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
+            builder: (context, status) =>
+                BlocBuilder<UserSessionCubit, UserSessionState>(
+              builder: (context, session) {
+                final show = status == ConnectivityStatus.offline &&
+                    session is UserSessionAuthenticated;
+                return QeranConnectivityBanner(visible: show);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

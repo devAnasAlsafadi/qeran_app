@@ -126,9 +126,7 @@ flutter:
 # to sit inside the 768px safe circle without clipping.
 #
 # Assets in assets/images/ (splash_logo / splash_symbol) are generated from
-# branding/src; the full logo is composited from the symbol SVG + the wordmark
-# because resvg doesn't render the rings inside qeran_full.svg.
-# Regenerate the OS resources after any change:
+# branding/src. Regenerate the OS resources after any change:
 #   dart run flutter_native_splash:create   (undo: :remove)
 flutter_native_splash:
   color: "#F8F8F8"

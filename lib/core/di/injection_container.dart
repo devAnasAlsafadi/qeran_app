@@ -21,6 +21,8 @@ import '../../features/subscriptions/di/subscriptions_injection.dart';
 import '../../features/support/di/support_injection.dart';
 import '../api/api_consumer.dart';
 import '../api/http_consumer.dart';
+import '../services/connectivity_service.dart';
+import '../services/connectivity_service_impl.dart';
 import '../datasources/shared_pref_service.dart';
 import '../datasources/secure_storage_service.dart';
 import '../services/device_info_service.dart';
@@ -74,6 +76,11 @@ Future<void> init() async {
   sl.registerLazySingleton<StorageService>(() => sl<SecureStorageService>());
 
   //! Network
+  // Connectivity signal — registered before ApiConsumer, which will consume it
+  // for the offline pre-flight in a later sub-step.
+  sl.registerLazySingleton<ConnectivityService>(
+    () => ConnectivityServiceImpl(),
+  );
   sl.registerLazySingleton<ApiConsumer>(
     () => HttpConsumer(
       client: sl(),

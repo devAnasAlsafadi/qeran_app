@@ -44,6 +44,13 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
   int _currentTab = 0;
   MatchmakerUsersList _usersSubTab = MatchmakerUsersList.pending;
 
+  // Tabs mount lazily: an index enters this set the first time it is shown and
+  // stays (IndexedStack keeps it alive after), so each tab fetches on first
+  // visit and never re-fetches on later switches. Seeded with the Dashboard
+  // (index 0) shown at shell entry. The realtime port, dashboard cubit and
+  // bell badge are owned above the stack in initState/build — untouched here.
+  final Set<int> _visited = {0};
+
   // App-wide matchmaker realtime connection (M4c-1). Owned here so it
   // stays alive across all tabs, independent of any open chat screen.
   // Matchmaker-only — the user shell is untouched.
@@ -134,9 +141,15 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     if (index == _currentTab && usersSubTab == null) return;
     setState(() {
       _currentTab = index;
+      _visited.add(index);
       if (usersSubTab != null) _usersSubTab = usersSubTab;
     });
   }
+
+  /// A tab body once it has been visited, else a zero-size placeholder so the
+  /// tab's cubit (and its initial fetch) doesn't spin up until first visit.
+  Widget _lazyTab(int index, Widget child) =>
+      _visited.contains(index) ? child : const SizedBox.shrink();
 
   void _changeUsersSubTab(MatchmakerUsersList sub) {
     if (sub == _usersSubTab) return;
@@ -154,14 +167,17 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
           body: IndexedStack(
             index: _currentTab,
             children: [
-              const MatchmakerDashboardTab(),
-              MatchmakerUsersTab(
-                subTab: _usersSubTab,
-                onSubTabChanged: _changeUsersSubTab,
+              _lazyTab(0, const MatchmakerDashboardTab()),
+              _lazyTab(
+                1,
+                MatchmakerUsersTab(
+                  subTab: _usersSubTab,
+                  onSubTabChanged: _changeUsersSubTab,
+                ),
               ),
-              const MatchmakerCasesTab(),
-              const MatchmakerConversationsTab(),
-              const MatchmakerExploreTab(),
+              _lazyTab(2, const MatchmakerCasesTab()),
+              _lazyTab(3, const MatchmakerConversationsTab()),
+              _lazyTab(4, const MatchmakerExploreTab()),
             ],
           ),
           bottomNavigationBar: MatchmakerBottomNav(

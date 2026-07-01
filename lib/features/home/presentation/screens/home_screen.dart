@@ -32,6 +32,12 @@ class _HomeScreenState extends State<HomeScreen> {
   static const int _profileTabIndex = 3;
   int _currentTab = _discoveryTabIndex;
 
+  // Tabs mount lazily: an index enters this set the first time it is shown and
+  // stays (IndexedStack keeps it alive after), so each tab fetches on first
+  // visit and never re-fetches on later switches. Seeded with the tab shown at
+  // shell entry so only that one loads on cold start.
+  final Set<int> _visited = {_discoveryTabIndex};
+
   // FCM deep-linking. Confined to the shell — mirrors the matchmaker shell
   // (no main.dart bootstrap changes). Role-guarded so a matchmaker-targeted
   // push never acts on the user tree. The user app has no SignalR, so the
@@ -81,8 +87,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _selectTab(int index) {
     if (index == _currentTab) return;
-    setState(() => _currentTab = index);
+    setState(() {
+      _currentTab = index;
+      _visited.add(index);
+    });
   }
+
+  /// A tab body once it has been visited, else a zero-size placeholder so the
+  /// tab's cubit (and its initial fetch) doesn't spin up until first visit.
+  Widget _lazyTab(int index, Widget child) =>
+      _visited.contains(index) ? child : const SizedBox.shrink();
 
   void _openLikesTab() => _selectTab(_likesTabIndex);
   void _openMessagesTab() => _selectTab(_messagesTabIndex);
@@ -127,11 +141,11 @@ class _HomeScreenState extends State<HomeScreen> {
         // (0 discovery · 1 likes · 2 messages · 3 profile).
         body: IndexedStack(
           index: _currentTab,
-          children: const [
-            DiscoveryView(showTopBar: false),
-            LikesScreen(),
-            ChatEntryScreen(),
-            ProfileScreen(),
+          children: [
+            _lazyTab(_discoveryTabIndex, const DiscoveryView(showTopBar: false)),
+            _lazyTab(_likesTabIndex, const LikesScreen()),
+            _lazyTab(_messagesTabIndex, const ChatEntryScreen()),
+            _lazyTab(_profileTabIndex, const ProfileScreen()),
           ],
         ),
         bottomNavigationBar: QeranBottomNav(

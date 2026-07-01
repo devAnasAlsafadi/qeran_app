@@ -13,7 +13,15 @@ class MatchmakerExploreRepositoryImpl
     implements MatchmakerExploreRepository {
   final MatchmakerExploreRemoteDataSource _dataSource;
 
-  const MatchmakerExploreRepositoryImpl(this._dataSource);
+  // Filters are read-only reference data, effectively static within a session,
+  // so the first successful fetch is cached in memory for the app's lifetime.
+  // `_inflightFilters` coalesces concurrent callers onto a single request;
+  // `_cachedFilters` then serves later calls without touching the network.
+  // (No mutable state can live behind a const constructor — hence non-const.)
+  List<DiscoveryFilterQuestion>? _cachedFilters;
+  Future<Either<Failure, List<DiscoveryFilterQuestion>>>? _inflightFilters;
+
+  MatchmakerExploreRepositoryImpl(this._dataSource);
 
   @override
   Future<Either<Failure, MatchmakerExplorePage>> getExplore({
@@ -41,9 +49,30 @@ class MatchmakerExploreRepositoryImpl
 
   @override
   Future<Either<Failure, List<DiscoveryFilterQuestion>>> getFilters() {
-    return executeApiCall(() async {
+    final cached = _cachedFilters;
+    if (cached != null) return Future.value(Right(cached));
+
+    final existing = _inflightFilters;
+    if (existing != null) return existing;
+
+    final task = executeApiCall(() async {
       final models = await _dataSource.getFilters();
       return models.map((m) => m.toEntity()).toList(growable: false);
+    }).then((result) {
+      // Cache only on success — a failure must not poison the cache; the next
+      // call retries.
+      result.fold((_) {}, (filters) {
+        _cachedFilters = filters;
+      });
+      return result;
     });
+
+    _inflightFilters = task;
+    task.whenComplete(() => _inflightFilters = null);
+    return task;
   }
+
+  /// Drops the cached filters so the next [getFilters] refetches. Defensive
+  /// hook for a future filters-mutation event; not called anywhere yet.
+  void invalidateFiltersCache() => _cachedFilters = null;
 }

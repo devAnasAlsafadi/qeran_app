@@ -115,21 +115,26 @@ flutter:
           weight: 700
 
 # Native (OS) splash — the warm-up surface the OS draws before the Flutter
-# engine boots. Shows the quiet gold symbol on the soft-white canvas so the
-# native -> Flutter handoff has no hard cut. Regenerate after any change:
-#   dart run flutter_native_splash:create   (undo: :remove)
+# engine boots. Background is the #F8F8F8 canvas everywhere.
 #
-# ⚠️ LOTTIE FRAME-0 CONTRACT: the Flutter splash will later become a Lottie
-# animation. Its FIRST FRAME must match this still EXACTLY — same symbol,
-# same centre, same scale, same #F8F8F8 canvas — so the native splash reads
-# as the animation's starting state, not a separate screen. Do not change
-# the symbol / scale / colour here without updating the Lottie frame 0 to
-# match (and vice-versa).
+# Android 11- and iOS: the FULL Qeran logo (symbol + قِران QERAN), centred —
+# matches what the Flutter/Dart splash displays (image = splash_logo.png).
+#
+# Android 12+: the OS constrains the splash to a circular icon window that
+# crops wordmark text, so there we show the COMPLETE SYMBOL only — no bottom
+# branding. splash_symbol.png is padded (700px monogram on a 1152 canvas)
+# to sit inside the 768px safe circle without clipping.
+#
+# Assets in assets/images/ (splash_logo / splash_symbol) are generated from
+# branding/src; the full logo is composited from the symbol SVG + the wordmark
+# because resvg doesn't render the rings inside qeran_full.svg.
+# Regenerate the OS resources after any change:
+#   dart run flutter_native_splash:create   (undo: :remove)
 flutter_native_splash:
   color: "#F8F8F8"
   color_dark: "#F8F8F8"
-  image: assets/images/splash_symbol.png
-  image_dark: assets/images/splash_symbol.png
+  image: assets/images/splash_logo.png
+  image_dark: assets/images/splash_logo.png
   android_12:
     color: "#F8F8F8"
     color_dark: "#F8F8F8"

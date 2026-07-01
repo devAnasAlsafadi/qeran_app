@@ -12,15 +12,44 @@ class SubscriptionsRepositoryImpl
     implements SubscriptionsRepository {
   final SubscriptionsRemoteDataSource _dataSource;
 
-  const SubscriptionsRepositoryImpl(this._dataSource);
+  // Plans are dashboard-defined and effectively static within a session, so
+  // the first successful fetch is cached in memory for the app's lifetime.
+  // `_inflightPlans` coalesces concurrent callers onto a single request;
+  // `_cachedPlans` then serves every later call without touching the network.
+  // (No mutable state can live behind a const constructor — hence non-const.)
+  List<SubscriptionPlan>? _cachedPlans;
+  Future<Either<Failure, List<SubscriptionPlan>>>? _inflightPlans;
+
+  SubscriptionsRepositoryImpl(this._dataSource);
 
   @override
   Future<Either<Failure, List<SubscriptionPlan>>> getPlans() {
-    return executeApiCall(() async {
+    final cached = _cachedPlans;
+    if (cached != null) return Future.value(Right(cached));
+
+    final existing = _inflightPlans;
+    if (existing != null) return existing;
+
+    final task = executeApiCall(() async {
       final models = await _dataSource.getPlans();
       return models.map((m) => m.toEntity()).toList();
+    }).then((result) {
+      // Cache only on success — a failure must not poison the cache; the next
+      // call retries.
+      result.fold((_) {}, (plans) {
+        _cachedPlans = plans;
+      });
+      return result;
     });
+
+    _inflightPlans = task;
+    task.whenComplete(() => _inflightPlans = null);
+    return task;
   }
+
+  /// Drops the cached plans so the next [getPlans] refetches. Defensive hook
+  /// for a future plans-mutation event; not called anywhere yet.
+  void invalidatePlansCache() => _cachedPlans = null;
 
   @override
   Future<Either<Failure, CurrentSubscription?>> getCurrent() {

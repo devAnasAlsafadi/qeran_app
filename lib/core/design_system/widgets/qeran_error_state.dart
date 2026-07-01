@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_spacing.dart';
@@ -23,8 +25,24 @@ class QeranErrorState extends StatelessWidget {
   final String? retryLabel;
   final VoidCallback? onRetry;
 
+  /// True when [title] or [message] is the offline signal — matched against
+  /// both the raw `errors_offline` key and its localized text, so it works
+  /// whether the caller passed the key or an already-translated string.
+  bool _isOffline(BuildContext context) {
+    final key = LocaleKeys.errors_offline;
+    final text = key.t(context);
+    bool isOfflineStr(String? s) => s != null && (s == key || s == text);
+    return isOfflineStr(title) || isOfflineStr(message);
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Offline-aware: any failure surfaced here as the offline message (by key
+    // or localized text, in either the title or message slot) shows the
+    // wifi-off glyph instead of the generic error mark. The offline copy
+    // itself flows automatically from `OfflineFailure`'s `errors_offline`.
+    final resolvedIcon =
+        _isOffline(context) ? Icons.wifi_off_rounded : icon;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 320),
@@ -33,7 +51,7 @@ class QeranErrorState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _ErrorDisc(icon: icon),
+              _ErrorDisc(icon: resolvedIcon),
               QeranSpacing.vs20,
               Text(
                 title,

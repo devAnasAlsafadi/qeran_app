@@ -7,7 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
@@ -321,8 +321,9 @@ class _ScrollableProfile extends StatelessWidget {
     }
     if (s is DiscoveryFailure) {
       return _ScrollableCenter(
-        child: _ErrorView(
-          message: s.message.t(context),
+        child: QeranErrorState(
+          title: s.message.t(context),
+          retryLabel: LocaleKeys.discovery_error_retry.t(context),
           onRetry: () => context.read<DiscoveryCubit>().loadInitial(),
         ),
       );
@@ -1016,37 +1017,3 @@ class _PeekCardLayer extends StatelessWidget {
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(
-          Icons.error_outline_rounded,
-          size: 56,
-          color: QeranColors.wine40,
-        ),
-        const SizedBox(height: QeranSpacing.s12),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: QeranTypography.body,
-        ),
-        const SizedBox(height: QeranSpacing.s16),
-        TextButton(
-          onPressed: onRetry,
-          child: Text(
-            LocaleKeys.discovery_error_retry.t(context),
-            style: QeranTypography.label.copyWith(color: QeranColors.wine),
-          ),
-        ),
-      ],
-    );
-  }
-}

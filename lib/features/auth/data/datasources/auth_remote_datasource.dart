@@ -305,6 +305,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on AuthException {
       rethrow;
     } catch (e) {
+      // Let an offline signal bubble to the repository as OfflineFailure
+      // instead of being masked as a generic Google-login failure.
+      if (e is OfflineException) rethrow;
       AppLogger.error('Unexpected Google sign-in error', error: e, tag: 'AUTH');
       throw AuthException(message: 'فشل تسجيل الدخول بـ Google');
     }

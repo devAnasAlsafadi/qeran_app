@@ -11,6 +11,9 @@ mixin BaseRepository {
     try {
       final result = await apiCall();
       return Right(result);
+    } on OfflineException {
+      AppLogger.warning('Offline request', tag: 'REPO');
+      return const Left(OfflineFailure());
     } on ServerException catch (e) {
       AppLogger.error('Server error', error: e, tag: 'REPO');
       return Left(ServerFailure(message: e.message));

@@ -86,6 +86,7 @@ Future<void> init() async {
       client: sl(),
       storage: sl(),
       languageService: sl(),
+      connectivity: sl(),
     ),
   );
 

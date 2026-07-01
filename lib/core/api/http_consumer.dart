@@ -7,6 +7,7 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../app_logger.dart';
 import '../errors/exceptions.dart';
+import '../services/connectivity_service.dart';
 import '../services/language_service.dart';
 import '../services/storage_service.dart';
 import 'api_consumer.dart';
@@ -16,6 +17,7 @@ class HttpConsumer extends ApiConsumer {
   final http.Client client;
   final StorageService storage;
   final LanguageService languageService;
+  final ConnectivityService connectivity;
 
   static const Duration _timeout = Duration(seconds: 30);
   static const Duration _multipartTimeout = Duration(seconds: 60);
@@ -24,7 +26,35 @@ class HttpConsumer extends ApiConsumer {
     required this.client,
     required this.storage,
     required this.languageService,
+    required this.connectivity,
   });
+
+  /// Offline pre-flight — throws [OfflineException] BEFORE a request fires
+  /// when the device reports no connectivity, so callers fast-fail instead of
+  /// waiting out the 30s timeout. Placed at the top of each verb's `try` so a
+  /// thrown [OfflineException] is rethrown by that verb's catch and bubbles to
+  /// the repository as `OfflineFailure`.
+  Future<void> _ensureOnline() async {
+    if (!await connectivity.isOnline) throw const OfflineException();
+  }
+
+  /// Reactive offline classifier — true for a dropped/unreachable network
+  /// surfacing as a `SocketException` or a connection-failure `ClientException`
+  /// (covers the "on Wi-Fi but no real uplink" case the pre-flight can't see).
+  static bool _isOfflineError(Object e) {
+    if (e is SocketException) return true;
+    if (e is http.ClientException) {
+      final m = e.message.toLowerCase();
+      return m.contains('failed host lookup') ||
+          m.contains('connection refused') ||
+          m.contains('connection closed') ||
+          m.contains('connection reset') ||
+          m.contains('connection failed') ||
+          m.contains('network is unreachable') ||
+          m.contains('software caused connection abort');
+    }
+    return false;
+  }
 
   Future<Map<String, String>> _getHeaders() async {
     final token = await storage.get<String>(StorageKeys.token);
@@ -50,11 +80,14 @@ class HttpConsumer extends ApiConsumer {
     ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('GET $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       final response = await client
           .get(uri, headers: await _getHeaders())
           .timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error('GET $uri failed', error: e, tag: 'HTTP');
       throw ServerException(message: _errorMessage(e));
@@ -72,11 +105,14 @@ class HttpConsumer extends ApiConsumer {
     ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('POST $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       final response = await client
           .post(uri, body: jsonEncode(body), headers: await _getHeaders())
           .timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error('POST $uri failed', error: e, tag: 'HTTP');
       throw ServerException(message: _errorMessage(e));
@@ -93,11 +129,14 @@ class HttpConsumer extends ApiConsumer {
     ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('GET (raw) $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       final response = await client
           .get(uri, headers: await _getHeaders())
           .timeout(_timeout);
       return _handleRawResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error('GET (raw) $uri failed', error: e, tag: 'HTTP');
       throw ServerException(message: _errorMessage(e));
@@ -115,11 +154,14 @@ class HttpConsumer extends ApiConsumer {
     ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('POST (raw) $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       final response = await client
           .post(uri, body: jsonEncode(body), headers: await _getHeaders())
           .timeout(_timeout);
       return _handleRawResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error('POST (raw) $uri failed', error: e, tag: 'HTTP');
       throw ServerException(message: _errorMessage(e));
@@ -137,11 +179,14 @@ class HttpConsumer extends ApiConsumer {
     ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('PUT $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       final response = await client
           .put(uri, body: jsonEncode(body), headers: await _getHeaders())
           .timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error('PUT $uri failed', error: e, tag: 'HTTP');
       throw ServerException(message: _errorMessage(e));
@@ -159,11 +204,14 @@ class HttpConsumer extends ApiConsumer {
     ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('PATCH $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       final response = await client
           .patch(uri, body: jsonEncode(body), headers: await _getHeaders())
           .timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error('PATCH $uri failed', error: e, tag: 'HTTP');
       throw ServerException(message: _errorMessage(e));
@@ -180,11 +228,14 @@ class HttpConsumer extends ApiConsumer {
     ).replace(queryParameters: _convertQueryParams(queryParameters));
     AppLogger.info('DELETE $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       final response = await client
           .delete(uri, headers: await _getHeaders())
           .timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error('DELETE $uri failed', error: e, tag: 'HTTP');
       throw ServerException(message: _errorMessage(e));
@@ -205,6 +256,7 @@ class HttpConsumer extends ApiConsumer {
     final uri = Uri.parse('${EndPoints.baseUrl}$path');
     AppLogger.info('POST (multipart) $uri', tag: 'HTTP');
     try {
+      await _ensureOnline();
       // _getHeaders adds Content-Type: application/json. Multipart sets
       // its own Content-Type with boundary, so strip ours before
       // assigning — leaving both in place yields a malformed request.
@@ -230,6 +282,8 @@ class HttpConsumer extends ApiConsumer {
       final response = await http.Response.fromStream(streamed);
       return _handleResponse(response);
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       if (e is ArgumentError) rethrow;
       AppLogger.error('POST (multipart) $uri failed', error: e, tag: 'HTTP');
@@ -298,6 +352,8 @@ class HttpConsumer extends ApiConsumer {
         );
       }
     } catch (e) {
+      if (e is OfflineException) rethrow;
+      if (_isOfflineError(e)) throw const OfflineException();
       if (e is ServerException) rethrow;
       AppLogger.error(
         '${response.statusCode} non-JSON body: ${response.body.length > 200 ? response.body.substring(0, 200) : response.body}',

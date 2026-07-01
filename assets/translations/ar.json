@@ -153,6 +153,7 @@
     "empty_title": "لا توجد ملفات شخصية حالياً",
     "empty_subtitle": "تحقق لاحقاً، نضيف ملفات جديدة باستمرار.",
     "error_retry": "حاول مرة أخرى",
+    "load_failed": "تعذّر تحميل الملفات",
     "prefetch_failed": "تعذّر تحميل المزيد من الملفات",
     "action_pass_label": "تخطي",
     "action_undo_label": "تراجع",

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -37,12 +39,19 @@ class QeranErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Offline-aware: any failure surfaced here as the offline message (by key
-    // or localized text, in either the title or message slot) shows the
-    // wifi-off glyph instead of the generic error mark. The offline copy
-    // itself flows automatically from `OfflineFailure`'s `errors_offline`.
-    final resolvedIcon =
-        _isOffline(context) ? Icons.wifi_off_rounded : icon;
+    // Offline-aware: a failure surfaced here as the offline signal reads as a
+    // calm, transient status (wine disc + gold accent + wifi-off glyph), NOT a
+    // red error — mirroring the wine banner's philosophy. Server errors keep
+    // the danger treatment. The offline copy itself flows automatically from
+    // `OfflineFailure`'s `errors_offline`.
+    final offline = _isOffline(context);
+    final resolvedIcon = offline ? Icons.wifi_off_rounded : icon;
+    // Suppress the redundant offline line when the top banner is already
+    // showing it (offline + on-screen) — the context-specific title + retry
+    // stay. The title is never hidden.
+    final bannerShowing =
+        context.watch<ConnectivityCubit>().state == ConnectivityStatus.offline;
+    final showMessage = message != null && !(offline && bannerShowing);
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 320),
@@ -51,14 +60,14 @@ class QeranErrorState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _ErrorDisc(icon: resolvedIcon),
+              _ErrorDisc(icon: resolvedIcon, offline: offline),
               QeranSpacing.vs20,
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: QeranTypography.headline,
               ),
-              if (message != null) ...[
+              if (showMessage) ...[
                 QeranSpacing.vs8,
                 Text(
                   message!,
@@ -85,21 +94,29 @@ class QeranErrorState extends StatelessWidget {
 }
 
 class _ErrorDisc extends StatelessWidget {
-  const _ErrorDisc({required this.icon});
+  const _ErrorDisc({required this.icon, required this.offline});
 
   final IconData icon;
 
+  /// When true, paints the calm wine tint + gold ring (transient offline
+  /// status). Otherwise the danger tint (a genuine error).
+  final bool offline;
+
   @override
   Widget build(BuildContext context) {
+    final tint = offline ? QeranColors.wine : QeranColors.danger;
     return Container(
       width: 96,
       height: 96,
       decoration: BoxDecoration(
-        color: QeranColors.danger.withValues(alpha: 0.10),
+        color: tint.withValues(alpha: 0.10),
         shape: BoxShape.circle,
+        border: offline
+            ? Border.all(color: QeranColors.gold, width: 1.2)
+            : null,
       ),
       child: Center(
-        child: Icon(icon, size: 36, color: QeranColors.danger),
+        child: Icon(icon, size: 36, color: tint),
       ),
     );
   }

@@ -322,7 +322,8 @@ class _ScrollableProfile extends StatelessWidget {
     if (s is DiscoveryFailure) {
       return _ScrollableCenter(
         child: QeranErrorState(
-          title: s.message.t(context),
+          title: LocaleKeys.discovery_load_failed.t(context),
+          message: s.message.t(context),
           retryLabel: LocaleKeys.discovery_error_retry.t(context),
           onRetry: () => context.read<DiscoveryCubit>().loadInitial(),
         ),

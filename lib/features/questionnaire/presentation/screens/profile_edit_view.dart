@@ -57,7 +57,8 @@ class _EditBody extends StatelessWidget {
           ProfileEditLoading() =>
             const Center(child: QeranLoader()),
           ProfileEditFailure(:final message) => QeranErrorState(
-              title: message.t(context),
+              title: LocaleKeys.errors_questions_load_failed.t(context),
+              message: message.t(context),
               retryLabel: LocaleKeys.profile_retry.t(context),
               onRetry: cubit.load,
             ),

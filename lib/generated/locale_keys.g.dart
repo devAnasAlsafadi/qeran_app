@@ -147,6 +147,7 @@ abstract class  LocaleKeys {
   static const discovery_empty_title = 'discovery.empty_title';
   static const discovery_empty_subtitle = 'discovery.empty_subtitle';
   static const discovery_error_retry = 'discovery.error_retry';
+  static const discovery_load_failed = 'discovery.load_failed';
   static const discovery_prefetch_failed = 'discovery.prefetch_failed';
   static const discovery_action_pass_label = 'discovery.action_pass_label';
   static const discovery_action_undo_label = 'discovery.action_undo_label';

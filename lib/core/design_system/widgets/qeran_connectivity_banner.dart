@@ -23,10 +23,15 @@ class QeranConnectivityBanner extends StatelessWidget {
       duration: QeranMotion.standard,
       switchInCurve: QeranCurves.standard,
       switchOutCurve: QeranCurves.standard,
-      transitionBuilder: (child, animation) => SizeTransition(
-        sizeFactor: animation,
-        axisAlignment: -1, // reveal/collapse from the top edge
-        child: FadeTransition(opacity: animation, child: child),
+      // Pure slide from the top edge — the bar translates down into place and
+      // back up on restore (no fade, so the motion reads as "slide", not
+      // "appear").
+      transitionBuilder: (child, animation) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, -1),
+          end: Offset.zero,
+        ).animate(animation),
+        child: child,
       ),
       child: visible ? const _BannerBar() : const SizedBox.shrink(),
     );
@@ -38,7 +43,12 @@ class _BannerBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
+    // Material (not a bare ColoredBox) so the label inherits a proper
+    // DefaultTextStyle — without it, an overlay Text outside any Scaffold
+    // picks up Flutter's fallback style (the stray underline + washed colour
+    // seen before). Colour + decoration are still set explicitly for a crisp,
+    // opaque soft-white label.
+    return Material(
       color: QeranColors.wine,
       child: SafeArea(
         bottom: false,
@@ -60,8 +70,10 @@ class _BannerBar extends StatelessWidget {
                 child: Text(
                   LocaleKeys.errors_offline.t(context),
                   textAlign: TextAlign.center,
-                  style:
-                      QeranTypography.label.copyWith(color: QeranColors.creamCanvas),
+                  style: QeranTypography.label.copyWith(
+                    color: QeranColors.creamCanvas,
+                    decoration: TextDecoration.none,
+                  ),
                 ),
               ),
             ],

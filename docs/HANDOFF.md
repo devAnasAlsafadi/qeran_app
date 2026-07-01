@@ -2,7 +2,7 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 28 يونيو 2026
+> آخر تحديث: 1 يوليو 2026
 
 ---
 
@@ -11,24 +11,62 @@
 
 **الدفع = IAP / RevenueCat** — محسوم؛ يحتاج منتجات المتجر + webhook طارق قبل P2+. P1 (boot + هوية) مربوط ومتحقَّق هذه الجلسة.
 
-**▶️ نقطة الدخول للجلسة الجاية:** العميل عنده تعديلات/تغييرات جديدة يناقشها بجلسة جديدة. أنظف نقطة إنهاء لمسار الأيقونات = **P1c** (انظر Deferred)، أو خذ توجيهاً جديداً من المستخدم. ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down). الدفع تم — الشجرة متزامنة مع `origin/main`.
+**▶️ نقطة الدخول للجلسة الجاية:** الأنظف = **Payments UI** (paywall / كود الخصم / عرض الباقات / حالة المشترك — يمكن البدء قبل الـ Mac/المتجر الحي، انظر «الخطوات الجاية»)، أو خذ توجيهاً جديداً من المستخدم. ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down). كل مسارات «منذ 28 يونيو» مدفوعة — الشجرة متزامنة مع `origin/main` (آخر commit `454de30`).
 
 ---
 
-## ✅ جلسة 28 يونيو — تقاعد الثيم القديم + تغييرات الجلسة (النية فقط)
-**العنوان: تقاعد نظام الثيم القديم مكتمل بالكامل 🏁** — ما عاد أحد يقدر يستورد الكلاسات القديمة لأنها انحذفت؛ الـ design system هو المصدر الوحيد.
+## 🆕 منذ 28 يونيو — 4 مسارات (النية + القرارات فقط)
+> تقاعد الثيم القديم (28 يونيو) مكتمل 🏁 وقراراته محفوظة بقسم «القرارات الثابتة» + «sweep الـ DS» + «هجرة auth». هذا القسم يغطّي ما **بعده**.
 
-- **تقاعد الثيم القديم — مكتمل (166→0):** كل مراجع `AppColors`/`AppTextStyles`/`AppDimens` انهاجرت لتوكنز Qeran عبر **10 دفعات + 11 commit**. **25 ملف هوجر**، **7 ملفات legacy انحذفت** (`app_color.dart`/`app_text_style.dart`/`app_dimens.dart` + `logout_confirmation_dialog`/`app_button`/`app_text_form_field` + placeholder محادثة الماتش)، و`exit_app_dialog` أُعيد كتابته داخلياً وأُبقي (يملك سلوك مشترك platform-branch — DRY). تطبيق الخطّابة لم يُلمس (كان أصلاً 100% على الـ DS). الخريطة المثبّتة: `primary→wine`، `primaryLight→gold`، `textPrimary→inkStrong`، `error→danger #A33949`، `success→gold` (لا أخضر)، `white→paper`، overlays السوداء→واين؛ والخط صار locale-resolved (Montserrat بالإنجليزية، Kufi بالعربية — إصلاح تثبيت الخط العربي القديم الخاطئ).
-- **إصلاح ثبات التوكن:** `flutter_secure_storage` v10.3.1 + تثبيت ciphers صريح → الـ JWT يصمد عبر إعادة التشغيل (كان يُمحى كل cold start → 401 → ارتداد للـ onboarding).
-- **RevenueCat P1 مربوط ومتحقَّق ✅:** boot مجهول + مزامنة الهوية لـ `user.id` الباك إند — شغّال (3 عملاء بالـ dashboard).
-- **Help & Support مربوط بالباك إند الحقيقي:** كان stub وهمي يزوّر النجاح → الآن `GET /support/categories` + `POST /support/tickets` (Clean Architecture، حالات حقيقية incl. حدّ الـ 5 تذاكر المفتوحة).
-- **الإشعارات موحّدة الجهتين** (مستخدم + خطّابة).
-- **Privacy/Terms ديناميكية من الباك إند** (`terms-and-conditions` + `privacy-policy`) على الجهتين.
-- **«تواصل معنا» الخطّابة تقاعدت** (الشاشة اليتيمة + route + keys انحذفت).
-- **placeholder محادثة الماتش** صار يوجّه للـ `ChatConversationScreen` الحقيقي (نفس قناة الخطّابة المتوسِّطة، لا تواصل مباشر user-to-user).
-- **أيقونة العلامة (gold-on-wine) + أيقونة إشعار أحادية اللون:** الأصول مولَّدة؛ **أيقونة التطبيق متحقَّقة على الجهاز**، أيقونة الإشعار لم تُختبر بعد بـ push حقيقي.
-- **canvas hex موثّق صح `#F8F8F8`** (قيمة الكود `QeranColors.creamCanvas`، لا `#FEFCFA` المنحرفة بالوثائق القديمة — صُحِّحت بكل الوثائق).
-- **تحسين أيقونات التطبيق — P1a + P1b معمولان:** (P1a) **23 أيقونة bare** (15 من القائمة + 8 لقطها الـ grep) صارت `_rounded` — `email`/`lock`/`person_outline`/`close`/`check`/`photo_library`/`camera_alt`/`language`… (إزالة كاسرات-العائلة من auth/snackbar/photo-picker)؛ بقي عمداً `public`/`apple` (لا variant rounded) و`circle` (نقطة هندسية). (P1b) **5 أشكال سهم-رجوع موحّدة** على `Icons.chevron_left_rounded` بكل مواضع screen-back (auth عبر `auth_back_button` + chat + ملف-الخطّابة + questionnaire app-bar + settings header + profile hub + upload-image)؛ RTL يـmirror تلقائياً. أسهم pager الـ onboarding (forward/back) **مُبقاة عمداً** (تماثل اتجاهي، pager لا screen-back). **الجاي P1c** (انظر Deferred). تدقيق الأيقونات الكامل (330 `Icons.*`، صفر Material colors، صفر QeranIcon wrapper) محفوظ بالشات.
+### أ. polish batch (نهاية يونيو، post-28)
+- `39df521` — **حفظ حالة التابات عبر `IndexedStack`** ⭐ — هذا **السبب** الذي جعل تحقيق الـ caching لاحقاً يجد أن حالة التابات **محفوظة أصلاً** (افتراض «يعيد الجلب كل تنقّل» كان **غلطاً** — انظر مسار د + Gotchas).
+- `eab959d` — throttle نقرات الـ pass السريعة + dedup طلبات skip بالـ discovery.
+- `fab771f` — طابور toast واحد مع dedup.
+- `80e2699` — تابات «الاهتمامات» قابلة للسحب (swipe).
+- `b9776f9` — pill لغة معنون + tagline أوضح بشاشة الدخول.
+
+### ب. Splash — Option B (30 يونيو، على main)
+- `5987bff` — Issue 8: native splash الأولي (الرمز فقط).
+- `c833555` — **Option B:** اللوغو الكامل على Android 11-/iOS، والرمز المبطّن فقط على Android 12+ (30 ملف: pubspec + أصلان + 27 مورد OS مولَّد).
+- `454de30` — تنظيف أصل `splash_wordmark.png` غير المستخدم.
+- **المنطق:** Android 12+ يقصّ الـ splash لنافذة أيقونة دائرية (تقصّ نص الـ wordmark) → رمز فقط هناك؛ الهوية الكاملة تعيش في **Flutter/Dart splash (غير ملموس)**. الخلفية `#F8F8F8` بكل مكان.
+
+### ج. Payments + إعداد المتاجر (30 يونيو)
+- **Google Play:** AAB مرفوع، **3 اشتراكات Active** (`qeran_basic_monthly` $34.99 · `qeran_vip_monthly` $49.99 · `qeran_vip_3month` $119.99)، حساب Merchant مُفعّل.
+- **Google Cloud service account:** مشروع `qeran-iap`، حساب `revenuecat-service-account@qeran-iap.iam.gserviceaccount.com` مربوط بالـ Play Console (**2/3 APIs خضراء**، subscriptions API بانتظار تحقّق 24–36 ساعة).
+- **Apple:** API Key + In-App Purchase Key منشأة (Issuer `53b16cc6-51bb-42ae-b5e1-36807d3f7f5e`، Key `5L749KGK7C`)، كل الاتفاقيات Active (Paid Apps + بنك + ضريبة).
+- **RevenueCat:** التطبيقان مربوطان (Android `app14550bb50c`، iOS `app659f7e615b`)، entitlement **`premium`** منشأ (المعرّف الحرفي — مثبّت بـ `revenuecat_config.dart:35`).
+- **قرار معمارية offer identifiers:** فريد لكل (product + discount%)، **نفس السلسلة عبر المتجرين** — الباك إند يفهرس على `(product_id + discount_percent)`.
+- **مواد العميل المُرسَلة:** `qeran_client_roadmap.html` + `qeran_tariq_backend_tasks.html` + `qeran_tariq_offer_ids_explained.html` — **طارق لازم يستلم الأخيرَين**.
+
+### د. Caching + offline UX (هذه الجلسة)
+> المرجع (التفصيل العميق، لا تُكرّره هنا): `docs/CACHING_INVESTIGATION.md` + `docs/CACHING_IMPLEMENTATION_PLAN.md`.
+
+**اكتشاف يستحق التثبيت:** `IndexedStack` كان **يحفظ حالة التابات أصلاً** (بفضل `39df521`) — فافتراض «يعيد الجلب كل تنقّل» كان غلطاً. المشاكل الحقيقية كانت: **لا كشف offline**، **mounting جشع** عند البدء البارد (5 GETs متوازية)، و**جلب متكرّر لبيانات ثابتة**.
+
+**11 commit (زمنياً):**
+- `d86fbe4` — `build(deps)`: إضافة `connectivity_plus`.
+- `f600907` — `feat(core)`: تجريد `ConnectivityService`.
+- `c605de4` — `feat(core)`: `OfflineException` fast-fail عبر طبقة الشبكة.
+- `3aa52cb` — `feat(core)`: بانر offline عبر shells ما بعد الدخول.
+- `58c548d` — `feat(core)`: حالة خطأ offline مخصّصة + توحيد خطأ Discovery.
+- `a914bde` — `polish(core)`: تمريرة بصرية offline (تباين البانر، أخطاء offline بلون الواين، إزالة تكرار الرسالة/العنوان).
+- `f820700` — `fix(matchmaker)`: coalesce لـ `/notifications/count` double-fire.
+- `6e5e164` — `perf(shell)`: lazy-mount لتابات `IndexedStack` (المستخدم + الخطّابة).
+- `282b64d` — `perf(subscriptions)`: cache لـ `/subscriptions/plans` طوال الجلسة + coalescing.
+- `4cdfe3e` — `perf(profile)`: cache لـ `/Questions/edit-form` + إبطال عند `submitAnswers`.
+- `a2332e6` — `perf(matchmaker)`: cache لـ `/matchmaker/explore/filters` طوال الجلسة + coalescing.
+
+**أثر البدء البارد:** من **5 GETs متوازية → 3** (Discovery + `subscriptions/current` + badge الإشعارات فقط). باقي endpoints التابات (`/likes/outgoing`، `/chat/my-matchmaker`) تُجلب **كسولاً عند أول زيارة**، مرّة لكل جلسة.
+
+**قرارات محسومة (هذه الجلسة):**
+- `OfflineException` **standalone** (ليست subtype لـ `ServerException`) — حرج للـ classifiers (وإلا تُصنَّف خطأ عادي).
+- كشف offline = فحص النظام + mapping فشل الطلب (`SocketException`) — **بلا ping نشط**.
+- cache **طوال الجلسة** (بلا time TTL) يُبطَل عند الطفرة (mutation) فقط.
+- النداءات المتزامنة **coalesced** عبر in-flight `Future` مشترك.
+- lazy tab mount مع **keep-alive بعد أول زيارة** (الحالة تصمد).
+- بانر offline **ما بعد الدخول فقط** (كل الـ shells)، **بلون الواين لا danger** — offline حالة محيطة لا خطأ.
+- **لا فحص connectivity على الـ splash** (الإقلاع محلي).
 
 ---
 
@@ -42,11 +80,19 @@
 ## 🔴 أعلام حرجة / حاجبات (نهاية الجلسة)
 - 🔴 **السيرفر DOWN:** `qeranadmin-001-site1.rtempurl.com` يرجّع «No route to host» (errno 113) على كل الطلبات — استضافة rtempurl المجانية سقطت (المشكلة المتكرّرة). طارق مُبلَّغ.
 - 🔴 **استضافة إنتاج مطلوبة قبل الإطلاق:** rtempurl المجاني غير موثوق (ينام، يفقد بيانات — صور اختبار قديمة ضاعت أصلاً). العميل لازم يرتّب استضافة مدفوعة قبل إطلاق المتجر.
-- ✅ **مدفوع، متزامن مع `origin/main`** نهاية الجلسة (دُفعت 29 commit، fast-forward نظيف لـ `7de69ff`، 0 ahead/0 behind). العلَم القديم «~95 commit غير مدفوع» لم يعد دقيقاً.
+- ✅ **متزامن مع `origin/main`** (كل عمل مسارات «منذ 28 يونيو» مدفوع؛ آخر commit `454de30`، 0 ahead/0 behind).
 
 ---
 
 ## 🗺️ الخطوات الجاية (بالأولوية)
+
+**▶️ التالي (بعد مسارات «منذ 28 يونيو»):**
+- **Payments UI** (paywall، كود الخصم، عرض الباقات، حالة المشترك) — يمكن البدء **قبل** الـ Mac/المتجر الحي.
+- **انتظار تحقّق اعتماد Google** (subscriptions API — 24–36 ساعة من مسار الدفع، 30 يونيو).
+- **عمل طارق للباك إند** حسب مواد العميل (`qeran_tariq_backend_tasks.html` + `qeran_tariq_offer_ids_explained.html`).
+- **لا عمل caching متبقٍّ** ضمن نطاق Piece 3 (المسارات الثلاثة cached: `/plans`، `/edit-form`، `/explore/filters`).
+
+**السياق الأقدم (بعضه صار معمولاً — للأرشيف):**
 1. ~~**هجرة auth/ الكاملة**~~ ✅ **مكتملة** (0→g كلها معمولة — انظر «🔧 هجرة auth — التقدّم»). يبقى فقط: `share_with_matchmaker_button._confirmDialog` (مؤجّل — انظر Deferred).
 2. ~~**الخطّابة — سلسلة M3 ⭐**~~ ✅ **مكتملة 🏁** (M3a→M3f-c — انظر «🧩 الخطّابة — M3»).
 3. ~~**الخطّابة — خطة الإغلاق (5 ميزات)**~~ ✅ **مكتملة 🏁** (الإعدادات → الزميلات → فلتر الحالات → الاستكشاف → الإشعارات — انظر «🧩 الخطّابة — الإغلاق»).
@@ -119,6 +165,11 @@
 - **رسائل الـ commit بتكذب:** commits قديمة تدّعي توحيد auth/onboarding — لسا legacy. تأكّد من الكود دايماً.
 - الدين التقني على جهة المستخدم؛ الخطّابة ~95% موحّدة أصلاً.
 - `MATCHMAKER_DIAGNOSTIC.md` القديم stale — أشياء قال "ناقصة" صارت معمولة. ثق بالكود.
+- **⭐ `IndexedStack` يحفظ الحالة عبر تبديل التابات *و* push/pop** — **لا تفترض** إعادة جلب لكل تنقّل (تصحيح افتراض شائع؛ التفصيل بـ `CACHING_INVESTIGATION.md`).
+- **نجاح `submitAnswers` *يجب* أن يُبطِل cache الـ edit-form** (مربوط الآن؛ لو أُعيد هيكلة الـ repo، **أبقِ الـ hook** — انظر `questionnaire_repository_impl.dart`).
+- **cache قابل للتغيير في repo بـ `const` constructor** يتطلّب **إسقاط `const`** — بلا تغيير DI (الـ repos تُبنى عبر factories لا const contexts).
+- **`.then` على `executeApiCall<T>`** يُسقِط الاستدلال لـ `dynamic` لو `T` generic (مثل `SuccessResponse`) — **ثبّت الـ type parameter صراحةً** (`executeApiCall<SuccessResponse>(...)`).
+- **بيئة التطوير لا التطبيق:** خلل Right Shift+Alt على بنى Windows الحديثة (KB5070311) يؤثّر على تبديل اللغة باتجاه واحد — ملاحظة بيئة، ليست bug تطبيق.
 - **⭐ نمط متكرّر — أشكال wire الخطّابة تخالف افتراض تطبيق المستخدم/discovery:** endpoints الخطّابة كثيراً ترجّع شكلاً مختلفاً عن نظيرها بتطبيق المستخدم، فالـ parser المنسوخ من discovery يفشل بصمت (TypeError → «خطأ غير متوقع») — **مش بالضرورة فشل سيرفر**. **مُصلَح هذه الجلسة:**
   - **`/chat`** — كان **مغلّفاً مزدوجاً** (`data.data` = الـ id)؛ unwrap على العميل (commit `4cc7f27`).
   - **`/explore/filters`** — `data` كان **object** `{gender, questions}` لا List مسطّحة (زي discovery)؛ الـ parser صار يقرأ `data['questions']` ويحوّل `label→question` (حقل النص يختلف عن discovery الذي يستخدم `question`) — commit `facb32a`. الـ gender facet موجود بالرد لكنه **مُتجاهَل عمداً** (Tier-C — سيغمنت الجنس يدوي حالياً — انظر Deferred).

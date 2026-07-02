@@ -380,12 +380,13 @@ class _SubscriptionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
       builder: (context, state) {
-        final (subtitle, showUpgrade) = _resolve(context, state);
+        final (_, showUpgrade) = _resolve(context, state);
         return _SettingsRow(
           icon: Icons.workspace_premium_rounded,
           iconAccent: _IconAccent.gold,
           title: LocaleKeys.subscriptions_status_my_subscription.t(context),
-          subtitle: subtitle,
+          subtitle: LocaleKeys.subscriptions_subscription_row_subtitle_with_restore
+              .t(context),
           trailing: showUpgrade
               ? QeranChip(
                   label: LocaleKeys.settings_upgrade.t(context),

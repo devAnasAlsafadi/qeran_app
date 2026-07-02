@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../widgets/restore_purchases_tile.dart';
 import '../widgets/subscription_status_block.dart';
 
 /// Dedicated host for the existing `SubscriptionStatusBlock`. Settings
@@ -30,7 +32,14 @@ class SubscriptionDetailsScreen extends StatelessWidget {
         child: SingleChildScrollView(
           physics: BouncingScrollPhysics(),
           padding: EdgeInsets.fromLTRB(16, 16, 16, 24),
-          child: SubscriptionStatusBlock(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SubscriptionStatusBlock(),
+              QeranSpacing.vs20,
+              RestorePurchasesTile(),
+            ],
+          ),
         ),
       ),
     );

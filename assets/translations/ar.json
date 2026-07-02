@@ -252,6 +252,10 @@
     "subtitle": "باقات مصممة لتجربة قِران مميزة",
     "unlimited": "غير محدود",
     "subscribe_cta": "اشترك الآن",
+    "subscribe_now": "اشترك الآن",
+    "subscribe_now_with_discount": "اشترك الآن — خصم {percent}%",
+    "purchase_failure": "فشل الشراء. أعد المحاولة.",
+    "already_subscribed_to_this_plan": "لديك اشتراك في هذه الباقة بالفعل",
     "upgrade_cta": "ترقية الاشتراك",
     "view_packages_cta": "اعرض الباقات",
     "feature_likes": "إعجاب",
@@ -295,7 +299,6 @@
     "status_not_subscribed_title": "اكتشف باقات قِران",
     "status_not_subscribed_body": "ميزات مميزة في انتظارك — اشترك للاستفادة الكاملة."
   },
-  "subscription_coming_soon": "الاشتراك قيد التفعيل — قريباً",
   "profile": {
     "my_title": "بروفايلي",
     "name_age_format": "{name}، {age}",

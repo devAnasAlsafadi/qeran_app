@@ -1,6 +1,6 @@
 # Paywall / Purchase Flow — Implementation Plan
 
-> Status: **PLAN — verified against Tariq's authoritative backend doc (2026-06-30). Awaiting approval. No code written.**
+> Status: **APPROVED (2026-07-02) with Q-A/B/C decisions folded in — implementation in progress, Commit 1 first.**
 > Feature: `lib/features/subscriptions/` + RevenueCat (`lib/core/services/revenuecat_service.dart`, SDK `purchases_flutter 10.3.0`).
 > Sources of truth: **Tariq's official backend doc (2026-06-30)** + last session's exploration report + verified RC SDK surface.
 > This revision resolved every `⚠️VERIFY` marker from commit `625f90a` against the authoritative doc — see §2.
@@ -24,7 +24,7 @@ Turn the fully-built paywall UI (`packages_screen.dart`, 579 lines) from a `comi
 - **Localization:** every new string (ar + en) + one error string per `PurchasesErrorHelper` category.
 
 ### Non-scope (explicit)
-- **iOS purchase & iOS discount are code-complete but UNTESTABLE this cycle** — App Store products are Missing Metadata and iOS offers aren't created yet (§7). We wire the iOS `PromotionalOffer` path but cannot run it. **Android is fully testable** (3 subs + 30 offers active — §7).
+- **iOS purchases are LOCKED, not just untestable (Q-B).** The iOS `PromotionalOffer` / purchase code stays in the repo for later, but every iOS purchase entry point is disabled at the UI + guarded in the cubit, so nothing iOS-purchase runs this cycle. App Store products are Missing Metadata and iOS offers aren't created yet (§7). **Android is fully live + testable** (3 subs + 30 offers active — §7).
 - No RC dashboard / store-console work (Track A — done, §7).
 - No webhook / backend work (Tariq's endpoints are ready per his doc).
 - No change to the plans/current caching layer (shipped) or the paywall *gate sheet* copy (`paywall_bottom_sheet.dart`).
@@ -33,9 +33,11 @@ Turn the fully-built paywall UI (`packages_screen.dart`, 579 lines) from a `comi
 - The 401→login interceptor is a **pre-existing infra gap** (tracked in HANDOFF); this plan relies on it but does not build it.
 
 ### Key architectural decisions (locked by your answers + the doc)
-- **Post-paid-purchase = `/current` refresh only.** The client never `POST /subscribe` for a paid purchase — the webhook grants the entitlement. `/subscribe` is **free-tier-only** and *rejects* paid tiers (confirmed §2.6).
+- **iOS purchases are FULLY LOCKED this cycle (Q-B).** Not just discounts — every purchase path is disabled on iOS until Mac + Apple offers + Missing-Metadata are resolved. On iOS: plans render read-only, the CTA is disabled with a "coming soon" message, and the discount field is **hidden entirely**. Restore stays enabled (non-purchase). Gated at the UI (primary) **and** defensively in the cubit/repo (no accidental iOS transaction). Android is the only live purchase platform.
+- **Post-purchase = trust RC entitlement locally + bounded `/current` reconcile + RC listener (Q-C).** RC `CustomerInfo.hasPremium` is the *instant* success signal (unlock immediately, no webhook wait); `/current` is reconciled with a **bounded background retry** (webhook lag 2–5 s) so plan/counter details + feature gates elsewhere converge without an indefinite spinner; an app-scoped RC `CustomerInfoUpdateListener` catches out-of-band entitlement changes. Full justification in Commit 4. The client never `POST /subscribe` for a paid purchase — the webhook grants it; `/subscribe` is **free-tier-only** and *rejects* paid tiers (§2.6).
+- **Upgrades/downgrades ALLOWED (Q-A).** Block **only** re-purchase of the *identical* `productId`. Any different product (basic→vip, monthly→3month) is allowed; on Android we pass `StoreProductChangeInfo(oldProductId, replacementMode: withTimeProration)` so Play prorates (verified SDK path, §2.12). Same-identical-product tap → block dialog → route to اشتراكي.
 - **Product lookup key = `pricing.googleProductId`** on Android / `appleProductId` on iOS → matched against `package.storeProduct.identifier` in offering `default` (confirmed §2.2, §7).
-- **Premium SoT stays `/current`** (`CurrentSubscriptionCubit.hasActiveSubscription`). RC `hasPremium` is only the immediate success signal to decide whether to refresh + pop.
+- **Premium SoT stays `/current`** (`CurrentSubscriptionCubit.hasActiveSubscription`) for plan/counter details; RC entitlement is the instant unlock signal.
 - **Errors mapped by code, not message** — HTTP: `errorCode` string (§2.9); store: `PurchasesErrorCode` via `PurchasesErrorHelper`.
 
 ---
@@ -102,44 +104,60 @@ Commits 1–4 leave the CTA on `coming_soon` (harmless). Commit 5 is the go-live
 - **Est:** 2 new + 4 edits, ~150 lines. **Gate:** analyze; new files < 200.
 
 ### Commit 3 — Purchase orchestration layer (no UI)
-- **New** `domain/repositories/purchase_repository.dart` (~22) — `Future<Either<Failure,bool>> purchase({required String productId, ValidatedOffer? offer})` (bool = hasPremium) + `Future<Either<Failure,bool>> restore()`.
-- **New** `data/repositories/purchase_repository_impl.dart` (~110) — wraps `RevenueCatService`: `getOfferings()` → find `Package` in offering `default` where `storeProduct.identifier == productId`. Then:
-  - **no offer** → `PurchaseParams.package(pkg)`.
-  - **iOS + offer.hasIosSignature** → `PromotionalOffer(offer.offerId!, offer.keyId!, offer.nonce!, offer.signature!, offer.timestampMs!)` → `PurchaseParams.package(pkg, promotionalOffer:)`. *(§2.12)*
-  - **Android + offer.offerId** → match `pkg.storeProduct.subscriptionOptions` by `offerId` → `PurchaseParams.subscriptionOption(option)`; fall back to base package if unmatched (log warn). *(§2.12, §5 Q-D)*
+- **New** `domain/repositories/purchase_repository.dart` (~24) — `Future<Either<Failure,bool>> purchase({required String productId, ValidatedOffer? offer, String? oldProductId})` (bool = hasPremium; `oldProductId` = the current active product for an upgrade) + `Future<Either<Failure,bool>> restore()`.
+- **New** `data/repositories/purchase_repository_impl.dart` (~130) — wraps `RevenueCatService`: `getOfferings()` → find `Package` in offering `default` where `storeProduct.identifier == productId`. Builds `PurchaseParams`:
+  - **no offer** → `PurchaseParams.package(pkg, productChangeInfo:)`.
+  - **iOS + offer.hasIosSignature** → `PromotionalOffer(offer.offerId!, offer.keyId!, offer.nonce!, offer.signature!, offer.timestampMs!)` → `PurchaseParams.package(pkg, promotionalOffer:)`. **(iOS is UI-locked this cycle — this path is dormant; Q-B.)** *(§2.12)*
+  - **Android + offer.offerId** → match `pkg.storeProduct.subscriptionOptions` by `offerId` → `PurchaseParams.subscriptionOption(option, productChangeInfo:)`; fall back to base package if unmatched (log warn). *(§2.12, §5 Q-D)*
+  - **upgrade (Android, `oldProductId != null && != productId`)** → `productChangeInfo: StoreProductChangeInfo(oldProductId, replacementMode: StoreReplacementMode.withTimeProration)` on the params above. *(Q-A, verified SDK)*
   - classify `PlatformException` via `PurchasesErrorHelper.getErrorCode` → typed failures; return `hasPremium(info)`.
-  - If impl > 200 lines, split `_resolvePurchaseParams` / `_classifyError` into a helper file.
+  - Split `_resolvePurchaseParams` / `_classifyError` into a helper file to stay < 200.
 - `core/errors/errors.dart` (+~24) — `PurchaseCancelledFailure`, `StoreUnavailableFailure`, `AlreadyOwnedFailure`, `PurchasePendingFailure` (each locale-keyed). Reuse `OfflineFailure` for store-network.
 - **New** `domain/usecases/purchase_package_usecase.dart` (~18) + `domain/usecases/restore_purchases_usecase.dart` (~15).
 - **Est:** 4 new + 1 edit, ~190 lines. **Gate:** `flutter analyze lib/features/subscriptions lib/core/errors`; impl < 200 (split if needed).
 
-### Commit 4 — `PackagePurchaseCubit` + DI (no screen change)
-- **New** `presentation/blocs/purchase/package_purchase_state.dart` (~55) — `PurchaseIdle`, `PurchaseValidatingCode`, `PurchaseCodeApplied(offer)`, `PurchaseCodeRejected(msg)`, `PurchaseInProgress`, `PurchaseSuccess`, `PurchaseCancelled`, `PurchaseFailure(reason)`.
-- **New** `presentation/blocs/purchase/package_purchase_cubit.dart` (~130):
-  - `purchase(SubscriptionPlan plan, SubscriptionPricing pricing)`: **free** (`plan.isFree || pricing.price == 0`) → `SubscribeUseCase` → on Right `currentSub.onSubscribed(...)`; **paid** → `PurchasePackageUseCase(productId: pricing.productId(isIOS:...), offer: _appliedOffer)`.
-  - paid success → `currentSub.refresh(force: true)` → emit `PurchaseSuccess`.
-  - `validateCode(code, plan, pricing)` → `ValidateCodeUseCase`; on `valid` store `_appliedOffer` + emit `PurchaseCodeApplied`; else `PurchaseCodeRejected(message)`. `clearCode()` resets.
-  - maps `PurchaseCancelledFailure`→`PurchaseCancelled` (silent), others→`PurchaseFailure(localized msg)`.
-  - takes `CurrentSubscriptionCubit` (app-scoped singleton) by reference — no new coupling pattern.
-  - If body > 200, split code-validation into a mixin file.
+### Commit 4 — `PackagePurchaseCubit` + `/current` reconcile + DI (no screen change)
+
+**Post-purchase flow (Q-C) — recommendation & justification.** RC's local `CustomerInfo` is the authoritative *entitlement* cache (the SDK persists + updates it), while backend `/current` is our SoT for *plan details + counters*. So:
+1. On paid success, `PurchasePackageUseCase` returns `hasPremium` from the post-purchase `CustomerInfo` — an **instant, local, correct** unlock signal. Emit `PurchaseSuccess` immediately → **no spinner waits on the webhook**.
+2. Then call `currentSub.reconcileAfterPurchase()` — a **bounded** background retry on `/current` (force-refresh at 0 s; if still not-active, retry at ~2 s and ~4 s; stop as soon as active; **max 3 attempts ≈ 6 s, then give up silently**). This converges plan/counter details + every feature gate to the backend truth despite webhook lag (2–5 s), with **no indefinite spinner** (UI already succeeded in step 1).
+3. Register an app-scoped `Purchases.addCustomerInfoUpdateListener` (in `CurrentSubscriptionCubit` on hydrate) → any out-of-band entitlement change (webhook catch-up, cross-device, restore) triggers a single `refresh(force:true)`, keeping gates consistent outside the purchase flow too.
+
+This trusts the fastest-correct source for UX (RC entitlement), reconciles the detail SoT with bounds, and self-heals via the listener. Free-tier success uses the existing `onSubscribed(...)` (the `/subscribe` response *is* a `CurrentSubscription`, so no reconcile needed).
+
+- **New** `presentation/blocs/purchase/package_purchase_state.dart` (~60) — `PurchaseIdle`, `PurchaseValidatingCode`, `PurchaseCodeApplied(offer)`, `PurchaseCodeRejected(msg)`, `PurchaseInProgress`, `PurchaseSuccess`, `PurchaseCancelled`, `PurchaseFailure(reason)`, `PurchaseLockedIos`.
+- **New** `presentation/blocs/purchase/package_purchase_cubit.dart` (~150):
+  - ctor takes `CurrentSubscriptionCubit` (app-scoped singleton) + the 3 usecases + `bool isIOS = Platform.isIOS` (injectable for tests).
+  - **iOS defensive guard:** `purchase(...)` on iOS → emit `PurchaseLockedIos`, no store call (primary gate is the UI in Commit 5; this prevents any accidental invocation). Q-B.
+  - `purchase(SubscriptionPlan plan, SubscriptionPricing pricing)`: **free** (`plan.isFree || pricing.price == 0`) → `SubscribeUseCase` → on Right `currentSub.onSubscribed(...)` + `PurchaseSuccess`; **paid** → `PurchasePackageUseCase(productId: pricing.productId(isIOS:false)!, offer: _appliedOffer, oldProductId: _currentActiveProductId)`.
+  - `_currentActiveProductId` = `currentSub.subscription?.pricing.googleProductId` (drives upgrade proration; Q-A). Same-identical-product is blocked upstream in the CTA, not here.
+  - paid success → emit `PurchaseSuccess` **first**, then fire-and-forget `currentSub.reconcileAfterPurchase()`.
+  - `validateCode(code, plan, pricing)` → `ValidateCodeUseCase`; on `valid` store `_appliedOffer` + `PurchaseCodeApplied(discountPercent)`; else `PurchaseCodeRejected(message)`. `clearCode()` resets.
+  - `PurchaseCancelledFailure`→`PurchaseCancelled` (silent); others→`PurchaseFailure(localized msg)`.
+  - split code-validation into a mixin file if body > 200.
+- `presentation/blocs/current/current_subscription_cubit.dart` (+~24) — add `Future<void> reconcileAfterPurchase({int attempts = 3, Duration gap = const Duration(seconds: 2)})` (bounded retry loop, `isClosed`-safe, stops when `hasActiveSubscription`) + register/dispose the RC `CustomerInfoUpdateListener` (guarded so a payment-SDK hiccup never breaks the cubit). Stays < 200.
 - `di/subscriptions_injection.dart` (+~12) — register `PurchaseRepository` (lazySingleton; `sl<RevenueCatService>()` already global), `PurchasePackageUseCase`, `RestorePurchasesUseCase`, `ValidateCodeUseCase`; `PackagePurchaseCubit` **factory** receiving `sl<CurrentSubscriptionCubit>()`.
-- **Est:** 2 new + 1 edit, ~197 lines. **Gate:** analyze; cubit < 200.
+- **Est:** 2 new + 2 edits, ~210 lines total (each file < 200). **Gate:** analyze; each file < 200.
 
 ### Commit 5 — Refactor `packages_screen` + wire CTA live 🔴 the flip
 Refactor first, then wire — one commit so the screen lands at < 200 lines *and* live together.
 - **New** `presentation/widgets/paywall_hero_widget.dart` (~90) — extracted hero (`QeranPremiumBanner` block).
 - **New** `presentation/widgets/plan_selection_widget.dart` (~150) — extracted `_PlanTabs` + plan card/feature list.
 - **New** `presentation/widgets/pricing_row_widget.dart` (~130) — extracted `_PricingRows`/`_PricingRow`.
-- **New** `presentation/widgets/sticky_cta_widget.dart` (~120) — CTA + `BlocConsumer<PackagePurchaseCubit>`: in-progress spinner/disabled; success → pop (+ optional confirm); cancelled → silent; failure → `AppSnackBar` error; **same-tier guard** (if `currentSub.hasActiveSubscription` and its plan == selected → block dialog → `RouteNames.subscriptionDetails`); free-tier CTA label variant.
+- **New** `presentation/widgets/sticky_cta_widget.dart` (~150) — CTA + `BlocConsumer<PackagePurchaseCubit>`:
+  - **iOS lockdown (Q-B):** if `Platform.isIOS` → CTA disabled + inline `subscriptions_ios_coming_soon` message (plans still render read-only). No purchase path reachable on iOS.
+  - Android: in-progress spinner/disabled; success → pop (+ optional confirm); cancelled → silent; failure → `AppSnackBar` error.
+  - **same-product guard (Q-A):** block **only** when the selected pricing's `googleProductId == currentSub.subscription?.pricing.googleProductId` (identical product) → block dialog → `RouteNames.subscriptionDetails`. Different product (upgrade/downgrade) proceeds → proration handled in the repo.
+  - free-tier CTA label variant.
 - `presentation/screens/packages_screen.dart` (→ ~150) — thin coordinator: `BlocProvider<PackagePurchaseCubit>` + `SubscriptionPlansCubit`, composes the 4 widgets, replaces `_openPurchase` toast (old lines 204–211).
 - `assets/translations/{ar,en}.json` — purchase state + error strings (§Localization). Regenerate `locale_keys.g.dart`.
 - **Est:** 4 new + 1 rewrite + 2 json + generated. **Gate:** **every file < 200** (this is the point of the refactor); legacy-grep ZERO on all 5 widget files; analyze clean; RTL+LTR.
 
-### Commit 6 — Discount-code input widget (iOS + Android, real)
-- **New** `presentation/widgets/discount_code_field.dart` (~150) — DS-only field (tokens, no `AppTextFormField`), states: empty→apply · validating (spinner) · applied (gold check + `discountPercent` label + clear) · rejected (danger `message`). Bidirectional. Calls `cubit.validateCode`/`clearCode`. The applied offer flows through the cubit into the purchase (iOS promo / Android subscriptionOption per §2.12).
-- `presentation/widgets/sticky_cta_widget.dart` or coordinator (+~4) — mount the field above the CTA.
-- `assets/translations/{ar,en}.json` — code labels/errors (incl. an "iOS offer not yet available" note for the `signature:null` edge). Regenerate.
-- **Est:** 1 new + 1 edit + json. **Gate:** legacy-grep ZERO; new file < 200. iOS untestable this cycle (§7) — code-review + build only; Android tested for real.
+### Commit 6 — Discount-code input widget (Android live; hidden on iOS)
+- **New** `presentation/widgets/discount_code_field.dart` (~150) — DS-only field (tokens, no `AppTextFormField`), states: empty→apply · validating (spinner) · applied (gold check + `discountPercent` label + clear) · rejected (danger `message`). Bidirectional. Calls `cubit.validateCode`/`clearCode`. The applied offer flows through the cubit into the purchase (Android `subscriptionOption` per §2.12; iOS promo path exists but is dormant).
+- Coordinator (+~4) — mount the field above the CTA **only when `!Platform.isIOS`** (Q-B: hidden entirely on iOS to avoid confusion).
+- `assets/translations/{ar,en}.json` — code labels/errors. Regenerate.
+- **Est:** 1 new + 1 edit + json. **Gate:** legacy-grep ZERO; new file < 200. Android tested for real (offers active, §7); iOS field not shown.
 
 ### Commit 7 — Restore purchases (settings)
 - `presentation/screens/profile_screen.dart` (+~14) — a `_SettingsRow` (restore icon) after the subscription row → runs `RestorePurchasesUseCase` (inline `showDialog` progress, or a ~50-line `RestorePurchasesCubit` if you prefer testable state) → restored-premium → `currentSub.refresh(force:true)` + success toast; nothing-found → info toast. Both localized.
@@ -148,16 +166,16 @@ Refactor first, then wire — one commit so the screen lands at < 200 lines *and
 - **Est:** 1 edit (+opt 1 new) + json. **Gate:** analyze; legacy-grep ZERO; profile_screen stays functional.
 
 ### Localization keys to add (ar + en)
-`subscriptions_purchase_in_progress`, `subscriptions_purchase_success`, `subscriptions_purchase_cancelled`, `subscriptions_purchase_failed_generic`, `subscriptions_purchase_store_unavailable`, `subscriptions_purchase_already_owned`, `subscriptions_purchase_pending`, `subscriptions_same_tier_block_title/body`, `subscriptions_free_cta`, `subscriptions_code_hint`, `subscriptions_code_apply`, `subscriptions_code_applied` (with `%` arg), `subscriptions_code_clear`, `subscriptions_code_ios_offer_unavailable`, `subscriptions_restore_row`, `subscriptions_restore_success`, `subscriptions_restore_none`. (Rejection text for a bad code comes from the server `message` per §2.5 — no client key.)
+`subscriptions_ios_coming_soon` (AR: «الشراء عبر iPhone قريباً. جرّب من جهاز Android حالياً.» · EN: "Purchases on iPhone coming soon. Please use an Android device for now."), `subscriptions_purchase_in_progress`, `subscriptions_purchase_success`, `subscriptions_purchase_cancelled`, `subscriptions_purchase_failed_generic`, `subscriptions_purchase_store_unavailable`, `subscriptions_purchase_already_owned`, `subscriptions_purchase_pending`, `subscriptions_same_product_block_title/body`, `subscriptions_free_cta`, `subscriptions_code_hint`, `subscriptions_code_apply`, `subscriptions_code_applied` (with `%` arg), `subscriptions_code_clear`, `subscriptions_restore_row`, `subscriptions_restore_success`, `subscriptions_restore_none`. (Rejection text for a bad code comes from the server `message` per §2.5 — no client key.)
 
 ---
 
-## 5. Questions for Anas
+## 5. Questions for Anas — all resolved (2026-07-02)
 
-- **Q-A — Same-tier vs upgrade.** You said "same-tier re-purchase → block + route to اشتراكي." If the user is on **basic** and taps **vip** (an upgrade), do we **allow** the purchase (Play handles proration via `productChangeInfo`) or also block? Plan assumes **allow upgrade, block only the identical plan**. Confirm — and if upgrades are allowed, do you want proration wired now or deferred?
-- **Q-B — iOS "signature not configured" edge.** `validate-code` can return `valid:true, signature:null, message:"توقيع آبل غير مُهيّأ بعد"`. On iOS that means the discount can't be applied. Plan: show `subscriptions_code_ios_offer_unavailable` and let the user buy at full price (no discount) or clear the code. Acceptable? (Android unaffected; iOS untestable this cycle anyway.)
-- **Q-C — Webhook lag on success.** After RC reports `hasPremium == true`, `/current` may briefly lag (webhook is async). Plan: trust RC's `hasPremium` as the success signal, `refresh(force:true)`, pop. If `/current` hasn't caught up, the details screen lags one refresh. OK for v1?
-- **Q-D — (verify-on-device, not a blocker)** The exact `SubscriptionOption.id` ↔ backend `offerId` string format on Google Play needs one debug log during Commit 6 device testing to confirm the match rule (`==` vs `endsWith`/`contains`). I'll surface the real value and confirm before finalizing Commit 6.
+- **Q-A — Upgrade path → RESOLVED: ALLOW.** Allow any different-product change (basic→vip, monthly→3month); Play prorates via `StoreProductChangeInfo(oldProductId, replacementMode: withTimeProration)`. **Block only re-purchase of the identical `productId`** → route to اشتراكي. Wired now (Commit 3 repo + Commit 5 CTA guard).
+- **Q-B — iOS → RESOLVED: FULLY LOCKED.** All iOS purchase paths disabled this cycle (not just discounts). Plans render read-only; CTA disabled + `subscriptions_ios_coming_soon` message; discount field hidden entirely on iOS; restore stays enabled. Gated at UI + defensively in the cubit. Reflected in Commits 3/4/5/6.
+- **Q-C — Post-purchase → RESOLVED: RC-entitlement + bounded `/current` reconcile + RC listener.** Full design & justification in Commit 4. Instant unlock from RC `hasPremium`, bounded background retry on `/current` for webhook lag (≤3 attempts ≈6 s, no indefinite spinner), app-scoped `CustomerInfoUpdateListener` for out-of-band updates.
+- **Q-D — (verify-on-device, not a blocker)** The exact `SubscriptionOption.id` ↔ backend `offerId` string format on Google Play → one debug log during Commit 6 device testing to confirm the match rule (`==` vs `endsWith`/`contains`). I'll surface the real value and confirm before finalizing Commit 6.
 
 ---
 
@@ -168,16 +186,17 @@ Refactor first, then wire — one commit so the screen lands at < 200 lines *and
 - **C2:** analyze; app launches. Dormant. Optional throwaway call logs a real `ValidatedOffer` (valid + invalid code) to confirm request/response shapes against the live endpoint.
 - **C3 / C4:** analyze; app launches; dormant. C4 optional mocktail test (free routes to SubscribeUseCase; paid to PurchasePackageUseCase; cancel→`PurchaseCancelled`; code applied stored).
 - **C5 (Android, real device, Play internal-test track):**
-  1. Non-subscriber taps a **paid** plan CTA → Play sheet → complete → success → paywall pops → `/current` reflects active → gated action unlocks.
+  1. Non-subscriber taps a **paid** plan CTA → Play sheet → complete → **instant success + pop** (from RC entitlement); `/current` converges within a few seconds via `reconcileAfterPurchase` → gated actions elsewhere unlock without a manual refresh.
   2. Cancel the Play sheet → silent return, CTA re-enabled, no error toast.
   3. **Free-tier** plan (if backend exposes one) → no Play sheet → `/subscribe` → active; second attempt → «الباقة المجانية متاحة مرة واحدة فقط».
-  4. Already-subscribed, tap **same** plan → block dialog → routes to اشتراكي. (Upgrade behaviour per Q-A.)
+  4. **Upgrade (Q-A):** subscribed to basic, tap **vip** (different product) → Play proration sheet → success. Tap the **identical** product → block dialog → routes to اشتراكي.
   5. Airplane mode → CTA → offline failure toast, no crash.
   6. RTL (ar) + LTR (en): CTA, spinner, dialogs mirror correctly.
   7. **Every extracted widget file < 200 lines** (`packages_screen` refactor goal met).
+- **C5 (iOS build — lockdown check, Q-B):** plans render read-only; CTA disabled + `subscriptions_ios_coming_soon` message; **no** discount field; tapping nothing triggers a purchase; restore (C7) still works. RTL+LTR.
 - **C6 (Android):** invalid code → server `message` shown; valid code → applied state + `discountPercent`; the offer reaches the purchase and the Play sheet shows the **discounted** price (confirms Android offer path + Q-D match rule). Clear works. RTL+LTR.
 - **C7 (Android):** Settings → Restore: account with a prior purchase → restored + premium reflected; fresh account → "nothing to restore". RTL+LTR.
-- **iOS across C5–C7:** build + code-review only (products Missing Metadata, iOS offers not created — §7). Each commit message states iOS is untested.
+- **iOS across C5–C7:** purchase paths **locked** (Q-B) — verify the lockdown UI only; restore may be smoke-tested if a sandbox account exists. Each commit message states iOS purchase is locked/untested.
 
 ### 6b. Rollback strategy per commit
 Every commit is atomic and independently `git revert`-able; commits 1–4 are dormant (no UI entry) so reverting them can't break a shipped path.
@@ -192,10 +211,10 @@ Every commit is atomic and independently `git revert`-able; commits 1–4 are do
 ## 7. Setup status (as of this session)
 - **Google Play:** 3 subscriptions **active** (`qeran_basic_monthly`, `qeran_vip_monthly`, `qeran_vip_3month`) + **30 offers active** (10 per base plan: 5/10/15/20/25/30/40/50/70/90 %). ⇒ Android purchase **and** discount are testable for real.
 - **RevenueCat:** offering `default` with 3 packages (`basic_monthly`, `vip_monthly`, `vip_3month`), each attached to its matching Android product; entitlement `premium`. SDK `purchases_flutter 10.3.0` (offer API verified — §2.12).
-- **iOS:** 3 subscriptions in **Missing Metadata**; **iOS offers NOT created yet** (deferred until a paywall screenshot exists). ⇒ iOS purchase/discount code ships but is **untestable** this cycle.
+- **iOS:** 3 subscriptions in **Missing Metadata**; **iOS offers NOT created yet** (deferred until Mac + a paywall screenshot exist). ⇒ **iOS purchases are fully LOCKED this cycle (Q-B)** — UI-disabled + cubit-guarded; the iOS `PromotionalOffer` code exists but is dormant.
 - **Backend:** Tariq's authoritative doc landed (2026-06-30). `validate-code` and all payment endpoints ready per doc; RevenueCat webhook built server-side (deployment confirmation is on whoever deploys the API).
 
 ---
 
 ## Ready to build?
-This plan writes no code. On approval I start at **Commit 1** and STOP after each commit for your review + the device test above, committing + pushing per your per-piece rule. Open items are the 3 decisions in §5 Q-A/B/C (Q-D is a device-verify during C6, not a blocker).
+This plan writes no code. **All §5 decisions (Q-A/B/C) are resolved and folded in** (Q-D is a device-verify during C6, not a blocker). On approval I start at **Commit 1** and STOP after each commit for your review + the device test above, committing + pushing per your per-piece rule.

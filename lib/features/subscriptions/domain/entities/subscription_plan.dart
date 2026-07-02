@@ -28,6 +28,11 @@ class SubscriptionPlan extends Equatable {
   /// own `isPopular`).
   final bool isPopular;
 
+  /// True for the single free plan (`pricings[].price == 0`, no store product
+  /// ids). Drives the free-tier CTA path (`POST /subscribe`) instead of a
+  /// store purchase.
+  final bool isFree;
+
   final SubscriptionFeatures features;
   final List<SubscriptionPricing> pricings;
 
@@ -42,6 +47,7 @@ class SubscriptionPlan extends Equatable {
     required this.sortOrder,
     required this.isActive,
     required this.isPopular,
+    required this.isFree,
     required this.features,
     required this.pricings,
   });
@@ -71,6 +77,7 @@ class SubscriptionPlan extends Equatable {
         sortOrder,
         isActive,
         isPopular,
+        isFree,
         features,
         pricings,
       ];

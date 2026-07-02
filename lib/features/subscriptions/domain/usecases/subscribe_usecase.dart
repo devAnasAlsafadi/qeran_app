@@ -4,7 +4,11 @@ import 'package:qeran/core/errors/errors.dart';
 import '../entities/current_subscription.dart';
 import '../repositories/subscriptions_repository.dart';
 
-// TODO(payments-1b): reserved. After a successful RevenueCat purchase the client POSTs /subscriptions/subscribe to record the entitlement; the backend applies discount/affiliate codes server-side.
+/// Free-tier subscription only (`isFree` plan / final price 0 / 100% code).
+/// Paid subscriptions activate via RevenueCat + the server-side webhook,
+/// **not** this endpoint — the backend rejects a paid tier here
+/// («هذا الاشتراك مدفوع ويُفعَّل عبر المتجر»).
+/// See docs/PAYWALL_IMPLEMENTATION_PLAN.md §2.6.
 class SubscribeUseCase {
   final SubscriptionsRepository _repository;
   const SubscribeUseCase(this._repository);

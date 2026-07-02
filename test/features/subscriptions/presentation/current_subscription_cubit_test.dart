@@ -31,6 +31,7 @@ CurrentSubscription _sub({
         sortOrder: 1,
         isActive: true,
         isPopular: false,
+        isFree: false,
         features: SubscriptionFeatures(
           likesAllowed: 50,
           seriousInterestsAllowed: -1,
@@ -52,6 +53,8 @@ CurrentSubscription _sub({
         sortOrder: 1,
         isActive: true,
         isPopular: true,
+        appleProductId: null,
+        googleProductId: null,
       ),
       startsAt: DateTime.now().subtract(const Duration(days: 1)),
       expiresAt: expiresAt,

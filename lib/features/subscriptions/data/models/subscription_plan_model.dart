@@ -13,6 +13,7 @@ class SubscriptionPlanModel {
   final int sortOrder;
   final bool isActive;
   final bool isPopular;
+  final bool isFree;
   final SubscriptionFeaturesModel features;
   final List<SubscriptionPricingModel> pricings;
 
@@ -27,6 +28,7 @@ class SubscriptionPlanModel {
     required this.sortOrder,
     required this.isActive,
     required this.isPopular,
+    required this.isFree,
     required this.features,
     required this.pricings,
   });
@@ -43,6 +45,7 @@ class SubscriptionPlanModel {
       sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
       isActive: json['isActive'] as bool? ?? true,
       isPopular: json['isPopular'] as bool? ?? false,
+      isFree: json['isFree'] as bool? ?? false,
       features: SubscriptionFeaturesModel.fromJson(
         (json['features'] as Map<String, dynamic>?) ?? const {},
       ),
@@ -64,6 +67,7 @@ class SubscriptionPlanModel {
         sortOrder: sortOrder,
         isActive: isActive,
         isPopular: isPopular,
+        isFree: isFree,
         features: features.toEntity(),
         pricings: pricings.map((p) => p.toEntity()).toList(),
       );

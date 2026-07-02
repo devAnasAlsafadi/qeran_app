@@ -34,6 +34,13 @@ class SubscriptionPricing extends Equatable {
   /// own `isPopular` which renders "الأكثر طلباً" on the card).
   final bool isPopular;
 
+  /// Store product identifiers for this pricing, one per platform (they may
+  /// diverge). Either can be `null` for a period not yet linked to the store
+  /// (e.g. the free plan). Use [productId] to pick the right one — RevenueCat
+  /// package lookup keys off this value.
+  final String? appleProductId;
+  final String? googleProductId;
+
   const SubscriptionPricing({
     required this.id,
     required this.planId,
@@ -47,6 +54,8 @@ class SubscriptionPricing extends Equatable {
     required this.sortOrder,
     required this.isActive,
     required this.isPopular,
+    required this.appleProductId,
+    required this.googleProductId,
   });
 
   /// True when [originalPrice] should be rendered struck-through next to
@@ -56,6 +65,12 @@ class SubscriptionPricing extends Equatable {
 
   /// True when the "خصم %" pill should be rendered. Centralised likewise.
   bool get hasDiscountBadge => discountPercent > 0;
+
+  /// The store product id for the current platform — [appleProductId] on iOS,
+  /// [googleProductId] elsewhere. Null when this pricing isn't store-linked
+  /// (e.g. the free plan).
+  String? productId({required bool isIOS}) =>
+      isIOS ? appleProductId : googleProductId;
 
   /// Locale-aware duration label: the active-locale field, falling back to the
   /// other when empty. Returns null when neither is set — callers then fall
@@ -82,5 +97,7 @@ class SubscriptionPricing extends Equatable {
         sortOrder,
         isActive,
         isPopular,
+        appleProductId,
+        googleProductId,
       ];
 }

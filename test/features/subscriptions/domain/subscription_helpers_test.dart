@@ -40,6 +40,8 @@ void main() {
           sortOrder: 1,
           isActive: true,
           isPopular: false,
+          appleProductId: null,
+          googleProductId: null,
         );
 
     test('false when originalPrice is null', () {
@@ -76,6 +78,8 @@ void main() {
           sortOrder: 0,
           isActive: true,
           isPopular: false,
+          appleProductId: null,
+          googleProductId: null,
         );
 
     test('false at 0', () => expect(make(0).hasDiscountBadge, isFalse));

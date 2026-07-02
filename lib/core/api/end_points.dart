@@ -143,6 +143,11 @@ class EndPoints {
   static const String currentSubscription = "subscriptions/current";
   static const String subscribe = "subscriptions/subscribe";
 
+  /// `POST /api/subscriptions/validate-code` — **raw** (no envelope). Body
+  /// `{ code, productId, platform }`; returns the offer id + (iOS) StoreKit
+  /// promotional-offer signature. See PAYWALL_IMPLEMENTATION_PLAN §2.4/§2.5.
+  static const String validateCode = "subscriptions/validate-code";
+
   // Chat (User ↔ Matchmaker only)
 
   /// `GET /api/chat/my-matchmaker` — fast bootstrap path. Returns the

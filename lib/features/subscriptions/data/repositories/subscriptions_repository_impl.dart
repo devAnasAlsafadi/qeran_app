@@ -4,8 +4,10 @@ import 'package:qeran/core/errors/errors.dart';
 
 import '../../domain/entities/current_subscription.dart';
 import '../../domain/entities/subscription_plan.dart';
+import '../../domain/entities/validate_code_response.dart';
 import '../../domain/repositories/subscriptions_repository.dart';
 import '../datasources/subscriptions_remote_datasource.dart';
+import '../models/validate_code_request.dart';
 
 class SubscriptionsRepositoryImpl
     with BaseRepository
@@ -68,6 +70,24 @@ class SubscriptionsRepositoryImpl
       final model = await _dataSource.subscribe(
         pricingId: pricingId,
         discountCode: discountCode,
+      );
+      return model.toEntity();
+    });
+  }
+
+  @override
+  Future<Either<Failure, ValidateCodeResponse>> validateCode({
+    required String code,
+    required String productId,
+    required String platform,
+  }) {
+    return executeApiCall(() async {
+      final model = await _dataSource.validateCode(
+        ValidateCodeRequest(
+          code: code,
+          productId: productId,
+          platform: platform,
+        ),
       );
       return model.toEntity();
     });

@@ -6,6 +6,7 @@ import '../domain/repositories/subscriptions_repository.dart';
 import '../domain/usecases/get_current_subscription_usecase.dart';
 import '../domain/usecases/get_subscription_plans_usecase.dart';
 import '../domain/usecases/subscribe_usecase.dart';
+import '../domain/usecases/validate_code_usecase.dart';
 import '../presentation/blocs/current/current_subscription_cubit.dart';
 import '../presentation/blocs/plans/subscription_plans_cubit.dart';
 
@@ -24,6 +25,7 @@ void initSubscriptionDependencies() {
   sl.registerLazySingleton(() => GetSubscriptionPlansUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentSubscriptionUseCase(sl()));
   sl.registerLazySingleton(() => SubscribeUseCase(sl()));
+  sl.registerLazySingleton(() => ValidateCodeUseCase(sl()));
 
   //! Current Subscription — app-scoped lazy singleton.
   //

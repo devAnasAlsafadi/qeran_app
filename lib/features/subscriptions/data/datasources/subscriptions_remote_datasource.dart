@@ -6,6 +6,8 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../models/current_subscription_model.dart';
 import '../models/subscription_plan_model.dart';
+import '../models/validate_code_request.dart';
+import '../models/validate_code_response_model.dart';
 
 abstract interface class SubscriptionsRemoteDataSource {
   /// `GET /api/subscriptions/plans` — returns a **raw JSON array**, no
@@ -26,6 +28,11 @@ abstract interface class SubscriptionsRemoteDataSource {
     required int pricingId,
     String? discountCode,
   });
+
+  /// `POST /api/subscriptions/validate-code` — **raw** (no envelope). Returns
+  /// the parsed [ValidateCodeResponseModel]; an invalid code is a normal 200
+  /// with `valid:false`, not an error. Throws on transport / HTTP errors.
+  Future<ValidateCodeResponseModel> validateCode(ValidateCodeRequest request);
 }
 
 class SubscriptionsRemoteDataSourceImpl
@@ -101,5 +108,28 @@ class SubscriptionsRemoteDataSourceImpl
     }
     AppLogger.info('Subscribe success', tag: 'SUBSCRIPTIONS');
     return CurrentSubscriptionModel.fromJson(data);
+  }
+
+  @override
+  Future<ValidateCodeResponseModel> validateCode(
+    ValidateCodeRequest request,
+  ) async {
+    AppLogger.debug(
+      'VALIDATE CODE product=${request.productId} platform=${request.platform}',
+      tag: 'SUBSCRIPTIONS',
+    );
+    final body = await _apiConsumer.postRaw(
+      EndPoints.validateCode,
+      body: request.toJson(),
+    );
+    if (body is! Map<String, dynamic>) {
+      throw ServerException(message: LocaleKeys.errors_generic);
+    }
+    final model = ValidateCodeResponseModel.fromJson(body);
+    AppLogger.info(
+      'Validate code — valid=${model.valid} discount=${model.discountPercent}%',
+      tag: 'SUBSCRIPTIONS',
+    );
+    return model;
   }
 }

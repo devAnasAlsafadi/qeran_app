@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/di/injection_container.dart';
@@ -60,9 +62,19 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
       NavigationManager.navigateTo(context, RouteNames.subscriptionDetails);
       return;
     }
-    context
-        .read<PackagePurchaseCubit>()
-        .purchase(pricing: pricing, oldProductId: currentProductId);
+    // Carry an applied discount into the purchase: an offer id on Android, the
+    // full StoreKit signature on iOS (iOS is locked anyway — defensive).
+    final purchaseState = context.read<PackagePurchaseCubit>().state;
+    final validatedCode =
+        purchaseState is PackagePurchaseCodeValidationSuccess &&
+                (Platform.isAndroid || purchaseState.response.hasIosSignature)
+            ? purchaseState.response
+            : null;
+    context.read<PackagePurchaseCubit>().purchase(
+          pricing: pricing,
+          validatedCode: validatedCode,
+          oldProductId: currentProductId,
+        );
   }
 
   /// Free tier (`isFree` / price 0) — activates via `/subscribe`, never RC.

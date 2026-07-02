@@ -15,6 +15,7 @@ import '../blocs/plans/subscription_plans_cubit.dart';
 import '../blocs/plans/subscription_plans_state.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
+import '../widgets/discount_code_widget.dart';
 import '../widgets/paywall_hero_widget.dart';
 import '../widgets/paywall_purchase_flow.dart';
 import '../widgets/plan_selection_widget.dart';
@@ -117,14 +118,27 @@ class _PackagesViewState extends State<_PackagesView>
                 pricingId: pricingId,
               ),
             ),
+            if (!_isIOS && selectedPricing != null) ...[
+              QeranSpacing.vs16,
+              DiscountCodeWidget(pricing: selectedPricing),
+            ],
             QeranSpacing.vs24,
-            StickyCtaWidget(
-              isIOS: _isIOS,
-              hasSelection: selectedPricing != null,
-              freeBusy: freeBusy,
-              onPressed: selectedPricing == null
-                  ? null
-                  : () => handleCta(context, activePlan, selectedPricing),
+            BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(
+              builder: (context, purchaseState) {
+                final discountPercent =
+                    purchaseState is PackagePurchaseCodeValidationSuccess
+                        ? purchaseState.response.discountPercent
+                        : null;
+                return StickyCtaWidget(
+                  isIOS: _isIOS,
+                  hasSelection: selectedPricing != null,
+                  freeBusy: freeBusy,
+                  discountPercent: discountPercent,
+                  onPressed: selectedPricing == null
+                      ? null
+                      : () => handleCta(context, activePlan, selectedPricing),
+                );
+              },
             ),
           ],
         ),

@@ -9,6 +9,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_pricing.dart';
+import '../../domain/helpers/subscription_format.dart';
 
 /// One tappable pricing option. Selected → gold border + cream fill + a filled
 /// gold radio. Discounted rows show a strike-through original price + a gold
@@ -97,7 +98,7 @@ class PricingRowWidget extends StatelessWidget {
                         QeranSpacing.hs8,
                       ],
                       Text(
-                        '${pricing.price.toStringAsFixed(0)} $currency',
+                        SubscriptionFormat.formatPrice(pricing.price, currency),
                         style: QeranTypography.numeric.copyWith(
                           fontSize: 18,
                           color: QeranColors.wine,

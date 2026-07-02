@@ -242,11 +242,16 @@ abstract class  LocaleKeys {
   static const subscriptions_title = 'subscriptions.title';
   static const subscriptions_subtitle = 'subscriptions.subtitle';
   static const subscriptions_unlimited = 'subscriptions.unlimited';
-  static const subscriptions_subscribe_cta = 'subscriptions.subscribe_cta';
   static const subscriptions_subscribe_now = 'subscriptions.subscribe_now';
   static const subscriptions_subscribe_now_with_discount = 'subscriptions.subscribe_now_with_discount';
   static const subscriptions_purchase_failure = 'subscriptions.purchase_failure';
   static const subscriptions_already_subscribed_to_this_plan = 'subscriptions.already_subscribed_to_this_plan';
+  static const subscriptions_discount_code_placeholder = 'subscriptions.discount_code_placeholder';
+  static const subscriptions_apply_code = 'subscriptions.apply_code';
+  static const subscriptions_validating_code = 'subscriptions.validating_code';
+  static const subscriptions_discount_applied_summary = 'subscriptions.discount_applied_summary';
+  static const subscriptions_clear_code = 'subscriptions.clear_code';
+  static const subscriptions_discount_ios_unavailable = 'subscriptions.discount_ios_unavailable';
   static const subscriptions_upgrade_cta = 'subscriptions.upgrade_cta';
   static const subscriptions_view_packages_cta = 'subscriptions.view_packages_cta';
   static const subscriptions_feature_likes = 'subscriptions.feature_likes';
@@ -264,8 +269,6 @@ abstract class  LocaleKeys {
   static const subscriptions_load_failed = 'subscriptions.load_failed';
   static const subscriptions_retry = 'subscriptions.retry';
   static const subscriptions_purchase_success = 'subscriptions.purchase_success';
-  static const subscriptions_purchase_failed = 'subscriptions.purchase_failed';
-  static const subscriptions_purchase_network_error = 'subscriptions.purchase_network_error';
   static const subscriptions_purchase_already_subscribed = 'subscriptions.purchase_already_subscribed';
   static const subscriptions_purchase_store_unavailable = 'subscriptions.purchase_store_unavailable';
   static const subscriptions_purchase_login_required = 'subscriptions.purchase_login_required';

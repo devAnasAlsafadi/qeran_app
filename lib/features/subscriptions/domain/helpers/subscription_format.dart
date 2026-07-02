@@ -27,6 +27,14 @@ class SubscriptionFormat {
     return '$value';
   }
 
+  /// Formats a price with its [currency] suffix — no decimals for whole
+  /// values (`50 ر.س`), two for fractional ones (`42.50 ر.س`). Shared by the
+  /// pricing rows and the discount summary so money renders consistently.
+  static String formatPrice(double value, String currency) {
+    final isWhole = value == value.roundToDouble();
+    return '${value.toStringAsFixed(isWhole ? 0 : 2)} $currency';
+  }
+
   /// Used / total ratio in `[0, 1]`. Returns 0 for unlimited or zero
   /// totals so progress bars stay empty rather than crashing.
   static double usagePercent(int used, int total) {

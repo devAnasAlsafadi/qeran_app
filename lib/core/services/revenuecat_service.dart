@@ -72,19 +72,37 @@ class RevenueCatService {
     }
   }
 
-  /// Purchases [package] via the store (the RevenueCat Test Store in dev).
+  /// Raw purchase with fully-built [params] (offer / product-change / promo).
   /// Intentionally NOT wrapped in try/catch — the [PlatformException] must
-  /// propagate so the caller can classify cancel / network / already-owned
-  /// via `PurchasesErrorHelper`. Returns the post-purchase [CustomerInfo],
-  /// whose `entitlements` reflect the newly-granted access.
-  Future<CustomerInfo> purchasePackage(Package package) async {
-    final result = await Purchases.purchase(PurchaseParams.package(package));
+  /// propagate so the caller (PurchaseRepository) can classify cancel /
+  /// network / already-owned via `PurchasesErrorHelper`. Returns the
+  /// post-purchase [CustomerInfo], whose `entitlements` reflect new access.
+  Future<CustomerInfo> purchase(PurchaseParams params) async {
+    final result = await Purchases.purchase(params);
     return result.customerInfo;
   }
+
+  /// Convenience for a plain package purchase (no offer / product change).
+  /// Delegates to [purchase]; the [PlatformException] still propagates.
+  Future<CustomerInfo> purchasePackage(Package package) =>
+      purchase(PurchaseParams.package(package));
 
   /// True when [info] carries the premium entitlement as active.
   bool hasPremium(CustomerInfo info) => info.entitlements.active
       .containsKey(RevenueCatConfig.premiumEntitlementId);
+
+  /// Current [CustomerInfo] (entitlement snapshot). Defensive: returns null +
+  /// logs on failure so a status check degrades gracefully rather than throws.
+  Future<CustomerInfo?> getCustomerInfo() async {
+    if (!_configured) return null;
+    try {
+      return await Purchases.getCustomerInfo();
+    } catch (e, s) {
+      AppLogger.error('RevenueCat getCustomerInfo failed',
+          error: e, stack: s, tag: 'RC');
+      return null;
+    }
+  }
 
   /// Restores prior purchases — recovers the entitlement after a reinstall
   /// or on a new device, and reconciles any client/RC desync. Defensive.

@@ -380,13 +380,19 @@ class _SubscriptionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
       builder: (context, state) {
-        final (_, showUpgrade) = _resolve(context, state);
+        final (subtitle, showUpgrade) = _resolve(context, state);
         return _SettingsRow(
           icon: Icons.workspace_premium_rounded,
           iconAccent: _IconAccent.gold,
           title: LocaleKeys.subscriptions_status_my_subscription.t(context),
-          subtitle: LocaleKeys.subscriptions_subscription_row_subtitle_with_restore
-              .t(context),
+          // `showUpgrade` is true exactly when there's no active subscription
+          // (expired / none / loading) — nudge toward اشتراكي for restore;
+          // an active sub keeps its dynamic "plan · days" subtitle.
+          subtitle: showUpgrade
+              ? LocaleKeys
+                  .subscriptions_subscription_row_subtitle_with_restore
+                  .t(context)
+              : subtitle,
           trailing: showUpgrade
               ? QeranChip(
                   label: LocaleKeys.settings_upgrade.t(context),

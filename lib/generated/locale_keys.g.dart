@@ -265,6 +265,8 @@ abstract class  LocaleKeys {
   static const subscriptions_purchase_already_subscribed = 'subscriptions.purchase_already_subscribed';
   static const subscriptions_purchase_store_unavailable = 'subscriptions.purchase_store_unavailable';
   static const subscriptions_purchase_login_required = 'subscriptions.purchase_login_required';
+  static const subscriptions_purchase_ios_coming_soon = 'subscriptions.purchase_ios_coming_soon';
+  static const subscriptions_purchase_package_not_found = 'subscriptions.purchase_package_not_found';
   static const subscriptions_paywall_like_title = 'subscriptions.paywall_like_title';
   static const subscriptions_paywall_like_body = 'subscriptions.paywall_like_body';
   static const subscriptions_paywall_likes_exhausted_title = 'subscriptions.paywall_likes_exhausted_title';

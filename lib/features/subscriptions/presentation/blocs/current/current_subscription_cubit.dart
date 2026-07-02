@@ -115,6 +115,12 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> {
   /// `Remaining` counts update.
   Future<void> onActionConsumedCounter() => refresh(force: true);
 
+  /// Marks the cached `/current` as stale (resets the freshness TTL) so the
+  /// next [refresh] re-fetches — without dropping the current state or touching
+  /// the in-flight coalescing. Used after a purchase so the backend value is
+  /// re-read once the webhook has granted the entitlement.
+  void invalidateCache() => _lastSyncAt = null;
+
   /// Clears the cached state — call this from `signOut` so a future
   /// sign-in sees a fresh hydration cycle.
   void clear() {

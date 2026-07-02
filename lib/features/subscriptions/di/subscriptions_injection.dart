@@ -14,6 +14,7 @@ import '../domain/usecases/subscribe_usecase.dart';
 import '../domain/usecases/validate_code_usecase.dart';
 import '../presentation/blocs/current/current_subscription_cubit.dart';
 import '../presentation/blocs/plans/subscription_plans_cubit.dart';
+import '../presentation/blocs/purchase/package_purchase_cubit.dart';
 
 void initSubscriptionDependencies() {
   //! DataSource
@@ -50,5 +51,16 @@ void initSubscriptionDependencies() {
   //! Plans cubit — screen-scoped factory.
   sl.registerFactory<SubscriptionPlansCubit>(
     () => SubscriptionPlansCubit(getPlans: sl()),
+  );
+
+  //! Package purchase cubit — screen-scoped factory (new instance per paywall).
+  sl.registerFactory<PackagePurchaseCubit>(
+    () => PackagePurchaseCubit(
+      validateCode: sl(),
+      purchasePackage: sl(),
+      restorePurchases: sl(),
+      currentSubscription: sl(),
+      revenueCat: sl(),
+    ),
   );
 }

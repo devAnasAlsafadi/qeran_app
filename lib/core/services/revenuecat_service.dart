@@ -104,6 +104,20 @@ class RevenueCatService {
     }
   }
 
+  /// Subscribes [listener] to RC `CustomerInfo` updates (e.g. a webhook
+  /// granting an entitlement). No-op until [configure] has run. Pair with
+  /// [removeCustomerInfoUpdateListener].
+  void addCustomerInfoUpdateListener(CustomerInfoUpdateListener listener) {
+    if (!_configured) return;
+    Purchases.addCustomerInfoUpdateListener(listener);
+  }
+
+  /// Removes a previously-added [listener]. Safe to call more than once.
+  void removeCustomerInfoUpdateListener(CustomerInfoUpdateListener listener) {
+    if (!_configured) return;
+    Purchases.removeCustomerInfoUpdateListener(listener);
+  }
+
   /// Restores prior purchases — recovers the entitlement after a reinstall
   /// or on a new device, and reconciles any client/RC desync. Defensive.
   Future<CustomerInfo?> restorePurchases() async {

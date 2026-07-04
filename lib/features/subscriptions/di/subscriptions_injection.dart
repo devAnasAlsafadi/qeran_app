@@ -52,7 +52,7 @@ void initSubscriptionDependencies() {
 
   //! Plans cubit — screen-scoped factory.
   sl.registerFactory<SubscriptionPlansCubit>(
-    () => SubscriptionPlansCubit(getPlans: sl()),
+    () => SubscriptionPlansCubit(getPlans: sl(), getStoreProducts: sl()),
   );
 
   //! Package purchase cubit — screen-scoped factory (new instance per paywall).

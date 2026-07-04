@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/app_logger.dart';
 
 import '../../../domain/entities/subscription_plan.dart';
 import '../../../domain/entities/subscription_pricing.dart';
+import '../../../domain/usecases/get_store_products_usecase.dart';
 import '../../../domain/usecases/get_subscription_plans_usecase.dart';
 import 'subscription_plans_state.dart';
 
@@ -10,11 +12,20 @@ import 'subscription_plans_state.dart';
 /// selection per-plan via [selectPricing]. The cubit doesn't navigate
 /// to purchase — it just exposes the selected pricing through
 /// [pricingFor] so the screen can route on CTA tap.
+///
+/// Prices are store-driven: after the backend plans paint, the RevenueCat
+/// store catalogue is fetched and merged in a second emit. The store fetch is
+/// best-effort — a failure leaves `storeProducts` empty and the paywall
+/// degrades to backend prices, never blocking on the store.
 class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> {
   final GetSubscriptionPlansUseCase _getPlans;
+  final GetStoreProductsUseCase _getStoreProducts;
 
-  SubscriptionPlansCubit({required GetSubscriptionPlansUseCase getPlans})
-      : _getPlans = getPlans,
+  SubscriptionPlansCubit({
+    required GetSubscriptionPlansUseCase getPlans,
+    required GetStoreProductsUseCase getStoreProducts,
+  })  : _getPlans = getPlans,
+        _getStoreProducts = getStoreProducts,
         super(const SubscriptionPlansInitial());
 
   Future<void> load() async {
@@ -33,10 +44,37 @@ class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> {
           final defaultPricing = _defaultPricingFor(plan);
           if (defaultPricing != null) selection[plan.id] = defaultPricing.id;
         }
+        // First emit: paint immediately on backend prices; store prices
+        // augment in a second emit once the catalogue resolves.
         emit(SubscriptionPlansLoaded(
           plans: active,
           selectionByPlan: selection,
         ));
+      },
+    );
+    await _augmentWithStoreProducts();
+  }
+
+  /// Fetches the RC store catalogue and merges it into the current
+  /// [SubscriptionPlansLoaded]. Best-effort: a store failure (or a state that
+  /// has since moved off Loaded) is a silent no-op so the paywall stays on
+  /// backend-price fallback.
+  Future<void> _augmentWithStoreProducts() async {
+    final current = state;
+    if (current is! SubscriptionPlansLoaded) return;
+    final result = await _getStoreProducts();
+    if (isClosed) return;
+    result.fold(
+      (failure) => AppLogger.warning(
+        'Store products unavailable (${failure.message}) — '
+        'paywall stays on backend prices',
+        tag: 'PAYMENTS',
+      ),
+      (products) {
+        if (products.isEmpty) return;
+        final latest = state;
+        if (latest is! SubscriptionPlansLoaded) return;
+        emit(latest.copyWith(storeProducts: products));
       },
     );
   }

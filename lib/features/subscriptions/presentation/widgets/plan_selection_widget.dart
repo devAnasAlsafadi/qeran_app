@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
@@ -9,6 +10,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_plan.dart';
+import '../../domain/entities/subscription_pricing.dart';
 import 'plan_features_widget.dart';
 import 'pricing_row_widget.dart';
 
@@ -25,6 +27,11 @@ class PlanSelectionWidget extends StatelessWidget {
   final ValueChanged<int> onPlanChanged;
   final ValueChanged<int> onPricingSelected;
 
+  /// Resolves the store product backing a pricing (null ⇒ backend-price
+  /// fallback). Supplied by the screen from the loaded state so this widget
+  /// stays free of bloc/state coupling.
+  final StoreProduct? Function(SubscriptionPricing pricing) resolveStoreProduct;
+
   const PlanSelectionWidget({
     super.key,
     required this.plans,
@@ -33,6 +40,7 @@ class PlanSelectionWidget extends StatelessWidget {
     required this.selectedPricingId,
     required this.onPlanChanged,
     required this.onPricingSelected,
+    required this.resolveStoreProduct,
   });
 
   @override
@@ -60,6 +68,7 @@ class PlanSelectionWidget extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: QeranSpacing.s12),
             child: PricingRowWidget(
               pricing: pricing,
+              storeProduct: resolveStoreProduct(pricing),
               selected: pricing.id == selectedPricingId,
               onTap: () => onPricingSelected(pricing.id),
             ),

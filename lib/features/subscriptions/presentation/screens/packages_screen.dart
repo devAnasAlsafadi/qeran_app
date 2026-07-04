@@ -117,6 +117,8 @@ class _PackagesViewState extends State<_PackagesView>
                 planId: activePlan.id,
                 pricingId: pricingId,
               ),
+              resolveStoreProduct: (pricing) =>
+                  state.storeProductFor(pricing, isIOS: _isIOS),
             ),
             if (!_isIOS && selectedPricing != null) ...[
               QeranSpacing.vs16,

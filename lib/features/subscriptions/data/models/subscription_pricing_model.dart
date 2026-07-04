@@ -14,9 +14,13 @@ class SubscriptionPricingModel {
   final bool isActive;
   final bool isPopular;
 
-  /// Store product identifiers, one per platform (they may diverge). Either
-  /// can be `null` for a period not yet linked to the store (e.g. the free
-  /// plan). Source: backend `appleProductId` / `googleProductId`.
+  /// Canonical cross-store product id for this pricing period (backend
+  /// `storeProductId`) — the primary key for RevenueCat lookup. `null` for a
+  /// period not linked to the store (e.g. the free plan).
+  final String? storeProductId;
+
+  /// Platform-specific fallbacks used when [storeProductId] is absent (the
+  /// stores may diverge). Source: backend `appleProductId` / `googleProductId`.
   final String? appleProductId;
   final String? googleProductId;
 
@@ -33,6 +37,7 @@ class SubscriptionPricingModel {
     required this.sortOrder,
     required this.isActive,
     required this.isPopular,
+    required this.storeProductId,
     required this.appleProductId,
     required this.googleProductId,
   });
@@ -52,6 +57,7 @@ class SubscriptionPricingModel {
       sortOrder: (json['sortOrder'] as num?)?.toInt() ?? 0,
       isActive: json['isActive'] as bool? ?? true,
       isPopular: json['isPopular'] as bool? ?? false,
+      storeProductId: json['storeProductId'] as String?,
       appleProductId: json['appleProductId'] as String?,
       googleProductId: json['googleProductId'] as String?,
     );
@@ -70,6 +76,7 @@ class SubscriptionPricingModel {
         sortOrder: sortOrder,
         isActive: isActive,
         isPopular: isPopular,
+        storeProductId: storeProductId,
         appleProductId: appleProductId,
         googleProductId: googleProductId,
       );

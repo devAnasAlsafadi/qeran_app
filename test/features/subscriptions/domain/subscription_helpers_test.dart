@@ -40,6 +40,7 @@ void main() {
           sortOrder: 1,
           isActive: true,
           isPopular: false,
+          storeProductId: null,
           appleProductId: null,
           googleProductId: null,
         );
@@ -78,6 +79,7 @@ void main() {
           sortOrder: 0,
           isActive: true,
           isPopular: false,
+          storeProductId: null,
           appleProductId: null,
           googleProductId: null,
         );

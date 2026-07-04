@@ -53,6 +53,7 @@ CurrentSubscription _sub({
         sortOrder: 1,
         isActive: true,
         isPopular: true,
+        storeProductId: null,
         appleProductId: null,
         googleProductId: null,
       ),

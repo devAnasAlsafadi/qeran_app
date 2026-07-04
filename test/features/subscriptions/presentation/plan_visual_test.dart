@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qeran/core/theme/app_color.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/subscriptions/presentation/widgets/plan_visual.dart';
 
 void main() {
@@ -16,21 +16,21 @@ void main() {
       );
     });
 
-    test('falls back to AppColors.primary on missing #', () {
-      expect(PlanVisual.parseColor('D4AF37'), equals(AppColors.primary));
+    test('falls back to QeranColors.wine on missing #', () {
+      expect(PlanVisual.parseColor('D4AF37'), equals(QeranColors.wine));
     });
 
     test('falls back on empty / wrong length', () {
-      expect(PlanVisual.parseColor(''), equals(AppColors.primary));
-      expect(PlanVisual.parseColor('#FFF'), equals(AppColors.primary));
+      expect(PlanVisual.parseColor(''), equals(QeranColors.wine));
+      expect(PlanVisual.parseColor('#FFF'), equals(QeranColors.wine));
       expect(
         PlanVisual.parseColor('#D4AF3712'),
-        equals(AppColors.primary),
+        equals(QeranColors.wine),
       );
     });
 
     test('falls back on non-hex characters', () {
-      expect(PlanVisual.parseColor('#ZZZZZZ'), equals(AppColors.primary));
+      expect(PlanVisual.parseColor('#ZZZZZZ'), equals(QeranColors.wine));
     });
   });
 

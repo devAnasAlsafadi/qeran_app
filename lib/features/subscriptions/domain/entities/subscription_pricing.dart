@@ -34,10 +34,16 @@ class SubscriptionPricing extends Equatable {
   /// own `isPopular` which renders "الأكثر طلباً" on the card).
   final bool isPopular;
 
-  /// Store product identifiers for this pricing, one per platform (they may
-  /// diverge). Either can be `null` for a period not yet linked to the store
-  /// (e.g. the free plan). Use [productId] to pick the right one — RevenueCat
-  /// package lookup keys off this value.
+  /// Canonical cross-store product id for this pricing period (backend
+  /// `storeProductId`) — the primary key for RevenueCat package lookup. The
+  /// mapping is period-level, not plan-level (a plan may hold several priced
+  /// periods, each its own product). `null` for a period not linked to the
+  /// store (e.g. the free plan).
+  final String? storeProductId;
+
+  /// Platform-specific fallbacks used when [storeProductId] is absent (the
+  /// stores may diverge). Prefer [productId], which resolves the canonical id
+  /// first, then the platform id.
   final String? appleProductId;
   final String? googleProductId;
 
@@ -54,6 +60,7 @@ class SubscriptionPricing extends Equatable {
     required this.sortOrder,
     required this.isActive,
     required this.isPopular,
+    required this.storeProductId,
     required this.appleProductId,
     required this.googleProductId,
   });
@@ -66,11 +73,15 @@ class SubscriptionPricing extends Equatable {
   /// True when the "خصم %" pill should be rendered. Centralised likewise.
   bool get hasDiscountBadge => discountPercent > 0;
 
-  /// The store product id for the current platform — [appleProductId] on iOS,
-  /// [googleProductId] elsewhere. Null when this pricing isn't store-linked
-  /// (e.g. the free plan).
-  String? productId({required bool isIOS}) =>
-      isIOS ? appleProductId : googleProductId;
+  /// The store product id used for RevenueCat package lookup. Prefers the
+  /// canonical cross-store [storeProductId]; falls back to the platform id
+  /// ([appleProductId] on iOS, [googleProductId] elsewhere) when it's absent.
+  /// Null when this pricing isn't store-linked (e.g. the free plan).
+  String? productId({required bool isIOS}) {
+    final canonical = storeProductId;
+    if (canonical != null && canonical.isNotEmpty) return canonical;
+    return isIOS ? appleProductId : googleProductId;
+  }
 
   /// Locale-aware duration label: the active-locale field, falling back to the
   /// other when empty. Returns null when neither is set — callers then fall
@@ -97,6 +108,7 @@ class SubscriptionPricing extends Equatable {
         sortOrder,
         isActive,
         isPopular,
+        storeProductId,
         appleProductId,
         googleProductId,
       ];

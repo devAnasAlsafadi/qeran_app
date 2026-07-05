@@ -29,7 +29,7 @@ class LanguageSwitchButton extends StatelessWidget {
       onSelected: (Locale newLocale) {
         context.setLocale(newLocale);
       },
-      child: isLight ? _buildLightChild() : _buildDarkChild(context),
+      child: isLight ? _buildLightChild(context) : _buildDarkChild(context),
       itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
         PopupMenuItem<Locale>(
           value: const Locale('en'),
@@ -49,11 +49,15 @@ class LanguageSwitchButton extends StatelessWidget {
     );
   }
 
-  // Onboarding variant: icon-only pill over imagery (unchanged).
-  Widget _buildLightChild() {
+  // Onboarding variant: a translucent paper capsule enclosing the translate
+  // icon + the active language label side-by-side (reads over the wine hero).
+  Widget _buildLightChild(BuildContext context) {
+    final bool isArabic = context.locale.languageCode == 'ar';
+    final String label = isArabic ? 'العربية' : 'English';
+
     return Container(
       decoration: BoxDecoration(
-        color: QeranColors.paper.withValues(alpha: 0.1),
+        color: QeranColors.paper.withValues(alpha: 0.12),
         borderRadius: QeranRadii.pill,
         border: Border.all(color: QeranColors.paper.withValues(alpha: 0.5)),
       ),
@@ -61,10 +65,22 @@ class LanguageSwitchButton extends StatelessWidget {
         horizontal: QeranSpacing.s12,
         vertical: QeranSpacing.s8,
       ),
-      child: const Icon(
-        Icons.language_rounded,
-        size: 24,
-        color: QeranColors.paper,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.language_rounded, size: 18, color: QeranColors.paper),
+          QeranSpacing.hs8,
+          Text(
+            label,
+            style: QeranTypography.label.copyWith(color: QeranColors.paper),
+          ),
+          QeranSpacing.hs4,
+          const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 16,
+            color: QeranColors.paper,
+          ),
+        ],
       ),
     );
   }

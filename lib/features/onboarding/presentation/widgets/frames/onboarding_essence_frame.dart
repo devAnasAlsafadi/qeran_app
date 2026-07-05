@@ -31,7 +31,7 @@ class OnboardingEssenceFrame extends StatelessWidget {
             child: SingleChildScrollView(
               padding: EdgeInsetsDirectional.fromSTEB(
                 QeranSpacing.s20,
-                safe.top + 52,
+                safe.top + 76,
                 QeranSpacing.s20,
                 QeranSpacing.s16,
               ),

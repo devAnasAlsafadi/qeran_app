@@ -24,7 +24,7 @@ class OnboardingRoadmapTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final steps = <(IconData, String)>[
       (
-        Icons.how_to_reg_rounded,
+        Icons.person_add_rounded,
         LocaleKeys.onboarding_roadmap_milestone_profile.t(context),
       ),
       (

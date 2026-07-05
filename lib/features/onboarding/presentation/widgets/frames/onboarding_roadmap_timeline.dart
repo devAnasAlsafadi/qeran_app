@@ -6,6 +6,7 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_glow_pulse.dart';
 import 'onboarding_reveal.dart';
 
 /// The 10-step marriage journey as a vertical timeline. Wine nodes with a gold
@@ -20,16 +21,46 @@ class OnboardingRoadmapTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final steps = <(IconData, String)>[
-      (Icons.person_add_rounded, LocaleKeys.onboarding_roadmap_step_profile.t(context)),
-      (Icons.quiz_rounded, LocaleKeys.onboarding_roadmap_step_questions.t(context)),
-      (Icons.blur_on_rounded, LocaleKeys.onboarding_roadmap_step_photo.t(context)),
-      (Icons.verified_rounded, LocaleKeys.onboarding_roadmap_step_approved.t(context)),
-      (Icons.groups_rounded, LocaleKeys.onboarding_roadmap_step_explore.t(context)),
-      (Icons.favorite_rounded, LocaleKeys.onboarding_roadmap_step_interest.t(context)),
-      (Icons.visibility_rounded, LocaleKeys.onboarding_roadmap_step_photos_consent.t(context)),
-      (Icons.forum_rounded, LocaleKeys.onboarding_roadmap_step_questions_mm.t(context)),
-      (Icons.diversity_3_rounded, LocaleKeys.onboarding_roadmap_step_families.t(context)),
-      (Icons.workspace_premium_rounded, LocaleKeys.onboarding_roadmap_step_marriage.t(context)),
+      (
+        Icons.person_add_rounded,
+        LocaleKeys.onboarding_roadmap_step_profile.t(context),
+      ),
+      (
+        Icons.quiz_rounded,
+        LocaleKeys.onboarding_roadmap_step_questions.t(context),
+      ),
+      (
+        Icons.blur_on_rounded,
+        LocaleKeys.onboarding_roadmap_step_photo.t(context),
+      ),
+      (
+        Icons.verified_rounded,
+        LocaleKeys.onboarding_roadmap_step_approved.t(context),
+      ),
+      (
+        Icons.groups_rounded,
+        LocaleKeys.onboarding_roadmap_step_explore.t(context),
+      ),
+      (
+        Icons.favorite_rounded,
+        LocaleKeys.onboarding_roadmap_step_interest.t(context),
+      ),
+      (
+        Icons.visibility_rounded,
+        LocaleKeys.onboarding_roadmap_step_photos_consent.t(context),
+      ),
+      (
+        Icons.forum_rounded,
+        LocaleKeys.onboarding_roadmap_step_questions_mm.t(context),
+      ),
+      (
+        Icons.diversity_3_rounded,
+        LocaleKeys.onboarding_roadmap_step_families.t(context),
+      ),
+      (
+        Icons.workspace_premium_rounded,
+        LocaleKeys.onboarding_roadmap_step_marriage.t(context),
+      ),
     ];
     return Stack(
       children: [
@@ -45,6 +76,8 @@ class OnboardingRoadmapTimeline extends StatelessWidget {
           ),
         ),
         OnboardingReveal(
+          // Ten nodes — tighten the step so the draw-in feels brisk, not slow.
+          step: const Duration(milliseconds: 46),
           children: [
             for (var i = 0; i < steps.length; i++)
               _RoadmapNode(
@@ -121,7 +154,7 @@ class _NodeCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final circle = Container(
       width: 38,
       height: 38,
       decoration: BoxDecoration(
@@ -137,6 +170,15 @@ class _NodeCircle extends StatelessWidget {
         size: 18,
         color: isLast ? QeranColors.wine : QeranColors.gold,
       ),
+    );
+    // The destination node breathes a gold halo — the aspiration of the whole
+    // journey. Earlier nodes stay quiet.
+    if (!isLast) return circle;
+    return OnboardingGlowPulse(
+      circle: true,
+      maxBlur: 18,
+      maxSpread: 1,
+      child: circle,
     );
   }
 }

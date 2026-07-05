@@ -39,7 +39,7 @@ class _BlurredAvatar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: QeranRadii.cardR,
-        border: Border.all(color: QeranColors.gold20),
+        border: Border.all(color: QeranColors.gold40),
       ),
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
@@ -70,6 +70,22 @@ class _BlurredAvatar extends StatelessWidget {
             BackdropFilter(
               filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: const ColoredBox(color: QeranColors.wine20),
+            ),
+            // Top-lit glass rim — lifts the card off the wine hero behind it.
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.35],
+                    colors: [
+                      QeranColors.gold20,
+                      QeranColors.gold.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
             ),
             const _LockNote(),
           ],

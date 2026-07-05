@@ -10,6 +10,8 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_sheen.dart';
+
 /// The matchmaker (Huda) profile as a **glassmorphic** card: a wine gradient
 /// backdrop frosted by a `BackdropFilter` blur plus a translucent cream veil
 /// (the approved way to simulate the design's `saturate`). A subtle gold ring
@@ -56,6 +58,19 @@ class OnboardingMatchmakerGlassCard extends StatelessWidget {
               child: const _MatchmakerRow(),
             ),
           ),
+          // A slow diagonal glint travelling across the glass.
+          const Positioned.fill(child: OnboardingSheen()),
+          // 1px gold rim-light — catches the eye along the card's edge.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: QeranRadii.panelR,
+                  border: Border.all(color: QeranColors.gold40),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -99,8 +114,9 @@ class _MatchmakerRow extends StatelessWidget {
                       LocaleKeys.onboarding_mediation_name.t(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: QeranTypography.subtitle
-                          .copyWith(color: QeranColors.wine),
+                      style: QeranTypography.subtitle.copyWith(
+                        color: QeranColors.wine,
+                      ),
                     ),
                   ),
                   QeranSpacing.hs8,
@@ -115,8 +131,9 @@ class _MatchmakerRow extends StatelessWidget {
               QeranSpacing.vs4,
               Text(
                 LocaleKeys.onboarding_mediation_role.t(context),
-                style: QeranTypography.bodySm
-                    .copyWith(color: QeranColors.inkMuted),
+                style: QeranTypography.bodySm.copyWith(
+                  color: QeranColors.inkMuted,
+                ),
               ),
             ],
           ),

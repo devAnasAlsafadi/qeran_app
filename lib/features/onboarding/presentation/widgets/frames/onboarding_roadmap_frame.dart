@@ -9,6 +9,7 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_glow_pulse.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_roadmap_timeline.dart';
 
@@ -41,14 +42,16 @@ class OnboardingRoadmapFrame extends StatelessWidget {
                 children: [
                   Text(
                     LocaleKeys.onboarding_roadmap_title.t(context),
-                    style: QeranTypography.displaySm
-                        .copyWith(color: QeranColors.paper),
+                    style: QeranTypography.displaySm.copyWith(
+                      color: QeranColors.paper,
+                    ),
                   ),
                   QeranSpacing.vs8,
                   Text(
                     LocaleKeys.onboarding_roadmap_subtitle.t(context),
-                    style: QeranTypography.body
-                        .copyWith(color: QeranColors.gold),
+                    style: QeranTypography.body.copyWith(
+                      color: QeranColors.gold,
+                    ),
                   ),
                   QeranSpacing.vs24,
                   const OnboardingRoadmapTimeline(),
@@ -112,10 +115,17 @@ class _RoadmapCtaPanel extends StatelessWidget {
         QeranSpacing.s24,
         bottomInset,
       ),
-      child: QeranButton(
-        label: LocaleKeys.onboarding_roadmap_cta.t(context),
-        trailingIcon: Icons.favorite_rounded,
-        onPressed: onFinish,
+      // A faint idle pulse invites the tap without shouting.
+      child: OnboardingGlowPulse(
+        borderRadius: QeranRadii.controlR,
+        maxBlur: 24,
+        maxSpread: 1,
+        scaleAmount: 0.012,
+        child: QeranButton(
+          label: LocaleKeys.onboarding_roadmap_cta.t(context),
+          trailingIcon: Icons.favorite_rounded,
+          onPressed: onFinish,
+        ),
       ),
     );
   }

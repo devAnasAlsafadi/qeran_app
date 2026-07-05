@@ -14,6 +14,7 @@ class OnboardingBottomNav extends StatelessWidget {
   final int dotCount;
   final int activeDot;
   final bool showBack;
+  final bool showNext;
   final VoidCallback onBack;
   final VoidCallback onNext;
   final ValueChanged<int> onDot;
@@ -26,6 +27,7 @@ class OnboardingBottomNav extends StatelessWidget {
     required this.onBack,
     required this.onNext,
     required this.onDot,
+    this.showNext = true,
   });
 
   @override
@@ -54,12 +56,15 @@ class OnboardingBottomNav extends StatelessWidget {
             activeIndex: activeDot,
             onTap: onDot,
           ),
-          _NavCircle(
-            onTap: onNext,
-            pointForward: true,
-            background: QeranColors.gold,
-            iconColor: QeranColors.wine,
-          ),
+          // Hidden on the last frame — the in-frame CTA is the finisher there.
+          showNext
+              ? _NavCircle(
+                  onTap: onNext,
+                  pointForward: true,
+                  background: QeranColors.gold,
+                  iconColor: QeranColors.wine,
+                )
+              : const SizedBox(width: 52, height: 52),
         ],
       ),
     );

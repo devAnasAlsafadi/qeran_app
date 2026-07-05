@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
@@ -39,8 +40,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     if (!_pageController.hasClients) return;
     _pageController.animateToPage(
       page,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
+      duration: QeranMotion.gentle,
+      curve: QeranCurves.standard,
     );
   }
 

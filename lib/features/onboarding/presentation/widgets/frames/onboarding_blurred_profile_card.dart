@@ -7,11 +7,13 @@ import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/app_assets.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// The privacy hero: a sample profile whose photo stays **blurred**. The avatar
-/// is a wine gradient with the person's initial, frosted by a `BackdropFilter`
-/// (plus a translucent veil to simulate the design's `saturate`), a lock note
+/// The privacy hero: a sample profile whose photo stays **blurred**. A real
+/// profile portrait sits behind a heavy `BackdropFilter` frost (plus a
+/// translucent veil to simulate the design's `saturate`), so it reads as a
+/// person behind premium glass rather than a technical blackout. A lock note
 /// over it, then the name/age and the floating info chips beneath.
 class OnboardingBlurredProfileCard extends StatelessWidget {
   const OnboardingBlurredProfileCard({super.key});
@@ -48,6 +50,7 @@ class _BlurredAvatar extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // Wine base — tints the portrait and backs its transparent corners.
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -57,18 +60,11 @@ class _BlurredAvatar extends StatelessWidget {
                 ),
               ),
             ),
-            Center(
-              child: Text(
-                LocaleKeys.onboarding_essence_person_initial.t(context),
-                style: QeranTypography.displayLg.copyWith(
-                  color: QeranColors.gold,
-                  fontSize: 72,
-                ),
-              ),
-            ),
+            // A real profile portrait — the "someone" behind the glass.
+            Image.asset(AppAssets.male, fit: BoxFit.cover),
             // Frost + veil (blur ≈ design's 13px; veil ≈ saturate).
             BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: const ColoredBox(color: QeranColors.wine20),
             ),
             // Top-lit glass rim — lifts the card off the wine hero behind it.

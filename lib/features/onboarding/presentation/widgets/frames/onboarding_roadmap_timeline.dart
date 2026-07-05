@@ -6,6 +6,8 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_reveal.dart';
+
 /// The 10-step marriage journey as a vertical timeline. Wine nodes with a gold
 /// ring and gold icon; the final node ("marriage") is gold-filled to celebrate
 /// the destination. A subtle gold ring motif sits behind for depth.
@@ -42,7 +44,7 @@ class OnboardingRoadmapTimeline extends StatelessWidget {
             spacing: 24,
           ),
         ),
-        Column(
+        OnboardingReveal(
           children: [
             for (var i = 0; i < steps.length; i++)
               _RoadmapNode(

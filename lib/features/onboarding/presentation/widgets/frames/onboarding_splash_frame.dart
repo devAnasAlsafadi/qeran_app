@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/effects/ring_motif.dart';
+import 'package:qeran/core/design_system/motion/soft_scale_in.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -50,6 +52,17 @@ class _OnboardingSplashFrameState extends State<OnboardingSplashFrame> {
 
   @override
   Widget build(BuildContext context) {
+    final reduce = MediaQuery.of(context).disableAnimations;
+    Widget reveal(Widget child, int delayMs, {double beginScale = 0.94}) =>
+        reduce
+            ? child
+            : SoftScaleIn(
+                delay: Duration(milliseconds: delayMs),
+                duration: QeranMotion.hero,
+                beginScale: beginScale,
+                child: child,
+              );
+
     return GestureDetector(
       onTap: _advance,
       behavior: HitTestBehavior.opaque,
@@ -59,38 +72,48 @@ class _OnboardingSplashFrameState extends State<OnboardingSplashFrame> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const RingMotif(
-                color: QeranColors.gold,
-                opacity: 0.12,
-                size: 320,
-                ringCount: 3,
-                spacing: 26,
+              reveal(
+                const RingMotif(
+                  color: QeranColors.gold,
+                  opacity: 0.12,
+                  size: 320,
+                  ringCount: 3,
+                  spacing: 26,
+                ),
+                0,
+                beginScale: 0.8,
               ),
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(AppAssets.splashSymbol, width: 132),
+                  reveal(Image.asset(AppAssets.splashSymbol, width: 132), 120),
                   QeranSpacing.vs24,
                   // Brand wordmark — a fixed brand mark, not localized copy.
-                  Text(
-                    'QERAN',
-                    style: QeranTypography.displaySm.copyWith(
-                      color: QeranColors.gold,
-                      letterSpacing: 8,
-                    ),
-                  ),
-                  QeranSpacing.vs16,
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: QeranSpacing.s32,
-                    ),
-                    child: Text(
-                      LocaleKeys.onboarding_splash_tagline.t(context),
-                      textAlign: TextAlign.center,
-                      style: QeranTypography.body.copyWith(
-                        color: QeranColors.gold60,
+                  reveal(
+                    Text(
+                      'QERAN',
+                      style: QeranTypography.displaySm.copyWith(
+                        color: QeranColors.gold,
+                        letterSpacing: 8,
                       ),
                     ),
+                    300,
+                  ),
+                  QeranSpacing.vs16,
+                  reveal(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: QeranSpacing.s32,
+                      ),
+                      child: Text(
+                        LocaleKeys.onboarding_splash_tagline.t(context),
+                        textAlign: TextAlign.center,
+                        style: QeranTypography.body.copyWith(
+                          color: QeranColors.gold60,
+                        ),
+                      ),
+                    ),
+                    460,
                   ),
                 ],
               ),

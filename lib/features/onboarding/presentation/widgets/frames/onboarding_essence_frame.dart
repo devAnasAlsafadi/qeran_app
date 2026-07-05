@@ -10,6 +10,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_blurred_profile_card.dart';
 import 'onboarding_privacy_step_strip.dart';
+import 'onboarding_reveal.dart';
 
 /// Frame 1 — Essence & Privacy (الجوهر والخصوصية).
 ///
@@ -34,7 +35,7 @@ class OnboardingEssenceFrame extends StatelessWidget {
                 QeranSpacing.s20,
                 QeranSpacing.s16,
               ),
-              child: const Column(
+              child: const OnboardingReveal(
                 children: [
                   OnboardingBlurredProfileCard(),
                   QeranSpacing.vs20,

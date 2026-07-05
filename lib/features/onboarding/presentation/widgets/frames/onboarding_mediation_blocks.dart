@@ -7,6 +7,8 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_reveal.dart';
+
 /// The mediation flow: three status cards — inquiry sent → response received →
 /// families' details — separated by a soft down-chevron to read as a sequence.
 class OnboardingMediationBlocks extends StatelessWidget {
@@ -34,19 +36,20 @@ class OnboardingMediationBlocks extends StatelessWidget {
         Icons.schedule_rounded,
       ),
     ];
-    return Column(
-      children: [
-        for (var i = 0; i < blocks.length; i++) ...[
-          if (i > 0)
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: QeranColors.gold40,
-              size: 22,
-            ),
-          _StatusBlock(data: blocks[i]),
-        ],
-      ],
-    );
+    final items = <Widget>[];
+    for (var i = 0; i < blocks.length; i++) {
+      if (i > 0) {
+        items.add(
+          const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: QeranColors.gold40,
+            size: 22,
+          ),
+        );
+      }
+      items.add(_StatusBlock(data: blocks[i]));
+    }
+    return OnboardingReveal(children: items);
   }
 }
 

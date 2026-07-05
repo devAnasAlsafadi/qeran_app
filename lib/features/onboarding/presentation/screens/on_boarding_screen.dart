@@ -12,6 +12,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../on_boarding_model.dart';
 import '../cubit/onboarding_cubit.dart';
 import '../widgets/frames/onboarding_essence_frame.dart';
+import '../widgets/frames/onboarding_mediation_frame.dart';
 import '../widgets/frames/onboarding_splash_frame.dart';
 import '../widgets/onboarding_bottom_nav.dart';
 import '../widgets/onboarding_top_bar.dart';
@@ -125,7 +126,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
       case OnboardingFrame.essencePrivacy:
         return const OnboardingEssenceFrame();
       case OnboardingFrame.mediation:
-        return const _PlaceholderFrame(LocaleKeys.onboarding_mediation_title);
+        return OnboardingMediationFrame(onSearch: cubit.nextPage);
       case OnboardingFrame.roadmap:
         return const _PlaceholderFrame(LocaleKeys.onboarding_roadmap_title);
     }

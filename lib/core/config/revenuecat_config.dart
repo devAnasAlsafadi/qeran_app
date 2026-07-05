@@ -3,30 +3,47 @@ import 'dart:io' show Platform;
 /// RevenueCat SDK keys, resolved at build time.
 ///
 /// RevenueCat's *SDK* keys are PUBLIC (designed to ship in the client) — they
-/// are not secrets, so a const default is safe. The truly secret key (server
+/// are not secrets, so const defaults are safe. The truly secret key (server
 /// webhook validation) lives only with the backend and never enters the app.
 ///
-/// Keys are overridable per platform via `--dart-define` so release builds
-/// inject production keys without committing them:
-///   flutter build appbundle \
-///     --dart-define=REVENUECAT_ANDROID_KEY=goog_xxx \
-///     --dart-define=REVENUECAT_IOS_KEY=appl_xxx
-/// With no define, the shared TEST key is used (friction-free local dev).
+/// Resolution order per platform (highest priority first):
+///   1. `--dart-define=REVENUECAT_ANDROID_KEY=...` / `REVENUECAT_IOS_KEY=...`
+///      — lets CI (or a throwaway Test Store build) inject a key without
+///      editing source.
+///   2. Otherwise → the production store key (Google Play `goog_…` /
+///      App Store `appl_…`), in **every** build mode.
+///
+/// Debug/profile deliberately use the real Google Play key too, so the SDK and
+/// the dashboard's store offerings always match. The Test Store key is gone —
+/// it raised "no Test Store products registered" on purchase because the
+/// offerings are Google Play products, not Test Store products.
 class RevenueCatConfig {
   RevenueCatConfig._();
 
-  /// Shared sandbox/test key (RevenueCat project "Qeran"). Public by design.
-  static const String _testKey = 'test_HqEqSHfkEMpiQInqAdGjivICcdd';
+  // TODO(secrets): Anas — confirm/replace these with the real RevenueCat
+  // *production* SDK keys before the next release build (RC dashboard →
+  // Project settings → API keys → App-specific keys, Android "goog_..." /
+  // Apple "appl_..."). RC SDK keys are public/safe to ship, but they MUST be
+  // the production keys or release builds hit the "Wrong API Key" dialog.
+  static const String _androidProductionKey =
+      'goog_xkSZqDIzAXLbUfxUYsqtBUkcIjJ';
+  static const String _iosProductionKey = 'appl_udfePLhIiRlxsOEEPzkILqcHjLc';
 
-  static const String androidApiKey = String.fromEnvironment(
-    'REVENUECAT_ANDROID_KEY',
-    defaultValue: _testKey,
-  );
+  /// `--dart-define` overrides (empty when not passed). Highest priority so an
+  /// explicit build-time key always wins over the mode default.
+  static const String _androidDefine =
+      String.fromEnvironment('REVENUECAT_ANDROID_KEY');
+  static const String _iosDefine =
+      String.fromEnvironment('REVENUECAT_IOS_KEY');
 
-  static const String iosApiKey = String.fromEnvironment(
-    'REVENUECAT_IOS_KEY',
-    defaultValue: _testKey,
-  );
+  /// Android key: a `--dart-define` wins; otherwise the Google Play production
+  /// key, in every build mode.
+  static String get androidApiKey =>
+      _androidDefine.isNotEmpty ? _androidDefine : _androidProductionKey;
+
+  /// iOS key: same resolution as [androidApiKey] (App Store production key).
+  static String get iosApiKey =>
+      _iosDefine.isNotEmpty ? _iosDefine : _iosProductionKey;
 
   /// The RevenueCat entitlement that unlocks premium features. Created in
   /// the RC dashboard (Product catalog → Entitlements) and attached to all

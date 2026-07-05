@@ -51,6 +51,16 @@ class QeranShadows {
     ),
   ];
 
+  /// Upward lift — for a bottom panel/sheet that floats above the content
+  /// below it (shadow cast up, not down). Wine-tinted like the rest.
+  static const List<BoxShadow> eLiftUp = <BoxShadow>[
+    BoxShadow(
+      color: Color(0x24431C33),
+      blurRadius: 30,
+      offset: Offset(0, -10),
+    ),
+  ];
+
   /// Reference: same wine alpha used for hairline borders when shadows
   /// are inappropriate (e.g. inside cards).
   static const Color hairlineBorder = QeranColors.wine08;

@@ -99,7 +99,7 @@ class _RoadmapNode extends StatelessWidget {
               child: Text(
                 label,
                 style: QeranTypography.subtitle.copyWith(
-                  color: isLast ? QeranColors.goldDeep : QeranColors.wine,
+                  color: isLast ? QeranColors.gold : QeranColors.paper,
                   fontWeight: isLast ? FontWeight.w800 : FontWeight.w600,
                 ),
               ),
@@ -123,7 +123,7 @@ class _NodeCircle extends StatelessWidget {
       width: 38,
       height: 38,
       decoration: BoxDecoration(
-        color: isLast ? QeranColors.gold : QeranColors.wine,
+        color: isLast ? QeranColors.gold : QeranColors.wineLight,
         shape: BoxShape.circle,
         border: Border.all(
           color: isLast ? QeranColors.gold : QeranColors.gold40,

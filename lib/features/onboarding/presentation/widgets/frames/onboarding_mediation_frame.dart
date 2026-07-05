@@ -8,6 +8,7 @@ import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_hero_background.dart';
 import 'onboarding_matchmaker_glass_card.dart';
 import 'onboarding_mediation_blocks.dart';
 
@@ -28,27 +29,29 @@ class OnboardingMediationFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safe = MediaQuery.paddingOf(context);
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              QeranSpacing.s20,
-              safe.top + 52,
-              QeranSpacing.s20,
-              QeranSpacing.s16,
-            ),
-            child: const Column(
-              children: [
-                OnboardingMatchmakerGlassCard(),
-                QeranSpacing.vs20,
-                OnboardingMediationBlocks(),
-              ],
+    return OnboardingHeroBackground(
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                QeranSpacing.s20,
+                safe.top + 52,
+                QeranSpacing.s20,
+                QeranSpacing.s16,
+              ),
+              child: const Column(
+                children: [
+                  OnboardingMatchmakerGlassCard(),
+                  QeranSpacing.vs20,
+                  OnboardingMediationBlocks(),
+                ],
+              ),
             ),
           ),
-        ),
-        _MediationTextPanel(bottomInset: safe.bottom + 84, onSearch: onSearch),
-      ],
+          _MediationTextPanel(bottomInset: safe.bottom + 84, onSearch: onSearch),
+        ],
+      ),
     );
   }
 }

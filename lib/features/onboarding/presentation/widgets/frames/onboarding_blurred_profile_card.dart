@@ -5,7 +5,6 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -19,18 +18,15 @@ class OnboardingBlurredProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QeranCard(
-      padding: const EdgeInsets.all(QeranSpacing.s16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _BlurredAvatar(),
-          QeranSpacing.vs16,
-          _NameRow(),
-          QeranSpacing.vs12,
-          _InfoChips(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _BlurredAvatar(),
+        QeranSpacing.vs16,
+        _NameRow(),
+        QeranSpacing.vs12,
+        _InfoChips(),
+      ],
     );
   }
 }
@@ -40,8 +36,12 @@ class _BlurredAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: QeranRadii.cardR,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: QeranRadii.cardR,
+        border: Border.all(color: QeranColors.gold20),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: SizedBox(
         height: 168,
         width: double.infinity,
@@ -114,13 +114,13 @@ class _NameRow extends StatelessWidget {
             LocaleKeys.onboarding_essence_person_name.t(context),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: QeranTypography.subtitle.copyWith(color: QeranColors.wine),
+            style: QeranTypography.subtitle.copyWith(color: QeranColors.paper),
           ),
         ),
         QeranSpacing.hs8,
         DecoratedBox(
           decoration: const BoxDecoration(
-            color: QeranColors.gold12,
+            color: QeranColors.creamSurface,
             borderRadius: QeranRadii.pill,
           ),
           child: Padding(
@@ -174,7 +174,7 @@ class _InfoChips extends StatelessWidget {
           QeranChip(
             icon: icon,
             label: '$label · $value',
-            variant: QeranChipVariant.interest,
+            variant: QeranChipVariant.meta,
           ),
       ],
     );

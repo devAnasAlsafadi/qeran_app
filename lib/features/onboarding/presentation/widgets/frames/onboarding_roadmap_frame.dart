@@ -9,6 +9,7 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_hero_background.dart';
 import 'onboarding_roadmap_timeline.dart';
 
 /// Frame 3 — Marriage Roadmap (رحلة الزواج).
@@ -24,40 +25,42 @@ class OnboardingRoadmapFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safe = MediaQuery.paddingOf(context);
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              QeranSpacing.s20,
-              safe.top + 52,
-              QeranSpacing.s20,
-              QeranSpacing.s16,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  LocaleKeys.onboarding_roadmap_title.t(context),
-                  style: QeranTypography.headline
-                      .copyWith(color: QeranColors.wine),
-                ),
-                QeranSpacing.vs8,
-                Text(
-                  LocaleKeys.onboarding_roadmap_subtitle.t(context),
-                  style: QeranTypography.body
-                      .copyWith(color: QeranColors.inkMuted),
-                ),
-                QeranSpacing.vs24,
-                const OnboardingRoadmapTimeline(),
-                QeranSpacing.vs24,
-                const _TrustBadges(),
-              ],
+    return OnboardingHeroBackground(
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                QeranSpacing.s20,
+                safe.top + 52,
+                QeranSpacing.s20,
+                QeranSpacing.s16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    LocaleKeys.onboarding_roadmap_title.t(context),
+                    style: QeranTypography.displaySm
+                        .copyWith(color: QeranColors.paper),
+                  ),
+                  QeranSpacing.vs8,
+                  Text(
+                    LocaleKeys.onboarding_roadmap_subtitle.t(context),
+                    style: QeranTypography.body
+                        .copyWith(color: QeranColors.gold),
+                  ),
+                  QeranSpacing.vs24,
+                  const OnboardingRoadmapTimeline(),
+                  QeranSpacing.vs24,
+                  const _TrustBadges(),
+                ],
+              ),
             ),
           ),
-        ),
-        _RoadmapCtaPanel(bottomInset: safe.bottom + 84, onFinish: onFinish),
-      ],
+          _RoadmapCtaPanel(bottomInset: safe.bottom + 84, onFinish: onFinish),
+        ],
+      ),
     );
   }
 }
@@ -81,7 +84,7 @@ class _TrustBadges extends StatelessWidget {
           QeranChip(
             icon: Icons.check_circle_rounded,
             label: badge,
-            variant: QeranChipVariant.interest,
+            variant: QeranChipVariant.meta,
           ),
       ],
     );

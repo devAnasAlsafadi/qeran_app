@@ -29,7 +29,7 @@ class OnboardingTopBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _SkipButton(onTap: onSkip, isRtl: isRtl),
-          const LanguageSwitchButton(variant: LanguageSwitchVariant.dark),
+          const LanguageSwitchButton(variant: LanguageSwitchVariant.light),
         ],
       ),
     );
@@ -52,7 +52,7 @@ class _SkipButton extends StatelessWidget {
         children: [
           Text(
             LocaleKeys.onboarding_skip.t(context),
-            style: QeranTypography.label.copyWith(color: QeranColors.inkMuted),
+            style: QeranTypography.label.copyWith(color: QeranColors.paper),
           ),
           QeranSpacing.hs4,
           // Points toward the reading end (→ in LTR, ← in RTL).
@@ -61,7 +61,7 @@ class _SkipButton extends StatelessWidget {
             child: const Icon(
               Icons.keyboard_double_arrow_right_rounded,
               size: 18,
-              color: QeranColors.inkMuted,
+              color: QeranColors.paper,
             ),
           ),
         ],

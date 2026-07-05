@@ -34,7 +34,7 @@ class OnboardingPrivacyStepStrip extends StatelessWidget {
                 start: nodeWidth / 2,
                 end: nodeWidth / 2,
                 top: _nodeSize / 2,
-                child: Container(height: 1.5, color: QeranColors.wine12),
+                child: Container(height: 1.5, color: QeranColors.gold40),
               ),
               Row(
                 children: [
@@ -79,7 +79,7 @@ class _Step extends StatelessWidget {
           textAlign: TextAlign.center,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
+          style: QeranTypography.caption.copyWith(color: QeranColors.paper),
         ),
       ],
     );

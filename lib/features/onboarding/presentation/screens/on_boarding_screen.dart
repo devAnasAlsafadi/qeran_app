@@ -78,7 +78,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           final cubit = context.read<OnboardingCubit>();
           final onContent = state.currentPage != 0;
           return Scaffold(
-            backgroundColor: QeranColors.creamCanvas,
+            backgroundColor: QeranColors.wine,
             body: Stack(
               children: [
                 PageView.builder(

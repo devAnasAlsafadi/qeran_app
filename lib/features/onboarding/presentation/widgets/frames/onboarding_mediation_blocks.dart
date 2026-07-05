@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -40,7 +40,7 @@ class OnboardingMediationBlocks extends StatelessWidget {
           if (i > 0)
             const Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: QeranColors.wine20,
+              color: QeranColors.gold40,
               size: 22,
             ),
           _StatusBlock(data: blocks[i]),
@@ -64,7 +64,12 @@ class _StatusBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return QeranCard.flat(
+    return Container(
+      decoration: BoxDecoration(
+        color: QeranColors.paper.withValues(alpha: 0.06),
+        borderRadius: QeranRadii.controlR,
+        border: Border.all(color: QeranColors.paper.withValues(alpha: 0.16)),
+      ),
       padding: const EdgeInsets.all(QeranSpacing.s12),
       child: Row(
         children: [
@@ -72,10 +77,10 @@ class _StatusBlock extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: const BoxDecoration(
-              color: QeranColors.wine08,
+              color: QeranColors.gold12,
               shape: BoxShape.circle,
             ),
-            child: Icon(data.icon, color: QeranColors.wine, size: 18),
+            child: Icon(data.icon, color: QeranColors.gold, size: 18),
           ),
           QeranSpacing.hs12,
           Expanded(
@@ -83,14 +88,14 @@ class _StatusBlock extends StatelessWidget {
               data.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: QeranTypography.subtitle.copyWith(color: QeranColors.wine),
+              style: QeranTypography.subtitle.copyWith(color: QeranColors.paper),
             ),
           ),
           QeranSpacing.hs8,
           QeranChip(
             icon: data.chipIcon,
             label: data.status,
-            variant: QeranChipVariant.interest,
+            variant: QeranChipVariant.meta,
             compact: true,
           ),
         ],

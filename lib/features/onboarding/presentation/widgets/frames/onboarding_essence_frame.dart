@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'onboarding_hero_background.dart';
 import 'onboarding_blurred_profile_card.dart';
 import 'onboarding_privacy_step_strip.dart';
 
@@ -22,27 +23,29 @@ class OnboardingEssenceFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safe = MediaQuery.paddingOf(context);
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsetsDirectional.fromSTEB(
-              QeranSpacing.s20,
-              safe.top + 52,
-              QeranSpacing.s20,
-              QeranSpacing.s16,
-            ),
-            child: const Column(
-              children: [
-                OnboardingBlurredProfileCard(),
-                QeranSpacing.vs20,
-                OnboardingPrivacyStepStrip(),
-              ],
+    return OnboardingHeroBackground(
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                QeranSpacing.s20,
+                safe.top + 52,
+                QeranSpacing.s20,
+                QeranSpacing.s16,
+              ),
+              child: const Column(
+                children: [
+                  OnboardingBlurredProfileCard(),
+                  QeranSpacing.vs20,
+                  OnboardingPrivacyStepStrip(),
+                ],
+              ),
             ),
           ),
-        ),
-        _EssenceTextPanel(bottomInset: safe.bottom + 84),
-      ],
+          _EssenceTextPanel(bottomInset: safe.bottom + 84),
+        ],
+      ),
     );
   }
 }

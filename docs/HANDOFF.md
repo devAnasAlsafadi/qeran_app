@@ -2,7 +2,7 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 1 يوليو 2026
+> آخر تحديث: 6 يوليو 2026
 
 ---
 
@@ -11,7 +11,7 @@
 
 **الدفع = IAP / RevenueCat** — محسوم؛ يحتاج منتجات المتجر + webhook طارق قبل P2+. P1 (boot + هوية) مربوط ومتحقَّق هذه الجلسة.
 
-**▶️ نقطة الدخول للجلسة الجاية:** الأنظف = **Payments UI** (paywall / كود الخصم / عرض الباقات / حالة المشترك — يمكن البدء قبل الـ Mac/المتجر الحي، انظر «الخطوات الجاية»)، أو خذ توجيهاً جديداً من المستخدم. ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down). كل مسارات «منذ 28 يونيو» مدفوعة — الشجرة متزامنة مع `origin/main` (آخر commit `454de30`).
+**▶️ نقطة الدخول للجلسة الجاية:** **مرحلة الصقل البصري (Design Polish)** — تحسين بصري ميزة-بميزة عبر Claude Design. **الشاشة التالية: Login/Auth.** القاعدة الحاكمة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.** ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down + حاجب اختبار الـ paywall). انظر «🆕 يوليو» للمُنجَز الأحدث.
 
 ---
 
@@ -40,7 +40,7 @@
 - **مواد العميل المُرسَلة:** `qeran_client_roadmap.html` + `qeran_tariq_backend_tasks.html` + `qeran_tariq_offer_ids_explained.html` — **طارق لازم يستلم الأخيرَين**.
 
 ### د. Caching + offline UX (هذه الجلسة)
-> المرجع (التفصيل العميق، لا تُكرّره هنا): `docs/CACHING_INVESTIGATION.md` + `docs/CACHING_IMPLEMENTATION_PLAN.md`.
+> المرجع (التفصيل العميق، لا تُكرّره هنا — **مؤرشَف**): `docs/_plan_drafts/_archive/CACHING_INVESTIGATION.md` + `docs/_plan_drafts/_archive/CACHING_IMPLEMENTATION_PLAN.md`.
 
 **اكتشاف يستحق التثبيت:** `IndexedStack` كان **يحفظ حالة التابات أصلاً** (بفضل `39df521`) — فافتراض «يعيد الجلب كل تنقّل» كان غلطاً. المشاكل الحقيقية كانت: **لا كشف offline**، **mounting جشع** عند البدء البارد (5 GETs متوازية)، و**جلب متكرّر لبيانات ثابتة**.
 
@@ -70,6 +70,19 @@
 
 ---
 
+## 🆕 يوليو — Paywall UI + Onboarding + التحوّل لمرحلة الصقل البصري (الأحدث)
+
+**مُنجَز هذه الفترة:**
+- **Paywall UI (7 commits ذرّية):** عرض الباقات + سعر المتجر (RevenueCat) كمصدر حقيقة مع fallback للباك إند + كود الخصم + حالة المشترك. + **إصلاح locale الـ Gradle** (تثبيت `-Duser.country=US -Duser.language=en` لحلّ فشل بناء الـ AAB بالأرقام العربية `classes٢.dex` على ويندوز) + **ربط مفتاح RevenueCat الإنتاجي** (`goog_…`/`appl_…` بكل الأوضاع، تقاعد مفتاح Test Store — كان يرمي «no Test Store products») + **رفع الإصدار → 1.0.3+4**.
+- **إعادة تصميم Onboarding (12 commit ذرّي):** إعادة بناء طبقة العرض من mockup الـ Claude Design إلى **4 إطارات** — Splash → الجوهر والخصوصية → الوساطة الجادة → رحلة الزواج. **طبقة العرض فقط — `OnboardingCubit`/`OnboardingState` لم تُلمَس** (diff فارغ). تفاصيل التصميم في `_design/Qeran Onboarding.html`.
+- **إعداد Google Play:** اشتراكات + **30 عرضاً ترويجياً** + ربط RevenueCat + **License Testing** مُهيّأ.
+- **إعداد Apple App Store جزئي:** مفتاح P8 + الاشتراكات في **Missing Metadata** بانتظار لقطات الشاشة.
+- **Caching + offline UX:** Piece 3 + Piece 4/5 (مؤرشَف التفصيل — انظر `docs/_plan_drafts/_archive/`).
+
+**⚠️ المرحلة الحالية = صقل بصري (Design Polish):** تحسين بصري ميزة-بميزة عبر Claude Design. **الشاشة التالية: Login/Auth.** القاعدة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا Figma.**
+
+---
+
 ## 🏬 حالة المتجر / الإطلاق (Store / Release)
 - **Apple App Store Connect:** حساب العميل `info@qeran.ae` (Team `4C9GL7WLY7`)؛ تطبيق Qeran منشأ، Bundle ID `com.qeran.app` (Apple ID `6783272039`)؛ مجموعة اشتراك «Qeran Membership» (`22177601`)؛ **3 منتجات نهائية** منشأة (Apple لا يحتاج رفع build): `qeran_vip_monthly` $49.99 · `qeran_basic_monthly` $34.99 · `qeran_vip_3month` $119.99. Free Apps Agreement: **Active**. Paid Apps Agreement: **معلّق** (ضريبة + بنك — على العميل). Sanctions hold: **معلّق** مراجعة Apple (العميل قدّم الهوية).
 - **Google Play Console:** حساب `Qeran.Dev` (Personal، `4886994776950416347`)؛ تحقّق الهوية **مكتمل** (إيميل+هاتف+هوية كلها خضراء)؛ التطبيق منشأ (اسم+package+Free+لغة). **لم يُرفع بعد:** يحتاج Android release signing (keystore) → `flutter build appbundle` → رفع لـ Internal testing → **ثم** تُنشأ منتجات IAP (**جوجل يطلب AAB قبل الاشتراكات، عكس Apple**). قاعدة 12-tester × 14-يوم تنطبق على **Production فقط**؛ Internal testing فوري ويكفي لاختبار الدفع.
@@ -80,17 +93,18 @@
 ## 🔴 أعلام حرجة / حاجبات (نهاية الجلسة)
 - 🔴 **السيرفر DOWN:** `qeranadmin-001-site1.rtempurl.com` يرجّع «No route to host» (errno 113) على كل الطلبات — استضافة rtempurl المجانية سقطت (المشكلة المتكرّرة). طارق مُبلَّغ.
 - 🔴 **استضافة إنتاج مطلوبة قبل الإطلاق:** rtempurl المجاني غير موثوق (ينام، يفقد بيانات — صور اختبار قديمة ضاعت أصلاً). العميل لازم يرتّب استضافة مدفوعة قبل إطلاق المتجر.
-- ✅ **متزامن مع `origin/main`** (كل عمل مسارات «منذ 28 يونيو» مدفوع؛ آخر commit `454de30`، 0 ahead/0 behind).
+- 🔴 **iOS — لقطة شاشة الـ paywall مطلوبة** لفتح إرسال الـ metadata على Apple (الاشتراكات في Missing Metadata).
+- ✅ **متزامن مع `origin/main` بعد دفع هذه الجلسة** (عمل يوليو: paywall + onboarding + رفع الإصدار 1.0.3+4 + هذا التحديث — دُفِع كله. ملاحظة: كان **19 commit محلياً غير مدفوع** قبل هذه الجلسة رغم افتراض أن onboarding مدفوع — صُحّح بالدفع الآن).
 
 ---
 
 ## 🗺️ الخطوات الجاية (بالأولوية)
 
-**▶️ التالي (بعد مسارات «منذ 28 يونيو»):**
-- **Payments UI** (paywall، كود الخصم، عرض الباقات، حالة المشترك) — يمكن البدء **قبل** الـ Mac/المتجر الحي.
-- **انتظار تحقّق اعتماد Google** (subscriptions API — 24–36 ساعة من مسار الدفع، 30 يونيو).
-- **عمل طارق للباك إند** حسب مواد العميل (`qeran_tariq_backend_tasks.html` + `qeran_tariq_offer_ids_explained.html`).
-- **لا عمل caching متبقٍّ** ضمن نطاق Piece 3 (المسارات الثلاثة cached: `/plans`، `/edit-form`، `/explore/filters`).
+**▶️ التالي — مرحلة الصقل البصري (Design Polish):**
+- **الشاشة التالية: Login/Auth** — تحسين بصري عبر mockup الـ Claude Design.
+- **القاعدة الحاكمة:** صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.
+- **🔴 حاجب اختبار الـ paywall الحقيقي:** طارق يحدّث `subscription_plans` بالمنتجات الجديدة + أسعار USD + product IDs (انظر جدول طارق).
+- **iOS:** لقطة شاشة الـ paywall مطلوبة لفتح إرسال الـ metadata.
 
 **السياق الأقدم (بعضه صار معمولاً — للأرشيف):**
 1. ~~**هجرة auth/ الكاملة**~~ ✅ **مكتملة** (0→g كلها معمولة — انظر «🔧 هجرة auth — التقدّم»). يبقى فقط: `share_with_matchmaker_button._confirmDialog` (مؤجّل — انظر Deferred).
@@ -101,7 +115,7 @@
 6. ~~**هجرة الثيم القديم بالكامل (تطبيق المستخدم)**~~ ✅ **مكتملة 🏁** (166→0، 10 دفعات/11 commit — انظر «✅ جلسة 28 يونيو»). يبقى فقط: `share_with_matchmaker` dialog (Material→`QeranConfirmDialog`) + تنظيف `BorderRadius.circular` literals بالاشتراكات — انظر Deferred.
 7. **إعداد متجر Google Play:** توقيع الإصدار (release signing) + بناء ورفع AAB + إنشاء منتجات IAP (جوجل يطلب AAB أولاً) → ثم **RevenueCat P2–P6** (مؤجّلة لحين منتجات المتجر + webhook طارق).
 8. **إعداد المنصّات + الإطلاق:** iOS (Firebase/push) + **native splash** (Group C — الأصول جاهزة) + اختبار أيقونة الإشعار بـ push حقيقي.
-9. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب فيجما — لاحقاً.
+9. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب Claude Design — لاحقاً.
 10. **الإعدادات:** إكمال المتبقّي.
 
 ---
@@ -112,7 +126,7 @@
 - **`wineLight` `#4A1F38`:** توكن جديد لون لتدرّجات الواين ثنائية اللون (يُقرَن مع `wine`). (`f26e078`)
 - **swipe-deck ميت ومحذوف** — `discovery/` هو الـ deck الحي؛ `home_screen.dart` يحتضن `DiscoveryView`. (`7a8ec1f`)
 - **AUTH FIELD STYLE (مهم — لا توحّده):** حقول auth = `pill` + بلا border + ظل `e1` (تعبئة `paper` بيضاء، حلقة `danger` على الخطأ فقط). يختلف **عمداً** عن أسطح غير-auth (questionnaire/discovery/checkout) = `paper` + `hairline border`. معالجتان مقصودتان — لا "توحّدهما". (`5b80df4`)
-- **labels الحقول:** نمط فيجما = label **فوق** الحقل + hint **داخله**؛ يحملها `QeranTextField.label` / `AuthPasswordField.labelText`.
+- **labels الحقول:** نمط التصميم = label **فوق** الحقل + hint **داخله**؛ يحملها `QeranTextField.label` / `AuthPasswordField.labelText`.
 - **توكنز جديدة:** `inkFaint` (#B3A8AF — أفتح محايد، للـ hints والأيقونات الناعمة)؛ `appleBlack` (#000000 — الأسود الوحيد المسموح بالتطبيق، glyph Apple فقط).
 - **أزرار CTA (recovery/login/register):** `QeranButton` `primaryWine` (واين + نص أبيض).
 - **العين المدمجة (محسوم، كان مؤجّل):** `AuthPasswordField` تبنّى `showObscureToggle` المدمج؛ حُذف `obscurePasswordNotifier`/`onToggleVisibility` من الـ widget + login/register/reset controllers. (sub-step c)
@@ -121,7 +135,7 @@
 - **كرت القَسَم (oath):** السطح = تدرّج `paper → creamSurface` (مش الـ hex المؤجّل #FFFBF5/#F4E9DC) + `panelR` + ظل `e3`. (`85c3d63`)
 - **خانات OTP تبقى بحدود (NOT pill):** صناديق الرقم-الواحد تحتاج حدّاً مرئياً — `paper` + `hairline` + `controlR` + رقم `headline`؛ معالجة مختلفة عمداً عن حقول النص الـ pill. (`8b87d07`)
 - **السؤال vs المضي:** اسأل على أي قرار (دلالي أو تجميلي). فقط التعديلات المحددة تماماً تمشي مباشرة. (الافتراض القديم "امشِ بالتجميلي" ملغى.)
-- **Figma = الشكل، الهوية = الألوان.** صفر تسامح — كل شيء من الـ design system.
+- **Claude Design = الشكل، الهوية = الألوان.** صفر تسامح — كل شيء من الـ design system. (**Figma متقاعد كمصدر تصميم** — المصدر الآن ملفات Claude Design HTML في `_design/`.)
 - **الـ design system = المصدر الوحيد (نهائي):** صفر `AppColors`/`AppTextStyles`/`AppDimens` — الملفات **انحذفت**، فأي استخدام مستقبلي مستحيل تقنياً.
 - **تواصل user-to-user مباشر = ممنوع:** كل المحادثة عبر الخطّابة (محادثة `/api/chat/my-matchmaker` الوحيدة لكل مستخدم).
 - **أكواد الإحالة (affiliate) داخلية:** تُدار عبر الـ dashboard/الباك إند، **لا** عبر store offer codes (Apple يحدّ 10 offers نشطة/اشتراك — ما يتوسّع لكل خطّابة).
@@ -165,7 +179,7 @@
 - **رسائل الـ commit بتكذب:** commits قديمة تدّعي توحيد auth/onboarding — لسا legacy. تأكّد من الكود دايماً.
 - الدين التقني على جهة المستخدم؛ الخطّابة ~95% موحّدة أصلاً.
 - `MATCHMAKER_DIAGNOSTIC.md` القديم stale — أشياء قال "ناقصة" صارت معمولة. ثق بالكود.
-- **⭐ `IndexedStack` يحفظ الحالة عبر تبديل التابات *و* push/pop** — **لا تفترض** إعادة جلب لكل تنقّل (تصحيح افتراض شائع؛ التفصيل بـ `CACHING_INVESTIGATION.md`).
+- **⭐ `IndexedStack` يحفظ الحالة عبر تبديل التابات *و* push/pop** — **لا تفترض** إعادة جلب لكل تنقّل (تصحيح افتراض شائع؛ التفصيل بـ `_plan_drafts/_archive/CACHING_INVESTIGATION.md`).
 - **نجاح `submitAnswers` *يجب* أن يُبطِل cache الـ edit-form** (مربوط الآن؛ لو أُعيد هيكلة الـ repo، **أبقِ الـ hook** — انظر `questionnaire_repository_impl.dart`).
 - **cache قابل للتغيير في repo بـ `const` constructor** يتطلّب **إسقاط `const`** — بلا تغيير DI (الـ repos تُبنى عبر factories لا const contexts).
 - **`.then` على `executeApiCall<T>`** يُسقِط الاستدلال لـ `dynamic` لو `T` generic (مثل `SuccessResponse`) — **ثبّت الـ type parameter صراحةً** (`executeApiCall<SuccessResponse>(...)`).
@@ -191,6 +205,8 @@
   - **شريط أكشن الاستكشاف (`7a59045`):** ترتيب like→undo→pass عبر Directionality طبيعي (بلا flip يدوي).
   - **خلفية فراغ الشات (`ca0277d`):** `creamSurface→creamCanvas`.
 - **فرع واحد فقط الآن:** `main` هو فرع العمل الوحيد. حُذف الفرعان القديمان المدموجان (`claude/clever-lehmann`, `claude/zealous-montalcini`). (يبقى `claude/crazy-bartik` فيه commit social-auth قديم — قرار حذفه معلّق على المستخدم؛ firebase-signin مربوط أصلاً بـ `main`.)
+- **⭐ مصدر التصميم الآن = Claude Design (HTML):** ملفات mockup في مجلد `_design/` (مثل `_design/Qeran Onboarding.html`) — تُقرأ كمصدر الحقيقة للتصميم. **Figma متقاعد كمصدر تصميم — لا تُشِر إليه** بالكود أو الوثائق. (ملاحظة: `_design/` غير مُتتبَّع في git حالياً — إن أردته على origin فهو قرار منفصل، الملفات ثقيلة ~8.8MB.)
+- **⭐ مرحلة الصقل البصري = بصري فقط:** أثناء مهام الصقل، **لا تلمس منطق العمل** (Cubit/State/UseCase/Repository/DataSource) إطلاقاً — توكنز + widgets الـ DS فقط. (onboarding كان النموذج: طبقة العرض فقط، الـ cubit بديف فارغ.)
 - **لا تُكوميت أبداً (تبقى خارج git):** `.metadata` · `android/…/MainActivity.kt` (untracked) · `web/` (untracked).
 
 ---
@@ -240,6 +256,8 @@
 | ~~**الخطّابة — نص `status` بالأرشيف مترجَم؟**~~ | ✅ **محلول (طارق، 14 يونيو)** — أضاف `statusNameAr`/`statusNameEn` مترجَمَين على `ArchiveItemDto`؛ استهلكناهما (commit `b31a7fa`)، نعرض حسب اللغة. |
 | ~~`GET /users/subscription-plans` منشور؟ + فلتر `?planId=` شغّال؟~~ | ✅ **محلول + متحقَّق حي (15 يونيو)** — كلاهما شغّال. الـ endpoint رجّع باقتين (`planId`/`nameAr`/`nameEn`/`subscriberCount`)، و`approved-subscribed?planId=` فلتر server-side صح (الماسية·٠ → قائمة فارغة، الذهبية·٧ → ٧). بُني عليه شريط فلتر الباقات تحت «مشتركون» (انظر «القرارات → فلتر الباقات»). **ملاحظة:** أجسام Swagger كانت stubs، فأسماء الحقول من الـ brief — تطابقت مع الواقع، لكن الـ parsers دفاعية لو اختلفت لاحقاً. |
 | **الخطّابة — تحقّق إيصال IAP** على الباك إند | معلّق — مطلوب وقت بناء paywall (الدفع = IAP محسوم) |
+| **Paywall — تحديث `subscription_plans` بالمنتجات الجديدة** (`basicmonthly` · `vipmonthly` · `vip3month`) + أسعار USD حقيقية + `googleProductId`/`appleProductId` لكل pricing | 🔴 **حاجب لاختبار الـ paywall الحقيقي على الجهاز** — بانتظار طارق |
+| **Paywall — تأكيد نشر endpoint `/validate-code`** | معلّق — بانتظار تأكيد طارق للـ deploy |
 | **الخطّابة — روابط «تواصل معنا» الحقيقية** (product) | معلّق — حالياً placeholders |
 | **الخطّابة — أشكال colleagues/notifications** (مسطّح vs متداخل، array vs paged) | معلّق — **non-blocking** (parsers دفاعية تغطّي) |
 | ~~**تطبيق المستخدم — `data` بالإشعارات null / `data.action` فارغ**~~ | ✅ **محلول (طارق، 14 يونيو)** — الجذر كان `data` ما يُحفَظ بالـ DB؛ صار يُرجَع كـ JSON string بالقيم الموثّقة. السجلات القديمة تبقى `data:null` (fallback عندنا: لا deep-link، لا crash). **يبقى تحقّق حي** لأيقونات per-action + توجيه `data` معبّأ على إشعار post-fix (انظر Deferred متابعة 2). |
@@ -274,7 +292,7 @@
 - `95b4d88` — **sub-step b:** هجرة wrappers الإيميل + كلمة المرور للـ `QeranTextField`.
 - `60f85f5` — **sub-step b2:** هجرة حقل الهاتف + `CountryCodePicker` معاً.
 - `3f4fd19` — أسطح الحقول/الكروت `creamSurface` → `paper` أبيض + `hairline border` (مراجعة تصميم).
-- `e3ddd3d` + `5b80df4` — **sub-step c:** login/register يطابقوا فيجما (label فوق الحقل، تبنّي العين المدمجة `showObscureToggle`، حذف الـ notifier من الـ controllers)؛ والحقول صارت `pill`/borderless + ظل `e1` + hint الاسم من فيجما.
+- `e3ddd3d` + `5b80df4` — **sub-step c:** login/register يطابقوا التصميم (label فوق الحقل، تبنّي العين المدمجة `showObscureToggle`، حذف الـ notifier من الـ controllers)؛ والحقول صارت `pill`/borderless + ظل `e1` + hint الاسم من التصميم.
 - `657dee9` — hints أصغر/أفتح + توكن `inkFaint` (مراجعة تصميم).
 - `469e9c5` — disc جوجل → `paper` أبيض + ظل `e2` (مراجعة تصميم).
 - `e812c8f` — **sub-step d:** هجرة شاشتي forgot/reset password.

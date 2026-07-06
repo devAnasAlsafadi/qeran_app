@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
-/// The immersive wine hero canvas behind a content frame. A radial
-/// wine-light→wine gradient (centred slightly high, matching the design's
-/// `radial-gradient(circle at 50% 38%, …)`) gives the frames their premium
-/// depth; the white dome panel then surfaces out of it.
+/// The immersive wine hero canvas behind a content frame. A vertical
+/// wine-light→wine gradient (top-to-bottom, matching the design's
+/// `linear-gradient(180deg, …)`) gives the frames their premium depth; the
+/// white dome panel then surfaces out of it.
 ///
 /// Wrap a whole content frame with this — the frame's own bottom panel paints
 /// its paper surface over the lower portion.
@@ -17,9 +17,9 @@ class OnboardingHeroBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment(0, -0.35),
-          radius: 1.15,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [QeranColors.wineLight, QeranColors.wine],
         ),
       ),

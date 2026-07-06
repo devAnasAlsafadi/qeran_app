@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// The profile identity layer that rides the bottom of the portrait card: the
-/// name + age, then the four category chips. Paper text over the card's wine
-/// scrim keeps it legible whether the pixels behind are clear or frosted.
+/// The profile identity layer that rides the bottom of the portrait card: an
+/// initial avatar + name + age + verified mark, then the four category chips.
+/// Paper text over the card's wine scrim keeps it legible whether the pixels
+/// behind are clear or frosted.
 class OnboardingProfileMetaOverlay extends StatelessWidget {
   const OnboardingProfileMetaOverlay({super.key});
 
@@ -30,33 +30,37 @@ class _NameRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        Container(
+          width: 31,
+          height: 31,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: QeranColors.gold, width: 1.5),
+          ),
+          child: Text(
+            LocaleKeys.onboarding_essence_person_initial.t(context),
+            style: QeranTypography.label.copyWith(color: QeranColors.gold),
+          ),
+        ),
+        QeranSpacing.hs8,
         Flexible(
           child: Text(
             LocaleKeys.onboarding_essence_person_name.t(context),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: QeranTypography.title.copyWith(color: QeranColors.paper),
+            style: QeranTypography.subtitle.copyWith(color: QeranColors.paper),
           ),
         ),
         QeranSpacing.hs8,
-        DecoratedBox(
-          decoration: const BoxDecoration(
-            color: QeranColors.creamSurface,
-            borderRadius: QeranRadii.pill,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: QeranSpacing.s12,
-              vertical: QeranSpacing.s2,
-            ),
-            // Age is a numeric cluster — pinned LTR + tabular figures.
-            child: Text(
-              LocaleKeys.onboarding_essence_person_age.t(context),
-              textDirection: TextDirection.ltr,
-              style: QeranTypography.numeric.copyWith(color: QeranColors.wine),
-            ),
-          ),
+        // Age is a numeric cluster — pinned LTR + tabular figures.
+        Text(
+          LocaleKeys.onboarding_essence_person_age.t(context),
+          textDirection: TextDirection.ltr,
+          style: QeranTypography.numeric.copyWith(color: QeranColors.gold),
         ),
+        QeranSpacing.hs4,
+        const Icon(Icons.verified_rounded, size: 15, color: QeranColors.gold),
       ],
     );
   }
@@ -96,8 +100,10 @@ class _InfoChips extends StatelessWidget {
         for (final (icon, label, value) in chips)
           QeranChip(
             icon: icon,
+            iconColor: QeranColors.gold,
             label: '$label · $value',
-            variant: QeranChipVariant.meta,
+            variant: QeranChipVariant.glass,
+            compact: true,
           ),
       ],
     );

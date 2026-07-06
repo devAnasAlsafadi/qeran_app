@@ -5,7 +5,7 @@ import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 
-enum QeranChipVariant { score, meta, inside, interest, status }
+enum QeranChipVariant { score, meta, inside, interest, status, glass }
 
 /// All pill / tag visuals in the app go through this widget.
 class QeranChip extends StatelessWidget {
@@ -14,6 +14,7 @@ class QeranChip extends StatelessWidget {
     required this.label,
     this.variant = QeranChipVariant.meta,
     this.icon,
+    this.iconColor,
     this.statusColor,
     this.compact = false,
     this.onTap,
@@ -22,6 +23,10 @@ class QeranChip extends StatelessWidget {
   final String label;
   final QeranChipVariant variant;
   final IconData? icon;
+
+  /// Overrides the icon colour (defaults to the variant's foreground). Used by
+  /// [QeranChipVariant.glass] to carry a gold icon over paper text.
+  final Color? iconColor;
 
   /// Required for [QeranChipVariant.status]. Ignored otherwise.
   final Color? statusColor;
@@ -43,7 +48,7 @@ class QeranChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: compact ? 12 : 14, color: spec.fg),
+            Icon(icon, size: compact ? 12 : 14, color: iconColor ?? spec.fg),
             QeranSpacing.hs4,
           ],
           Text(label, style: style),
@@ -98,6 +103,13 @@ class QeranChip extends StatelessWidget {
         QeranChipVariant.status => _ChipSpec(
             bg: (statusColor ?? QeranColors.wine).withValues(alpha: 0.12),
             fg: statusColor ?? QeranColors.wine,
+          ),
+        // Translucent "glass" pill for chips riding over imagery / a dark
+        // scrim — paper text on a frosted-white fill with a hairline rim.
+        QeranChipVariant.glass => _ChipSpec(
+            bg: QeranColors.paper.withValues(alpha: 0.13),
+            fg: QeranColors.paper,
+            border: QeranColors.paper.withValues(alpha: 0.18),
           ),
       };
 }

@@ -6,5 +6,7 @@ class AppAssets {
   static const String splashSymbol = '${_imagePath}splash_symbol.png';
   static const String female = '${_imagePath}female.png';
   static const String male = '${_imagePath}male.png';
+  static const String essencePortrait =
+      '${_imagePath}onboarding/essence_portrait.jpg';
   static const String googleLogo = '${_iconPath}google_logo.svg';
 }

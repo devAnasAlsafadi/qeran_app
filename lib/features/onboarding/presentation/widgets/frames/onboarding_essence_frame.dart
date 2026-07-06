@@ -7,19 +7,30 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import 'onboarding_hero_background.dart';
+import '../onboarding_dome_footer.dart';
 import 'onboarding_blurred_profile_card.dart';
+import 'onboarding_hero_background.dart';
 import 'onboarding_privacy_step_strip.dart';
-import 'onboarding_reveal.dart';
 
 /// Frame 1 — Essence & Privacy (الجوهر والخصوصية).
 ///
-/// A scrollable hero area (the blurred profile card + the privacy step strip)
-/// over the cream canvas, capped by a soft-white bottom panel carrying the
-/// title / body / highlight copy. Top and bottom padding clear the wizard's
-/// floating chrome (top bar / bottom nav).
+/// A dominant blurred-profile hero fills the wine canvas, capped by a soft-white
+/// dome carrying the privacy step strip, the title / body / highlight copy, and
+/// the in-dome footer (dots + next). The hero clears the floating top bar; the
+/// dome owns the frame's navigation.
 class OnboardingEssenceFrame extends StatelessWidget {
-  const OnboardingEssenceFrame({super.key});
+  final int dotCount;
+  final int activeDot;
+  final ValueChanged<int> onDot;
+  final VoidCallback onNext;
+
+  const OnboardingEssenceFrame({
+    super.key,
+    required this.dotCount,
+    required this.activeDot,
+    required this.onDot,
+    required this.onNext,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,34 +38,35 @@ class OnboardingEssenceFrame extends StatelessWidget {
     return OnboardingHeroBackground(
       child: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                QeranSpacing.s20,
-                safe.top + 76,
-                QeranSpacing.s20,
-                QeranSpacing.s16,
-              ),
-              child: const OnboardingReveal(
-                children: [
-                  OnboardingBlurredProfileCard(),
-                  QeranSpacing.vs20,
-                  OnboardingPrivacyStepStrip(),
-                ],
-              ),
+          const Expanded(
+            child: Padding(
+              // Full-bleed to the screen top + sides; the floating top bar rides
+              // over the photo (top scrim keeps it legible). Only a small gap
+              // before the dome remains.
+              padding: EdgeInsetsDirectional.only(bottom: QeranSpacing.s8),
+              child: OnboardingBlurredProfileCard(),
             ),
           ),
-          _EssenceTextPanel(bottomInset: safe.bottom + 84),
+          _EssenceDomePanel(
+            bottomInset: safe.bottom + QeranSpacing.s16,
+            footer: OnboardingDomeFooter(
+              dotCount: dotCount,
+              activeDot: activeDot,
+              onDot: onDot,
+              onNext: onNext,
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _EssenceTextPanel extends StatelessWidget {
+class _EssenceDomePanel extends StatelessWidget {
   final double bottomInset;
+  final Widget footer;
 
-  const _EssenceTextPanel({required this.bottomInset});
+  const _EssenceDomePanel({required this.bottomInset, required this.footer});
 
   @override
   Widget build(BuildContext context) {
@@ -66,28 +78,58 @@ class _EssenceTextPanel extends StatelessWidget {
         boxShadow: QeranShadows.eLiftUp,
       ),
       padding: EdgeInsetsDirectional.fromSTEB(
-        QeranSpacing.s24,
-        QeranSpacing.s24,
-        QeranSpacing.s24,
+        QeranSpacing.s20,
+        QeranSpacing.s20,
+        QeranSpacing.s20,
         bottomInset,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            LocaleKeys.onboarding_essence_title.t(context),
-            style: QeranTypography.headline.copyWith(color: QeranColors.wine),
-          ),
+          const OnboardingPrivacyStepStrip(),
+          QeranSpacing.vs16,
+          const _Heading(),
           QeranSpacing.vs8,
           Text(
             LocaleKeys.onboarding_essence_body.t(context),
-            style: QeranTypography.body,
+            style: QeranTypography.bodySm,
           ),
           QeranSpacing.vs16,
           const _Highlight(),
+          QeranSpacing.vs16,
+          footer,
         ],
       ),
+    );
+  }
+}
+
+/// A gold accent bar + the section title.
+class _Heading extends StatelessWidget {
+  const _Heading();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 3,
+          height: 21,
+          decoration: const BoxDecoration(
+            color: QeranColors.gold,
+            borderRadius: QeranRadii.xsR,
+          ),
+        ),
+        QeranSpacing.hs8,
+        Expanded(
+          child: Text(
+            LocaleKeys.onboarding_essence_title.t(context),
+            style: QeranTypography.title.copyWith(color: QeranColors.wine),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -98,16 +140,17 @@ class _Highlight extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: QeranColors.gold12,
         borderRadius: QeranRadii.controlR,
+        border: Border.all(color: QeranColors.gold40),
       ),
       padding: const EdgeInsets.all(QeranSpacing.s12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
-            Icons.verified_user_rounded,
+            Icons.shield_rounded,
             color: QeranColors.goldDeep,
             size: 18,
           ),

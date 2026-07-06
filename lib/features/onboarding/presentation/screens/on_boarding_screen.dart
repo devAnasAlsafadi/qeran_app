@@ -85,7 +85,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   controller: _pageController,
                   itemCount: onboardingData.length,
                   onPageChanged: cubit.onPageChanged,
-                  itemBuilder: (_, index) => _frameFor(index, cubit),
+                  itemBuilder: (_, index) => _frameFor(index, cubit, state),
                 ),
                 // Chrome shows on content frames only (never the splash).
                 if (onContent)
@@ -93,7 +93,10 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     bottom: false,
                     child: OnboardingTopBar(onSkip: cubit.skip),
                   ),
-                if (onContent)
+                // Frames not yet migrated to an in-dome footer (mediation +
+                // roadmap) still use the floating nav; the essence dome owns its
+                // own footer.
+                if (state.currentPage >= 2)
                   PositionedDirectional(
                     bottom: 0,
                     start: 0,
@@ -119,12 +122,17 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     );
   }
 
-  Widget _frameFor(int index, OnboardingCubit cubit) {
+  Widget _frameFor(int index, OnboardingCubit cubit, OnboardingState state) {
     switch (onboardingData[index]) {
       case OnboardingFrame.splash:
         return OnboardingSplashFrame(onAdvance: cubit.nextPage);
       case OnboardingFrame.essencePrivacy:
-        return const OnboardingEssenceFrame();
+        return OnboardingEssenceFrame(
+          dotCount: onboardingData.length - 1,
+          activeDot: state.currentPage - 1,
+          onDot: (i) => _animateToPage(i + 1),
+          onNext: cubit.nextPage,
+        );
       case OnboardingFrame.mediation:
         return OnboardingMediationFrame(onSearch: cubit.nextPage);
       case OnboardingFrame.roadmap:

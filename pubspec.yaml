@@ -89,6 +89,7 @@ flutter:
   assets:
     - assets/translations/
     - assets/images/
+    - assets/images/onboarding/
     - assets/icons/
 
   fonts:

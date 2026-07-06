@@ -7,10 +7,9 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import 'onboarding_reveal.dart';
-
-/// The mediation flow: three status cards — inquiry sent → response received →
-/// families' details — separated by a soft down-chevron to read as a sequence.
+/// The mediation flow as three status rows inside the matchmaker glass card:
+/// inquiry sent → response received → families' details. Each row is a square
+/// gold-icon tile + label + a gold status chip, on the card's dark glass.
 class OnboardingMediationBlocks extends StatelessWidget {
   const OnboardingMediationBlocks({super.key});
 
@@ -36,20 +35,14 @@ class OnboardingMediationBlocks extends StatelessWidget {
         Icons.schedule_rounded,
       ),
     ];
-    final items = <Widget>[];
-    for (var i = 0; i < blocks.length; i++) {
-      if (i > 0) {
-        items.add(
-          const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: QeranColors.gold40,
-            size: 22,
-          ),
-        );
-      }
-      items.add(_StatusBlock(data: blocks[i]));
-    }
-    return OnboardingReveal(children: items);
+    return Column(
+      children: [
+        for (var i = 0; i < blocks.length; i++) ...[
+          if (i > 0) QeranSpacing.vs12,
+          _StatusRow(data: blocks[i]),
+        ],
+      ],
+    );
   }
 }
 
@@ -61,48 +54,42 @@ class _BlockData {
   const _BlockData(this.icon, this.label, this.status, this.chipIcon);
 }
 
-class _StatusBlock extends StatelessWidget {
+class _StatusRow extends StatelessWidget {
   final _BlockData data;
-  const _StatusBlock({required this.data});
+  const _StatusRow({required this.data});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: QeranColors.paper.withValues(alpha: 0.06),
-        borderRadius: QeranRadii.controlR,
-        border: Border.all(color: QeranColors.paper.withValues(alpha: 0.16)),
-      ),
-      padding: const EdgeInsets.all(QeranSpacing.s12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: QeranColors.gold12,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(data.icon, color: QeranColors.gold, size: 18),
+    return Row(
+      children: [
+        Container(
+          width: 35,
+          height: 35,
+          decoration: BoxDecoration(
+            color: QeranColors.paper.withValues(alpha: 0.10),
+            borderRadius: QeranRadii.controlR,
+            border: Border.all(color: QeranColors.paper.withValues(alpha: 0.12)),
           ),
-          QeranSpacing.hs12,
-          Expanded(
-            child: Text(
-              data.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: QeranTypography.subtitle.copyWith(color: QeranColors.paper),
-            ),
+          child: Icon(data.icon, color: QeranColors.gold, size: 18),
+        ),
+        QeranSpacing.hs12,
+        Expanded(
+          child: Text(
+            data.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: QeranTypography.bodySm.copyWith(color: QeranColors.paper),
           ),
-          QeranSpacing.hs8,
-          QeranChip(
-            icon: data.chipIcon,
-            label: data.status,
-            variant: QeranChipVariant.meta,
-            compact: true,
-          ),
-        ],
-      ),
+        ),
+        QeranSpacing.hs8,
+        QeranChip(
+          icon: data.chipIcon,
+          label: data.status,
+          variant: QeranChipVariant.status,
+          statusColor: QeranColors.gold,
+          compact: true,
+        ),
+      ],
     );
   }
 }

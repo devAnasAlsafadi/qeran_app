@@ -93,10 +93,9 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                     bottom: false,
                     child: OnboardingTopBar(onSkip: cubit.skip),
                   ),
-                // Frames not yet migrated to an in-dome footer (mediation +
-                // roadmap) still use the floating nav; the essence dome owns its
-                // own footer.
-                if (state.currentPage >= 2)
+                // Only the roadmap still uses the floating nav; essence and
+                // mediation own their in-dome footers.
+                if (state.currentPage >= 3)
                   PositionedDirectional(
                     bottom: 0,
                     start: 0,
@@ -134,7 +133,13 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           onNext: cubit.nextPage,
         );
       case OnboardingFrame.mediation:
-        return OnboardingMediationFrame(onSearch: cubit.nextPage);
+        return OnboardingMediationFrame(
+          dotCount: onboardingData.length - 1,
+          activeDot: state.currentPage - 1,
+          onDot: (i) => _animateToPage(i + 1),
+          onNext: cubit.nextPage,
+          onSearch: cubit.nextPage,
+        );
       case OnboardingFrame.roadmap:
         return OnboardingRoadmapFrame(onFinish: cubit.nextPage);
     }

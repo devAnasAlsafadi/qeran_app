@@ -1,72 +1,72 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:qeran/core/design_system/effects/ring_motif.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import 'onboarding_sheen.dart';
+import 'onboarding_mediation_blocks.dart';
 
-/// The matchmaker (Huda) profile as a **glassmorphic** card: a wine gradient
-/// backdrop frosted by a `BackdropFilter` blur plus a translucent cream veil
-/// (the approved way to simulate the design's `saturate`). A subtle gold ring
-/// motif adds depth; the content — avatar, name, verified badge, role — rides
-/// on the frosted glass.
+/// The matchmaker (Huda) as a **dark frosted glass** card: a wine tint over a
+/// `BackdropFilter` blur (which frosts the chat backdrop showing through), a
+/// gold rim, and crisp paper content on top — header, the mediation status
+/// rows, and the "search with the matchmaker" CTA. [onSearch] advances the flow.
 class OnboardingMatchmakerGlassCard extends StatelessWidget {
-  const OnboardingMatchmakerGlassCard({super.key});
+  final VoidCallback onSearch;
+
+  const OnboardingMatchmakerGlassCard({super.key, required this.onSearch});
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: QeranRadii.panelR,
+      borderRadius: QeranRadii.cardR,
       child: Stack(
         children: [
-          const Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: AlignmentDirectional.topStart,
-                  end: AlignmentDirectional.bottomEnd,
-                  colors: [QeranColors.wine, QeranColors.wineLight],
-                ),
+          // Frost the chat backdrop showing through, tinted dark wine.
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ui.ImageFilter.blur(sigmaX: 13, sigmaY: 13),
+              child: ColoredBox(
+                color: QeranColors.wine.withValues(alpha: 0.60),
               ),
             ),
           ),
-          const PositionedDirectional(
-            top: -40,
-            end: -30,
-            child: RingMotif(
-              color: QeranColors.gold,
-              opacity: 0.16,
-              size: 170,
-              ringCount: 2,
-              spacing: 20,
+          Padding(
+            padding: const EdgeInsets.all(QeranSpacing.s16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const _Header(),
+                QeranSpacing.vs12,
+                Container(
+                  height: 1,
+                  color: QeranColors.paper.withValues(alpha: 0.14),
+                ),
+                QeranSpacing.vs12,
+                const OnboardingMediationBlocks(),
+                QeranSpacing.vs12,
+                QeranButton(
+                  label: LocaleKeys.onboarding_mediation_search_cta.t(context),
+                  leadingIcon: Icons.person_search_rounded,
+                  size: QeranButtonSize.md,
+                  onPressed: onSearch,
+                ),
+              ],
             ),
           ),
-          // Frosted glass: blur the gradient behind + a cream veil for the tint.
-          BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              width: double.infinity,
-              color: QeranColors.paper.withValues(alpha: 0.68),
-              padding: const EdgeInsets.all(QeranSpacing.s16),
-              child: const _MatchmakerRow(),
-            ),
-          ),
-          // A slow diagonal glint travelling across the glass.
-          const Positioned.fill(child: OnboardingSheen()),
-          // 1px gold rim-light — catches the eye along the card's edge.
+          // 1px gold rim catching the card's edge.
           Positioned.fill(
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: QeranRadii.panelR,
-                  border: Border.all(color: QeranColors.gold40),
+                  borderRadius: QeranRadii.cardR,
+                  border: Border.all(color: QeranColors.gold60),
                 ),
               ),
             ),
@@ -77,28 +77,26 @@ class OnboardingMatchmakerGlassCard extends StatelessWidget {
   }
 }
 
-class _MatchmakerRow extends StatelessWidget {
-  const _MatchmakerRow();
+class _Header extends StatelessWidget {
+  const _Header();
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Container(
-          width: 56,
-          height: 56,
-          decoration: const BoxDecoration(
+          width: 42,
+          height: 42,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: AlignmentDirectional.topStart,
-              end: AlignmentDirectional.bottomEnd,
-              colors: [QeranColors.gold, QeranColors.goldDeep],
-            ),
+            color: QeranColors.wine,
+            border: Border.all(color: QeranColors.gold, width: 2),
           ),
           child: const Icon(
             Icons.support_agent_rounded,
-            color: QeranColors.wine,
-            size: 28,
+            color: QeranColors.gold,
+            size: 22,
           ),
         ),
         QeranSpacing.hs12,
@@ -107,36 +105,32 @@ class _MatchmakerRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      LocaleKeys.onboarding_mediation_name.t(context),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: QeranTypography.subtitle.copyWith(
-                        color: QeranColors.wine,
-                      ),
-                    ),
-                  ),
-                  QeranSpacing.hs8,
-                  QeranChip(
-                    icon: Icons.verified_rounded,
-                    label: LocaleKeys.onboarding_mediation_verified.t(context),
-                    variant: QeranChipVariant.interest,
-                    compact: true,
-                  ),
-                ],
+              Text(
+                LocaleKeys.onboarding_mediation_name.t(context),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: QeranTypography.subtitle.copyWith(
+                  color: QeranColors.paper,
+                ),
               ),
-              QeranSpacing.vs4,
               Text(
                 LocaleKeys.onboarding_mediation_role.t(context),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: QeranTypography.bodySm.copyWith(
-                  color: QeranColors.inkMuted,
+                  color: QeranColors.paper.withValues(alpha: 0.72),
                 ),
               ),
             ],
           ),
+        ),
+        QeranSpacing.hs8,
+        QeranChip(
+          icon: Icons.verified_rounded,
+          label: LocaleKeys.onboarding_mediation_verified.t(context),
+          variant: QeranChipVariant.status,
+          statusColor: QeranColors.gold,
+          compact: true,
         ),
       ],
     );

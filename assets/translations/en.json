@@ -148,8 +148,8 @@
     },
     "mediation": {
       "title": "Serious contact, guided by the matchmaker",
-      "body": "Send your questions through the matchmaker, read the replies, and exchange families' details in an orderly way that protects seriousness and privacy.",
-      "highlight": "No random chat — we don't just host you, we help you reach the right person.",
+      "body": "Send your questions through the matchmaker, read the replies, and exchange families’ details in an orderly way that protects seriousness and privacy.",
+      "highlight": "No random chat — we don’t just host you, we help you reach the right person.",
       "name": "Huda",
       "role": "Your matchmaker",
       "verified": "Verified",
@@ -158,7 +158,7 @@
       "block_sent_status": "Delivered",
       "block_response_label": "Response received",
       "block_response_status": "2 replies",
-      "block_families_label": "Families' details",
+      "block_families_label": "Families’ details",
       "block_families_status": "Coordinating"
     },
     "roadmap": {

@@ -8,6 +8,8 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../onboarding_dome_footer.dart';
+import '../onboarding_dome_heading.dart';
+import '../onboarding_dome_highlight.dart';
 import 'onboarding_blurred_profile_card.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_privacy_step_strip.dart';
@@ -89,78 +91,21 @@ class _EssenceDomePanel extends StatelessWidget {
         children: [
           const OnboardingPrivacyStepStrip(),
           QeranSpacing.vs16,
-          const _Heading(),
+          OnboardingDomeHeading(
+            title: LocaleKeys.onboarding_essence_title.t(context),
+          ),
           QeranSpacing.vs8,
           Text(
             LocaleKeys.onboarding_essence_body.t(context),
             style: QeranTypography.bodySm,
           ),
           QeranSpacing.vs16,
-          const _Highlight(),
+          OnboardingDomeHighlight(
+            icon: Icons.shield_rounded,
+            text: LocaleKeys.onboarding_essence_highlight.t(context),
+          ),
           QeranSpacing.vs16,
           footer,
-        ],
-      ),
-    );
-  }
-}
-
-/// A gold accent bar + the section title.
-class _Heading extends StatelessWidget {
-  const _Heading();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 3,
-          height: 21,
-          decoration: const BoxDecoration(
-            color: QeranColors.gold,
-            borderRadius: QeranRadii.xsR,
-          ),
-        ),
-        QeranSpacing.hs8,
-        Expanded(
-          child: Text(
-            LocaleKeys.onboarding_essence_title.t(context),
-            style: QeranTypography.title.copyWith(color: QeranColors.wine),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Highlight extends StatelessWidget {
-  const _Highlight();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: QeranColors.gold12,
-        borderRadius: QeranRadii.controlR,
-        border: Border.all(color: QeranColors.gold40),
-      ),
-      padding: const EdgeInsets.all(QeranSpacing.s12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.shield_rounded,
-            color: QeranColors.goldDeep,
-            size: 18,
-          ),
-          QeranSpacing.hs8,
-          Expanded(
-            child: Text(
-              LocaleKeys.onboarding_essence_highlight.t(context),
-              style: QeranTypography.bodySm.copyWith(color: QeranColors.wine),
-            ),
-          ),
         ],
       ),
     );

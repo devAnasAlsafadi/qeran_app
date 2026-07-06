@@ -17,6 +17,10 @@ class QeranColors {
   /// surfaces. Same warm family, one step toward bronze.
   static const Color goldDeep = Color(0xFFB18454);
 
+  /// Lighter, opaque gold — the bright stop above [gold] for gradient
+  /// highlights (e.g. the onboarding marriage-rings motif).
+  static const Color goldLight = Color(0xFFF2D9AC);
+
   // Canvas tier
   static const Color creamCanvas = Color(0xFFF8F8F8);
   static const Color creamSurface = Color(0xFFFBF4E6);

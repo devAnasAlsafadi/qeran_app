@@ -15,7 +15,15 @@ import 'package:qeran/generated/locale_keys.g.dart';
 class OnboardingTopBar extends StatelessWidget {
   final VoidCallback onSkip;
 
-  const OnboardingTopBar({super.key, required this.onSkip});
+  /// Whether to show the Skip control. Hidden on the last frame (roadmap),
+  /// where the language switch stays pinned to the end edge.
+  final bool showSkip;
+
+  const OnboardingTopBar({
+    super.key,
+    required this.onSkip,
+    this.showSkip = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +36,10 @@ class OnboardingTopBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _SkipButton(onTap: onSkip, isRtl: isRtl),
+          if (showSkip)
+            _SkipButton(onTap: onSkip, isRtl: isRtl)
+          else
+            const SizedBox.shrink(),
           const LanguageSwitchButton(variant: LanguageSwitchVariant.light),
         ],
       ),

@@ -5,23 +5,34 @@ import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
-import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import 'onboarding_glow_pulse.dart';
+import '../custom_dot_indicator.dart';
 import 'onboarding_hero_background.dart';
+import 'onboarding_marriage_destination.dart';
 import 'onboarding_roadmap_timeline.dart';
+import 'onboarding_trust_badges.dart';
 
 /// Frame 3 — Marriage Roadmap (رحلة الزواج).
 ///
-/// A scrollable header + 10-node journey timeline + gold trust badges over the
-/// cream canvas, capped by a soft-white panel carrying the primary
-/// "begin your journey" CTA. [onFinish] ends onboarding (routes onward).
+/// A centred header + a 5-step journey timeline capped by the interlocking-rings
+/// destination over the wine canvas, then a soft-white dome carrying the page
+/// dots, the trust-badge grid, and the "begin your journey" CTA. [onFinish]
+/// ends onboarding (routes onward).
 class OnboardingRoadmapFrame extends StatelessWidget {
   final VoidCallback onFinish;
+  final int dotCount;
+  final int activeDot;
+  final ValueChanged<int> onDot;
 
-  const OnboardingRoadmapFrame({super.key, required this.onFinish});
+  const OnboardingRoadmapFrame({
+    super.key,
+    required this.onFinish,
+    required this.dotCount,
+    required this.activeDot,
+    required this.onDot,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,75 +41,102 @@ class OnboardingRoadmapFrame extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsetsDirectional.fromSTEB(
-                QeranSpacing.s20,
-                safe.top + 76,
-                QeranSpacing.s20,
-                QeranSpacing.s16,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    LocaleKeys.onboarding_roadmap_title.t(context),
-                    style: QeranTypography.displaySm.copyWith(
-                      color: QeranColors.paper,
+            // Fill the available height and distribute the timeline evenly; if
+            // content (longer EN subtitles) ever exceeds it, the region scrolls
+            // instead of overflowing.
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(
+                          QeranSpacing.s24,
+                          safe.top + 56,
+                          QeranSpacing.s24,
+                          QeranSpacing.s8,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: const [
+                            _Header(),
+                            // The timeline + rings ride centred in the space
+                            // below the header, so moderate node gaps stay
+                            // balanced (leftover splits top/bottom, not a band
+                            // before the dome).
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  OnboardingRoadmapTimeline(),
+                                  QeranSpacing.vs16,
+                                  OnboardingMarriageDestination(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  QeranSpacing.vs8,
-                  Text(
-                    LocaleKeys.onboarding_roadmap_subtitle.t(context),
-                    style: QeranTypography.body.copyWith(
-                      color: QeranColors.gold,
-                    ),
-                  ),
-                  QeranSpacing.vs24,
-                  const OnboardingRoadmapTimeline(),
-                  QeranSpacing.vs24,
-                  const _TrustBadges(),
-                ],
-              ),
+                );
+              },
             ),
           ),
-          _RoadmapCtaPanel(bottomInset: safe.bottom + 84, onFinish: onFinish),
+          _RoadmapDomePanel(
+            bottomInset: safe.bottom + QeranSpacing.s16,
+            dotCount: dotCount,
+            activeDot: activeDot,
+            onDot: onDot,
+            onFinish: onFinish,
+          ),
         ],
       ),
     );
   }
 }
 
-class _TrustBadges extends StatelessWidget {
-  const _TrustBadges();
+class _Header extends StatelessWidget {
+  const _Header();
 
   @override
   Widget build(BuildContext context) {
-    final badges = <String>[
-      LocaleKeys.onboarding_roadmap_badge_reviewed.t(context),
-      LocaleKeys.onboarding_roadmap_badge_consent.t(context),
-      LocaleKeys.onboarding_roadmap_badge_orderly.t(context),
-      LocaleKeys.onboarding_roadmap_badge_assisted.t(context),
-    ];
-    return Wrap(
-      spacing: QeranSpacing.s8,
-      runSpacing: QeranSpacing.s8,
+    return Column(
       children: [
-        for (final badge in badges)
-          QeranChip(
-            icon: Icons.check_circle_rounded,
-            label: badge,
-            variant: QeranChipVariant.meta,
+        Text(
+          LocaleKeys.onboarding_roadmap_title.t(context),
+          textAlign: TextAlign.center,
+          style: QeranTypography.headline.copyWith(color: QeranColors.gold),
+        ),
+        QeranSpacing.vs4,
+        Text(
+          LocaleKeys.onboarding_roadmap_subtitle.t(context),
+          textAlign: TextAlign.center,
+          style: QeranTypography.bodySm.copyWith(
+            color: QeranColors.paper.withValues(alpha: 0.82),
           ),
+        ),
       ],
     );
   }
 }
 
-class _RoadmapCtaPanel extends StatelessWidget {
+class _RoadmapDomePanel extends StatelessWidget {
   final double bottomInset;
+  final int dotCount;
+  final int activeDot;
+  final ValueChanged<int> onDot;
   final VoidCallback onFinish;
 
-  const _RoadmapCtaPanel({required this.bottomInset, required this.onFinish});
+  const _RoadmapDomePanel({
+    required this.bottomInset,
+    required this.dotCount,
+    required this.activeDot,
+    required this.onDot,
+    required this.onFinish,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -110,23 +148,32 @@ class _RoadmapCtaPanel extends StatelessWidget {
         boxShadow: QeranShadows.eLiftUp,
       ),
       padding: EdgeInsetsDirectional.fromSTEB(
-        QeranSpacing.s24,
         QeranSpacing.s20,
-        QeranSpacing.s24,
+        QeranSpacing.s16,
+        QeranSpacing.s20,
         bottomInset,
       ),
-      // A faint idle pulse invites the tap without shouting.
-      child: OnboardingGlowPulse(
-        borderRadius: QeranRadii.controlR,
-        maxBlur: 24,
-        maxSpread: 1,
-        scaleAmount: 0.012,
-        child: QeranButton(
-          label: LocaleKeys.onboarding_roadmap_cta.t(context),
-          trailingIcon: Icons.favorite_rounded,
-          onPressed: onFinish,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: CustomDotIndicator(
+              count: dotCount,
+              activeIndex: activeDot,
+              onTap: onDot,
+            ),
+          ),
+          QeranSpacing.vs16,
+          const OnboardingTrustBadges(),
+          QeranSpacing.vs16,
+          QeranButton(
+            label: LocaleKeys.onboarding_roadmap_cta.t(context),
+            trailingIcon: Icons.favorite_rounded,
+            onPressed: onFinish,
+          ),
+        ],
       ),
     );
   }
 }
+

@@ -13,7 +13,6 @@ import '../widgets/frames/onboarding_essence_frame.dart';
 import '../widgets/frames/onboarding_mediation_frame.dart';
 import '../widgets/frames/onboarding_roadmap_frame.dart';
 import '../widgets/frames/onboarding_splash_frame.dart';
-import '../widgets/onboarding_bottom_nav.dart';
 import '../widgets/onboarding_top_bar.dart';
 
 /// The onboarding wizard coordinator: a 4-page `PageView` (splash + 3 content
@@ -87,30 +86,15 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   onPageChanged: cubit.onPageChanged,
                   itemBuilder: (_, index) => _frameFor(index, cubit, state),
                 ),
-                // Chrome shows on content frames only (never the splash).
+                // Chrome shows on content frames only (never the splash). Skip
+                // is hidden on the last frame (roadmap); each content frame owns
+                // its in-dome footer, so there is no floating bottom nav.
                 if (onContent)
                   SafeArea(
                     bottom: false,
-                    child: OnboardingTopBar(onSkip: cubit.skip),
-                  ),
-                // Only the roadmap still uses the floating nav; essence and
-                // mediation own their in-dome footers.
-                if (state.currentPage >= 3)
-                  PositionedDirectional(
-                    bottom: 0,
-                    start: 0,
-                    end: 0,
-                    child: SafeArea(
-                      top: false,
-                      child: OnboardingBottomNav(
-                        dotCount: onboardingData.length - 1,
-                        activeDot: state.currentPage - 1,
-                        showBack: state.currentPage > 1,
-                        showNext: !state.isLastPage,
-                        onBack: cubit.previousPage,
-                        onNext: cubit.nextPage,
-                        onDot: (i) => _animateToPage(i + 1),
-                      ),
+                    child: OnboardingTopBar(
+                      onSkip: cubit.skip,
+                      showSkip: !state.isLastPage,
                     ),
                   ),
               ],
@@ -141,7 +125,12 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           onSearch: cubit.nextPage,
         );
       case OnboardingFrame.roadmap:
-        return OnboardingRoadmapFrame(onFinish: cubit.nextPage);
+        return OnboardingRoadmapFrame(
+          onFinish: cubit.nextPage,
+          dotCount: onboardingData.length - 1,
+          activeDot: state.currentPage - 1,
+          onDot: (i) => _animateToPage(i + 1),
+        );
     }
   }
 }

@@ -14,8 +14,7 @@ import '../../blocs/login/login_state.dart';
 import '../../blocs/register/register_bloc.dart';
 import '../../blocs/register/register_event.dart';
 import '../../blocs/register/register_state.dart';
-import '../../widgets/auth_back_button.dart';
-import '../../widgets/auth_logo_header.dart';
+import '../../widgets/auth_hero_scaffold.dart';
 import 'register_controller.dart';
 import 'widgets/register_actions.dart';
 import 'widgets/register_form.dart';
@@ -60,56 +59,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
             listener: _onSocialLoginStateChanged,
           ),
         ],
-        child: Scaffold(
-          body: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    start: QeranSpacing.s24,
-                    end: QeranSpacing.s24,
-                    top: QeranSpacing.s16,
+        child: AuthHeroScaffold(
+          showBack: true,
+          onBack: () => NavigationManager.pop(context),
+          children: [
+            Form(
+              key: _controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    LocaleKeys.auth_register_title.t(context),
+                    style: QeranTypography.title,
                   ),
-                  child: AuthBackButton(
-                    onPressed: () => NavigationManager.pop(context),
+                  QeranSpacing.vs24,
+                  RegisterForm(controller: _controller),
+                  QeranSpacing.vs16,
+                  RegisterActions(
+                    onRegisterPressed: () => _onRegisterPressed(context),
                   ),
-                ),
-                Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: QeranSpacing.s24,
-                        vertical: QeranSpacing.s16,
-                      ),
-                      child: Form(
-                        key: _controller.formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            AuthLogoHeader(),
-                            QeranSpacing.vs16,
-                            Text(
-                              LocaleKeys.auth_register_title.t(context),
-                              style: QeranTypography.displaySm,
-                              textAlign: TextAlign.start,
-                            ),
-                            QeranSpacing.vs24,
-                            RegisterForm(controller: _controller),
-                            QeranSpacing.vs16,
-                            RegisterActions(
-                              onRegisterPressed: () =>
-                                  _onRegisterPressed(context),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       );
         },

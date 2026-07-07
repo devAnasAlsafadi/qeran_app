@@ -47,6 +47,7 @@ class RegisterForm extends StatelessWidget {
           focusNode: controller.passwordFocus,
           labelText: LocaleKeys.auth_password_label,
         ),
+        QeranSpacing.vs20,
         RegisterPolicyCheckbox(
           acceptedPolicyNotifier: controller.acceptedPolicyNotifier,
           onToggleAcceptance: controller.togglePolicyAcceptance,

@@ -15,8 +15,7 @@ import '../../blocs/password_reset/password_reset_state.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import '../../controllers/phone_input_controller.dart';
-import '../../widgets/auth_logo_header.dart';
-import '../../widgets/auth_back_button.dart';
+import '../../widgets/auth_hero_scaffold.dart';
 import '../../widgets/auth_phone_input.dart';
 import '../../widgets/auth_title_subtitle.dart';
 import '../whatsapp_verification/whatsapp_verification_args.dart';
@@ -50,50 +49,40 @@ class _ForgetPassScreenState extends State<ForgetPassScreen> {
       create: (_) => sl<PasswordResetBloc>(),
       child: BlocListener<PasswordResetBloc, PasswordResetState>(
         listener: _onStateChanged,
-        child: Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: QeranSpacing.s24,
-                vertical: QeranSpacing.s16,
-              ),
-              child: Form(
-                key: _controller.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AuthBackButton(
-                      onPressed: () => NavigationManager.pop(context),
+        child: AuthHeroScaffold(
+          showBack: true,
+          onBack: () => NavigationManager.pop(context),
+          children: [
+            Form(
+              key: _controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AuthTitleSubtitle(
+                    title: LocaleKeys.auth_forgot_password_title.t(context),
+                    subtitle:
+                        LocaleKeys.auth_forgot_password_subtitle.t(context),
+                  ),
+                  QeranSpacing.vs32,
+                  Text(
+                    LocaleKeys.auth_whatsapp_number_label.t(context),
+                    style: QeranTypography.bodySm.copyWith(
+                      color: QeranColors.inkBody,
                     ),
-                    QeranSpacing.vs16,
-                    const AuthLogoHeader(),
-                    QeranSpacing.vs24,
-                    AuthTitleSubtitle(
-                      title: LocaleKeys.auth_forgot_password_title.t(context),
-                      subtitle:
-                          LocaleKeys.auth_forgot_password_subtitle.t(context),
-                    ),
-                    QeranSpacing.vs32,
-                    Text(
-                      LocaleKeys.auth_whatsapp_number_label.t(context),
-                      style: QeranTypography.bodySm.copyWith(
-                        color: QeranColors.inkBody,
-                      ),
-                      textAlign: TextAlign.start,
-                    ),
-                    QeranSpacing.vs8,
-                    AuthPhoneInput(
-                      controller: _controller.phoneController,
-                      focusNode: _controller.phoneFocus,
-                      countryCodeNotifier: _controller.countryCodeNotifier,
-                    ),
-                    QeranSpacing.vs32,
-                    _buildSendButton(),
-                  ],
-                ),
+                    textAlign: TextAlign.start,
+                  ),
+                  QeranSpacing.vs8,
+                  AuthPhoneInput(
+                    controller: _controller.phoneController,
+                    focusNode: _controller.phoneFocus,
+                    countryCodeNotifier: _controller.countryCodeNotifier,
+                  ),
+                  QeranSpacing.vs32,
+                  _buildSendButton(),
+                ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

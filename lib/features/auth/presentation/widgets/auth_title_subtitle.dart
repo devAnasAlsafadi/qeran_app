@@ -20,12 +20,12 @@ class AuthTitleSubtitle extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(title, style: QeranTypography.headline, textAlign: textAlign),
+        Text(title, style: QeranTypography.title, textAlign: textAlign),
         if (subtitle != null) ...[
-          QeranSpacing.vs8,
+          QeranSpacing.vs4,
           Text(
             subtitle!,
-            style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
+            style: QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
             textAlign: textAlign,
           ),
         ],

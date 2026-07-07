@@ -7,7 +7,15 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 class AuthBackButton extends StatelessWidget {
   final VoidCallback onPressed;
 
-  const AuthBackButton({super.key, required this.onPressed});
+  /// Chevron colour. Defaults to wine for the light auth surfaces; the
+  /// wine hero passes gold so the control reads on the dark band.
+  final Color color;
+
+  const AuthBackButton({
+    super.key,
+    required this.onPressed,
+    this.color = QeranColors.wine,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +23,9 @@ class AuthBackButton extends StatelessWidget {
       alignment: AlignmentDirectional.centerStart,
       child: IconButton(
         onPressed: onPressed,
-        icon: const Icon(
+        icon: Icon(
           Icons.chevron_left_rounded,
-          color: QeranColors.wine,
+          color: color,
         ),
         padding: EdgeInsets.zero,
       ),

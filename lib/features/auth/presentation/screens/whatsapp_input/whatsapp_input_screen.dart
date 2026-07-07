@@ -16,8 +16,7 @@ import '../../blocs/whatsapp/whatsapp_bloc.dart';
 import '../../blocs/whatsapp/whatsapp_event.dart';
 import '../../blocs/whatsapp/whatsapp_state.dart';
 import '../../controllers/phone_input_controller.dart';
-import '../../widgets/auth_logo_header.dart';
-import '../../widgets/auth_back_button.dart';
+import '../../widgets/auth_hero_scaffold.dart';
 import '../../widgets/auth_phone_input.dart';
 import '../../widgets/auth_title_subtitle.dart';
 import '../whatsapp_verification/whatsapp_verification_args.dart';
@@ -52,53 +51,46 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
       child: BlocListener<WhatsappBloc, WhatsappState>(
         listener: _onStateChanged,
         child: OnboardingPopScope(
-          child: Scaffold(
-            body: SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: QeranSpacing.s24,
-                  vertical: QeranSpacing.s16,
-                ),
-                child: Form(
-                  key: _controller.formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      AuthBackButton(
-                        onPressed: () => ExitAppDialog.show(context),
-                      ),
-                      QeranSpacing.vs16,
-                      const AuthLogoHeader(),
-                      QeranSpacing.vs24,
-                      AuthTitleSubtitle(
-                        title: LocaleKeys.auth_whatsapp_title.t(context),
-                        subtitle: LocaleKeys.auth_whatsapp_subtitle.t(context),
-                      ),
-                      QeranSpacing.vs32,
-                      AuthPhoneInput(
-                        controller: _controller.phoneController,
-                        focusNode: _controller.phoneFocus,
-                        countryCodeNotifier: _controller.countryCodeNotifier,
-                      ),
-                      QeranSpacing.vs48,
-                      BlocBuilder<WhatsappBloc, WhatsappState>(
-                        builder: (context, state) {
-                          final isLoading = state is WhatsappLoading;
-                          return QeranButton(
-                            label: LocaleKeys.common_send.t(context),
-                            variant: QeranButtonVariant.primaryWine,
-                            loading: isLoading,
-                            onPressed: isLoading
-                                ? null
-                                : () => _onSendPressed(context),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+          child: AuthHeroScaffold(
+            showBack: true,
+            // Back MUST open the exit-app dialog (not pop) — this is the
+            // first post-auth gate; OnboardingPopScope preserves the same
+            // behaviour for the system back gesture.
+            onBack: () => ExitAppDialog.show(context),
+            children: [
+              Form(
+                key: _controller.formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuthTitleSubtitle(
+                      title: LocaleKeys.auth_whatsapp_title.t(context),
+                      subtitle: LocaleKeys.auth_whatsapp_subtitle.t(context),
+                    ),
+                    QeranSpacing.vs32,
+                    AuthPhoneInput(
+                      controller: _controller.phoneController,
+                      focusNode: _controller.phoneFocus,
+                      countryCodeNotifier: _controller.countryCodeNotifier,
+                    ),
+                    QeranSpacing.vs48,
+                    BlocBuilder<WhatsappBloc, WhatsappState>(
+                      builder: (context, state) {
+                        final isLoading = state is WhatsappLoading;
+                        return QeranButton(
+                          label: LocaleKeys.common_send.t(context),
+                          variant: QeranButtonVariant.primaryWine,
+                          loading: isLoading,
+                          onPressed: isLoading
+                              ? null
+                              : () => _onSendPressed(context),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),

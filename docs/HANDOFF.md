@@ -11,7 +11,7 @@
 
 **الدفع = IAP / RevenueCat** — محسوم؛ يحتاج منتجات المتجر + webhook طارق قبل P2+. P1 (boot + هوية) مربوط ومتحقَّق هذه الجلسة.
 
-**▶️ نقطة الدخول للجلسة الجاية:** **مرحلة الصقل البصري (Design Polish)** — تحسين بصري ميزة-بميزة عبر Claude Design. **الشاشة التالية: Login/Auth.** القاعدة الحاكمة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.** ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down + حاجب اختبار الـ paywall). انظر «🆕 يوليو» للمُنجَز الأحدث.
+**▶️ نقطة الدخول للجلسة الجاية:** **مرحلة الصقل البصري (Design Polish)** مستمرة. **onboarding + auth re-skin مكتملان 🏁؛ gender re-skin قيد التنفيذ** (محجوب على إضافة أصول الشخصيتين يدوياً). **التالي: إعادة تصميم الاهتمامات/Interests + Match-success.** القاعدة الحاكمة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.** ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down + حاجب اختبار الـ paywall). انظر «🆕 6–7 يوليو» للمُنجَز الأحدث.
 
 ---
 
@@ -70,7 +70,27 @@
 
 ---
 
-## 🆕 يوليو — Paywall UI + Onboarding + التحوّل لمرحلة الصقل البصري (الأحدث)
+## 🆕 6–7 يوليو — Onboarding + Auth re-skin + Change-Password + Gender (الأحدث)
+
+**Onboarding re-skin — DONE ✅ (4 commits، عرض فقط):** Essence / Mediation / Roadmap → Claude Design. جديد: `goldLight #F2D9AC` + variant `glass` للـ `QeranChip` + أصل `essence_portrait.jpg`. متقاعد: `OnboardingBottomNav` + `OnboardingSheen` + `OnboardingGlowPulse`. الـ `OnboardingCubit`/`State` بديف فارغ.
+
+**Auth re-skin — DONE 🏁 (كل الـ 6 شاشات):** shell مشترك `AuthHeroScaffold` + `AuthWordmark` — hero واين (monogram + wordmark + tagline) فوق dome كريمي (`domeTop` + `creamCanvas`). Login · Register · Forgot · Reset · WhatsApp# · OTP. **`AuthLogoHeader` حُذف** (لم يعد مستخدَماً بعد توحيد الـ hero). **صفر منطق:** blocs/controllers/validation/navigation سليمة؛ OTP بحدود (قرار مقفل) + `ExitAppDialog` على back الـ WhatsApp# + `OnboardingPopScope` محفوظة. الـ policy checkbox صار DS oath-check (كان Material `Checkbox` خام).
+
+**Change-password (إعدادات المستخدم) — ميزة منطق جديدة ✅ (`feat`):** slice معزول في `auth/` يعيد استخدام endpoint `Auth/change-password` المشترك — **بلا ربط بالخطّابة، بلا تعديل باك-إند**. datasource + repo + usecase + `ChangePasswordCubit` (locale-key-free) + bottom sheet DS (current/new/confirm + eye toggles). Validation = معيار الـ reset (**≥8 + regex** + confirm-match + new≠current). خطأ «كلمة السر الحالية» inline (مفتاح ثنائي اللغة، **لا نص باك-إند خام**). يرسل `confirmNewPassword`. صف «تغيير كلمة السر» (قفل) فوق «حذف الحساب». **⏳ طارق: تأكيد أن `Auth/change-password` ليس moderator-gated** (فحص متوازٍ، غير حاجب).
+
+**Gender re-skin — قيد التنفيذ (محجوب على أصول):** التصميم = تاب «تحديد الهوية» داخل `auth.dc.html`. ⚠️ **البندل على القرص لا يحوي فن الشخصيتين قابلاً للاستخراج** — فحص كامل لكل الـ chunks (gunzip + فكّ `\u`): الصورة المضمّنة الوحيدة = monogram الهوية (537×439 PNG)، لا gender screen بالـ design kit (الراوتر: signin/profile/paywall/match/discover فقط)، لا `<img>`/SVG شخصيات. نسخة القرص **أقدم/مختلفة** عمّا يُعرَض بمتصفح أحمد (الفن غالباً inline SVG أو export أحدث لم يُحفَظ). **الأصول تُضاف يدوياً** كـ `assets/images/gender_male.png` / `gender_female.png` (ذكر **بلا غطرة رأس** — بعكس نسخة البندل). **صفر منطق** (`GenderSelectionController`/`Gender` enum/prefs/`QuestionnaireCubit.fetchQuestions`/`OnboardingPopScope` سليمة). ترتيب الكروت **ذكر أولاً** (start/يمين RTL)؛ selected = حد ذهبي + توهّج ذهبي + شارة check ذهبية، والكرت الكريمي **لا يغمق** عند الاختيار.
+
+**مصدر التصميم (handoff):** ملفات Claude Design `.dc.html` تُصدَّر إلى `docs/_design/` (`auth.dc.html` · `Qeran Onboarding.dc.html` · `Interests States (offline).html`). **الـ MCP import (`/design-login`) يحتاج تسجيل دخول تفاعلي → يفشل داخل Claude Code؛ الـ export اليدوي هو المسار المعتمد.** (`_design/` غير متتبَّع في git — ثقيل ~35MB.)
+
+**▶️ التالي بعد gender: إعادة تصميم الاهتمامات/Interests + شاشة نجاح-الماتش/Match-success** — التصميم جاهز في `docs/_design/` (`Interests States (offline).html`). نفس قواعد الصقل: صفر منطق · توكنز DS · لا Figma.
+
+**Tech-debt (قاعدة <200 سطر):** `profile_screen.dart` (632) + `whatsapp_verification.dart` (254) يتجاوزان الحد — يُقسَّمان في **مهمة منطق منفصلة** (خارج نطاق الصقل البصري؛ الـ re-skin ما ضخّمهما — `whatsapp_verification` نقص من 268).
+
+**Canvas = `#F8F8F8`** (`QeranColors.creamCanvas`) — الكود + `DESIGN.md` + `QERAN_DESIGN_SYSTEM.md` مصدر الحقيقة. تحقّقت: **لا `#FEFCFA` بأي وثيقة.**
+
+---
+
+## 🆕 يوليو — Paywall UI + Onboarding + التحوّل لمرحلة الصقل البصري
 
 **مُنجَز هذه الفترة:**
 - **Paywall UI (7 commits ذرّية):** عرض الباقات + سعر المتجر (RevenueCat) كمصدر حقيقة مع fallback للباك إند + كود الخصم + حالة المشترك. + **إصلاح locale الـ Gradle** (تثبيت `-Duser.country=US -Duser.language=en` لحلّ فشل بناء الـ AAB بالأرقام العربية `classes٢.dex` على ويندوز) + **ربط مفتاح RevenueCat الإنتاجي** (`goog_…`/`appl_…` بكل الأوضاع، تقاعد مفتاح Test Store — كان يرمي «no Test Store products») + **رفع الإصدار → 1.0.3+4**.
@@ -79,7 +99,7 @@
 - **إعداد Apple App Store جزئي:** مفتاح P8 + الاشتراكات في **Missing Metadata** بانتظار لقطات الشاشة.
 - **Caching + offline UX:** Piece 3 + Piece 4/5 (مؤرشَف التفصيل — انظر `docs/_plan_drafts/_archive/`).
 
-**⚠️ المرحلة الحالية = صقل بصري (Design Polish):** تحسين بصري ميزة-بميزة عبر Claude Design. **الشاشة التالية: Login/Auth.** القاعدة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا Figma.**
+**⚠️ المرحلة الحالية = صقل بصري (Design Polish):** تحسين بصري ميزة-بميزة عبر Claude Design. **onboarding + auth مكتملان 🏁؛ gender قيد التنفيذ؛ التالي: Interests + Match-success.** القاعدة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا Figma.**
 
 ---
 
@@ -101,7 +121,7 @@
 ## 🗺️ الخطوات الجاية (بالأولوية)
 
 **▶️ التالي — مرحلة الصقل البصري (Design Polish):**
-- **الشاشة التالية: Login/Auth** — تحسين بصري عبر mockup الـ Claude Design.
+- **auth re-skin مكتمل 🏁 (6 شاشات) · gender re-skin قيد التنفيذ (محجوب على أصول) · التالي: الاهتمامات/Interests + Match-success** — عبر mockups الـ Claude Design في `docs/_design/`.
 - **القاعدة الحاكمة:** صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.
 - **🔴 حاجب اختبار الـ paywall الحقيقي:** طارق يحدّث `subscription_plans` بالمنتجات الجديدة + أسعار USD + product IDs (انظر جدول طارق).
 - **iOS:** لقطة شاشة الـ paywall مطلوبة لفتح إرسال الـ metadata.
@@ -288,7 +308,7 @@
 **معمول:**
 - `079d077` — أضفنا `QeranTextField` للـ DS (بديل `AppTextFormField`؛ creamSurface fill + control radius + عين `showObscureToggle` مدمجة، RTL-aware).
 - `a19ce3d` — توكن `appleBlack` (#000000) = الأسود الوحيد المسموح بالتطبيق، استثناء التزام بعلامة Apple (HIG) — على glyph الـ Apple فقط.
-- `0a4681a` — **sub-step a:** هجرة الـ leaves البصرية المشتركة (`or_divider`, `auth_footer_link`, `auth_title_subtitle`, `social_login_buttons`, `oath_title_ornament`؛ `auth_back_button` + `auth_logo_header` نظاف أصلاً).
+- `0a4681a` — **sub-step a:** هجرة الـ leaves البصرية المشتركة (`or_divider`, `auth_footer_link`, `auth_title_subtitle`, `social_login_buttons`, `oath_title_ornament`؛ `auth_back_button` نظيف أصلاً؛ `auth_logo_header` **حُذف لاحقاً** في auth re-skin).
 - `95b4d88` — **sub-step b:** هجرة wrappers الإيميل + كلمة المرور للـ `QeranTextField`.
 - `60f85f5` — **sub-step b2:** هجرة حقل الهاتف + `CountryCodePicker` معاً.
 - `3f4fd19` — أسطح الحقول/الكروت `creamSurface` → `paper` أبيض + `hairline border` (مراجعة تصميم).

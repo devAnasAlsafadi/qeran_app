@@ -3,6 +3,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/app_assets.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// The auth brand lockup shown inside the wine hero: the Arabic wordmark
@@ -20,6 +21,10 @@ class AuthWordmark extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // The gold interlocking-rings monogram — the shared brand mark
+        // (same asset the onboarding splash uses on the wine canvas).
+        Image.asset(AppAssets.splashSymbol, width: 60),
+        QeranSpacing.vs12,
         Text(
           'قِران',
           textAlign: TextAlign.center,

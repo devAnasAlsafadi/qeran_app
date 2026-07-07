@@ -19,8 +19,7 @@ import '../../blocs/whatsapp/whatsapp_bloc.dart';
 import '../../blocs/whatsapp/whatsapp_event.dart';
 import '../../blocs/whatsapp/whatsapp_state.dart';
 import '../../controllers/otp_controller.dart';
-import '../../widgets/auth_logo_header.dart';
-import '../../widgets/auth_back_button.dart';
+import '../../widgets/auth_hero_scaffold.dart';
 import 'widgets/otp_input_row.dart';
 import 'widgets/otp_resend_row.dart';
 import '../../widgets/auth_title_subtitle.dart';
@@ -96,43 +95,30 @@ class _WhatsappVerificationScreenState
   @override
   Widget build(BuildContext context) {
     return _buildProviders(
-      child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: QeranSpacing.s24,
-              vertical: QeranSpacing.s16,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AuthBackButton(onPressed: () => NavigationManager.pop(context)),
-                QeranSpacing.vs16,
-                const AuthLogoHeader(),
-                QeranSpacing.vs24,
-                AuthTitleSubtitle(
-                  title: LocaleKeys.auth_otp_screen_title.t(context),
-                ),
-                QeranSpacing.vs16,
-                _buildSubtitle(),
-                QeranSpacing.vs32,
-                OtpInputRow(
-                  controllers: _controller.otpControllers,
-                  focusNodes: _controller.otpFocusNodes,
-                ),
-                QeranSpacing.vs24,
-                BlocBuilder<WhatsappBloc, WhatsappState>(
-                  builder: (context, state) => OtpResendRow(
-                    onResend: () => _onResend(context),
-                    isLoading: state is WhatsappLoading,
-                  ),
-                ),
-                QeranSpacing.vs48,
-                _buildNextButton(),
-              ],
+      child: AuthHeroScaffold(
+        showBack: true,
+        onBack: () => NavigationManager.pop(context),
+        children: [
+          AuthTitleSubtitle(
+            title: LocaleKeys.auth_otp_screen_title.t(context),
+          ),
+          QeranSpacing.vs16,
+          _buildSubtitle(),
+          QeranSpacing.vs32,
+          OtpInputRow(
+            controllers: _controller.otpControllers,
+            focusNodes: _controller.otpFocusNodes,
+          ),
+          QeranSpacing.vs24,
+          BlocBuilder<WhatsappBloc, WhatsappState>(
+            builder: (context, state) => OtpResendRow(
+              onResend: () => _onResend(context),
+              isLoading: state is WhatsappLoading,
             ),
           ),
-        ),
+          QeranSpacing.vs48,
+          _buildNextButton(),
+        ],
       ),
     );
   }

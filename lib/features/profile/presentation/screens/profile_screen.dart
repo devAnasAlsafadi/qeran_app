@@ -17,6 +17,7 @@ import 'package:qeran/features/auth/presentation/blocs/user_session/user_session
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
+import 'package:qeran/features/auth/presentation/widgets/change_password_sheet.dart';
 import 'package:qeran/features/profile/presentation/widgets/delete_account_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -340,6 +341,13 @@ class _SettingsCard extends StatelessWidget {
               context,
               RouteNames.settingsTerms,
             ),
+          ),
+          const _RowDivider(),
+          _SettingsRow(
+            icon: Icons.lock_outline_rounded,
+            title: LocaleKeys.settings_change_password_title.t(context),
+            subtitle: null,
+            onTap: () => showChangePasswordSheet(context),
           ),
           const _RowDivider(),
           _SettingsRow(

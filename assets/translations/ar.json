@@ -668,6 +668,10 @@
   },
   "settings": {
     "account_management": "إدارة الحساب",
+    "change_password_title": "تغيير كلمة السر",
+    "change_password_current_hint": "كلمة السر الحالية",
+    "change_password_incorrect": "كلمة السر الحالية غير صحيحة",
+    "change_password_new_same": "كلمة السر الجديدة يجب أن تختلف عن الحالية",
     "profile_complete": "الملف الشخصي مكتمل",
     "view_edit_profile": "عرض/تعديل الملف",
     "verified": "موثق",

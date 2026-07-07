@@ -668,6 +668,10 @@
   },
   "settings": {
     "account_management": "Account management",
+    "change_password_title": "Change password",
+    "change_password_current_hint": "Current password",
+    "change_password_incorrect": "Current password is incorrect",
+    "change_password_new_same": "New password must be different from the current one",
     "profile_complete": "Profile complete",
     "view_edit_profile": "View / edit profile",
     "verified": "Verified",

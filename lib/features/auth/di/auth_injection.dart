@@ -8,11 +8,15 @@ import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
 import 'package:qeran/features/questionnaire/domain/usecases/submit_answers_usecase.dart';
 import '../data/datasources/auth_remote_datasource.dart';
+import '../data/datasources/change_password_remote_datasource.dart';
 import '../data/datasources/profile_image_remote_datasource.dart';
 import '../data/repositories/auth_repository_impl.dart';
+import '../data/repositories/change_password_repository_impl.dart';
 import '../data/repositories/profile_image_repository_impl.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/change_password_repository.dart';
 import '../domain/repositories/profile_image_repository.dart';
+import '../domain/usecases/change_password_usecase.dart';
 import '../domain/usecases/login_with_apple_usecase.dart';
 import '../domain/usecases/login_with_email_usecase.dart';
 import '../domain/usecases/login_with_google_usecase.dart';
@@ -23,6 +27,7 @@ import '../domain/usecases/send_whatsapp_otp_usecase.dart';
 import '../domain/usecases/upload_images_usecase.dart';
 import '../domain/usecases/verify_forgot_password_otp_usecase.dart';
 import '../domain/usecases/verify_whatsapp_otp_usecase.dart';
+import '../presentation/blocs/change_password/change_password_cubit.dart';
 import '../presentation/blocs/login/login_bloc.dart';
 import '../presentation/blocs/oath/oath_cubit.dart';
 import '../presentation/blocs/password_reset/password_reset_bloc.dart';
@@ -53,11 +58,19 @@ Future<void> initAuthDependencies() async {
     ),
   );
 
+  sl.registerLazySingleton<ChangePasswordRemoteDataSource>(
+    () => ChangePasswordRemoteDataSourceImpl(apiConsumer: sl<ApiConsumer>()),
+  );
+
   //! Repositories
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
 
   sl.registerLazySingleton<ProfileImageRepository>(
     () => ProfileImageRepositoryImpl(sl<ProfileImageRemoteDataSource>()),
+  );
+
+  sl.registerLazySingleton<ChangePasswordRepository>(
+    () => ChangePasswordRepositoryImpl(sl<ChangePasswordRemoteDataSource>()),
   );
 
   //! UseCases
@@ -70,6 +83,7 @@ Future<void> initAuthDependencies() async {
   sl.registerLazySingleton(() => RequestForgotPasswordOtpUseCase(sl()));
   sl.registerLazySingleton(() => VerifyForgotPasswordOtpUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
   sl.registerLazySingleton(() => UploadImagesUseCase(sl()));
 
   //! BLoCs / Cubits
@@ -121,4 +135,6 @@ Future<void> initAuthDependencies() async {
       userSession: sl<UserSessionCubit>(),
     ),
   );
+
+  sl.registerFactory(() => ChangePasswordCubit(sl()));
 }

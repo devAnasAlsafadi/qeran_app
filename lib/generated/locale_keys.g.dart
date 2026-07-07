@@ -652,6 +652,10 @@ abstract class  LocaleKeys {
   static const matchmaker_empty_account_message = 'matchmaker.empty_account_message';
   static const matchmaker = 'matchmaker';
   static const settings_account_management = 'settings.account_management';
+  static const settings_change_password_title = 'settings.change_password_title';
+  static const settings_change_password_current_hint = 'settings.change_password_current_hint';
+  static const settings_change_password_incorrect = 'settings.change_password_incorrect';
+  static const settings_change_password_new_same = 'settings.change_password_new_same';
   static const settings_profile_complete = 'settings.profile_complete';
   static const settings_view_edit_profile = 'settings.view_edit_profile';
   static const settings_verified = 'settings.verified';

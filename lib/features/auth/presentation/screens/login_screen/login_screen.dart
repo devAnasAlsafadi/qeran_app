@@ -13,11 +13,10 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../blocs/login/login_bloc.dart';
 import '../../blocs/login/login_state.dart';
 import '../../blocs/login/login_event.dart';
-import '../../widgets/auth_logo_header.dart';
+import '../../widgets/auth_hero_scaffold.dart';
 import 'login_controller.dart';
 import 'widgets/login_actions.dart';
 import 'widgets/login_form.dart';
-import 'package:qeran/core/widgets/language_switch_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,52 +51,35 @@ class _LoginScreenState extends State<LoginScreen> {
         builder: (context) {
           return BlocListener<LoginBloc, LoginState>(
             listener: _onStateChanged,
-            child: Scaffold(
-              body: SafeArea(
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: QeranSpacing.s24,
-                      vertical: QeranSpacing.s32,
-                    ),
-                    child: Form(
-                      key: _controller.formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Align(
-                            alignment: AlignmentDirectional.centerEnd,
-                            child: LanguageSwitchButton(
-                              variant: LanguageSwitchVariant.dark,
-                            ),
-                          ),
-                          const AuthLogoHeader(),
-                          QeranSpacing.vs24,
-                          Text(
-                            LocaleKeys.auth_login_title.t(context),
-                            style: QeranTypography.displaySm.copyWith(
-                              fontSize: 35,
-                            ),
-                          ),
-                          QeranSpacing.vs8,
-                          Text(
-                            LocaleKeys.auth_login_subtitle.t(context),
-                            style: QeranTypography.title.copyWith(
-                              color: QeranColors.inkMuted,
-                            ),
-                          ),
-                          QeranSpacing.vs24,
-                          LoginForm(controller: _controller),
-                          QeranSpacing.vs24,
-                          LoginActions(
-                            onLoginPressed: () => _onLoginPressed(context),
-                          ),
-                        ],
+            child: AuthHeroScaffold(
+              showLanguageSwitch: true,
+              children: [
+                Form(
+                  key: _controller.formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        LocaleKeys.auth_login_title.t(context),
+                        style: QeranTypography.title,
                       ),
-                    ),
+                      QeranSpacing.vs4,
+                      Text(
+                        LocaleKeys.auth_login_subtitle.t(context),
+                        style: QeranTypography.bodySm.copyWith(
+                          color: QeranColors.inkMuted,
+                        ),
+                      ),
+                      QeranSpacing.vs24,
+                      LoginForm(controller: _controller),
+                      QeranSpacing.vs24,
+                      LoginActions(
+                        onLoginPressed: () => _onLoginPressed(context),
+                      ),
+                    ],
                   ),
                 ),
-              ),
+              ],
             ),
           );
         },

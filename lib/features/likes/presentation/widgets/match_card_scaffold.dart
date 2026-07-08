@@ -29,6 +29,11 @@ class MatchCardScaffold extends StatelessWidget {
   final IconData? primaryTrailingIcon;
   final QeranButtonVariant primaryVariant;
 
+  /// Optional custom widget rendered in the primary-action region INSTEAD
+  /// of the single [primaryLabel] button — used by the responder state to
+  /// place a two-button (reject + accept) row the single slot can't express.
+  final Widget? primaryOverride;
+
   /// Optional list of secondary actions (ghost buttons / text links)
   /// placed below the primary button.
   final List<Widget>? secondaryActions;
@@ -50,6 +55,7 @@ class MatchCardScaffold extends StatelessWidget {
     this.primaryLoading = false,
     this.primaryTrailingIcon,
     this.primaryVariant = QeranButtonVariant.primaryWine,
+    this.primaryOverride,
     this.secondaryActions,
     this.footer,
   });
@@ -104,7 +110,10 @@ class MatchCardScaffold extends StatelessWidget {
             ),
           ],
         ),
-        if (primaryLabel != null) ...[
+        if (primaryOverride != null) ...[
+          const SizedBox(height: QeranSpacing.s12),
+          primaryOverride!,
+        ] else if (primaryLabel != null) ...[
           const SizedBox(height: QeranSpacing.s12),
           QeranButton(
             label: primaryLabel!,

@@ -6,7 +6,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
-import 'like_blurred_image.dart';
+import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
 import 'match_matchmaker_status_pill.dart';
 
@@ -36,7 +36,7 @@ class MatchCardStage2 extends StatelessWidget {
         card.formalRequest?.localizedStatusName(context.locale.languageCode) ??
         '';
     return MatchCardScaffold(
-      avatar: LikeBlurredImage(url: image?.url, blur: image?.isBlurred ?? true),
+      avatar: MatchCardAvatar(url: image?.url, blur: image?.isBlurred ?? true),
       name: card.otherUserName,
       statusIcon: Icons.handshake_rounded,
       statusText:

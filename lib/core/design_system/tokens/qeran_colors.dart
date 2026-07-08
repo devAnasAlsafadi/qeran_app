@@ -26,6 +26,12 @@ class QeranColors {
   static const Color creamSurface = Color(0xFFFBF4E6);
   static const Color paper = Color(0xFFFFFFFF);
 
+  /// Faint neutral (de-warmed) inset surface — segmented-control tracks and
+  /// similar recessed fills where a white/paper element sits on top. Reads as a
+  /// subtle band against [creamCanvas], and is darker than [paper] so a white
+  /// pill has clear contrast.
+  static const Color neutralSurface = Color(0xFFEFEFF1);
+
   // Ink (wine-tinted neutrals, never cold grey)
   static const Color inkStrong = Color(0xFF431C33);
   static const Color inkBody = Color(0xFF5A3B4E);

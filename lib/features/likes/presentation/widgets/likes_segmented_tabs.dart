@@ -60,7 +60,7 @@ class LikesSegmentedTabs extends StatelessWidget {
       child: Container(
         height: _kTrackHeight,
         decoration: const BoxDecoration(
-          color: QeranColors.creamSurface,
+          color: QeranColors.neutralSurface,
           borderRadius: QeranRadii.pill,
         ),
         padding: const EdgeInsets.all(_kInnerPad),

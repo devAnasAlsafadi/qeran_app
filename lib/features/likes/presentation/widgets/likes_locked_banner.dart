@@ -40,7 +40,7 @@ class LikesLockedBanner extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: QeranColors.gold.withValues(alpha: 0.20),
+                    color: QeranColors.gold20,
                     border: Border.all(color: QeranColors.gold, width: 1),
                   ),
                   alignment: Alignment.center,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -7,8 +8,9 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Locked variant — the server redacted the identity because the user
 /// isn't subscribed. The whole [QeranCard] is the tap target (routes to
-/// packages), so this only paints the redacted row: a lock-glyph avatar
-/// on the leading edge + the "unlock" title and subtitle.
+/// packages), so this only paints the redacted row: a lock-glyph avatar on
+/// the leading edge, a **redacted-name bar** where the name would be, the
+/// "unlock" subtitle, and a trailing disclosure chevron.
 class LikeCardLocked extends StatelessWidget {
   const LikeCardLocked({super.key});
 
@@ -23,12 +25,17 @@ class LikeCardLocked extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                LocaleKeys.likes_locked_card_title.t(context),
-                textAlign: TextAlign.start,
-                style: QeranTypography.title.copyWith(color: QeranColors.wine),
+              // Redacted name — the identity stays hidden until the user
+              // subscribes, so the name slot is a soft placeholder bar.
+              Container(
+                width: 128,
+                height: 13,
+                decoration: const BoxDecoration(
+                  color: QeranColors.wine12,
+                  borderRadius: QeranRadii.pill,
+                ),
               ),
-              const SizedBox(height: QeranSpacing.s8),
+              const SizedBox(height: QeranSpacing.s12),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -55,6 +62,10 @@ class LikeCardLocked extends StatelessWidget {
             ],
           ),
         ),
+        QeranSpacing.hs8,
+        // Disclosure affordance — auto-mirrors with the locale (right in LTR,
+        // left in RTL); gold ties it to the premium-unlock accent.
+        const Icon(Icons.chevron_right_rounded, color: QeranColors.gold),
       ],
     );
   }

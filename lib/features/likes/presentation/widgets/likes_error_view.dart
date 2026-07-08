@@ -18,7 +18,7 @@ class LikesErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return QeranErrorState(
       title: LocaleKeys.likes_error_title.t(context),
-      message: LocaleKeys.errors_generic.t(context),
+      message: LocaleKeys.likes_error_subtitle.t(context),
       retryLabel: LocaleKeys.likes_error_retry.t(context),
       onRetry: onRetry,
     );

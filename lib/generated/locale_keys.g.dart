@@ -244,7 +244,9 @@ abstract class  LocaleKeys {
   static const likes_empty_received_title = 'likes.empty_received_title';
   static const likes_empty_received_subtitle = 'likes.empty_received_subtitle';
   static const likes_error_title = 'likes.error_title';
+  static const likes_error_subtitle = 'likes.error_subtitle';
   static const likes_error_retry = 'likes.error_retry';
+  static const likes_loading_caption = 'likes.loading_caption';
   static const likes_locked_title = 'likes.locked_title';
   static const likes_locked_subtitle = 'likes.locked_subtitle';
   static const likes_locked_card_title = 'likes.locked_card_title';

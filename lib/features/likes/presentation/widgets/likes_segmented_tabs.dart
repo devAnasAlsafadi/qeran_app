@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
@@ -11,10 +12,11 @@ import '../../domain/entities/likes_tab.dart';
 
 /// Three-segment header on the Likes / Interests screen.
 ///
-/// Wraps all cells in a single paper rounded card with a wine-tinted
-/// shadow. The active indicator is an animated wine bar that slides
-/// horizontally via `AnimatedPositionedDirectional`, so the position is
-/// correct in both RTL and LTR without per-locale overrides.
+/// A cream track holds a single white paper "pill" that slides to sit behind
+/// the active segment via `AnimatedPositionedDirectional`, so the position is
+/// correct in both RTL and LTR without per-locale overrides. Motion, radii and
+/// shadow all come from tokens — the slide uses the hero curve for a smooth,
+/// spring-like settle.
 class LikesSegmentedTabs extends StatelessWidget {
   final LikesTab active;
   final ValueChanged<LikesTab> onChanged;
@@ -25,11 +27,8 @@ class LikesSegmentedTabs extends StatelessWidget {
     required this.onChanged,
   });
 
-  static const Duration _kAnimDur = Duration(milliseconds: 280);
-  static const double _kBarHeight = 3.0;
-  static const double _kBarWidth = 40.0;
-  static const double _kCardHeight = 56.0;
-  static const double _kInnerPad = 4.0;
+  static const double _kTrackHeight = 56.0;
+  static const double _kInnerPad = 5.0;
 
   static const List<LikesTab> _order = [
     LikesTab.sent,
@@ -59,52 +58,47 @@ class LikesSegmentedTabs extends StatelessWidget {
         QeranSpacing.s12,
       ),
       child: Container(
-        height: _kCardHeight,
-        decoration: BoxDecoration(
-          color: QeranColors.paper,
-          borderRadius: QeranRadii.cardR,
-          border: Border.all(color: QeranColors.wine08),
-          boxShadow: QeranShadows.e2,
+        height: _kTrackHeight,
+        decoration: const BoxDecoration(
+          color: QeranColors.creamSurface,
+          borderRadius: QeranRadii.pill,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(_kInnerPad),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final cellWidth = constraints.maxWidth / _order.length;
-              final barStart =
-                  activeIndex * cellWidth + (cellWidth - _kBarWidth) / 2;
-              return Stack(
-                children: [
-                  AnimatedPositionedDirectional(
-                    duration: _kAnimDur,
-                    curve: Curves.easeOutCubic,
-                    start: barStart,
-                    bottom: 6,
-                    width: _kBarWidth,
-                    height: _kBarHeight,
-                    child: const DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: QeranColors.gold,
-                        borderRadius: QeranRadii.pill,
-                      ),
+        padding: const EdgeInsets.all(_kInnerPad),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final cellWidth = constraints.maxWidth / _order.length;
+            return Stack(
+              children: [
+                AnimatedPositionedDirectional(
+                  duration: QeranMotion.standard,
+                  curve: QeranCurves.hero,
+                  start: activeIndex * cellWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: cellWidth,
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: QeranColors.paper,
+                      borderRadius: QeranRadii.pill,
+                      boxShadow: QeranShadows.e1,
                     ),
                   ),
-                  Row(
-                    children: [
-                      for (final tab in _order)
-                        Expanded(
-                          child: _TabCell(
-                            labelKey: _labelKey(tab),
-                            isActive: tab == active,
-                            onTap: () => onChanged(tab),
-                          ),
+                ),
+                Row(
+                  children: [
+                    for (final tab in _order)
+                      Expanded(
+                        child: _TabCell(
+                          labelKey: _labelKey(tab),
+                          isActive: tab == active,
+                          onTap: () => onChanged(tab),
                         ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+                      ),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -126,11 +120,11 @@ class _TabCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: QeranRadii.pill,
       child: Center(
         child: AnimatedDefaultTextStyle(
-          duration: LikesSegmentedTabs._kAnimDur,
-          curve: Curves.easeOutCubic,
+          duration: QeranMotion.standard,
+          curve: QeranCurves.standard,
           style: QeranTypography.subtitle.copyWith(
             color: isActive ? QeranColors.wine : QeranColors.inkMuted,
             fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
@@ -138,6 +132,7 @@ class _TabCell extends StatelessWidget {
           child: Text(
             labelKey.t(context),
             maxLines: 1,
+            textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
           ),
         ),

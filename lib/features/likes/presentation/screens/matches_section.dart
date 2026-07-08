@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
@@ -16,6 +15,7 @@ import '../blocs/likes_cubit.dart';
 import '../blocs/likes_state.dart';
 import '../widgets/likes_empty_state.dart';
 import '../widgets/likes_error_view.dart';
+import '../widgets/likes_loading_view.dart';
 import '../widgets/match_card.dart';
 import '../widgets/match_gallery_sheet.dart';
 
@@ -37,7 +37,7 @@ class MatchesSection extends StatelessWidget {
     switch (state.matchesStatus) {
       case LikesAsyncStatus.initial:
       case LikesAsyncStatus.loading:
-        return const Center(child: QeranLoader());
+        return const LikesLoadingView();
       case LikesAsyncStatus.failure:
         return LikesErrorView(onRetry: cubit.loadMatches);
       case LikesAsyncStatus.loaded:

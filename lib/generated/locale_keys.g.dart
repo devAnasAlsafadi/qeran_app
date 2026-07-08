@@ -234,6 +234,7 @@ abstract class  LocaleKeys {
   static const likes_action_accept = 'likes.action_accept';
   static const likes_action_reject = 'likes.action_reject';
   static const likes_action_accepted_success = 'likes.action_accepted_success';
+  static const likes_match_success_subtitle = 'likes.match_success_subtitle';
   static const likes_action_rejected_success = 'likes.action_rejected_success';
   static const likes_action_subscription_required = 'likes.action_subscription_required';
   static const likes_action_request_expired = 'likes.action_request_expired';

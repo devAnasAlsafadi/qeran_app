@@ -244,6 +244,7 @@
     "action_accept": "Accept",
     "action_reject": "Decline",
     "action_accepted_success": "Like accepted",
+    "match_success_subtitle": "You have a mutual interest — follow the next step through the matchmaker",
     "action_rejected_success": "Like declined",
     "action_subscription_required": "Subscribe to accept incoming likes",
     "action_request_expired": "This request has expired",

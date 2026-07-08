@@ -244,6 +244,7 @@
     "action_accept": "قبول",
     "action_reject": "رفض",
     "action_accepted_success": "تم قبول الإعجاب",
+    "match_success_subtitle": "لديكما اهتمام متبادل — تابعا الخطوة القادمة عبر الخطّابة",
     "action_rejected_success": "تم رفض الإعجاب",
     "action_subscription_required": "اشترك لقبول الإعجابات الواردة",
     "action_request_expired": "انتهت مدة هذا الطلب",

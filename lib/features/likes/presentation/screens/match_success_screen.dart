@@ -63,9 +63,9 @@ class MatchSuccessScreen extends StatelessWidget {
                 spacing: 20,
               ),
             ),
-            Positioned(
+            PositionedDirectional(
               top: QeranSpacing.s8,
-              right: QeranSpacing.s8,
+              end: QeranSpacing.s8,
               child: IconButton(
                 icon: const Icon(
                   Icons.close_rounded,
@@ -110,18 +110,45 @@ class MatchSuccessScreen extends StatelessWidget {
                           ),
                         ),
                       ],
-                      QeranSpacing.vs48,
+                      QeranSpacing.vs16,
                       SoftScaleIn(
                         delay: const Duration(milliseconds: 320),
                         duration: QeranMotion.gentle,
-                        child: QeranButton(
-                          label: LocaleKeys.common_next.t(context),
-                          onPressed: () => NavigationManager.pop(context),
-                          variant: QeranButtonVariant.primary,
-                          trailingIcon: Icons.arrow_forward_rounded,
+                        child: Text(
+                          LocaleKeys.likes_match_success_subtitle.t(context),
+                          textAlign: TextAlign.center,
+                          style: QeranTypography.bodySm.copyWith(
+                            color: QeranColors.paper.withValues(alpha: 0.72),
+                          ),
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            ),
+            // Continue is pinned full-width to the bottom (inside the outer
+            // SafeArea). The forward affordance uses chevron_right_rounded so
+            // it mirrors with the locale (points left in AR, right in EN).
+            PositionedDirectional(
+              start: 0,
+              end: 0,
+              bottom: 0,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  QeranSpacing.s24,
+                  0,
+                  QeranSpacing.s24,
+                  QeranSpacing.s24,
+                ),
+                child: SoftScaleIn(
+                  delay: const Duration(milliseconds: 400),
+                  duration: QeranMotion.gentle,
+                  child: QeranButton(
+                    label: LocaleKeys.common_next.t(context),
+                    onPressed: () => NavigationManager.pop(context),
+                    variant: QeranButtonVariant.primary,
+                    trailingIcon: Icons.chevron_right_rounded,
                   ),
                 ),
               ),
@@ -157,12 +184,18 @@ class _PortraitOrMark extends StatelessWidget {
           Positioned(
             left: 0,
             top: 0,
-            child: _Disc(color: QeranColors.gold),
+            child: _Disc(
+              color: QeranColors.gold,
+              heart: Icons.favorite_rounded,
+            ),
           ),
           Positioned(
             left: _markDisc - _markOverlap,
             top: 0,
-            child: _Disc(color: QeranColors.paper),
+            child: _Disc(
+              color: QeranColors.paper,
+              heart: Icons.favorite_border_rounded,
+            ),
           ),
         ],
       ),
@@ -171,19 +204,22 @@ class _PortraitOrMark extends StatelessWidget {
 }
 
 class _Disc extends StatelessWidget {
-  const _Disc({required this.color});
+  const _Disc({required this.color, required this.heart});
   final Color color;
+  final IconData heart;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: _PortraitOrMark._markDisc,
       height: _PortraitOrMark._markDisc,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
         border: Border.all(color: QeranColors.wine, width: 2),
       ),
+      child: Icon(heart, color: QeranColors.wine, size: 32),
     );
   }
 }

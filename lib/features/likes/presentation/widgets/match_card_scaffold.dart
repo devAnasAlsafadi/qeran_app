@@ -20,11 +20,14 @@ class MatchCardScaffold extends StatelessWidget {
   /// Optional pending-countdown chip, shown on the trailing edge of the row.
   final Widget? topChip;
 
-  /// Optional primary action parameters (unified to primaryWine).
+  /// Optional primary action parameters. [primaryVariant] defaults to
+  /// `primaryWine`; the Matches-tab stages pass `primary` (gold) while the
+  /// shared matchmaker interest card keeps the wine default.
   final String? primaryLabel;
   final VoidCallback? onPrimaryPressed;
   final bool primaryLoading;
   final IconData? primaryTrailingIcon;
+  final QeranButtonVariant primaryVariant;
 
   /// Optional list of secondary actions (ghost buttons / text links)
   /// placed below the primary button.
@@ -46,6 +49,7 @@ class MatchCardScaffold extends StatelessWidget {
     this.onPrimaryPressed,
     this.primaryLoading = false,
     this.primaryTrailingIcon,
+    this.primaryVariant = QeranButtonVariant.primaryWine,
     this.secondaryActions,
     this.footer,
   });
@@ -105,7 +109,7 @@ class MatchCardScaffold extends StatelessWidget {
           QeranButton(
             label: primaryLabel!,
             onPressed: onPrimaryPressed,
-            variant: QeranButtonVariant.primaryWine,
+            variant: primaryVariant,
             size: QeranButtonSize.xs,
             loading: primaryLoading,
             trailingIcon: primaryTrailingIcon,

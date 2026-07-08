@@ -115,6 +115,7 @@ class MatchCardStage0 extends StatelessWidget {
       primaryLabel: primaryLabel,
       onPrimaryPressed: onPrimaryPressed,
       primaryLoading: primaryLoading,
+      primaryVariant: QeranButtonVariant.primary,
       secondaryActions: secondaryActions,
     );
   }

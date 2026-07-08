@@ -281,6 +281,7 @@
     "matches_stage_matchmaker_cta": "Contact the matchmaker",
     "matches_inquiry_cta": "Send your questions to the matchmaker",
     "matches_formal_step_cta": "Formal step via the matchmaker",
+    "matches_matchmaker_status": "Matchmaker status: {status}",
     "matches_formal_step_message": "I'd like to proceed formally to the next step with this person",
     "matches_stage_matchmaker_will_contact": "The matchmaker will contact you soon",
     "matches_action_request_success": "Photo exchange requested",

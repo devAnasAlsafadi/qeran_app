@@ -23,7 +23,12 @@ class GetStoreProductsUseCase {
       final products = <String, StoreProduct>{};
       for (final package in offering.availablePackages) {
         final product = package.storeProduct;
+        // Google Play subscription store ids are "<productId>:<basePlanId>";
+        // the paywall keys off the backend googleProductId (the bare portion).
+        // Register both so a lookup by either shape resolves the store price
+        // instead of silently falling back to the backend price.
         products[product.identifier] = product;
+        products[product.identifier.split(':').first] = product;
       }
       return products;
     });

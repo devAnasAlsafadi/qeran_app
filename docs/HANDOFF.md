@@ -2,7 +2,7 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
 > اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 6 يوليو 2026
+> آخر تحديث: 8 يوليو 2026
 
 ---
 
@@ -11,7 +11,7 @@
 
 **الدفع = IAP / RevenueCat** — محسوم؛ يحتاج منتجات المتجر + webhook طارق قبل P2+. P1 (boot + هوية) مربوط ومتحقَّق هذه الجلسة.
 
-**▶️ نقطة الدخول للجلسة الجاية:** **مرحلة الصقل البصري (Design Polish)** مستمرة. **onboarding + auth re-skin مكتملان 🏁؛ gender re-skin قيد التنفيذ** (محجوب على إضافة أصول الشخصيتين يدوياً). **التالي: إعادة تصميم الاهتمامات/Interests + Match-success.** القاعدة الحاكمة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.** ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down + حاجب اختبار الـ paywall). انظر «🆕 6–7 يوليو» للمُنجَز الأحدث.
+**▶️ نقطة الدخول للجلسة الجاية:** **مرحلة الصقل البصري (Design Polish)** مستمرة. **onboarding + auth + gender + الاهتمامات/Interests + Match-success re-skin كلها مكتملة 🏁.** **التالي: صقل شاشات الخطّابة (Moderator) البصري.** القاعدة الحاكمة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.** ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down + حاجب اختبار الـ paywall). انظر «🆕 6–8 يوليو» للمُنجَز الأحدث.
 
 ---
 
@@ -70,7 +70,7 @@
 
 ---
 
-## 🆕 6–7 يوليو — Onboarding + Auth re-skin + Change-Password + Gender (الأحدث)
+## 🆕 6–8 يوليو — Onboarding + Auth + Change-Password + Gender + Interests/Match-success (الأحدث)
 
 **Onboarding re-skin — DONE ✅ (4 commits، عرض فقط):** Essence / Mediation / Roadmap → Claude Design. جديد: `goldLight #F2D9AC` + variant `glass` للـ `QeranChip` + أصل `essence_portrait.jpg`. متقاعد: `OnboardingBottomNav` + `OnboardingSheen` + `OnboardingGlowPulse`. الـ `OnboardingCubit`/`State` بديف فارغ.
 
@@ -78,11 +78,13 @@
 
 **Change-password (إعدادات المستخدم) — ميزة منطق جديدة ✅ (`feat`):** slice معزول في `auth/` يعيد استخدام endpoint `Auth/change-password` المشترك — **بلا ربط بالخطّابة، بلا تعديل باك-إند**. datasource + repo + usecase + `ChangePasswordCubit` (locale-key-free) + bottom sheet DS (current/new/confirm + eye toggles). Validation = معيار الـ reset (**≥8 + regex** + confirm-match + new≠current). خطأ «كلمة السر الحالية» inline (مفتاح ثنائي اللغة، **لا نص باك-إند خام**). يرسل `confirmNewPassword`. صف «تغيير كلمة السر» (قفل) فوق «حذف الحساب». **⏳ طارق: تأكيد أن `Auth/change-password` ليس moderator-gated** (فحص متوازٍ، غير حاجب).
 
-**Gender re-skin — قيد التنفيذ (محجوب على أصول):** التصميم = تاب «تحديد الهوية» داخل `auth.dc.html`. ⚠️ **البندل على القرص لا يحوي فن الشخصيتين قابلاً للاستخراج** — فحص كامل لكل الـ chunks (gunzip + فكّ `\u`): الصورة المضمّنة الوحيدة = monogram الهوية (537×439 PNG)، لا gender screen بالـ design kit (الراوتر: signin/profile/paywall/match/discover فقط)، لا `<img>`/SVG شخصيات. نسخة القرص **أقدم/مختلفة** عمّا يُعرَض بمتصفح أحمد (الفن غالباً inline SVG أو export أحدث لم يُحفَظ). **الأصول تُضاف يدوياً** كـ `assets/images/gender_male.png` / `gender_female.png` (ذكر **بلا غطرة رأس** — بعكس نسخة البندل). **صفر منطق** (`GenderSelectionController`/`Gender` enum/prefs/`QuestionnaireCubit.fetchQuestions`/`OnboardingPopScope` سليمة). ترتيب الكروت **ذكر أولاً** (start/يمين RTL)؛ selected = حد ذهبي + توهّج ذهبي + شارة check ذهبية، والكرت الكريمي **لا يغمق** عند الاختيار.
+**Gender re-skin — DONE ✅ (عرض فقط، غير مُكوميت بعد — بانتظار كوميت أنس):** التصميم = تاب «تحديد الهوية» داخل `auth.dc.html`، لكن **لم توجد شاشة gender بالبندل** — التخطيط اشتُقّ من **brief مكتوب**. ⚠️ فحص كامل للبندل أكّد لا فن شخصيات قابل للاستخراج (monogram الهوية 537×439 هو الصورة الوحيدة). **الأصول = فن Gemini** أُضيف يدوياً كـ `assets/images/gender_male.png` / `gender_female.png` (ذكر **بلا غطرة رأس**). الكروت الكريمية + اختيار بحدّ ذهبي: selected = حد ذهبي + توهّج ذهبي + شارة check ذهبية، والكرت الكريمي **لا يغمق** عند الاختيار؛ ترتيب **ذكر أولاً** (start/يمين RTL). **صفر منطق** (`GenderSelectionController`/`Gender` enum/prefs/`QuestionnaireCubit.fetchQuestions`/`OnboardingPopScope` سليمة).
 
 **مصدر التصميم (handoff):** ملفات Claude Design `.dc.html` تُصدَّر إلى `docs/_design/` (`auth.dc.html` · `Qeran Onboarding.dc.html` · `Interests States (offline).html`). **الـ MCP import (`/design-login`) يحتاج تسجيل دخول تفاعلي → يفشل داخل Claude Code؛ الـ export اليدوي هو المسار المعتمد.** (`_design/` غير متتبَّع في git — ثقيل ~35MB.)
 
-**▶️ التالي بعد gender: إعادة تصميم الاهتمامات/Interests + شاشة نجاح-الماتش/Match-success** — التصميم جاهز في `docs/_design/` (`Interests States (offline).html`). نفس قواعد الصقل: صفر منطق · توكنز DS · لا Figma.
+**Interests/Likes + Match-success re-skin — DONE 🏁 (4 مجموعات commit ذرّية، عرض فقط):** تاب bar (pill ورقي منزلق) + حالات loading/error · كرت مقفول باسم محجوب + chevron ذهبي · **CTAs ذهبية على كروت الماتش** (`QeranButtonVariant.primary` — **تجاوز مقصود لقرار `primaryWine` على كروت الماتش تحديداً**) + **pill حالة الخطّابة الديناميكي** (يعرض `FormalRequest.statusNameAr/En` من الباك إند على stages 1&2) · Match-success (قلوب داخل الشعار: قرص ذهبي→قلب واين مملوء، قرص ورقي→قلب واين مفرّغ؛ + subtitle جديد `likes_match_success_subtitle`؛ close X اتجاهي + Continue مثبّت أسفل بسهم يـmirror). **توكن جديد `neutralSurface #EFEFF1`** (مسار الـ segmented-tab track — أبرد من `creamSurface`). صفر منطق (blocs/domain/data بديف فارغ). commits `d1bc59a`→`540d44a` (٦ commits). ⚠️ **متغيّر name/photo لشاشة النجاح مبنيّ بنيوياً لكنه خامل (dormant)** — يحتاج **سلك cubit صغير** لتعبئته لاحقاً (انظر Deferred). ⚠️ **جولة إصلاحات بصرية ثانية (أفاتار واين صلب + frost + حدّ ذهبي hairline + توكن `QeranStrokes`) في شجرة العمل غير مُكوميتة — بانتظار فحص AR+EN.**
+
+**▶️ التالي: صقل شاشات الخطّابة (Moderator) البصري** — نفس القاعدة: صفر منطق · توكنز DS · لا ميزات جديدة · لا Figma.
 
 **Tech-debt (قاعدة <200 سطر):** `profile_screen.dart` (632) + `whatsapp_verification.dart` (254) يتجاوزان الحد — يُقسَّمان في **مهمة منطق منفصلة** (خارج نطاق الصقل البصري؛ الـ re-skin ما ضخّمهما — `whatsapp_verification` نقص من 268).
 
@@ -99,7 +101,7 @@
 - **إعداد Apple App Store جزئي:** مفتاح P8 + الاشتراكات في **Missing Metadata** بانتظار لقطات الشاشة.
 - **Caching + offline UX:** Piece 3 + Piece 4/5 (مؤرشَف التفصيل — انظر `docs/_plan_drafts/_archive/`).
 
-**⚠️ المرحلة الحالية = صقل بصري (Design Polish):** تحسين بصري ميزة-بميزة عبر Claude Design. **onboarding + auth مكتملان 🏁؛ gender قيد التنفيذ؛ التالي: Interests + Match-success.** القاعدة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا Figma.**
+**⚠️ المرحلة الحالية = صقل بصري (Design Polish):** تحسين بصري ميزة-بميزة عبر Claude Design. **onboarding + auth + gender + Interests + Match-success مكتملة 🏁؛ التالي: صقل شاشات الخطّابة (Moderator).** القاعدة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا Figma.**
 
 ---
 
@@ -114,14 +116,14 @@
 - 🔴 **السيرفر DOWN:** `qeranadmin-001-site1.rtempurl.com` يرجّع «No route to host» (errno 113) على كل الطلبات — استضافة rtempurl المجانية سقطت (المشكلة المتكرّرة). طارق مُبلَّغ.
 - 🔴 **استضافة إنتاج مطلوبة قبل الإطلاق:** rtempurl المجاني غير موثوق (ينام، يفقد بيانات — صور اختبار قديمة ضاعت أصلاً). العميل لازم يرتّب استضافة مدفوعة قبل إطلاق المتجر.
 - 🔴 **iOS — لقطة شاشة الـ paywall مطلوبة** لفتح إرسال الـ metadata على Apple (الاشتراكات في Missing Metadata).
-- ✅ **متزامن مع `origin/main` بعد دفع هذه الجلسة** (عمل يوليو: paywall + onboarding + رفع الإصدار 1.0.3+4 + هذا التحديث — دُفِع كله. ملاحظة: كان **19 commit محلياً غير مدفوع** قبل هذه الجلسة رغم افتراض أن onboarding مدفوع — صُحّح بالدفع الآن).
+- ✅ **متزامن مع `origin/main` بعد دفع 8–9 يوليو** (Interests/Likes + Match-success re-skin — ٦ commits `d1bc59a`→`540d44a` + هذا التحديث دُفِعت). ⚠️ **غير مُكوميت/مدفوع بعد:** جولة إصلاحات Interests الثانية (أفاتار/hairline) بانتظار فحص AR+EN، وأصول+كود gender re-skin (بانتظار كوميت أنس). (سابقاً: عمل يوليو paywall + onboarding + 1.0.3+4 دُفِع كله.)
 
 ---
 
 ## 🗺️ الخطوات الجاية (بالأولوية)
 
 **▶️ التالي — مرحلة الصقل البصري (Design Polish):**
-- **auth re-skin مكتمل 🏁 (6 شاشات) · gender re-skin قيد التنفيذ (محجوب على أصول) · التالي: الاهتمامات/Interests + Match-success** — عبر mockups الـ Claude Design في `docs/_design/`.
+- **auth (6 شاشات) + onboarding + gender + Interests/Likes + Match-success مكتملة 🏁 · التالي: صقل شاشات الخطّابة (Moderator)** — عبر mockups الـ Claude Design في `docs/_design/`.
 - **القاعدة الحاكمة:** صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.
 - **🔴 حاجب اختبار الـ paywall الحقيقي:** طارق يحدّث `subscription_plans` بالمنتجات الجديدة + أسعار USD + product IDs (انظر جدول طارق).
 - **iOS:** لقطة شاشة الـ paywall مطلوبة لفتح إرسال الـ metadata.
@@ -262,6 +264,8 @@
 - ~~**(متابعة 1) تطبيق نظام تصميم الإشعارات الجديد على صندوق الخطّابة**~~ ✅ **معمول (commit `6e6d18c`، متحقَّق AR+EN):** `MatchmakerNotificationTile` صار على نفس الـ DS عبر helper مشترك مستخرَج `NotificationTileVisuals` (tone families: Match ذهبي صلب · Chat/Offer ذهبي ناعم · Profile/Announcement/General واين خفيف) + أيقونات per-action لـ Match عبر `data.action` + وقت top-line عبر `QeranRelativeTime`. الـ user tile أُعيد توصيله بنفس الـ helper (الـ mapping منقول حرفياً — شكله لم يتغيّر).
 - **(متابعة 2) التحقّق الحي من أيقونات per-action (كاميرا/احتفال/مصافحة) + توجيه deep-link لـ `data` معبّأ:** **لا يزال مفتوحاً.** الـ tile الآن **يقرأ `data.action`** (بعد متابعة 1)، لكن كل السجلات الحالية pre-fix (`data:null`) فيظهر القلب الافتراضي. يحتاج **إشعار post-fix بـ `data` معبّأ** + **حساب مستخدم** للملاحظة الحيّة. الـ wiring مؤكَّد كوداً (يطابق قيم طارق).
 - ~~**(متابعة 3) محادثة الخطّابة — placeholder غير مترجَم `Shared by {name}`**~~ ✅ **معمول (commit `7d10791`، متحقَّق AR+EN):** مُرِّر `message.senderName` للكرت ويُستوفى عبر `context.tr(namedArgs:)` → «تمت المشاركة من {name}» / «Shared by {name}». (المفتاح كان أصلاً فيه `{name}` لكن بلا `namedArgs`.)
+- **Match-success — متغيّر «اسم + صورة» خامل (dormant):** البنية موجودة في `match_success_screen.dart` (`MatchSuccessArgs` + `_Portrait` + فرع `hasName`) لكن الـ cubit لا يعبّئ `args` فقط متغيّر الشعار (brand-mark) يُعرض حياً. التفعيل = **سلك cubit صغير** يمرّر اسم/صورة الطرف المطابق عند الانتقال — مهمة منطق منفصلة (خارج نطاق الصقل البصري).
+- **جولة إصلاحات Interests البصرية الثانية — غير مُكوميتة:** أفاتار كروت الماتش (قاعدة واين صلبة + `wine80` frost لمنع تسرّب أخضر/رمادي) + حدّ الكرت الذهبي hairline عبر توكن جديد `QeranStrokes` (`lib/core/design_system/tokens/qeran_strokes.dart`) — في شجرة العمل، **بانتظار فحص المستخدم AR+EN** قبل الكوميت. المقياسان القابلان للضبط: قوّة الـ frost (`wine80`) وعرض الحدّ (`1.0`).
 - **شاشة ما بعد «قبول الإعجاب» (فكرة المستخدم — يريد عملها):** حالة/شاشة بعد قبول الإعجاب (post-like-accepted). غير مبدوءة — بانتظار تصوّر المستخدم.
 - **(تأجيل بقرار Claude) لمسات كرت عضو الخطّابة الاختيارية:** غير معمولة — تباعد عمودي أضيق، divider أخفّ أو محذوف، واحتمال نقل التاريخ تحت الاسم بدل الزاوية البعيدة. تجميلية بحتة، بانتظار قرار بصري من المستخدم.
 - **تاب «بالانتظار» (Users) غير متحقَّق بصرياً:** كان 0 مستخدمين فما انعرض كرت — لكن **نفس مسار كود الكرت** (موافقة primary + ثانويات)، فالتحسينات الثلاثة تنطبق عليه. يحتاج مستخدم pending للتحقّق الحي.

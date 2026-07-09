@@ -23,6 +23,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
     emit(state.copyWith(isLoading: true, clearError: true));
     try {
       final result = await fetchPage(1);
+      if (isClosed) return;
       emit(state.copyWith(
         items: result.items,
         page: 1,
@@ -30,6 +31,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
         isLoading: false,
       ));
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
@@ -44,6 +46,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
     emit(state.copyWith(isRefreshing: true, clearError: true));
     try {
       final result = await fetchPage(1);
+      if (isClosed) return;
       emit(state.copyWith(
         items: result.items,
         page: 1,
@@ -51,6 +54,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
         isRefreshing: false,
       ));
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
         isRefreshing: false,
         errorMessage: e.toString(),
@@ -67,6 +71,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
     emit(state.copyWith(isLoadingMore: true, clearError: true));
     try {
       final result = await fetchPage(nextPage);
+      if (isClosed) return;
       emit(state.copyWith(
         items: [...state.items, ...result.items],
         page: nextPage,
@@ -74,6 +79,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
         isLoadingMore: false,
       ));
     } catch (e) {
+      if (isClosed) return;
       emit(state.copyWith(
         isLoadingMore: false,
         errorMessage: e.toString(),

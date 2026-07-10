@@ -1,9 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import '../../../../core/constants/storage_keys.dart';
 import '../../../../core/services/storage_service.dart';
 import 'splash_state.dart';
 
-class SplashCubit extends Cubit<SplashState> {
+class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
   final StorageService secureStorage;
   final StorageService sharedPrefs;
 

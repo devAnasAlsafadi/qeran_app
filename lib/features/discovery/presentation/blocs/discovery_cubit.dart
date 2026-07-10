@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
@@ -21,7 +22,7 @@ import 'discovery_state.dart';
 ///
 /// Pagination: prefetch fires when the user is within 3 cards of the end
 /// of the loaded deck (per `DISCOVERY_PLAN.md` §10 R5).
-class DiscoveryCubit extends Cubit<DiscoveryState> {
+class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState> {
   /// Server default. Tunable; lifted into a constant so tests can
   /// reference it without magic numbers.
   static const int pageSize = 10;

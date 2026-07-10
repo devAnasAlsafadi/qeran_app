@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 
 import '../../domain/usecases/update_text_answer_usecase.dart';
@@ -8,7 +9,7 @@ import 'matchmaker_answer_save_state.dart';
 /// slot (keyed by questionId) guards double-submit; each completed save
 /// publishes a one-shot outcome the screen turns into a snackbar + an
 /// in-place list update.
-class MatchmakerAnswerSaveCubit extends Cubit<MatchmakerAnswerSaveState> {
+class MatchmakerAnswerSaveCubit extends Cubit<MatchmakerAnswerSaveState> with SafeEmit<MatchmakerAnswerSaveState> {
   final UpdateTextAnswerUseCase _updateTextAnswer;
   final String userId;
 

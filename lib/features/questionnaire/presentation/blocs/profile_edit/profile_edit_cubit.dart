@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 
 import '../../../domain/entities/editable_category.dart';
@@ -12,7 +13,7 @@ import 'profile_edit_state.dart';
 /// working answer map, validates required fields client-side, and on save
 /// sends EVERY question to `submit` (the server replaces ALL answers, so the
 /// full set must be replayed even if only one field changed).
-class ProfileEditCubit extends Cubit<ProfileEditState> {
+class ProfileEditCubit extends Cubit<ProfileEditState> with SafeEmit<ProfileEditState> {
   final GetEditFormUseCase _getEditForm;
   final SubmitAnswersUseCase _submit;
 

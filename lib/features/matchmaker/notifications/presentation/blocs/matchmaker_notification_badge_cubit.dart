@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/errors/errors.dart';
@@ -12,7 +13,7 @@ import '../../domain/usecases/get_notification_count_usecase.dart';
 /// The backend exposes no read-state, so unread is a LOCAL heuristic:
 /// `max(0, currentTotal − lastSeenCount)`, where `lastSeenCount` is the total
 /// stored the last time the inbox was opened. State is the unread count.
-class MatchmakerNotificationBadgeCubit extends Cubit<int> {
+class MatchmakerNotificationBadgeCubit extends Cubit<int> with SafeEmit<int> {
   final GetNotificationCountUseCase _getCount;
   final SharedPrefService _prefs;
 

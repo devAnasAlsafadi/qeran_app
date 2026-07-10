@@ -29,6 +29,7 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
   ) async {
     emit(PasswordResetLoading());
     final result = await _requestReset(phoneNumber: event.phoneNumber);
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(PasswordResetFailure(failure.message)),
       (_) => emit(PasswordResetOtpSent(event.phoneNumber)),
@@ -44,6 +45,7 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
       phoneNumber: event.phoneNumber,
       code: event.code,
     );
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(PasswordResetFailure(failure.message)),
       (_) => emit(
@@ -65,6 +67,7 @@ class PasswordResetBloc extends Bloc<PasswordResetEvent, PasswordResetState> {
       code: event.code,
       newPassword: event.newPassword,
     );
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(PasswordResetFailure(failure.message)),
       (_) => emit(PasswordResetSuccess()),

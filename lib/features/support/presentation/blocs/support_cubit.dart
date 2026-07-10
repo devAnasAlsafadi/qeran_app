@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -15,7 +16,7 @@ part 'support_state.dart';
 /// real ticket. A single in-flight slot guards double-submit; every terminal
 /// submit outcome bumps `eventVersion` so the screen toasts (and pops on
 /// success) exactly once. The 5-open-tickets cap is flagged separately.
-class SupportCubit extends Cubit<SupportState> {
+class SupportCubit extends Cubit<SupportState> with SafeEmit<SupportState> {
   final GetSupportCategoriesUseCase _getCategories;
   final CreateSupportTicketUseCase _createTicket;
 

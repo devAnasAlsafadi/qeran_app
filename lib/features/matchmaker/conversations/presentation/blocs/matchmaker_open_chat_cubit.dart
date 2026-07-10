@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 
 import '../../domain/usecases/open_user_chat_usecase.dart';
@@ -8,7 +9,7 @@ import 'matchmaker_open_chat_state.dart';
 /// action. One shared instance per user list (factory): [open] guards a
 /// double-tap while a chat is resolving, then publishes a one-shot
 /// [MatchmakerOpenChatOutcome] the host turns into navigation / a snackbar.
-class MatchmakerOpenChatCubit extends Cubit<MatchmakerOpenChatState> {
+class MatchmakerOpenChatCubit extends Cubit<MatchmakerOpenChatState> with SafeEmit<MatchmakerOpenChatState> {
   final OpenUserChatUseCase _openUserChat;
 
   MatchmakerOpenChatCubit({required OpenUserChatUseCase openUserChat})

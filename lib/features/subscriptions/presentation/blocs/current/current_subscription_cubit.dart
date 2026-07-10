@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../../domain/entities/current_subscription.dart';
 import '../../../domain/usecases/get_current_subscription_usecase.dart';
@@ -19,7 +20,7 @@ import 'current_subscription_state.dart';
 /// TTL and is used for cold-start, pull-to-refresh, gated-action
 /// success, and the `/subscribe` aftermath (though the latter prefers
 /// [onSubscribed] which avoids an extra round-trip entirely).
-class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> {
+class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with SafeEmit<CurrentSubscriptionState> {
   final GetCurrentSubscriptionUseCase _getCurrent;
 
   static const Duration _ttl = Duration(seconds: 60);

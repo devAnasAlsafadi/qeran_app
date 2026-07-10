@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
 
@@ -8,7 +9,7 @@ import '../../domain/usecases/get_notifications_usecase.dart';
 /// Owns the paginated notification inbox. Pagination / refresh / load-more come
 /// from [PaginatedListCubitMixin]; this class only wires the fetch.
 class NotificationsCubit extends Cubit<PaginatedListState<NotificationItem>>
-    with PaginatedListCubitMixin<NotificationItem> {
+    with SafeEmit<PaginatedListState<NotificationItem>>, PaginatedListCubitMixin<NotificationItem> {
   final GetNotificationsUseCase _getNotifications;
 
   NotificationsCubit({required GetNotificationsUseCase getNotifications})

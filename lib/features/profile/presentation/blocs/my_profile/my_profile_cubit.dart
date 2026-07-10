@@ -1,11 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 
 import '../../../domain/usecases/get_my_profile_usecase.dart';
 import 'my_profile_state.dart';
 
-class MyProfileCubit extends Cubit<MyProfileState> {
+class MyProfileCubit extends Cubit<MyProfileState> with SafeEmit<MyProfileState> {
   final GetMyProfileUseCase _getMyProfile;
 
   MyProfileCubit({required GetMyProfileUseCase getMyProfile})

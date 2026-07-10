@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 
@@ -17,7 +18,7 @@ import 'profile_details_state.dart';
 /// (the screen listener handles the auto-pop). Transport failures
 /// preserve the seed when one exists so the user keeps reading while
 /// we surface a non-blocking refresh-failed badge.
-class ProfileDetailsCubit extends Cubit<ProfileDetailsState> {
+class ProfileDetailsCubit extends Cubit<ProfileDetailsState> with SafeEmit<ProfileDetailsState> {
   final GetProfileByIdUseCase _getProfileById;
 
   /// Monotonic counter — bumped each time a fresh

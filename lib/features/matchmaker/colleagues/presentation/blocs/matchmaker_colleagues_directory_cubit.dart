@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
 
@@ -11,7 +12,7 @@ import '../../domain/usecases/get_colleagues_usecase.dart';
 /// roster, not a live thread list).
 class MatchmakerColleaguesDirectoryCubit
     extends Cubit<PaginatedListState<MatchmakerColleague>>
-    with PaginatedListCubitMixin<MatchmakerColleague> {
+    with SafeEmit<PaginatedListState<MatchmakerColleague>>, PaginatedListCubitMixin<MatchmakerColleague> {
   final GetColleaguesUseCase _getColleagues;
 
   MatchmakerColleaguesDirectoryCubit({

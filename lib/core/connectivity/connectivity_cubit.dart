@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import '../services/connectivity_service.dart';
 
@@ -11,7 +12,7 @@ enum ConnectivityStatus { online, offline }
 /// App-wide connectivity signal driving the offline banner. Root-provided with
 /// singleton lifetime. Seeds `online` optimistically, corrects to the real
 /// snapshot on construction, then follows [ConnectivityService] transitions.
-class ConnectivityCubit extends Cubit<ConnectivityStatus> {
+class ConnectivityCubit extends Cubit<ConnectivityStatus> with SafeEmit<ConnectivityStatus> {
   ConnectivityCubit({required ConnectivityService service})
       : _service = service,
         super(ConnectivityStatus.online) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
@@ -27,7 +28,7 @@ import '../../domain/usecases/get_compatibility_cases_usecase.dart';
 /// connection itself is owned by the shell, never by this cubit.
 class MatchmakerCasesListCubit
     extends Cubit<PaginatedListState<CompatibilityCase>>
-    with PaginatedListCubitMixin<CompatibilityCase> {
+    with SafeEmit<PaginatedListState<CompatibilityCase>>, PaginatedListCubitMixin<CompatibilityCase> {
   final GetCompatibilityCasesUseCase _getCases;
   final MatchmakerRealtimePort _realtimePort;
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
 
@@ -23,7 +24,7 @@ import '../../domain/usecases/get_colleague_conversations_usecase.dart';
 /// shell's `IndexedStack` keeps the cubit alive across tab switches.
 class MatchmakerColleagueConversationsCubit
     extends Cubit<PaginatedListState<MatchmakerConversation>>
-    with PaginatedListCubitMixin<MatchmakerConversation> {
+    with SafeEmit<PaginatedListState<MatchmakerConversation>>, PaginatedListCubitMixin<MatchmakerConversation> {
   final GetColleagueConversationsUseCase _getConversations;
   final MatchmakerRealtimePort _realtimePort;
 

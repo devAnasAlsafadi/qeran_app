@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../domain/usecases/fetch_subscription_plans_usecase.dart';
 import 'subscription_plans_state.dart';
@@ -10,7 +11,7 @@ import 'subscription_plans_state.dart';
 ///
 /// Mounted once with the subscribed list, so [load] runs a single time. The
 /// rail is additive — a load failure leaves the list unfiltered ("All" only).
-class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> {
+class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> with SafeEmit<SubscriptionPlansState> {
   final FetchSubscriptionPlansUseCase _fetchPlans;
 
   SubscriptionPlansCubit({required FetchSubscriptionPlansUseCase fetchPlans})

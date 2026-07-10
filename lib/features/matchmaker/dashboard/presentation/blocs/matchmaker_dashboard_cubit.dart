@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../domain/usecases/get_matchmaker_dashboard_usecase.dart';
 import 'matchmaker_dashboard_state.dart';
@@ -10,7 +11,7 @@ import 'matchmaker_dashboard_state.dart';
 /// [load] therefore no-ops when stats are already in memory; the
 /// matchmaker explicitly pulls-to-refresh (or cold-starts the app) to
 /// get fresh numbers.
-class MatchmakerDashboardCubit extends Cubit<MatchmakerDashboardState> {
+class MatchmakerDashboardCubit extends Cubit<MatchmakerDashboardState> with SafeEmit<MatchmakerDashboardState> {
   final GetMatchmakerDashboardUseCase _getDashboard;
 
   MatchmakerDashboardCubit({

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
@@ -13,7 +14,7 @@ import '../../domain/usecases/get_explore_usecase.dart';
 /// search text is expected pre-debounced by the screen.
 class MatchmakerExploreCubit
     extends Cubit<PaginatedListState<MatchmakerExploreUser>>
-    with PaginatedListCubitMixin<MatchmakerExploreUser> {
+    with SafeEmit<PaginatedListState<MatchmakerExploreUser>>, PaginatedListCubitMixin<MatchmakerExploreUser> {
   final GetExploreUseCase _getExplore;
 
   String _search = '';

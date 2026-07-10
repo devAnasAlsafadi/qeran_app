@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../domain/usecases/fetch_matchmaker_user_profile_usecase.dart';
 import 'matchmaker_profile_detail_state.dart';
@@ -7,7 +8,7 @@ import 'matchmaker_profile_detail_state.dart';
 /// (factory) with the target [userId]; [load] no-ops once loaded so a
 /// rebuild doesn't refetch. Pull-to-refresh and retry both re-hit the API.
 class MatchmakerProfileDetailCubit
-    extends Cubit<MatchmakerProfileDetailState> {
+    extends Cubit<MatchmakerProfileDetailState> with SafeEmit<MatchmakerProfileDetailState> {
   final FetchMatchmakerUserProfileUseCase _fetchProfile;
   final String userId;
 

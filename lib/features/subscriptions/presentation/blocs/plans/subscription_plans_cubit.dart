@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 
 import '../../../domain/entities/subscription_plan.dart';
@@ -17,7 +18,7 @@ import 'subscription_plans_state.dart';
 /// store catalogue is fetched and merged in a second emit. The store fetch is
 /// best-effort — a failure leaves `storeProducts` empty and the paywall
 /// degrades to backend prices, never blocking on the store.
-class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> {
+class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> with SafeEmit<SubscriptionPlansState> {
   final GetSubscriptionPlansUseCase _getPlans;
   final GetStoreProductsUseCase _getStoreProducts;
 

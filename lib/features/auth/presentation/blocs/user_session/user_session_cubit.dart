@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
@@ -16,7 +17,7 @@ import 'user_session_state.dart';
 ///
 /// Deviates from §2 of `CLAUDE.md` (factory for Cubits): this cubit holds
 /// app-lifetime state and is registered as a lazy singleton in DI.
-class UserSessionCubit extends Cubit<UserSessionState> {
+class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSessionState> {
   final StorageService _secureStorage;
   final SharedPrefService _sharedPrefs;
 

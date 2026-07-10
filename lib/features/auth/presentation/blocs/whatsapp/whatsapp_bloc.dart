@@ -33,6 +33,7 @@ class WhatsappBloc extends Bloc<WhatsappEvent, WhatsappState> {
   ) async {
     emit(WhatsappLoading());
     final result = await _sendOtp(phoneNumber: event.phoneNumber);
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(WhatsappFailure(failure.message)),
       (_) => emit(WhatsappOtpSent(event.phoneNumber)),
@@ -48,6 +49,7 @@ class WhatsappBloc extends Bloc<WhatsappEvent, WhatsappState> {
       phoneNumber: event.phoneNumber,
       otp: event.otp,
     );
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(WhatsappFailure(failure.message)),
       (user) {
@@ -66,6 +68,7 @@ class WhatsappBloc extends Bloc<WhatsappEvent, WhatsappState> {
   ) async {
     emit(WhatsappLoading());
     final result = await _sendOtp(phoneNumber: event.phoneNumber);
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(WhatsappFailure(failure.message)),
       (_) => emit(WhatsappOtpSent(event.phoneNumber, isResend: true)),

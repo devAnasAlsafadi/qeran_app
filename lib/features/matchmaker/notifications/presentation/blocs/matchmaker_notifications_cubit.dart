@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
 
@@ -9,7 +10,7 @@ import '../../domain/usecases/get_notifications_usecase.dart';
 /// from [PaginatedListCubitMixin]; this class only wires the fetch.
 class MatchmakerNotificationsCubit
     extends Cubit<PaginatedListState<MatchmakerNotification>>
-    with PaginatedListCubitMixin<MatchmakerNotification> {
+    with SafeEmit<PaginatedListState<MatchmakerNotification>>, PaginatedListCubitMixin<MatchmakerNotification> {
   final GetNotificationsUseCase _getNotifications;
 
   MatchmakerNotificationsCubit({

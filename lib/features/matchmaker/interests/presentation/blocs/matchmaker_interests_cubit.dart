@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 
@@ -16,7 +17,7 @@ import 'matchmaker_interests_state.dart';
 /// refresh. The matches tab fetches `/matches` and `/matches/archived`
 /// concurrently; an archived failure is non-fatal (the active matches still
 /// render). No mutating actions — the matchmaker only observes.
-class MatchmakerInterestsCubit extends Cubit<MatchmakerInterestsState> {
+class MatchmakerInterestsCubit extends Cubit<MatchmakerInterestsState> with SafeEmit<MatchmakerInterestsState> {
   final String userId;
   final GetInterestLikesUseCase _getLikes;
   final GetInterestMatchesUseCase _getMatches;

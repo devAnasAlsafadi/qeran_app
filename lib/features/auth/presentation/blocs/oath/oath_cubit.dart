@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
@@ -13,7 +14,7 @@ import 'oath_state.dart';
 /// `signedOath=true` so cold-start routing skips the entire onboarding
 /// block. Failure leaves the user on the oath screen for retry — the draft
 /// is preserved so answers are not lost.
-class OathCubit extends Cubit<OathState> {
+class OathCubit extends Cubit<OathState> with SafeEmit<OathState> {
   final SubmitAnswersUseCase _submitAnswers;
   final SharedPrefService _sharedPrefs;
   final UserSessionCubit _userSession;

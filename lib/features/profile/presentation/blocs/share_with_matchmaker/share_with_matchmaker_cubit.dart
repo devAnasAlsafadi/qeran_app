@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
@@ -13,7 +14,7 @@ import 'share_with_matchmaker_state.dart';
 /// conversation on init (so the button can render its disabled state
 /// when no matchmaker is assigned) and dispatches one-shot outcomes
 /// via [ShareWithMatchmakerState.eventVersion].
-class ShareWithMatchmakerCubit extends Cubit<ShareWithMatchmakerState> {
+class ShareWithMatchmakerCubit extends Cubit<ShareWithMatchmakerState> with SafeEmit<ShareWithMatchmakerState> {
   final GetMyMatchmakerUseCase _getMyMatchmaker;
   final ShareProfileUseCase _shareProfile;
 

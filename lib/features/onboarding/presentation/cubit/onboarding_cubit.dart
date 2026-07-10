@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../../../core/constants/storage_keys.dart';
 import '../../../../core/datasources/shared_pref_service.dart';
@@ -7,7 +8,7 @@ import '../../on_boarding_model.dart';
 
 part 'onboarding_state.dart';
 
-class OnboardingCubit extends Cubit<OnboardingState> {
+class OnboardingCubit extends Cubit<OnboardingState> with SafeEmit<OnboardingState> {
   final SharedPrefService _sharedPref;
 
   OnboardingCubit({required SharedPrefService sharedPref})

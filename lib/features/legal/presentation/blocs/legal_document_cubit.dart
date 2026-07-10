@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../domain/entities/legal_document.dart';
 import '../../domain/entities/legal_document_type.dart';
@@ -9,7 +10,7 @@ part 'legal_document_state.dart';
 
 /// Drives the legal screen: loads the selected document, caching each fetched
 /// document so toggling back to an already-loaded tab is instant (no refetch).
-class LegalDocumentCubit extends Cubit<LegalDocumentState> {
+class LegalDocumentCubit extends Cubit<LegalDocumentState> with SafeEmit<LegalDocumentState> {
   final GetLegalDocumentUseCase _getDocument;
   final Map<LegalDocumentType, LegalDocument> _cache = {};
 

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 
@@ -12,7 +13,7 @@ import 'matchmaker_share_state.dart';
 /// Aggregates the matchmaker's two APPROVED user lists (unsubscribed →
 /// subscribed; pending excluded) into one infinite-scroll list and tracks the
 /// multi-selection. The send orchestration lands in the next sub-step.
-class MatchmakerShareCubit extends Cubit<MatchmakerShareState> {
+class MatchmakerShareCubit extends Cubit<MatchmakerShareState> with SafeEmit<MatchmakerShareState> {
   final FetchMatchmakerUsersUseCase _fetchUsers;
   final OpenUserChatUseCase _openChat;
   final ShareProfileUseCase _shareProfile;

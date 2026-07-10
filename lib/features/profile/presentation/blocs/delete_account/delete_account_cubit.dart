@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
@@ -11,7 +12,7 @@ import 'delete_account_state.dart';
 /// local wipe), then a one-shot success outcome. Single in-flight guard; the
 /// outcome is signalled via [DeleteAccountState.eventVersion] (mirrors
 /// `MatchmakerAccountCubit`). Screen-scoped (factory in DI).
-class DeleteAccountCubit extends Cubit<DeleteAccountState> {
+class DeleteAccountCubit extends Cubit<DeleteAccountState> with SafeEmit<DeleteAccountState> {
   final DeleteAccountUseCase _deleteAccount;
   final DeviceBootstrapService _deviceBootstrap;
   final UserSessionCubit _session;

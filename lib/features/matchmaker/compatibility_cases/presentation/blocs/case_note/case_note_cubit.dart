@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 
@@ -14,7 +15,7 @@ import 'case_note_state.dart';
 /// [CaseNoteErrorKind] derived from the backend errorCode) the sheet turns
 /// into inline / toast / pop. Holds no locale strings — the sheet maps the
 /// error kind to copy.
-class CaseNoteCubit extends Cubit<CaseNoteState> {
+class CaseNoteCubit extends Cubit<CaseNoteState> with SafeEmit<CaseNoteState> {
   final GetCaseNoteUseCase _getNote;
   final SaveCaseNoteUseCase _saveNote;
   final DeleteCaseNoteUseCase _deleteNote;

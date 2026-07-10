@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 
@@ -17,7 +18,7 @@ import 'chat_entry_state.dart';
 /// conversationId changed we still emit `Ready` with the new info
 /// and the screen rebuilds against the new id (handled by a
 /// ValueKey in the widget tree).
-class ChatEntryCubit extends Cubit<ChatEntryState> {
+class ChatEntryCubit extends Cubit<ChatEntryState> with SafeEmit<ChatEntryState> {
   final GetMyMatchmakerUseCase _getMyMatchmaker;
 
   ChatEntryCubit({required GetMyMatchmakerUseCase getMyMatchmaker})

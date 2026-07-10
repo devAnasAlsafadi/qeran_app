@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
@@ -31,7 +32,7 @@ import 'likes_state.dart';
 /// **Cross-tab freshness**: when a Received-tab `acceptLike` succeeds,
 /// the matches slot is invalidated back to `initial` so the next visit
 /// refetches and the new Stage-0 match shows up.
-class LikesCubit extends Cubit<LikesState> {
+class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   final GetIncomingLikesUseCase _getIncoming;
   final GetOutgoingLikesUseCase _getOutgoing;
   final AcceptLikeUseCase _acceptLike;

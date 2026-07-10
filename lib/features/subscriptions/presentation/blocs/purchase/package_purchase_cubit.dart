@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
@@ -21,7 +22,7 @@ import 'package_purchase_state.dart';
 /// validation, the RevenueCat purchase (Android only — iOS is locked per Q-B),
 /// restore, and the post-purchase reconcile (Q-C). It does NOT handle the free
 /// tier — that routes through `SubscribeUseCase` at the CTA (Commit 5).
-class PackagePurchaseCubit extends Cubit<PackagePurchaseState> {
+class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<PackagePurchaseState> {
   final ValidateCodeUseCase _validateCode;
   final PurchasePackageUseCase _purchasePackage;
   final RestorePurchasesUseCase _restorePurchases;

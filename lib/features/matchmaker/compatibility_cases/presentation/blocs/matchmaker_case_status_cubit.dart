@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -14,7 +15,7 @@ import 'matchmaker_case_status_state.dart';
 /// (snackbar + pop). An `INVALID_STATUS_TRANSITION` is flagged so the screen
 /// shows a local message and refreshes the list instead of the server's
 /// numeric text.
-class MatchmakerCaseStatusCubit extends Cubit<MatchmakerCaseStatusState> {
+class MatchmakerCaseStatusCubit extends Cubit<MatchmakerCaseStatusState> with SafeEmit<MatchmakerCaseStatusState> {
   final UpdateFormalRequestStatusUseCase _update;
   final int formalRequestId;
 

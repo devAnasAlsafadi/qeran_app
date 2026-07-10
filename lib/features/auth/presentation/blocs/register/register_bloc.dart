@@ -27,6 +27,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       email: event.email,
       password: event.password,
     );
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(RegisterFailure(failure.message)),
       (user) {

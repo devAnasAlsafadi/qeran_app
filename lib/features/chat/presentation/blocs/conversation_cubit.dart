@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:qeran/core/app_logger.dart';
@@ -28,7 +29,7 @@ import 'conversation_state.dart';
 /// never produce two visible bubbles. On a `reconnecting → connected`
 /// transition we fetch page 1 and merge by id to recover any messages
 /// missed during the gap.
-class ConversationCubit extends Cubit<ConversationStateData> {
+class ConversationCubit extends Cubit<ConversationStateData> with SafeEmit<ConversationStateData> {
   static const int _initialPageSize = 30;
   static const int _olderPageSize = 30;
   static const int messageMaxLength = 2000;

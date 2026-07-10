@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
@@ -8,7 +9,7 @@ import '../../domain/entities/question_entity.dart';
 import '../../domain/usecases/fetch_questions_usecase.dart';
 import 'questionnaire_state.dart';
 
-class QuestionnaireCubit extends Cubit<QuestionnaireState> {
+class QuestionnaireCubit extends Cubit<QuestionnaireState> with SafeEmit<QuestionnaireState> {
   final FetchQuestionsUseCase _fetchQuestions;
   final SharedPrefService _sharedPrefs;
 

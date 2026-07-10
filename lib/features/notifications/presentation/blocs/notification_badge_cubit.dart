@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 
@@ -12,7 +13,7 @@ import '../../domain/usecases/get_notifications_usecase.dart';
 /// server is greater than [StorageKeys.notifLastSeenId] (the id stored the last
 /// time the inbox was opened). State is a simple `hasUnread` boolean — distinct
 /// from the matchmaker badge, which uses a count heuristic.
-class NotificationBadgeCubit extends Cubit<bool> {
+class NotificationBadgeCubit extends Cubit<bool> with SafeEmit<bool> {
   final GetNotificationsUseCase _getNotifications;
   final SharedPrefService _prefs;
 

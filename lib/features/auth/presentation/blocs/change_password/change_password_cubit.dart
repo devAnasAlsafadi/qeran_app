@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../../../domain/usecases/change_password_usecase.dart';
@@ -9,7 +10,7 @@ import 'change_password_state.dart';
 /// Field-level rules (length/regex/confirm/differs) are enforced by the
 /// sheet's form before this is called; here we only run the request and route
 /// its outcome (offline vs. wrong current password).
-class ChangePasswordCubit extends Cubit<ChangePasswordState> {
+class ChangePasswordCubit extends Cubit<ChangePasswordState> with SafeEmit<ChangePasswordState> {
   final ChangePasswordUseCase _changePassword;
 
   ChangePasswordCubit(this._changePassword)

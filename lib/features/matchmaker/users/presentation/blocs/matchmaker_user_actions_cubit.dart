@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 
@@ -13,7 +14,7 @@ import 'matchmaker_user_actions_state.dart';
 /// slot guards against double-submit, and each completed action publishes a
 /// one-shot [MatchmakerActionOutcome] the screen turns into a snackbar +
 /// (for approve/reject) a pop.
-class MatchmakerUserActionsCubit extends Cubit<MatchmakerUserActionsState> {
+class MatchmakerUserActionsCubit extends Cubit<MatchmakerUserActionsState> with SafeEmit<MatchmakerUserActionsState> {
   final ApproveUserUseCase _approve;
   final RejectUserUseCase _reject;
   final RequestImageUserUseCase _requestImage;

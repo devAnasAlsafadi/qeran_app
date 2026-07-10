@@ -40,6 +40,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       email: event.email,
       password: event.password,
     );
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(LoginFailure(failure.message)),
       (user) {
@@ -56,6 +57,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   ) async {
     emit(LoginLoading());
     final result = await _loginWithGoogle();
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(LoginFailure(failure.message)),
       (user) {
@@ -72,6 +74,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   ) async {
     emit(LoginLoading());
     final result = await _loginWithApple();
+    if (emit.isDone) return;
     result.fold(
       (failure) => emit(LoginFailure(failure.message)),
       (user) {

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 
 import '../../../../discovery/domain/entities/discovery_filter_question.dart';
@@ -36,7 +37,7 @@ Map<int, List<String>> exploreQuestionFiltersFromSelections(
 /// `QuestionFilters`-style questions are surfaced; ranges + unusable types are
 /// dropped on load (search + gender are screen-level, handled in S4c).
 class MatchmakerExploreFilterCubit
-    extends Cubit<MatchmakerExploreFilterState> {
+    extends Cubit<MatchmakerExploreFilterState> with SafeEmit<MatchmakerExploreFilterState> {
   final GetExploreFiltersUseCase _getFilters;
   final Map<int, DiscoveryFilterSelection> _initialSelections;
 

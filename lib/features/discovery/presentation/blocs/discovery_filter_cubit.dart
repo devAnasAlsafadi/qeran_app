@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 
 import '../../domain/entities/discovery_filter_question.dart';
@@ -15,7 +16,7 @@ import 'discovery_filter_state.dart';
 /// * Range types  → `RangeFrom[id]`, `RangeTo[id]`
 /// * Single types → `QuestionFilters[id]`
 /// * Multi types  → `QuestionFilters[id]` with comma-joined values
-class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState> {
+class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState> with SafeEmit<DiscoveryFilterState> {
   final GetDiscoveryFiltersUseCase _getFilters;
 
   final Map<int, DiscoveryFilterSelection> _initialSelections;

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 
@@ -13,7 +14,7 @@ import 'matchmaker_user_notes_state.dart';
 /// in-flight slot and publish a one-shot [MatchmakerNotesOutcome] (with a
 /// [MatchmakerNotesErrorKind] derived from the backend errorCode) the sheet
 /// turns into inline / toast / pop.
-class MatchmakerUserNotesCubit extends Cubit<MatchmakerUserNotesState> {
+class MatchmakerUserNotesCubit extends Cubit<MatchmakerUserNotesState> with SafeEmit<MatchmakerUserNotesState> {
   final GetUserNoteUseCase _getNote;
   final SaveUserNoteUseCase _saveNote;
   final DeleteUserNoteUseCase _deleteNote;

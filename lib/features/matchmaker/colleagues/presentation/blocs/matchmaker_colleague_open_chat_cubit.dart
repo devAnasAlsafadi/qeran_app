@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 
 import '../../../conversations/presentation/blocs/matchmaker_open_chat_state.dart';
@@ -9,7 +10,7 @@ import '../../domain/usecases/open_colleague_chat_usecase.dart';
 /// usecase; it reuses the generic [MatchmakerOpenChatState] / outcome so the
 /// host wiring is identical. [open] guards a double-tap while resolving, then
 /// publishes a one-shot outcome the host turns into navigation / a snackbar.
-class MatchmakerColleagueOpenChatCubit extends Cubit<MatchmakerOpenChatState> {
+class MatchmakerColleagueOpenChatCubit extends Cubit<MatchmakerOpenChatState> with SafeEmit<MatchmakerOpenChatState> {
   final OpenColleagueChatUseCase _openColleagueChat;
 
   MatchmakerColleagueOpenChatCubit({

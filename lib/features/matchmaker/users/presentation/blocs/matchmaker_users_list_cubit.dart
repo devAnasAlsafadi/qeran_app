@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
 
@@ -10,7 +11,7 @@ import '../../domain/usecases/fetch_matchmaker_users_usecase.dart';
 /// approved-subscribed). Pagination, refresh and load-more bookkeeping
 /// come from [PaginatedListCubitMixin]; this class only wires the fetch.
 class MatchmakerUsersListCubit extends Cubit<PaginatedListState<MatchmakerUserRow>>
-    with PaginatedListCubitMixin<MatchmakerUserRow> {
+    with SafeEmit<PaginatedListState<MatchmakerUserRow>>, PaginatedListCubitMixin<MatchmakerUserRow> {
   final MatchmakerUsersList _list;
   final FetchMatchmakerUsersUseCase _fetchUsers;
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
@@ -10,7 +11,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../domain/usecases/upload_images_usecase.dart';
 import 'photo_upload_state.dart';
 
-class PhotoUploadCubit extends Cubit<PhotoUploadState> {
+class PhotoUploadCubit extends Cubit<PhotoUploadState> with SafeEmit<PhotoUploadState> {
   final UploadImagesUseCase _uploadImages;
   final SharedPrefService _sharedPrefs;
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -19,7 +20,7 @@ import 'matchmaker_account_state.dart';
 /// mutations. Each publishes a one-shot outcome (eventVersion bump) + an
 /// error-kind routing failures inline vs toast; name / photo successes
 /// optimistically patch the cached `me`.
-class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> {
+class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit<MatchmakerAccountState> {
   final GetMeUseCase _getMe;
   final UpdateNameUseCase _updateName;
   final UploadAccountPhotoUseCase _uploadPhoto;

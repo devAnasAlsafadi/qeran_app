@@ -56,6 +56,10 @@ class QeranColors {
   static const Color gold60 = Color(0x99E4C094);
   static const Color gold40 = Color(0x66E4C094);
   static const Color gold20 = Color(0x33E4C094);
+
+  /// Gold @ ~18% — icon-chip fills on wine hero surfaces (the gold glyph
+  /// needs a warmer bed than [gold12] but softer than [gold20]).
+  static const Color gold18 = Color(0x2EE4C094);
   static const Color gold12 = Color(0x1FE4C094);
   static const Color gold08 = Color(0x14E4C094);
 

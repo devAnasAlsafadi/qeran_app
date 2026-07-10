@@ -450,6 +450,15 @@ abstract class  LocaleKeys {
   static const matchmaker_dashboard_total_assigned = 'matchmaker.dashboard_total_assigned';
   static const matchmaker_dashboard_error_title = 'matchmaker.dashboard_error_title';
   static const matchmaker_dashboard_retry = 'matchmaker.dashboard_retry';
+  static const matchmaker_dashboard_salaam_morning = 'matchmaker.dashboard_salaam_morning';
+  static const matchmaker_dashboard_salaam_afternoon = 'matchmaker.dashboard_salaam_afternoon';
+  static const matchmaker_dashboard_salaam_evening = 'matchmaker.dashboard_salaam_evening';
+  static const matchmaker_dashboard_attention_title = 'matchmaker.dashboard_attention_title';
+  static const matchmaker_dashboard_attention_subtitle = 'matchmaker.dashboard_attention_subtitle';
+  static const matchmaker_dashboard_overview_title = 'matchmaker.dashboard_overview_title';
+  static const matchmaker_dashboard_pending_zero = 'matchmaker.dashboard_pending_zero';
+  static const matchmaker_dashboard_unread_zero = 'matchmaker.dashboard_unread_zero';
+  static const matchmaker_dashboard_hero_action = 'matchmaker.dashboard_hero_action';
   static const matchmaker_users_tab_pending = 'matchmaker.users_tab_pending';
   static const matchmaker_users_tab_approved_unsubscribed = 'matchmaker.users_tab_approved_unsubscribed';
   static const matchmaker_users_tab_approved_subscribed = 'matchmaker.users_tab_approved_subscribed';

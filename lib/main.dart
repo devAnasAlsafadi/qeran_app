@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/services/notification_service.dart';
 import 'package:qeran/core/services/revenuecat_service.dart';
@@ -66,6 +67,9 @@ void main() async {
   }
 
   await EasyLocalization.ensureInitialized();
+  // Load intl date symbols for all locales so locale-aware DateFormat
+  // (e.g. the matchmaker dashboard greeting) works in Arabic + English.
+  await initializeDateFormatting();
   Bloc.observer = SimpleBlocObserver();
   runApp(
     EasyLocalization(

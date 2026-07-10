@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/design_system/widgets/qeran_skeleton.dart';
 
 /// First-load placeholder for a user list: warm-cream shimmer rows that
-/// mirror the real row card's rhythm (avatar + two text lines).
+/// mirror the real card's rhythm — a 52px avatar, two text lines, and the
+/// action-bar block (a wide primary + two icon discs).
 class MatchmakerUsersListSkeleton extends StatelessWidget {
   const MatchmakerUsersListSkeleton({super.key, this.rows = 6});
 
@@ -26,20 +28,40 @@ class MatchmakerUsersListSkeleton extends StatelessWidget {
         padding: EdgeInsets.only(bottom: QeranSpacing.s12),
         child: QeranCard(
           padding: EdgeInsets.all(QeranSpacing.s12),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              QeranSkeleton.circle(size: 56),
-              QeranSpacing.hs12,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    QeranSkeleton(width: 140, height: 16),
-                    QeranSpacing.vs8,
-                    QeranSkeleton(width: 90, height: 12),
-                  ],
-                ),
+              Row(
+                children: [
+                  QeranSkeleton.circle(size: 52),
+                  QeranSpacing.hs12,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        QeranSkeleton(width: 140, height: 15),
+                        QeranSpacing.vs8,
+                        QeranSkeleton(width: 90, height: 12),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              QeranSpacing.vs12,
+              Row(
+                children: [
+                  Expanded(
+                    child: QeranSkeleton.box(
+                      height: 40,
+                      radius: QeranRadii.control,
+                    ),
+                  ),
+                  QeranSpacing.hs8,
+                  QeranSkeleton.circle(size: 40),
+                  QeranSpacing.hs8,
+                  QeranSkeleton.circle(size: 40),
+                ],
               ),
             ],
           ),

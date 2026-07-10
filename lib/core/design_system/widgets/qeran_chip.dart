@@ -5,7 +5,7 @@ import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 
-enum QeranChipVariant { score, meta, inside, interest, status, glass }
+enum QeranChipVariant { score, meta, inside, interest, plan, status, glass }
 
 /// All pill / tag visuals in the app go through this widget.
 class QeranChip extends StatelessWidget {
@@ -18,11 +18,18 @@ class QeranChip extends StatelessWidget {
     this.statusColor,
     this.compact = false,
     this.onTap,
+    this.maxWidth,
   });
 
   final String label;
   final QeranChipVariant variant;
   final IconData? icon;
+
+  /// When set, the chip is bounded to this width and its label ellipsizes on
+  /// one line instead of growing/overflowing. Opt-in — unconstrained chips
+  /// (the default) keep sizing to their content, which is required inside
+  /// horizontal scrollables where a flex label would throw.
+  final double? maxWidth;
 
   /// Overrides the icon colour (defaults to the variant's foreground). Used by
   /// [QeranChipVariant.glass] to carry a gold icon over paper text.
@@ -42,6 +49,13 @@ class QeranChip extends StatelessWidget {
     final style = (compact ? QeranTypography.caption : QeranTypography.label)
         .copyWith(color: spec.fg);
 
+    final labelText = Text(
+      label,
+      style: style,
+      maxLines: 1,
+      overflow: maxWidth == null ? TextOverflow.clip : TextOverflow.ellipsis,
+      softWrap: false,
+    );
     final body = Padding(
       padding: pad,
       child: Row(
@@ -51,7 +65,9 @@ class QeranChip extends StatelessWidget {
             Icon(icon, size: compact ? 12 : 14, color: iconColor ?? spec.fg),
             QeranSpacing.hs4,
           ],
-          Text(label, style: style),
+          // Flexible only when bounded — an unconstrained flex label would
+          // throw inside a horizontal scrollable.
+          maxWidth == null ? labelText : Flexible(child: labelText),
         ],
       ),
     );
@@ -67,7 +83,14 @@ class QeranChip extends StatelessWidget {
       child: body,
     );
 
-    if (onTap == null) return decorated;
+    final sized = maxWidth == null
+        ? decorated
+        : ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxWidth!),
+            child: decorated,
+          );
+
+    if (onTap == null) return sized;
 
     return Material(
       color: Colors.transparent,
@@ -75,7 +98,7 @@ class QeranChip extends StatelessWidget {
       child: InkWell(
         borderRadius: QeranRadii.pill,
         onTap: onTap,
-        child: decorated,
+        child: sized,
       ),
     );
   }
@@ -98,6 +121,13 @@ class QeranChip extends StatelessWidget {
         QeranChipVariant.interest => const _ChipSpec(
             bg: QeranColors.gold12,
             fg: QeranColors.wine,
+            border: QeranColors.gold40,
+          ),
+        // Subscription-plan chip — the gold-tier identity with legible
+        // gold-deep text (a step darker than [interest]'s wine text).
+        QeranChipVariant.plan => const _ChipSpec(
+            bg: QeranColors.gold12,
+            fg: QeranColors.goldDeep,
             border: QeranColors.gold40,
           ),
         QeranChipVariant.status => _ChipSpec(

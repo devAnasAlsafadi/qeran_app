@@ -7,19 +7,21 @@ import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/design_system/widgets/qeran_chip.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../shared/presentation/widgets/matchmaker_card_action_bar.dart';
+import '../../../shared/presentation/widgets/matchmaker_fact_chips.dart';
 import '../../../shared/presentation/widgets/matchmaker_user_avatar.dart';
 import '../../domain/entities/matchmaker_user_row.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
-import 'matchmaker_card_action_row.dart';
-import 'matchmaker_card_answers_block.dart';
 import 'matchmaker_review_action_sheet.dart';
 
-/// One user row: an unblurred avatar + name + flagged answers/age, with a
-/// quiet expiry timestamp pinned to the top-END corner (subscribed only) and a
-/// per-list [MatchmakerCardActionRow] beneath. The card body itself is NOT
-/// tappable — every action lives on its own button (scaffolded in M3a,
-/// wired in M3b–f). The subscribed list also shows a gold plan chip — hidden
-/// when the rail has filtered to a specific plan (then it's redundant).
+/// The action a card button triggers. The card maps each to its handler; only
+/// [message] is ever shown as `loading` (while its conversation resolves).
+enum MatchmakerCardAction { approve, message, view, notes, interests }
+
+/// One user row — a 52px avatar (photo → wine+gold monogram fallback), name,
+/// ≤3 fact chips + age, and a per-list action bar (gold primary + icon-only
+/// wine-06 secondaries). Subscribed rows add a gold plan chip and a quiet
+/// top-end expiry. The card body is NOT tappable — every action is a button.
 class MatchmakerUserRowCard extends StatelessWidget {
   const MatchmakerUserRowCard({
     super.key,
@@ -40,45 +42,40 @@ class MatchmakerUserRowCard extends StatelessWidget {
   final MatchmakerUsersList list;
 
   /// Whether to render the plan chip on a subscribed row. False when the rail
-  /// has filtered to one plan (every card is that plan, so the chip adds
-  /// nothing). Only the subscribed list ever passes false; ignored elsewhere
-  /// (non-subscribed rows have no plan chip anyway).
+  /// has filtered to one plan (then it's redundant). Only the subscribed list
+  /// ever passes false.
   final bool showPlanChip;
 
   /// Called after an on-card action mutates the user (approve/reject) so the
-  /// list can refresh and drop the row. Null on lists without such actions.
+  /// list can refresh and drop the row.
   final VoidCallback? onMutated;
 
-  /// Called when مراسلة is tapped — the list resolves + opens the chat (M3c).
-  /// Null on contexts without messaging.
+  /// مراسلة — the list resolves + opens the chat (shows the loader meanwhile).
   final VoidCallback? onMessage;
 
-  /// Called when ملاحظات is tapped — the list opens the notes sheet (M3d).
-  /// Null on contexts without notes.
+  /// ملاحظات — the list opens the notes sheet.
   final VoidCallback? onNotes;
 
-  /// Called when عرض is tapped — the list opens the (view-only) profile (M3e).
-  /// Null on contexts without a profile view.
+  /// عرض — the list opens the (view-only) profile.
   final VoidCallback? onView;
 
-  /// Called when الإهتمامات is tapped — the list opens the interests mirror
-  /// (M3f). Only the subscribed list renders this button.
+  /// الإهتمامات — the interests mirror (subscribed list only).
   final VoidCallback? onInterests;
 
-  /// Which action's button shows a loader, driven by the list's open-chat
-  /// state. Null when idle.
+  /// Which action's button shows a loader (only ever [MatchmakerCardAction.message]).
   final MatchmakerCardAction? loadingAction;
+
+  static const double _avatarSize = 52;
 
   @override
   Widget build(BuildContext context) {
     final expiry = _expiryLabel(context);
-    // Whether the name column carries any content beneath the name. When it
-    // doesn't (a sparse user — no flagged answers, no age, no plan chip), the
-    // 72px avatar would otherwise dwarf the lone name pinned to the top, so we
-    // centre the row and show a quiet placeholder instead of leaving a gap.
-    final hasDetails = row.answers.isNotEmpty ||
-        row.age != null ||
-        (row.isSubscribed && showPlanChip);
+    final hasFacts = row.answers.isNotEmpty || row.age != null;
+    final hasPlanChip = row.isSubscribed && showPlanChip;
+    // When the name column carries nothing beneath the name, centre the row
+    // against the avatar and show a quiet placeholder instead of a gap.
+    final hasDetails = hasFacts || hasPlanChip;
+
     return QeranCard(
       margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
       padding: const EdgeInsets.all(QeranSpacing.s12),
@@ -87,13 +84,15 @@ class MatchmakerUserRowCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            // With details, top-align so the expiry timestamp pins to the
-            // top-END corner level with the avatar's top edge; when sparse,
-            // centre the lone name + placeholder against the avatar.
-            crossAxisAlignment:
-                hasDetails ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+            crossAxisAlignment: hasDetails
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.center,
             children: [
-              MatchmakerUserAvatar(url: row.profileImageUrl, size: 72),
+              MatchmakerUserAvatar(
+                url: row.profileImageUrl,
+                size: _avatarSize,
+                monogramName: row.fullName,
+              ),
               QeranSpacing.hs12,
               Expanded(
                 child: Column(
@@ -102,28 +101,29 @@ class MatchmakerUserRowCard extends StatelessWidget {
                   children: [
                     Text(
                       row.fullName,
-                      style: QeranTypography.subtitle,
+                      style: QeranTypography.subtitle.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (row.answers.isNotEmpty || row.age != null) ...[
+                    if (hasFacts) ...[
                       QeranSpacing.vs4,
-                      MatchmakerCardAnswersBlock(
-                        answers: row.answers,
+                      MatchmakerFactChips(
+                        facts: [for (final a in row.answers) a.answer],
                         age: row.age,
                       ),
                     ],
-                    if (row.isSubscribed && showPlanChip) ...[
+                    if (hasPlanChip) ...[
                       QeranSpacing.vs8,
                       QeranChip(
                         label: row.subscriptionPlanName!,
-                        variant: QeranChipVariant.interest,
+                        variant: QeranChipVariant.plan,
                         compact: true,
                         icon: Icons.workspace_premium_outlined,
                       ),
                     ],
-                    // Quiet "no details yet" line for a sparse user, so the
-                    // card reads as intentionally minimal rather than broken.
                     if (!hasDetails) ...[
                       QeranSpacing.vs4,
                       Text(
@@ -138,8 +138,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Quiet expiry timestamp in the top-END corner — mirrors
-              // automatically (end = left in RTL, right in LTR).
+              // Quiet expiry in the top-END corner — mirrors automatically.
               if (expiry != null) ...[
                 QeranSpacing.hs8,
                 Text(
@@ -152,29 +151,59 @@ class MatchmakerUserRowCard extends StatelessWidget {
             ],
           ),
           QeranSpacing.vs12,
-          MatchmakerCardActionRow(
-            list: list,
-            onAction: (action) => _onAction(context, action),
-            loadingAction: loadingAction,
+          MatchmakerCardActionBar(
+            primary: _primaryFor(context),
+            secondaries: _secondariesFor(context),
           ),
         ],
       ),
     );
   }
 
-  void _onAction(BuildContext context, MatchmakerCardAction action) {
-    switch (action) {
-      case MatchmakerCardAction.approve:
-        _openReviewSheet(context);
-      case MatchmakerCardAction.message:
-        onMessage?.call();
-      case MatchmakerCardAction.notes:
-        onNotes?.call();
-      case MatchmakerCardAction.view:
-        onView?.call();
-      case MatchmakerCardAction.interests:
-        onInterests?.call();
+  MatchmakerPrimaryAction _primaryFor(BuildContext context) {
+    // Pending → موافقة; the approved lists → عرض (the most-used action).
+    if (list == MatchmakerUsersList.pending) {
+      return MatchmakerPrimaryAction(
+        label: LocaleKeys.matchmaker_users_action_approve.t(context),
+        icon: Icons.check_circle_outline_rounded,
+        onTap: () => _openReviewSheet(context),
+      );
     }
+    return MatchmakerPrimaryAction(
+      label: LocaleKeys.matchmaker_users_action_view.t(context),
+      icon: Icons.visibility_outlined,
+      onTap: () => onView?.call(),
+    );
+  }
+
+  List<MatchmakerSecondaryAction> _secondariesFor(BuildContext context) {
+    final message = MatchmakerSecondaryAction(
+      icon: Icons.chat_bubble_outline_rounded,
+      tooltip: LocaleKeys.matchmaker_users_action_message.t(context),
+      onTap: () => onMessage?.call(),
+      loading: loadingAction == MatchmakerCardAction.message,
+    );
+    final notes = MatchmakerSecondaryAction(
+      icon: Icons.note_alt_outlined,
+      tooltip: LocaleKeys.matchmaker_users_action_notes.t(context),
+      onTap: () => onNotes?.call(),
+    );
+    final view = MatchmakerSecondaryAction(
+      icon: Icons.visibility_outlined,
+      tooltip: LocaleKeys.matchmaker_users_action_view.t(context),
+      onTap: () => onView?.call(),
+    );
+    final interests = MatchmakerSecondaryAction(
+      icon: Icons.favorite_border_rounded,
+      tooltip: LocaleKeys.matchmaker_users_action_interests.t(context),
+      onTap: () => onInterests?.call(),
+    );
+    return switch (list) {
+      // Pending's primary is موافقة, so عرض joins the secondaries here.
+      MatchmakerUsersList.pending => [message, view, notes],
+      MatchmakerUsersList.approvedUnsubscribed => [message, notes],
+      MatchmakerUsersList.approvedSubscribed => [message, notes, interests],
+    };
   }
 
   /// موافقة → confirm sheet (approve / reject-with-reason). On success the
@@ -183,14 +212,12 @@ class MatchmakerUserRowCard extends StatelessWidget {
     final mutated = await showMatchmakerReviewSheet(
       context,
       userId: row.userId,
-      // Pending rows carry hasProfileImage; offer request-photo when absent.
       hasNoImage: row.hasProfileImage == false,
     );
     if (mutated == true) onMutated?.call();
   }
 
-  /// The subscription-expiry label shown as the top-end corner timestamp.
-  /// `null` on the non-subscribed lists (or when the backend omits the date).
+  /// Subscription-expiry label pinned top-end (subscribed rows only).
   String? _expiryLabel(BuildContext context) {
     if (row.isSubscribed && row.subscriptionExpiresAt != null) {
       return '${LocaleKeys.matchmaker_users_subscription_expires.t(context)} '

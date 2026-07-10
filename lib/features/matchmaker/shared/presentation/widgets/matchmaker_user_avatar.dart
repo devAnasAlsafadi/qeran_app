@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
+import '../../../../../core/design_system/widgets/qeran_monogram.dart';
 import '../../../../auth/presentation/blocs/user_session/user_session_cubit.dart';
 import '../../../../auth/presentation/blocs/user_session/user_session_state.dart';
 
@@ -23,6 +24,7 @@ class MatchmakerUserAvatar extends StatelessWidget {
     this.fallbackIcon = Icons.person_rounded,
     this.fit = BoxFit.cover,
     this.alignment = const Alignment(0, -0.3),
+    this.monogramName,
   });
 
   final String? url;
@@ -32,6 +34,11 @@ class MatchmakerUserAvatar extends StatelessWidget {
   final IconData fallbackIcon;
   final BoxFit fit;
   final Alignment alignment;
+
+  /// When set (and non-empty), a circular photo-less avatar falls back to the
+  /// wine+gold [QeranMonogram] built from this name instead of the plain
+  /// [fallbackIcon]. Opt-in — other call sites keep the icon fallback.
+  final String? monogramName;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +87,11 @@ class MatchmakerUserAvatar extends StatelessWidget {
   }
 
   Widget _fallback() {
+    // A named, circular avatar prefers the wine+gold monogram over the icon.
+    final name = monogramName?.trim() ?? '';
+    if (name.isNotEmpty && shape == BoxShape.circle && size != null) {
+      return QeranMonogram(name: name, size: size!);
+    }
     final iconSize = (size == null) ? 36.0 : size! * 0.55;
     return ColoredBox(
       color: QeranColors.creamSurface,

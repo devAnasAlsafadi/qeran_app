@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
+import '../../../../../core/design_system/widgets/qeran_monogram.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
@@ -36,7 +37,7 @@ class MatchmakerGreetingRow extends StatelessWidget {
 
     return Row(
       children: [
-        _Monogram(initial: hasName ? _initial(trimmed) : null),
+        QeranMonogram(name: hasName ? trimmed : null),
         QeranSpacing.hs12,
         Expanded(
           child: Column(
@@ -72,47 +73,10 @@ class MatchmakerGreetingRow extends StatelessWidget {
     );
   }
 
-  /// First grapheme of the name as the monogram initial.
-  String _initial(String value) =>
-      String.fromCharCodes(value.characters.first.runes).toUpperCase();
-
   String _salaamKey(int hour) {
     if (hour < 12) return LocaleKeys.matchmaker_dashboard_salaam_morning;
     if (hour < 17) return LocaleKeys.matchmaker_dashboard_salaam_afternoon;
     return LocaleKeys.matchmaker_dashboard_salaam_evening;
-  }
-}
-
-class _Monogram extends StatelessWidget {
-  const _Monogram({this.initial});
-
-  /// The gold initial, or null for the neutral (unknown-name) fallback.
-  final String? initial;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 48,
-      height: 48,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: QeranColors.wine,
-        shape: BoxShape.circle,
-        border: Border.all(color: QeranColors.gold, width: 2),
-      ),
-      // Locale-aware font (NOT the Montserrat numeric style) so an Arabic
-      // initial renders with real glyphs instead of tofu.
-      child: initial == null
-          ? const Icon(Icons.person_outline, size: 24, color: QeranColors.gold)
-          : Text(
-              initial!,
-              style: QeranTypography.title.copyWith(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: QeranColors.gold,
-              ),
-            ),
-    );
   }
 }
 

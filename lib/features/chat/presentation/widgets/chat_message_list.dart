@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -15,6 +17,9 @@ import 'chat_message_bubble.dart';
 class ChatMessageList extends StatefulWidget {
   final List<ChatMessage> messages;
   final String me;
+
+  /// Peer display name — powers the empty-state monogram + "start with {peer}".
+  final String peerName;
   final bool hasMore;
   final bool isPaginating;
   final bool paginationFailed;
@@ -27,6 +32,7 @@ class ChatMessageList extends StatefulWidget {
     super.key,
     required this.messages,
     required this.me,
+    required this.peerName,
     required this.hasMore,
     required this.isPaginating,
     required this.paginationFailed,
@@ -72,7 +78,10 @@ class _ChatMessageListState extends State<ChatMessageList> {
   @override
   Widget build(BuildContext context) {
     if (widget.messages.isEmpty) {
-      return _EmptyState(onRefresh: widget.onRefresh);
+      return _EmptyState(
+        onRefresh: widget.onRefresh,
+        peerName: widget.peerName,
+      );
     }
     // Build items: each ChatMessage gets a bubble; insert a date
     // separator between days. List is newest-first; in a reversed
@@ -192,7 +201,8 @@ class _PaginationError extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   final Future<void> Function() onRefresh;
-  const _EmptyState({required this.onRefresh});
+  final String peerName;
+  const _EmptyState({required this.onRefresh, required this.peerName});
 
   @override
   Widget build(BuildContext context) {
@@ -208,13 +218,31 @@ class _EmptyState extends StatelessWidget {
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(QeranSpacing.s24),
-                  child: Text(
-                    LocaleKeys.chat_messages_empty.t(context),
-                    textAlign: TextAlign.center,
-                    style: QeranTypography.body.copyWith(
-                      color: QeranColors.inkMuted,
-                      height: 1.6,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      QeranMonogram(name: peerName, size: 72),
+                      QeranSpacing.vs16,
+                      Text(
+                        LocaleKeys.chat_empty_title.t(context),
+                        textAlign: TextAlign.center,
+                        style: QeranTypography.subtitle.copyWith(
+                          color: QeranColors.inkStrong,
+                        ),
+                      ),
+                      QeranSpacing.vs8,
+                      Text(
+                        context.tr(
+                          LocaleKeys.chat_empty_start_with,
+                          namedArgs: {'peer': peerName},
+                        ),
+                        textAlign: TextAlign.center,
+                        style: QeranTypography.body.copyWith(
+                          color: QeranColors.inkMuted,
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

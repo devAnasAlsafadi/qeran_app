@@ -48,12 +48,14 @@ class ChatRealtimeBanner extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isReconnecting)
-            const SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.6,
-                color: QeranColors.wine,
+            // A quiet gold dot — the calm "working on it" signal (the strip
+            // itself is the wine indicator).
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: QeranColors.gold,
+                shape: BoxShape.circle,
               ),
             )
           else

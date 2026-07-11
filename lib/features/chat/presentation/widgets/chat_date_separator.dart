@@ -28,12 +28,14 @@ class ChatDateSeparator extends StatelessWidget {
             vertical: QeranSpacing.s4,
           ),
           decoration: const BoxDecoration(
-            color: QeranColors.wine06,
+            color: QeranColors.softFill,
             borderRadius: QeranRadii.pill,
           ),
           child: Text(
             _label(context, day),
-            style: QeranTypography.caption,
+            style: QeranTypography.caption.copyWith(
+              color: QeranColors.inkMuted,
+            ),
           ),
         ),
       ),

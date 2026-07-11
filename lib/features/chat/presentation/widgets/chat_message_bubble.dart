@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -16,14 +15,13 @@ import '../../domain/entities/chat_message.dart';
 import '../../domain/entities/message_send_status.dart';
 import 'shared_profile_message_card.dart';
 
-/// One bubble in the chat. Per the Qeran identity:
-///   - Inbound (matchmaker)  → gold background, wine text.
-///   - Outbound (me)         → paper background, wine text, e1 lift.
-/// Both use a directional tail that points at the speaker side in both
-/// LTR and RTL via `BorderRadiusDirectional`.
-///
-/// Shared-profile bubbles are rendered by `SharedProfileMessageCard` —
-/// this file only handles plain text bubbles.
+/// One bubble in the chat, sender-colored per the Qeran identity:
+///   - Outgoing (me)     → wine fill, white text, tail on the end-bottom.
+///   - Incoming (other)  → paper fill + wine-08 border, ink text, tail on
+///                         the start-bottom.
+/// Directional corners keep the tail on the speaker side in LTR + RTL.
+/// Shared-profile messages render the cream [SharedProfileMessageCard] as
+/// their own bubble (no wine/paper shell).
 class ChatMessageBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isMine;
@@ -50,6 +48,7 @@ class ChatMessageBubble extends StatelessWidget {
         ? AlignmentDirectional.centerEnd
         : AlignmentDirectional.centerStart;
     final maxWidth = MediaQuery.of(context).size.width * 0.78;
+    final isFailed = message.status == MessageSendStatus.failed;
     return Align(
       alignment: align,
       child: ConstrainedBox(
@@ -59,10 +58,15 @@ class ChatMessageBubble extends StatelessWidget {
               isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onTap: message.status == MessageSendStatus.failed
-                  ? onRetry
-                  : null,
-              child: _Bubble(message: message, isMine: isMine),
+              onTap: isFailed ? onRetry : null,
+              child: message.isSharedProfile && message.sharedProfile != null
+                  ? SharedProfileMessageCard(
+                      profile: message.sharedProfile!,
+                      isMine: isMine,
+                      sharerName: message.senderName,
+                      onTap: () => _openSharedProfile(context, message),
+                    )
+                  : _Bubble(message: message, isMine: isMine),
             ),
             QeranSpacing.vs4,
             _Footer(
@@ -70,6 +74,10 @@ class ChatMessageBubble extends StatelessWidget {
               isMine: isMine,
               showReadReceipt: showReadReceipt,
             ),
+            if (isFailed) ...[
+              QeranSpacing.vs4,
+              _FailedRetry(onRetry: onRetry),
+            ],
           ],
         ),
       ),
@@ -84,57 +92,41 @@ class _Bubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Directional corners so the "tail" points at the speaker side in
-    // both LTR and RTL automatically. Outgoing (isMine) tail is at
-    // `bottomEnd`; incoming mirrors.
+    // Directional corners so the "tail" points at the speaker side in both
+    // LTR and RTL. Outgoing tail is at bottomEnd; incoming at bottomStart.
     final radius = BorderRadiusDirectional.only(
-      topStart: const Radius.circular(18),
-      topEnd: const Radius.circular(18),
-      bottomStart: Radius.circular(isMine ? 18 : 6),
-      bottomEnd: Radius.circular(isMine ? 6 : 18),
+      topStart: const Radius.circular(16),
+      topEnd: const Radius.circular(16),
+      bottomStart: Radius.circular(isMine ? 16 : 5),
+      bottomEnd: Radius.circular(isMine ? 5 : 16),
     );
-    // Identity: my messages are wine with paper text; incoming
-    // (matchmaker) messages are paper with ink text.
-    final bg = isMine ? QeranColors.wine : QeranColors.paper;
-    final textColor = isMine ? QeranColors.paper : QeranColors.inkStrong;
     final isFailed = message.status == MessageSendStatus.failed;
-    // Shared-profile messages drop the text body and render a mini
-    // profile card instead. We keep the bubble shell so the speaker
-    // stays unambiguous, but tighten the padding so the card's own
-    // inset carries the breathing room.
-    final isProfileShare = message.isSharedProfile;
-    final padding = isProfileShare
-        ? const EdgeInsets.all(6)
-        : const EdgeInsets.symmetric(
-            horizontal: QeranSpacing.s12,
-            vertical: QeranSpacing.s8,
+    final bg = isMine ? QeranColors.wine : QeranColors.paper;
+    final textColor =
+        isMine ? QeranColors.paper.withValues(alpha: 0.95) : QeranColors.inkStrong;
+    // Incoming paper needs the wine-08 hairline so it reads distinct from the
+    // cream canvas; a failed send tints the border danger.
+    final border = isMine
+        ? (isFailed ? Border.all(color: QeranColors.danger40) : null)
+        : Border.all(
+            color: isFailed ? QeranColors.danger40 : QeranColors.wine08,
           );
     return Opacity(
       opacity: message.status == MessageSendStatus.sending ? 0.6 : 1,
       child: Container(
-        padding: padding,
+        padding: const EdgeInsets.symmetric(
+          horizontal: QeranSpacing.s12,
+          vertical: QeranSpacing.s8,
+        ),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: radius,
-          border: isFailed
-              ? Border.all(color: QeranColors.danger.withValues(alpha: 0.45))
-              : null,
-          boxShadow: QeranShadows.e1,
+          border: border,
         ),
-        child: isProfileShare && message.sharedProfile != null
-            ? SharedProfileMessageCard(
-                profile: message.sharedProfile!,
-                isMine: isMine,
-                sharerName: message.senderName,
-                onTap: () => _openSharedProfile(context, message),
-              )
-            : Text(
-                message.content,
-                style: QeranTypography.body.copyWith(
-                  color: textColor,
-                  height: 1.4,
-                ),
-              ),
+        child: Text(
+          message.content,
+          style: QeranTypography.body.copyWith(color: textColor, height: 1.4),
+        ),
       ),
     );
   }
@@ -169,35 +161,33 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final time = _formatTime(context, message.sentAt);
-    final children = <Widget>[
-      Text(time, style: QeranTypography.caption),
-    ];
-    if (isMine) {
-      switch (message.status) {
-        case MessageSendStatus.sending:
-          children.add(QeranSpacing.hs4);
-          children.add(Text(
-            LocaleKeys.chat_message_status_sending.t(context),
-            style: QeranTypography.caption,
-          ));
-        case MessageSendStatus.failed:
-          children.add(QeranSpacing.hs4);
-          children.add(Text(
-            LocaleKeys.chat_message_status_failed.t(context),
-            style: QeranTypography.caption
-                .copyWith(color: QeranColors.danger),
-          ));
-        case MessageSendStatus.sent:
-          if (showReadReceipt && message.isRead) {
-            children.add(QeranSpacing.hs4);
-            children.add(Text(
-              LocaleKeys.chat_message_read_label.t(context),
-              style: QeranTypography.caption.copyWith(
-                color: QeranColors.wine.withValues(alpha: 0.7),
-              ),
-            ));
-          }
-      }
+    // Timestamp sits below the bubble on the cream canvas, so we use legible
+    // warm/faint inks (not the on-wine gold-40) per side.
+    final timeColor = isMine ? QeranColors.goldDeep : QeranColors.inkFaint;
+    final children = <Widget>[];
+    // Sending → a clock glyph leads the timestamp.
+    if (isMine && message.status == MessageSendStatus.sending) {
+      children.add(const Icon(
+        Icons.schedule_rounded,
+        size: 12,
+        color: QeranColors.goldDeep,
+      ));
+      children.add(QeranSpacing.hs4);
+    }
+    children.add(Text(
+      time,
+      style: QeranTypography.caption.copyWith(color: timeColor),
+    ));
+    // Read receipt on the last read outgoing message (kept — a real feature).
+    if (isMine &&
+        message.status == MessageSendStatus.sent &&
+        showReadReceipt &&
+        message.isRead) {
+      children.add(QeranSpacing.hs4);
+      children.add(Text(
+        LocaleKeys.chat_message_read_label.t(context),
+        style: QeranTypography.caption.copyWith(color: QeranColors.wine60),
+      ));
     }
     return Row(mainAxisSize: MainAxisSize.min, children: children);
   }
@@ -212,5 +202,37 @@ class _Footer extends StatelessWidget {
       final mm = local.minute.toString().padLeft(2, '0');
       return '$hh:$mm';
     }
+  }
+}
+
+/// Tap-to-retry affordance under a failed outgoing bubble.
+class _FailedRetry extends StatelessWidget {
+  const _FailedRetry({this.onRetry});
+
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onRetry,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 13,
+            color: QeranColors.danger,
+          ),
+          QeranSpacing.hs4,
+          Text(
+            LocaleKeys.chat_send_failed_retry.t(context),
+            style: QeranTypography.caption.copyWith(
+              color: QeranColors.danger,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

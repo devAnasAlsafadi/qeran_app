@@ -136,22 +136,28 @@ class _SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The paper-plane glyph is drawn pointing right; mirror it in RTL so it
+    // always points toward the sending (end) edge.
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return Material(
       color: enabled
-          ? QeranColors.wine
-          : QeranColors.wine.withValues(alpha: 0.35),
+          ? QeranColors.gold
+          : QeranColors.gold.withValues(alpha: 0.35),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: enabled ? onPressed : null,
         customBorder: const CircleBorder(),
-        child: const SizedBox(
+        child: SizedBox(
           width: 44,
           height: 44,
           child: Center(
-            child: Icon(
-              Icons.send_rounded,
-              size: 20,
-              color: QeranColors.paper,
+            child: Transform.scale(
+              scaleX: isRtl ? -1 : 1,
+              child: const Icon(
+                Icons.send_rounded,
+                size: 20,
+                color: QeranColors.wine,
+              ),
             ),
           ),
         ),

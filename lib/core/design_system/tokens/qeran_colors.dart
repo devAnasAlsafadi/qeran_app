@@ -75,6 +75,12 @@ class QeranColors {
 
   static const Color danger = Color(0xFFA33949);
 
+  // Danger alpha shades — soft tints for failed-state borders/fills (e.g. a
+  // failed chat message) so we never inline `danger.withValues(...)`.
+  static const Color danger40 = Color(0x66A33949);
+  static const Color danger12 = Color(0x1FA33949);
+  static const Color danger08 = Color(0x14A33949);
+
   /// Success in Qeran wears gold, not green.
   /// The brand identity contains no green; achievements
   /// (matches, approvals, completions) celebrate via gold.

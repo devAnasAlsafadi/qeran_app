@@ -4,7 +4,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
+import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -15,12 +15,14 @@ import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dar
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/matchmaker_info.dart';
+import '../../domain/entities/realtime_status.dart';
 import '../blocs/conversation_cubit.dart';
 import '../blocs/conversation_state.dart';
 import '../widgets/chat_error_view.dart';
 import '../widgets/chat_input_bar.dart';
 import '../widgets/chat_lifecycle_wrapper.dart';
 import '../widgets/chat_message_list.dart';
+import '../widgets/chat_message_skeleton.dart';
 import '../widgets/chat_realtime_banner.dart';
 
 /// One open conversation. Phase 6 adds optimistic outgoing: the
@@ -93,7 +95,11 @@ class _ConversationView extends StatelessWidget {
           color: QeranColors.creamCanvas,
           child: Column(
             children: [
-              _Header(info: info, onBack: onBack),
+              _Header(
+                info: info,
+                onBack: onBack,
+                isActive: state.realtimeStatus == RealtimeStatus.connected,
+              ),
               ChatRealtimeBanner(
                 status: state.realtimeStatus,
                 hasEverBeenConnected: state.hasEverBeenConnected,
@@ -203,7 +209,7 @@ class _Body extends StatelessWidget {
     switch (state.initialStatus) {
       case ConversationAsyncStatus.initial:
       case ConversationAsyncStatus.loading:
-        return const Center(child: QeranLoader());
+        return const ChatMessageSkeleton();
       case ConversationAsyncStatus.failure:
         return ChatErrorView(
           onRetry: cubit.init,
@@ -214,6 +220,7 @@ class _Body extends StatelessWidget {
         return ChatMessageList(
           messages: state.messages,
           me: cubit.myUserId,
+          peerName: info.name,
           hasMore: state.hasMore,
           isPaginating: state.isPaginating,
           paginationFailed: state.paginationFailed,
@@ -261,7 +268,12 @@ class _HeaderBackButton extends StatelessWidget {
 class _Header extends StatelessWidget {
   final MatchmakerInfo info;
   final VoidCallback? onBack;
-  const _Header({required this.info, this.onBack});
+
+  /// Whether our realtime socket is connected — drives the neutral "active
+  /// now" status. Bound to OUR connection (not fabricated peer presence).
+  final bool isActive;
+
+  const _Header({required this.info, this.onBack, this.isActive = false});
 
   @override
   Widget build(BuildContext context) {
@@ -287,25 +299,12 @@ class _Header extends StatelessWidget {
               _HeaderBackButton(onBack: onBack!),
               QeranSpacing.hs4,
             ],
-            // Gold ring around the avatar — the brand's quiet
-            // presence signal for the person on the other side.
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: QeranColors.gold, width: 1.2),
-              ),
-              child: LikeBlurredImage(
-                url: info.profileImageUrl,
-                blur: false,
-                size: 40,
-                fallbackIcon: Icons.person_rounded,
-              ),
-            ),
+            _HeaderAvatar(url: info.profileImageUrl, name: info.name),
             QeranSpacing.hs12,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     info.name,
@@ -313,16 +312,66 @@ class _Header extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  QeranSpacing.vs4,
-                  Text(
-                    LocaleKeys.chat_header_default_subtitle.t(context),
-                    style: QeranTypography.caption,
-                  ),
+                  // Neutral, role-agnostic status — shown only while our
+                  // realtime link is up (the reconnecting strip covers the
+                  // rest), so it never claims presence we can't back.
+                  if (isActive) ...[
+                    QeranSpacing.vs4,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: QeranColors.goldDeep,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        QeranSpacing.hs4,
+                        Text(
+                          LocaleKeys.chat_header_status_active.t(context),
+                          style: QeranTypography.caption
+                              .copyWith(color: QeranColors.goldDeep),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Header peer avatar — the real photo (unblurred; the parties are already
+/// connected) inside a gold ring, falling back to the wine+gold monogram
+/// when there's no photo.
+class _HeaderAvatar extends StatelessWidget {
+  const _HeaderAvatar({required this.url, required this.name});
+
+  final String? url;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    if (url == null || url!.isEmpty) {
+      return QeranMonogram(name: name, size: 44, borderWidth: 1.2);
+    }
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: QeranColors.gold, width: 1.2),
+      ),
+      child: LikeBlurredImage(
+        url: url,
+        blur: false,
+        size: 40,
+        fallbackIcon: Icons.person_rounded,
       ),
     );
   }

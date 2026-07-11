@@ -584,6 +584,7 @@
     "cases_error_title": "Couldn't load cases",
     "cases_retry": "Retry",
     "cases_filter_title": "Filter cases",
+    "cases_filter_all": "All",
     "cases_filter_status": "Status",
     "cases_filter_name": "Name",
     "cases_filter_apply": "Apply",

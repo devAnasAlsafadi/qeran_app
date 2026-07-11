@@ -4,45 +4,25 @@ import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
-import '../../../../../core/design_system/widgets/qeran_sheet_handle.dart';
+import '../../../../../core/design_system/widgets/qeran_text_field.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../../discovery/domain/entities/discovery_filter_option.dart';
-import '../../../../discovery/domain/entities/discovery_filter_question.dart';
-import '../../../../discovery/domain/entities/discovery_filter_selection.dart';
-import '../../../../discovery/domain/entities/filter_question_type.dart';
-import '../../../../discovery/presentation/widgets/filter_expandable_multi.dart';
-import '../../../../discovery/presentation/widgets/filter_text_field.dart';
-import '../../domain/entities/formal_request_status.dart';
+import '../../domain/entities/case_stage.dart';
 import '../../domain/entities/matchmaker_cases_filter.dart';
-import 'matchmaker_case_labels.dart';
+import 'case_timeline.dart';
 
-/// The 5 selectable statuses, in the wire/transition order.
-const List<FormalRequestStatus> _filterableStatuses = [
-  FormalRequestStatus.waitingForParentAppointment,
-  FormalRequestStatus.parentsVisited,
-  FormalRequestStatus.successfullyClosed,
-  FormalRequestStatus.compatibilityClosed,
-  FormalRequestStatus.compatibilityCancelled,
-];
-
-/// Bespoke cases-filter bottom sheet. The chrome (handle + title + apply/clear)
-/// is matchmaker-scoped; the two controls REUSE the discovery filter
-/// sub-widgets ([FilterExpandableMulti] for the status multi-select,
-/// [FilterTextField] for name search) by feeding them synthetic
-/// [DiscoveryFilterQuestion]s — they're callback-driven, so no discovery state
-/// is touched. Returns the chosen [MatchmakerCasesFilter] on apply, or `null`
-/// if dismissed; the dedicated "clear" button returns an empty filter.
+/// The cases filter sheet (08): a name search + a single-select stage list
+/// (`الكل` + the five canonical [CaseStage]s, labelled from the SAME shared
+/// source as the detail timeline). Returns the chosen [MatchmakerCasesFilter]
+/// on apply, an empty filter from "مسح", or `null` if dismissed.
 Future<MatchmakerCasesFilter?> showMatchmakerCasesFilterSheet(
   BuildContext context, {
   required MatchmakerCasesFilter current,
 }) {
-  return showModalBottomSheet<MatchmakerCasesFilter>(
+  return showQeranBottomSheet<MatchmakerCasesFilter>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: QeranColors.paper,
-    shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
     builder: (_) => _CasesFilterSheet(current: current),
   );
 }
@@ -57,55 +37,25 @@ class _CasesFilterSheet extends StatefulWidget {
 }
 
 class _CasesFilterSheetState extends State<_CasesFilterSheet> {
-  late Set<FormalRequestStatus> _statuses;
-  late String _nameQuery;
+  late CaseStage? _stage;
+  late final TextEditingController _name;
 
   @override
   void initState() {
     super.initState();
-    _statuses = {...widget.current.statuses};
-    _nameQuery = widget.current.nameQuery;
+    _stage = widget.current.stage;
+    _name = TextEditingController(text: widget.current.nameQuery);
   }
 
-  void _toggleStatus(String enumName) {
-    final status = FormalRequestStatus.values
-        .firstWhere((s) => s.name == enumName, orElse: () => FormalRequestStatus.unknown);
-    if (status == FormalRequestStatus.unknown) return;
-    setState(() {
-      _statuses.contains(status)
-          ? _statuses.remove(status)
-          : _statuses.add(status);
-    });
-  }
-
-  DiscoveryFilterQuestion _statusQuestion(BuildContext context) {
-    return DiscoveryFilterQuestion(
-      id: 0,
-      label: LocaleKeys.matchmaker_cases_filter_status.t(context),
-      type: FilterQuestionType.checkbox,
-      isRange: false,
-      options: [
-        for (final s in _filterableStatuses)
-          DiscoveryFilterOption(
-            value: s.name,
-            display: (formalStatusLabelKey(s) ?? '').t(context),
-          ),
-      ],
-    );
-  }
-
-  DiscoveryFilterQuestion _nameQuestion(BuildContext context) {
-    return DiscoveryFilterQuestion(
-      id: 1,
-      label: LocaleKeys.matchmaker_cases_filter_name.t(context),
-      type: FilterQuestionType.text,
-      isRange: false,
-    );
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
   }
 
   void _apply() {
     Navigator.of(context).pop(
-      MatchmakerCasesFilter(statuses: _statuses, nameQuery: _nameQuery.trim()),
+      MatchmakerCasesFilter(stage: _stage, nameQuery: _name.text.trim()),
     );
   }
 
@@ -113,50 +63,132 @@ class _CasesFilterSheetState extends State<_CasesFilterSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        QeranSpacing.s20,
-        QeranSpacing.s12,
-        QeranSpacing.s20,
-        QeranSpacing.s20 + MediaQuery.of(context).viewInsets.bottom,
+    return QeranBottomSheetScaffold(
+      title: LocaleKeys.matchmaker_cases_filter_title.t(context),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          QeranSpacing.s20,
+          QeranSpacing.s4,
+          QeranSpacing.s20,
+          QeranSpacing.s16,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            QeranTextField(
+              controller: _name,
+              hint: LocaleKeys.matchmaker_cases_filter_name.t(context),
+              prefix: const Icon(
+                Icons.search_rounded,
+                size: 20,
+                color: QeranColors.inkMuted,
+              ),
+              onChanged: (_) {},
+            ),
+            QeranSpacing.vs16,
+            // الكل + the canonical stages, single-select.
+            _StageOption(
+              label: LocaleKeys.matchmaker_cases_filter_all.t(context),
+              selected: _stage == null,
+              onTap: () => setState(() => _stage = null),
+            ),
+            for (final stage in CaseStage.values) ...[
+              QeranSpacing.vs8,
+              _StageOption(
+                label: caseStageLabelKey(stage).t(context),
+                selected: _stage == stage,
+                onTap: () => setState(() => _stage = stage),
+              ),
+            ],
+          ],
+        ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Center(child: QeranSheetHandle()),
-          QeranSpacing.vs16,
-          Text(
-            LocaleKeys.matchmaker_cases_filter_title.t(context),
-            style: QeranTypography.title,
+      footer: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          QeranSpacing.s20,
+          QeranSpacing.s8,
+          QeranSpacing.s20,
+          QeranSpacing.s16,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: QeranButton(
+                label: LocaleKeys.matchmaker_cases_filter_clear.t(context),
+                variant: QeranButtonVariant.ghost,
+                onPressed: _clear,
+              ),
+            ),
+            QeranSpacing.hs12,
+            Expanded(
+              flex: 2,
+              child: QeranButton(
+                label: LocaleKeys.matchmaker_cases_filter_apply.t(context),
+                variant: QeranButtonVariant.primary,
+                onPressed: _apply,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One single-select stage row — gold border + cream-surface + a gold-deep
+/// check when selected; paper + wine-08 border otherwise.
+class _StageOption extends StatelessWidget {
+  const _StageOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? QeranColors.creamSurface : QeranColors.paper,
+      borderRadius: QeranRadii.controlR,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: QeranSpacing.s16,
+            vertical: QeranSpacing.s12,
           ),
-          QeranSpacing.vs16,
-          FilterExpandableMulti(
-            question: _statusQuestion(context),
-            selection:
-                MultiValueSelection(_statuses.map((s) => s.name).toList()),
-            onToggle: _toggleStatus,
+          decoration: BoxDecoration(
+            borderRadius: QeranRadii.controlR,
+            border: Border.all(
+              color: selected ? QeranColors.gold : QeranColors.wine08,
+              width: selected ? 1.5 : 1,
+            ),
           ),
-          QeranSpacing.vs12,
-          FilterTextField(
-            question: _nameQuestion(context),
-            selection:
-                _nameQuery.isEmpty ? null : SingleValueSelection(_nameQuery),
-            onChanged: (v) => _nameQuery = v,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: QeranTypography.subtitle.copyWith(
+                    color: QeranColors.inkStrong,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+              if (selected)
+                const Icon(
+                  Icons.check_circle_rounded,
+                  size: 20,
+                  color: QeranColors.goldDeep,
+                ),
+            ],
           ),
-          QeranSpacing.vs20,
-          QeranButton(
-            label: LocaleKeys.matchmaker_cases_filter_apply.t(context),
-            variant: QeranButtonVariant.primaryWine,
-            onPressed: _apply,
-          ),
-          QeranSpacing.vs8,
-          QeranButton(
-            label: LocaleKeys.matchmaker_cases_filter_clear.t(context),
-            variant: QeranButtonVariant.ghost,
-            onPressed: _clear,
-          ),
-        ],
+        ),
       ),
     );
   }

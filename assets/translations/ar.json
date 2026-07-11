@@ -584,6 +584,7 @@
     "cases_error_title": "تعذّر تحميل الحالات",
     "cases_retry": "إعادة المحاولة",
     "cases_filter_title": "تصفية الحالات",
+    "cases_filter_all": "الكل",
     "cases_filter_status": "الحالة",
     "cases_filter_name": "الاسم",
     "cases_filter_apply": "تطبيق",

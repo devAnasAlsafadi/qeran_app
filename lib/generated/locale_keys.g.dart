@@ -569,6 +569,7 @@ abstract class  LocaleKeys {
   static const matchmaker_cases_error_title = 'matchmaker.cases_error_title';
   static const matchmaker_cases_retry = 'matchmaker.cases_retry';
   static const matchmaker_cases_filter_title = 'matchmaker.cases_filter_title';
+  static const matchmaker_cases_filter_all = 'matchmaker.cases_filter_all';
   static const matchmaker_cases_filter_status = 'matchmaker.cases_filter_status';
   static const matchmaker_cases_filter_name = 'matchmaker.cases_filter_name';
   static const matchmaker_cases_filter_apply = 'matchmaker.cases_filter_apply';

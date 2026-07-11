@@ -22,8 +22,19 @@ import 'matchmaker_share_sheet.dart';
 /// The explore results body: loader / error / no-results / paginated list of
 /// [MatchmakerExploreCard]s. Reads the [MatchmakerExploreCubit] from context;
 /// a card tap opens the existing full profile (works for any user).
-class MatchmakerExploreList extends StatelessWidget {
+class MatchmakerExploreList extends StatefulWidget {
   const MatchmakerExploreList({super.key});
+
+  @override
+  State<MatchmakerExploreList> createState() => _MatchmakerExploreListState();
+}
+
+class _MatchmakerExploreListState extends State<MatchmakerExploreList> {
+  /// The candidate card whose matchmaker-chat is currently resolving. Keyed on
+  /// the candidate's own userId (unique per card), NOT the owning matchmaker id
+  /// — several candidates can share one matchmaker, so keying on the owner made
+  /// every one of their cards spin when only one was tapped.
+  String? _openingCandidateId;
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +42,11 @@ class MatchmakerExploreList extends StatelessWidget {
         PaginatedListState<MatchmakerExploreUser>>(
       builder: (context, state) {
         final cubit = context.read<MatchmakerExploreCubit>();
-        // The matchmaker whose chat is resolving on tap — drives the chip loader.
-        final colleagueOpeningId =
-            context.watch<MatchmakerColleagueOpenChatCubit>().state.openingUserId;
+        // Whether a colleague chat is currently resolving (the host owns the
+        // single-in-flight guard); combined with [_openingCandidateId] so only
+        // the tapped card shows its loader.
+        final resolving =
+            context.watch<MatchmakerColleagueOpenChatCubit>().state.isOpening;
 
         if (state.isLoading && state.items.isEmpty) {
           return const Center(child: QeranLoader());
@@ -91,7 +104,7 @@ class MatchmakerExploreList extends StatelessWidget {
                     ? () => _messageMatchmaker(context, user)
                     : null,
                 matchmakerLoading:
-                    colleagueOpeningId == user.assignedMatchmakerId,
+                    resolving && _openingCandidateId == user.userId,
               );
             },
           ),
@@ -105,6 +118,8 @@ class MatchmakerExploreList extends StatelessWidget {
   /// identity is echoed from the row; the image is null until the backend
   /// populates `assignedMatchmakerImageUrl` (then it flows through unchanged).
   void _messageMatchmaker(BuildContext context, MatchmakerExploreUser user) {
+    // Mark THIS card as the one resolving so only its disc shows the loader.
+    setState(() => _openingCandidateId = user.userId);
     context.read<MatchmakerColleagueOpenChatCubit>().open(
           colleagueId: user.assignedMatchmakerId ?? '',
           fullName: user.assignedMatchmakerName ?? '',

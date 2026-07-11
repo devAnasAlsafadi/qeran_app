@@ -42,9 +42,9 @@ class MatchmakerIconAction extends StatelessWidget {
                 ? SizedBox(
                     width: glyphSize,
                     height: glyphSize,
-                    child: FittedBox(
-                      child: QeranLoader.inline(color: QeranColors.wine),
-                    ),
+                    // Two-color brand loader (wine + gold) — visible on the
+                    // light wine-06 disc; no `color` override so both arcs show.
+                    child: const FittedBox(child: QeranLoader.inline()),
                   )
                 : Icon(icon, size: glyphSize, color: QeranColors.wine),
           ),

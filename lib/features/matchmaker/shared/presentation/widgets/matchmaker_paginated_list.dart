@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
+import '../../../../../core/design_system/widgets/qeran_loader.dart';
 
 /// Pull-to-refresh + infinite-scroll wrapper for every Matchmaker
 /// paginated list. The caller owns the data and the cubit; this widget
@@ -77,16 +78,7 @@ class MatchmakerLoadMoreFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: QeranSpacing.s20),
-      child: Center(
-        child: SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.2,
-            valueColor: AlwaysStoppedAnimation<Color>(QeranColors.wine),
-          ),
-        ),
-      ),
+      child: Center(child: QeranLoader(size: 24)),
     );
   }
 }

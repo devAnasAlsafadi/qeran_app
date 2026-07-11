@@ -159,7 +159,6 @@ class _Footer extends StatelessWidget {
               ),
               QeranSpacing.hs12,
               Expanded(
-                flex: 2,
                 child: QeranButton(
                   label:
                       LocaleKeys.matchmaker_explore_filter_apply.t(context),

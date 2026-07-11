@@ -364,7 +364,6 @@ class _Footer extends StatelessWidget {
               ),
               QeranSpacing.hs12,
               Expanded(
-                flex: 2,
                 child: QeranButton(
                   label: context.tr(
                     LocaleKeys.matchmaker_explore_share_send,

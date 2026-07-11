@@ -122,7 +122,6 @@ class _CasesFilterSheetState extends State<_CasesFilterSheet> {
             ),
             QeranSpacing.hs12,
             Expanded(
-              flex: 2,
               child: QeranButton(
                 label: LocaleKeys.matchmaker_cases_filter_apply.t(context),
                 variant: QeranButtonVariant.primary,

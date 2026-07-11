@@ -34,7 +34,11 @@ class MatchmakerConversationCard extends StatelessWidget {
       padding: const EdgeInsets.all(QeranSpacing.s12),
       child: Row(
         children: [
-          MatchmakerUserAvatar(url: conversation.profileImageUrl, size: 52),
+          MatchmakerUserAvatar(
+            url: conversation.profileImageUrl,
+            size: 52,
+            monogramName: conversation.fullName,
+          ),
           QeranSpacing.hs12,
           Expanded(
             child: Column(

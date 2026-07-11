@@ -133,7 +133,7 @@ class _EmptyResults extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: QeranEmptyState(
-              icon: Icons.travel_explore_outlined,
+              icon: Icons.person_search_outlined,
               title: LocaleKeys.matchmaker_explore_no_results_title.t(context),
               message:
                   LocaleKeys.matchmaker_explore_no_results_message.t(context),

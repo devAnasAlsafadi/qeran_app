@@ -63,6 +63,11 @@ class MatchmakerUserAvatar extends StatelessWidget {
       alignment: alignment,
       placeholder: (_, _) => _placeholder(),
       errorWidget: (_, _, _) => _fallback(),
+      // A truncated-but-decodable cached file can render as garbage (the
+      // "green blocks") without ever throwing; and a genuine load failure
+      // would otherwise keep serving the corrupt entry. On any error, drop
+      // the cache entry so the next build re-downloads a clean image.
+      errorListener: (_) => CachedNetworkImageProvider(u).evict(),
     );
   }
 
@@ -87,10 +92,18 @@ class MatchmakerUserAvatar extends StatelessWidget {
   }
 
   Widget _fallback() {
-    // A named, circular avatar prefers the wine+gold monogram over the icon.
+    // A named avatar prefers the wine+gold monogram over the icon — for both
+    // the circle and the rounded-square shape (so a failed/absent rounded
+    // avatar never drops to a bare icon or a broken image).
     final name = monogramName?.trim() ?? '';
-    if (name.isNotEmpty && shape == BoxShape.circle && size != null) {
-      return QeranMonogram(name: name, size: size!);
+    if (name.isNotEmpty && size != null) {
+      return QeranMonogram(
+        name: name,
+        size: size!,
+        borderRadius: shape == BoxShape.circle
+            ? null
+            : (borderRadius ?? BorderRadius.circular(12)),
+      );
     }
     final iconSize = (size == null) ? 36.0 : size! * 0.55;
     return ColoredBox(

@@ -16,6 +16,7 @@ class QeranMonogram extends StatelessWidget {
     required this.name,
     this.size = 48,
     this.borderWidth = 2,
+    this.borderRadius,
   });
 
   /// The person's name; the first grapheme becomes the initial. Null/empty
@@ -24,6 +25,10 @@ class QeranMonogram extends StatelessWidget {
 
   final double size;
   final double borderWidth;
+
+  /// When set, the monogram renders as a rounded-square with this radius
+  /// (matching a rounded-square avatar). Null → the default circle.
+  final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +40,8 @@ class QeranMonogram extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: QeranColors.wine,
-        shape: BoxShape.circle,
+        shape: borderRadius == null ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: borderRadius,
         border: Border.all(color: QeranColors.gold, width: borderWidth),
       ),
       child: initial == null

@@ -2,18 +2,18 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
+import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../shared/presentation/widgets/matchmaker_count_badge.dart';
 import '../../../shared/presentation/widgets/matchmaker_user_avatar.dart';
 import '../../domain/entities/matchmaker_conversation.dart';
 
-/// One conversation row: unblurred avatar + name with the last-message time
-/// on the title line, and the preview (or a "shared profile" label) with the
-/// unread badge on the subtitle line. Tappable; opening the chat screen is 4b.
+/// One conversation row: unblurred avatar + name over the preview (or a
+/// "shared profile" label), with a trailing meta-column carrying the readable
+/// relative time on top and a distinct gold unread pill below. Tappable.
 class MatchmakerConversationCard extends StatelessWidget {
   const MatchmakerConversationCard({
     super.key,
@@ -26,6 +26,8 @@ class MatchmakerConversationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final time = _time(context);
+    final unread = conversation.unreadCount;
     return QeranCard(
       onTap: onTap,
       margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
@@ -39,17 +41,43 @@ class MatchmakerConversationCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _TitleRow(name: conversation.fullName, time: _time(context)),
+                Text(
+                  conversation.fullName,
+                  style: QeranTypography.subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 QeranSpacing.vs4,
-                _SubtitleRow(conversation: conversation),
+                _preview(context),
               ],
             ),
           ),
+          if (time != null || unread > 0) ...[
+            QeranSpacing.hs8,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (time != null)
+                  Text(
+                    time,
+                    style: QeranTypography.caption
+                        .copyWith(color: QeranColors.inkMuted),
+                  ),
+                if (unread > 0) ...[
+                  const SizedBox(height: QeranSpacing.s6),
+                  _UnreadPill(count: unread),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
+  /// Readable, localized relative time (numerals LTR), falling back to a
+  /// short date once past a week. Never the old cramped "{n}letter" form.
   String? _time(BuildContext context) {
     final at = conversation.lastMessageAt;
     if (at == null) return null;
@@ -59,16 +87,25 @@ class MatchmakerConversationCard extends StatelessWidget {
       return LocaleKeys.matchmaker_conversations_time_now.t(context);
     }
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}'
-          '${LocaleKeys.matchmaker_conversations_time_minute.t(context)}';
+      return context.tr(
+        LocaleKeys.matchmaker_conversations_time_minutes_ago,
+        namedArgs: {'count': '${diff.inMinutes}'},
+      );
     }
     if (diff.inHours < 24) {
-      return '${diff.inHours}'
-          '${LocaleKeys.matchmaker_conversations_time_hour.t(context)}';
+      return context.tr(
+        LocaleKeys.matchmaker_conversations_time_hours_ago,
+        namedArgs: {'count': '${diff.inHours}'},
+      );
+    }
+    if (diff.inDays < 2) {
+      return LocaleKeys.matchmaker_conversations_time_yesterday.t(context);
     }
     if (diff.inDays < 7) {
-      return '${diff.inDays}'
-          '${LocaleKeys.matchmaker_conversations_time_day.t(context)}';
+      return context.tr(
+        LocaleKeys.matchmaker_conversations_time_days_ago,
+        namedArgs: {'count': '${diff.inDays}'},
+      );
     }
     try {
       return DateFormat.MMMd(context.locale.toString()).format(local);
@@ -77,55 +114,6 @@ class MatchmakerConversationCard extends StatelessWidget {
       final d = local.day.toString().padLeft(2, '0');
       return '${local.year}/$m/$d';
     }
-  }
-}
-
-class _TitleRow extends StatelessWidget {
-  const _TitleRow({required this.name, required this.time});
-
-  final String name;
-  final String? time;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            name,
-            style: QeranTypography.subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (time != null) ...[
-          QeranSpacing.hs8,
-          Text(
-            time!,
-            style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _SubtitleRow extends StatelessWidget {
-  const _SubtitleRow({required this.conversation});
-
-  final MatchmakerConversation conversation;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: _preview(context)),
-        if (conversation.unreadCount > 0) ...[
-          QeranSpacing.hs8,
-          MatchmakerCountBadge(count: conversation.unreadCount),
-        ],
-      ],
-    );
   }
 
   Widget _preview(BuildContext context) {
@@ -156,6 +144,39 @@ class _SubtitleRow extends StatelessWidget {
       style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+/// Unread count as a distinct gold pill with a wine numeral (LTR, capped at
+/// "99+"). Scoped to the inbox row — the shared circular count badge stays as
+/// it is for the segmented tabs.
+class _UnreadPill extends StatelessWidget {
+  const _UnreadPill({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 20),
+      height: 20,
+      padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s6),
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: QeranColors.gold,
+        borderRadius: QeranRadii.pill,
+      ),
+      child: Text(
+        // Latin digits are inherently LTR; no textDirection override needed
+        // (and easy_localization shadows ui.TextDirection here).
+        count > 99 ? '99+' : '$count',
+        style: QeranTypography.caption.copyWith(
+          color: QeranColors.wine,
+          fontWeight: FontWeight.w800,
+          fontSize: 11,
+        ),
+      ),
     );
   }
 }

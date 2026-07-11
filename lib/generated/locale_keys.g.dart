@@ -630,6 +630,10 @@ abstract class  LocaleKeys {
   static const matchmaker_conversations_time_minute = 'matchmaker.conversations_time_minute';
   static const matchmaker_conversations_time_hour = 'matchmaker.conversations_time_hour';
   static const matchmaker_conversations_time_day = 'matchmaker.conversations_time_day';
+  static const matchmaker_conversations_time_minutes_ago = 'matchmaker.conversations_time_minutes_ago';
+  static const matchmaker_conversations_time_hours_ago = 'matchmaker.conversations_time_hours_ago';
+  static const matchmaker_conversations_time_yesterday = 'matchmaker.conversations_time_yesterday';
+  static const matchmaker_conversations_time_days_ago = 'matchmaker.conversations_time_days_ago';
   static const matchmaker_empty_dashboard_title = 'matchmaker.empty_dashboard_title';
   static const matchmaker_empty_dashboard_message = 'matchmaker.empty_dashboard_message';
   static const matchmaker_empty_users_title = 'matchmaker.empty_users_title';

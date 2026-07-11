@@ -29,7 +29,6 @@ class RouteNames {
   static const String myProfile = '/profile/me';
 
   // Settings sub-screens
-  static const String settingsLanguage = '/settings/language';
   static const String settingsSupport = '/settings/support';
   static const String settingsTerms = '/settings/terms';
 

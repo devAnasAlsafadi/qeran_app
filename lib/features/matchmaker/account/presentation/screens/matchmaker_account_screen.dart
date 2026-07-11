@@ -13,6 +13,7 @@ import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../../settings/presentation/widgets/settings_language_sheet.dart';
 import '../blocs/matchmaker_account_cubit.dart';
 import '../blocs/matchmaker_account_state.dart';
 import '../widgets/matchmaker_account_body.dart';
@@ -72,8 +73,7 @@ class _AccountView extends StatelessWidget {
       me: me,
       onEditName: () => _editName(context),
       onChangePassword: () => _changePassword(context),
-      onLanguage: () =>
-          NavigationManager.navigateTo(context, RouteNames.settingsLanguage),
+      onLanguage: () => showSettingsLanguageSheet(context),
       onNotifications: () => NavigationManager.navigateTo(
         context,
         RouteNames.matchmakerNotifications,

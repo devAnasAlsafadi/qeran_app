@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
-import '../../../../../core/design_system/widgets/qeran_sheet_handle.dart';
 import '../../../../../core/design_system/widgets/qeran_text_field.dart';
 import '../../../../../core/enum/snakebar_tybe.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -24,11 +21,8 @@ Future<void> showMatchmakerEditNameSheet(
   required MatchmakerAccountCubit cubit,
   required String currentName,
 }) {
-  return showModalBottomSheet<void>(
+  return showQeranBottomSheet<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: QeranColors.paper,
-    shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
     builder: (_) => BlocProvider.value(
       value: cubit,
       child: _EditNameSheet(currentName: currentName),
@@ -85,51 +79,47 @@ class _EditNameSheetState extends State<_EditNameSheet> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<MatchmakerAccountCubit>();
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        QeranSpacing.s20,
-        QeranSpacing.s12,
-        QeranSpacing.s20,
-        QeranSpacing.s20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: BlocConsumer<MatchmakerAccountCubit, MatchmakerAccountState>(
-        listenWhen: (p, c) => p.eventVersion != c.eventVersion,
-        listener: _onOutcome,
-        builder: (context, state) {
-          final saving =
-              state.inFlight == MatchmakerAccountAction.savingName;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(child: QeranSheetHandle()),
-              QeranSpacing.vs16,
-              Text(
-                LocaleKeys.matchmaker_account_edit_name_title.t(context),
-                style: QeranTypography.title,
-              ),
-              QeranSpacing.vs16,
-              QeranTextField(
-                controller: _controller,
-                hint: LocaleKeys.matchmaker_account_name_hint.t(context),
-                textInputAction: TextInputAction.done,
-                maxLength: 100,
-                errorText: _inlineError,
-                onChanged: _onChanged,
-                onSubmitted: (_) => _save(cubit),
-              ),
-              QeranSpacing.vs20,
-              QeranButton(
-                label: LocaleKeys.matchmaker_account_save.t(context),
-                variant: QeranButtonVariant.primaryWine,
-                loading: saving,
-                onPressed:
-                    (!_canSave || state.isBusy) ? null : () => _save(cubit),
-              ),
-            ],
-          );
-        },
-      ),
+    return BlocConsumer<MatchmakerAccountCubit, MatchmakerAccountState>(
+      listenWhen: (p, c) => p.eventVersion != c.eventVersion,
+      listener: _onOutcome,
+      builder: (context, state) {
+        final saving = state.inFlight == MatchmakerAccountAction.savingName;
+        return QeranBottomSheetScaffold(
+          title: LocaleKeys.matchmaker_account_edit_name_title.t(context),
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s20,
+              QeranSpacing.s4,
+              QeranSpacing.s20,
+              QeranSpacing.s16,
+            ),
+            child: QeranTextField(
+              controller: _controller,
+              hint: LocaleKeys.matchmaker_account_name_hint.t(context),
+              textInputAction: TextInputAction.done,
+              maxLength: 100,
+              errorText: _inlineError,
+              onChanged: _onChanged,
+              onSubmitted: (_) => _save(cubit),
+            ),
+          ),
+          footer: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s20,
+              QeranSpacing.s8,
+              QeranSpacing.s20,
+              QeranSpacing.s16,
+            ),
+            child: QeranButton(
+              label: LocaleKeys.matchmaker_account_save.t(context),
+              variant: QeranButtonVariant.primaryWine,
+              loading: saving,
+              onPressed:
+                  (!_canSave || state.isBusy) ? null : () => _save(cubit),
+            ),
+          ),
+        );
+      },
     );
   }
 }

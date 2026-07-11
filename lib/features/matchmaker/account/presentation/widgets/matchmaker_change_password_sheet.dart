@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
-import '../../../../../core/design_system/widgets/qeran_sheet_handle.dart';
 import '../../../../../core/design_system/widgets/qeran_text_field.dart';
 import '../../../../../core/enum/snakebar_tybe.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -23,11 +20,8 @@ Future<void> showMatchmakerChangePasswordSheet(
   BuildContext context, {
   required MatchmakerAccountCubit cubit,
 }) {
-  return showModalBottomSheet<void>(
+  return showQeranBottomSheet<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: QeranColors.paper,
-    shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
     builder: (_) => BlocProvider.value(
       value: cubit,
       child: const _ChangePasswordSheet(),
@@ -90,63 +84,67 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<MatchmakerAccountCubit>();
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        QeranSpacing.s20,
-        QeranSpacing.s12,
-        QeranSpacing.s20,
-        QeranSpacing.s20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: BlocConsumer<MatchmakerAccountCubit, MatchmakerAccountState>(
-        listenWhen: (p, c) => p.eventVersion != c.eventVersion,
-        listener: _onOutcome,
-        builder: (context, state) {
-          final saving =
-              state.inFlight == MatchmakerAccountAction.changingPassword;
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(child: QeranSheetHandle()),
-              QeranSpacing.vs16,
-              Text(
-                LocaleKeys.matchmaker_account_change_password_title.t(context),
-                style: QeranTypography.title,
-              ),
-              QeranSpacing.vs16,
-              QeranTextField(
-                controller: _current,
-                hint: LocaleKeys.matchmaker_account_current_password_hint
-                    .t(context),
-                obscureText: true,
-                showObscureToggle: true,
-                textInputAction: TextInputAction.next,
-                errorText: _inlineError,
-                onChanged: _onChanged,
-              ),
-              QeranSpacing.vs12,
-              QeranTextField(
-                controller: _newPassword,
-                hint:
-                    LocaleKeys.matchmaker_account_new_password_hint.t(context),
-                obscureText: true,
-                showObscureToggle: true,
-                textInputAction: TextInputAction.done,
-                onChanged: _onChanged,
-                onSubmitted: (_) => _save(cubit),
-              ),
-              QeranSpacing.vs20,
-              QeranButton(
-                label: LocaleKeys.matchmaker_account_save.t(context),
-                variant: QeranButtonVariant.primaryWine,
-                loading: saving,
-                onPressed:
-                    (!_canSave || state.isBusy) ? null : () => _save(cubit),
-              ),
-            ],
-          );
-        },
-      ),
+    return BlocConsumer<MatchmakerAccountCubit, MatchmakerAccountState>(
+      listenWhen: (p, c) => p.eventVersion != c.eventVersion,
+      listener: _onOutcome,
+      builder: (context, state) {
+        final saving =
+            state.inFlight == MatchmakerAccountAction.changingPassword;
+        return QeranBottomSheetScaffold(
+          title:
+              LocaleKeys.matchmaker_account_change_password_title.t(context),
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s20,
+              QeranSpacing.s4,
+              QeranSpacing.s20,
+              QeranSpacing.s16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                QeranTextField(
+                  controller: _current,
+                  hint: LocaleKeys.matchmaker_account_current_password_hint
+                      .t(context),
+                  obscureText: true,
+                  showObscureToggle: true,
+                  textInputAction: TextInputAction.next,
+                  errorText: _inlineError,
+                  onChanged: _onChanged,
+                ),
+                QeranSpacing.vs12,
+                QeranTextField(
+                  controller: _newPassword,
+                  hint: LocaleKeys.matchmaker_account_new_password_hint
+                      .t(context),
+                  obscureText: true,
+                  showObscureToggle: true,
+                  textInputAction: TextInputAction.done,
+                  onChanged: _onChanged,
+                  onSubmitted: (_) => _save(cubit),
+                ),
+              ],
+            ),
+          ),
+          footer: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s20,
+              QeranSpacing.s8,
+              QeranSpacing.s20,
+              QeranSpacing.s16,
+            ),
+            child: QeranButton(
+              label: LocaleKeys.matchmaker_account_save.t(context),
+              variant: QeranButtonVariant.primaryWine,
+              loading: saving,
+              onPressed:
+                  (!_canSave || state.isBusy) ? null : () => _save(cubit),
+            ),
+          ),
+        );
+      },
     );
   }
 }

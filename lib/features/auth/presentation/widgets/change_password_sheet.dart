@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_bottom_sheet.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
-import 'package:qeran/core/design_system/widgets/qeran_sheet_handle.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
@@ -20,11 +17,8 @@ import '../blocs/change_password/change_password_state.dart';
 /// Opens the change-password bottom sheet (self-provides its cubit). Any
 /// signed-in user can change their password via the shared auth endpoint.
 Future<void> showChangePasswordSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
+  return showQeranBottomSheet<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: QeranColors.paper,
-    shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
     builder: (_) => BlocProvider(
       create: (_) => sl<ChangePasswordCubit>(),
       child: const _ChangePasswordSheet(),
@@ -124,72 +118,75 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ChangePasswordCubit>();
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        QeranSpacing.s20,
-        QeranSpacing.s12,
-        QeranSpacing.s20,
-        QeranSpacing.s20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: BlocConsumer<ChangePasswordCubit, ChangePasswordState>(
-        listenWhen: (p, c) => p.version != c.version,
-        listener: _onOutcome,
-        builder: (context, state) {
-          return Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Center(child: QeranSheetHandle()),
-                QeranSpacing.vs16,
-                Text(
-                  LocaleKeys.settings_change_password_title.t(context),
-                  style: QeranTypography.title,
-                ),
-                QeranSpacing.vs16,
-                QeranTextField(
-                  controller: _current,
-                  hint: LocaleKeys.settings_change_password_current_hint
-                      .t(context),
-                  obscureText: true,
-                  showObscureToggle: true,
-                  textInputAction: TextInputAction.next,
-                  validator: _validateCurrent,
-                  errorText: _currentServerError,
-                  onChanged: _clearServerError,
-                ),
-                QeranSpacing.vs12,
-                QeranTextField(
-                  controller: _newPassword,
-                  hint: LocaleKeys.auth_new_password_hint.t(context),
-                  obscureText: true,
-                  showObscureToggle: true,
-                  textInputAction: TextInputAction.next,
-                  validator: _validateNew,
-                ),
-                QeranSpacing.vs12,
-                QeranTextField(
-                  controller: _confirm,
-                  hint: LocaleKeys.auth_confirm_password_hint.t(context),
-                  obscureText: true,
-                  showObscureToggle: true,
-                  textInputAction: TextInputAction.done,
-                  validator: _validateConfirm,
-                  onSubmitted: (_) => _submit(cubit),
-                ),
-                QeranSpacing.vs20,
-                QeranButton(
-                  label: LocaleKeys.settings_save_changes.t(context),
-                  variant: QeranButtonVariant.primaryWine,
-                  loading: state.isSubmitting,
-                  onPressed: state.isSubmitting ? null : () => _submit(cubit),
-                ),
-              ],
+    return BlocConsumer<ChangePasswordCubit, ChangePasswordState>(
+      listenWhen: (p, c) => p.version != c.version,
+      listener: _onOutcome,
+      builder: (context, state) {
+        return QeranBottomSheetScaffold(
+          title: LocaleKeys.settings_change_password_title.t(context),
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s20,
+              QeranSpacing.s4,
+              QeranSpacing.s20,
+              QeranSpacing.s16,
             ),
-          );
-        },
-      ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  QeranTextField(
+                    controller: _current,
+                    hint: LocaleKeys.settings_change_password_current_hint
+                        .t(context),
+                    obscureText: true,
+                    showObscureToggle: true,
+                    textInputAction: TextInputAction.next,
+                    validator: _validateCurrent,
+                    errorText: _currentServerError,
+                    onChanged: _clearServerError,
+                  ),
+                  QeranSpacing.vs12,
+                  QeranTextField(
+                    controller: _newPassword,
+                    hint: LocaleKeys.auth_new_password_hint.t(context),
+                    obscureText: true,
+                    showObscureToggle: true,
+                    textInputAction: TextInputAction.next,
+                    validator: _validateNew,
+                  ),
+                  QeranSpacing.vs12,
+                  QeranTextField(
+                    controller: _confirm,
+                    hint: LocaleKeys.auth_confirm_password_hint.t(context),
+                    obscureText: true,
+                    showObscureToggle: true,
+                    textInputAction: TextInputAction.done,
+                    validator: _validateConfirm,
+                    onSubmitted: (_) => _submit(cubit),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          footer: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s20,
+              QeranSpacing.s8,
+              QeranSpacing.s20,
+              QeranSpacing.s16,
+            ),
+            child: QeranButton(
+              label: LocaleKeys.settings_save_changes.t(context),
+              variant: QeranButtonVariant.primaryWine,
+              loading: state.isSubmitting,
+              onPressed: state.isSubmitting ? null : () => _submit(cubit),
+            ),
+          ),
+        );
+      },
     );
   }
 }

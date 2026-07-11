@@ -25,7 +25,6 @@ import 'package:qeran/features/onboarding/presentation/screens/on_boarding_scree
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_hub_screen.dart';
-import 'package:qeran/features/settings/presentation/screens/settings_language_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_support_screen.dart';
 import 'package:qeran/features/legal/presentation/screens/legal_screen.dart';
 import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
@@ -222,11 +221,6 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const ProfileHubScreen(),
-        );
-      case RouteNames.settingsLanguage:
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => const SettingsLanguageScreen(),
         );
       case RouteNames.settingsSupport:
         return MaterialPageRoute(

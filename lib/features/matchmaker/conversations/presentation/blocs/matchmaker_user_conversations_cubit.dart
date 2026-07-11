@@ -86,6 +86,22 @@ class MatchmakerUserConversationsCubit
     emit(state.copyWith(items: items));
   }
 
+  /// Clear a single conversation's unread badge in place — called when the
+  /// matchmaker returns from that thread (the chat marks it read on open). A
+  /// local, zero-network update so the inbox is NOT re-fetched on every open;
+  /// live updates to other rows already flow through [_onIncoming]. No-op for
+  /// an unknown / off-page id, or one already at zero.
+  void markConversationRead(int conversationId) {
+    if (isClosed) return;
+    final index =
+        state.items.indexWhere((c) => c.conversationId == conversationId);
+    if (index < 0 || state.items[index].unreadCount == 0) return;
+    emit(state.copyWith(
+      items: [...state.items]
+        ..[index] = state.items[index].copyWith(unreadCount: 0),
+    ));
+  }
+
   /// Reconnect catch-up (4c-1 pattern): on re-entry into `connected` after
   /// a prior connection, re-fetch page 1. The first-ever connect never
   /// triggers this (the list's initial `loadFirst` covers it).

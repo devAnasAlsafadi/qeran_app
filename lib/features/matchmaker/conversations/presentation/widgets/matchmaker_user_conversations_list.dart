@@ -102,10 +102,14 @@ class _ListBody extends StatelessWidget {
                     RouteNames.matchmakerUserChat,
                     arguments: conversation,
                   );
-                  // The chat auto-marked the conversation read on open;
-                  // refresh so the unread badge clears.
+                  // The chat auto-marked the conversation read on open. Clear
+                  // just this row's badge locally — NOT a full list re-fetch
+                  // (that flashed the whole inbox on every open). Other rows
+                  // stay live via the realtime `ReceiveMessage` handler.
                   if (context.mounted) {
-                    context.read<MatchmakerUserConversationsCubit>().refresh();
+                    context
+                        .read<MatchmakerUserConversationsCubit>()
+                        .markConversationRead(conversation.conversationId);
                   }
                 },
               );

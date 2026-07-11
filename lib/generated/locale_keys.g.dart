@@ -613,6 +613,12 @@ abstract class  LocaleKeys {
   static const matchmaker_cases_invalid_transition = 'matchmaker.cases_invalid_transition';
   static const matchmaker_cases_no_actions_note = 'matchmaker.cases_no_actions_note';
   static const matchmaker_cases_update_success = 'matchmaker.cases_update_success';
+  static const matchmaker_cases_timeline_title = 'matchmaker.cases_timeline_title';
+  static const matchmaker_cases_timeline_current = 'matchmaker.cases_timeline_current';
+  static const matchmaker_cases_no_actions_complete = 'matchmaker.cases_no_actions_complete';
+  static const matchmaker_cases_no_actions_ended = 'matchmaker.cases_no_actions_ended';
+  static const matchmaker_cases_no_actions_waiting = 'matchmaker.cases_no_actions_waiting';
+  static const matchmaker_cases_updating = 'matchmaker.cases_updating';
   static const matchmaker_conversations_segment_users = 'matchmaker.conversations_segment_users';
   static const matchmaker_conversations_segment_colleagues = 'matchmaker.conversations_segment_colleagues';
   static const matchmaker_conversations_shared_profile = 'matchmaker.conversations_shared_profile';

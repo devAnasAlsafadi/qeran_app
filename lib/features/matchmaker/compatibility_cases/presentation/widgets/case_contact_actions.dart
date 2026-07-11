@@ -62,7 +62,7 @@ class CaseContactActions extends StatelessWidget {
       if (onNotes != null)
         _chip(
           LocaleKeys.matchmaker_cases_action_notes.t(context),
-          hasNote ? Icons.note_alt : Icons.note_alt_outlined,
+          hasNote ? Icons.sticky_note_2_rounded : Icons.note_add_outlined,
           onNotes!,
         ),
     ];

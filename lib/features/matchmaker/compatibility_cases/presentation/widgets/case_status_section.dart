@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
+import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
+import '../../../../../core/design_system/widgets/qeran_section_header.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../domain/entities/case_photo_exchange_status.dart';
 import '../../domain/entities/compatibility_case.dart';
 import 'matchmaker_case_labels.dart';
 
-/// Read-only status block for the case detail: stage, formal-request status
-/// (when present), photo-exchange status (when present) and the like-accepted
-/// date — each a labelled row. The detail view can afford every signal at
-/// once, unlike the scannable list card.
+/// Read-only status block for the case detail: a gold-bar header + a paper
+/// card of labelled rows (stage · formal-request status · photo-exchange ·
+/// accepted-on date). Each row is rendered ONLY when its value is backed —
+/// a wine-06 icon chip + ink-muted label + a color-coded value. The detail
+/// view can afford every signal at once, unlike the scannable list card.
 class CaseStatusSection extends StatelessWidget {
   const CaseStatusSection({super.key, required this.caseItem});
 
@@ -25,8 +29,10 @@ class CaseStatusSection extends StatelessWidget {
     final stageKey = stageLabelKey(caseItem.stage);
     if (stageKey != null) {
       rows.add(_StatusRow(
+        icon: stageIcon(caseItem.stage) ?? Icons.timeline_rounded,
         labelKey: LocaleKeys.matchmaker_cases_field_stage,
         value: stageKey.t(context),
+        valueColor: QeranColors.inkStrong,
       ));
     }
 
@@ -35,8 +41,10 @@ class CaseStatusSection extends StatelessWidget {
       final key = formalStatusLabelKey(formal.status);
       if (key != null) {
         rows.add(_StatusRow(
+          icon: formalStatusIcon(formal.status) ?? Icons.assignment_outlined,
           labelKey: LocaleKeys.matchmaker_cases_field_formal_status,
           value: key.t(context),
+          valueColor: caseStatusKindPalette(caseStatusKind(caseItem)).fg,
         ));
       }
     }
@@ -46,8 +54,10 @@ class CaseStatusSection extends StatelessWidget {
       final key = photoStatusLabelKey(pe.status);
       if (key != null) {
         rows.add(_StatusRow(
+          icon: Icons.photo_camera_outlined,
           labelKey: LocaleKeys.matchmaker_cases_field_photo_exchange,
           value: key.t(context),
+          valueColor: _photoColor(pe.status),
         ));
       }
     }
@@ -55,31 +65,46 @@ class CaseStatusSection extends StatelessWidget {
     final accepted = caseItem.likeAcceptedAt;
     if (accepted != null) {
       rows.add(_StatusRow(
+        icon: Icons.event_rounded,
         labelKey: LocaleKeys.matchmaker_cases_field_like_accepted,
         value: _formatDate(accepted),
+        valueColor: QeranColors.inkBody,
       ));
     }
 
     if (rows.isEmpty) return const SizedBox.shrink();
 
-    return QeranCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            LocaleKeys.matchmaker_cases_section_status.t(context),
-            style: QeranTypography.title,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        QeranSectionHeader(
+          title: LocaleKeys.matchmaker_cases_section_status.t(context),
+        ),
+        QeranSpacing.vs8,
+        QeranCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < rows.length; i++) ...[
+                if (i > 0) const _RowDivider(),
+                rows[i],
+              ],
+            ],
           ),
-          QeranSpacing.vs12,
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) const _RowDivider(),
-            rows[i],
-          ],
-        ],
-      ),
+        ),
+      ],
     );
   }
+
+  Color _photoColor(CasePhotoExchangeStatus status) => switch (status) {
+        CasePhotoExchangeStatus.accepted => QeranColors.goldDeep,
+        CasePhotoExchangeStatus.rejected => QeranColors.danger,
+        CasePhotoExchangeStatus.expired => QeranColors.inkMuted,
+        CasePhotoExchangeStatus.pending => QeranColors.wine,
+        CasePhotoExchangeStatus.unknown => QeranColors.inkBody,
+      };
 
   String _formatDate(DateTime d) {
     final local = d.toLocal();
@@ -90,16 +115,34 @@ class CaseStatusSection extends StatelessWidget {
 }
 
 class _StatusRow extends StatelessWidget {
-  const _StatusRow({required this.labelKey, required this.value});
+  const _StatusRow({
+    required this.icon,
+    required this.labelKey,
+    required this.value,
+    required this.valueColor,
+  });
 
+  final IconData icon;
   final String labelKey;
   final String value;
+  final Color valueColor;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: const BoxDecoration(
+            color: QeranColors.wine06,
+            borderRadius: QeranRadii.xsR,
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, size: 18, color: QeranColors.wine),
+        ),
+        QeranSpacing.hs12,
         Expanded(
           child: Text(labelKey.t(context), style: QeranTypography.caption),
         ),
@@ -107,7 +150,7 @@ class _StatusRow extends StatelessWidget {
         Flexible(
           child: Text(
             value,
-            style: QeranTypography.label,
+            style: QeranTypography.label.copyWith(color: valueColor),
             textAlign: TextAlign.end,
           ),
         ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
+import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
-import '../../../../../core/design_system/widgets/qeran_chip.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/compatibility_case.dart';
@@ -13,10 +13,10 @@ import 'case_paired_avatars.dart';
 import 'matchmaker_case_labels.dart';
 
 /// One compatibility-case card in the list: a compact "matched pair" — the
-/// two participants' avatars overlapped at the top, both first names on one
-/// line joined with "&", then a small status chip (gold once the case
-/// reaches the formal track, muted otherwise) and a de-emphasized
-/// accepted-on date. Tappable → the case detail (3b).
+/// two participants' overlapped monogram/photo avatars, both first names on
+/// one line joined by a gold heart, a color-differentiated status chip
+/// (gold=active · wine=waiting · soft=expired · danger=closed) and a
+/// de-emphasized accepted-on date. Tappable → the case detail (3b).
 ///
 /// The spread-apart hero layout lives in the details screen via the shared
 /// `CaseParticipantsPair`; this card deliberately does not use it.
@@ -65,6 +65,8 @@ class MatchmakerCaseCard extends StatelessWidget {
               CasePairedAvatars(
                 firstUrl: caseItem.myUser.profileImageUrl,
                 secondUrl: caseItem.otherUser.profileImageUrl,
+                firstName: caseItem.myUser.firstName,
+                secondName: caseItem.otherUser.firstName,
               ),
               QeranSpacing.hs16,
               Expanded(
@@ -72,11 +74,9 @@ class MatchmakerCaseCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      _names,
-                      style: QeranTypography.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    _PairNames(
+                      first: caseItem.myUser.firstName.trim(),
+                      second: caseItem.otherUser.firstName.trim(),
                     ),
                     if (statusChip != null) ...[QeranSpacing.vs8, statusChip],
                     if (dateLine != null) ...[QeranSpacing.vs8, dateLine],
@@ -99,16 +99,6 @@ class MatchmakerCaseCard extends StatelessWidget {
     );
   }
 
-  /// Both first names on one line joined with "&". Degrades to the single
-  /// present name (no separator, no fabricated text) when one is blank.
-  String get _names {
-    final a = caseItem.myUser.firstName.trim();
-    final b = caseItem.otherUser.firstName.trim();
-    if (a.isEmpty) return b;
-    if (b.isEmpty) return a;
-    return '$a & $b';
-  }
-
   /// The other person's name for their message chip — falls back to a generic
   /// "message" label when the server omitted the name.
   String _personLabel(BuildContext context) {
@@ -117,41 +107,39 @@ class MatchmakerCaseCard extends StatelessWidget {
     return LocaleKeys.matchmaker_cases_action_message.t(context);
   }
 
-  /// The single status signal as a compact chip: the formal-request status
-  /// (gold "interest") once the case reaches the formal track, otherwise the
-  /// stage (muted "meta"). `null` when the value is unknown — no chip.
+  /// The single status signal as a color-differentiated chip (its kind sets
+  /// the palette; the label is the most-specific status). `null` when unknown.
   Widget? _statusChip(BuildContext context) {
-    final formal = caseItem.formalRequest;
-    final String? labelKey;
-    final IconData? icon;
-    final QeranChipVariant variant;
-    if (formal != null) {
-      labelKey = formalStatusLabelKey(formal.status);
-      icon = formalStatusIcon(formal.status);
-      variant = QeranChipVariant.interest;
-    } else {
-      labelKey = stageLabelKey(caseItem.stage);
-      icon = stageIcon(caseItem.stage);
-      variant = QeranChipVariant.meta;
-    }
+    final labelKey = caseStatusChipLabelKey(caseItem);
     if (labelKey == null) return null;
-    return QeranChip(
+    return _CaseStatusChip(
       label: labelKey.t(context),
-      variant: variant,
-      icon: icon,
-      compact: true,
+      kind: caseStatusKind(caseItem),
     );
   }
 
   Widget? _dateLine(BuildContext context) {
     final d = caseItem.likeAcceptedAt;
     if (d == null) return null;
-    final text =
-        '${LocaleKeys.matchmaker_cases_like_accepted_at.t(context)} '
-        '${_formatDate(d)}';
-    return Text(
-      text,
-      style: QeranTypography.caption.copyWith(color: QeranColors.inkFaint),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.event_rounded,
+          size: 14,
+          color: QeranColors.inkFaint,
+        ),
+        QeranSpacing.hs4,
+        Flexible(
+          child: Text(
+            '${LocaleKeys.matchmaker_cases_like_accepted_at.t(context)} '
+            '${_formatDate(d)}',
+            style: QeranTypography.caption.copyWith(color: QeranColors.inkFaint),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
@@ -160,5 +148,88 @@ class MatchmakerCaseCard extends StatelessWidget {
     final m = local.month.toString().padLeft(2, '0');
     final day = local.day.toString().padLeft(2, '0');
     return '${local.year}/$m/$day';
+  }
+}
+
+/// Both first names on one line joined by a gold heart. Each name is flexible
+/// + ellipsized so a long pair never overflows; degrades to the single present
+/// name (no heart, no fabricated text) when one is blank. Mirrors in RTL.
+class _PairNames extends StatelessWidget {
+  const _PairNames({required this.first, required this.second});
+
+  final String first;
+  final String second;
+
+  @override
+  Widget build(BuildContext context) {
+    if (first.isEmpty || second.isEmpty) {
+      return Text(
+        first.isEmpty ? second : first,
+        style: QeranTypography.subtitle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    return Row(
+      children: [
+        Flexible(child: _name(first)),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: QeranSpacing.s8),
+          child: Icon(Icons.favorite_rounded, size: 14, color: QeranColors.gold),
+        ),
+        Flexible(child: _name(second)),
+      ],
+    );
+  }
+
+  Widget _name(String value) => Text(
+        value,
+        style: QeranTypography.subtitle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+}
+
+/// The list card's color-differentiated status pill: a leading dot + label,
+/// painted by the case's [CaseStatusKind] palette (05 §"Status chip").
+class _CaseStatusChip extends StatelessWidget {
+  const _CaseStatusChip({required this.label, required this.kind});
+
+  final String label;
+  final CaseStatusKind kind;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = caseStatusKindPalette(kind);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: p.bg,
+        borderRadius: QeranRadii.pill,
+        border: Border.all(color: p.border, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: p.dot, shape: BoxShape.circle),
+          ),
+          QeranSpacing.hs8,
+          Flexible(
+            child: Text(
+              label,
+              style: QeranTypography.caption.copyWith(
+                color: p.fg,
+                fontWeight: FontWeight.w700,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

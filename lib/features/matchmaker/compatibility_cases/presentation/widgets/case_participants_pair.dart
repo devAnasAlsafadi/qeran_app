@@ -79,7 +79,11 @@ class _ParticipantColumn extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        MatchmakerUserAvatar(url: user.profileImageUrl, size: avatarSize),
+        MatchmakerUserAvatar(
+          url: user.profileImageUrl,
+          size: avatarSize,
+          monogramName: user.firstName,
+        ),
         QeranSpacing.vs8,
         Text(
           user.firstName,
@@ -95,19 +99,20 @@ class _ParticipantColumn extends StatelessWidget {
   }
 
   Widget _roleLabel(BuildContext context, String key) {
+    // Mine → solid wine chip / white; other party → soft wine-tinted chip.
     if (isMine) {
       return QeranChip(
         label: key.t(context),
-        variant: QeranChipVariant.status,
-        statusColor: QeranColors.wine,
+        variant: QeranChipVariant.score,
         compact: true,
         icon: Icons.person_rounded,
       );
     }
-    return Text(
-      key.t(context),
-      style: QeranTypography.caption,
-      textAlign: TextAlign.center,
+    return QeranChip(
+      label: key.t(context),
+      variant: QeranChipVariant.status,
+      statusColor: QeranColors.wine,
+      compact: true,
     );
   }
 

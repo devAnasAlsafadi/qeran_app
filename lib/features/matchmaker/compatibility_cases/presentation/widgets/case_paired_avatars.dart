@@ -13,6 +13,8 @@ class CasePairedAvatars extends StatelessWidget {
     super.key,
     required this.firstUrl,
     required this.secondUrl,
+    this.firstName,
+    this.secondName,
     this.avatarSize = 52,
     this.ringWidth = 2,
     this.overlap = 0.36,
@@ -20,6 +22,12 @@ class CasePairedAvatars extends StatelessWidget {
 
   final String? firstUrl;
   final String? secondUrl;
+
+  /// Names for the wine+gold monogram fallback when an avatar has no photo
+  /// (absent → the plain person placeholder).
+  final String? firstName;
+  final String? secondName;
+
   final double avatarSize;
   final double ringWidth;
 
@@ -35,21 +43,28 @@ class CasePairedAvatars extends StatelessWidget {
       height: outer,
       child: Stack(
         children: [
-          PositionedDirectional(start: 0, child: _ringed(firstUrl)),
-          PositionedDirectional(start: offset, child: _ringed(secondUrl)),
+          PositionedDirectional(start: 0, child: _ringed(firstUrl, firstName)),
+          PositionedDirectional(
+            start: offset,
+            child: _ringed(secondUrl, secondName),
+          ),
         ],
       ),
     );
   }
 
-  Widget _ringed(String? url) {
+  Widget _ringed(String? url, String? name) {
     return Container(
       padding: EdgeInsets.all(ringWidth),
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: QeranColors.paper,
       ),
-      child: MatchmakerUserAvatar(url: url, size: avatarSize),
+      child: MatchmakerUserAvatar(
+        url: url,
+        size: avatarSize,
+        monogramName: name,
+      ),
     );
   }
 }

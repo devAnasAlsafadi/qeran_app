@@ -90,8 +90,13 @@ class _MatchmakerExploreListState extends State<MatchmakerExploreList> {
                   arguments: user.userId,
                 ),
                 // Share is independent of assignment — available on every card.
-                onShare: () =>
-                    showMatchmakerShareSheet(context, sharedUserId: user.userId),
+                onShare: () => showMatchmakerShareSheet(
+                  context,
+                  sharedUserId: user.userId,
+                  candidateName: user.fullName,
+                  candidateAge: user.age,
+                  candidateImageUrl: user.profileImageUrl,
+                ),
                 // Notes are assigned-only (the endpoint returns UNAUTHORIZED
                 // otherwise) — hidden for users assigned to another matchmaker.
                 onNotes: user.isMyAssigned

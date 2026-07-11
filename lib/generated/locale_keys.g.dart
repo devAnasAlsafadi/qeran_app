@@ -669,6 +669,9 @@ abstract class  LocaleKeys {
   static const matchmaker_explore_action_share = 'matchmaker.explore_action_share';
   static const matchmaker_explore_share_title = 'matchmaker.explore_share_title';
   static const matchmaker_explore_share_send = 'matchmaker.explore_share_send';
+  static const matchmaker_explore_share_selected = 'matchmaker.explore_share_selected';
+  static const matchmaker_explore_share_search_hint = 'matchmaker.explore_share_search_hint';
+  static const matchmaker_explore_share_done = 'matchmaker.explore_share_done';
   static const matchmaker_explore_share_empty = 'matchmaker.explore_share_empty';
   static const matchmaker_explore_share_error = 'matchmaker.explore_share_error';
   static const matchmaker_explore_share_success = 'matchmaker.explore_share_success';

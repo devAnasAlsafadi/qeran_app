@@ -61,7 +61,7 @@ class NotificationTileVisuals {
       case NotificationType.chat:
         return Icons.chat_bubble_outline_rounded;
       case NotificationType.offer:
-        return Icons.local_offer_outlined;
+        return Icons.sell_outlined;
       case NotificationType.profile:
         return _profileIcon(action);
       case NotificationType.announcement:
@@ -84,9 +84,11 @@ class NotificationTileVisuals {
         _ => Icons.favorite_rounded,
       };
 
-  /// Profile approve/reject — both calm; rejection never wears red.
+  /// Profile approve/reject — both calm; rejection never wears red. Approval
+  /// wears the filled `verified` badge (same glyph as the settings verified
+  /// mark); rejection stays a neutral info glyph in the wine tone.
   static IconData _profileIcon(NotificationAction action) => switch (action) {
-        NotificationAction.profileApproved => Icons.verified_user_outlined,
+        NotificationAction.profileApproved => Icons.verified_rounded,
         NotificationAction.profileRejected => Icons.info_outline_rounded,
         _ => Icons.person_outline_rounded,
       };

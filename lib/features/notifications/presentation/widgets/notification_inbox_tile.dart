@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/utils/relative_time.dart';
 
 import '../../domain/entities/notification_item.dart';
 import 'notification_tile_visuals.dart';
 
-/// One inbox row, on the design system. A 44px leading icon-chip whose TONE
-/// signals meaning (not a rainbow), a title + relative-time top line, and a
-/// 2-line body preview. No per-row unread dot — the backend exposes no
-/// read-state (render only what the backend backs).
+/// One inbox row — a flat pressable feed row (rows sit on the cream canvas,
+/// separated by hairline dividers; no per-row card). A 44px leading icon-chip
+/// whose TONE signals meaning (not a rainbow), a title + relative-time top
+/// line, and a 2-line body preview. No per-row unread dot — the backend
+/// exposes no read-state (render only what the backend backs).
 ///
 /// Tone families:
 /// * **Match** — solid gold chip (the hero; most prominent).
@@ -37,56 +37,82 @@ class NotificationInboxTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final time = QeranRelativeTime.format(notification.createdAt, context);
-    return QeranCard(
-      onTap: onTap,
-      margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
-      padding: const EdgeInsets.all(QeranSpacing.s12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _LeadingChip(notification: notification),
-          QeranSpacing.hs12,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: QeranColors.creamSurface,
+        highlightColor: QeranColors.creamSurface.withValues(alpha: 0.5),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: QeranSpacing.s16,
+            vertical: QeranSpacing.s12,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _LeadingChip(notification: notification),
+              QeranSpacing.hs12,
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: Text(
-                        notification.title(isArabic: isArabic),
-                        textAlign: TextAlign.start,
-                        style: QeranTypography.subtitle
-                            .copyWith(color: QeranColors.wine),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title(isArabic: isArabic),
+                            textAlign: TextAlign.start,
+                            style: QeranTypography.subtitle
+                                .copyWith(color: QeranColors.wine),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (time != null) ...[
+                          QeranSpacing.hs8,
+                          Text(
+                            time,
+                            style: QeranTypography.caption
+                                .copyWith(color: QeranColors.inkMuted),
+                          ),
+                        ],
+                      ],
                     ),
-                    if (time != null) ...[
-                      QeranSpacing.hs8,
-                      Text(
-                        time,
-                        style: QeranTypography.caption
-                            .copyWith(color: QeranColors.inkMuted),
-                      ),
-                    ],
+                    QeranSpacing.vs4,
+                    Text(
+                      notification.body(isArabic: isArabic),
+                      textAlign: TextAlign.start,
+                      style: QeranTypography.bodySm
+                          .copyWith(color: QeranColors.inkBody),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
-                QeranSpacing.vs4,
-                Text(
-                  notification.body(isArabic: isArabic),
-                  textAlign: TextAlign.start,
-                  style: QeranTypography.bodySm
-                      .copyWith(color: QeranColors.inkBody),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Hairline divider between feed rows, indented past the 44px leading chip +
+/// 12px gap so the line aligns under the row text, not the badge.
+class NotificationInboxDivider extends StatelessWidget {
+  const NotificationInboxDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsetsDirectional.only(start: 72, end: 16),
+      child: SizedBox(
+        height: 1,
+        child: ColoredBox(color: QeranColors.divider),
       ),
     );
   }

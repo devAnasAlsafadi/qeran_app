@@ -108,6 +108,7 @@ class _Body extends StatelessWidget {
         }
         if (state.errorMessage != null && state.items.isEmpty) {
           return QeranErrorState(
+            icon: Icons.cloud_off_rounded,
             title: LocaleKeys.notifications_error_title.t(context),
             message: LocaleKeys.notifications_error_message.t(context),
             retryLabel: LocaleKeys.notifications_retry.t(context),
@@ -117,23 +118,30 @@ class _Body extends StatelessWidget {
         if (state.items.isEmpty) {
           return _EmptyRefreshable(onRefresh: cubit.refresh);
         }
+        final count = state.items.length;
         return NotificationsPaginatedList(
           hasMore: state.hasMore,
           onRefresh: cubit.refresh,
           onLoadMore: cubit.loadMore,
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(
-              QeranSpacing.s16,
-              QeranSpacing.s12,
-              QeranSpacing.s16,
-              QeranSpacing.s20,
+          // Flat divided feed: rows sit on the cream canvas, separated by
+          // wine-08 hairlines (no per-row cards). The tile owns its horizontal
+          // gutter so dividers align under the text.
+          child: ListView.separated(
+            padding: const EdgeInsets.only(
+              top: QeranSpacing.s4,
+              bottom: QeranSpacing.s20,
             ),
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+            itemCount: count + (state.isLoadingMore ? 1 : 0),
+            separatorBuilder: (context, index) =>
+                // No divider between the last row and the load-more footer.
+                index < count - 1
+                    ? const NotificationInboxDivider()
+                    : const SizedBox.shrink(),
             itemBuilder: (context, index) {
-              if (index >= state.items.length) {
+              if (index >= count) {
                 return const NotificationsLoadMoreFooter();
               }
               final n = state.items[index];

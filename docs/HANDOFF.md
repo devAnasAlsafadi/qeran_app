@@ -1,385 +1,229 @@
 # Qeran — Handoff (وين وصلنا)
 
-> **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات، الخطوات الجاية، الـ gotchas، بنود الباك إند. حالة الكود نفسها (أي شاشة موحّدة/لأ) تُستنتَج من الكود + legacy-grep — لا تُكتب هنا (تبيت قديمة).
-> اقرأه أول شي كل جلسة (أنا الويب + Claude Code). حدّثه نهاية كل مهمة.
-> آخر تحديث: 8 يوليو 2026
+> **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات الثابتة، الخطوات الجاية، الـ gotchas، بنود الباك إند، بيانات الحسابات/الاعتمادات. حالة الكود نفسها تُستنتَج من الكود + legacy-grep.
+> اقرأه أول شي كل جلسة. حدّثه نهاية كل مهمة.
+> **آخر تحديث: 11 يوليو 2026** — الوثيقة الكانونية بعد **اكتمال إعادة تصميم الخطّابة بالكامل + إعداد المتاجر (storefront)**.
 
 ---
 
-## 🎯 النية / المهمة الحالية
-**تطبيق الخطّابة مكتمل الميزات + الملف موحّد 🏁** — سلسلة M3 + خطة الإغلاق (5 ميزات) + **Part 2 (توحيد ملف الخطّابة) كلها معمولة**. ملف الخطّابة (عرض/استكشاف/اهتمامات) صار **نفس شكل ملف تطبيق المستخدم** (hero gallery + scrim + overlay + main-card + section cards) عبر **building-blocks مشتركة لا شاشة مشتركة**، مع **تعديل الإجابات النصية inline** على الملف. تفاصيل بقسم «🧩 الخطّابة — توحيد الملف (Part 2)». **الجاي** (post-close-out): QA تشغيلي كامل على حساب Moderator حقيقي (انظر «⚠️ أعلام التحقّق التشغيلي») + **إعداد متجر Google Play** (توقيع الإصدار + بناء AAB + إنشاء منتجات IAP — جوجل يطلب AAB أولاً) + **RevenueCat P2–P6** (مؤجّلة لحين منتجات المتجر + webhook طارق) + iOS (Firebase/push) + **native splash** (Group C — الأصول جاهزة، غير مبدوء) + اختبار أيقونة الإشعار بـ push حقيقي. **تقاعد الثيم القديم مكتمل بالكامل هذه الجلسة 🏁** — الـ design system هو المصدر الوحيد للون/الخط/المسافة. auth ✅ مكتملة.
+## 🎯 الحالة الحالية — الصورة الكبيرة
 
-**الدفع = IAP / RevenueCat** — محسوم؛ يحتاج منتجات المتجر + webhook طارق قبل P2+. P1 (boot + هوية) مربوط ومتحقَّق هذه الجلسة.
+**تطبيق الخطّابة صار مكتملاً بصرياً 🏁** — **كل 11 شاشة أساسية + كل 3 شيتات** أُعيد تصميمها وشُحنت. **مرحلة الصقل البصري (Design Polish) انتهت** (onboarding + auth + gender + Interests/Match-success + كل شاشات الخطّابة).
 
-**▶️ نقطة الدخول للجلسة الجاية:** **مرحلة الصقل البصري (Design Polish)** مستمرة. **onboarding + auth + gender + الاهتمامات/Interests + Match-success re-skin كلها مكتملة 🏁.** **التالي: صقل شاشات الخطّابة (Moderator) البصري.** القاعدة الحاكمة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.** ⚠️ راجع «🔴 أعلام حرجة» أولاً (السيرفر down + حاجب اختبار الـ paywall). انظر «🆕 6–8 يوليو» للمُنجَز الأحدث.
+- **Google Play:** العروض **حيّة end-to-end** (3 اشتراكات + 30 عرضاً Active؛ شراء حقيقي مُختبَر على الجهاز).
+- **Apple App Store:** الـ metadata + إعدادات الـ 30 عرضاً **مكتملة**؛ Custom Codes + build معلّقان على Mac.
+- **وثيقتا طارق جاهزتان للإرسال** (backend tasks + offers reference).
 
----
-
-## 🆕 منذ 28 يونيو — 4 مسارات (النية + القرارات فقط)
-> تقاعد الثيم القديم (28 يونيو) مكتمل 🏁 وقراراته محفوظة بقسم «القرارات الثابتة» + «sweep الـ DS» + «هجرة auth». هذا القسم يغطّي ما **بعده**.
-
-### أ. polish batch (نهاية يونيو، post-28)
-- `39df521` — **حفظ حالة التابات عبر `IndexedStack`** ⭐ — هذا **السبب** الذي جعل تحقيق الـ caching لاحقاً يجد أن حالة التابات **محفوظة أصلاً** (افتراض «يعيد الجلب كل تنقّل» كان **غلطاً** — انظر مسار د + Gotchas).
-- `eab959d` — throttle نقرات الـ pass السريعة + dedup طلبات skip بالـ discovery.
-- `fab771f` — طابور toast واحد مع dedup.
-- `80e2699` — تابات «الاهتمامات» قابلة للسحب (swipe).
-- `b9776f9` — pill لغة معنون + tagline أوضح بشاشة الدخول.
-
-### ب. Splash — Option B (30 يونيو، على main)
-- `5987bff` — Issue 8: native splash الأولي (الرمز فقط).
-- `c833555` — **Option B:** اللوغو الكامل على Android 11-/iOS، والرمز المبطّن فقط على Android 12+ (30 ملف: pubspec + أصلان + 27 مورد OS مولَّد).
-- `454de30` — تنظيف أصل `splash_wordmark.png` غير المستخدم.
-- **المنطق:** Android 12+ يقصّ الـ splash لنافذة أيقونة دائرية (تقصّ نص الـ wordmark) → رمز فقط هناك؛ الهوية الكاملة تعيش في **Flutter/Dart splash (غير ملموس)**. الخلفية `#F8F8F8` بكل مكان.
-
-### ج. Payments + إعداد المتاجر (30 يونيو)
-- **Google Play:** AAB مرفوع، **3 اشتراكات Active** (`qeran_basic_monthly` $34.99 · `qeran_vip_monthly` $49.99 · `qeran_vip_3month` $119.99)، حساب Merchant مُفعّل.
-- **Google Cloud service account:** مشروع `qeran-iap`، حساب `revenuecat-service-account@qeran-iap.iam.gserviceaccount.com` مربوط بالـ Play Console (**2/3 APIs خضراء**، subscriptions API بانتظار تحقّق 24–36 ساعة).
-- **Apple:** API Key + In-App Purchase Key منشأة (Issuer `53b16cc6-51bb-42ae-b5e1-36807d3f7f5e`، Key `5L749KGK7C`)، كل الاتفاقيات Active (Paid Apps + بنك + ضريبة).
-- **RevenueCat:** التطبيقان مربوطان (Android `app14550bb50c`، iOS `app659f7e615b`)، entitlement **`premium`** منشأ (المعرّف الحرفي — مثبّت بـ `revenuecat_config.dart:35`).
-- **قرار معمارية offer identifiers:** فريد لكل (product + discount%)، **نفس السلسلة عبر المتجرين** — الباك إند يفهرس على `(product_id + discount_percent)`.
-- **مواد العميل المُرسَلة:** `qeran_client_roadmap.html` + `qeran_tariq_backend_tasks.html` + `qeran_tariq_offer_ids_explained.html` — **طارق لازم يستلم الأخيرَين**.
-
-### د. Caching + offline UX (هذه الجلسة)
-> المرجع (التفصيل العميق، لا تُكرّره هنا — **مؤرشَف**): `docs/_plan_drafts/_archive/CACHING_INVESTIGATION.md` + `docs/_plan_drafts/_archive/CACHING_IMPLEMENTATION_PLAN.md`.
-
-**اكتشاف يستحق التثبيت:** `IndexedStack` كان **يحفظ حالة التابات أصلاً** (بفضل `39df521`) — فافتراض «يعيد الجلب كل تنقّل» كان غلطاً. المشاكل الحقيقية كانت: **لا كشف offline**، **mounting جشع** عند البدء البارد (5 GETs متوازية)، و**جلب متكرّر لبيانات ثابتة**.
-
-**11 commit (زمنياً):**
-- `d86fbe4` — `build(deps)`: إضافة `connectivity_plus`.
-- `f600907` — `feat(core)`: تجريد `ConnectivityService`.
-- `c605de4` — `feat(core)`: `OfflineException` fast-fail عبر طبقة الشبكة.
-- `3aa52cb` — `feat(core)`: بانر offline عبر shells ما بعد الدخول.
-- `58c548d` — `feat(core)`: حالة خطأ offline مخصّصة + توحيد خطأ Discovery.
-- `a914bde` — `polish(core)`: تمريرة بصرية offline (تباين البانر، أخطاء offline بلون الواين، إزالة تكرار الرسالة/العنوان).
-- `f820700` — `fix(matchmaker)`: coalesce لـ `/notifications/count` double-fire.
-- `6e5e164` — `perf(shell)`: lazy-mount لتابات `IndexedStack` (المستخدم + الخطّابة).
-- `282b64d` — `perf(subscriptions)`: cache لـ `/subscriptions/plans` طوال الجلسة + coalescing.
-- `4cdfe3e` — `perf(profile)`: cache لـ `/Questions/edit-form` + إبطال عند `submitAnswers`.
-- `a2332e6` — `perf(matchmaker)`: cache لـ `/matchmaker/explore/filters` طوال الجلسة + coalescing.
-
-**أثر البدء البارد:** من **5 GETs متوازية → 3** (Discovery + `subscriptions/current` + badge الإشعارات فقط). باقي endpoints التابات (`/likes/outgoing`، `/chat/my-matchmaker`) تُجلب **كسولاً عند أول زيارة**، مرّة لكل جلسة.
-
-**قرارات محسومة (هذه الجلسة):**
-- `OfflineException` **standalone** (ليست subtype لـ `ServerException`) — حرج للـ classifiers (وإلا تُصنَّف خطأ عادي).
-- كشف offline = فحص النظام + mapping فشل الطلب (`SocketException`) — **بلا ping نشط**.
-- cache **طوال الجلسة** (بلا time TTL) يُبطَل عند الطفرة (mutation) فقط.
-- النداءات المتزامنة **coalesced** عبر in-flight `Future` مشترك.
-- lazy tab mount مع **keep-alive بعد أول زيارة** (الحالة تصمد).
-- بانر offline **ما بعد الدخول فقط** (كل الـ shells)، **بلون الواين لا danger** — offline حالة محيطة لا خطأ.
-- **لا فحص connectivity على الـ splash** (الإقلاع محلي).
+**الجاي = دفع + إرسال + جولة تصميم ثانية (round-2)، لا صقل بصري متبقٍّ لشاشات الخطّابة الأساسية.**
 
 ---
 
-## 🆕 6–8 يوليو — Onboarding + Auth + Change-Password + Gender + Interests/Match-success (الأحدث)
+## 🔴 معلّقات فورية (تُحَلّ أول الجلسة الجاية — خطر/حاجب)
 
-**Onboarding re-skin — DONE ✅ (4 commits، عرض فقط):** Essence / Mediation / Roadmap → Claude Design. جديد: `goldLight #F2D9AC` + variant `glass` للـ `QeranChip` + أصل `essence_portrait.jpg`. متقاعد: `OnboardingBottomNav` + `OnboardingSheen` + `OnboardingGlowPulse`. الـ `OnboardingCubit`/`State` بديف فارغ.
-
-**Auth re-skin — DONE 🏁 (كل الـ 6 شاشات):** shell مشترك `AuthHeroScaffold` + `AuthWordmark` — hero واين (monogram + wordmark + tagline) فوق dome كريمي (`domeTop` + `creamCanvas`). Login · Register · Forgot · Reset · WhatsApp# · OTP. **`AuthLogoHeader` حُذف** (لم يعد مستخدَماً بعد توحيد الـ hero). **صفر منطق:** blocs/controllers/validation/navigation سليمة؛ OTP بحدود (قرار مقفل) + `ExitAppDialog` على back الـ WhatsApp# + `OnboardingPopScope` محفوظة. الـ policy checkbox صار DS oath-check (كان Material `Checkbox` خام).
-
-**Change-password (إعدادات المستخدم) — ميزة منطق جديدة ✅ (`feat`):** slice معزول في `auth/` يعيد استخدام endpoint `Auth/change-password` المشترك — **بلا ربط بالخطّابة، بلا تعديل باك-إند**. datasource + repo + usecase + `ChangePasswordCubit` (locale-key-free) + bottom sheet DS (current/new/confirm + eye toggles). Validation = معيار الـ reset (**≥8 + regex** + confirm-match + new≠current). خطأ «كلمة السر الحالية» inline (مفتاح ثنائي اللغة، **لا نص باك-إند خام**). يرسل `confirmNewPassword`. صف «تغيير كلمة السر» (قفل) فوق «حذف الحساب». **⏳ طارق: تأكيد أن `Auth/change-password` ليس moderator-gated** (فحص متوازٍ، غير حاجب).
-
-**Gender re-skin — DONE ✅ (عرض فقط، غير مُكوميت بعد — بانتظار كوميت أنس):** التصميم = تاب «تحديد الهوية» داخل `auth.dc.html`، لكن **لم توجد شاشة gender بالبندل** — التخطيط اشتُقّ من **brief مكتوب**. ⚠️ فحص كامل للبندل أكّد لا فن شخصيات قابل للاستخراج (monogram الهوية 537×439 هو الصورة الوحيدة). **الأصول = فن Gemini** أُضيف يدوياً كـ `assets/images/gender_male.png` / `gender_female.png` (ذكر **بلا غطرة رأس**). الكروت الكريمية + اختيار بحدّ ذهبي: selected = حد ذهبي + توهّج ذهبي + شارة check ذهبية، والكرت الكريمي **لا يغمق** عند الاختيار؛ ترتيب **ذكر أولاً** (start/يمين RTL). **صفر منطق** (`GenderSelectionController`/`Gender` enum/prefs/`QuestionnaireCubit.fetchQuestions`/`OnboardingPopScope` سليمة).
-
-**مصدر التصميم (handoff):** ملفات Claude Design `.dc.html` تُصدَّر إلى `docs/_design/` (`auth.dc.html` · `Qeran Onboarding.dc.html` · `Interests States (offline).html`). **الـ MCP import (`/design-login`) يحتاج تسجيل دخول تفاعلي → يفشل داخل Claude Code؛ الـ export اليدوي هو المسار المعتمد.** (`_design/` غير متتبَّع في git — ثقيل ~35MB.)
-
-**Interests/Likes + Match-success re-skin — DONE 🏁 (4 مجموعات commit ذرّية، عرض فقط):** تاب bar (pill ورقي منزلق) + حالات loading/error · كرت مقفول باسم محجوب + chevron ذهبي · **CTAs ذهبية على كروت الماتش** (`QeranButtonVariant.primary` — **تجاوز مقصود لقرار `primaryWine` على كروت الماتش تحديداً**) + **pill حالة الخطّابة الديناميكي** (يعرض `FormalRequest.statusNameAr/En` من الباك إند على stages 1&2) · Match-success (قلوب داخل الشعار: قرص ذهبي→قلب واين مملوء، قرص ورقي→قلب واين مفرّغ؛ + subtitle جديد `likes_match_success_subtitle`؛ close X اتجاهي + Continue مثبّت أسفل بسهم يـmirror). **توكن جديد `neutralSurface #EFEFF1`** (مسار الـ segmented-tab track — أبرد من `creamSurface`). صفر منطق (blocs/domain/data بديف فارغ). commits `d1bc59a`→`540d44a` (٦ commits). ⚠️ **متغيّر name/photo لشاشة النجاح مبنيّ بنيوياً لكنه خامل (dormant)** — يحتاج **سلك cubit صغير** لتعبئته لاحقاً (انظر Deferred). ⚠️ **جولة إصلاحات بصرية ثانية (أفاتار واين صلب + frost + حدّ ذهبي hairline + توكن `QeranStrokes`) في شجرة العمل غير مُكوميتة — بانتظار فحص AR+EN.**
-
-**▶️ التالي: صقل شاشات الخطّابة (Moderator) البصري** — نفس القاعدة: صفر منطق · توكنز DS · لا ميزات جديدة · لا Figma.
-
-**Tech-debt (قاعدة <200 سطر):** `profile_screen.dart` (632) + `whatsapp_verification.dart` (254) يتجاوزان الحد — يُقسَّمان في **مهمة منطق منفصلة** (خارج نطاق الصقل البصري؛ الـ re-skin ما ضخّمهما — `whatsapp_verification` نقص من 268).
-
-**Canvas = `#F8F8F8`** (`QeranColors.creamCanvas`) — الكود + `DESIGN.md` + `QERAN_DESIGN_SYSTEM.md` مصدر الحقيقة. تحقّقت: **لا `#FEFCFA` بأي وثيقة.**
+1. **كل كوميتات الجلسة محليّة — غير مدفوعة لـ `origin/main`** (`main` متقدّم بـ 12+). **خطر ضياع عالٍ — ادفع أولاً.**
+2. **HANDOFF.md كان قديماً** حتى هذا التحديث (كان يقول «الجاي: صقل شاشات الخطّابة») — حُدِّث الآن.
+3. **وثيقتا طارق جاهزتان لكن لم تُرسَلا:**
+   - `docs/_plan_drafts/TARIQ_backend_tasks.md` — ⚠️ **يحتاج إصلاح سطر مكسور في قسم 2.2 قبل الإرسال:** رأس `GET /api/matchmaker/me` مشوَّه (ناقص `**` البادئة + backtick) — نسّقه مثل باقي رؤوس الـ endpoints: `` **`GET /api/matchmaker/me`** ``.
+   - `QERAN_OFFERS_TARIQ.md` — مرجع الـ 30 عرضاً (أنس يملكه محلياً من Web chat؛ **ليس في الريبو** بعد).
+4. **جولة round-2 (3 شاشات جديدة للتصميم):** Matchmaker User Interests + User Notifications + Matchmaker Notifications. **الجرد READ-ONLY جاهز** في `docs/_plan_drafts/round2_inventory.md`. **التصميم الفعلي غير مبدوء.**
+5. **تعديل Dashboard بسيط معلّق:** إضافة اسم الخطّابة فوق تحية السلام («مرحباً هدى» / «الخطّابة هدى»). الاسم متوفّر عبر `UserSessionCubit.currentUser?.name`. يُعمَل بعد نزول تصاميم round-2.
+6. **gender re-skin لسا غير مكوميت** — محجوب على PNGs شفّافة (Gemini يبيّض «الشفّاف» كـ checkerboard مطبوخ — يحتاج remove.bg أو Photopea).
+7. **ملفات Interests round-2 لسا غير مكوميتة** (`match_card.dart`, `match_card_avatar.dart`, `qeran_strokes.dart`) — أنس أجّل المراجعة لجلسة لاحقة.
+8. **iOS Custom Codes محجوبة** على توفّر Mac + App Review + سيرفر توقيع JWS من طارق.
 
 ---
 
-## 🆕 يوليو — Paywall UI + Onboarding + التحوّل لمرحلة الصقل البصري
+## ▶️ الخطوة الجاية
 
-**مُنجَز هذه الفترة:**
-- **Paywall UI (7 commits ذرّية):** عرض الباقات + سعر المتجر (RevenueCat) كمصدر حقيقة مع fallback للباك إند + كود الخصم + حالة المشترك. + **إصلاح locale الـ Gradle** (تثبيت `-Duser.country=US -Duser.language=en` لحلّ فشل بناء الـ AAB بالأرقام العربية `classes٢.dex` على ويندوز) + **ربط مفتاح RevenueCat الإنتاجي** (`goog_…`/`appl_…` بكل الأوضاع، تقاعد مفتاح Test Store — كان يرمي «no Test Store products») + **رفع الإصدار → 1.0.3+4**.
-- **إعادة تصميم Onboarding (12 commit ذرّي):** إعادة بناء طبقة العرض من mockup الـ Claude Design إلى **4 إطارات** — Splash → الجوهر والخصوصية → الوساطة الجادة → رحلة الزواج. **طبقة العرض فقط — `OnboardingCubit`/`OnboardingState` لم تُلمَس** (diff فارغ). تفاصيل التصميم في `_design/Qeran Onboarding.html`.
-- **إعداد Google Play:** اشتراكات + **30 عرضاً ترويجياً** + ربط RevenueCat + **License Testing** مُهيّأ.
-- **إعداد Apple App Store جزئي:** مفتاح P8 + الاشتراكات في **Missing Metadata** بانتظار لقطات الشاشة.
-- **Caching + offline UX:** Piece 3 + Piece 4/5 (مؤرشَف التفصيل — انظر `docs/_plan_drafts/_archive/`).
+**إعادة تصميم الـ 11 شاشة + 3 شيتات = مكتملة.** أولويات الجلسة الجاية بالترتيب:
+1. **ادفع كوميتات الجلسة لـ `origin/main`** (حماية).
+2. **أرسل وثيقتي طارق** (بعد إصلاح سطر 2.2).
+3. **round-2:** brief لـ Claude Design لـ 3 شاشات (Interests + إشعارات المستخدم + إشعارات الخطّابة) — الجرد جاهز `round2_inventory.md` → ثم تنفيذ Claude Code بمنهجية plan-first المعتادة.
+4. **تعديل Dashboard:** الاسم فوق تحية السلام.
 
-**⚠️ المرحلة الحالية = صقل بصري (Design Polish):** تحسين بصري ميزة-بميزة عبر Claude Design. **onboarding + auth + gender + Interests + Match-success مكتملة 🏁؛ التالي: صقل شاشات الخطّابة (Moderator).** القاعدة: **صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا Figma.**
-
----
-
-## 🏬 حالة المتجر / الإطلاق (Store / Release)
-- **Apple App Store Connect:** حساب العميل `info@qeran.ae` (Team `4C9GL7WLY7`)؛ تطبيق Qeran منشأ، Bundle ID `com.qeran.app` (Apple ID `6783272039`)؛ مجموعة اشتراك «Qeran Membership» (`22177601`)؛ **3 منتجات نهائية** منشأة (Apple لا يحتاج رفع build): `qeran_vip_monthly` $49.99 · `qeran_basic_monthly` $34.99 · `qeran_vip_3month` $119.99. Free Apps Agreement: **Active**. Paid Apps Agreement: **معلّق** (ضريبة + بنك — على العميل). Sanctions hold: **معلّق** مراجعة Apple (العميل قدّم الهوية).
-- **Google Play Console:** حساب `Qeran.Dev` (Personal، `4886994776950416347`)؛ تحقّق الهوية **مكتمل** (إيميل+هاتف+هوية كلها خضراء)؛ التطبيق منشأ (اسم+package+Free+لغة). **لم يُرفع بعد:** يحتاج Android release signing (keystore) → `flutter build appbundle` → رفع لـ Internal testing → **ثم** تُنشأ منتجات IAP (**جوجل يطلب AAB قبل الاشتراكات، عكس Apple**). قاعدة 12-tester × 14-يوم تنطبق على **Production فقط**؛ Internal testing فوري ويكفي لاختبار الدفع.
-- **RevenueCat:** مشروع «Qeran» (`7d2b2aec`)؛ مفاتيح **TEST** مهيّأة، التطبيق يـboot ويعرّف المستخدمين (3 عملاء بالـ dashboard). مفاتيح Production + offerings (ربط الباقات الحقيقي) = **P2** (بعد وجود منتجات المتجر). مجاني حتى $2,500/شهر MTR.
+**مراحل لاحقة:**
+- **لوحة الإحالة (affiliate) المالية للخطّابة** في الإعدادات — **محجوبة على طارق** (بناء الـ endpoints أولاً).
+- **تفعيل iOS:** Mac + Xcode + build + App Review + توليد Custom Codes + سيرفر توقيع JWS من طارق.
+- **كوميت gender re-skin** (محجوب على PNGs شفّافة).
+- **مراجعة ملفات Interests round-2** (أنس أجّلها).
 
 ---
 
-## 🔴 أعلام حرجة / حاجبات (نهاية الجلسة)
-- 🔴 **السيرفر DOWN:** `qeranadmin-001-site1.rtempurl.com` يرجّع «No route to host» (errno 113) على كل الطلبات — استضافة rtempurl المجانية سقطت (المشكلة المتكرّرة). طارق مُبلَّغ.
-- 🔴 **استضافة إنتاج مطلوبة قبل الإطلاق:** rtempurl المجاني غير موثوق (ينام، يفقد بيانات — صور اختبار قديمة ضاعت أصلاً). العميل لازم يرتّب استضافة مدفوعة قبل إطلاق المتجر.
-- 🔴 **iOS — لقطة شاشة الـ paywall مطلوبة** لفتح إرسال الـ metadata على Apple (الاشتراكات في Missing Metadata).
-- ✅ **متزامن مع `origin/main` بعد دفع 8–9 يوليو** (Interests/Likes + Match-success re-skin — ٦ commits `d1bc59a`→`540d44a` + هذا التحديث دُفِعت). ⚠️ **غير مُكوميت/مدفوع بعد:** جولة إصلاحات Interests الثانية (أفاتار/hairline) بانتظار فحص AR+EN، وأصول+كود gender re-skin (بانتظار كوميت أنس). (سابقاً: عمل يوليو paywall + onboarding + 1.0.3+4 دُفِع كله.)
+## 🗂️ ما شُحن هذه الجلسة
+
+### إعادة تصميم الخطّابة الكاملة — 11 شاشة + 3 شيتات
+
+عبر الـ pipeline: **Claude Design** (briefs نصّية، بلا screenshots) → `docs/_design/handoffs/*.md` + `Qeran_Matchmaker_Home.html` → **Claude Code** (plan-first) → مراجعة بصرية RTL+LTR بين كل شاشة → كوميت ذرّي. **كل طبقات البيانات محفوظة 100% — إعادة بناء UI فقط.**
+
+الكوميتات (الأحدث أولاً، كلها على `main`، **غير مدفوعة**):
+- `c99b679` — **feat(settings):** الإعدادات + kit مشترك للدورين (11).
+- `e1d8d5c` — polish: أزرار footer الشيت 50/50 (تلائم العربي).
+- `a6abcf0` — feat: شيت المشاركة (10).
+- `c09cebc` — feat: shell الشيت المشترك + شيتا فلتر الحالات/الاستكشاف (08/09).
+- `0018136` — fix(explore+loader): loader لكل كرت + توحيد spinner التطبيق.
+- `2800c4d` — fix(inbox): لا إعادة جلب القائمة عند فتح خيط.
+- `5811237` — polish(explore): كروت المرشّحين + إصلاح الأفاتار المكسور.
+- `4cba02e` — polish(cases): قائمة + تفاصيل الحالات.
+- `658cfef` — fix(matchmaker): وقت نسبي + pill unread على الصندوق.
+- `10e3635` — feat(chat): خيط المحادثة المشترك.
+- `965b2fc` — feat(matchmaker): قائمة Users.
+- `fdd356d` — feat(matchmaker): Dashboard.
+- **مدفوعة أصلاً:** `51cd063` (SafeEmit) · `d9ff232` (حارس emit في `PaginatedListCubitMixin`) · `bcc1146` (مطابقة باقة RevenueCat).
+
+**تفاصيل الشاشات:**
+1. **Dashboard** (`fdd356d`) — monogram تحية + سلام + الاسم (من `UserSessionCubit`) + التاريخ · كروت «تحتاج انتباهك» hero · شبكة 2×2 · حالة صفر هادئة. `intl` مُهيّأ عند البدء لتواريخ عربية.
+2. **Users** (3 sub-tabs، `965b2fc`) — تابات wine-pill منزلقة · monograms 52px · fact chips مقتطعة · gold plan chips للمشتركين · 3 مجموعات أكشن (pending/unsubscribed/subscribed).
+3. **Chat thread** (⚠️ مشترك مع تطبيق المستخدم، `10e3635`) — subtitle محايد «نشط الآن» مربوط بالاتصال الحيّ · فقاعات واين/paper بحدود · دائرة ذهبية + طائرة واين للإرسال · كرت الملف-المشارَك cream+gold-40 مع chip نتيجة التوافق · read-receipt **مُبقى ومُعاد تنسيقه**.
+4. **Conversations inbox** (2 tabs، `658cfef`) — مستخدمون/زملاء عبر wine-pill · وقت نسبي مقروء («منذ X دقيقة/ساعة/يوم») · badge ذهبي unread على الحافة اللاحقة · `refresh()` الشامل استُبدل بـ `markConversationRead` in-place.
+5. **Cases list + Detail** — **قطب إعادة التصميم.** widget جديد `QeranStepper` + helper `buildCaseTimeline` (يُسقط الحقلين الحقيقيين — `stage` + `formalRequest.status` — على 5 عُقد كانونية) + **10 اختبارات وحدة**. chips حالة ملوّنة (gold/wine/soft-fill/danger). الـ timeline يحترم الحالات المنتهية.
+6. **Explore** (`0018136` وغيره) — إشارة الملكية أعلى-end (ذهبي «مستخدمي» / soft-fill اسم-المالك للآخر) · **إصلاح الأفاتار المكسور المتكرّر** عند `MatchmakerUserAvatar` المشترك (errorListener + إخلاء الـ cache — قتل كتل الأفاتار الخضراء عبر Explore + Cases + Inbox دفعة واحدة) · مجموعات أكشن شرطية (mine vs other).
+7–9. **الشيتات الثلاثة** (`c09cebc` + `a6abcf0`) — **shell جديد** `QeranBottomSheet` + `QeranBottomSheetScaffold` + `QeranRangeSlider`. فلتر الحالات → **stage اختيار-واحد** من نفس مصدر الـ timeline (`matchmaker_case_labels.dart` — صفر تباعد). فلتر الاستكشاف **backend-driven بالكامل من `/filters`** (لا hardcode). شيت المشاركة: كرت سياق المرشّح + بحث client-side + حالة نجاح داخل الشيت.
+10–11. **Settings** (رئيسية + فرعية، `c99b679`) — **kit مشترك** (`SettingsProfileHero` + `SettingsRow` + `SettingsLogoutCard`)، الدوران يركّبانه بمحتوى شرطي. اللغة صارت **`QeranBottomSheet` حيّ** (الصفحة + الـ route القديمان متقاعدان). شارة «موثّق» + «الملف الشخصي مكتمل» **مبوَّبتان على أعلام اختيارية** — مخفيّتان حتى وجود حقل الباك إند، جاهزتان للظهور التلقائي. صفوف destructive بلون danger.
+
+### إضافات نظام التصميم (كانونية — تُستخدَم مستقبلاً)
+
+- **`QeranMonogram`** (core DS، `+ borderRadius` اختياري لمربّع مدوّر) — أفاتار الهوية واين+ذهبي.
+- **`QeranStepper`** — عمودي، data-driven، حالات done/current/future × نبرات normal/success/ended + هالة gold-12.
+- **`QeranBottomSheet` shell** — `showQeranBottomSheet()` + `QeranBottomSheetScaffold` (دوم + `e3` + scrim + handle + إغلاق دائري + footer مثبّت).
+- **`QeranRangeSlider`** — track واين08 + مقطع نشط ذهبي + إبهام ذهبي.
+- **widgets الخطّابة:** `MatchmakerFactChips` (chips كريمية مقتطعة + عمر) · `MatchmakerCardActionBar` (+ `MatchmakerPrimaryAction`/`SecondaryAction`/`IconAction`) · `MatchmakerUserAvatar.monogramName` (fallback opt-in) · `SettingsProfileHero`/`Row`/`LogoutCard`.
+- **توكنز جديدة:** `QeranColors.gold18` (`0x2EE4C094` — رُتبة «18» الناقصة من ramp الذهبي 08/12/18/20) · **danger ramp** (`danger08/12/40` — التسوية التي طلبتها الـ foundations) · `QeranChipVariant.plan` (gold-12/gold-40/gold-deep).
+- **متقاعد:** كل `CircularProgressIndicator` خام في lib (صفر متبقٍّ — مؤكَّد grep؛ `QeranLoader` هو الـ spinner الوحيد، واين+ذهبي، حتى بشاشة الدخول) · صفحة+route `settings_language_screen` القديمة (استُبدلت بشيت اللغة الحيّ) · `MatchmakerExploreActionRow` (استُبدل بـ `MatchmakerCardActionBar` المشترك).
+
+### 🛡️ مسح أمان الحالة (state-safety)
+
+بعد ظهور crash الـ emit-after-close على **شاشة ثانية** (غير شاشة الإشعارات المُصلَحة سابقاً)، طُبِّق helper مشترك **`SafeEmit`** (`lib/core/state/safe_emit.dart` — يغلّف `emit()` → no-op بعد `close()`) على كل الـ cubits التي تـ`emit` بعد `await`. `PaginatedListCubitMixin` كان مُغطّى من الإصلاح الأسبق؛ المسح وحّد الباقي تحت نمط واحد. **الـ Bloc** خارج التغطية — احرس `if (emit.isDone) return;`.
+
+### 🐞 أخطاء جانبية اكتُشفت وأُصلحت أثناء المراجعة البصرية
+
+- **spinner أيقونة الرسالة يدور على كل كرت بنفس المالك:** مفتاح التحميل كان `matchmakerId` (غير فريد لمّا كل الكروت لنفس المالك) → صار `userId` (فريد لكل كرت). الكرت المضغوط فقط يدور.
+- **إعادة تحميل الصندوق عند فتح خيط:** `onTap` الكرت كان يستدعي `refresh()` (يجلب كل الصندوق) → استُبدل بـ `cubit.markConversationRead(id)` (تحديث in-place، بلا re-fetch، unread يُمسح للصف فقط).
+- **اقتطاع زر footer الشيت («مسح ع...»):** `Row([ghost flex:1, primary flex:2])` كان يعطي الأساسي مساحة زائدة → 50/50 في الشيتات الثلاثة؛ يلائم كل الـ labels AR+EN.
+- **الأفاتار المكسور (كتل بكسل خضراء):** الصورة الفاشلة كانت **JPEG مقطوعاً لكن قابل للفك** — الـ decode نجح على بايتات تالفة فما اشتغل الـ errorWidget. أُصلح عند `MatchmakerUserAvatar` المشترك بـ `errorListener` يُخلي إدخال cache الـ `CachedNetworkImage` فيُعيد التنزيل. **لأن الإصلاح في atom الأفاتار الوحيد المشترك، اختفت الكتل الخضراء من Explore + Cases + Inbox بكوميت واحد.**
+- **وقت نسبي مكسور «Xي» بالصندوق:** الـ formatter القديم كان يلصق عدد الأيام بحرف لاحقة واحد → أُعيدت كتابته بمفاتيح localized («منذ X دقيقة/ساعة» / «أمس» / «منذ X يوم» / تاريخ قصير fallback). القيم غابت لحظياً عن ar/en.json (ظهرت كأسماء مفاتيح خام) — السبب: طريقة الـ filtered-staging تتخطّى المفاتيح الجديدة بصمت؛ أُضيفت صح.
+- **توحيد الـ loader:** أي `CircularProgressIndicator` خام → `QeranLoader` (واين+ذهبي). loaders الأزرار المملوءة **تبقى أحادية اللون** عمداً (تباين على تعبئة gold/wine — القوس الثنائي يخفي قوساً على التعبئة). مؤكَّد grep: صفر خام متبقٍّ.
 
 ---
 
-## 🗺️ الخطوات الجاية (بالأولوية)
+## 💳 IAP / Paywall / RevenueCat — إعداد المتجر الكامل
 
-**▶️ التالي — مرحلة الصقل البصري (Design Polish):**
-- **auth (6 شاشات) + onboarding + gender + Interests/Likes + Match-success مكتملة 🏁 · التالي: صقل شاشات الخطّابة (Moderator)** — عبر mockups الـ Claude Design في `docs/_design/`.
-- **القاعدة الحاكمة:** صفر تغيير منطق · توكنز الـ design system فقط · لا ميزات جديدة · لا مراجع Figma.
-- **🔴 حاجب اختبار الـ paywall الحقيقي:** طارق يحدّث `subscription_plans` بالمنتجات الجديدة + أسعار USD + product IDs (انظر جدول طارق).
-- **iOS:** لقطة شاشة الـ paywall مطلوبة لفتح إرسال الـ metadata.
+**الدفع يعمل end-to-end على الجهاز 🏁** — شراء حقيقي يكتمل ويرجّع entitlement `premium`. الجذر كان مطابقة الباقة (`"<productId>:<basePlanId>"` → `split(':').first`، `bcc1146`).
 
-**السياق الأقدم (بعضه صار معمولاً — للأرشيف):**
-1. ~~**هجرة auth/ الكاملة**~~ ✅ **مكتملة** (0→g كلها معمولة — انظر «🔧 هجرة auth — التقدّم»). يبقى فقط: `share_with_matchmaker_button._confirmDialog` (مؤجّل — انظر Deferred).
-2. ~~**الخطّابة — سلسلة M3 ⭐**~~ ✅ **مكتملة 🏁** (M3a→M3f-c — انظر «🧩 الخطّابة — M3»).
-3. ~~**الخطّابة — خطة الإغلاق (5 ميزات)**~~ ✅ **مكتملة 🏁** (الإعدادات → الزميلات → فلتر الحالات → الاستكشاف → الإشعارات — انظر «🧩 الخطّابة — الإغلاق»).
-4. ~~**الخطّابة — توحيد الملف (Part 2: PV1–PV4)**~~ ✅ **مكتملة 🏁** (نفس شكل ملف المستخدم عبر building-blocks + تعديل الإجابات inline — انظر «🧩 الخطّابة — توحيد الملف»).
-5. **QA تشغيلي على حساب Moderator** — تشغيل التطبيق + المرور على الميزات الخمس + أعلام التحقّق (انظر «⚠️ أعلام التحقّق التشغيلي»). لا شيء منها يحجب.
-6. ~~**هجرة الثيم القديم بالكامل (تطبيق المستخدم)**~~ ✅ **مكتملة 🏁** (166→0، 10 دفعات/11 commit — انظر «✅ جلسة 28 يونيو»). يبقى فقط: `share_with_matchmaker` dialog (Material→`QeranConfirmDialog`) + تنظيف `BorderRadius.circular` literals بالاشتراكات — انظر Deferred.
-7. **إعداد متجر Google Play:** توقيع الإصدار (release signing) + بناء ورفع AAB + إنشاء منتجات IAP (جوجل يطلب AAB أولاً) → ثم **RevenueCat P2–P6** (مؤجّلة لحين منتجات المتجر + webhook طارق).
-8. **إعداد المنصّات + الإطلاق:** iOS (Firebase/push) + **native splash** (Group C — الأصول جاهزة) + اختبار أيقونة الإشعار بـ push حقيقي.
-9. **الاهتمامات (تطبيق المستخدم) — تاب التوافق:** تعديل شكلي بسيط حسب Claude Design — لاحقاً.
-10. **الإعدادات:** إكمال المتبقّي.
+### Google Play (Android) — حيّ end-to-end
+- **3 اشتراكات منشورة:** `qeran_basic_monthly` ($34.99) · `qeran_vip_monthly` ($49.99) · `qeran_vip_3month` ($119.99).
+- **30 عرضاً ACTIVE** (10 لكل باقة): `basicmonthly-{5,10,15,20,25,30,40,50,70,90}` · `vipmonthly-{نفسها}` · `vip3month-{نفسها}`.
+- شراء حقيقي مُختبَر بنجاح على الجهاز (SM A325F عبر Internal testing).
+- `_findOption` في `purchase_repository_impl.dart` يقبل إمّا `offerId` مجرّد (`basicmonthly-90`) أو `basePlanId:offerId` كامل (`basic-monthly:basicmonthly-90`) — كلاهما يطابق.
+- ⚠️ **`// TEMP` diagnostic log مؤقّت** في `purchase_repository_impl.dart:167-172` أبقاه أنس لتشخيص offer-id. **أرجعه قبل الإصدار.**
+
+### Apple App Store (iOS) — 30 عرضاً مُعدّة، Custom Codes معلّقة على Mac
+- 3 اشتراكات في مجموعة «Qeran Membership»، product IDs مطابقة لجوجل.
+- **كل الـ metadata مكتملة:** Localization (عربي + إنجليزي) لكل اشتراك **وللمجموعة نفسها** — ⚠️ **هذا كان الـ unlock الحرج:** الاشتراكات تبقى «Missing Metadata» حتى تأخذ **المجموعة** localization خاصّاً بها (Apple لا يوضّح هذا؛ منشور مجتمعي كشفه ووفّر أياماً).
+- التوفّر: كل 175 دولة.
+- **Review Screenshots:** 3 لقطات paywall حُوِّلت من 720×1600 (لقطة أندرويد) إلى 1320×2868 (iPhone 6.9") عبر Python/Pillow على خلفية cream-canvas مموسطة (RGB، بلا alpha).
+- **Review Notes** مكتوبة لكل اشتراك (إنجليزي).
+- **Tax Category:** «Match to parent app» (الافتراض الصحيح — **لا تغيّره**).
+- **كل الـ 30 عرضاً منشأة** بـ Reference Names مطابقة لجوجل («Basic 90%»، «VIP Monthly 15%»…).
+- **نوع العرض: Offer Codes** (لا Promotional Offers) — Offer Codes تقبل New+Existing+Expired (أكواد أنس تروح لمستخدمين **جدد** — Promotional Offers تستثنيهم فتفشل بصمت)، وتشبه جوجل، وبلا توقيع JWS.
+- كل عرض: Pay-as-you-go × شهر (أو **3 أشهر لباقة VIP 3Month** — gotcha: المدّة تطابق فترة الباقة لا «شهر») + eligibility New+Existing+Expired + «No, only this offer code» لسؤال العرض التمهيدي.
+- **Product Codes** (المعرّف الذي يكتبه المستخدم) لا تُنشأ إلا **بعد App Review + رفع build** → محجوبة على Mac. العروض نفسها موجودة وجاهزة.
+
+### الحسابات / الاعتمادات (credentials — احفظها)
+- **Apple App Store Connect:** `info@qeran.ae` (Team `4C9GL7WLY7`)؛ Bundle `com.qeran.app` (Apple ID `6783272039`)؛ مجموعة «Qeran Membership» (`22177601`). Free Apps Agreement Active؛ Paid Apps + Sanctions review معلّقان (على العميل). API Key + IAP Key (Issuer `53b16cc6-51bb-42ae-b5e1-36807d3f7f5e`، Key `5L749KGK7C`).
+- **Google Play Console:** `Qeran.Dev` (Personal، `4886994776950416347`)؛ الهوية مُتحقَّقة؛ حساب Merchant مُفعّل. **Google Cloud service account:** مشروع `qeran-iap`، `revenuecat-service-account@qeran-iap.iam.gserviceaccount.com` مربوط بالـ Play Console.
+- **RevenueCat:** التطبيقان مربوطان (Android `app14550bb50c`، iOS `app659f7e615b`)، entitlement **`premium`** (مثبّت `revenuecat_config.dart:35`). مفاتيح Production مربوطة. مجاني حتى $2,500/شهر MTR.
+
+---
+
+## 📨 وثائق طارق (جاهزة للإرسال) + بنود الباك إند
+
+### الوثيقتان
+1. **`docs/_plan_drafts/TARIQ_backend_tasks.md`** (~11KB، مواصفة تقنية إنجليزية):
+   - **قسم 1 (أكواد الخصم — تأكيد لا عمل جديد):** عقد `validate-code` كامل بأشكال JSON + اكتشاف تباين Swagger (v1 يوثّق GET قديماً فقط، لا الـ POST الذي يستدعيه التطبيق) + قواعد صيغة `offerId` الحرجة + تأكيد webhook RevenueCat→Play.
+   - **قسم 2 (الإحالة — greenfield):** تسجيل يقبل `referralCode` · كشف كود الخطّابة على `/matchmaker/me` · `GET /api/affiliate/summary` (أعداد + عمولات + عملة) · `GET /api/affiliate/commissions` (تاريخ مرقّم) · سؤال عن `GET /api/Affiliate/stats` غير الموثّق · قرار نموذج العمولة.
+   - ⚠️ **يحتاج إصلاح 2.2 قبل الإرسال:** سطر رأس `GET /api/matchmaker/me` مشوَّه (ناقص `**` + backtick) → `` **`GET /api/matchmaker/me`** ``.
+2. **`QERAN_OFFERS_TARIQ.md`** (~7KB، مقدّمة عربية + مواصفة إنجليزية — حالياً في `/mnt/user-data/outputs/` من Web chat، **ليس في الريبو**):
+   - اصطلاح التسمية (نفس `offerId` على المتجرين) · جدول 3×10 كامل (30 offerId + نِسَب + أسعار تقريبية + product IDs + base plan IDs) · عقد `POST /api/subscriptions/validate-code` بأمثلة · ملخص حالة المتجر · 4 تأكيدات مطلوبة من طارق. **أنس يقرّر إضافته للريبو أو إرساله standalone.**
+
+### بنود مفتوحة (الجدول)
+| البند | الحالة |
+|-------|--------|
+| **تحقّق إيصال IAP** (webhook) على الباك إند | معلّق — للاعتماد الكامل على entitlement server-driven (الدفع يعمل على الجهاز أصلاً). |
+| **`/validate-code`** نشر | معلّق — تأكيد طارق. |
+| **الإحالة (affiliate) endpoints** | greenfield — طارق يبني (`summary`/`commissions`/`referralCode`) قبل لوحة الخطّابة. |
+| **`Auth/change-password` غير moderator-gated؟** | معلّق — العميل يستدعيه للدورين بلا تمييز؛ تأكيد server-side. |
+| **الخطّابة — `/note` 5xx حقيقي أم bug شكل عميل؟** | ⚠️ افحص الـ RAW envelope أولاً (سابقاً `/chat` تغليف مزدوج — إصلاح عميل `4cc7f27`). |
+| **روابط «تواصل معنا» الحقيقية** (product) | placeholders حالياً. |
+| Verified-badge + «مكتمل» flag | معلّق — الـ UI **مبوَّب جاهز**. |
+| Delete-account flow / حدّ الماتشات | غير مؤكد server-side / backend-only. |
+| بلد الزميلة / unread لكل بطاقة / مسارات الصور | معلّقة — غير بالـ DTO / تعارض user-images vs profile-images. |
+| أشكال colleagues/notifications | **non-blocking** — parsers دفاعية. |
+
+---
+
+## 🔎 جرد round-2 (READ-ONLY، جاهز) — `docs/_plan_drafts/round2_inventory.md`
+
+تدقيق مؤسَّس على الكود لـ 3 شاشات قادمة:
+- **Matchmaker User Interests:** شاشة كاملة مدفوعة `RouteNames.matchmakerInterests` (arg `userId`)، تُفتح من أكشن ❤️ الثانوي على كرت المشتركين. **3 تابات one-shot (غير مرقّمة):** توافق نشط / أعجبوا بك / أرسلت إعجاباً. endpoints `matchmaker/users/{id}/matches|/matches/archived|/likes/incoming|/likes/outgoing`. **مرآة read-only — لا CTAs.** الأعضاء المقفولون بلور + «عضو مخفي» + نقر معطّل. **verdict: DS-clean.**
+- **User Notifications:** `NotificationsScreen` (`/notifications`)، بلا filters/tabs. 6 أنواع (match/chat/profile/announcement/offer/general) + sub-actions تقود الأيقونات عبر `NotificationTileVisuals`. **لا حالة قراءة باك إند** (heuristic محلي عبر `NotificationBadgeCubit`). نقر → `NotificationDeepLink` يحلّه الـ shell بتبديل تاب. **verdict: DS-clean.**
+- **Matchmaker Notifications:** `MatchmakerNotificationsScreen` (`/matchmaker/notifications`)، توأم شبه-مطابق للمستخدم لكن **تطبيق منفصل** (لا widget مشترك). **القطعة المشتركة الوحيدة: `NotificationTileVisuals`** (أيقونة+نبرة) — تعديلها يمسّ الدورين. من صندوق الخطّابة، **صفوف chat فقط تنقّل**؛ صفوف الحالات no-op. **verdict: DS-clean.**
+- **blast radius:** تطبيقان منفصلان؛ `NotificationTileVisuals` هو الملف المشترك الوحيد الذي يُعيد صياغة الدورين.
 
 ---
 
 ## 🔒 القرارات الثابتة (الكود لا يعرفها — احترمها)
-- **اللون:** الخلفية أبيض ناعم `#F8F8F8` — قرار نهائي (تجاوز مقصود لدليل الهوية `#FCEDDD`). **معمول ومـcommitted** (`4ee10cd`) — شجرة العمل نظيفة. (الادعاء القديم إنه unstaged كان غلط، أُزيل.)
-- **OTP دايماً LTR:** خانات كود الـ OTP تنعرض يسار→يمين بكل اللغات (أول خانة على اليسار) لأن الأكواد الرقمية تُقرأ LTR. مطبّقة عبر `textDirection` على الـ Row نفسه (مش الـ Directionality widget الممنوع). (`878f5cc`)
-- **`wineLight` `#4A1F38`:** توكن جديد لون لتدرّجات الواين ثنائية اللون (يُقرَن مع `wine`). (`f26e078`)
-- **swipe-deck ميت ومحذوف** — `discovery/` هو الـ deck الحي؛ `home_screen.dart` يحتضن `DiscoveryView`. (`7a8ec1f`)
-- **AUTH FIELD STYLE (مهم — لا توحّده):** حقول auth = `pill` + بلا border + ظل `e1` (تعبئة `paper` بيضاء، حلقة `danger` على الخطأ فقط). يختلف **عمداً** عن أسطح غير-auth (questionnaire/discovery/checkout) = `paper` + `hairline border`. معالجتان مقصودتان — لا "توحّدهما". (`5b80df4`)
-- **labels الحقول:** نمط التصميم = label **فوق** الحقل + hint **داخله**؛ يحملها `QeranTextField.label` / `AuthPasswordField.labelText`.
-- **توكنز جديدة:** `inkFaint` (#B3A8AF — أفتح محايد، للـ hints والأيقونات الناعمة)؛ `appleBlack` (#000000 — الأسود الوحيد المسموح بالتطبيق، glyph Apple فقط).
-- **أزرار CTA (recovery/login/register):** `QeranButton` `primaryWine` (واين + نص أبيض).
-- **العين المدمجة (محسوم، كان مؤجّل):** `AuthPasswordField` تبنّى `showObscureToggle` المدمج؛ حُذف `obscurePasswordNotifier`/`onToggleVisibility` من الـ widget + login/register/reset controllers. (sub-step c)
-- **phone + `CountryCodePicker` (محسوم، كان مؤجّل b2):** هوجرا معاً بنفس معالجة الحقل. (`60f85f5`)
-- **`QeranRadii.xs` = 6:** أصغر توكن radius (الـ DS ما كان فيه واحد صغير) — للضوابط الصغيرة مثل checkbox القَسَم. (`85c3d63`)
-- **كرت القَسَم (oath):** السطح = تدرّج `paper → creamSurface` (مش الـ hex المؤجّل #FFFBF5/#F4E9DC) + `panelR` + ظل `e3`. (`85c3d63`)
-- **خانات OTP تبقى بحدود (NOT pill):** صناديق الرقم-الواحد تحتاج حدّاً مرئياً — `paper` + `hairline` + `controlR` + رقم `headline`؛ معالجة مختلفة عمداً عن حقول النص الـ pill. (`8b87d07`)
-- **السؤال vs المضي:** اسأل على أي قرار (دلالي أو تجميلي). فقط التعديلات المحددة تماماً تمشي مباشرة. (الافتراض القديم "امشِ بالتجميلي" ملغى.)
-- **Claude Design = الشكل، الهوية = الألوان.** صفر تسامح — كل شيء من الـ design system. (**Figma متقاعد كمصدر تصميم** — المصدر الآن ملفات Claude Design HTML في `_design/`.)
-- **الـ design system = المصدر الوحيد (نهائي):** صفر `AppColors`/`AppTextStyles`/`AppDimens` — الملفات **انحذفت**، فأي استخدام مستقبلي مستحيل تقنياً.
-- **تواصل user-to-user مباشر = ممنوع:** كل المحادثة عبر الخطّابة (محادثة `/api/chat/my-matchmaker` الوحيدة لكل مستخدم).
-- **أكواد الإحالة (affiliate) داخلية:** تُدار عبر الـ dashboard/الباك إند، **لا** عبر store offer codes (Apple يحدّ 10 offers نشطة/اشتراك — ما يتوسّع لكل خطّابة).
-- **RevenueCat = خيار الـ IAP** — مجاني حتى $2,500/شهر MTR.
-- **عائلة الأيقونات rounded-dominant؛ سهم الرجوع = `chevron_left_rounded`** (موحّد P1b)؛ كل الأيقونات inline تحمل لاحقة `_rounded`/`_outlined_rounded`.
-- **— الخطّابة (قرارات M3، حرجة وغير مستنتَجة):**
-  - **عرض الملف — معكوس:** الخطّابة تستخدم `GET /matchmaker/users/{id}/profile` (`ProfileResponseDto`، `OwnerImage` فيه `isApproved`، **بلا** `isBlurred`). **ممنوع** `/discovery/profiles/{id}` — يرجّع `matchingScore` بلا معنى **و**يُحتسب على حدّ المشاهدات اليومي للمستخدم. التوحيد = **renderers مشتركة** (`PlacementRenderer`/`ProfileHeaderGallery`) مش شاشة مشتركة. ستاك ملف الخطّابة **موجود وصحيح**.
-  - **الملف = عرض فقط (معمول M3e):** action-bar الموافقة/الرفض **داخل** الملف **محذوف** — كل الموافقة/الرفض على **الكرت** (M3b). يبقى زر تعديل-الإجابات. سقالة `ProfileEntrySource.matchmaker` الميتة **محذوفة**.
-  - **request-photo → شيت المراجعة (M3e2):** بعد حذف action-bar الملف، قدرة «طلب صورة» انتقلت لشيت مراجعة الكرت (pending) — زرّ ghost **مشروط بعدم وجود صورة** (`hasProfileImage == false`).
-  - **مرآة الاهتمامات — ميزة منفصلة read-only (M3f):** `lib/features/matchmaker/interests/` مستقلة. **إعادة استخدام building blocks** (`LikeBlurredImage`/`MatchCardScaffold`/`MatchmakerCardAnswersBlock`) **لا** كروت تطبيق المستخدم الكاملة — كرت الماتش يعرض CTAs شبحية معطّلة (مش مخفية) فما ينفع read-only. **3 تابات** (لا «زوّار»). `isLocked` يُخفي الطرف الآخر (صورة مغبّشة + إخفاء الاسم/الإجابات) **بلا أي CTA اشتراك** (الخطّابة ليست المشتري). الـ countdown **مكتوم**. نقر الكرت → الملف (`otherPartyId`؛ يعمل لأي مستخدم — `…/profile` **ليس** assigned-only، فقط الملاحظات assigned-only). الأرشيف = قسم «الأرشيف» inline تحت النشِط.
-  - **توكنز/widgets جديدة بالـ DS (هذه السلسلة):** `softFill` (`#1A431C33`، ~10% واين، تعبئة chip ناعمة) + `QeranButtonVariant.neutral` (الـ variants صارت **7 مش 6** — `DESIGN.md` stale بهالنقطة) + `QeranSheetHandle` مشترك + `MatchmakerCardAnswersBlock` (أُعيد استخدامه بـ M3f) + `QeranTextField` يبدّل تلقائياً لـ `controlR` على `maxLines>1` (يصلح pill الشيت متعدد الأسطر).
-  - **قاعدة أزرار الكرت:** **زر مملوء واحد** `primaryWine` لكل قائمة (pending = موافقة، الباقي = مراسلة)، والباقي chips `neutral`؛ داخل `Wrap` فالـ labels ما تنقص أبداً.
-- **— الخطّابة (قرارات الإغلاق، غير مستنتَجة):**
-  - **فلاتر الاستكشاف + الحالات = شيتات خطّابة موازية:** نعيد استخدام **sub-widgets فلتر discovery** (`FilterExpandableMulti/Select`, `FilterTextField`) فقط — **بلا لمس** discovery (الـ `FilterQuestionRenderer` مربوط بـ `DiscoveryFilterCubit` فاستُنسخ renderer خطّابة موازٍ + cubit/state موازيان). `MatchmakerExploreFilterCubit` يحاكي `DiscoveryFilterCubit` (ما يُعاد استخدامه).
-  - **فلاتر النطاق (range) مُسقَطة بالاستكشاف:** select/radio/checkbox/text + `search` + `gender` فقط (height/weight/date تُسقَط على التحميل، زي ما discovery يُسقط غير الصالح). تعليق توسعة `RangeFrom/RangeTo` باقٍ بـ `buildExploreQuery` إن أكّد الباك إند لاحقاً.
-  - **فلتر الحالات = client-side:** الـ endpoint يقبل `page/pageSize` فقط (لا `?status=`/`?search=`)، فالفلترة فوق العناصر **المُحمَّلة**؛ `pageSize` رُفع لـ 100 (الحالات قليلة لكل خطّابة). محدودية «يفلتر المُحمَّل فقط» موثّقة بالكود.
-  - **الزميلات = استنساخ ستاك محادثات المستخدم:** الكيان `MatchmakerConversation` عام فأُعيد استخدامه؛ «محادثة جديدة» = **FAB ذهبي** على سيغمنت الزميلات يفتح دليل الزملاء. parsing **دفاعي** (`name ?? fullName`, شكل مسطّح) — **CODE WINS** على شكل الوثيقة المتداخل القديم.
-  - **الإشعارات — unread محلي:** الباك إند بلا `isRead`/mark-as-read (count = الإجمالي)، فالـ badge heuristic محلي: `max(0, currentTotal − lastSeenCount)` مخزّن بـ prefs (`matchmakerNotifLastSeenCount`). الـ badge cubit **singleton** (كل `MatchmakerAppBar` + الصندوق يشتركون نفس النسخة). **لا نقطة unread لكل صف** (لا حالة قراءة من الباك إند — نعرض فقط ما يدعمه). الصندوق يبني tile موازٍ DS-pure (ما لمسنا `notification_tile` القديم legacy).
-  - **baseUrl صار `https`** — مقصود (commit مع F3).
-  - **الدفع = IAP** — محسوم؛ تحقّق إيصال على الباك إند (طارق) عند بناء paywall.
-- **— فلتر الباقات تحت «مشتركون» (Users screen، غير مستنتَجة — 15 يونيو):**
-  - **شريط chips ديناميكي لا تابات فرعية:** تحت «مشتركون» فقط، شريط أفقي scrollable (`MatchmakerPlanFilterRail`) يُولَّد من `GET /users/subscription-plans` (الكل + chip لكل باقة، «الاسم · العدد»). **ما نـhardcode «ذهبي/ماسي»** — لو المالك أضاف باقة من الـ dashboard تظهر تلقائياً. اخترنا chips قابلة للscroll لا سيغمنت ثانٍ (السيغمنت يقسم العرض بالتساوي، ينكسر فوق ٣).
-  - **التمييز = الاسم لا اللون:** كل الباقات تلبس نفس درجة الذهبي. selected = واين (`QeranChipVariant.score`)، unselected = ذهبي (`interest`) — **إعادة استخدام variant موجود، صفر توكن/widget جديد**. **`color` + `icon` من الباك إند متجاهَلان عمداً** (هويتنا واين/ذهبي؛ أيقونة `workspace_premium_outlined` لنا، لأن قيمة/شكل `icon` غير محقَّقة). ≤لونين بالتركيب.
-  - **الفلترة = server-side عبر `?planId=`:** الـ Swagger الحي كشف الـ param (خالف الـ brief اللي قال client-side). server-side = pagination صحيح، بلا under-count. المطابقة بمفتاح **`planId` ثابت** (لا `nameAr` — يكسر عبر اللغات).
-  - **DI = factory:** `SubscriptionPlansCubit` factory (مش singleton) — الـ `BlocProvider` يملك/يغلق، والاختيار يـreset على remount (UX صحيح: دخول جديد يبدأ من «الكل»). يُوفَّر فوق الشريط + القائمة على cell «مشتركون» فقط.
-  - **حركة (motion، نفس توكنات `QeranMotion.standard`/`QeranCurves.standard`):** (1) تبديل تابات Users = `PageView` مُتحكَّم **بلا سحب** (السيغمنت + اختصارات الداشبورد هي السائق الوحيد) + `KeepAlivePage` لكل صفحة (يحفظ pagination/scroll زي الـ IndexedStack القديم) — ينزلق اتجاهياً ويـmirror صح بالـ RTL. (2) شريط المؤشّر الذهبي صار يـglide عبر `AnimatedPositionedDirectional` بنفس التوكنات (كان literals). (3) تغيّر الفلتر = fade-through (`AnimatedSwitcher`) + skeleton هادئ أثناء الـ refetch (تنظيف items أولاً، مش تجميد القائمة القديمة). كله متحقَّق AR+RTL / EN+LTR.
-- **— بطاقة عضو الخطّابة (Users screen، تحسينات الكرت — 15 يونيو، committed + pushed، `origin/main` متزامن):**
-  - **شارة الباقة شرطية:** تظهر على تاب «الكل» فقط، وتُخفى عند اختيار باقة محددة بالشريط (كل الكروت نفس الباقة → الشارة زائدة). مشتقّة عبر `BlocSelector` على `selectedPlanId == null` تُمرَّر كـ `showPlanChip` عبر `MatchmakerUsersListView` للكرت (default `true` لباقي القوائم). الـ list cubit **ما يتأثّر** (`BlocProvider.create` ثابت عبر الـ rebuild → الـ pagination يصمد).
-  - **تاريخ الانتهاء بالزاوية العلوية-end:** انتقل من سطر مكدّس تحت الاسم إلى timestamp هادئ مكتوم (`caption` + `inkFaint`) مثبّت بالزاوية العلوية جهة الـ **end** (يسار RTL / يمين LTR) داخل صفّ الأفاتار (`crossAxisAlignment.start`) — يـmirror تلقائياً. الكرت يبدأ بصفّ الأفاتار، **لا صفّ مستقل فوقه**.
-  - **أزرار الكرت موسّطة (1+N):** الأساسي «مراسلة» موسَّط بعرض ~70% (Spacer 3 : Expanded 14 : Spacer 3)، والثانويات `WrapAlignment.center` تحته؛ chips content-sized فالـ labels ما تنقص أبداً. mirrors تلقائياً.
-- **— الخطّابة (قرارات توحيد الملف، Part 2 — غير مستنتَجة):**
-  - **توحيد عبر building-blocks لا شاشة مشتركة (Option C):** ملف الخطّابة يعيد تركيب نفس شكل ملف المستخدم من الـ **leaf widgets المشتركة** (`ProfileHeaderGallery` + `ProfileImageScrim` + `ProfileOverlayChip` + `PlacementRenderer asCards` + main-card) — **بلا لمس أي ملف ملف-مستخدم** (صفر regression). رُفض إعادة استخدام `FullProfileBody`/الـhero مباشرة (يحتاج `OtherProfile` + verified مثبّت + slots للإيميل/الحالة) ورُفض refactor مشترك (أعلى مخاطرة). الـ hero يُسقط verified + match-pill (لا تنطبق على ملف تحت المراجعة)؛ صور الخطّابة غير مغبّشة دائماً (لا lock).
-  - **تعديل الإجابات النصية inline عبر `TextAnswerEditScope` (InheritedWidget):** قلم تعديل بجانب عناصر `type==text` **فقط**، يظهر **فقط** إذا رُكّب الـ scope. الـ scope معرَّف في feature الملف (بلا تبعية profile→matchmaker)، ويُركّبه **host خطّابة فقط** ومحصور بـ `profileStatus ∈ {pendingReview, rejected}`. تطبيق المستخدم **لا يركّبه أبداً** → لا أقلام هناك (مُثبَت بالكود). يعيد استخدام `MatchmakerAnswerSaveCubit`؛ النجاح → snackbar + refresh. شاشة الإجابات المستقلّة + الزر العلوي **محذوفة** (PV4).
-  - **chips «inside» صارت بيضاء عالمياً:** الـ default للـ `InsideChipsSection` صار `QeranChipVariant.inside` (paper + hairline) بدل `interest` الذهبي — الذهبي كان **عدم اتساق** (الـ DS فيه variant أبيض مخصّص لـ inside-card)؛ الأبيض يطابق اتجاه «لا لطخة بيج» (نفس إصلاح حقول auth). يحسّن **كل التطبيق** (مستخدم + my-profile + خطّابة)، قابل للعكس.
-  - **`QeranConfirmDialog` = dialog التأكيد الموحّد:** الأزرار **تلتفّ** (no ellipsis) + ارتفاع موحّد عبر `IntrinsicHeight` → نص عربي طويل ما ينقطع أبداً (إصلاح «تسجيل خر…»). كل dialogs تأكيد الخطّابة (خروج/تعطيل/حذف ملاحظة/إغلاق حالة) صارت تستخدمه؛ `MatchmakerConfirmDialog` المكسور محذوف. **السبب الجذري:** الـ dialogs القديمة استخدمت `QeranButton` (نصّه `maxLines:1 + ellipsis`) داخل `Expanded` بعرض نصف-dialog ضيّق.
-  - **بطاقة عضو الخطّابة:** أفاتار أكبر (56→72) + توسيط عمودي؛ صفّ الأزرار `Wrap` من الحافة البادئة بعرض كامل (إصلاح `92f7a20`).
+
+- **الخلفية `#F8F8F8`** (`creamCanvas`) — نهائي (تجاوز مقصود لدليل الهوية).
+- **الهوية:** واين `#431C33` · `wineLight #4A1F38` · ذهبي `#E4C094` · `goldDeep #B18454` (مقروء تحت الأبيض). success/verified = ذهبي (لا أخضر). overlays = واين غامق (لا أسود). danger = `#A33949`.
+- **نظام التصميم = المصدر الوحيد (صفر تسامح):** لا `AppColors`/`AppTextStyles`/`AppDimens`/`Color(0x…)`/Material colors — الملفات القديمة محذوفة. توكن ناقص؟ **أضِفه** للـ DS.
+- **إضافات DS هذه الجلسة كانونية:** `QeranMonogram` · `QeranStepper` · `QeranBottomSheet` · `QeranRangeSlider` · `MatchmakerFactChips` · `MatchmakerCardActionBar` · `SettingsProfileHero`/`Row`/`LogoutCard` · توكن `gold18` · danger ramp.
+- **Loaders:** `QeranLoader` (قوسان واين+ذهبي) بكل مكان؛ loaders الأزرار المملوءة **أحادية اللون** للتباين.
+- **تسمية العروض:** `<planPrefix>-<discountPercent>` — **نفس المعرّف على جوجل وApple** (العقد الحامل لـ `/validate-code`).
+- **نوع عرض iOS: Offer Codes** لا Promotional Offers (الأخيرة تستثني الجدد فتفشل بصمت).
+- **مجموعة اشتراك Apple تحتاج Localization خاصّاً بها** (عربي «باقات قِران»، إنجليزي «Qeran Packages») — وإلا تبقى «Missing Metadata».
+- **مصدر التصميم = Claude Design (HTML) في `docs/_design/`** — Figma متقاعد. الشكل من المرجع، الألوان/الخط/المسافة من هويتنا. (`_design/` غير متتبَّع — ثقيل.)
+- **`QeranButtonVariant` = 7 variants** — `DESIGN.md` قد يكون stale بعدد 6.
+- **ثنائي الاتجاه دائماً:** `*Directional`؛ لا left/right يدوي؛ لا `Directionality` widget؛ لا double-flip. أرقام/إيميلات/أوقات LTR tabular. سهم الرجوع `chevron_left_rounded`. **OTP دائماً LTR**.
+- **backend-driven / dynamic (مُحترَم end-to-end هذه الجلسة):** ارسم فقط ما يدعمه الباك إند. الجنسية حُذفت من شيت المشاركة (ليست حقلاً بنيوياً)؛ verified/complete مبوّبان على أعلام مفقودة؛ labels المراحل من نفس ملف الـ timeline.
+- **AUTH FIELD STYLE (لا توحّده):** حقول auth = `pill` + بلا border + ظل `e1` — يختلف عمداً عن أسطح غير-auth (`paper` + `hairline`).
+- **تواصل user-to-user مباشر = ممنوع** — كل المحادثة عبر الخطّابة (`/api/chat/my-matchmaker`).
+- **أكواد الإحالة داخلية** — عبر dashboard/باك إند، لا store offer codes.
+- **الدفع = IAP / RevenueCat**.
+- **— الخطّابة (حرجة، غير مستنتَجة):**
+  - **عرض الملف معكوس:** `GET /matchmaker/users/{id}/profile` (بلا `isBlurred`). **ممنوع** `/discovery/profiles/{id}` (يرجّع `matchingScore` بلا معنى + يُحتسب على حدّ المشاهدات). التوحيد = building-blocks مشتركة لا شاشة مشتركة. الملف عرض-فقط. صور الخطّابة غير مغبّشة دائماً.
+  - **تعديل الإجابات النصية inline** عبر `TextAnswerEditScope` (InheritedWidget) — قلم لـ `type==text` فقط، فقط إذا رُكّب الـ scope (host خطّابة، محصور `pendingReview`/`rejected`). المستخدم لا يركّبه أبداً.
+  - **مرآة الاهتمامات read-only** — building blocks لا كروت المستخدم؛ `isLocked` يُخفي الطرف الآخر **بلا CTA اشتراك** (الخطّابة ليست المشتري). **مصدر labels المراحل = `matchmaker_case_labels.dart`** (نفس الـ timeline — صفر تباعد).
+  - **فلاتر الاستكشاف/الحالات = شيتات موازية** — sub-widgets فلتر discovery فقط، بلا لمس discovery. فلتر الحالات **client-side** (`pageSize=100`). فلاتر النطاق مُسقَطة بالاستكشاف.
+  - **الزميلات = استنساخ ستاك محادثات المستخدم**؛ parsing دفاعي (`name ?? fullName`) — **CODE WINS**.
+  - **إشعارات الخطّابة — unread محلي:** `max(0, currentTotal − lastSeenCount)` بـ prefs؛ badge cubit **singleton**. لا نقطة unread لكل صف.
+- **فلتر الباقات (Users «مشتركون»):** شريط chips ديناميكي من `GET /users/subscription-plans` (لا hardcode)؛ تمييز بالاسم لا اللون؛ فلترة **server-side عبر `?planId=`**؛ DI = factory.
+- **`QeranConfirmDialog` = dialog التأكيد الموحّد** — أزرار تلتفّ + `IntrinsicHeight`. **يفوز حتى على الـ handoff:** إغلاق الحالة اقتُرح شيت دوم مخصّص → أُبقي على `QeranConfirmDialog` (نمط danger موحّد؛ الاتساق يغلب المخصّص).
+- **CODE WINS على الـ handoff لمّا للكود ميزة حقيقية أغفلها الـ handoff:** read-receipt «قرئت» + chip نتيجة التوافق على كرت الملف-المشارَك + صورة الرأس — كلها اقتُرح حذفها، كلها **مُبقاة ومُعاد تنسيقها**. الـ handoff design brief لا feature list.
+- **لا تُكوميت أبداً:** `.metadata` · `android/…/MainActivity.kt` · `web/` · `_design/` · token file (`qeran_colors.dart`) بلا تأكيد · شغل أنس (gender/Interests round-2/الترجمات المعلّقة).
 
 ---
 
 ## ⚠️ Gotchas (تنبيهات)
-- **رسائل الـ commit بتكذب:** commits قديمة تدّعي توحيد auth/onboarding — لسا legacy. تأكّد من الكود دايماً.
-- الدين التقني على جهة المستخدم؛ الخطّابة ~95% موحّدة أصلاً.
-- `MATCHMAKER_DIAGNOSTIC.md` القديم stale — أشياء قال "ناقصة" صارت معمولة. ثق بالكود.
-- **⭐ `IndexedStack` يحفظ الحالة عبر تبديل التابات *و* push/pop** — **لا تفترض** إعادة جلب لكل تنقّل (تصحيح افتراض شائع؛ التفصيل بـ `_plan_drafts/_archive/CACHING_INVESTIGATION.md`).
-- **نجاح `submitAnswers` *يجب* أن يُبطِل cache الـ edit-form** (مربوط الآن؛ لو أُعيد هيكلة الـ repo، **أبقِ الـ hook** — انظر `questionnaire_repository_impl.dart`).
-- **cache قابل للتغيير في repo بـ `const` constructor** يتطلّب **إسقاط `const`** — بلا تغيير DI (الـ repos تُبنى عبر factories لا const contexts).
-- **`.then` على `executeApiCall<T>`** يُسقِط الاستدلال لـ `dynamic` لو `T` generic (مثل `SuccessResponse`) — **ثبّت الـ type parameter صراحةً** (`executeApiCall<SuccessResponse>(...)`).
-- **بيئة التطوير لا التطبيق:** خلل Right Shift+Alt على بنى Windows الحديثة (KB5070311) يؤثّر على تبديل اللغة باتجاه واحد — ملاحظة بيئة، ليست bug تطبيق.
-- **⭐ نمط متكرّر — أشكال wire الخطّابة تخالف افتراض تطبيق المستخدم/discovery:** endpoints الخطّابة كثيراً ترجّع شكلاً مختلفاً عن نظيرها بتطبيق المستخدم، فالـ parser المنسوخ من discovery يفشل بصمت (TypeError → «خطأ غير متوقع») — **مش بالضرورة فشل سيرفر**. **مُصلَح هذه الجلسة:**
-  - **`/chat`** — كان **مغلّفاً مزدوجاً** (`data.data` = الـ id)؛ unwrap على العميل (commit `4cc7f27`).
-  - **`/explore/filters`** — `data` كان **object** `{gender, questions}` لا List مسطّحة (زي discovery)؛ الـ parser صار يقرأ `data['questions']` ويحوّل `label→question` (حقل النص يختلف عن discovery الذي يستخدم `question`) — commit `facb32a`. الـ gender facet موجود بالرد لكنه **مُتجاهَل عمداً** (Tier-C — سيغمنت الجنس يدوي حالياً — انظر Deferred).
-  - **القاعدة:** قبل اعتبار أي فشل خطّابة بند سيرفر (طارق)، **سجّل الـ RAW envelope** أولاً وتأكّد إنه مش bug شكل على العميل. **ينطبق على `/note`** — أعد فحص الـ envelope الخام قبل افتراض 5xx (غالباً نفس الصنف العميل).
-- **Profile hub — تاب العرض ما بيتحدّث بعد الحفظ:** `MyProfileCubit` لسا داخل `ProfileSelfView` (مش مرفوع فوق الـ `TabBarView` بالـ hub)، فالتابّان لهما instances منفصلة. الإصلاح المقترح: ارفع `MyProfileCubit` فوق الـ hub ليتشارك التابّان نفس الـ cubit ويعيد التحميل بعد الحفظ. (متحقَّق منه هذه الجلسة — لسا غير معمول.)
-- **reset_pass متحقَّق:** بعد تبنّي العين المدمجة (sub-step c/d) الشاشة تُصرّف صح والعين تبدّل — لا إجراء مطلوب.
-- **`'auth.country_search_hint'` كنص خام** في `country_code_picker` (مش عبر `LocaleKeys`) — موجود مسبقاً؛ تحقّق إنه يُحَل AR+EN.
-- **كروت الاهتمامات (تطبيق المستخدم) أُعيد تصميمها ✅ (متحقَّقة AR+EN على الإيمولِيتور):** `MatchCardScaffold` موحّد — **زر `primaryWine` واحد + secondaries شبحية** + **countdown على الحافة اللاحقة** + اسم `subtitle` (متّسق عبر Matches/Received/Sent) + **حالة تلتفّ سطرين بلا اقتطاع** (لا «…»). الاختبارات المتأخرة (`match_card_stage0_test`, `likes_cubit_test`) حُدّثت ضمن الـ refactor. (commits `8108c60` refactor + `23d92d7` fixes.)
-- **إشعارات تطبيق المستخدم أُعيد بناؤها ✅ (متحقَّقة AR+EN على الإيمولِيتور — شاشة حيّة ببيانات حقيقية):** بدل الـ mock القديم (legacy tokens) → شاشة مرقّمة حقيقية على `GET /api/notifications` (infinite scroll + pull-to-refresh + empty/loading/error) تستهلك `NotificationsCubit` (نفس `PaginatedListCubitMixin` المشترك). **tile مدفوع بالنوع/الـ action على الـ DS** (`NotificationInboxTile`): Match = chip ذهبي صلب (hero)، Chat/Offer = ذهبي ناعم، Profile/Announcement/General = واين خفيف؛ أيقونة Match تتغيّر بالـ `data.action` (قلب/احتفال/كاميرا/مصافحة)، ورفض الملف **هادئ بلا أحمر**. **deep-link عند النقر → تبديل تاب الـ bottom-nav** (Likes/Messages/Profile) عبر `openNotifications`: الشاشة المدفوعة تُرجع الـ intent بالـ `pop` والمُستدعي (داخل الـ shell) يبدّل التاب — يحلّ مشكلة «shell scope غير مكشوف للـ route المدفوع» (نفس عقبة صندوق الخطّابة). `route notificationsDemo → notifications`؛ أزرار الجرس الثلاثة بالـ discovery تستدعي `openNotifications`. **حُذف** الـ mock + الـ tile/entity القديمة + مفتاح `mark_all_read` (لا حالة قراءة بالباك إند — نعرض فقط ما يدعمه). formatter وقت نسبي مشترك جديد `QeranRelativeTime` + مفاتيح `time.*` محايدة. badge الـ unread (Step 5) + مسار FCM-tap (Step 6) **مؤجّلان**. (commits notifications a–d.)
-- **إصلاح لغة الاشتراكات ✅ (متحقَّق AR+EN على الإيمولِيتور — مُكوميت):** الباك إند يرسل حقولاً ثنائية اللغة لكن الـ UI كان يثبّت العربية فتتسرّب للإنجليزية. (a) اختيار locale-aware: `SubscriptionPlan.name(isArabic:)` + `SubscriptionPricing.label(isArabic:)` (fallback للمتوفّر) — مستهلَك في plan card + status block + ملخص الـ checkout + صف البروفايل؛ صف البروفايل الآن: اسم الباقة + «المتبقي» + حالتا «منتهٍ»/«لا اشتراك» مترجمة. (b) هجرة كل النص العربي المثبّت → `LocaleKeys` عبر مسار الـ checkout/الباقات: ملخص الطلب/السعر الأصلي/الخصم، طريقة الدفع + أسماء الطرق + العناوين الفرعية، شريط الثقة، الإجمالي، dialogs الدفع الوهمي (معالجة/نجاح/ابدأ)، رأس قسم الباقات + شارة الخصم. **الاشتراكات الآن صفر نص عربي مثبّت.** (commits `694528d` + `e08edeb`.) ملاحظة: `BorderRadius.circular` legacy في هذه الملفات باقٍ لـ DS sweep (الخطوة 6) — ليس جزءاً من مهمة اللغة.
-- **إصلاحات طارق (14 يونيو) — استُهلكت + تأكّدت ✅ (على حساب Moderator حي، AR+EN):**
-  - **أرشيف الماتشات صار مترجَماً ✅ (مُكوميت `b31a7fa`):** طارق أضاف `statusNameAr`/`statusNameEn` على `ArchiveItemDto` (مترجَمة جاهزة). استهلكناها في `matchmaker_interest_archive_item` (model+entity+`statusName(isArabic:)`) والكرت يعرض حسب اللغة (fallback: raw `status` → reason label). **الـ endpoint بقي `GET /api/matchmaker/users/{id}/matches/archived`** (طارق وثّق `/archived-matches` كـ alias؛ مسارنا يرجّع الحقول الجديدة 200 — لا تغيير endpoint). متحقَّق: AR «منتهي الصلاحية» · EN «Expired». (يحلّ فجوة ترجمة الأرشيف القديمة.)
-  - **`data` بالإشعارات صار يُحفَظ/يُرجَع كـ JSON string (كان null) ✅:** كودنا **مسبقاً دفاعي** — `notification_model._decodeData` يعمل `jsonDecode` للـ string ويتسامح مع null/فارغ/تالف → `{}` (السجلات القديمة تبقى null → لا deep-link، لا crash). الـ wiring مؤكَّد: `NotificationItem.action = NotificationAction.fromWire(data['action'])` يطابق قيم طارق بالضبط؛ الراوتر يقرأ `data['screen']`. **لا تغيير كود** — مؤكَّد بالكود + مسار null الحي (24 سجل كلها pre-fix null، لا crash).
-  - **`titleEn`/`bodyEn` مؤكّدة على كل الأنواع ✅:** طارق أكّد ثنائية اللغة 100% (Chat/Match/Profile/Announcement/Offer/General). (صف رفض البروفايل صار body «السبب: …» + `data.reason`.)
-  - **كرت ماتش الخطّابة (5th consumer لـ `MatchCardScaffold`) متحقَّق بصرياً ✅ (AR+EN):** يطابق نظام كروت تطبيق المستخدم (gold accent + stage line + formal-status chip مترجَم «طلب موعد مع الأهل»/«Waiting for parent appointment») — لا كسر من توحيد الـ scaffold.
-- **✅ تجميع الشجرة (consolidation) — كل العمل المعمول صار مُكوميت على `main`:** الوحدات الأربع المتأخّرة كُوميتت بـ 4 commits منطقية:
-  - **فلتر الأسئلة الدفاعي (`5e71b0c`):** `QuestionEntity.isAnswerable` + `questionnaire_cubit.startFlow` يُسقط أسئلة option-type بلا options (قبل استعادة المسودّة، مع تحذير لكل مُسقَط) + اختبار الـ cubit.
-  - **تحسين كرت الاهتمامات-المستلَم (`7b4a596`):** `like_user_card` (أزرار القبول/الرفض بصف أسفل end-aligned، الاسم+العدّاد بالأعلى، الحالة بعرض كامل) + `like_card_status` (`maxLines 1→2`).
-  - **شريط أكشن الاستكشاف (`7a59045`):** ترتيب like→undo→pass عبر Directionality طبيعي (بلا flip يدوي).
-  - **خلفية فراغ الشات (`ca0277d`):** `creamSurface→creamCanvas`.
-- **فرع واحد فقط الآن:** `main` هو فرع العمل الوحيد. حُذف الفرعان القديمان المدموجان (`claude/clever-lehmann`, `claude/zealous-montalcini`). (يبقى `claude/crazy-bartik` فيه commit social-auth قديم — قرار حذفه معلّق على المستخدم؛ firebase-signin مربوط أصلاً بـ `main`.)
-- **⭐ مصدر التصميم الآن = Claude Design (HTML):** ملفات mockup في مجلد `_design/` (مثل `_design/Qeran Onboarding.html`) — تُقرأ كمصدر الحقيقة للتصميم. **Figma متقاعد كمصدر تصميم — لا تُشِر إليه** بالكود أو الوثائق. (ملاحظة: `_design/` غير مُتتبَّع في git حالياً — إن أردته على origin فهو قرار منفصل، الملفات ثقيلة ~8.8MB.)
-- **⭐ مرحلة الصقل البصري = بصري فقط:** أثناء مهام الصقل، **لا تلمس منطق العمل** (Cubit/State/UseCase/Repository/DataSource) إطلاقاً — توكنز + widgets الـ DS فقط. (onboarding كان النموذج: طبقة العرض فقط، الـ cubit بديف فارغ.)
-- **لا تُكوميت أبداً (تبقى خارج git):** `.metadata` · `android/…/MainActivity.kt` (untracked) · `web/` (untracked).
+
+- **⭐ mojibake بالكونسول (����) ≠ ملف تالف:** stdout الويندوز cp1256 يطبع UTF-8 سليماً غلطاً. تحقّق بـ hexdump أو rootBundle قبل افتراض فساد الملف. **ضيّع وقتاً هذه الجلسة قبل تأكيد سلامة ar.json.**
+- **⭐ Hot reload (`r`) لا يعيد تحميل الأصول:** تغييرات الترجمة/JSON تظهر فقط بعد hot **RESTART** (`R` كبيرة) لأن `EasyLocalization.ensureInitialized()` يعمل في `main()` فقط. **كلّف تشخيصاً حين ظهرت مفاتيح جديدة كأسماء خام.**
+- **⭐ CODE WINS على الـ handoff** لمّا للكود ميزة حقيقية شغّالة أغفلها الـ handoff (انظر القرارات) — والـ«مكوّن واحد لكل غرض» يغلب المخصّص.
+- **رسائل الـ commit بتكذب:** تأكّد من الكود دائماً.
+- **⭐ `IndexedStack` يحفظ الحالة عبر التابات *و* push/pop** — لا تفترض إعادة جلب لكل تنقّل.
+- **⭐ أشكال wire الخطّابة تخالف افتراض المستخدم/discovery** — parser منسوخ يفشل بصمت (TypeError → «خطأ غير متوقع»)، مش بالضرورة فشل سيرفر. سجّل الـ RAW envelope أولاً. أمثلة: `/chat` (`4cc7f27`) · `/explore/filters` (`facb32a`).
+- **filtered-staging يتخطّى المفاتيح الجديدة بصمت:** لمّا تضيف مفاتيح ترجمة، تأكّد أنها فعلاً staged (ظهرت كأسماء خام هذه الجلسة).
+- **نجاح `submitAnswers` يجب أن يُبطِل cache الـ edit-form** — أبقِ الـ hook.
+- **`.then` على `executeApiCall<T>`** يُسقط الاستدلال لـ `dynamic` لو `T` generic — ثبّت الـ type parameter.
+- **Profile hub — تاب العرض ما بيتحدّث بعد الحفظ:** `MyProfileCubit` داخل `ProfileSelfView` (ارفعه فوق الـ hub). لسا غير معمول.
+- **الأرقام العربية ببناء Gradle:** ثبّت `-Duser.country=US -Duser.language=en`.
 
 ---
 
-## ⚠️ أعلام التحقّق التشغيلي (اختبارها على حساب Moderator حي — لا شيء منها يحجب)
-- **تاب الاستكشاف مركّب فعلاً بالـ bottom-nav** (مش الـ placeholder القديم) — الـ shell يركّب `MatchmakerExploreTab` (متحقَّق بالكود؛ يبقى تأكيد بصري).
-- **أشكال صفوف محادثات/دليل الزميلات** (مسطّح `fullName` vs `name`؛ array vs paged) — parsers دفاعية تغطّي الاثنين، تأكيد فقط.
-- **أشكال قائمة/عدّاد الإشعارات** (array vs paged؛ `{count}` vs int خام) + **مفاتيح deep-link** بالـ `data` (JSON string) تطابق ما يتوقّعه `MatchmakerNotificationRouter` (type/conversationId/action/audience).
-- **endpoint الملاحظات** لسا يفشل على السيرفر الجديد (يحتاج deploy من طارق) — M3d.
-- **روابط «تواصل معنا» placeholders** (`https://qeran.com`, `instagram.com/qeran`…) — تحتاج حسابات Qeran الحقيقية من product (نسخ-للحافظة يعمل؛ فتح الرابط يحتاج `url_launcher` لاحقاً).
-- **deep-link «الحالات» من الصندوق ما يقفز لتاب الحالات** (shell scope غير مكشوف للـ route المدفوع) — بسيط؛ مسار FCM-tap بالـ shell يملك deep-links اختيار-التاب.
-- **خيوط الزميلات realtime** تحتاج حسابَي Moderator حيّين للتحقّق.
-- ~~**كرت الخطّابة-اهتمامات (5th consumer لـ `MatchCardScaffold`) لم يُتحقَّق بصرياً**~~ ✅ **متحقَّق هذه الجلسة (AR+EN، حساب Moderator)** — يطابق نظام كروت تطبيق المستخدم، لا كسر.
-- **اهتمامات الخطّابة متحقَّقة بصرياً ✅ (كرت الماتش + الأرشيف المترجَم، AR+EN).** **يبقى:** صندوق إشعارات الخطّابة لا يزال على الـ tile القديم (type-only) — يحتاج تطبيق نظام التصميم الجديد (انظر Deferred)؛ والتحقّق الحي لأيقونات الـ per-action + توجيه deep-link لـ `data` معبّأ مؤجّل لحين توفّر إشعار post-fix (انظر Deferred + جدول طارق).
+## ⚠️ أعلام التحقّق التشغيلي (على حساب Moderator حيّ — لا شيء يحجب)
 
----
-
-## ⏸️ مؤجّل (Deferred)
-- **`share_with_matchmaker_button` — dialog التأكيد:** ألوان الـ legacy انهاجرت لتوكنز هذه الجلسة (دفعة 6)، لكن `_confirmDialog` لسا **بنية Material `AlertDialog`** (`TextButton`/`FilledButton`) لا `QeranConfirmDialog` — متابعة اتساق dialogs بعد تقاعد الثيم (مش legacy-theme).
-- ~~**هجرة dialog خروج/خروج تطبيق المستخدم → `QeranConfirmDialog`**~~ ✅ **معمول (دفعة 2):** `LogoutConfirmationDialog` انحذف (استُبدل بـ `QeranConfirmDialog` في `profile_screen`)؛ `ExitAppDialog` أُعيد كتابته داخلياً ليفوّض التنسيق لـ `QeranConfirmDialog` و**أُبقي** (يملك السلوك المشترك platform-branch + side-effects لـ 4 مستدعين — حذفه يكرّر المنطق 4×).
-- **تنظيف `BorderRadius.circular` literals بالاشتراكات:** `discount_code_field`/`pricing_segment`/`feature_row` فيهم `BorderRadius.circular(12/16/20)` خام — ليست legacy-theme (انهاجرت ألوانها/خطّها)، فتُركت لمتابعة radius-literal منفصلة.
-- **أيقونات P1c (آخر خطوة P1 — معلّق التحقّق):** `favorite_outline_rounded → favorite_border_rounded` (موضعان، توحيد على الـ 9-use variant) + صفّ إشعارات إعدادات الخطّابة → `notifications_none_rounded` (لمطابقة جرس الـ app-bar). (`lock_outline` أُنجز في P1a.)
-- **أيقونات P2 (مؤجّل):** توكن `QeranIconSizes` (sm/md/lg) + sweep أحجام أيقونات **جهة المستخدم** عليه (الخطّابة منضبطة أصلاً 24/20/14) + توثيق قاعدة filled/outlined (active=filled، inactive/inline=outlined — كما في bottom-nav).
-- **أيقونات P3 (مؤجّل):** قرار confetti الـ `celebration_rounded` (يبقى على شاشة نجاح-الماتش الكاملة — celebration مقصودة؛ يُعاد النظر على tile الصندوق + نجاح الدفع الوهمي)؛ ثوابت `QeranGlyphs` اختيارية لـ back/close/check/bell لمنع الانحراف مستقبلاً.
-- **اختبار أيقونة الإشعار بـ push حقيقي:** الأيقونة أحادية اللون مولَّدة لكن لم تُختبر بإشعار FCM حقيقي على الجهاز (نفس قيد علَم per-action icons — `adb` لا يحاكي التسليم بأمانة).
-- **native splash (Group C):** الأصول جاهزة (`qeran_symbol_wine.svg` + `qeran_symbol_transparent.svg` في `branding/src/`)، الشاشة غير مبدوءة. الخطة: ربط `flutter_native_splash` بخلفية `#431C33` + الرمز الشفّاف + variant آمن-للدائرة لـ android_12 + تدفّق `FlutterNativeSplash.preserve()`/`remove()` في `main.dart`.
-- **Google Play:** توقيع الإصدار غير مُعدّ؛ AAB لم يُبنَ/يُرفَع؛ منتجات IAP لم تُنشأ (جوجل يطلب AAB أولاً).
-- **RevenueCat P2–P6:** مؤجّلة لحين منتجات المتجر + webhook طارق (P1 = boot + هوية، معمول ومتحقَّق).
-- **(Tier B) ربط gender facet الاستكشاف backend-driven:** الباك إند يرسل `data.gender` (`{key, label, options:[{value,display}]}`) بردّ `/explore/filters`، لكننا **نتجاهله** ونستخدم سيغمنت يدوي (الكل/ذكر/أنثى — hardcoded بالشاشة). الربط = إضافة slot للـ facet بالـ state + تمريره للشاشة بدل السيغمنت اليدوي + mapping `value→Gender` enum.
-- **التحقّق: سيغمنت الجنس بالاستكشاف يفلتر فعلاً** (يرسل Male/Female للباك إند ويغيّر النتائج) لا مجرد تبديل بصري — يحتاج تأكيد تشغيلي على حساب Moderator.
-- ~~**إشعارات تطبيق المستخدم — badge غير المقروء (Step 5) + معالجة نقر FCM (Step 6)**~~ ✅ **معمولان (متحقَّقان بصرياً/وحدوياً):** **Step 5** — badge جرس الـ discovery = heuristic محلي `lastSeenId` عبر `NotificationBadgeCubit` singleton (لا حالة قراءة بالباك إند)؛ يُحدَّث على فتح/استئناف التطبيق ويُمسح عند فتح الصندوق؛ متحقَّق بالـ 4 حالات (AR+EN، بـ/بلا). usecase الـ count القديم **حُذف**. (commit `2079867`). **Step 6** — معالجة نقر FCM داخل shell المستخدم (مرآة shell الخطّابة، **بلا لمس `main.dart`**): `onMessageOpenedApp` (نقر خلفي) + `getInitialMessage` (cold-start) → `_route` → role-guard (يتجاهل moderator) → `NotificationDeepLinkRouter.resolveData(map)` → اختيار تاب Likes/Messages/Profile؛ و`onMessage` (foreground) → `NotificationBadgeCubit.refresh()` (تحديث الجرس حياً — لا SignalR بتطبيق المستخدم؛ بلا توجيه تلقائي). الـ parser مُغطّى بـ **13 اختبار وحدة**. ⚠️ **مسار نقر FCM الحي مؤجّل التحقّق** — انظر العلَم تحت.
-- **(Step 6) التحقّق الحي من نقر إشعار FCM (تطبيق المستخدم):** **مؤجّل — `adb` لا يحاكي `onMessageOpenedApp`/`getInitialMessage` بأمانة.** جُرِّب فعلياً هذه الجلسة: `am broadcast` لمستقبِل FCM **مرفوض** (خدمة غير-مُصدَّرة بإذن توقيع)، و`am start` بـ extras يدوية (`--es screen … --es google.message_id …`) يطلق الـ activity لكن `getInitialMessage` رجع **`data=null`** و`onMessageOpenedApp` لم يُطلَق إطلاقاً (تجربتان منفصلتان PID 5033 + 5222 أكّدتا `data=null`). SDK الـ FCM يعيد بناء الـ `RemoteMessage` من مسار التسليم الداخلي، لا من intent extras اعتباطية. فالمسار **متحقَّق كوداً + 13 اختبار وحدة للـ parser**، والنقر الحي يحتاج **push حقيقي** (باك إند/FCM console) — مثل علَم أيقونات per-action تماماً.
-- ~~**(متابعة 1) تطبيق نظام تصميم الإشعارات الجديد على صندوق الخطّابة**~~ ✅ **معمول (commit `6e6d18c`، متحقَّق AR+EN):** `MatchmakerNotificationTile` صار على نفس الـ DS عبر helper مشترك مستخرَج `NotificationTileVisuals` (tone families: Match ذهبي صلب · Chat/Offer ذهبي ناعم · Profile/Announcement/General واين خفيف) + أيقونات per-action لـ Match عبر `data.action` + وقت top-line عبر `QeranRelativeTime`. الـ user tile أُعيد توصيله بنفس الـ helper (الـ mapping منقول حرفياً — شكله لم يتغيّر).
-- **(متابعة 2) التحقّق الحي من أيقونات per-action (كاميرا/احتفال/مصافحة) + توجيه deep-link لـ `data` معبّأ:** **لا يزال مفتوحاً.** الـ tile الآن **يقرأ `data.action`** (بعد متابعة 1)، لكن كل السجلات الحالية pre-fix (`data:null`) فيظهر القلب الافتراضي. يحتاج **إشعار post-fix بـ `data` معبّأ** + **حساب مستخدم** للملاحظة الحيّة. الـ wiring مؤكَّد كوداً (يطابق قيم طارق).
-- ~~**(متابعة 3) محادثة الخطّابة — placeholder غير مترجَم `Shared by {name}`**~~ ✅ **معمول (commit `7d10791`، متحقَّق AR+EN):** مُرِّر `message.senderName` للكرت ويُستوفى عبر `context.tr(namedArgs:)` → «تمت المشاركة من {name}» / «Shared by {name}». (المفتاح كان أصلاً فيه `{name}` لكن بلا `namedArgs`.)
-- **Match-success — متغيّر «اسم + صورة» خامل (dormant):** البنية موجودة في `match_success_screen.dart` (`MatchSuccessArgs` + `_Portrait` + فرع `hasName`) لكن الـ cubit لا يعبّئ `args` فقط متغيّر الشعار (brand-mark) يُعرض حياً. التفعيل = **سلك cubit صغير** يمرّر اسم/صورة الطرف المطابق عند الانتقال — مهمة منطق منفصلة (خارج نطاق الصقل البصري).
-- **جولة إصلاحات Interests البصرية الثانية — غير مُكوميتة:** أفاتار كروت الماتش (قاعدة واين صلبة + `wine80` frost لمنع تسرّب أخضر/رمادي) + حدّ الكرت الذهبي hairline عبر توكن جديد `QeranStrokes` (`lib/core/design_system/tokens/qeran_strokes.dart`) — في شجرة العمل، **بانتظار فحص المستخدم AR+EN** قبل الكوميت. المقياسان القابلان للضبط: قوّة الـ frost (`wine80`) وعرض الحدّ (`1.0`).
-- **شاشة ما بعد «قبول الإعجاب» (فكرة المستخدم — يريد عملها):** حالة/شاشة بعد قبول الإعجاب (post-like-accepted). غير مبدوءة — بانتظار تصوّر المستخدم.
-- **(تأجيل بقرار Claude) لمسات كرت عضو الخطّابة الاختيارية:** غير معمولة — تباعد عمودي أضيق، divider أخفّ أو محذوف، واحتمال نقل التاريخ تحت الاسم بدل الزاوية البعيدة. تجميلية بحتة، بانتظار قرار بصري من المستخدم.
-- **تاب «بالانتظار» (Users) غير متحقَّق بصرياً:** كان 0 مستخدمين فما انعرض كرت — لكن **نفس مسار كود الكرت** (موافقة primary + ثانويات)، فالتحسينات الثلاثة تنطبق عليه. يحتاج مستخدم pending للتحقّق الحي.
-- **نص عمر العضو «عندي {age} سنة» (copy، لا styling):** مفتاح locale **العميل** `matchmaker_users_age_years` = «عندي {age} سنة» بصيغة **المتكلّم الأولى** — POV غلط لمّا الخطّابة تعرض مستخدماً (المتوقَّع «العمر: {age}» أو «{age} سنة»). إصلاح صياغة على جهتنا (المفتاح عندنا، مش الباك إند) — يحتاج قرار نص.
-
----
-
-## 📨 معلّق على طارق (Backend)
-| البند | الحالة |
-|-------|--------|
-| **الخطّابة — `/note` يفشل على السيرفر؟ (server-side)** | ⚠️ **معلّق — أعد الفحص قبل اعتباره بند طارق.** يرجّع **401** بلا auth (مُسجَّل + منشور + المسار صحيح — مش 404)، والنداء المُصادَق أظهر «حدث خطأ» (M3d). **لكن:** تبيّن أن جذر مشكلة `/chat` كان **تغليفاً مزدوجاً** (`data.data` = الـ id) — **إصلاح عميل لا فشل سيرفر** (محلول، commit `4cc7f27`). فقد يكون `/note` **نفس bug الشكل على العميل** لا 5xx حقيقي. **أعد فحص الـ envelope الخام لـ `/note`** (سجّل الـ response كاملاً) قبل معاملته كبند طارق. للتمييز 5xx مقابل status≠1: اقرأ سطر log `[HTTP] <status> <url>` عند الضغط. |
-| ~~**الخطّابة — نص `status` بالأرشيف مترجَم؟**~~ | ✅ **محلول (طارق، 14 يونيو)** — أضاف `statusNameAr`/`statusNameEn` مترجَمَين على `ArchiveItemDto`؛ استهلكناهما (commit `b31a7fa`)، نعرض حسب اللغة. |
-| ~~`GET /users/subscription-plans` منشور؟ + فلتر `?planId=` شغّال؟~~ | ✅ **محلول + متحقَّق حي (15 يونيو)** — كلاهما شغّال. الـ endpoint رجّع باقتين (`planId`/`nameAr`/`nameEn`/`subscriberCount`)، و`approved-subscribed?planId=` فلتر server-side صح (الماسية·٠ → قائمة فارغة، الذهبية·٧ → ٧). بُني عليه شريط فلتر الباقات تحت «مشتركون» (انظر «القرارات → فلتر الباقات»). **ملاحظة:** أجسام Swagger كانت stubs، فأسماء الحقول من الـ brief — تطابقت مع الواقع، لكن الـ parsers دفاعية لو اختلفت لاحقاً. |
-| **الخطّابة — تحقّق إيصال IAP** على الباك إند | معلّق — مطلوب وقت بناء paywall (الدفع = IAP محسوم) |
-| **Paywall — تحديث `subscription_plans` بالمنتجات الجديدة** (`basicmonthly` · `vipmonthly` · `vip3month`) + أسعار USD حقيقية + `googleProductId`/`appleProductId` لكل pricing | 🔴 **حاجب لاختبار الـ paywall الحقيقي على الجهاز** — بانتظار طارق |
-| **Paywall — تأكيد نشر endpoint `/validate-code`** | معلّق — بانتظار تأكيد طارق للـ deploy |
-| **الخطّابة — روابط «تواصل معنا» الحقيقية** (product) | معلّق — حالياً placeholders |
-| **الخطّابة — أشكال colleagues/notifications** (مسطّح vs متداخل، array vs paged) | معلّق — **non-blocking** (parsers دفاعية تغطّي) |
-| ~~**تطبيق المستخدم — `data` بالإشعارات null / `data.action` فارغ**~~ | ✅ **محلول (طارق، 14 يونيو)** — الجذر كان `data` ما يُحفَظ بالـ DB؛ صار يُرجَع كـ JSON string بالقيم الموثّقة. السجلات القديمة تبقى `data:null` (fallback عندنا: لا deep-link، لا crash). **يبقى تحقّق حي** لأيقونات per-action + توجيه `data` معبّأ على إشعار post-fix (انظر Deferred متابعة 2). |
-| ~~**تطبيق المستخدم — `titleEn`/`bodyEn` فارغة ببعض السجلات**~~ | ✅ **محلول (طارق، 14 يونيو)** — أكّد ثنائية اللغة 100% على كل الأنواع (Chat/Match/Profile/Announcement/Offer/General). رفض البروفايل صار body «السبب: …» + `data.reason`. |
-| **تطبيق المستخدم — تدقيق الحقول ثنائية اللغة (شامل APIs)** | **مستمر** — الإشعارات + الأرشيف أُغلقا (طارق 14 يونيو). الاصطلاح المعتمد: **المحتوى المعروض = حقول ثنائية اللغة تُملأ دائماً (العميل يختار بالـ locale)؛ رسائل النظام = عبر `Accept-Language`.** يبقى مسح باقي الـ APIs لأي `*En` فارغ. |
-| (product) بلد الزميلة (colleague country)؟ | معلّق — مش بالـ DTO |
-| (product) unread لكل بطاقة بقوائم الأعضاء؟ | معلّق — موجود بالمحادثات فقط |
-| مسارات الصور (حذف/تعيين رئيسية) | معلّق — تعارض user-images / profile-images |
-| ~~Help & Support endpoint~~ | ✅ **محلول + مربوط (28 يونيو)** — `GET /support/categories` + `POST /support/tickets` (JWT) حيّان (تأكّد بـ 401 vs 404). مربوط Clean-Architecture؛ كان stub وهمي. أخطاء حقيقية incl. `SUPPORT_TICKETS_LIMIT_REACHED` (حدّ 5 مفتوحة). الأشكال من وثيقة طارق (الـ body غير قابل للـ probe بلا توكن). |
-| ~~Terms & Privacy — النص الحقيقي~~ | ✅ **محلول + مربوط** — `terms-and-conditions` + `privacy-policy` (public، ثنائية اللغة) ديناميكية على الجهتين. |
-| Verified-badge flag | معلّق — hardcoded حالياً |
-| Delete-account flow | غير مؤكد |
-| حد الماتشات | backend-only — نأكد الرقم |
-| بوابات الدفع | معلّق — الباقات تجلب بيانات بس بلا دفع |
-
----
-
-## 📍 جلسة sweep الـ design system (commits على main)
-- `7a8ec1f` — حذف swipe-deck الميت (~65 legacy ref راحوا).
-- `1299c8b` — حذف 3 `Directionality` widgets ممنوعة (otp + 2 discovery).
-- `c932de5` + `f26e078` — إصلاحات توكنز: أضفنا `wineLight`، وربطنا الـ radii الشاردة بالـ scale (22→card، أشرطة 2px→pill).
-- `878f5cc` — خانات OTP مقفولة LTR بكل اللغات.
-- **legacy refs:** ~390 → ~315. ثم بدأت هجرة `auth/` (تحت).
-
----
-
-## 🔧 هجرة auth — التقدّم (sub-steps)
-**معمول:**
-- `079d077` — أضفنا `QeranTextField` للـ DS (بديل `AppTextFormField`؛ creamSurface fill + control radius + عين `showObscureToggle` مدمجة، RTL-aware).
-- `a19ce3d` — توكن `appleBlack` (#000000) = الأسود الوحيد المسموح بالتطبيق، استثناء التزام بعلامة Apple (HIG) — على glyph الـ Apple فقط.
-- `0a4681a` — **sub-step a:** هجرة الـ leaves البصرية المشتركة (`or_divider`, `auth_footer_link`, `auth_title_subtitle`, `social_login_buttons`, `oath_title_ornament`؛ `auth_back_button` نظيف أصلاً؛ `auth_logo_header` **حُذف لاحقاً** في auth re-skin).
-- `95b4d88` — **sub-step b:** هجرة wrappers الإيميل + كلمة المرور للـ `QeranTextField`.
-- `60f85f5` — **sub-step b2:** هجرة حقل الهاتف + `CountryCodePicker` معاً.
-- `3f4fd19` — أسطح الحقول/الكروت `creamSurface` → `paper` أبيض + `hairline border` (مراجعة تصميم).
-- `e3ddd3d` + `5b80df4` — **sub-step c:** login/register يطابقوا التصميم (label فوق الحقل، تبنّي العين المدمجة `showObscureToggle`، حذف الـ notifier من الـ controllers)؛ والحقول صارت `pill`/borderless + ظل `e1` + hint الاسم من التصميم.
-- `657dee9` — hints أصغر/أفتح + توكن `inkFaint` (مراجعة تصميم).
-- `469e9c5` — disc جوجل → `paper` أبيض + ظل `e2` (مراجعة تصميم).
-- `e812c8f` — **sub-step d:** هجرة شاشتي forgot/reset password.
-- `8b87d07` — **sub-step e:** whatsapp/OTP (أصلح deprecation `otp_input_row:84` background؛ منطق محفوظ: LTR-lock + focus-advance + timer الـ resend).
-- `85c3d63` — **sub-step f:** oath (طوينا الـ hex المؤجّل لتوكنز؛ تدرّج `paper→creamSurface`، `panelR`، ظل `e3`؛ توكن `QeranRadii.xs` جديد للـ checkbox).
-- `5df72f9` — **sub-step g:** upload-image (الكتلة كانت شبه مهاجَرة؛ بقي `CustomButton`→`QeranButton` بالشاشة الرئيسية).
-
-**الحالة:** 0 ✅ · a ✅ · b ✅ · b2 ✅ · c ✅ · d ✅ · e ✅ · f ✅ · g ✅ — **هجرة `auth/` مكتملة بالكامل** 🏁
-**الباقي:** لا شيء داخل auth. التالي = الخطّابة M3 + باقي الـ sweep.
-
----
-
-## 🧩 الخطّابة — M3 (إعادة تصميم البطاقة + التوحيد) — ✅ مكتملة 🏁
-**الحالة:** السلسلة **كاملة** — إعادة تصميم الكرت + موافقة/رفض + مراسلة + ملاحظات + عرض + مرآة الاهتمامات، كلها معمولة ومـcommitted.
-
-**معمول (commits على main):**
-- `e4a9a82` — **sub-step 1:** إصلاح parser الاشتراك flat → nested (`{planName, expiresAt}`).
-- `44c0e80` — **sub-step 2:** `age` + `answers[]` على كرت العضو (data+domain+widget؛ سطر العمر مستقل «عندي {age} سنة»، الإجابات نص حرفي ≤3).
-- `fe1721f` — **M3a:** إعادة تصميم الكرت — حذف tap/التاريخ/chevron، صف أزرار لكل قائمة (scaffold).
-- `644929d` — **M3b:** موافقة/رفض عبر **شيت تأكيد** (approve / reject-with-reason)؛ هجرة `reject_reason_sheet` لـ `QeranTextField`؛ توكن `softFill` + variant `neutral` + `QeranSheetHandle`.
-- `940d5bc` — تحويل الـ base URL للسيرفر الجديد (`qeranadmin-001-site1.rtempurl.com/api/`).
-- `1c83cd9` — **M3c:** زر المراسلة يفتح المحادثة (lazy-open بالـ `userId` → الشاشة الموجودة عبر `MatchmakerConversation` رفيعة؛ host على مستوى القائمة)؛ استخراج `MatchmakerCardAnswersBlock`.
-- `835403e` — **M3d:** الملاحظات full-stack (`GET/PUT/DELETE …/note`، assigned-only، عدّاد 2000 حرف، تأكيد-قبل-حذف، 4 مسارات أخطاء)؛ أضفنا `put()` للـ ApiConsumer + `QeranTextField` auto `controlR`.
-- `4d8a469` — **M3e:** عرض → الملف (سلك تنقّل واحد) + الملف **عرض-فقط** (حذف action-bar) + حذف سقالة `ProfileEntrySource.matchmaker`.
-- `17a8c82` — **M3e2:** إعادة «طلب صورة» لشيت مراجعة الكرت (مشروط `hasProfileImage == false`).
-- `e1de2fb` — **M3f-a:** طبقة data/domain لمرآة الاهتمامات (4 endpoints، 8 entities، 6 models، datasource بـ `_page` helper، repo، 3 usecases، DI).
-- `0440908` — **M3f-b:** cubit/state + شاشة + 3 تابات + route + سلك «الإهتمامات» (تاب حي واحد).
-- `68cfedc` — **M3f-c:** الكروت read-only الحقيقية (like/match/archive) + قسم «الأرشيف» inline + نقر→الملف + تصحيح أسماء حقول M3f-a لوثيقة طارق (archive: `type`+`reason`، إسقاط age الوهمي؛ like: `profileId`؛ match: `formalRequest`).
-
-**ملاحظات تنفيذية (للمتابعة):**
-- مرآة الاهتمامات: نص الأرشيف `status` يُعرض **خام من الباك إند**؛ إن كان عربي-فقط فالإنجليزية ستعرضه عربياً — قرار معلّق على طارق (انظر الجدول). الـ `reason` label مترجَم عندنا كاحتياطي.
-- إعادة استخدام `LikeBlurredImage` (من ميزة likes) يحمل `AppColors` legacy **داخلياً** — موجود مسبقاً، ما لمسناه (legacy-grep على ملفاتنا = صفر).
-
----
-
-## 🧩 الخطّابة — الإغلاق (5 ميزات) — ✅ مكتملة 🏁
-**الحالة:** خطة الإغلاق كاملة بالترتيب المحسوم — الإعدادات → الزميلات → فلتر الحالات → الاستكشاف → الإشعارات. القرارات بقسم «القرارات الثابتة → الخطّابة (قرارات الإغلاق)»؛ أعلام التشغيل بقسم «أعلام التحقّق التشغيلي».
-
-**معمول (commits على main):**
-- **الميزة 1 — الإعدادات (الحساب `matchmaker/me`):** `395213e` (S1a · data/domain) · `aca3d4d` (S1b · cubit + شاشة الإعدادات) · `c979d1a` (S1c · شيت تعديل الاسم + شيت تغيير كلمة المرور + «تواصل معنا»). يغطّي: عرض الحساب، تعديل الاسم، رفع الصورة (multipart `Images`)، تعطيل الحساب، تغيير كلمة المرور (`/api/auth/change-password`)، روابط التواصل (placeholders).
-- **الميزة 2 — الزميلات:** `2fb2587` (data/domain — `MatchmakerColleague` + إعادة استخدام كيان المحادثة، 3 usecases) · `ee93c82` (قائمة محادثات الزميلات + شاشة الدليل + open-chat + FAB ذهبي على السيغمنت).
-- **الميزة 3 — فلتر الحالات (client-side status + name):** `2f494d3` (كيان الفلتر + cubit رفيع + شيت بإعادة استخدام sub-widgets discovery + شريط فلتر بنقطة نشاط؛ `pageSize` 100؛ تضمين تحويل baseUrl→https).
-- **الميزة 4 — الاستكشاف:** `bb45e69` (data/domain + `buildExploreQuery` المنقول) · `a4f8537` (شيت الفلتر الموازي — cubit/state/renderer) · `14955f1` (الشاشة — بحث debounced + سيغمنت الجنس + أيقونة فلتر + قائمة الكروت؛ نقر→الملف).
-- **الميزة 5 — الإشعارات:** `f05a2b7` (صندوق inbox مرقّم + model حقيقي يفكّ `data` JSON-string + badge unread محلي singleton + tile DS موازٍ + سلك الجرس بكل التابات؛ ثابتا endpoint `notifications`/`notifications/count`).
-
-**ملاحظات تنفيذية (للمتابعة):**
-- كل الميزات: gates خضراء (`flutter analyze lib` = 0 errors عدا lint `notification_tile:26` القديم؛ legacy-grep صفر على ملفاتنا؛ ملفات <200).
-- الـ DS الجديد بهالإغلاق: `MatchmakerExploreFilterRenderer` (renderer خطّابة موازٍ)، `MatchmakerNotificationTile` (tile DS موازٍ)، badge cubit singleton.
-
----
-
-## 🧩 الخطّابة — توحيد الملف (Part 2) + إصلاحات dialog/بطاقة — ✅ مكتملة 🏁
-**الحالة:** ملف الخطّابة (يُفتَح من «عرض» + نقر كرت الاستكشاف + كرت الاهتمامات — **كل المداخل موحّدة على `RouteNames.matchmakerUserProfile`**) صار **نفس شكل ملف تطبيق المستخدم**، عبر **building-blocks مشتركة لا شاشة مشتركة** (Option C). القرارات بقسم «القرارات الثابتة → الخطّابة (قرارات توحيد الملف)».
-
-**معمول (commits على main):**
-- **PV1 — `44d2980`:** hero overlay — `MatchmakerProfileHero` يعيد تركيب الهوية فوق الصورة (gallery + scrim + اسم/عمر + chips فوق-الصورة) من الـ leaf widgets؛ يُسقط verified + match-pill.
-- **PV2 — `d0cf801`:** main-card composition — كرت نبذة واحد متّصل تحت الصورة (status chip + email + نبذة + inside chips) + باقي الأقسام كروت (`asCards:true, includeNarrative:false`)؛ توحيد كل المداخل؛ حذف `matchmaker_profile_header` + `matchmaker_above_image_section` + `matchmaker_profile_status_banner` (أُدمجت).
-- **PV2.5 — `6cbcb41`:** `TextAnswerEditScope` (InheritedWidget، في feature الملف) + `PlacementItemRenderer` يقرأه (additive، null-guarded) → قلم لعناصر `type==text` فقط عند وجود الـ scope. infra فقط — لا شيء يركّبه (تطبيق المستخدم بلا أقلام، مُثبَت).
-- **PV3 — `d95fefc`:** تعديل inline — sheet (`QeranTextField` معبّأ، يعيد استخدام `MatchmakerAnswerSaveCubit`) + host يركّب الـ scope (محصور pendingReview/rejected) → حفظ → snackbar + refresh. + ترقية chips «inside» للأبيض **عالمياً** (default الـ variant).
-- **PV4 — `246b67f`:** حذف flow الإجابات المستقلّ (الشاشة + الزر العلوي + list cubit + GET usecase/models/entities + route + DI)؛ **إبقاء stack الحفظ** (`updateTextAnswer` + `MatchmakerAnswerSaveCubit`). جرّاحة دقيقة على datasource/repo (حذف GET، إبقاء save).
-- **`e878073`:** `QeranConfirmDialog` الموحّد (يصلح نص الأزرار المقطوع «تسجيل خر…») — كل dialogs تأكيد الخطّابة عليه؛ حذف `MatchmakerConfirmDialog`.
-- **`5c749a3`:** موازنة بطاقة عضو الخطّابة (أفاتار 56→72 + توسيط).
-
-**ملاحظات تنفيذية (للمتابعة):**
-- كل الـ steps: gates خضراء (`flutter analyze lib` = 0 errors عدا lint `notification_tile:26` القديم؛ legacy-grep صفر على ملفاتنا؛ ملفات <200 — عدا aggregators موجودة مسبقاً `injection`/`app_router` قلّصناها).
-- **صفر لمس لملفات ملف-المستخدم** بالـ Part 2 (الاستثناء الوحيد: `inside_chips_section` default الـ variant — ترقية عالمية مقصودة).
+- deep-link «الحالات» من الصندوق لتاب الحالات (shell scope للـ route المدفوع).
+- أيقونات إشعارات per-action + توجيه `data` معبّأ — يحتاج إشعار **post-fix** + push حقيقي (`adb` لا يحاكي `onMessageOpenedApp`/`getInitialMessage`).
+- خيوط الزميلات realtime — تحتاج حسابَي Moderator حيّين.
+- سيغمنت الجنس بالاستكشاف يفلتر فعلاً (Male/Female للباك إند).
+- تاب «بالانتظار» (Users) — كان 0 مستخدمين؛ نفس مسار كود الكرت.
+- نص `matchmaker_users_age_years` = «عندي {age} سنة» (صيغة متكلّم — POV غلط لعرض مستخدم؛ إصلاح صياغة على جهتنا).

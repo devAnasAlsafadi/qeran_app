@@ -13,6 +13,8 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import 'package:qeran/features/notifications/presentation/widgets/notification_inbox_tile.dart'
+    show NotificationInboxDivider;
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../shared/data/matchmaker_notification_router.dart';
@@ -113,6 +115,7 @@ class _Body extends StatelessWidget {
         }
         if (state.errorMessage != null && state.items.isEmpty) {
           return QeranErrorState(
+            icon: Icons.cloud_off_rounded,
             title: LocaleKeys.matchmaker_notifications_error_title.t(context),
             message: state.errorMessage!.t(context),
             retryLabel: LocaleKeys.matchmaker_notifications_retry.t(context),
@@ -122,23 +125,30 @@ class _Body extends StatelessWidget {
         if (state.items.isEmpty) {
           return _EmptyRefreshable(onRefresh: cubit.refresh);
         }
+        final count = state.items.length;
         return MatchmakerPaginatedList(
           hasMore: state.hasMore,
           onRefresh: cubit.refresh,
           onLoadMore: cubit.loadMore,
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(
-              QeranSpacing.s20,
-              QeranSpacing.s12,
-              QeranSpacing.s20,
-              QeranSpacing.s20,
+          // Flat divided feed matching the user inbox (screen 13): rows sit on
+          // the cream canvas, separated by wine-08 hairlines (no per-row cards).
+          // The tile owns its horizontal gutter so dividers align under the text.
+          child: ListView.separated(
+            padding: const EdgeInsets.only(
+              top: QeranSpacing.s4,
+              bottom: QeranSpacing.s20,
             ),
             physics: const AlwaysScrollableScrollPhysics(
               parent: BouncingScrollPhysics(),
             ),
-            itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
+            itemCount: count + (state.isLoadingMore ? 1 : 0),
+            separatorBuilder: (context, index) =>
+                // No divider between the last row and the load-more footer.
+                index < count - 1
+                    ? const NotificationInboxDivider()
+                    : const SizedBox.shrink(),
             itemBuilder: (context, index) {
-              if (index >= state.items.length) {
+              if (index >= count) {
                 return const MatchmakerLoadMoreFooter();
               }
               final n = state.items[index];

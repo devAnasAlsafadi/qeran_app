@@ -4,10 +4,12 @@ class RegisterController {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final referralCodeController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final nameFocus = FocusNode();
   final emailFocus = FocusNode();
   final passwordFocus = FocusNode();
+  final referralFocus = FocusNode();
 
   final ValueNotifier<bool> acceptedPolicyNotifier = ValueNotifier<bool>(false);
 
@@ -23,9 +25,11 @@ class RegisterController {
     nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    referralCodeController.dispose();
     nameFocus.dispose();
     emailFocus.dispose();
     passwordFocus.dispose();
+    referralFocus.dispose();
     acceptedPolicyNotifier.dispose();
   }
 }

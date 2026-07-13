@@ -54,6 +54,10 @@ abstract class  LocaleKeys {
   static const auth_phone_hint = 'auth.phone_hint';
   static const auth_name_hint = 'auth.name_hint';
   static const auth_name_label = 'auth.name_label';
+  static const auth_referral_label = 'auth.referral_label';
+  static const auth_referral_optional = 'auth.referral_optional';
+  static const auth_referral_placeholder = 'auth.referral_placeholder';
+  static const auth_referral_hint = 'auth.referral_hint';
   static const auth_email_label = 'auth.email_label';
   static const auth_policy_agree = 'auth.policy_agree';
   static const auth_privacy_policy = 'auth.privacy_policy';

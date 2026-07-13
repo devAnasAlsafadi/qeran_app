@@ -28,6 +28,7 @@ abstract interface class AuthRemoteDataSource {
     required String name,
     required String email,
     required String password,
+    String? referralCode,
   });
 
   Future<SuccessResponse<void>> sendWhatsappOtp({required String phoneNumber});
@@ -100,11 +101,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String name,
     required String email,
     required String password,
+    String? referralCode,
   }) async {
-    // Step 1 only: register-new with name, email, password
+    // Step 1 only: register-new with name, email, password (+ optional
+    // affiliate referralCode, omitted from the body when empty/null so an
+    // empty field is never sent as "").
     final response = await _apiConsumer.post(
       EndPoints.register,
-      body: {'name': name, 'email': email, 'password': password},
+      body: {
+        'name': name,
+        'email': email,
+        'password': password,
+        if (referralCode != null && referralCode.trim().isNotEmpty)
+          'referralCode': referralCode.trim(),
+      },
     );
 
     // Parse as dynamic — register-new only returns a partial object (userId),

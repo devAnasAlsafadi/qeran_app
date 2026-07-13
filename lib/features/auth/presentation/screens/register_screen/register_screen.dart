@@ -109,6 +109,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           name: _controller.nameController.text.trim(),
           email: _controller.emailController.text.trim(),
           password: _controller.passwordController.text,
+          referralCode: _controller.referralCodeController.text.trim(),
         ),
       );
     }

@@ -38,12 +38,14 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
     required String name,
     required String email,
     required String password,
+    String? referralCode,
   }) {
     return executeApiCall(() async {
       final successResponse = await _dataSource.registerUser(
         name: name,
         email: email,
         password: password,
+        referralCode: referralCode,
       );
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();

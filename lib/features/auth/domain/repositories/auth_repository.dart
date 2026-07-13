@@ -16,6 +16,7 @@ abstract interface class AuthRepository {
     required String name,
     required String email,
     required String password,
+    String? referralCode,
   });
 
   Future<Either<Failure, Unit>> sendWhatsappOtp({required String phoneNumber});

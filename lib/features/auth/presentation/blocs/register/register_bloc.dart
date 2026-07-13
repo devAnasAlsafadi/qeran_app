@@ -26,6 +26,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       name: event.name,
       email: event.email,
       password: event.password,
+      referralCode: event.referralCode,
     );
     if (emit.isDone) return;
     result.fold(

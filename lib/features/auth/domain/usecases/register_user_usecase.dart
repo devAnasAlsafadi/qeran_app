@@ -12,5 +12,11 @@ class RegisterUserUseCase {
     required String name,
     required String email,
     required String password,
-  }) => _repository.registerUser(name: name, email: email, password: password);
+    String? referralCode,
+  }) => _repository.registerUser(
+        name: name,
+        email: email,
+        password: password,
+        referralCode: referralCode,
+      );
 }

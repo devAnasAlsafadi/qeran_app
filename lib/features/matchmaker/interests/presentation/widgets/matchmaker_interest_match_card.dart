@@ -2,27 +2,19 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/design_system/widgets/qeran_chip.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../../likes/presentation/widgets/like_blurred_image.dart';
-import '../../../../likes/presentation/widgets/match_card_scaffold.dart';
 import '../../../users/presentation/widgets/matchmaker_card_answers_block.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
 import '../../domain/entities/matchmaker_interest_formal_request.dart';
 import '../../domain/entities/matchmaker_interest_match.dart';
+import 'matchmaker_interest_card.dart';
 
 /// Read-only active-match card — the gold-accented tier. Reuses
-/// [MatchCardScaffold] for the avatar + name + stage line, with the flagged
-/// answers and the backend formal-status (verbatim) in the footer. No CTAs, no
-/// countdown ([MatchCardScaffold.topChip] stays null). When [MatchmakerInterest
-/// Match.isLocked] the other party is redacted (blurred image, hidden name /
-/// answers / formal status), the stage line is kept, and the card isn't
-/// tappable — never a subscription CTA.
+/// [MatchmakerInterestCard] as a thin visual adapter.
 class MatchmakerInterestMatchCard extends StatelessWidget {
   const MatchmakerInterestMatchCard({super.key, required this.match});
 
@@ -32,10 +24,12 @@ class MatchmakerInterestMatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final locked = match.isLocked;
     final spec = _stageSpec(match.stage);
-    return QeranCard(
-      margin: const EdgeInsets.only(bottom: QeranSpacing.s12),
-      padding: const EdgeInsets.all(QeranSpacing.s12),
-      accentBar: true,
+    final formalLabel = _formalLabel(context, match.formalRequest);
+
+    return MatchmakerInterestCard(
+      imageUrl: match.primaryImage?.url,
+      name: match.name,
+      locked: locked,
       onTap: locked
           ? null
           : () => NavigationManager.navigateTo(
@@ -43,46 +37,25 @@ class MatchmakerInterestMatchCard extends StatelessWidget {
                 RouteNames.matchmakerUserProfile,
                 arguments: match.otherUserId,
               ),
-      child: MatchCardScaffold(
-        avatar: LikeBlurredImage(
-          url: match.primaryImage?.url,
-          blur: locked,
-          size: 56,
-        ),
-        name: locked
-            ? LocaleKeys.matchmaker_interests_locked_name.t(context)
-            : match.name,
-        statusIcon: spec.icon,
-        statusText: spec.labelKey.t(context),
-        statusColor: spec.color,
-        footer: _footer(context, locked),
-      ),
-    );
-  }
-
-  Widget? _footer(BuildContext context, bool locked) {
-    if (locked) return null;
-    final children = <Widget>[];
-    if (match.answers.isNotEmpty) {
-      children.add(MatchmakerCardAnswersBlock(answers: match.answers));
-    }
-    final formalLabel = _formalLabel(context, match.formalRequest);
-    if (formalLabel != null) {
-      if (children.isNotEmpty) children.add(QeranSpacing.vs8);
-      children.add(
+      chips: [
         QeranChip(
-          label: formalLabel,
-          variant: QeranChipVariant.interest,
-          icon: Icons.verified_outlined,
+          label: spec.labelKey.t(context),
+          variant: QeranChipVariant.status,
+          statusColor: spec.color,
+          icon: spec.icon,
           compact: true,
         ),
-      );
-    }
-    if (children.isEmpty) return null;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: children,
+        if (formalLabel != null)
+          QeranChip(
+            label: formalLabel,
+            variant: QeranChipVariant.interest,
+            icon: Icons.verified_outlined,
+            compact: true,
+          ),
+      ],
+      facts: match.answers.isNotEmpty
+          ? MatchmakerCardAnswersBlock(answers: match.answers)
+          : null,
     );
   }
 }

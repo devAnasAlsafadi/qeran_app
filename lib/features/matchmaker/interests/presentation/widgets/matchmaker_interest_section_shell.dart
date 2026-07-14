@@ -41,6 +41,7 @@ class MatchmakerInterestSectionShell extends StatelessWidget {
     if (!hasData) {
       if (status == MatchmakerInterestsAsyncStatus.failure) {
         return QeranErrorState(
+          icon: Icons.cloud_off_rounded,
           title: LocaleKeys.matchmaker_interests_error_title.t(context),
           message: (errorKey ?? LocaleKeys.errors_generic).t(context),
           retryLabel: LocaleKeys.matchmaker_users_retry.t(context),

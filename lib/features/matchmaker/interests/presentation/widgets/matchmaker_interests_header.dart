@@ -26,7 +26,11 @@ class MatchmakerInterestsHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          MatchmakerUserAvatar(url: user.profileImageUrl, size: 48),
+          MatchmakerUserAvatar(
+            url: user.profileImageUrl,
+            size: 48,
+            monogramName: user.fullName,
+          ),
           QeranSpacing.hs12,
           Expanded(
             child: Column(

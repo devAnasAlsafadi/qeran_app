@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,9 +10,13 @@ import '../../../../auth/presentation/blocs/user_session/user_session_cubit.dart
 import '../../../../auth/presentation/blocs/user_session/user_session_state.dart';
 
 /// The ONLY entry point for rendering a profile image inside the
-/// Matchmaker module. JWT-headered, never blurred — backend sends
-/// `isBlurred=false` for the moderator role, and we don't even read
-/// the flag here so a server bug can never blur a moderator's view.
+/// Matchmaker module. JWT-headered. It never reads the server `isBlurred`
+/// flag — the backend sends `isBlurred=false` for the moderator role, and by
+/// not reading it a server bug can never blur a moderator's view.
+///
+/// Blur here is a purely **client-side opt-in** ([blur], default false) used
+/// only to redact a locked counterparty on the interests screen — unrelated to
+/// (and never driven by) the server flag.
 ///
 /// Pass an already-absolute URL (the data layer should run it through
 /// `EndPoints.absoluteUrl` before reaching the UI).
@@ -25,6 +31,7 @@ class MatchmakerUserAvatar extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.alignment = const Alignment(0, -0.3),
     this.monogramName,
+    this.blur = false,
   });
 
   final String? url;
@@ -40,6 +47,13 @@ class MatchmakerUserAvatar extends StatelessWidget {
   /// [fallbackIcon]. Opt-in — other call sites keep the icon fallback.
   final String? monogramName;
 
+  /// Client-side opt-in blur for a redacted (locked) counterparty. Defaults to
+  /// false, so every other call site renders identically to before. Blurs
+  /// whatever the clip contains — image OR monogram/icon fallback — while the
+  /// underlying [errorListener] cache-eviction and fallback logic run
+  /// unchanged beneath it.
+  final bool blur;
+
   @override
   Widget build(BuildContext context) {
     final image = _buildImageOrFallback(context);
@@ -49,8 +63,14 @@ class MatchmakerUserAvatar extends StatelessWidget {
             borderRadius: borderRadius ?? BorderRadius.circular(12),
             child: image,
           );
-    if (size == null) return SizedBox.expand(child: clipped);
-    return SizedBox(width: size, height: size, child: clipped);
+    final content = blur
+        ? ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+            child: clipped,
+          )
+        : clipped;
+    if (size == null) return SizedBox.expand(child: content);
+    return SizedBox(width: size, height: size, child: content);
   }
 
   Widget _buildImageOrFallback(BuildContext context) {

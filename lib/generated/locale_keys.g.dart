@@ -463,6 +463,15 @@ abstract class  LocaleKeys {
   static const matchmaker_referral_copied_toast = 'matchmaker.referral_copied_toast';
   static const matchmaker_affiliate_row_title = 'matchmaker.affiliate_row_title';
   static const matchmaker_affiliate_row_subtitle = 'matchmaker.affiliate_row_subtitle';
+  static const matchmaker_affiliate_shared_code_label = 'matchmaker.affiliate_shared_code_label';
+  static const matchmaker_affiliate_total_label = 'matchmaker.affiliate_total_label';
+  static const matchmaker_affiliate_pending_label = 'matchmaker.affiliate_pending_label';
+  static const matchmaker_affiliate_paid_label = 'matchmaker.affiliate_paid_label';
+  static const matchmaker_affiliate_ledger_title = 'matchmaker.affiliate_ledger_title';
+  static const matchmaker_affiliate_status_pending = 'matchmaker.affiliate_status_pending';
+  static const matchmaker_affiliate_status_confirmed = 'matchmaker.affiliate_status_confirmed';
+  static const matchmaker_affiliate_status_reversed = 'matchmaker.affiliate_status_reversed';
+  static const matchmaker_affiliate_load_more = 'matchmaker.affiliate_load_more';
   static const matchmaker_dashboard_pending = 'matchmaker.dashboard_pending';
   static const matchmaker_dashboard_approved_subscribed = 'matchmaker.dashboard_approved_subscribed';
   static const matchmaker_dashboard_approved_unsubscribed = 'matchmaker.dashboard_approved_unsubscribed';

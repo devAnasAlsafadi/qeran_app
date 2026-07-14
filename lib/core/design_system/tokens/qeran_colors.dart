@@ -21,6 +21,13 @@ class QeranColors {
   /// highlights (e.g. the onboarding marriage-rings motif).
   static const Color goldLight = Color(0xFFF2D9AC);
 
+  /// Soft, warm opaque fill for a "pending / awaiting settlement" status —
+  /// paler and creamier than [goldLight], it reads as a distinct filled band
+  /// (not just a tint) so a pending affiliate-commission chip is clearly warmer
+  /// than a confirmed one's [gold12] wash. Pairs with [goldDeep] text +
+  /// [gold40] border.
+  static const Color goldPending = Color(0xFFF7ECD6);
+
   // Canvas tier
   static const Color creamCanvas = Color(0xFFF8F8F8);
   static const Color creamSurface = Color(0xFFFBF4E6);

@@ -35,7 +35,7 @@ class AffiliateSummaryModel {
         totalCommission: parseDouble(json['totalCommission']),
         pendingCommission: parseDouble(json['pendingCommission']),
         paidCommission: parseDouble(json['paidCommission']),
-        currency: parseString(json['currency'], fallback: 'SAR'),
+        currency: parseString(json['currency'], fallback: 'USD'),
       );
 
   AffiliateSummary toEntity() => AffiliateSummary(

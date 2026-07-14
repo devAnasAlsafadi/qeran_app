@@ -32,7 +32,7 @@ class AffiliateCommissionModel {
         planName: parseString(json['planName']),
         discountCode: parseString(json['discountCode']),
         amount: parseDouble(json['amount']),
-        currency: parseString(json['currency'], fallback: 'SAR'),
+        currency: parseString(json['currency'], fallback: 'USD'),
         status: _parseStatus(json['status']),
       );
 

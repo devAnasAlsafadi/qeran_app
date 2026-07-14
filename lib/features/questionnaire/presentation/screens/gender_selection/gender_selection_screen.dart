@@ -9,6 +9,8 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
@@ -17,6 +19,7 @@ import '../../blocs/questionnaire_cubit.dart';
 import '../../blocs/questionnaire_state.dart';
 import '../../controllers/gender_selection_controller.dart';
 import 'widgets/gender_continue_button.dart';
+import 'widgets/gender_hero_header.dart';
 import 'widgets/gender_row.dart';
 
 class GenderSelectionScreen extends StatefulWidget {
@@ -51,42 +54,67 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
         listener: _onStateChanged,
         child: OnboardingPopScope(
           child: Scaffold(
-            body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: QeranSpacing.s24,
-                  vertical: QeranSpacing.s16,
-                ),
-                child: Column(
-                  children: [
-                    const Spacer(flex: 2),
-                    Text(
-                      LocaleKeys.questionnaire_welcome.t(context),
-                      textAlign: TextAlign.center,
-                      style: QeranTypography.displaySm,
+            backgroundColor: QeranColors.wine,
+            body: Column(
+              children: [
+                // Wine hero band (onboarding family: wineLight→wine gradient +
+                // ring motif) carrying the heading + language pill.
+                const GenderHeroHeader(),
+                // Cream dome surfacing out of the hero, holding the two cards
+                // and the continue action.
+                Expanded(
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: QeranColors.creamCanvas,
+                      borderRadius: QeranRadii.domeTop,
+                      boxShadow: QeranShadows.eLiftUp,
                     ),
-                    QeranSpacing.vs8,
-                    Text(
-                      LocaleKeys.questionnaire_choose_identity.t(context),
-                      textAlign: TextAlign.center,
-                      style: QeranTypography.headline,
-                    ),
-                    QeranSpacing.vs8,
-                    Text(
-                      LocaleKeys.questionnaire_identity_info.t(context),
-                      textAlign: TextAlign.center,
-                      style: QeranTypography.bodySm.copyWith(
-                        color: QeranColors.inkMuted,
+                    child: SafeArea(
+                      top: false,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          QeranSpacing.s24,
+                          QeranSpacing.s32,
+                          QeranSpacing.s24,
+                          QeranSpacing.s24,
+                        ),
+                        child: Column(
+                          children: [
+                            // Center the cards in the space above the pinned
+                            // action (equal flex above/below) so they breathe
+                            // rather than sitting high with a dead zone below.
+                            const Spacer(),
+                            GenderRow(controller: _controller),
+                            const Spacer(),
+                            GenderContinueButton(controller: _controller),
+                            QeranSpacing.vs16,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.shield_outlined,
+                                  size: 16,
+                                  color: QeranColors.inkMuted,
+                                ),
+                                QeranSpacing.hs4,
+                                Flexible(
+                                  child: Text(
+                                    LocaleKeys.questionnaire_gender_privacy
+                                        .t(context),
+                                    style: QeranTypography.bodySm.copyWith(
+                                      color: QeranColors.inkMuted,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    QeranSpacing.vs32,
-                    GenderRow(controller: _controller),
-                    const Spacer(flex: 3),
-                    GenderContinueButton(controller: _controller),
-                    QeranSpacing.vs24,
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),

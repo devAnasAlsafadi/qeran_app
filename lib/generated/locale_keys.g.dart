@@ -294,6 +294,7 @@ abstract class  LocaleKeys {
   static const questionnaire_identity_info = 'questionnaire.identity_info';
   static const questionnaire_gender_male = 'questionnaire.gender_male';
   static const questionnaire_gender_female = 'questionnaire.gender_female';
+  static const questionnaire_gender_privacy = 'questionnaire.gender_privacy';
   static const questionnaire_loading = 'questionnaire.loading';
   static const questionnaire_continue_button = 'questionnaire.continue_button';
   static const questionnaire_finish_button = 'questionnaire.finish_button';

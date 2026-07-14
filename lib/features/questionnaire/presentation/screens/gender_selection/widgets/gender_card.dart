@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/enum/gender.dart';
@@ -9,6 +10,11 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_assets.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+/// One identity card — a raised white panel holding the large gender
+/// illustration with its label beneath. Unselected = white surface + a soft
+/// hairline + subtle elevation so it reads as a distinct card on the cream
+/// dome. Selected = the panel fills gold (`gold20`) with a darker gold-deep
+/// border, a gold hero glow and a gold check badge.
 class GenderCard extends StatelessWidget {
   final Gender gender;
   final bool isSelected;
@@ -24,7 +30,8 @@ class GenderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isMale = gender == Gender.male;
-    final String imageAsset = isMale ? AppAssets.male : AppAssets.female;
+    final String imageAsset =
+        isMale ? AppAssets.genderMale : AppAssets.genderFemale;
     final String label = isMale
         ? LocaleKeys.questionnaire_gender_male.t(context)
         : LocaleKeys.questionnaire_gender_female.t(context);
@@ -35,29 +42,62 @@ class GenderCard extends StatelessWidget {
         duration: QeranMotion.standard,
         curve: QeranCurves.standard,
         decoration: BoxDecoration(
-          color: QeranColors.paper,
+          // White by default (raised card on the cream dome), filling gold on
+          // selection. AnimatedContainer tweens the colour for a smooth
+          // white↔gold transition on tap.
+          color: isSelected ? QeranColors.gold20 : QeranColors.paper,
           borderRadius: QeranRadii.cardR,
           border: Border.all(
-            color: isSelected ? QeranColors.wine : QeranColors.hairline,
+            color: isSelected ? QeranColors.goldDeep : QeranColors.hairline,
             width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected ? QeranShadows.eHero : QeranShadows.e1,
         ),
         child: AspectRatio(
-          aspectRatio: 0.85,
+          aspectRatio: 0.78,
           child: Stack(
             children: [
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.all(QeranSpacing.s16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _Avatar(imageAsset: imageAsset, isSelected: isSelected),
-                      QeranSpacing.vs12,
-                      Text(label, style: QeranTypography.title),
-                    ],
+              Column(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        QeranSpacing.s12,
+                        QeranSpacing.s12,
+                        QeranSpacing.s12,
+                        QeranSpacing.s4,
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // The two source PNGs have different aspects (female
+                          // 440×567 ≈ 0.776, male 388×642 ≈ 0.604). Render BOTH
+                          // at the SAME height so the cards look balanced: cap
+                          // the height so the WIDER (female) illustration still
+                          // fits the box width — this guarantees equal height,
+                          // a consistent laurel baseline, and no crop/distortion
+                          // for either. Bottom-aligned + horizontally centered.
+                          const widestAspect = 0.776; // female — the wider source
+                          final maxByWidth = constraints.maxWidth / widestAspect;
+                          final targetHeight = constraints.maxHeight < maxByWidth
+                              ? constraints.maxHeight
+                              : maxByWidth;
+                          return Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Image.asset(
+                              imageAsset,
+                              height: targetHeight,
+                              fit: BoxFit.contain,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: QeranSpacing.s16),
+                    child: Text(label, style: QeranTypography.title),
+                  ),
+                ],
               ),
               if (isSelected)
                 const PositionedDirectional(
@@ -73,49 +113,19 @@ class GenderCard extends StatelessWidget {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.imageAsset, required this.isSelected});
-
-  final String imageAsset;
-  final bool isSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isSelected ? QeranColors.gold : QeranColors.wine12,
-          width: isSelected ? 3 : 1,
-        ),
-      ),
-      child: ClipOval(
-        child: Image.asset(
-          imageAsset,
-          fit: BoxFit.cover,
-          width: 100,
-          height: 100,
-        ),
-      ),
-    );
-  }
-}
-
 class _SelectedBadge extends StatelessWidget {
   const _SelectedBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 22,
-      height: 22,
+      width: 24,
+      height: 24,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        color: QeranColors.wine,
+        color: QeranColors.gold,
       ),
-      child: const Icon(Icons.check_rounded, size: 14, color: QeranColors.paper),
+      child: const Icon(Icons.check_rounded, size: 15, color: QeranColors.wine),
     );
   }
 }

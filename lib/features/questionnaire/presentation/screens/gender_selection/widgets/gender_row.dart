@@ -14,21 +14,22 @@ class GenderRow extends StatelessWidget {
     return ValueListenableBuilder<Gender?>(
       valueListenable: controller.selectedGenderNotifier,
       builder: (context, selectedGender, _) {
+        // Male first → رجل sits on the start edge (right in RTL), امرأة second.
         return Row(
           children: [
-            Expanded(
-              child: GenderCard(
-                gender: Gender.female,
-                isSelected: selectedGender == Gender.female,
-                onTap: () => controller.selectGender(Gender.female),
-              ),
-            ),
-            QeranSpacing.hs16,
             Expanded(
               child: GenderCard(
                 gender: Gender.male,
                 isSelected: selectedGender == Gender.male,
                 onTap: () => controller.selectGender(Gender.male),
+              ),
+            ),
+            QeranSpacing.hs16,
+            Expanded(
+              child: GenderCard(
+                gender: Gender.female,
+                isSelected: selectedGender == Gender.female,
+                onTap: () => controller.selectGender(Gender.female),
               ),
             ),
           ],

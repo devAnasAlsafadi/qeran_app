@@ -21,10 +21,19 @@ class ServerFailure extends Failure {
 class CodedServerFailure extends ServerFailure {
   final String? errorCode;
 
-  const CodedServerFailure({required super.message, required this.errorCode});
+  /// HTTP status of the failing response when the exception carried one
+  /// (raw path only). Optional / null by default — existing construction sites
+  /// keep working; repos that map on transport status read it.
+  final int? statusCode;
+
+  const CodedServerFailure({
+    required super.message,
+    required this.errorCode,
+    this.statusCode,
+  });
 
   @override
-  List<Object?> get props => [message, errorCode];
+  List<Object?> get props => [message, errorCode, statusCode];
 }
 
 class CacheFailure extends Failure {

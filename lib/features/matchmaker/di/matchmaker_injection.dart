@@ -11,6 +11,11 @@ import '../account/domain/usecases/get_me_usecase.dart';
 import '../account/domain/usecases/update_name_usecase.dart';
 import '../account/domain/usecases/upload_account_photo_usecase.dart';
 import '../account/presentation/blocs/matchmaker_account_cubit.dart';
+import '../affiliate/data/datasources/affiliate_remote_datasource.dart';
+import '../affiliate/data/repositories/affiliate_repository_impl.dart';
+import '../affiliate/domain/repositories/affiliate_repository.dart';
+import '../affiliate/domain/usecases/get_affiliate_summary_usecase.dart';
+import '../affiliate/presentation/blocs/affiliate_summary_cubit.dart';
 import '../colleagues/data/datasources/matchmaker_colleagues_remote_datasource.dart';
 import '../colleagues/data/repositories/matchmaker_colleagues_repository_impl.dart';
 import '../colleagues/domain/repositories/matchmaker_colleagues_repository.dart';
@@ -417,4 +422,15 @@ Future<void> initMatchmakerDependencies() async {
       changePassword: sl(),
     ),
   );
+
+  //! ── Affiliate · Dashboard summary ────────────────────────────────
+  sl.registerLazySingleton<AffiliateRemoteDataSource>(
+    () => AffiliateRemoteDataSourceImpl(apiConsumer: sl()),
+  );
+  sl.registerLazySingleton<AffiliateRepository>(
+    () => AffiliateRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton(() => GetAffiliateSummaryUseCase(sl()));
+  // One cubit per affiliate-screen mount.
+  sl.registerFactory(() => AffiliateSummaryCubit(getSummary: sl()));
 }

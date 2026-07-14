@@ -310,6 +310,12 @@ class EndPoints {
   /// `POST /api/matchmaker/me/deactivate` — body empty.
   static const String matchmakerMeDeactivate = "matchmaker/me/deactivate";
 
+  /// `GET /api/affiliate/summary` — the matchmaker's referral/commission
+  /// totals (code, referred/registered/used counts, earnings by state).
+  /// Read via `getRaw` so a 404 (matchmaker not enrolled in the program)
+  /// surfaces its transport status for the not-enrolled state.
+  static const String affiliateSummary = "affiliate/summary";
+
   /// `GET /api/notifications?page=N&pageSize=M` — shared inbox (not
   /// matchmaker-namespaced). Items carry no read-state; the unread badge is a
   /// local heuristic (see the matchmaker notifications feature).

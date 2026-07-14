@@ -430,6 +430,9 @@ class HttpConsumer extends ApiConsumer {
     throw CodedServerException(
       message: errorMessage,
       errorCode: body is Map ? body['errorCode'] as String? : null,
+      // Preserve the transport status so raw callers can branch on it
+      // (e.g. affiliate maps 404 → not-enrolled). Only the raw path carries it.
+      statusCode: response.statusCode,
     );
   }
 

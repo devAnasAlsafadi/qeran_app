@@ -2,7 +2,13 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 class ServerException implements Exception {
   final String message;
-  ServerException({required this.message});
+
+  /// HTTP status code of the failing response, when the network layer had one
+  /// (currently set only by the raw non-2xx path in `HttpConsumer`). Optional
+  /// and defaults to null, so every existing throw site keeps working; callers
+  /// that need to branch on transport status (e.g. 404 = not-enrolled) read it.
+  final int? statusCode;
+  ServerException({required this.message, this.statusCode});
 
   @override
   String toString() => message;
@@ -30,7 +36,11 @@ class OfflineException implements Exception {
 /// subtype, not a replacement.
 class CodedServerException extends ServerException {
   final String? errorCode;
-  CodedServerException({required super.message, required this.errorCode});
+  CodedServerException({
+    required super.message,
+    required this.errorCode,
+    super.statusCode,
+  });
 }
 
 class CacheException implements Exception {

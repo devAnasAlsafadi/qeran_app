@@ -472,6 +472,11 @@ abstract class  LocaleKeys {
   static const matchmaker_affiliate_status_confirmed = 'matchmaker.affiliate_status_confirmed';
   static const matchmaker_affiliate_status_reversed = 'matchmaker.affiliate_status_reversed';
   static const matchmaker_affiliate_load_more = 'matchmaker.affiliate_load_more';
+  static const matchmaker_affiliate_not_enrolled_title = 'matchmaker.affiliate_not_enrolled_title';
+  static const matchmaker_affiliate_not_enrolled_message = 'matchmaker.affiliate_not_enrolled_message';
+  static const matchmaker_affiliate_ledger_empty_title = 'matchmaker.affiliate_ledger_empty_title';
+  static const matchmaker_affiliate_ledger_empty_message = 'matchmaker.affiliate_ledger_empty_message';
+  static const matchmaker_affiliate_error_title = 'matchmaker.affiliate_error_title';
   static const matchmaker_dashboard_pending = 'matchmaker.dashboard_pending';
   static const matchmaker_dashboard_approved_subscribed = 'matchmaker.dashboard_approved_subscribed';
   static const matchmaker_dashboard_approved_unsubscribed = 'matchmaker.dashboard_approved_unsubscribed';

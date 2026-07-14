@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
+import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
+import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -17,15 +19,16 @@ import '../blocs/affiliate_summary_cubit.dart';
 import '../blocs/affiliate_summary_state.dart';
 import '../widgets/affiliate_commission_row.dart';
 import '../widgets/affiliate_dashboard_header.dart';
+import '../widgets/affiliate_dashboard_states.dart';
 
 /// Matchmaker affiliate & commissions dashboard (pushed from the account
 /// screen). Caller is resolved from the JWT — no arguments. Wires two cubits:
 /// [AffiliateSummaryCubit] (header: shared code + earnings tiles) and the
 /// paginated [AffiliateCommissionsCubit] (the ledger below it).
 ///
-/// This sub-step builds the LOADED state; the not-enrolled / error / empty /
-/// refresh states are refined next — for now anything other than a loaded
-/// summary shows a plain loader placeholder.
+/// Every resolved summary status maps to a concrete surface — loading, the
+/// calm not-enrolled state (backend 404), the retryable error state, or the
+/// loaded dashboard. No path shows an indefinite loader for a resolved state.
 class MatchmakerAffiliateScreen extends StatelessWidget {
   const MatchmakerAffiliateScreen({super.key});
 
@@ -43,7 +46,7 @@ class MatchmakerAffiliateScreen extends StatelessWidget {
         appBar: QeranAppBar(
           title: LocaleKeys.matchmaker_affiliate_row_title.t(context),
         ),
-        body: SafeArea(top: false, child: const _AffiliateBody()),
+        body: const SafeArea(top: false, child: _AffiliateBody()),
       ),
     );
   }
@@ -55,15 +58,38 @@ class _AffiliateBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AffiliateSummaryCubit, AffiliateSummaryState>(
-      builder: (context, summaryState) {
-        // Not-enrolled / error / loading states land in the next sub-step; for
-        // now only a loaded summary renders the real dashboard.
-        final summary = summaryState.summary;
-        if (summaryState.status != AffiliateSummaryStatus.loaded ||
-            summary == null) {
-          return const Center(child: QeranLoader());
+      builder: (context, state) {
+        final cubit = context.read<AffiliateSummaryCubit>();
+        final summary = state.summary;
+        switch (state.status) {
+          case AffiliateSummaryStatus.notEnrolled:
+            return AffiliateRefreshableCentered(
+              onRefresh: cubit.load,
+              child: QeranEmptyState(
+                icon: Icons.workspace_premium_outlined,
+                title:
+                    LocaleKeys.matchmaker_affiliate_not_enrolled_title.t(context),
+                message: LocaleKeys.matchmaker_affiliate_not_enrolled_message
+                    .t(context),
+              ),
+            );
+          case AffiliateSummaryStatus.error:
+            return AffiliateRefreshableCentered(
+              onRefresh: cubit.load,
+              child: QeranErrorState(
+                title: LocaleKeys.matchmaker_affiliate_error_title.t(context),
+                message: (state.errorKey ?? LocaleKeys.errors_generic).t(context),
+                retryLabel: LocaleKeys.matchmaker_users_retry.t(context),
+                onRetry: cubit.load,
+              ),
+            );
+          case AffiliateSummaryStatus.loaded when summary != null:
+            return _LoadedDashboard(summary: summary);
+          case AffiliateSummaryStatus.initial:
+          case AffiliateSummaryStatus.loading:
+          case AffiliateSummaryStatus.loaded:
+            return const Center(child: QeranLoader());
         }
-        return _LoadedDashboard(summary: summary);
       },
     );
   }
@@ -81,8 +107,9 @@ class _LoadedDashboard extends StatelessWidget {
       builder: (context, ledger) {
         final commissions = context.read<AffiliateCommissionsCubit>();
         final summaryCubit = context.read<AffiliateSummaryCubit>();
+        final hasRows = ledger.items.isNotEmpty;
         return MatchmakerPaginatedList(
-          hasMore: ledger.hasMore,
+          hasMore: hasRows && ledger.hasMore,
           onRefresh: () async {
             await summaryCubit.load();
             await commissions.refresh();
@@ -99,11 +126,21 @@ class _LoadedDashboard extends StatelessWidget {
               parent: BouncingScrollPhysics(),
             ),
             itemCount: 1 +
-                ledger.items.length +
-                (ledger.isLoadingMore ? 1 : 0),
+                (hasRows
+                    ? ledger.items.length + (ledger.isLoadingMore ? 1 : 0)
+                    : 1),
             itemBuilder: (context, index) {
               if (index == 0) {
                 return AffiliateDashboardHeader(summary: summary);
+              }
+              if (!hasRows) {
+                return SizedBox(
+                  height: 320,
+                  child: AffiliateLedgerPlaceholder(
+                    state: ledger,
+                    cubit: commissions,
+                  ),
+                );
               }
               final rowIndex = index - 1;
               if (rowIndex >= ledger.items.length) {

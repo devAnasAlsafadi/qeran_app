@@ -5,6 +5,7 @@ import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../shared/data/json_parsers.dart';
+import '../models/affiliate_commissions_page_model.dart';
 import '../models/affiliate_summary_model.dart';
 
 abstract interface class AffiliateRemoteDataSource {
@@ -12,6 +13,14 @@ abstract interface class AffiliateRemoteDataSource {
   /// enrolled) throws a [CodedServerException] carrying `statusCode == 404`,
   /// which the repository maps to the not-enrolled failure.
   Future<AffiliateSummaryModel> getSummary();
+
+  /// `GET /affiliate/commissions?page=N&pageSize=M`. Read via `getRaw` so the
+  /// raw `{ items, page, pageSize, totalCount }` payload parses regardless of
+  /// whether the backend wraps it in the standard `{status, data}` envelope.
+  Future<AffiliateCommissionsPageModel> getCommissions({
+    required int page,
+    required int pageSize,
+  });
 }
 
 class AffiliateRemoteDataSourceImpl implements AffiliateRemoteDataSource {
@@ -33,5 +42,25 @@ class AffiliateRemoteDataSourceImpl implements AffiliateRemoteDataSource {
     // Tolerate either the bare payload or a `{status, data:{...}}` envelope.
     final data = parseNullableMap(map['data']) ?? map;
     return AffiliateSummaryModel.fromJson(data);
+  }
+
+  @override
+  Future<AffiliateCommissionsPageModel> getCommissions({
+    required int page,
+    required int pageSize,
+  }) async {
+    AppLogger.debug(
+      'AFFILIATE — get commissions page=$page size=$pageSize',
+      tag: 'AFFILIATE',
+    );
+    final response = await _apiConsumer.getRaw(
+      EndPoints.affiliateCommissions,
+      queryParameters: {'page': page, 'pageSize': pageSize},
+    );
+    // Tolerate a bare `{items,...}` payload or a `{status, data:{...}}` envelope
+    // (getRaw doesn't enforce the envelope, so both shapes reach here).
+    final map = parseNullableMap(response);
+    final data = map == null ? response : (parseNullableMap(map['data']) ?? map);
+    return AffiliateCommissionsPageModel.fromData(data);
   }
 }

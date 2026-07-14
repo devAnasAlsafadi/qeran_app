@@ -4,6 +4,7 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../../domain/entities/affiliate_commissions_page.dart';
 import '../../domain/entities/affiliate_summary.dart';
 import '../../domain/failures/affiliate_failures.dart';
 import '../../domain/repositories/affiliate_repository.dart';
@@ -22,6 +23,15 @@ class AffiliateRepositoryImpl implements AffiliateRepository {
   @override
   Future<Either<Failure, AffiliateSummary>> getSummary() =>
       _guard(() async => (await _dataSource.getSummary()).toEntity());
+
+  @override
+  Future<Either<Failure, AffiliateCommissionsPage>> getCommissions({
+    required int page,
+    required int pageSize,
+  }) =>
+      _guard(() async =>
+          (await _dataSource.getCommissions(page: page, pageSize: pageSize))
+              .toEntity());
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() call) async {
     try {

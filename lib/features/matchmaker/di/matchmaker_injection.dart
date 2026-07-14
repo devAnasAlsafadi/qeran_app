@@ -14,7 +14,9 @@ import '../account/presentation/blocs/matchmaker_account_cubit.dart';
 import '../affiliate/data/datasources/affiliate_remote_datasource.dart';
 import '../affiliate/data/repositories/affiliate_repository_impl.dart';
 import '../affiliate/domain/repositories/affiliate_repository.dart';
+import '../affiliate/domain/usecases/get_affiliate_commissions_usecase.dart';
 import '../affiliate/domain/usecases/get_affiliate_summary_usecase.dart';
+import '../affiliate/presentation/blocs/affiliate_commissions_cubit.dart';
 import '../affiliate/presentation/blocs/affiliate_summary_cubit.dart';
 import '../colleagues/data/datasources/matchmaker_colleagues_remote_datasource.dart';
 import '../colleagues/data/repositories/matchmaker_colleagues_repository_impl.dart';
@@ -431,6 +433,8 @@ Future<void> initMatchmakerDependencies() async {
     () => AffiliateRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetAffiliateSummaryUseCase(sl()));
+  sl.registerLazySingleton(() => GetAffiliateCommissionsUseCase(sl()));
   // One cubit per affiliate-screen mount.
   sl.registerFactory(() => AffiliateSummaryCubit(getSummary: sl()));
+  sl.registerFactory(() => AffiliateCommissionsCubit(getCommissions: sl()));
 }

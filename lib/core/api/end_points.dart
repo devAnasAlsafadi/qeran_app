@@ -316,6 +316,11 @@ class EndPoints {
   /// surfaces its transport status for the not-enrolled state.
   static const String affiliateSummary = "affiliate/summary";
 
+  /// `GET /api/affiliate/commissions?page=N&pageSize=M` — the matchmaker's
+  /// commission ledger, paginated `{ items, page, pageSize, totalCount }`.
+  /// Read via `getRaw` (tolerant of a bare vs enveloped payload).
+  static const String affiliateCommissions = "affiliate/commissions";
+
   /// `GET /api/notifications?page=N&pageSize=M` — shared inbox (not
   /// matchmaker-namespaced). Items carry no read-state; the unread badge is a
   /// local heuristic (see the matchmaker notifications feature).

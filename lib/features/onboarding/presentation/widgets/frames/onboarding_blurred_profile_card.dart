@@ -42,7 +42,9 @@ class OnboardingBlurredProfileCard extends StatelessWidget {
   }
 }
 
-/// The gold lock disc + privacy note, centred over the frosted half (~40%).
+/// The gold eye-off disc + a short "photo protected" label and the privacy
+/// note, centred over the frosted half (~40%). The wider horizontal inset lets
+/// the note sit on a single line.
 class _LockBadge extends StatelessWidget {
   const _LockBadge();
 
@@ -51,7 +53,7 @@ class _LockBadge extends StatelessWidget {
     return Align(
       alignment: const Alignment(0, -0.2),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s24),
+        padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s12),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -71,8 +73,16 @@ class _LockBadge extends StatelessWidget {
             ),
             QeranSpacing.vs8,
             Text(
+              LocaleKeys.onboarding_essence_photo_protected.t(context),
+              textAlign: TextAlign.center,
+              style: QeranTypography.label.copyWith(color: QeranColors.gold),
+            ),
+            QeranSpacing.vs4,
+            Text(
               LocaleKeys.onboarding_essence_lock_note.t(context),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: QeranTypography.caption.copyWith(color: QeranColors.paper),
             ),
           ],

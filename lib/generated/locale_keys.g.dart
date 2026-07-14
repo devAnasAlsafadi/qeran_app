@@ -130,8 +130,9 @@ abstract class  LocaleKeys {
   static const onboarding_essence_body = 'onboarding.essence.body';
   static const onboarding_essence_highlight = 'onboarding.essence.highlight';
   static const onboarding_essence_lock_note = 'onboarding.essence.lock_note';
+  static const onboarding_essence_photo_protected = 'onboarding.essence.photo_protected';
+  static const onboarding_essence_identity_badge = 'onboarding.essence.identity_badge';
   static const onboarding_essence_person_name = 'onboarding.essence.person_name';
-  static const onboarding_essence_person_initial = 'onboarding.essence.person_initial';
   static const onboarding_essence_person_age = 'onboarding.essence.person_age';
   static const onboarding_essence_chip_education_label = 'onboarding.essence.chip_education_label';
   static const onboarding_essence_chip_education_value = 'onboarding.essence.chip_education_value';

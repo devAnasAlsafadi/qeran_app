@@ -23,13 +23,15 @@ class OnboardingMediationBlocks extends StatelessWidget {
         Icons.check_circle_rounded,
       ),
       _BlockData(
-        Icons.mark_email_read_rounded,
+        // "Mutual interest" — heart glyph; chip reads "photos revealed" (eye).
+        Icons.favorite_rounded,
         LocaleKeys.onboarding_mediation_block_response_label.t(context),
         LocaleKeys.onboarding_mediation_block_response_status.t(context),
-        Icons.mark_email_read_rounded,
+        Icons.visibility_rounded,
       ),
       _BlockData(
-        Icons.diversity_3_rounded,
+        // "Engagement begins" — interlocking-rings glyph.
+        Icons.join_full_rounded,
         LocaleKeys.onboarding_mediation_block_families_label.t(context),
         LocaleKeys.onboarding_mediation_block_families_status.t(context),
         Icons.schedule_rounded,

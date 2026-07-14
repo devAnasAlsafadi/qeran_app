@@ -6,10 +6,10 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// The profile identity layer that rides the bottom of the portrait card: an
-/// initial avatar + name + age + verified mark, then the four category chips.
-/// Paper text over the card's wine scrim keeps it legible whether the pixels
-/// behind are clear or frosted.
+/// The profile identity layer that rides the bottom of the portrait card: the
+/// name + age paired with a "verified identity" badge, then the four category
+/// chips. Paper text over the card's wine scrim keeps it legible whether the
+/// pixels behind are clear or frosted.
 class OnboardingProfileMetaOverlay extends StatelessWidget {
   const OnboardingProfileMetaOverlay({super.key});
 
@@ -30,20 +30,6 @@ class _NameRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 31,
-          height: 31,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: QeranColors.gold, width: 1.5),
-          ),
-          child: Text(
-            LocaleKeys.onboarding_essence_person_initial.t(context),
-            style: QeranTypography.label.copyWith(color: QeranColors.gold),
-          ),
-        ),
-        QeranSpacing.hs8,
         Flexible(
           child: Text(
             LocaleKeys.onboarding_essence_person_name.t(context),
@@ -59,8 +45,15 @@ class _NameRow extends StatelessWidget {
           textDirection: TextDirection.ltr,
           style: QeranTypography.numeric.copyWith(color: QeranColors.gold),
         ),
-        QeranSpacing.hs4,
-        const Icon(Icons.verified_rounded, size: 15, color: QeranColors.gold),
+        QeranSpacing.hs8,
+        // "Verified identity" badge replaces the former initial disc.
+        QeranChip(
+          icon: Icons.verified_rounded,
+          label: LocaleKeys.onboarding_essence_identity_badge.t(context),
+          variant: QeranChipVariant.status,
+          statusColor: QeranColors.gold,
+          compact: true,
+        ),
       ],
     );
   }
@@ -88,7 +81,8 @@ class _InfoChips extends StatelessWidget {
         LocaleKeys.onboarding_essence_chip_religiosity_value.t(context),
       ),
       (
-        Icons.favorite_rounded,
+        // Nationality chip — globe glyph (the former heart suited "goal").
+        Icons.public_rounded,
         LocaleKeys.onboarding_essence_chip_goal_label.t(context),
         LocaleKeys.onboarding_essence_chip_goal_value.t(context),
       ),

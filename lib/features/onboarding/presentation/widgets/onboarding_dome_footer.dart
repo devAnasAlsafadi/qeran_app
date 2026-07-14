@@ -40,7 +40,9 @@ class OnboardingDomeFooter extends StatelessWidget {
 }
 
 /// A 52×52 gold circle carrying a directional forward chevron (→ in LTR,
-/// ← in RTL). One base right-arrow is flipped for RTL, so no manual ternary.
+/// ← in RTL). `arrow_forward_ios_rounded` has `matchTextDirection: true`, so it
+/// auto-mirrors with the ambient text direction — no manual flip (adding one
+/// would double-flip and cancel the mirroring, per CLAUDE.md rule 4).
 class _NextFab extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -48,7 +50,6 @@ class _NextFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -60,13 +61,10 @@ class _NextFab extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: QeranShadows.e3,
         ),
-        child: Transform.flip(
-          flipX: isRtl,
-          child: const Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: QeranColors.wine,
-            size: 20,
-          ),
+        child: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: QeranColors.wine,
+          size: 20,
         ),
       ),
     );

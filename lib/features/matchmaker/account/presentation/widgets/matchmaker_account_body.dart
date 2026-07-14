@@ -13,6 +13,7 @@ import '../../../../settings/presentation/widgets/settings_profile_hero.dart';
 import '../../../../settings/presentation/widgets/settings_row.dart';
 import '../../../shared/presentation/widgets/matchmaker_user_avatar.dart';
 import '../../domain/entities/matchmaker_me.dart';
+import 'referral_share_card.dart';
 
 /// The loaded account screen body: wine hero (avatar + name + email) + the
 /// "إدارة الحساب" rows + a standalone logout card. Purely presentational —
@@ -29,6 +30,7 @@ class MatchmakerAccountBody extends StatelessWidget {
     required this.onNotifications,
     required this.onSupport,
     required this.onTerms,
+    required this.onAffiliate,
     required this.onDeactivate,
     required this.onLogout,
     required this.bottomReserve,
@@ -41,6 +43,7 @@ class MatchmakerAccountBody extends StatelessWidget {
   final VoidCallback onNotifications;
   final VoidCallback onSupport;
   final VoidCallback onTerms;
+  final VoidCallback onAffiliate;
   final VoidCallback onDeactivate;
   final VoidCallback onLogout;
   final double bottomReserve;
@@ -68,6 +71,12 @@ class MatchmakerAccountBody extends StatelessWidget {
           editLabel: LocaleKeys.matchmaker_account_edit_profile.t(context),
           onEdit: onEditName,
         ),
+        // Referral/affiliate share card — shown only when the backend has issued
+        // a code (never a fabricated placeholder for an absent one).
+        if (me.referralCode != null && me.referralCode!.isNotEmpty) ...[
+          QeranSpacing.vs16,
+          ReferralShareCard(code: me.referralCode!),
+        ],
         QeranSpacing.vs24,
         QeranSectionHeader(
           title: LocaleKeys.settings_account_management.t(context),
@@ -109,6 +118,14 @@ class MatchmakerAccountBody extends StatelessWidget {
                 title: LocaleKeys.settings_support_row.t(context),
                 subtitle: LocaleKeys.settings_support_sub.t(context),
                 onTap: onSupport,
+              ),
+              const SettingsRowDivider(),
+              SettingsRow(
+                icon: Icons.insights_outlined,
+                title: LocaleKeys.matchmaker_affiliate_row_title.t(context),
+                subtitle:
+                    LocaleKeys.matchmaker_affiliate_row_subtitle.t(context),
+                onTap: onAffiliate,
               ),
               const SettingsRowDivider(),
               SettingsRow(

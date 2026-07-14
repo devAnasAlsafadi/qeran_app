@@ -82,6 +82,8 @@ class _AccountView extends StatelessWidget {
           NavigationManager.navigateTo(context, RouteNames.settingsSupport),
       onTerms: () =>
           NavigationManager.navigateTo(context, RouteNames.settingsTerms),
+      onAffiliate: () =>
+          NavigationManager.navigateTo(context, RouteNames.matchmakerAffiliate),
       onDeactivate: () => _deactivate(context),
       onLogout: () => _logout(context),
       bottomReserve: MediaQuery.of(context).padding.bottom,

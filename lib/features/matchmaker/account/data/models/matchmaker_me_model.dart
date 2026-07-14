@@ -15,6 +15,7 @@ class MatchmakerMeModel {
   final bool isPhoneVerified;
   final DateTime? createdAt;
   final MatchmakerMeImageModel? image;
+  final String? referralCode;
 
   const MatchmakerMeModel({
     required this.userId,
@@ -26,6 +27,7 @@ class MatchmakerMeModel {
     required this.isPhoneVerified,
     required this.createdAt,
     required this.image,
+    required this.referralCode,
   });
 
   factory MatchmakerMeModel.fromJson(Map<String, dynamic> json) =>
@@ -39,6 +41,7 @@ class MatchmakerMeModel {
         isPhoneVerified: parseBool(json['isPhoneVerified']),
         createdAt: parseNullableDateTime(json['createdAt']),
         image: _parseImage(json['profileImage']),
+        referralCode: parseNullableString(json['referralCode']),
       );
 
   static MatchmakerMeImageModel? _parseImage(Object? raw) {
@@ -56,5 +59,6 @@ class MatchmakerMeModel {
         isPhoneVerified: isPhoneVerified,
         createdAt: createdAt,
         image: image?.toEntity(),
+        referralCode: referralCode,
       );
 }

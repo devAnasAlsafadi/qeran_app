@@ -11,6 +11,7 @@ import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/w
 import 'package:qeran/features/home/presentation/screens/home_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/match_success_screen.dart';
 import 'package:qeran/features/matchmaker/account/presentation/screens/matchmaker_account_screen.dart';
+import 'package:qeran/features/matchmaker/affiliate/presentation/screens/matchmaker_affiliate_screen.dart';
 import 'package:qeran/features/matchmaker/colleagues/presentation/screens/matchmaker_colleagues_directory_screen.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/compatibility_case.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/presentation/screens/matchmaker_case_detail_screen.dart';
@@ -119,6 +120,11 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const MatchmakerColleaguesDirectoryScreen(),
+        );
+      case RouteNames.matchmakerAffiliate:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const MatchmakerAffiliateScreen(),
         );
       case RouteNames.matchmakerUserProfile:
         final userId = settings.arguments as String?;

@@ -42,4 +42,5 @@ class RouteNames {
   static const String matchmakerInterests = '/matchmaker/interests';
   static const String matchmakerColleaguesDirectory =
       '/matchmaker/colleagues-directory';
+  static const String matchmakerAffiliate = '/matchmaker/affiliate';
 }

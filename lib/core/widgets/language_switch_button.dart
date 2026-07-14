@@ -63,13 +63,13 @@ class LanguageSwitchButton extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: QeranSpacing.s12,
-        vertical: QeranSpacing.s8,
+        vertical: QeranSpacing.s6,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.language_rounded, size: 18, color: QeranColors.paper),
-          QeranSpacing.hs8,
+          const Icon(Icons.language_rounded, size: 16, color: QeranColors.paper),
+          QeranSpacing.hs4,
           Text(
             label,
             style: QeranTypography.label.copyWith(color: QeranColors.paper),
@@ -77,7 +77,7 @@ class LanguageSwitchButton extends StatelessWidget {
           QeranSpacing.hs4,
           const Icon(
             Icons.keyboard_arrow_down_rounded,
-            size: 16,
+            size: 14,
             color: QeranColors.paper,
           ),
         ],

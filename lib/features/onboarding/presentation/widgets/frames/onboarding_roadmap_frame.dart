@@ -16,10 +16,10 @@ import 'onboarding_trust_badges.dart';
 
 /// Frame 3 — Marriage Roadmap (رحلة الزواج).
 ///
-/// A centred header + a 5-step journey timeline capped by the interlocking-rings
-/// destination over the wine canvas, then a soft-white dome carrying the page
-/// dots, the trust-badge grid, and the "begin your journey" CTA. [onFinish]
-/// ends onboarding (routes onward).
+/// A centred header + a flat 9-step journey timeline capped by the
+/// interlocking-rings "الزواج الشرعي" destination (step ten) over the wine
+/// canvas, then a soft-white dome carrying the page dots, the trust-badge grid,
+/// and the "begin your journey" CTA. [onFinish] ends onboarding (routes onward).
 class OnboardingRoadmapFrame extends StatelessWidget {
   final VoidCallback onFinish;
   final int dotCount;
@@ -53,25 +53,27 @@ class OnboardingRoadmapFrame extends StatelessWidget {
                       child: Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(
                           QeranSpacing.s24,
-                          safe.top + 56,
+                          safe.top + 52,
                           QeranSpacing.s24,
-                          QeranSpacing.s8,
+                          QeranSpacing.s16,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: const [
-                            _Header(),
-                            // The timeline + rings ride centred in the space
-                            // below the header, so moderate node gaps stay
-                            // balanced (leftover splits top/bottom, not a band
-                            // before the dome).
-                            Expanded(
+                          children: [
+                            const _Header(),
+                            QeranSpacing.vs16,
+                            // The 9-step list flows straight from the header
+                            // (top-aligned) so a long journey reads as one clean
+                            // list; the Expanded pushes the rings capstone toward
+                            // the bottom on tall screens and lets the region
+                            // scroll on short ones.
+                            const Expanded(
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   OnboardingRoadmapTimeline(),
-                                  QeranSpacing.vs16,
+                                  QeranSpacing.vs8,
                                   OnboardingMarriageDestination(),
                                 ],
                               ),

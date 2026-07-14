@@ -315,6 +315,13 @@ abstract class  LocaleKeys {
   static const subscriptions_validating_code = 'subscriptions.validating_code';
   static const subscriptions_discount_applied_summary = 'subscriptions.discount_applied_summary';
   static const subscriptions_clear_code = 'subscriptions.clear_code';
+  static const subscriptions_order_summary_title = 'subscriptions.order_summary_title';
+  static const subscriptions_order_summary_subtotal = 'subscriptions.order_summary_subtotal';
+  static const subscriptions_order_summary_discount = 'subscriptions.order_summary_discount';
+  static const subscriptions_order_summary_total = 'subscriptions.order_summary_total';
+  static const subscriptions_order_summary_total_note = 'subscriptions.order_summary_total_note';
+  static const subscriptions_validate_code = 'subscriptions.validate_code';
+  static const subscriptions_remove_code = 'subscriptions.remove_code';
   static const subscriptions_discount_ios_unavailable = 'subscriptions.discount_ios_unavailable';
   static const subscriptions_restore_purchases = 'subscriptions.restore_purchases';
   static const subscriptions_restore_purchases_subtitle = 'subscriptions.restore_purchases_subtitle';

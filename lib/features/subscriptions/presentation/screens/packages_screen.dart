@@ -15,7 +15,7 @@ import '../blocs/plans/subscription_plans_cubit.dart';
 import '../blocs/plans/subscription_plans_state.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
-import '../widgets/discount_code_widget.dart';
+import '../widgets/order_summary_widget.dart';
 import '../widgets/paywall_hero_widget.dart';
 import '../widgets/paywall_purchase_flow.dart';
 import '../widgets/plan_selection_widget.dart';
@@ -122,7 +122,15 @@ class _PackagesViewState extends State<_PackagesView>
             ),
             if (!_isIOS && selectedPricing != null) ...[
               QeranSpacing.vs16,
-              DiscountCodeWidget(pricing: selectedPricing),
+              OrderSummaryWidget(
+                planName: activePlan.name(
+                  isArabic:
+                      Localizations.localeOf(context).languageCode == 'ar',
+                ),
+                pricing: selectedPricing,
+                storeProduct:
+                    state.storeProductFor(selectedPricing, isIOS: _isIOS),
+              ),
             ],
             QeranSpacing.vs24,
             BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(

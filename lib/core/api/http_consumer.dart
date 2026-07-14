@@ -380,9 +380,50 @@ class HttpConsumer extends ApiConsumer {
       tag: 'HTTP',
     );
     final ok = response.statusCode >= 200 && response.statusCode < 300;
+
+    // ── Non-2xx: throw WITH the transport status before any parse, so a status
+    // (e.g. 404) is never lost to an empty / non-JSON error body. Enrich the
+    // message + errorCode from the body only when it actually parses as JSON.
+    if (!ok) {
+      dynamic body;
+      try {
+        body = response.body.isEmpty ? null : jsonDecode(response.body);
+      } catch (_) {
+        body = null; // empty / non-JSON error body — status still carried below
+      }
+      var errorMessage = _statusErrorMessage(response.statusCode);
+      String? errorCode;
+      if (body is Map) {
+        final errors = body['errors'];
+        if (errors is Map && errors.isNotEmpty) {
+          final firstList = errors.values.first;
+          if (firstList is List && firstList.isNotEmpty) {
+            errorMessage = firstList.first.toString();
+          }
+        } else {
+          errorMessage = body['message'] as String? ??
+              body['error'] as String? ??
+              errorMessage;
+        }
+        errorCode = body['errorCode'] as String?;
+      }
+      AppLogger.error(
+        '${response.statusCode} (raw) ${response.request?.url}: $errorMessage',
+        tag: 'HTTP',
+      );
+      throw CodedServerException(
+        message: errorMessage,
+        errorCode: errorCode,
+        // Preserve the transport status so raw callers can branch on it
+        // (e.g. affiliate maps 404 → not-enrolled).
+        statusCode: response.statusCode,
+      );
+    }
+
+    // ── 2xx success path (UNCHANGED) ──
     // Server may return literal `null` (e.g. `/subscriptions/current`
     // when not subscribed) — keep that as a valid 2xx response.
-    if (ok && response.body.isEmpty) return null;
+    if (response.body.isEmpty) return null;
 
     dynamic body;
     try {
@@ -395,45 +436,17 @@ class HttpConsumer extends ApiConsumer {
       throw ServerException(message: _statusErrorMessage(response.statusCode));
     }
 
-    if (ok) {
-      if (body is Map<String, dynamic> && body['success'] == false) {
-        throw CodedServerException(
-          message: body['message'] as String? ?? 'Operation Failed',
-          errorCode: body['errorCode'] as String?,
-        );
-      }
-      // `status: 0` envelopes are NOT thrown here — data sources that
-      // use `postRaw` inspect the body themselves and classify before
-      // bubbling up (see `LikesRemoteDataSourceImpl._action` and the
-      // matches data source). Throwing here would short-circuit that.
-      return body;
+    if (body is Map<String, dynamic> && body['success'] == false) {
+      throw CodedServerException(
+        message: body['message'] as String? ?? 'Operation Failed',
+        errorCode: body['errorCode'] as String?,
+      );
     }
-
-    var errorMessage = _statusErrorMessage(response.statusCode);
-    if (body is Map) {
-      final errors = body['errors'];
-      if (errors is Map && errors.isNotEmpty) {
-        final firstList = errors.values.first;
-        if (firstList is List && firstList.isNotEmpty) {
-          errorMessage = firstList.first.toString();
-        }
-      } else {
-        errorMessage = body['message'] as String? ??
-            body['error'] as String? ??
-            errorMessage;
-      }
-    }
-    AppLogger.error(
-      '${response.statusCode} (raw) ${response.request?.url}: $errorMessage',
-      tag: 'HTTP',
-    );
-    throw CodedServerException(
-      message: errorMessage,
-      errorCode: body is Map ? body['errorCode'] as String? : null,
-      // Preserve the transport status so raw callers can branch on it
-      // (e.g. affiliate maps 404 → not-enrolled). Only the raw path carries it.
-      statusCode: response.statusCode,
-    );
+    // `status: 0` envelopes are NOT thrown here — data sources that
+    // use `postRaw` inspect the body themselves and classify before
+    // bubbling up (see `LikesRemoteDataSourceImpl._action` and the
+    // matches data source). Throwing here would short-circuit that.
+    return body;
   }
 
   String _errorMessage(Object e) {

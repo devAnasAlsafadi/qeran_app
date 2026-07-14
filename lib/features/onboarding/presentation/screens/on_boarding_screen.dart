@@ -12,13 +12,13 @@ import '../cubit/onboarding_cubit.dart';
 import '../widgets/frames/onboarding_essence_frame.dart';
 import '../widgets/frames/onboarding_mediation_frame.dart';
 import '../widgets/frames/onboarding_roadmap_frame.dart';
-import '../widgets/frames/onboarding_splash_frame.dart';
 import '../widgets/onboarding_top_bar.dart';
 
-/// The onboarding wizard coordinator: a 4-page `PageView` (splash + 3 content
-/// frames) with a shared top bar (skip / language) and bottom nav (back · dots ·
-/// next). All page math routes through the untouched [OnboardingCubit]; the
-/// splash auto-advances via [OnboardingSplashFrame].
+/// The onboarding wizard coordinator: a 3-page `PageView` (essence · mediation ·
+/// roadmap) with a shared top bar (skip / language) and per-frame in-dome
+/// footer. All page math routes through the untouched [OnboardingCubit]; the
+/// brand-splash moment now lives in the Lottie splash, so onboarding opens
+/// directly on essence/privacy.
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});
 
@@ -75,7 +75,6 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
         },
         builder: (context, state) {
           final cubit = context.read<OnboardingCubit>();
-          final onContent = state.currentPage != 0;
           return Scaffold(
             backgroundColor: QeranColors.wine,
             body: Stack(
@@ -86,17 +85,16 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   onPageChanged: cubit.onPageChanged,
                   itemBuilder: (_, index) => _frameFor(index, cubit, state),
                 ),
-                // Chrome shows on content frames only (never the splash). Skip
-                // is hidden on the last frame (roadmap); each content frame owns
-                // its in-dome footer, so there is no floating bottom nav.
-                if (onContent)
-                  SafeArea(
-                    bottom: false,
-                    child: OnboardingTopBar(
-                      onSkip: cubit.skip,
-                      showSkip: !state.isLastPage,
-                    ),
+                // Chrome shows on every frame. Skip is hidden on the last frame
+                // (roadmap); each frame owns its in-dome footer, so there is no
+                // floating bottom nav.
+                SafeArea(
+                  bottom: false,
+                  child: OnboardingTopBar(
+                    onSkip: cubit.skip,
+                    showSkip: !state.isLastPage,
                   ),
+                ),
               ],
             ),
           );
@@ -106,30 +104,31 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
   }
 
   Widget _frameFor(int index, OnboardingCubit cubit, OnboardingState state) {
+    // The 3 frames map 1:1 to the 3 dots: dotCount = total frames, activeDot =
+    // the current page, and onDot navigates straight to that page (no offset —
+    // the former non-dotted brand-splash frame 0 is gone).
     switch (onboardingData[index]) {
-      case OnboardingFrame.splash:
-        return OnboardingSplashFrame(onAdvance: cubit.nextPage);
       case OnboardingFrame.essencePrivacy:
         return OnboardingEssenceFrame(
-          dotCount: onboardingData.length - 1,
-          activeDot: state.currentPage - 1,
-          onDot: (i) => _animateToPage(i + 1),
+          dotCount: onboardingData.length,
+          activeDot: state.currentPage,
+          onDot: _animateToPage,
           onNext: cubit.nextPage,
         );
       case OnboardingFrame.mediation:
         return OnboardingMediationFrame(
-          dotCount: onboardingData.length - 1,
-          activeDot: state.currentPage - 1,
-          onDot: (i) => _animateToPage(i + 1),
+          dotCount: onboardingData.length,
+          activeDot: state.currentPage,
+          onDot: _animateToPage,
           onNext: cubit.nextPage,
           onSearch: cubit.nextPage,
         );
       case OnboardingFrame.roadmap:
         return OnboardingRoadmapFrame(
           onFinish: cubit.nextPage,
-          dotCount: onboardingData.length - 1,
-          activeDot: state.currentPage - 1,
-          onDot: (i) => _animateToPage(i + 1),
+          dotCount: onboardingData.length,
+          activeDot: state.currentPage,
+          onDot: _animateToPage,
         );
     }
   }

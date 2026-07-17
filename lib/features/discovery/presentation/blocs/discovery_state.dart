@@ -157,4 +157,16 @@ final class DiscoveryLoaded extends DiscoveryState {
         actionErrorVersion,
         prefetchError,
       ];
+
+  /// Concise one-line summary for logs (BlocObserver dumps `$change`).
+  /// Deliberately omits the `profiles` payload — the default Equatable
+  /// `toString` prints every prop, flooding the console with the full
+  /// profile list on every state change. Only `toString` is overridden;
+  /// `props` (equality/rebuild logic) is untouched.
+  @override
+  String toString() =>
+      'DiscoveryLoaded(len: ${profiles.length}, idx: $currentIndex, '
+      'page: $currentPage/$totalPages, prefetching: $isPrefetching'
+      '${actionFailureKind != null ? ', fail: ${actionFailureKind!.name}#$actionErrorVersion' : ''}'
+      '${prefetchError != null ? ', prefetchErr' : ''})';
 }

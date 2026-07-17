@@ -140,18 +140,42 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       );
     }
 
-    // Android discount: purchase the matching Google Play subscription offer.
-    if (offerId != null && offerId.isNotEmpty) {
-      final option = _findOption(package, offerId);
-      if (option != null) {
+    final options = package.storeProduct.subscriptionOptions;
+    if (options != null && options.isNotEmpty) {
+      if (offerId != null && offerId.isNotEmpty) {
+        final option = _findOption(package, offerId);
+        if (option != null) {
+          return PurchaseParams.subscriptionOption(
+            option,
+            productChangeInfo: change,
+          );
+        }
+        AppLogger.warning(
+          'Offer "$offerId" not found on ${package.storeProduct.identifier} — '
+          'falling back to the base plan',
+          tag: 'RC',
+        );
+      }
+
+      // No offer or offer not found: find the base plan SubscriptionOption
+      SubscriptionOption? basePlanOption;
+      for (final option in options) {
+        if (option.isBasePlan) {
+          basePlanOption = option;
+          break;
+        }
+      }
+
+      if (basePlanOption != null) {
         return PurchaseParams.subscriptionOption(
-          option,
+          basePlanOption,
           productChangeInfo: change,
         );
       }
+
       AppLogger.warning(
-        'Offer "$offerId" not found on ${package.storeProduct.identifier} — '
-        'falling back to the base package',
+        'No base plan option found in subscription options for ${package.storeProduct.identifier}. '
+        'Falling back to default package purchase.',
         tag: 'RC',
       );
     }
@@ -167,6 +191,9 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
     if (options == null || options.isEmpty) return null;
     for (final option in options) {
       if (option.id == offerId) return option;
+    }
+    for (final option in options) {
+      if (option.id.split(':').last == offerId) return option;
     }
     for (final option in options) {
       if (option.id.endsWith(':$offerId') || option.id.endsWith(offerId)) {

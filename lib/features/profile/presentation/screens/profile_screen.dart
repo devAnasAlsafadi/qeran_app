@@ -2,7 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
@@ -65,11 +70,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
-          padding: const EdgeInsets.fromLTRB(
+          // Bottom-nav clearance so the last row (logout) sits fully above the
+          // floating nav island + gesture inset, not behind it.
+          padding: EdgeInsets.fromLTRB(
             QeranSpacing.s16,
             QeranSpacing.s16,
             QeranSpacing.s16,
-            QeranSpacing.s24,
+            QeranBottomNav.contentClearance(context),
           ),
           child: BlocBuilder<UserSessionCubit, UserSessionState>(
             builder: (context, state) {
@@ -97,6 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     verified: false,
                     completionLabel: null,
                   ),
+                  const _UpgradeTeaserCard(),
                   QeranSpacing.vs24,
                   QeranSectionHeader(
                     title: LocaleKeys.settings_account_management.t(context),
@@ -334,5 +342,161 @@ class _SubscriptionRow extends StatelessWidget {
         ),
       _ => (LocaleKeys.subscriptions_status_none_subtitle.t(context), true),
     };
+  }
+}
+
+class _UpgradeTeaserCard extends StatelessWidget {
+  const _UpgradeTeaserCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
+      builder: (context, state) {
+        final hasActiveSub = state is CurrentSubscriptionLoaded &&
+            state.subscription.isCurrentlyActive;
+
+        if (hasActiveSub) return const SizedBox.shrink();
+
+        return Container(
+          margin: const EdgeInsets.only(top: QeranSpacing.s24),
+          decoration: BoxDecoration(
+            borderRadius: QeranRadii.panelR,
+            boxShadow: QeranShadows.eHero,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [QeranColors.wineLight, QeranColors.wine],
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: QeranRadii.panelR,
+            child: Stack(
+              children: [
+                // Circular background overlay decoration
+                Positioned(
+                  top: -50,
+                  right: -30,
+                  child: Container(
+                    width: 180,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: QeranColors.gold.withValues(alpha: 0.20),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: QeranColors.gold.withValues(alpha: 0.18),
+                              border: Border.all(color: QeranColors.gold, width: 1.2),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.workspace_premium_rounded,
+                              color: QeranColors.gold,
+                              size: 27,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isArabic ? 'ارتقِ لعضوية التميز' : 'Upgrade to Premium',
+                                  style: QeranTypography.subtitle.copyWith(
+                                    color: QeranColors.paper,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  isArabic
+                                      ? 'افتح كافة ميزات قِران الفريدة وتعرّف على شريكك اليوم'
+                                      : 'Unlock premium features and find your match today',
+                                  style: QeranTypography.bodySm.copyWith(
+                                    color: QeranColors.gold.withValues(alpha: 0.80),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      QeranSpacing.vs16,
+                      // Teasers list
+                      _TeaserRow(
+                        label: isArabic
+                            ? 'إعجابات وتواصل بلا حدود مع الطرف الآخر'
+                            : 'Unlimited likes and match connections',
+                      ),
+                      _TeaserRow(
+                        label: isArabic
+                            ? 'تبادل الصور بأمان وسرية تامة'
+                            : 'Secure and private photo exchange',
+                      ),
+                      const SizedBox(height: 18),
+                      QeranButton(
+                        label: isArabic ? 'اكتشف الباقات' : 'See Plans',
+                        onPressed: () => NavigationManager.navigateTo(
+                          context,
+                          RouteNames.packagesScreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TeaserRow extends StatelessWidget {
+  final String label;
+  const _TeaserRow({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.done_rounded,
+            color: QeranColors.gold,
+            size: 18,
+          ),
+          QeranSpacing.hs8,
+          Expanded(
+            child: Text(
+              label,
+              style: QeranTypography.bodySm.copyWith(
+                color: QeranColors.paper,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -2,8 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_empty_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
@@ -15,6 +20,8 @@ import '../blocs/plans/subscription_plans_cubit.dart';
 import '../blocs/plans/subscription_plans_state.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
+import '../blocs/current/current_subscription_cubit.dart';
+import '../blocs/current/current_subscription_state.dart';
 import '../widgets/order_summary_widget.dart';
 import '../widgets/paywall_hero_widget.dart';
 import '../widgets/paywall_purchase_flow.dart';
@@ -88,10 +95,41 @@ class _PackagesViewState extends State<_PackagesView>
         icon: Icons.workspace_premium_outlined,
       );
     }
-    final activeIndex = _activePlanIndex.clamp(0, state.plans.length - 1);
+
+    final currentSubState = context.watch<CurrentSubscriptionCubit>().state;
+    final currentSub = currentSubState is CurrentSubscriptionLoaded &&
+            currentSubState.subscription.isCurrentlyActive
+        ? currentSubState.subscription
+        : null;
+
+    final isVipOwned = currentSub != null &&
+        currentSub.plan.name(isArabic: false).toLowerCase() == 'vip';
+    final isBasicOwned = currentSub != null &&
+        currentSub.plan.name(isArabic: false).toLowerCase() == 'basic';
+
+    if (isVipOwned) {
+      return const SafeArea(
+        child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: _VipCelebratingWidget(),
+        ),
+      );
+    }
+
+    int activeIndex = _activePlanIndex.clamp(0, state.plans.length - 1);
+    if (isBasicOwned) {
+      final vipIndex = state.plans
+          .indexWhere((p) => p.name(isArabic: false).toLowerCase() == 'vip');
+      if (vipIndex != -1) {
+        activeIndex = vipIndex;
+      }
+    }
+
     final activePlan = state.plans[activeIndex];
     final cubit = context.read<SubscriptionPlansCubit>();
     final selectedPricing = cubit.pricingFor(activePlan);
+
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
@@ -119,6 +157,7 @@ class _PackagesViewState extends State<_PackagesView>
               ),
               resolveStoreProduct: (pricing) =>
                   state.storeProductFor(pricing, isIOS: _isIOS),
+              currentSub: currentSub,
             ),
             if (!_isIOS && selectedPricing != null) ...[
               QeranSpacing.vs16,
@@ -168,6 +207,168 @@ class _ErrorState extends StatelessWidget {
       message: message,
       retryLabel: LocaleKeys.subscriptions_retry.t(context),
       onRetry: () => context.read<SubscriptionPlansCubit>().load(),
+    );
+  }
+}
+
+class _VipCelebratingWidget extends StatelessWidget {
+  const _VipCelebratingWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: QeranColors.paper,
+        borderRadius: QeranRadii.cardR,
+        boxShadow: QeranShadows.eHero,
+      ),
+      child: ClipRRect(
+        borderRadius: QeranRadii.cardR,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [QeranColors.wineLight, QeranColors.wine],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: QeranColors.gold.withValues(alpha: 0.18),
+                      border: Border.all(color: QeranColors.gold, width: 1.5),
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: QeranColors.gold,
+                      size: 38,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Text(
+                    LocaleKeys.subscriptions_vip_celebrate_subtitle.t(context),
+                    textAlign: TextAlign.center,
+                    style: QeranTypography.headline.copyWith(
+                      color: QeranColors.paper,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    LocaleKeys.subscriptions_vip_celebrate_body.t(context),
+                    textAlign: TextAlign.center,
+                    style: QeranTypography.bodySm.copyWith(
+                      color: QeranColors.gold.withValues(alpha: 0.80),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 15,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: QeranColors.gold,
+                        ),
+                      ),
+                      QeranSpacing.hs8,
+                      Text(
+                        LocaleKeys.subscriptions_vip_active_features.t(context),
+                        style: QeranTypography.body.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: QeranColors.wine,
+                        ),
+                      ),
+                    ],
+                  ),
+                  QeranSpacing.vs12,
+                  _CelebratingFeatureRow(
+                    label: LocaleKeys.subscriptions_feature_likes_label.t(context),
+                  ),
+                  _CelebratingFeatureRow(
+                    label: LocaleKeys.subscriptions_feature_serious_interests_label.t(context),
+                  ),
+                  _CelebratingFeatureRow(
+                    label: LocaleKeys.subscriptions_feature_photo_exchanges_label.t(context),
+                  ),
+                  _CelebratingFeatureRow(
+                    label: LocaleKeys.subscriptions_feature_daily_profile_views_label.t(context),
+                  ),
+                  const SizedBox(height: 28),
+                  QeranButton(
+                    label: LocaleKeys.subscriptions_vip_back_to_profile.t(context),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CelebratingFeatureRow extends StatelessWidget {
+  final String label;
+  const _CelebratingFeatureRow({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle_rounded,
+            size: 18,
+            color: QeranColors.gold,
+          ),
+          QeranSpacing.hs12,
+          Expanded(
+            child: Text(
+              label,
+              style: QeranTypography.body.copyWith(color: QeranColors.wine),
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.all_inclusive_rounded,
+                size: 17,
+                color: QeranColors.goldDeep,
+              ),
+              QeranSpacing.hs4,
+              Text(
+                LocaleKeys.subscriptions_unlimited.t(context),
+                style: QeranTypography.body.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: QeranColors.goldDeep,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

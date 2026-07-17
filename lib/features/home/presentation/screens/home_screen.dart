@@ -13,6 +13,7 @@ import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Home shell. Hosts the Discovery deck (image bleeds to screen edges
@@ -25,7 +26,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const int _discoveryTabIndex = 0;
   static const int _likesTabIndex = 1;
   static const int _messagesTabIndex = 2;
@@ -48,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {
@@ -61,9 +63,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     unawaited(_notifTapSub?.cancel());
     unawaited(_notifForegroundSub?.cancel());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(sl<NotificationBadgeCubit>().refresh());
+      unawaited(sl<CurrentSubscriptionCubit>().refresh(force: true));
+    }
   }
 
   /// Route a tapped notification into a bottom-nav tab. Defensive role guard:

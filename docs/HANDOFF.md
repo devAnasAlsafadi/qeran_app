@@ -2,7 +2,7 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات الثابتة، الخطوات الجاية، الـ gotchas، بنود الباك إند، بيانات الحسابات/الاعتمادات. حالة الكود نفسها تُستنتَج من الكود + legacy-grep.
 > اقرأه أول شي كل جلسة. حدّثه نهاية كل مهمة.
-> **آخر تحديث: 17 يوليو 2026** — بعد **جلسة الدفع (شاشة «اشتراكي» + شراء) + إصلاح الوقت UTC + إصلاح state-race بالديسكفري** (commits `40d1089..d8fb097`، **مدفوعة**). التحديث السابق: اكتمال إعادة تصميم الخطّابة + إعداد المتاجر (11 يوليو).
+> **آخر تحديث: 17 يوليو 2026** — بعد **موجة الاشتراكات/الحدود/Paywall (P4 + P0 + P1a + P1b) + استلام عقد الباك إند الكامل من طارق (حيّ الآن)**. **P4 + P0.1 + P0.2 + hero مدفوعة أصلاً؛ P1a + P1b = 4 كوميتات `f20cfc9..5cd0974` غير مدفوعة بعد** (تحقّق git: `origin/main..HEAD` = 4). التحديث السابق بنفس اليوم: جلسة الدفع (شاشة «اشتراكي» + شراء) + إصلاح الوقت UTC + إصلاح state-race بالديسكفري (`40d1089..d8fb097`، مدفوعة). قبله: اكتمال إعادة تصميم الخطّابة + إعداد المتاجر (11 يوليو).
 
 ---
 
@@ -18,7 +18,29 @@
 
 ---
 
-## 🆕 جلسة الدفع + إصلاح الديسكفري (17 يوليو — commits `40d1089..d8fb097`، مدفوعة)
+## 🆕 موجة الاشتراكات + الحدود + Paywall (17 يوليو — P4+P0+P1؛ P4/P0/hero **مدفوعة**، P1a+P1b = 4 كوميتات `f20cfc9..5cd0974` **غير مدفوعة**)
+
+**السياق:** بعد وصول **عقد الباك إند الكامل من طارق (حيّ الآن)** — جولة تدقيق READ-ONLY ثم إصلاح/بناء على نظام الاشتراك/الحدود/الـ paywall. كلها plan-first + مراجعة بصرية AR-RTL/EN-LTR + كوميت ذرّي. (كل force مؤقّت للمراجعة أُزيل قبل الكوميت وتُحقّق من نظافة الـ diff.)
+
+**ما شُحن (بترتيب التبعية):**
+- **P4 (`65c434d` + `fd846cd`) fix+refactor(subscriptions):** محدّد تسعير VIP (شهري/3-شهور) مُركَّب؛ سعر الكرت مربوط بالتسعير المختار (كان **يعرض 149.90 ويشحن 349.90**). استُخرج `_PlanCard`/`_FreePlanCard` لملفات `part` (الرئيسي 343→94) + dedup لـ `_PillBadge`. ملف الكرت قُبِل عند **235 سطراً** (>200؛ استخراج `_PlanCardHeader` هو الرافعة إن لزم).
+- **P0.1 (`ce2cad5`) fix(subscriptions):** sentinel العدّاد اللامحدود `int.MaxValue`→**`v < 0`** (الباك إند يرسل `-1`). كل عدّادات VIP اللامحدودة كانت تُعرَض «**-1**» حرفياً. الاختبارات قُلبت.
+- **P0.2 (`3293fad`) feat(likes):** تصنيف فشل الإعجاب بـ errorCode (الكامل: `SUBSCRIPTION_REQUIRED`/`LIKES_QUOTA_EXCEEDED`→Paywall · `LIKE_ALREADY_EXISTS`→AlreadyPending · `SAME_GENDER_NOT_ALLOWED`→GenderMismatch · `TARGET_USER_NOT_FOUND`/`LIKE_NOT_FOUND`→UserUnavailable)، العربي fallback. أُضيف `DAILY_VIEWS_EXCEEDED` + `PHOTO_EXCHANGE_LIMIT_REACHED` للكتالوج. **إصلاح بق كامن:** إعجاب مُبوَّب راجع HTTP 200 `{status:0}` كان يُقرأ `LikeAccepted(likeId:'')` → صار محروساً بـ `status==0`/errorCode غير فارغ.
+- **QeranHeroBadge refactor:** استُخرج hero (ring+disc+glyph) لـ widget DS مشترك ثنائي النبرة (`soft`|`prominent`)؛ الـ paywall **byte-identical** (soft)؛ `prominent` لأسطح P1. أُضيف `QeranStrokes.emphasis = 2.5`.
+- **P1a (كوميتان — state + screen، `f20cfc9`+`4b1e08a`) feat(discovery):** حالة «نفدت مشاهدات اليوم» شاشة-كاملة داخل الفيد. `DiscoveryDailyLimit(resetAt)` (الـ datasource يقرأ `DAILY_VIEWS_EXCEEDED` عبر `getRaw` + يحلّل `data.resetAt`؛ typed failure في `executeApiCall`) + `DiscoveryDailyLimitView` + widget `ResetCountdown` (Timer 30s، فصحى مثنّى/جمع: ساعة/ساعتين/ساعات · دقيقة/دقيقتين/دقائق). يُرسَم داخل الـ shell (bottom nav يبقى)؛ أزرار الأكشن مخفيّة صحّ على هذه الحالة (+ على failure/terminal-empty). **ملاحظة: العدّاد يقرّب لأقرب ساعة (`round()`) — floor قرار تصميم مؤجَّل.**
+- **P1b (كوميتان — outcome + sheet، `981885f`+`5cd0974`) feat(likes):** حدّ تبادل الصور لـ**مشترك** عند السقف. `PhotoExchangeRequestLimitReached` outcome + تصنيف، و `PhotoExchangeLimitSheet` على `QeranBottomSheetScaffold` (**لا** إثقال الـ paywall — يحتاج إغلاق + شارة باقة + pill تجديد + سطر ترقية). تاريخ التجديد يعتمد `CurrentSubscription.expiresAt`. النبرة «**ترقية**» لا «اشترك». شرطي backend-driven: شارة الباقة تُخفى بلا اسم؛ pill التجديد يُخفى إن `!hasReliableExpiry`. (الملف قُسِّم part/part-of → 167+82 سطراً.)
+
+**🔭 مفتوح على الأفق (موجة الاشتراكات — غير حاجب، عدا الـ free-trial أعلاه):**
+- **P2 (عميل، جاهز، غير مبدوء):** حلّل `tier` (احذف تطابق الاسم `'vip'`/`'basic'` بـ `packages_screen.dart:105-108`) · dedup كرت الباقة المجانية (تظهر في `/plans` **و** ككرت ثابت) · owned-pricing على شارة «باقتك» (P5، عبر `currentSub.pricing`) · backoff لإعادة جلب `/current` بعد الشراء (نافذة 204 اللحظية).
+- **P3 (مقرّر: نتبنّاه):** استبدل checklist الميزات الرقمي بنقاط `featuresAr/featuresEn` من الباك إند (backend-driven).
+- **follow-up: تغطية الحدّ اليومي وسط-الرصّة** — مستخدم بلا-اشتراك جلب الصفحة 2 مسبقاً ثم بلغ السقف وسط الرصّة لن يرى شاشة الحدّ حتى تنفد الكروت المحمّلة (مُعلَّق كتعليق كود بـ `discovery_cubit`).
+- **قرار تصميم مؤجَّل:** `ResetCountdown` `round()` مقابل `floor()` لعرض الوقت المتبقّي.
+- **اختبارات مكسورة سابقة (ليست منّا):** 6 فشل بـ `discovery_next_card_peek_test.dart` (`DiscoveryImagePanel not found`) — مُعاد إنتاجها على HEAD مع stash تغييراتنا؛ تستحق نظرة منفصلة.
+- **تصاميم Claude Design (`docs/_design/*.dc.html`):** «Daily Views Limit» + «Photo Exchange Limit» (مستهلكان بـ P1)، و«Affiliate & Referral» (مسار منفصل).
+
+---
+
+## 🗓️ جلسة الدفع + إصلاح الديسكفري (17 يوليو — سابقة بنفس اليوم — commits `40d1089..d8fb097`، مدفوعة)
 
 **ما شُحن (8 كوميتات، بترتيب التبعية):**
 - **`40d1089` fix(core):** تحليل طوابع الوقت من الباك إند كـ **UTC**. الباك إند يرسلها UTC **بلا لاحقة `Z`** → Dart يقرأها local → الاشتراك النشط يُقرأ «منتهياً» (~3 ساعات مبكّراً، إزاحة UTC+2/+3). ملف جديد `lib/core/utils/server_datetime.dart` فيه `parseServerDateTime` (حارس `hasTz`: يضيف `Z` فقط إن غابت — سليم **قبل وبعد** ما يرسل طارق `Z` صحيحاً). مُرِّرت **8 مواقع** تحليل (json_parsers لـ 6 features + موديل likes + الاشتراكات). `isCurrentlyActive` يقارن UTC. `hasReliableExpiry`: فشل التحليل → كرت خطأ (لا «منتهٍ»). **مُستثنى:** birthdate/الاستبيان (تواريخ date-only يدخلها المستخدم — تحويلها UTC يفسدها).
@@ -47,16 +69,17 @@
 
 ## 🔴 معلّقات فورية (تُحَلّ أول الجلسة الجاية — خطر/حاجب)
 
-1. **✅ حُلّ:** كل كوميتات هذه الجلسة (`40d1089..d8fb097`) وما قبلها **مدفوعة** لـ `origin/main` — `git log origin/main..HEAD` فارغ. (كان التنبيه «12+ غير مدفوعة».)
-2. **HANDOFF.md كان قديماً** حتى هذا التحديث (كان يقول «الجاي: صقل شاشات الخطّابة») — حُدِّث الآن.
-3. **وثيقتا طارق جاهزتان لكن لم تُرسَلا:**
+- 🔴 **4 كوميتات غير مدفوعة** (تحقّق git: `origin/main..HEAD` = `f20cfc9` P1a-state · `4b1e08a` P1a-screen · `981885f` P1b-outcome · `5cd0974` P1b-sheet). أنس يدفعها لاحقاً. **P4 (`65c434d`/`fd846cd`) + P0.1 (`ce2cad5`) + P0.2 (`3293fad`) + hero مدفوعة أصلاً على origin؛ وجلسة الدفع `40d1089..d8fb097` كذلك.**
+- 🔴 **حاجب — الحالة الحدّية free-trial بـ P1b (بانتظار طارق):** «مستخدم تجربة مجانية (اشتراك مجاني نشط) استهلك 5 تبادلات وطلب المزيد — يرجع `SUBSCRIPTION_REQUIRED` أم `PHOTO_EXCHANGE_LIMIT_REACHED`؟» إن الأول → P1b سليم كما هو (+ حارس `isFree` دفاعي اختياري). إن الثاني → P1b يحتاج إصلاح: بوّب pill التجديد **و** الـ subtitle (حالياً **غير مشروط**) على `!isFree` + نسخة تجربة-مجانية مميّزة، وإلا يُؤطَّر انتهاء التجربة كـ«تجديد» مضلّل. **مسجَّل بذاكرة follow-up؛ غير مُصلَح — لا تبدأ قبل رد طارق.**
+
+1. **وثيقتا طارق جاهزتان لكن لم تُرسَلا:**
    - `docs/_plan_drafts/TARIQ_backend_tasks.md` — ⚠️ **يحتاج إصلاح سطر مكسور في قسم 2.2 قبل الإرسال:** رأس `GET /api/matchmaker/me` مشوَّه (ناقص `**` البادئة + backtick) — نسّقه مثل باقي رؤوس الـ endpoints: `` **`GET /api/matchmaker/me`** ``.
    - `QERAN_OFFERS_TARIQ.md` — مرجع الـ 30 عرضاً (أنس يملكه محلياً من Web chat؛ **ليس في الريبو** بعد).
-4. **جولة round-2 (3 شاشات جديدة للتصميم):** Matchmaker User Interests + User Notifications + Matchmaker Notifications. **الجرد READ-ONLY جاهز** في `docs/_plan_drafts/round2_inventory.md`. **التصميم الفعلي غير مبدوء.**
-5. **تعديل Dashboard بسيط معلّق:** إضافة اسم الخطّابة فوق تحية السلام («مرحباً هدى» / «الخطّابة هدى»). الاسم متوفّر عبر `UserSessionCubit.currentUser?.name`. يُعمَل بعد نزول تصاميم round-2.
-6. **gender re-skin لسا غير مكوميت** — محجوب على PNGs شفّافة (Gemini يبيّض «الشفّاف» كـ checkerboard مطبوخ — يحتاج remove.bg أو Photopea).
-7. **ملفات Interests round-2 لسا غير مكوميتة** (`match_card.dart`, `match_card_avatar.dart`, `qeran_strokes.dart`) — أنس أجّل المراجعة لجلسة لاحقة.
-8. **iOS Custom Codes محجوبة** على توفّر Mac + App Review + سيرفر توقيع JWS من طارق.
+2. **جولة round-2 (3 شاشات جديدة للتصميم):** Matchmaker User Interests + User Notifications + Matchmaker Notifications. **الجرد READ-ONLY جاهز** في `docs/_plan_drafts/round2_inventory.md`. **التصميم الفعلي غير مبدوء.**
+3. **تعديل Dashboard بسيط معلّق:** إضافة اسم الخطّابة فوق تحية السلام («مرحباً هدى» / «الخطّابة هدى»). الاسم متوفّر عبر `UserSessionCubit.currentUser?.name`. يُعمَل بعد نزول تصاميم round-2.
+4. **gender re-skin لسا غير مكوميت** — محجوب على PNGs شفّافة (Gemini يبيّض «الشفّاف» كـ checkerboard مطبوخ — يحتاج remove.bg أو Photopea).
+5. **ملفات Interests round-2 لسا غير مكوميتة** (`match_card.dart`, `match_card_avatar.dart`, `qeran_strokes.dart`) — أنس أجّل المراجعة لجلسة لاحقة.
+6. **iOS Custom Codes محجوبة** على توفّر Mac + App Review + سيرفر توقيع JWS من طارق.
 
 ---
 
@@ -164,6 +187,17 @@
 
 ## 📨 وثائق طارق (جاهزة للإرسال) + بنود الباك إند
 
+### 📜 عقد الباك إند الكامل (طارق — **حيّ الآن**، استُلم هذه الجلسة)
+
+- **الغلاف** `{status, data, message, errorCode}`؛ **استثناء:** `/subscriptions/plans` و `/subscriptions/current` يرجعان **RAW** (بلا غلاف). `/current` يرجّع **204 No Content** لمّا لا اشتراك نشط.
+- **`-1` = لامحدود في كل مكان** (حدود الباقة **و** العدّادات المتبقّية).
+- **التواريخ الآن ISO 8601 UTC مع `Z`** (طارق أصلحها؛ حارس `hasTz` بـ `server_datetime.dart` يصير no-op مع وجود `Z` — سليم أماماً).
+- **payload الباقة:** `tier` (0=Free · 1=Basic · 2=VIP — **للتعريف/الهبوط، لا تطابق بالاسم أبداً**) · `isFree` · `features{}` (`-1`=لامحدود) · `featuresAr/featuresEn` (نقاط عرض) · `pricings[]` (`isPopular` على VIP-3شهور = الاختيار الافتراضي).
+- **الحدود:** **Basic == Free تماماً** (50 إعجاب · ∞ اهتمامات · 5 تبادلات صور · ∞ مشاهدات يومية). VIP كله لامحدود. **الاهتمامات الجادّة لامحدودة للجميع.** حدّ المشاهدات اليومية **يطبَّق فقط على مستخدمي بلا-اشتراك** (افتراضي 10/يوم)؛ المشتركون لا يُحدّون أبداً.
+- **التصفير:** الإعجابات وتبادل الصور تُصفَّر عند `expiresAt` (فترة الفوترة — صف اشتراك جديد بعدّادات=0 عند التجديد)؛ المشاهدات اليومية عند **منتصف ليل UTC** (`resetAt` داخل `DAILY_VIEWS_EXCEEDED`.data).
+- **errorCodes المُبوَّبة الحيّة:** `SUBSCRIPTION_REQUIRED` · `LIKES_QUOTA_EXCEEDED` · `DAILY_VIEWS_EXCEEDED` (على `GET /Discovery`، **بلا-اشتراك فقط**، `data.resetAt` = «عُد غداً» **لا paywall**) · `PHOTO_EXCHANGE_LIMIT_REACHED` (مشترك عند السقف → **ترقية**). الباقة المجانية **مرّة واحدة لكل مستخدم** (server-enforced). إشعار الإعجاب يحترم اشتراك **المستقبِل**. المحادثات تبقى مفتوحة بعد الانتهاء.
+- **العرض يستخدم `storeProduct.priceString`** — لا `price` (USD الإداري) أبداً.
+
 ### الوثيقتان
 1. **`docs/_plan_drafts/TARIQ_backend_tasks.md`** (~11KB، مواصفة تقنية إنجليزية):
    - **قسم 1 (أكواد الخصم — تأكيد لا عمل جديد):** عقد `validate-code` كامل بأشكال JSON + اكتشاف تباين Swagger (v1 يوثّق GET قديماً فقط، لا الـ POST الذي يستدعيه التطبيق) + قواعد صيغة `offerId` الحرجة + تأكيد webhook RevenueCat→Play.
@@ -230,6 +264,12 @@
 - **فلتر الباقات (Users «مشتركون»):** شريط chips ديناميكي من `GET /users/subscription-plans` (لا hardcode)؛ تمييز بالاسم لا اللون؛ فلترة **server-side عبر `?planId=`**؛ DI = factory.
 - **`QeranConfirmDialog` = dialog التأكيد الموحّد** — أزرار تلتفّ + `IntrinsicHeight`. **يفوز حتى على الـ handoff:** إغلاق الحالة اقتُرح شيت دوم مخصّص → أُبقي على `QeranConfirmDialog` (نمط danger موحّد؛ الاتساق يغلب المخصّص).
 - **CODE WINS على الـ handoff لمّا للكود ميزة حقيقية أغفلها الـ handoff:** read-receipt «قرئت» + chip نتيجة التوافق على كرت الملف-المشارَك + صورة الرأس — كلها اقتُرح حذفها، كلها **مُبقاة ومُعاد تنسيقها**. الـ handoff design brief لا feature list.
+- **الحدود/الاشتراك (عقد طارق الحيّ — احترمها):**
+  - **`-1` = لامحدود في كل مكان** (حدود + عدّادات) — sentinel وحيد؛ `v < 0`. لا `int.MaxValue`.
+  - **تعريف الباقة بالـ `tier` (0/1/2) لا بالاسم** — الاسم للعرض فقط (P2 يحذف تطابق الاسم).
+  - **نبرة حدّ تبادل الصور = «ترقية» لا «اشترك»** (المشترك يدفع أصلاً) — sheet مخصّص `PhotoExchangeLimitSheet`، **لا** إثقال الـ paywall.
+  - **حدّ المشاهدات اليومية = لمستخدمي بلا-اشتراك فقط** — شاشة «عُد غداً» بعدّاد `resetAt` (منتصف ليل UTC)، **لا paywall**.
+  - **العرض بـ `storeProduct.priceString`** لا `price` الإداري (USD).
 - **لا تُكوميت أبداً:** `.metadata` · `android/…/MainActivity.kt` · `web/` · `_design/` · token file (`qeran_colors.dart`) بلا تأكيد · شغل أنس (gender/Interests round-2/الترجمات المعلّقة).
 
 ---
@@ -251,6 +291,10 @@
 - **⭐ emits غير المتزامنة بالـ Bloc — لا تُطلق عن snapshot قبل await:** اقرأ الحالة **الحيّة** وقت الـ emit والمس **حقلك فقط** (index / error)، وإلا تتصادم emits متزامنة (prefetch يضيف صفحة مقابل advance يحرّك المؤشّر). `copyWith` عن snapshot قديم أفسد **حقلين** معاً (profiles + isPrefetching) → loader دائم بالديسكفري. (`pass()` المتزامن لم يكن عرضة.)
 - **⭐ `Equatable.toString` يطبع props موضعياً:** الـ getters المحسوبة (مثل `hasMore`) **ليست** في الـ tuple — لا تسئ قراءة علم موضعي على أنه حقل آخر (ضاع وقت تشخيص مرّتين هذه الجلسة).
 - **⭐ اشتراكات Google Sandbox الاختبارية:** تجديد كل **5 دقائق**، حتى 6 تجديدات (~30 دقيقة) ثم إلغاء تلقائي — الاشتراك الجديد **ينتهي فعلاً** بعد 5 دقائق من الشراء. اختبر داخل النافذة، ولا تخلط انتهاء Sandbox الحقيقي مع بق الوقت.
+- **⭐ `-1` = لامحدود في كل مكان** (حدود الباقة **والعدّادات المتبقّية**) — `isUnlimitedRemaining(v) => v < 0`. كان `int.MaxValue` يُعرَض «**-1**» حرفياً لكل مستخدم VIP.
+- **⭐ صنّف بالـ errorCode أولاً لا برسالة عربية:** المجموعة الكاملة بـ `error_codes.dart`؛ العربي fallback فقط للاستجابات القديمة بلا كود. **احرس status:0 على المسار 200-الناجح** — إعجاب مُبوَّب راجع HTTP 200 `{status:0}` كان يُقرأ `LikeAccepted(likeId:'')`.
+- **⭐ `/current` = 204 لمّا لا اشتراك؛ `/plans` و `/current` RAW بلا غلاف** — لا تفكّ غلافاً غير موجود (استخدم `getRaw`).
+- **⭐ حدّ المشاهدات اليومية = لمستخدمي بلا-اشتراك فقط** (`DAILY_VIEWS_EXCEEDED` «عُد غداً» + `data.resetAt`، **لا paywall**)؛ المشتركون لا يُحدّون. حدّ تبادل الصور **للمشترك** عند السقف = **ترقية** لا «اشترك» (sheet مخصّص، لا الـ paywall).
 
 ---
 

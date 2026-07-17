@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/effects/ring_motif.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_hero_badge.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
@@ -161,29 +161,12 @@ class _BadgeIcon extends StatelessWidget {
       child: SizedBox(
         width: 140,
         height: 80,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const IgnorePointer(
-              child: RingMotif(
-                color: QeranColors.gold,
-                opacity: 0.10,
-                size: 140,
-                ringCount: 2,
-                spacing: 14,
-              ),
-            ),
-            Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: QeranColors.gold20,
-              ),
-              alignment: Alignment.center,
-              child: Icon(icon, size: 32, color: QeranColors.wine),
-            ),
-          ],
+        child: QeranHeroBadge(
+          glyph: icon,
+          tone: QeranHeroBadgeTone.soft,
+          size: 72,
+          ringSize: 140,
+          glyphSize: 32,
         ),
       ),
     );

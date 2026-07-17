@@ -63,7 +63,7 @@ CurrentSubscription _sub({
       likesUsed: 12,
       likesRemaining: likesRemaining,
       seriousInterestsUsed: 0,
-      seriousInterestsRemaining: 2147483647,
+      seriousInterestsRemaining: -1, // unlimited (backend sentinel)
       photoExchangesUsed: 0,
       photoExchangesRemaining: 5,
     );

@@ -13,8 +13,10 @@ import 'subscription_pricing.dart';
 /// [isActive] flag is informational — never read it for gating.
 class CurrentSubscription extends Equatable {
   /// Sentinel returned by the backend for "unlimited" on **remaining**
-  /// counters (`int.MaxValue`, distinct from the features payload's `-1`).
-  static const int unlimitedRemainingSentinel = 2147483647;
+  /// counters — `-1`, the same convention as the features payload
+  /// ([SubscriptionFeatures.unlimitedSentinel]). Any negative value is
+  /// treated as unlimited (see [isUnlimitedRemaining]).
+  static const int unlimitedRemainingSentinel = -1;
 
   final int id;
   final SubscriptionPlan plan;
@@ -56,9 +58,10 @@ class CurrentSubscription extends Equatable {
     required this.photoExchangesRemaining,
   });
 
-  /// True when [value] is the "unlimited" sentinel on a remaining counter.
-  static bool isUnlimitedRemaining(int value) =>
-      value == unlimitedRemainingSentinel;
+  /// True when [value] represents "unlimited" on a remaining counter — any
+  /// negative value (the backend sends `-1`). Non-negative counts are real
+  /// remaining amounts.
+  static bool isUnlimitedRemaining(int value) => value < 0;
 
   /// SOT for "subscription currently active". `expiresAt > now` —
   /// `isActive` is intentionally ignored. Both sides normalized to UTC so the

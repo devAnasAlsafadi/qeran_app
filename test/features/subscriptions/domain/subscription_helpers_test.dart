@@ -14,14 +14,13 @@ void main() {
   });
 
   group('CurrentSubscription.isUnlimitedRemaining', () {
-    test('returns true only for int.MaxValue', () {
-      expect(
-        CurrentSubscription.isUnlimitedRemaining(2147483647),
-        isTrue,
-      );
-      expect(CurrentSubscription.isUnlimitedRemaining(-1), isFalse);
+    test('returns true for any negative value (backend sends -1)', () {
+      expect(CurrentSubscription.isUnlimitedRemaining(-1), isTrue);
+      expect(CurrentSubscription.isUnlimitedRemaining(-5), isTrue);
       expect(CurrentSubscription.isUnlimitedRemaining(0), isFalse);
       expect(CurrentSubscription.isUnlimitedRemaining(38), isFalse);
+      // int.MaxValue is no longer a special sentinel — a real count.
+      expect(CurrentSubscription.isUnlimitedRemaining(2147483647), isFalse);
     });
   });
 

@@ -149,7 +149,7 @@ class _PackagesViewState extends State<_PackagesView>
               plans: state.plans,
               activeIndex: activeIndex,
               activePlan: activePlan,
-              selectedPricingId: selectedPricing?.id,
+              selectedPricingFor: cubit.pricingFor,
               onPlanChanged: _setActivePlan,
               onPricingSelected: (pricingId) => cubit.selectPricing(
                 planId: activePlan.id,

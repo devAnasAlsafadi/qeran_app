@@ -13,12 +13,18 @@ import '../../domain/entities/subscription_plan.dart';
 import '../../domain/entities/subscription_pricing.dart';
 import '../../domain/entities/current_subscription.dart';
 import 'plan_features_widget.dart';
+import 'plan_pricing_selector.dart';
 
 class PlanSelectionWidget extends StatelessWidget {
   final List<SubscriptionPlan> plans;
   final int activeIndex;
   final SubscriptionPlan activePlan;
-  final int? selectedPricingId;
+
+  /// Resolves the currently-selected pricing for a given plan (the cubit's
+  /// `pricingFor`). The card header price and the billing-period picker both
+  /// read this, so they never diverge from the summary/CTA/charge — which
+  /// read the same selection.
+  final SubscriptionPricing? Function(SubscriptionPlan plan) selectedPricingFor;
   final ValueChanged<int> onPlanChanged;
   final ValueChanged<int> onPricingSelected;
   final CurrentSubscription? currentSub;
@@ -30,7 +36,7 @@ class PlanSelectionWidget extends StatelessWidget {
     required this.plans,
     required this.activeIndex,
     required this.activePlan,
-    required this.selectedPricingId,
+    required this.selectedPricingFor,
     required this.onPlanChanged,
     required this.onPricingSelected,
     required this.resolveStoreProduct,
@@ -107,13 +113,18 @@ class PlanSelectionWidget extends StatelessWidget {
     // Check if it's the VIP plan to show popular tag
     final isVip = plan.name(isArabic: false).toLowerCase() == 'vip';
 
-    // Plan-card price: free → "مجاني"/"Free" (no currency); paid → the store
+    // Plan-card price: bound to the SELECTED pricing (the same one the summary,
+    // CTA and charge read) — falling back to the first active pricing before a
+    // selection exists. Free → "مجاني"/"Free" (no currency); paid → the store
     // price when resolved, else the currency token — never a hardcoded "SAR".
-    final firstPricing = plan.activePricings.isNotEmpty ? plan.activePricings.first : null;
-    final storeProduct = firstPricing != null ? resolveStoreProduct(firstPricing) : null;
-    final priceText = _priceLabel(context, firstPricing, storeProduct);
+    final activePricings = plan.activePricings;
+    final selectedPricing = selectedPricingFor(plan) ??
+        (activePricings.isNotEmpty ? activePricings.first : null);
+    final storeProduct =
+        selectedPricing != null ? resolveStoreProduct(selectedPricing) : null;
+    final priceText = _priceLabel(context, selectedPricing, storeProduct);
     // A free plan reads just "مجاني" — no "/شهريًا" per-month suffix.
-    final isFreePlan = firstPricing?.price == 0;
+    final isFreePlan = selectedPricing?.price == 0;
 
     return GestureDetector(
       onTap: isOwned ? null : () => onPlanChanged(index),
@@ -236,6 +247,20 @@ class PlanSelectionWidget extends StatelessWidget {
                 ],
               ),
               
+              // Billing-period picker — sits directly under the header price,
+              // above the features. Only for a purchase candidate (selected,
+              // not owned) that exposes more than one pricing; a single-pricing
+              // plan (e.g. Basic) shows nothing.
+              if (isSelected && !isOwned && activePricings.length > 1) ...[
+                QeranSpacing.vs12,
+                PlanPricingSelector(
+                  plan: plan,
+                  selectedPricingId: selectedPricing?.id,
+                  resolveStoreProduct: resolveStoreProduct,
+                  onPricingSelected: onPricingSelected,
+                ),
+              ],
+
               // Expanded Features list (only when selected or owned)
               if (isSelected || isOwned) ...[
                 const Padding(

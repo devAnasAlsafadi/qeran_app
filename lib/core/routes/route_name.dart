@@ -20,6 +20,8 @@ class RouteNames {
   // Subscriptions
   static const String packagesScreen = '/packages';
   static const String subscriptionDetails = '/subscription/details';
+  static const String purchaseSuccess = '/purchase/success';
+  static const String purchaseFailure = '/purchase/failure';
 
   // Likes / Matches
   static const String matchSuccess = '/match/success';

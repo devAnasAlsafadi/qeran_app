@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_plan.dart';
 import '../../domain/entities/subscription_pricing.dart';
+import '../../domain/entities/validate_code_response.dart';
 import '../../domain/usecases/subscribe_usecase.dart';
 import '../blocs/current/current_subscription_cubit.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
@@ -25,21 +27,52 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
   /// spinner). Paid-purchase progress is driven by [PackagePurchaseCubit].
   bool freeBusy = false;
 
+  /// The plan the user is buying, captured at CTA so the success screen can
+  /// render it without waiting on `/current`. Null on the restore path (no
+  /// selection) — the success screen degrades gracefully.
+  SubscriptionPlan? _purchasedPlan;
+
+  /// Pricing + any applied discount captured at CTA so a "Retry" from the
+  /// failure screen can re-fire the EXACT same purchase without the user
+  /// re-selecting a plan or re-entering the code.
+  SubscriptionPricing? _purchasedPricing;
+  ValidateCodeResponse? _purchasedValidatedCode;
+
   /// Reacts to [PackagePurchaseCubit] transitions (paid + restore paths).
   void handlePurchaseState(BuildContext context, PackagePurchaseState state) {
     switch (state) {
       case PackagePurchaseSuccess():
-        _toast(context, LocaleKeys.subscriptions_purchase_success,
-            SnackBarType.success);
-        Navigator.of(context).pop();
+        NavigationManager.navigateAndReplace(
+          context,
+          RouteNames.purchaseSuccess,
+          arguments: _purchasedPlan,
+        );
       case PackagePurchaseCancelled():
         context.read<PackagePurchaseCubit>().reset();
       case PackagePurchaseFailure(:final userMessage):
-        _toast(context, userMessage, SnackBarType.error);
+        unawaited(_showPurchaseFailure(context, userMessage));
       // CodeValidation* states are consumed by the discount UI (Commit 6).
       default:
         break;
     }
+  }
+
+  /// Shows the failure screen carrying the SPECIFIC mapped [messageKey]. On
+  /// "Retry" (screen pops `true`) it re-fires the same purchase; "Back" (pops
+  /// `false`/`null`) just returns to the packages screen.
+  Future<void> _showPurchaseFailure(
+    BuildContext context,
+    String messageKey,
+  ) async {
+    final retry = await NavigationManager.navigateTo(
+      context,
+      RouteNames.purchaseFailure,
+      arguments: messageKey,
+    );
+    if (retry != true || !context.mounted) return;
+    final pricing = _purchasedPricing;
+    if (pricing == null) return;
+    _firePaidPurchase(context, pricing);
   }
 
   /// CTA routing: free → `/subscribe`; same product → route to اشتراكي;
@@ -49,6 +82,8 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
     SubscriptionPlan plan,
     SubscriptionPricing pricing,
   ) {
+    _purchasedPlan = plan;
+    _purchasedPricing = pricing;
     if (plan.isFree || pricing.price == 0) {
       _subscribeFree(context, pricing);
       return;
@@ -64,15 +99,25 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
     }
     // Carry an applied discount into the purchase: an offer id on Android, the
     // full StoreKit signature on iOS (iOS is locked anyway — defensive).
+    // Captured on the mixin so a Retry from the failure screen re-fires with
+    // the same discount.
     final purchaseState = context.read<PackagePurchaseCubit>().state;
-    final validatedCode =
+    _purchasedValidatedCode =
         purchaseState is PackagePurchaseCodeValidationSuccess &&
                 (Platform.isAndroid || purchaseState.response.hasIosSignature)
             ? purchaseState.response
             : null;
+    _firePaidPurchase(context, pricing);
+  }
+
+  /// Fires (or re-fires on Retry) the paid purchase with the captured discount
+  /// and the current upgrade-proration product id.
+  void _firePaidPurchase(BuildContext context, SubscriptionPricing pricing) {
+    final currentProductId =
+        sl<CurrentSubscriptionCubit>().subscription?.pricing.googleProductId;
     context.read<PackagePurchaseCubit>().purchase(
           pricing: pricing,
-          validatedCode: validatedCode,
+          validatedCode: _purchasedValidatedCode,
           oldProductId: currentProductId,
         );
   }
@@ -87,13 +132,16 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
     if (!mounted) return;
     setState(() => freeBusy = false);
     result.fold(
-      (_) => _toast(context, LocaleKeys.subscriptions_purchase_failure,
-          SnackBarType.error),
+      (_) => NavigationManager.navigateTo(context, RouteNames.purchaseFailure),
       (subscription) {
         sl<CurrentSubscriptionCubit>().onSubscribed(subscription);
-        _toast(context, LocaleKeys.subscriptions_purchase_success,
-            SnackBarType.success);
-        Navigator.of(context).pop();
+        // Free-tier plan comes straight from the `/subscribe` response — the
+        // server's own truth, still never from `/current`.
+        NavigationManager.navigateAndReplace(
+          context,
+          RouteNames.purchaseSuccess,
+          arguments: subscription.plan,
+        );
       },
     );
   }

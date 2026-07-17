@@ -32,8 +32,11 @@ import 'package:qeran/features/questionnaire/domain/entities/question_entity.dar
 import 'package:qeran/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/questionnaire_flow/questionnaire_flow_screen.dart';
 import 'package:qeran/features/splash/presentation/screens/splash_screen.dart';
+import 'package:qeran/features/subscriptions/domain/entities/subscription_plan.dart';
 import 'package:qeran/features/subscriptions/presentation/screens/packages_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/screens/subscription_details_screen.dart';
+import 'package:qeran/features/subscriptions/presentation/screens/purchase_success_screen.dart';
+import 'package:qeran/features/subscriptions/presentation/screens/purchase_failure_screen.dart';
 
 class AppRouter {
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -198,6 +201,19 @@ class AppRouter {
         return MaterialPageRoute(
           settings: settings,
           builder: (context) => const SubscriptionDetailsScreen(),
+        );
+      case RouteNames.purchaseSuccess:
+        final purchasedPlan = settings.arguments as SubscriptionPlan?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => PurchaseSuccessScreen(plan: purchasedPlan),
+        );
+      case RouteNames.purchaseFailure:
+        final failureMessageKey = settings.arguments as String?;
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) =>
+              PurchaseFailureScreen(messageKey: failureMessageKey),
         );
       case RouteNames.matchSuccess:
         final args = settings.arguments as MatchSuccessArgs?;

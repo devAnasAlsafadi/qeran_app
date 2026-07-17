@@ -6,6 +6,8 @@
 /// thread.
 library;
 
+import 'package:qeran/core/utils/server_datetime.dart';
+
 int? parseNullableInt(Object? raw) {
   if (raw == null) return null;
   if (raw is int) return raw;
@@ -50,10 +52,7 @@ bool parseBool(Object? raw, {bool fallback = false}) {
   return fallback;
 }
 
-DateTime? parseNullableDateTime(Object? raw) {
-  if (raw is! String || raw.isEmpty) return null;
-  return DateTime.tryParse(raw);
-}
+DateTime? parseNullableDateTime(Object? raw) => parseServerDateTime(raw);
 
 /// Normalises any `Map` into `Map<String, dynamic>`. SignalR (and some
 /// JSON paths) hand us `Map<dynamic, dynamic>` for nested objects; a

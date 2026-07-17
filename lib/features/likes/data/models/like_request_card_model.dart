@@ -1,3 +1,5 @@
+import 'package:qeran/core/utils/server_datetime.dart';
+
 import '../../domain/entities/like_request_card.dart';
 import '../../domain/entities/like_request_status.dart';
 import 'like_profile_image_model.dart';
@@ -50,10 +52,7 @@ class LikeRequestCardModel {
     );
   }
 
-  static DateTime? _parseIso(Object? raw) {
-    if (raw is! String || raw.isEmpty) return null;
-    return DateTime.tryParse(raw);
-  }
+  static DateTime? _parseIso(Object? raw) => parseServerDateTime(raw);
 
   LikeRequestCard toEntity() => LikeRequestCard(
         likeRequestId: likeRequestId,

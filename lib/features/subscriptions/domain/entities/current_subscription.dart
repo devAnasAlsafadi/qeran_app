@@ -23,6 +23,12 @@ class CurrentSubscription extends Equatable {
   final DateTime startsAt;
   final DateTime expiresAt;
 
+  /// False when the backend's `expiresAt` was missing/unparseable and
+  /// [expiresAt] fell back to a placeholder. Callers must treat this as an
+  /// **unknown** state (show an error/retry), never as "expired". Defaults to
+  /// `true` so existing/typed construction is unaffected.
+  final bool hasReliableExpiry;
+
   /// Server-side flag. **Do not** gate features on this — use
   /// [isCurrentlyActive] instead.
   final bool isActive;
@@ -40,6 +46,7 @@ class CurrentSubscription extends Equatable {
     required this.pricing,
     required this.startsAt,
     required this.expiresAt,
+    this.hasReliableExpiry = true,
     required this.isActive,
     required this.likesUsed,
     required this.likesRemaining,
@@ -54,12 +61,14 @@ class CurrentSubscription extends Equatable {
       value == unlimitedRemainingSentinel;
 
   /// SOT for "subscription currently active". `expiresAt > now` —
-  /// `isActive` is intentionally ignored.
-  bool get isCurrentlyActive => DateTime.now().isBefore(expiresAt);
+  /// `isActive` is intentionally ignored. Both sides normalized to UTC so the
+  /// comparison is unambiguous regardless of each value's `isUtc` flag.
+  bool get isCurrentlyActive =>
+      DateTime.now().toUtc().isBefore(expiresAt.toUtc());
 
   /// Days remaining before [expiresAt]. Negative for already-expired.
   int get daysRemaining =>
-      expiresAt.difference(DateTime.now()).inDays;
+      expiresAt.toUtc().difference(DateTime.now().toUtc()).inDays;
 
   @override
   List<Object?> get props => [
@@ -68,6 +77,7 @@ class CurrentSubscription extends Equatable {
         pricing,
         startsAt,
         expiresAt,
+        hasReliableExpiry,
         isActive,
         likesUsed,
         likesRemaining,

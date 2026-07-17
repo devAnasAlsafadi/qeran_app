@@ -8,6 +8,8 @@
 /// field never blanks the entire Matches tab.
 library;
 
+import 'package:qeran/core/utils/server_datetime.dart';
+
 /// Parses an integer from raw JSON. Accepts an `int`, any `num`
 /// (truncated via `toInt`), or a numeric string. Returns `null` for
 /// anything else, including `null` itself and non-numeric strings.
@@ -57,7 +59,4 @@ bool parseBool(Object? raw, {bool fallback = false}) {
 
 /// Parses an ISO-8601 timestamp. Returns `null` when the field is
 /// missing, empty, or unparseable.
-DateTime? parseNullableDateTime(Object? raw) {
-  if (raw is! String || raw.isEmpty) return null;
-  return DateTime.tryParse(raw);
-}
+DateTime? parseNullableDateTime(Object? raw) => parseServerDateTime(raw);

@@ -154,6 +154,16 @@ class _LikesView extends StatelessWidget {
         );
       case LikesActionEvent.photoExchangeRequestRequiresSubscription:
         showPaywall(context, intent: PaywallIntent.photoExchange);
+      // P1b step 2: replace with the limit-reached upgrade sheet (subscribed
+      // user, plan quota exhausted — keyed off CurrentSubscription.expiresAt).
+      // Interim: preserve current behavior (generic request-failed snackbar).
+      case LikesActionEvent.photoExchangeRequestLimitReached:
+        AppSnackBar.show(
+          context,
+          message:
+              LocaleKeys.likes_matches_action_request_failed.t(context),
+          type: SnackBarType.error,
+        );
       case LikesActionEvent.photoExchangeRequestFailure:
         AppSnackBar.show(
           context,

@@ -194,6 +194,17 @@ void main() {
       expect(outcome, isA<PhotoExchangeRequestLikeNotAccepted>());
     });
 
+    test('PHOTO_EXCHANGE_LIMIT_REACHED → LimitReached', () async {
+      when(() => api.postRaw(any())).thenAnswer((_) async => {
+            'status': 0,
+            'message': 'لقد استنفدت حد تبادل الصور لباقتك',
+            'errorCode': PhotoExchangeErrorCodes.photoExchangeLimitReached,
+          });
+
+      final outcome = await ds.requestPhotoExchange(5);
+      expect(outcome, isA<PhotoExchangeRequestLimitReached>());
+    });
+
     test('legacy Arabic-only fallback still classifies subscription',
         () async {
       when(() => api.postRaw(any())).thenAnswer((_) async => {

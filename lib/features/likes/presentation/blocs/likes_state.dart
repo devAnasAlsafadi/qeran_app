@@ -28,6 +28,7 @@ enum LikesActionEvent {
   photoExchangeRequestAlreadyPending,
   photoExchangeRequestLikeNotAccepted,
   photoExchangeRequestRequiresSubscription,
+  photoExchangeRequestLimitReached,
   photoExchangeRequestFailure,
   // Photo-exchange accept/reject (responder, stage 0)
   photoExchangeAcceptSuccess,

@@ -46,6 +46,17 @@ final class PhotoExchangeRequestRequiresSubscription
   const PhotoExchangeRequestRequiresSubscription({required this.serverMessage});
 }
 
+/// `PHOTO_EXCHANGE_LIMIT_REACHED` — caller HAS an active subscription but
+/// has used every photo-exchange the current plan allows this billing
+/// period. An UPGRADE prompt (step 2 shows an upgrade sheet keyed off
+/// `CurrentSubscription.expiresAt`), NOT a subscribe gate — distinct from
+/// [PhotoExchangeRequestRequiresSubscription].
+final class PhotoExchangeRequestLimitReached
+    extends PhotoExchangeRequestOutcome {
+  final String serverMessage;
+  const PhotoExchangeRequestLimitReached({required this.serverMessage});
+}
+
 /// `VALIDATION_ERROR` / other unmapped status-0 envelopes.
 final class PhotoExchangeRequestFailure extends PhotoExchangeRequestOutcome {
   final String serverMessage;

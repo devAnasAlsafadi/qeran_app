@@ -334,6 +334,8 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         LikesActionEvent.photoExchangeRequestLikeNotAccepted,
       PhotoExchangeRequestRequiresSubscription() =>
         LikesActionEvent.photoExchangeRequestRequiresSubscription,
+      PhotoExchangeRequestLimitReached() =>
+        LikesActionEvent.photoExchangeRequestLimitReached,
       PhotoExchangeRequestFailure() =>
         LikesActionEvent.photoExchangeRequestFailure,
     };

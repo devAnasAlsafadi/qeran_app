@@ -297,6 +297,18 @@ void main() {
       verifyNever(() => getMatches());
     });
 
+    test('limitReached → limit-reached event, NO refresh', () async {
+      when(() => requestPx(14)).thenAnswer((_) async =>
+          const Right<Failure, PhotoExchangeRequestOutcome>(
+              PhotoExchangeRequestLimitReached(serverMessage: '')));
+
+      await cubit.requestPhotoExchange(14);
+
+      expect(cubit.state.actionEvent,
+          LikesActionEvent.photoExchangeRequestLimitReached);
+      verifyNever(() => getMatches());
+    });
+
     test('transport failure → failure event, NO refresh', () async {
       when(() => requestPx(13)).thenAnswer((_) async =>
           const Left<Failure, PhotoExchangeRequestOutcome>(

@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
@@ -23,6 +24,8 @@ import 'package:qeran/features/profile/presentation/full_profile_details_args.da
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/discovery_profile.dart';
@@ -331,6 +334,20 @@ class _ScrollableProfile extends StatelessWidget {
     }
     if (s is DiscoveryLoaded) {
       if (s.isEmpty || s.isExhausted) {
+        // Deck ran dry. If more pages exist, the user out-swiped the loaded
+        // deck while the next page is still loading — show a loader and make
+        // sure a prefetch is in flight (once exhausted `current` is null, so
+        // like()/pass() no-op and the cubit can't self-recover). Scheduled
+        // post-frame so the prefetch's emit never lands during this build.
+        // Only the genuine end-of-list (`!hasMore`) shows the terminal empty
+        // view.
+        if (s.hasMore) {
+          final cubit = context.read<DiscoveryCubit>();
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => cubit.ensurePrefetch(),
+          );
+          return const _ScrollableCenter(child: QeranLoader());
+        }
         return const _ScrollableCenter(child: DiscoveryEmptyView());
       }
       return _ProfilePage(
@@ -370,6 +387,7 @@ class _ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<_ProfilePage> {
   final ScrollController _scrollController = ScrollController();
   String? _lastProfileId;
+  bool _bannerDismissed = false;
 
   @override
   void initState() {
@@ -414,6 +432,14 @@ class _ProfilePageState extends State<_ProfilePage> {
         final topClearance =
             widget.hasOverlayControls ? _kOverlayClearance : 0.0;
 
+        final subState = context.watch<CurrentSubscriptionCubit>().state;
+        final hasActiveSub = subState is CurrentSubscriptionLoaded &&
+            subState.subscription.isCurrentlyActive;
+        final showBanner = !hasActiveSub && !_bannerDismissed;
+
+        final bannerTopClearance = showBanner && widget.hasOverlayControls ? topClearance : 0.0;
+        final cardTopClearance = !showBanner && widget.hasOverlayControls ? topClearance : 0.0;
+
         return SingleChildScrollView(
           controller: _scrollController,
           // BouncingScrollPhysics gives a smoother deceleration curve
@@ -426,12 +452,17 @@ class _ProfilePageState extends State<_ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (showBanner)
+                _UpgradeFeedBanner(
+                  topClearance: bannerTopClearance,
+                  onDismiss: () => setState(() => _bannerDismissed = true),
+                ),
               SafeArea(
                 bottom: false,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     _kStackHPad,
-                    _kStackTPad + topClearance,
+                    _kStackTPad + cardTopClearance,
                     _kStackHPad,
                     0,
                   ),
@@ -1013,6 +1044,95 @@ class _PeekCardLayer extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _UpgradeFeedBanner extends StatelessWidget {
+  final double topClearance;
+  final VoidCallback onDismiss;
+
+  const _UpgradeFeedBanner({
+    required this.topClearance,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+        _kStackHPad,
+        topClearance + _kStackTPad,
+        _kStackHPad,
+        0,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: QeranColors.gold.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(QeranRadii.card),
+        border: Border.all(color: QeranColors.gold.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: QeranColors.gold.withValues(alpha: 0.18),
+              border: Border.all(color: QeranColors.gold, width: 1),
+            ),
+            alignment: Alignment.center,
+            child: const Icon(
+              Icons.workspace_premium_rounded,
+              color: QeranColors.goldDeep,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isArabic
+                  ? 'ترقية واحدة تفتح تعارفاً أوسع وميزات بلا حدود'
+                  : 'One upgrade opens up more introductions',
+              style: QeranTypography.body.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 12.5,
+                color: QeranColors.wine,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: () => NavigationManager.navigateTo(context, RouteNames.packagesScreen),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: QeranColors.wine,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                isArabic ? 'الخطط' : 'Plans',
+                style: QeranTypography.body.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11.5,
+                  color: QeranColors.gold,
+                ),
+              ),
+            ),
+          ),
+          QeranSpacing.hs8,
+          GestureDetector(
+            onTap: onDismiss,
+            child: Icon(
+              Icons.close_rounded,
+              size: 18,
+              color: QeranColors.wine.withValues(alpha: 0.6),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -27,8 +27,11 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   /// reference it without magic numbers.
   static const int pageSize = 10;
 
-  /// How many cards before the end we trigger prefetch.
-  static const int prefetchThreshold = 3;
+  /// How many cards before the end we trigger prefetch. Sized wider than
+  /// the page can be swiped through in one network round-trip, so a fast
+  /// swiper stays a page ahead instead of out-running the fetch and hitting
+  /// the exhausted-deck loader.
+  static const int prefetchThreshold = 6;
 
   final FetchDiscoveryPageUseCase _fetchPage;
   final LikeProfileUseCase _likeProfile;
@@ -182,43 +185,38 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
       }
       result.fold(
         (failure) => _emitLikeFailure(
-          current,
           kind: LikeFailureKind.network,
           message: failure.message,
         ),
-        (outcome) => _handleLikeOutcome(current, outcome),
+        (outcome) => _handleLikeOutcome(outcome),
       );
     } finally {
       _mutationInFlight = false;
     }
   }
 
-  void _handleLikeOutcome(DiscoveryLoaded captured, LikeOutcome outcome) {
+  void _handleLikeOutcome(LikeOutcome outcome) {
     switch (outcome) {
       case LikeAccepted():
-        _advance(captured);
+        _advance();
         _onLikeSuccess();
       case LikePaywall(:final serverMessage):
         _emitLikeFailure(
-          captured,
           kind: LikeFailureKind.paywall,
           message: serverMessage,
         );
       case LikeAlreadyPending(:final serverMessage):
         _advanceWithFailure(
-          captured,
           kind: LikeFailureKind.alreadyPending,
           message: serverMessage,
         );
       case LikeGenderMismatch(:final serverMessage):
         _advanceWithFailure(
-          captured,
           kind: LikeFailureKind.genderMismatch,
           message: serverMessage,
         );
       case LikeUserUnavailable(:final serverMessage):
         _advanceWithFailure(
-          captured,
           kind: LikeFailureKind.userUnavailable,
           message: serverMessage,
         );
@@ -228,15 +226,19 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   /// Emits a failure state without advancing the deck — paywall, network,
   /// and unknown-server failures keep the card in place so the user can
   /// retry / upgrade.
-  void _emitLikeFailure(
-    DiscoveryLoaded captured, {
+  void _emitLikeFailure({
     required LikeFailureKind kind,
     required String message,
   }) {
-    emit(captured.copyWith(
+    // Build off the LIVE state, never a pre-await snapshot: a prefetch may have
+    // appended pages while `like()` awaited the server/gate, and emitting off a
+    // captured copy would revert both `profiles` and `isPrefetching`.
+    final live = state;
+    if (live is! DiscoveryLoaded) return;
+    emit(live.copyWith(
       actionError: message,
       actionFailureKind: kind,
-      actionErrorVersion: captured.actionErrorVersion + 1,
+      actionErrorVersion: live.actionErrorVersion + 1,
     ));
   }
 
@@ -245,17 +247,19 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   /// the card is no longer actionable (already pending / wrong gender /
   /// hidden user) — there's no value in leaving it on screen, so we
   /// move on while still surfacing the explanation.
-  void _advanceWithFailure(
-    DiscoveryLoaded captured, {
+  void _advanceWithFailure({
     required LikeFailureKind kind,
     required String message,
   }) {
-    final newIndex = captured.currentIndex + 1;
-    emit(captured.copyWith(
-      currentIndex: newIndex,
+    // Live state only (see `_advance`): preserve any concurrently-appended
+    // pages, mutate just the index + error fields.
+    final live = state;
+    if (live is! DiscoveryLoaded) return;
+    emit(live.copyWith(
+      currentIndex: live.currentIndex + 1,
       actionError: message,
       actionFailureKind: kind,
-      actionErrorVersion: captured.actionErrorVersion + 1,
+      actionErrorVersion: live.actionErrorVersion + 1,
     ));
     _maybePrefetch();
   }
@@ -293,7 +297,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     if (current is! DiscoveryLoaded) return;
     final profile = current.current;
     if (profile == null) return;
-    _advance(current);
+    _advance();
     if (_skipInFlight.contains(profile.id)) return;
     _skipInFlight.add(profile.id);
     unawaited(_passProfile(profile.id).then((result) {
@@ -335,10 +339,30 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     await _prefetch(current);
   }
 
-  void _advance(DiscoveryLoaded captured) {
-    final newIndex = captured.currentIndex + 1;
-    emit(captured.copyWith(
-      currentIndex: newIndex,
+  /// Safety-net prefetch trigger for the exhausted-deck case. Once the deck
+  /// is exhausted `current` is null, so `like()`/`pass()` no-op and
+  /// [_maybePrefetch] can never fire again on its own — without this the deck
+  /// would dead-end permanently even though more pages exist. The view calls
+  /// this when it renders the "catching up" loader (exhausted but
+  /// [DiscoveryLoaded.hasMore]). Idempotent: no-ops when there's nothing more
+  /// to load or a prefetch is already in flight.
+  void ensurePrefetch() {
+    final current = state;
+    if (current is! DiscoveryLoaded) return;
+    if (!current.hasMore || current.isPrefetching) return;
+    unawaited(_prefetch(current));
+  }
+
+  void _advance() {
+    // Re-read the live state at emit time. A prefetch running concurrently with
+    // a `like()` (which captures a pre-await snapshot to read `profile.id`) may
+    // have appended pages and reset `isPrefetching`; emitting off that snapshot
+    // would revert both. The prefetch never moves `currentIndex`, so advancing
+    // off the live index is the same card progression, minus the clobber.
+    final live = state;
+    if (live is! DiscoveryLoaded) return;
+    emit(live.copyWith(
+      currentIndex: live.currentIndex + 1,
       resetActionError: true,
     ));
     _maybePrefetch();
@@ -347,9 +371,9 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   void _maybePrefetch() {
     final updated = state;
     if (updated is! DiscoveryLoaded) return;
-    if (updated.currentIndex >= updated.profiles.length - prefetchThreshold &&
-        updated.hasMore &&
-        !updated.isPrefetching) {
+    final atThreshold =
+        updated.currentIndex >= updated.profiles.length - prefetchThreshold;
+    if (atThreshold && updated.hasMore && !updated.isPrefetching) {
       unawaited(_prefetch(updated));
     }
   }
@@ -370,14 +394,22 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     final post = state;
     if (post is! DiscoveryLoaded) return; // refresh / shutdown happened
     result.fold(
-      (failure) => emit(post.copyWith(
-        isPrefetching: false,
-        prefetchError: failure.message,
-      )),
+      (failure) {
+        emit(post.copyWith(
+          isPrefetching: false,
+          prefetchError: failure.message,
+        ));
+      },
       (page) {
-        // Guard: drop stale results when a refresh reset currentPage
-        // back to 1 while this prefetch was in flight.
-        if (post.currentPage != base.currentPage) return;
+        // Guard: drop stale results when a refresh reset currentPage back to 1
+        // while this prefetch was in flight. Reset `isPrefetching` on the
+        // dropped path too — otherwise a dropped result would strand the flag
+        // `true` forever and block every future page.
+        final dropped = post.currentPage != base.currentPage;
+        if (dropped) {
+          emit(post.copyWith(isPrefetching: false));
+          return;
+        }
         emit(post.copyWith(
           profiles: [...post.profiles, ...page.profiles],
           currentPage: page.pageNumber,
@@ -385,6 +417,10 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
           isPrefetching: false,
           resetPrefetchError: true,
         ));
+        // Eager chain: a fast swiper may already sit within the threshold of
+        // this freshly appended page's tail. Re-check now so the next page
+        // starts loading immediately instead of waiting for the next swipe.
+        _maybePrefetch();
       },
     );
   }

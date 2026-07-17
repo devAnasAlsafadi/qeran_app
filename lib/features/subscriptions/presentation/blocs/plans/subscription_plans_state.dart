@@ -50,6 +50,13 @@ final class SubscriptionPlansLoaded extends SubscriptionPlansState {
         storeProducts: storeProducts ?? this.storeProducts,
       );
 
+  /// Purchasable plans only — the free tier is represented by the static
+  /// "you are here" free card, so it's filtered out of the selectable list to
+  /// avoid a double render. Keyed on the reliable [SubscriptionPlan.isFree]
+  /// flag (≡ tier 0); order preserved.
+  List<SubscriptionPlan> get paidPlans =>
+      plans.where((p) => !p.isFree).toList(growable: false);
+
   /// The store product backing [pricing] on the current platform, or null when
   /// the store hasn't resolved it (⇒ backend-price fallback). Keys off the
   /// pricing's canonical/​platform store id via `productId(isIOS:)`.

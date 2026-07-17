@@ -89,7 +89,12 @@ class _PackagesViewState extends State<_PackagesView>
   }
 
   Widget _buildLoaded(BuildContext context, SubscriptionPlansLoaded state) {
-    if (state.plans.isEmpty) {
+    // Selectable list = purchasable plans only. The free tier is rendered as the
+    // static "you are here" card inside PlanSelectionWidget, so it's excluded
+    // here to avoid a double render. Guarding on `paidPlans` (⊇ `plans.isEmpty`)
+    // also protects the index math below from a free-only payload.
+    final paidPlans = state.paidPlans;
+    if (paidPlans.isEmpty) {
       return QeranEmptyState(
         title: LocaleKeys.subscriptions_empty_plans.t(context),
         icon: Icons.workspace_premium_outlined,
@@ -115,15 +120,15 @@ class _PackagesViewState extends State<_PackagesView>
       );
     }
 
-    int activeIndex = _activePlanIndex.clamp(0, state.plans.length - 1);
+    int activeIndex = _activePlanIndex.clamp(0, paidPlans.length - 1);
     if (isBasicOwned) {
-      final vipIndex = state.plans.indexWhere((p) => p.isVipTier);
+      final vipIndex = paidPlans.indexWhere((p) => p.isVipTier);
       if (vipIndex != -1) {
         activeIndex = vipIndex;
       }
     }
 
-    final activePlan = state.plans[activeIndex];
+    final activePlan = paidPlans[activeIndex];
     final cubit = context.read<SubscriptionPlansCubit>();
     final selectedPricing = cubit.pricingFor(activePlan);
 
@@ -143,7 +148,7 @@ class _PackagesViewState extends State<_PackagesView>
             const PaywallHeroWidget(),
             QeranSpacing.vs20,
             PlanSelectionWidget(
-              plans: state.plans,
+              plans: paidPlans,
               activeIndex: activeIndex,
               activePlan: activePlan,
               selectedPricingFor: cubit.pricingFor,

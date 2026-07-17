@@ -9,6 +9,7 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -17,6 +18,7 @@ import '../blocs/likes_cubit.dart';
 import '../blocs/likes_state.dart';
 import '../widgets/likes_segmented_tabs.dart';
 import '../widgets/likes_swipeable_tab_body.dart';
+import '../widgets/photo_exchange_limit_sheet.dart';
 import 'match_success_screen.dart';
 
 /// Likes / Interests screen — entry point from the bottom nav (index 1).
@@ -154,15 +156,13 @@ class _LikesView extends StatelessWidget {
         );
       case LikesActionEvent.photoExchangeRequestRequiresSubscription:
         showPaywall(context, intent: PaywallIntent.photoExchange);
-      // P1b step 2: replace with the limit-reached upgrade sheet (subscribed
-      // user, plan quota exhausted — keyed off CurrentSubscription.expiresAt).
-      // Interim: preserve current behavior (generic request-failed snackbar).
+      // Subscribed user hit their plan's photo-exchange cap — an upgrade
+      // prompt (NOT a subscribe gate). The sheet reads the current plan +
+      // renewal date from the app-wide subscription state.
       case LikesActionEvent.photoExchangeRequestLimitReached:
-        AppSnackBar.show(
+        showPhotoExchangeLimitSheet(
           context,
-          message:
-              LocaleKeys.likes_matches_action_request_failed.t(context),
-          type: SnackBarType.error,
+          subscription: context.read<CurrentSubscriptionCubit>().subscription,
         );
       case LikesActionEvent.photoExchangeRequestFailure:
         AppSnackBar.show(

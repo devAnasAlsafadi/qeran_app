@@ -310,7 +310,14 @@
     "matches_action_reject_success": "Photo exchange declined. The matchmaker has been notified.",
     "matches_action_respond_not_found": "This request is no longer available",
     "matches_action_respond_expired": "This request has expired",
-    "matches_action_respond_failed": "Couldn't complete the action. Please try again."
+    "matches_action_respond_failed": "Couldn't complete the action. Please try again.",
+    "matches_photo_exchange_limit_title": "You've used all your photo exchanges",
+    "matches_photo_exchange_limit_subtitle": "Your exchanges renew automatically next billing period.",
+    "matches_photo_exchange_limit_plan_badge": "Your plan: {planName}",
+    "matches_photo_exchange_limit_renewal": "Renews on {date}",
+    "matches_photo_exchange_limit_upgrade_line": "Upgrade to VIP for unlimited exchanges",
+    "matches_photo_exchange_limit_cta_upgrade": "Upgrade plan",
+    "matches_photo_exchange_limit_dismiss_later": "Later"
   },
   "questionnaire": {
     "welcome": "Welcome",

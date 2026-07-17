@@ -310,7 +310,14 @@
     "matches_action_reject_success": "تم تحويل الطلب للخطابة. تبقى الصور مغبَّشة.",
     "matches_action_respond_not_found": "هذا الطلب لم يعد متاحاً",
     "matches_action_respond_expired": "انتهت مدة هذا الطلب",
-    "matches_action_respond_failed": "تعذّر إتمام العملية، حاول مرة أخرى"
+    "matches_action_respond_failed": "تعذّر إتمام العملية، حاول مرة أخرى",
+    "matches_photo_exchange_limit_title": "استنفدت تبادلات الصور لهذه الفترة",
+    "matches_photo_exchange_limit_subtitle": "تتجدّد تبادلاتك تلقائيًا مع بداية الفترة القادمة.",
+    "matches_photo_exchange_limit_plan_badge": "باقتك: {planName}",
+    "matches_photo_exchange_limit_renewal": "تتجدّد في {date}",
+    "matches_photo_exchange_limit_upgrade_line": "ارتقِ إلى الباقة الذهبية لتبادلات غير محدودة",
+    "matches_photo_exchange_limit_cta_upgrade": "ترقية الباقة",
+    "matches_photo_exchange_limit_dismiss_later": "لاحقًا"
   },
   "questionnaire": {
     "welcome": "مرحبا بك",

@@ -301,6 +301,13 @@ abstract class  LocaleKeys {
   static const likes_matches_action_respond_not_found = 'likes.matches_action_respond_not_found';
   static const likes_matches_action_respond_expired = 'likes.matches_action_respond_expired';
   static const likes_matches_action_respond_failed = 'likes.matches_action_respond_failed';
+  static const likes_matches_photo_exchange_limit_title = 'likes.matches_photo_exchange_limit_title';
+  static const likes_matches_photo_exchange_limit_subtitle = 'likes.matches_photo_exchange_limit_subtitle';
+  static const likes_matches_photo_exchange_limit_plan_badge = 'likes.matches_photo_exchange_limit_plan_badge';
+  static const likes_matches_photo_exchange_limit_renewal = 'likes.matches_photo_exchange_limit_renewal';
+  static const likes_matches_photo_exchange_limit_upgrade_line = 'likes.matches_photo_exchange_limit_upgrade_line';
+  static const likes_matches_photo_exchange_limit_cta_upgrade = 'likes.matches_photo_exchange_limit_cta_upgrade';
+  static const likes_matches_photo_exchange_limit_dismiss_later = 'likes.matches_photo_exchange_limit_dismiss_later';
   static const likes = 'likes';
   static const questionnaire_welcome = 'questionnaire.welcome';
   static const questionnaire_choose_identity = 'questionnaire.choose_identity';

@@ -234,7 +234,20 @@
     "scroll_hint": "Swipe up",
     "like_already_pending": "You've already liked this person — waiting for their response",
     "like_gender_mismatch": "This profile can't be liked",
-    "like_user_unavailable": "This profile is no longer available"
+    "like_user_unavailable": "This profile is no longer available",
+    "daily_limit_title": "You've reached today's views",
+    "daily_limit_subtitle": "Tomorrow you can keep browsing new profiles.",
+    "daily_limit_upgrade_heading": "Or upgrade for unlimited access",
+    "daily_limit_upgrade_support": "View profiles with no daily limit when subscribed.",
+    "daily_limit_cta": "See plans",
+    "daily_limit_reset_prefix": "Resets in",
+    "daily_limit_reset_now": "Resetting now",
+    "daily_limit_hour_singular": "h",
+    "daily_limit_hour_dual": "h",
+    "daily_limit_hour_plural": "h",
+    "daily_limit_minute_singular": "m",
+    "daily_limit_minute_dual": "m",
+    "daily_limit_minute_plural": "m"
   },
   "likes": {
     "title": "Interests",

@@ -234,7 +234,20 @@
     "scroll_hint": "اسحب للأعلى",
     "like_already_pending": "لديك إعجاب قائم مع هذا الشخص — بانتظار رده",
     "like_gender_mismatch": "لا يمكن إرسال إعجاب لهذا الملف",
-    "like_user_unavailable": "هذا الملف لم يعد متاحاً"
+    "like_user_unavailable": "هذا الملف لم يعد متاحاً",
+    "daily_limit_title": "انتهت مشاهدات اليوم",
+    "daily_limit_subtitle": "بالغد تستطيع استكمال تصفّح ملفات جديدة.",
+    "daily_limit_upgrade_heading": "أو ارتقِ للوصول غير المحدود",
+    "daily_limit_upgrade_support": "شاهد الملفات دون حدٍّ يومي مع الاشتراك.",
+    "daily_limit_cta": "استعراض الباقات",
+    "daily_limit_reset_prefix": "تتجدّد خلال",
+    "daily_limit_reset_now": "تتجدّد الآن",
+    "daily_limit_hour_singular": "ساعة",
+    "daily_limit_hour_dual": "ساعتين",
+    "daily_limit_hour_plural": "ساعات",
+    "daily_limit_minute_singular": "دقيقة",
+    "daily_limit_minute_dual": "دقيقتين",
+    "daily_limit_minute_plural": "دقائق"
   },
   "likes": {
     "title": "الاهتمامات",

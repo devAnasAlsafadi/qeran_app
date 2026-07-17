@@ -37,6 +37,7 @@ import 'discovery_action_bar.dart';
 import 'discovery_card.dart';
 import 'discovery_deck_animation_controller.dart';
 import 'discovery_deck_animator.dart';
+import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_like_burst.dart';
 import 'discovery_swipe_handler.dart';
@@ -105,6 +106,25 @@ const double _kOverlayClearance = 52.0;
 /// up under the image card's rounded bottom — matches the Figma "sheet
 /// overlapping the image" look from the previous layout.
 const double _kBodyOverlap = 20.0;
+
+/// True when [state] renders a full-screen replacement that owns the
+/// whole feed area — the daily-view limit screen, the load-failure
+/// state, or the terminal empty view. In these states the floating
+/// like / pass / undo cluster has no live deck to act on and must NOT
+/// paint over the replacement content (it otherwise leaks through as a
+/// disabled cluster — see `DiscoveryActionBar`, which doesn't self-hide
+/// on null callbacks).
+///
+/// Loading and the transient prefetch-loader (`hasMore`) are deliberately
+/// excluded: the deck is arriving, so the bar stays (disabled) to avoid a
+/// blink-out/blink-in during a fast swipe-to-end.
+bool _isFullScreenReplacement(DiscoveryState state) {
+  if (state is DiscoveryDailyLimit || state is DiscoveryFailure) return true;
+  if (state is DiscoveryLoaded) {
+    return (state.isEmpty || state.isExhausted) && !state.hasMore;
+  }
+  return false;
+}
 
 class _DiscoveryContentState extends State<_DiscoveryContent>
     with WidgetsBindingObserver {
@@ -259,10 +279,11 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                     ),
                   ),
                 ),
-              _FloatingActionBar(
-                state: state,
-                onLikeBurst: _spawnLikeBurst,
-              ),
+              if (!_isFullScreenReplacement(state))
+                _FloatingActionBar(
+                  state: state,
+                  onLikeBurst: _spawnLikeBurst,
+                ),
             ],
           );
         },
@@ -354,6 +375,9 @@ class _ScrollableProfile extends StatelessWidget {
         loaded: s,
         hasOverlayControls: hasOverlayControls,
       );
+    }
+    if (s is DiscoveryDailyLimit) {
+      return DiscoveryDailyLimitView(resetAt: s.resetAt);
     }
     return const SizedBox.shrink();
   }

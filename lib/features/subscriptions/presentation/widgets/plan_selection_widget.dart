@@ -11,14 +11,9 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_plan.dart';
 import '../../domain/entities/subscription_pricing.dart';
+import '../../domain/entities/current_subscription.dart';
 import 'plan_features_widget.dart';
-import 'pricing_row_widget.dart';
 
-/// The plan + pricing selection area: a segmented plan switcher (hidden for a
-/// single plan), the section title, the active plan's [PlanFeaturesWidget], and
-/// one [PricingRowWidget] per active pricing. Selection is driven by the caller
-/// via [onPlanChanged] / [onPricingSelected] so the cubit stays the source of
-/// truth.
 class PlanSelectionWidget extends StatelessWidget {
   final List<SubscriptionPlan> plans;
   final int activeIndex;
@@ -26,10 +21,8 @@ class PlanSelectionWidget extends StatelessWidget {
   final int? selectedPricingId;
   final ValueChanged<int> onPlanChanged;
   final ValueChanged<int> onPricingSelected;
+  final CurrentSubscription? currentSub;
 
-  /// Resolves the store product backing a pricing (null ⇒ backend-price
-  /// fallback). Supplied by the screen from the loaded state so this widget
-  /// stays free of bloc/state coupling.
   final StoreProduct? Function(SubscriptionPricing pricing) resolveStoreProduct;
 
   const PlanSelectionWidget({
@@ -41,144 +34,284 @@ class PlanSelectionWidget extends StatelessWidget {
     required this.onPlanChanged,
     required this.onPricingSelected,
     required this.resolveStoreProduct,
+    this.currentSub,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+    final hasActivePaidSub = currentSub != null;
+    final ownedPlanId = currentSub?.plan.id;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (plans.length > 1) ...[
-          _PlanTabs(
-            plans: plans,
-            activeIndex: activeIndex,
-            onChanged: onPlanChanged,
-          ),
-          QeranSpacing.vs24,
+        // 1. FREE USER FLOW: Show Free Plan Card at top
+        if (!hasActivePaidSub) ...[
+          const _FreePlanCard(),
+          QeranSpacing.vs20,
         ],
+
+        // 2. PLAN CARDS LIST
         Text(
-          LocaleKeys.subscriptions_title.t(context),
+          hasActivePaidSub
+              ? LocaleKeys.subscriptions_available_plans.t(context)
+              : LocaleKeys.subscriptions_title.t(context),
           style: QeranTypography.title.copyWith(color: QeranColors.wine),
         ),
         QeranSpacing.vs12,
-        PlanFeaturesWidget(plan: activePlan),
-        QeranSpacing.vs20,
-        for (final pricing in activePlan.activePricings)
-          Padding(
-            padding: const EdgeInsets.only(bottom: QeranSpacing.s12),
-            child: PricingRowWidget(
-              pricing: pricing,
-              storeProduct: resolveStoreProduct(pricing),
-              selected: pricing.id == selectedPricingId,
-              onTap: () => onPricingSelected(pricing.id),
-            ),
-          ),
+
+        Column(
+          children: [
+            for (int i = 0; i < plans.length; i++) ...[
+              if (i > 0) QeranSpacing.vs16,
+              _buildPlanCard(context, i, plans[i], ownedPlanId, isArabic),
+            ],
+          ],
+        ),
       ],
+    );
+  }
+
+  /// Plan-card price summary. Zero-price (free) plans read "مجاني"/"Free" with
+  /// no currency at all; paid plans use the localized store price when it
+  /// resolves, otherwise the currency token ("$") + amount. Never "SAR".
+  String _priceLabel(
+    BuildContext context,
+    SubscriptionPricing? pricing,
+    StoreProduct? storeProduct,
+  ) {
+    if (pricing == null) return '';
+    if (pricing.price == 0) {
+      return LocaleKeys.subscriptions_price_free.t(context);
+    }
+    if (storeProduct != null) return storeProduct.priceString;
+    final currency = LocaleKeys.subscriptions_currency.t(context);
+    final price = pricing.price;
+    final amount = price == price.roundToDouble()
+        ? price.toStringAsFixed(0)
+        : price.toStringAsFixed(2);
+    return '$currency $amount';
+  }
+
+  Widget _buildPlanCard(
+    BuildContext context,
+    int index,
+    SubscriptionPlan plan,
+    int? ownedPlanId,
+    bool isArabic,
+  ) {
+    final isOwned = plan.id == ownedPlanId;
+    final isSelected = index == activeIndex;
+    
+    // Check if it's the VIP plan to show popular tag
+    final isVip = plan.name(isArabic: false).toLowerCase() == 'vip';
+
+    // Plan-card price: free → "مجاني"/"Free" (no currency); paid → the store
+    // price when resolved, else the currency token — never a hardcoded "SAR".
+    final firstPricing = plan.activePricings.isNotEmpty ? plan.activePricings.first : null;
+    final storeProduct = firstPricing != null ? resolveStoreProduct(firstPricing) : null;
+    final priceText = _priceLabel(context, firstPricing, storeProduct);
+    // A free plan reads just "مجاني" — no "/شهريًا" per-month suffix.
+    final isFreePlan = firstPricing?.price == 0;
+
+    return GestureDetector(
+      onTap: isOwned ? null : () => onPlanChanged(index),
+      child: Container(
+        decoration: BoxDecoration(
+          color: QeranColors.paper,
+          borderRadius: QeranRadii.cardR,
+          border: Border.all(
+            color: isOwned
+                ? QeranColors.gold.withValues(alpha: 0.40)
+                : (isSelected
+                    ? QeranColors.gold
+                    : QeranColors.wine.withValues(alpha: 0.08)),
+            width: isSelected || isOwned ? 1.8 : 1.0,
+          ),
+          boxShadow: isSelected || isOwned ? QeranShadows.e2 : null,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header of Plan Card
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (!isOwned)
+                    Icon(
+                      isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      color: isSelected ? QeranColors.gold : QeranColors.inkMuted,
+                      size: 20,
+                    ),
+                  if (isOwned)
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      color: QeranColors.goldDeep,
+                      size: 20,
+                    ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              plan.name(isArabic: isArabic),
+                              style: QeranTypography.subtitle.copyWith(
+                                color: QeranColors.wine,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (isVip) ...[
+                              QeranSpacing.hs8,
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: QeranColors.gold.withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  LocaleKeys.subscriptions_badge_popular.t(context),
+                                  style: QeranTypography.bodySm.copyWith(
+                                    fontSize: 10,
+                                    color: QeranColors.goldDeep,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (priceText.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            isFreePlan
+                                ? priceText
+                                : '$priceText ${LocaleKeys.subscriptions_per_month.t(context)}',
+                            style: QeranTypography.bodySm.copyWith(
+                              color: QeranColors.inkBody,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  // Badges (Current / Upgrade Available)
+                  if (isOwned)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: QeranColors.wine.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        LocaleKeys.subscriptions_badge_your_plan.t(context),
+                        style: QeranTypography.bodySm.copyWith(
+                          fontSize: 11,
+                          color: QeranColors.wine,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  if (!isOwned && ownedPlanId != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: QeranColors.gold.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        LocaleKeys.subscriptions_badge_upgrade_available.t(context),
+                        style: QeranTypography.bodySm.copyWith(
+                          fontSize: 11,
+                          color: QeranColors.goldDeep,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              
+              // Expanded Features list (only when selected or owned)
+              if (isSelected || isOwned) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(color: QeranColors.divider, height: 1),
+                ),
+                PlanFeaturesWidget(plan: plan),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-/// Segmented control (e.g. العادي / VIP) — paper card with an animated gold
-/// underline that slides correctly in RTL + LTR.
-class _PlanTabs extends StatelessWidget {
-  final List<SubscriptionPlan> plans;
-  final int activeIndex;
-  final ValueChanged<int> onChanged;
-
-  const _PlanTabs({
-    required this.plans,
-    required this.activeIndex,
-    required this.onChanged,
-  });
-
-  static const Duration animDuration = Duration(milliseconds: 280);
-  static const double _barHeight = 3.0;
-  static const double _barWidth = 40.0;
-  static const double _cardHeight = 56.0;
-  static const double _innerPad = 4.0;
+class _FreePlanCard extends StatelessWidget {
+  const _FreePlanCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: _cardHeight,
       decoration: BoxDecoration(
-        color: QeranColors.paper,
+        color: QeranColors.paper.withValues(alpha: 0.6),
         borderRadius: QeranRadii.cardR,
-        border: Border.all(color: QeranColors.wine08),
-        boxShadow: QeranShadows.e2,
+        border: Border.all(color: QeranColors.wine.withValues(alpha: 0.08)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(_innerPad),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final cellWidth = constraints.maxWidth / plans.length;
-            final barStart =
-                activeIndex * cellWidth + (cellWidth - _barWidth) / 2;
-            return Stack(
-              children: [
-                AnimatedPositionedDirectional(
-                  duration: animDuration,
-                  curve: Curves.easeOutCubic,
-                  start: barStart,
-                  bottom: 6,
-                  width: _barWidth,
-                  height: _barHeight,
-                  child: const DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: QeranColors.gold,
-                      borderRadius: QeranRadii.pill,
-                    ),
-                  ),
-                ),
-                Row(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: QeranColors.inkMuted,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var i = 0; i < plans.length; i++)
-                      Expanded(
-                        child: _PlanTabCell(
-                          label: plans[i].name(
-                            isArabic: context.locale.languageCode == 'ar',
-                          ),
-                          isActive: i == activeIndex,
-                          onTap: () => onChanged(i),
-                        ),
+                    Text(
+                      LocaleKeys.subscriptions_free_plan_title.t(context),
+                      style: QeranTypography.subtitle.copyWith(
+                        color: QeranColors.wine,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      LocaleKeys.subscriptions_price_free.t(context),
+                      style: QeranTypography.bodySm.copyWith(color: QeranColors.inkBody),
+                    ),
                   ],
                 ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _PlanTabCell extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _PlanTabCell({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Center(
-        child: AnimatedDefaultTextStyle(
-          duration: _PlanTabs.animDuration,
-          curve: Curves.easeOutCubic,
-          style: QeranTypography.subtitle.copyWith(
-            color: isActive ? QeranColors.wine : QeranColors.inkMuted,
-            fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: QeranColors.inkMuted.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  LocaleKeys.subscriptions_badge_you_are_here.t(context),
+                  style: QeranTypography.bodySm.copyWith(
+                    fontSize: 11,
+                    color: QeranColors.inkBody,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
-          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-        ),
+        ],
       ),
     );
   }

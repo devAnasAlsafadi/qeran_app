@@ -6,11 +6,10 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_plan.dart';
-import '../../domain/helpers/subscription_format.dart';
+import '../../domain/entities/subscription_features.dart';
 
 /// Feature checklist derived from `plan.features` — the numeric counts (likes /
-/// serious interests / photo exchanges / daily views) come from the backend
-/// and are never hardcoded. Each row is a gold check + a wine label.
+/// serious interests / photo exchanges / daily views) come from the backend.
 class PlanFeaturesWidget extends StatelessWidget {
   final SubscriptionPlan plan;
   const PlanFeaturesWidget({super.key, required this.plan});
@@ -18,41 +17,42 @@ class PlanFeaturesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final f = plan.features;
-    final items = <String>[
-      SubscriptionFormat.formatAllowed(
-        context,
-        f.likesAllowed,
-        LocaleKeys.subscriptions_feature_likes.t(context),
-      ),
-      SubscriptionFormat.formatAllowed(
-        context,
-        f.seriousInterestsAllowed,
-        LocaleKeys.subscriptions_feature_serious_interests.t(context),
-      ),
-      SubscriptionFormat.formatAllowed(
-        context,
-        f.photoExchangesAllowed,
-        LocaleKeys.subscriptions_feature_photo_exchanges.t(context),
-      ),
-      SubscriptionFormat.formatAllowed(
-        context,
-        f.dailyProfileViewsAllowed,
-        LocaleKeys.subscriptions_feature_daily_profile_views.t(context),
-      ),
-    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [for (final label in items) _FeatureCheckRow(label: label)],
+      children: [
+        _FeatureCheckRow(
+          label: LocaleKeys.subscriptions_feature_likes_label.t(context),
+          value: f.likesAllowed,
+        ),
+        _FeatureCheckRow(
+          label: LocaleKeys.subscriptions_feature_serious_interests_label.t(context),
+          value: f.seriousInterestsAllowed,
+        ),
+        _FeatureCheckRow(
+          label: LocaleKeys.subscriptions_feature_photo_exchanges_label.t(context),
+          value: f.photoExchangesAllowed,
+        ),
+        _FeatureCheckRow(
+          label: LocaleKeys.subscriptions_feature_daily_profile_views_label.t(context),
+          value: f.dailyProfileViewsAllowed,
+        ),
+      ],
     );
   }
 }
 
 class _FeatureCheckRow extends StatelessWidget {
   final String label;
-  const _FeatureCheckRow({required this.label});
+  final int value;
+  const _FeatureCheckRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
+    final isUnlimited = SubscriptionFeatures.isUnlimited(value);
+    final valueText = isUnlimited
+        ? LocaleKeys.subscriptions_unlimited.t(context)
+        : '$value';
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -68,6 +68,17 @@ class _FeatureCheckRow extends StatelessWidget {
               label,
               style: QeranTypography.body.copyWith(color: QeranColors.wine),
             ),
+          ),
+          Text(
+            valueText,
+            style: isUnlimited
+                ? QeranTypography.bodySm.copyWith(
+                    color: QeranColors.goldDeep,
+                    fontWeight: FontWeight.bold,
+                  )
+                : QeranTypography.numeric.copyWith(
+                    color: QeranColors.wine,
+                  ),
           ),
         ],
       ),

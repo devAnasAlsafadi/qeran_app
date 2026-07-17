@@ -102,10 +102,8 @@ class _PackagesViewState extends State<_PackagesView>
         ? currentSubState.subscription
         : null;
 
-    final isVipOwned = currentSub != null &&
-        currentSub.plan.name(isArabic: false).toLowerCase() == 'vip';
-    final isBasicOwned = currentSub != null &&
-        currentSub.plan.name(isArabic: false).toLowerCase() == 'basic';
+    final isVipOwned = currentSub != null && currentSub.plan.isVipTier;
+    final isBasicOwned = currentSub != null && currentSub.plan.isBasicTier;
 
     if (isVipOwned) {
       return const SafeArea(
@@ -119,8 +117,7 @@ class _PackagesViewState extends State<_PackagesView>
 
     int activeIndex = _activePlanIndex.clamp(0, state.plans.length - 1);
     if (isBasicOwned) {
-      final vipIndex = state.plans
-          .indexWhere((p) => p.name(isArabic: false).toLowerCase() == 'vip');
+      final vipIndex = state.plans.indexWhere((p) => p.isVipTier);
       if (vipIndex != -1) {
         activeIndex = vipIndex;
       }

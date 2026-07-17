@@ -33,6 +33,13 @@ class SubscriptionPlan extends Equatable {
   /// store purchase.
   final bool isFree;
 
+  /// Backend plan tier — **0=Free, 1=Basic, 2=VIP** (Tariq's live contract).
+  /// Identify plans by this, never by name. Nullable: absent on older/partial
+  /// payloads — a null tier deliberately matches NONE of [isVipTier]/
+  /// [isBasicTier] (the three are not treated as exhaustive; callers must not
+  /// read "not VIP" as "Basic or Free").
+  final int? tier;
+
   final SubscriptionFeatures features;
   final List<SubscriptionPricing> pricings;
 
@@ -48,9 +55,14 @@ class SubscriptionPlan extends Equatable {
     required this.isActive,
     required this.isPopular,
     required this.isFree,
+    this.tier,
     required this.features,
     required this.pricings,
   });
+
+  /// Tier identification (see [tier]). Null tier → both false.
+  bool get isVipTier => tier == 2;
+  bool get isBasicTier => tier == 1;
 
   /// Active pricings preserved in server `sortOrder`.
   List<SubscriptionPricing> get activePricings =>
@@ -78,6 +90,7 @@ class SubscriptionPlan extends Equatable {
         isActive,
         isPopular,
         isFree,
+        tier,
         features,
         pricings,
       ];

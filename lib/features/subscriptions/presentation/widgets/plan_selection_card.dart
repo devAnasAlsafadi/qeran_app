@@ -54,7 +54,7 @@ class _PlanCard extends StatelessWidget {
     final isOwned = plan.id == ownedPlanId;
 
     // Check if it's the VIP plan to show popular tag
-    final isVip = plan.name(isArabic: false).toLowerCase() == 'vip';
+    final isVip = plan.isVipTier;
 
     // Plan-card price: bound to the SELECTED pricing (the same one the summary,
     // CTA and charge read) — falling back to the first active pricing before a

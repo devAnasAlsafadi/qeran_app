@@ -5,6 +5,7 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../../../likes/data/error_codes.dart';
 import '../../domain/entities/like_outcome.dart';
 import '../models/discovery_filter_question_model.dart';
 import '../models/discovery_page_model.dart';
@@ -131,6 +132,27 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
       if (body is! Map<String, dynamic>) {
         throw ServerException(message: LocaleKeys.errors_generic);
       }
+      // A gated/rejected like can arrive as a 200 `{status: 0, errorCode}`
+      // envelope — the raw handler does NOT throw on `status: 0` (see
+      // http_consumer), so classify it here instead of mis-reading it as an
+      // accepted like. Only an explicit failure marker flips this; a plain
+      // success Map ({success:true} or {status:1}) stays accepted.
+      final errorCode = body['errorCode'] as String?;
+      final isRejected =
+          body['status'] == 0 || (errorCode != null && errorCode.isNotEmpty);
+      if (isRejected) {
+        final message = body['message'] as String? ?? LocaleKeys.errors_generic;
+        final outcome = _classifyLikeFailure(message, errorCode: errorCode);
+        if (outcome != null) {
+          AppLogger.warning(
+            'Like rejected (status:0) — ${outcome.runtimeType} '
+            'target=$targetUserId code="$errorCode"',
+            tag: 'DISCOVERY',
+          );
+          return outcome;
+        }
+        throw CodedServerException(message: message, errorCode: errorCode);
+      }
       // The success envelope is `{success: true, message, data: "42"}`
       // where `data` is the like row id as a string. Some servers may
       // return it as a number — accept both.
@@ -146,11 +168,12 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
       );
       return LikeAccepted(likeId: likeId);
     } on ServerException catch (e) {
-      // `postRaw` throws `ServerException(message: server message)` when
-      // the server returns `{success: false, message: ...}`. Map the
-      // four known Arabic messages onto typed outcomes; unknown ones
-      // bubble up so the repository converts to `Left(Failure)`.
-      final outcome = _classifyLikeFailure(e.message);
+      // `postRaw` throws `CodedServerException` (non-2xx, or a 2xx
+      // `{success: false}`) carrying the stable `errorCode`. Classify by
+      // that code first, falling back to Arabic message matching; unknown
+      // ones bubble up so the repository converts to `Left(Failure)`.
+      final code = e is CodedServerException ? e.errorCode : null;
+      final outcome = _classifyLikeFailure(e.message, errorCode: code);
       if (outcome != null) {
         AppLogger.warning(
           'Like rejected — ${outcome.runtimeType} target=$targetUserId '
@@ -174,15 +197,32 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
     AppLogger.info('Skip recorded target=$targetUserId', tag: 'DISCOVERY');
   }
 
-  /// Maps a server-supplied Arabic failure message onto a typed
-  /// [LikeOutcome]. Returns `null` for unrecognised messages (the
-  /// repository then surfaces them as a transport-level `Failure`).
+  /// Maps a gated like failure onto a typed [LikeOutcome]. Prefers the
+  /// stable backend [errorCode]; the Arabic message substring match is a
+  /// fallback only, for a missing or unrecognised code. Returns `null` for
+  /// the unrecognised case (the repository then surfaces it as a
+  /// transport-level `Failure`).
   ///
-  /// Substring matching is the fallback path until backend exposes a
-  /// stable `errorCode` field — see the plan §9. We normalise tashkeel,
-  /// tatweel, and bidi marks on both sides so future copy edits don't
-  /// silently break the dispatch.
-  LikeOutcome? _classifyLikeFailure(String rawMessage) {
+  /// The Arabic matcher normalises tashkeel, tatweel, and bidi marks on both
+  /// sides so future copy edits don't silently break the dispatch.
+  LikeOutcome? _classifyLikeFailure(String rawMessage, {String? errorCode}) {
+    // errorCode-first: the contract's stable codes (never parse the message
+    // when a code is present and known).
+    if (errorCode != null && errorCode.isNotEmpty) {
+      switch (errorCode) {
+        case LikesErrorCodes.subscriptionRequired:
+        case LikesErrorCodes.likesQuotaExceeded:
+          return LikePaywall(serverMessage: rawMessage);
+        case LikesErrorCodes.likeAlreadyExists:
+          return LikeAlreadyPending(serverMessage: rawMessage);
+        case LikesErrorCodes.sameGenderNotAllowed:
+          return LikeGenderMismatch(serverMessage: rawMessage);
+        case LikesErrorCodes.targetUserNotFound:
+        case LikesErrorCodes.likeNotFound:
+          return LikeUserUnavailable(serverMessage: rawMessage);
+      }
+      // Unrecognised code — fall through to the Arabic matcher below.
+    }
     final m = _normaliseArabic(rawMessage);
     // Subscription / quota exhausted —
     // "لقد استنفدت عدد الإعجابات المسموح به في اشتراكك"

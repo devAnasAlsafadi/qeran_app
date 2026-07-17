@@ -24,7 +24,18 @@ class PhotoExchangeErrorCodes {
   static const String photoExchangeExpired = 'PHOTO_EXCHANGE_EXPIRED';
   static const String photoExchangeAlreadyPending =
       'PHOTO_EXCHANGE_ALREADY_PENDING';
+  static const String photoExchangeLimitReached =
+      'PHOTO_EXCHANGE_LIMIT_REACHED';
   static const String subscriptionRequired = 'SUBSCRIPTION_REQUIRED';
   static const String unauthorized = 'UNAUTHORIZED';
   static const String validationError = 'VALIDATION_ERROR';
+}
+
+/// Backend `errorCode` constants for the Discovery feed. `dailyViewsExceeded`
+/// is a "come back tomorrow" cap (with `data.resetAt`) for no-subscription
+/// users — NOT a paywall. Consumed by the Discovery feed handling.
+class DiscoveryErrorCodes {
+  DiscoveryErrorCodes._();
+
+  static const String dailyViewsExceeded = 'DAILY_VIEWS_EXCEEDED';
 }

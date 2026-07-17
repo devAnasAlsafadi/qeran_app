@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/features/discovery/data/datasources/discovery_remote_datasource.dart';
+import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
+import 'package:qeran/features/likes/data/error_codes.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
 
@@ -107,6 +110,80 @@ void main() {
       await ds.fetchFilters();
 
       verify(() => api.get(EndPoints.discoveryFilters)).called(1);
+    });
+  });
+
+  group('likeProfile — errorCode classification', () {
+    // Gated failure arriving as a thrown CodedServerException (non-2xx or a
+    // {success:false} envelope) is classified by the stable errorCode.
+    void whenThrows(String code) =>
+        when(() => api.postRaw(any())).thenThrow(
+          CodedServerException(message: 'server msg', errorCode: code),
+        );
+
+    test('SUBSCRIPTION_REQUIRED → LikePaywall', () async {
+      whenThrows(LikesErrorCodes.subscriptionRequired);
+      expect(await ds.likeProfile('u1'), isA<LikePaywall>());
+    });
+
+    test('LIKES_QUOTA_EXCEEDED → LikePaywall', () async {
+      whenThrows(LikesErrorCodes.likesQuotaExceeded);
+      expect(await ds.likeProfile('u1'), isA<LikePaywall>());
+    });
+
+    test('LIKE_ALREADY_EXISTS → LikeAlreadyPending', () async {
+      whenThrows(LikesErrorCodes.likeAlreadyExists);
+      expect(await ds.likeProfile('u1'), isA<LikeAlreadyPending>());
+    });
+
+    test('SAME_GENDER_NOT_ALLOWED → LikeGenderMismatch', () async {
+      whenThrows(LikesErrorCodes.sameGenderNotAllowed);
+      expect(await ds.likeProfile('u1'), isA<LikeGenderMismatch>());
+    });
+
+    test('TARGET_USER_NOT_FOUND → LikeUserUnavailable', () async {
+      whenThrows(LikesErrorCodes.targetUserNotFound);
+      expect(await ds.likeProfile('u1'), isA<LikeUserUnavailable>());
+    });
+
+    test('200 {status:0, errorCode} body is classified, NOT accepted',
+        () async {
+      when(() => api.postRaw(any())).thenAnswer((_) async => {
+            'status': 0,
+            'errorCode': LikesErrorCodes.subscriptionRequired,
+            'message': 'server msg',
+          });
+      expect(await ds.likeProfile('u1'), isA<LikePaywall>());
+    });
+
+    test('Arabic message is the fallback when no errorCode', () async {
+      when(() => api.postRaw(any())).thenThrow(
+        ServerException(message: 'لقد استنفدت عدد الإعجابات المسموح به'),
+      );
+      expect(await ds.likeProfile('u1'), isA<LikePaywall>());
+    });
+
+    test('success {status:1, data} → LikeAccepted', () async {
+      when(() => api.postRaw(any())).thenAnswer((_) async => {
+            'status': 1,
+            'message': 'ok',
+            'data': '42',
+          });
+      final outcome = await ds.likeProfile('u1');
+      expect(outcome, isA<LikeAccepted>());
+      expect((outcome as LikeAccepted).likeId, '42');
+    });
+
+    test('success {success:true, data} (no status) stays LikeAccepted',
+        () async {
+      // Regression guard: rejection is only flagged on a positive failure
+      // marker, so a plain success Map without `status` is never mis-read.
+      when(() => api.postRaw(any())).thenAnswer((_) async => {
+            'success': true,
+            'message': 'ok',
+            'data': '7',
+          });
+      expect(await ds.likeProfile('u1'), isA<LikeAccepted>());
     });
   });
 }

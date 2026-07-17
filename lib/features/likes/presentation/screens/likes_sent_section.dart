@@ -4,6 +4,7 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
@@ -53,8 +54,6 @@ class _SentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-    const navReserve = 96.0;
     return RefreshIndicator(
       color: QeranColors.wine,
       onRefresh: () => onRefresh(),
@@ -62,11 +61,13 @@ class _SentList extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
+        // Bottom-nav clearance so the last card clears the floating nav island
+        // + gesture inset (canonical value from the nav widget).
         padding: EdgeInsets.fromLTRB(
           QeranSpacing.s20,
           QeranSpacing.s12,
           QeranSpacing.s20,
-          bottomInset + navReserve,
+          QeranBottomNav.contentClearance(context),
         ),
         children: [
           for (final card in data.pending)

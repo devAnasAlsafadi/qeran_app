@@ -34,7 +34,8 @@ void main() {
   group('fetchPage — query parameter shape', () {
     test('spreads flat filterParams directly into the query map '
         '(no JSON encoding)', () async {
-      when(() => api.get(any(), queryParameters: any(named: 'queryParameters')))
+      when(() => api.getRaw(any(),
+              queryParameters: any(named: 'queryParameters')))
           .thenAnswer((_) async => _emptyPage());
 
       const filters = {
@@ -50,7 +51,7 @@ void main() {
       await ds.fetchPage(page: 1, pageSize: 20, filterParams: filters);
 
       final captured = verify(
-        () => api.get(
+        () => api.getRaw(
           captureAny(),
           queryParameters: captureAny(named: 'queryParameters'),
         ),
@@ -71,13 +72,14 @@ void main() {
     });
 
     test('null filterParams → only Page + PageSize sent', () async {
-      when(() => api.get(any(), queryParameters: any(named: 'queryParameters')))
+      when(() => api.getRaw(any(),
+              queryParameters: any(named: 'queryParameters')))
           .thenAnswer((_) async => _emptyPage());
 
       await ds.fetchPage();
 
       final qp = verify(
-        () => api.get(any(),
+        () => api.getRaw(any(),
             queryParameters: captureAny(named: 'queryParameters')),
       ).captured.single as Map<String, dynamic>;
 
@@ -85,17 +87,72 @@ void main() {
     });
 
     test('empty filterParams behaves like null (no spread)', () async {
-      when(() => api.get(any(), queryParameters: any(named: 'queryParameters')))
+      when(() => api.getRaw(any(),
+              queryParameters: any(named: 'queryParameters')))
           .thenAnswer((_) async => _emptyPage());
 
       await ds.fetchPage(filterParams: const {});
 
       final qp = verify(
-        () => api.get(any(),
+        () => api.getRaw(any(),
             queryParameters: captureAny(named: 'queryParameters')),
       ).captured.single as Map<String, dynamic>;
 
       expect(qp.keys.toSet(), {'Page', 'PageSize'});
+    });
+  });
+
+  group('fetchPage — daily views cap', () {
+    Future<Object?> fetchError() =>
+        ds.fetchPage().then<Object?>((_) => null, onError: (e) => e);
+
+    test('200 {status:0, DAILY_VIEWS_EXCEEDED, data.resetAt} → typed '
+        'exception carrying the parsed resetAt', () async {
+      when(() => api.getRaw(any(),
+              queryParameters: any(named: 'queryParameters')))
+          .thenAnswer((_) async => {
+                'status': 0,
+                'errorCode': DiscoveryErrorCodes.dailyViewsExceeded,
+                'message': 'capped',
+                'data': {'resetAt': '2026-07-18T00:00:00Z'},
+              });
+
+      final err = await fetchError();
+      expect(err, isA<DailyViewsExceededException>());
+      expect((err as DailyViewsExceededException).resetAt.toUtc(),
+          DateTime.utc(2026, 7, 18));
+    });
+
+    test('non-2xx thrown CodedServerException with the code → typed '
+        'exception (fallback resetAt = next UTC midnight)', () async {
+      when(() => api.getRaw(any(),
+              queryParameters: any(named: 'queryParameters')))
+          .thenThrow(CodedServerException(
+        message: 'capped',
+        errorCode: DiscoveryErrorCodes.dailyViewsExceeded,
+      ));
+
+      final err = await fetchError();
+      expect(err, isA<DailyViewsExceededException>());
+      final resetAt = (err as DailyViewsExceededException).resetAt.toUtc();
+      expect(resetAt.isAfter(DateTime.now().toUtc()), isTrue);
+      expect(resetAt.hour, 0);
+      expect(resetAt.minute, 0);
+    });
+
+    test('other status:0 failure → plain ServerException, not the daily type',
+        () async {
+      when(() => api.getRaw(any(),
+              queryParameters: any(named: 'queryParameters')))
+          .thenAnswer((_) async => {
+                'status': 0,
+                'errorCode': 'SOMETHING_ELSE',
+                'message': 'nope',
+              });
+
+      final err = await fetchError();
+      expect(err, isA<ServerException>());
+      expect(err, isNot(isA<DailyViewsExceededException>()));
     });
   });
 

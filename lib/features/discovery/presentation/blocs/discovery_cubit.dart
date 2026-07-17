@@ -124,7 +124,9 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     // below would call `emit` on a closed cubit and throw StateError.
     if (isClosed) return;
     result.fold(
-      (failure) => emit(DiscoveryFailure(failure.message)),
+      (failure) => emit(failure is DailyViewsExceededFailure
+          ? DiscoveryDailyLimit(failure.resetAt)
+          : DiscoveryFailure(failure.message)),
       (page) => emit(DiscoveryLoaded(
         profiles: page.profiles,
         currentIndex: 0,
@@ -395,6 +397,10 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     if (post is! DiscoveryLoaded) return; // refresh / shutdown happened
     result.fold(
       (failure) {
+        // Follow-up: mid-deck daily-limit coverage. If a no-sub user
+        // prefetched a page then hits DAILY_VIEWS_EXCEEDED here, we keep it
+        // as a non-fatal prefetchError — the limit screen only appears once
+        // the loaded cards run out (the page-1 load is the primary trigger).
         emit(post.copyWith(
           isPrefetching: false,
           prefetchError: failure.message,

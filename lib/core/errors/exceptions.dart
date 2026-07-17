@@ -43,6 +43,19 @@ class CodedServerException extends ServerException {
   });
 }
 
+/// Thrown by the discovery feed fetch when the backend returns
+/// `DAILY_VIEWS_EXCEEDED` — the no-subscription daily view cap. Carries the
+/// [resetAt] instant (next UTC midnight) so the UI can show a live countdown.
+/// A "come back tomorrow" signal, NOT a paywall. Subtype of [ServerException]
+/// so existing `on ServerException` sites still catch it as a fallback.
+class DailyViewsExceededException extends ServerException {
+  final DateTime resetAt;
+  DailyViewsExceededException({
+    required this.resetAt,
+    super.message = LocaleKeys.errors_generic,
+  });
+}
+
 class CacheException implements Exception {
   final String message;
   CacheException({required this.message});

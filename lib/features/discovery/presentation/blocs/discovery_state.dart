@@ -170,3 +170,15 @@ final class DiscoveryLoaded extends DiscoveryState {
       '${actionFailureKind != null ? ', fail: ${actionFailureKind!.name}#$actionErrorVersion' : ''}'
       '${prefetchError != null ? ', prefetchErr' : ''})';
 }
+
+/// The no-subscription daily view cap was hit (`DAILY_VIEWS_EXCEEDED`). A
+/// full-screen "come back tomorrow" state — NOT a paywall. [resetAt] drives the
+/// reset countdown. Only ever emitted because the server returned the code
+/// (no client-side cap counting).
+final class DiscoveryDailyLimit extends DiscoveryState {
+  final DateTime resetAt;
+  const DiscoveryDailyLimit(this.resetAt);
+
+  @override
+  List<Object?> get props => [resetAt];
+}

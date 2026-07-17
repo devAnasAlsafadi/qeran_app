@@ -118,6 +118,25 @@ void main() {
       expect((cubit.state as DiscoveryFailure).message, 'boom');
     });
 
+    test('terminal state is DiscoveryDailyLimit on DailyViewsExceededFailure',
+        () async {
+      final resetAt = DateTime.utc(2026, 7, 18);
+      when(() => fetch(
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+            filterParams: any(named: 'filterParams'),
+          )).thenAnswer(
+        (_) async => Left<Failure, DiscoveryPage>(
+          DailyViewsExceededFailure(resetAt: resetAt),
+        ),
+      );
+
+      await cubit.loadInitial();
+
+      expect(cubit.state, isA<DiscoveryDailyLimit>());
+      expect((cubit.state as DiscoveryDailyLimit).resetAt, resetAt);
+    });
+
     test('empty page → Loaded with empty profiles list', () async {
       when(() => fetch(
             page: any(named: 'page'),

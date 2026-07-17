@@ -11,6 +11,11 @@ mixin BaseRepository {
     try {
       final result = await apiCall();
       return Right(result);
+    } on DailyViewsExceededException catch (e) {
+      // Typed daily-view cap — must map before the generic ServerException
+      // catch (it's a subtype) so the resetAt survives to the cubit.
+      AppLogger.info('Daily views exceeded', tag: 'REPO');
+      return Left(DailyViewsExceededFailure(resetAt: e.resetAt));
     } on OfflineException {
       AppLogger.warning('Offline request', tag: 'REPO');
       return const Left(OfflineFailure());

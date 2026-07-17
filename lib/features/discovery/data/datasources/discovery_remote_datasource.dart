@@ -3,6 +3,7 @@ import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/utils/server_datetime.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../likes/data/error_codes.dart';
@@ -68,30 +69,73 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
       if (filterParams != null) ...filterParams,
     };
 
-    final response = await _apiConsumer.get(
-      EndPoints.discovery,
-      queryParameters: qp,
-    );
-
-    final apiResponse = ApiResponse<DiscoveryPageModel>.fromJson(
-      response,
-      (json) => DiscoveryPageModel.fromJson(json as Map<String, dynamic>),
-    );
-
-    if (apiResponse.data == null) {
-      throw ServerException(
-        message: apiResponse.message ?? LocaleKeys.errors_generic,
+    // Uses `getRaw` (not `get`) so a coded failure envelope is returned rather
+    // than thrown before we can read it: the no-subscription daily-view cap
+    // arrives as `{status:0, errorCode:DAILY_VIEWS_EXCEEDED, data:{resetAt}}`,
+    // and we must surface `resetAt` for the "come back tomorrow" countdown.
+    try {
+      final body = await _apiConsumer.getRaw(
+        EndPoints.discovery,
+        queryParameters: qp,
       );
+      if (body is! Map<String, dynamic>) {
+        throw ServerException(message: LocaleKeys.errors_generic);
+      }
+
+      final ok = body['status'] == 1 || body['status'] == true;
+      if (!ok) {
+        final errorCode = body['errorCode'] as String?;
+        if (errorCode == DiscoveryErrorCodes.dailyViewsExceeded) {
+          throw DailyViewsExceededException(resetAt: _resetAtFrom(body));
+        }
+        throw ServerException(
+          message: body['message'] as String? ?? LocaleKeys.errors_generic,
+        );
+      }
+
+      final apiResponse = ApiResponse<DiscoveryPageModel>.fromJson(
+        body,
+        (json) => DiscoveryPageModel.fromJson(json as Map<String, dynamic>),
+      );
+
+      if (apiResponse.data == null) {
+        throw ServerException(
+          message: apiResponse.message ?? LocaleKeys.errors_generic,
+        );
+      }
+
+      AppLogger.info(
+        'Discovery page ${apiResponse.data!.pageNumber}/'
+        '${apiResponse.data!.totalPages} — '
+        '${apiResponse.data!.profiles.length} profile(s)',
+        tag: 'DISCOVERY',
+      );
+
+      return apiResponse.data!;
+    } on DailyViewsExceededException {
+      rethrow;
+    } on CodedServerException catch (e) {
+      // The cap can also arrive as a non-2xx response — `getRaw` throws before
+      // we can read `data.resetAt`, so fall back to the next UTC midnight,
+      // which is exactly what this cap's `resetAt` denotes.
+      if (e.errorCode == DiscoveryErrorCodes.dailyViewsExceeded) {
+        throw DailyViewsExceededException(resetAt: _nextUtcMidnight());
+      }
+      rethrow;
     }
+  }
 
-    AppLogger.info(
-      'Discovery page ${apiResponse.data!.pageNumber}/'
-      '${apiResponse.data!.totalPages} — '
-      '${apiResponse.data!.profiles.length} profile(s)',
-      tag: 'DISCOVERY',
-    );
+  /// Parses `data.resetAt` from the daily-cap envelope; falls back to the next
+  /// UTC midnight (what this cap's `resetAt` denotes) when absent/unparseable.
+  DateTime _resetAtFrom(Map<String, dynamic> body) {
+    final data = body['data'];
+    final raw = data is Map<String, dynamic> ? data['resetAt'] : null;
+    return parseServerDateTime(raw) ?? _nextUtcMidnight();
+  }
 
-    return apiResponse.data!;
+  DateTime _nextUtcMidnight() {
+    final now = DateTime.now().toUtc();
+    return DateTime.utc(now.year, now.month, now.day + 1);
   }
 
   @override

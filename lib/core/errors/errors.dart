@@ -40,6 +40,21 @@ class CacheFailure extends Failure {
   const CacheFailure({required super.message});
 }
 
+/// The no-subscription daily view cap (`DAILY_VIEWS_EXCEEDED`). Carries the
+/// [resetAt] instant (next UTC midnight) for the reset countdown. Not a
+/// paywall — the UI shows a "come back tomorrow" state.
+class DailyViewsExceededFailure extends Failure {
+  final DateTime resetAt;
+
+  const DailyViewsExceededFailure({
+    required this.resetAt,
+    super.message = LocaleKeys.errors_generic,
+  });
+
+  @override
+  List<Object?> get props => [message, resetAt];
+}
+
 class AuthFailure extends Failure {
   const AuthFailure({super.message = LocaleKeys.errors_unauthorized});
 }

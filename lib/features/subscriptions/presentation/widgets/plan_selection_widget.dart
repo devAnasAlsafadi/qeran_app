@@ -18,6 +18,13 @@ import 'plan_pricing_selector.dart';
 part 'plan_selection_card.dart';
 part 'plan_selection_free_card.dart';
 
+/// Owned-plan badge text: the plan label alone, or "{plan} · {period}" when the
+/// owned pricing period is known. Backend-driven — [periodLabel] is null when no
+/// pricing period is available, so no period is fabricated. Pure + top-level so
+/// it's unit-testable without a widget.
+String ownedPlanBadgeLabel(String planLabel, String? periodLabel) =>
+    periodLabel == null ? planLabel : '$planLabel · $periodLabel';
+
 class PlanSelectionWidget extends StatelessWidget {
   final List<SubscriptionPlan> plans;
   final int activeIndex;
@@ -52,6 +59,16 @@ class PlanSelectionWidget extends StatelessWidget {
     final hasActivePaidSub = currentSub != null;
     final ownedPlanId = currentSub?.plan.id;
 
+    // The period the user actually owns (monthly vs 3-month), resolved from the
+    // owned pricing — locale label first, then the backend `{days}` fallback
+    // (never fabricated). Null when nothing is owned → badge shows plan alone.
+    final ownedPeriodLabel = currentSub == null
+        ? null
+        : currentSub!.pricing.label(isArabic: isArabic) ??
+            LocaleKeys.subscriptions_duration_days
+                .t(context)
+                .replaceFirst('{days}', '${currentSub!.pricing.durationDays}');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -79,6 +96,7 @@ class PlanSelectionWidget extends StatelessWidget {
                 index: i,
                 isSelected: i == activeIndex,
                 ownedPlanId: ownedPlanId,
+                ownedPeriodLabel: ownedPeriodLabel,
                 isArabic: isArabic,
                 selectedPricingFor: selectedPricingFor,
                 resolveStoreProduct: resolveStoreProduct,

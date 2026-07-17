@@ -10,6 +10,11 @@ class _PlanCard extends StatelessWidget {
   final int index;
   final bool isSelected;
   final int? ownedPlanId;
+
+  /// Resolved period of the plan the user actually owns (e.g. "3 أشهر" /
+  /// "3 months"), or null when nothing is owned. Rendered on the owned card's
+  /// "your plan" badge so a VIP-3-month subscriber sees their real pricing.
+  final String? ownedPeriodLabel;
   final bool isArabic;
   final SubscriptionPricing? Function(SubscriptionPlan plan) selectedPricingFor;
   final StoreProduct? Function(SubscriptionPricing pricing) resolveStoreProduct;
@@ -21,6 +26,7 @@ class _PlanCard extends StatelessWidget {
     required this.index,
     required this.isSelected,
     required this.ownedPlanId,
+    required this.ownedPeriodLabel,
     required this.isArabic,
     required this.selectedPricingFor,
     required this.resolveStoreProduct,
@@ -152,7 +158,10 @@ class _PlanCard extends StatelessWidget {
                   // Badges (Current / Upgrade Available)
                   if (isOwned)
                     _PillBadge(
-                      label: LocaleKeys.subscriptions_badge_your_plan.t(context),
+                      label: ownedPlanBadgeLabel(
+                        LocaleKeys.subscriptions_badge_your_plan.t(context),
+                        ownedPeriodLabel,
+                      ),
                       background: QeranColors.wine.withValues(alpha: 0.08),
                       foreground: QeranColors.wine,
                     ),

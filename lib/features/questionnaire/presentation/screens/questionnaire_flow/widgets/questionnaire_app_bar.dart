@@ -67,7 +67,6 @@ class _NavBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final bool isRtl = Directionality.of(context) == TextDirection.rtl;
     return IconButton(
       icon: Icon(
         Icons.chevron_left_rounded   ,

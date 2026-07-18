@@ -20,11 +20,9 @@ import 'dart:io' show Platform;
 class RevenueCatConfig {
   RevenueCatConfig._();
 
-  // TODO(secrets): Anas — confirm/replace these with the real RevenueCat
-  // *production* SDK keys before the next release build (RC dashboard →
-  // Project settings → API keys → App-specific keys, Android "goog_..." /
-  // Apple "appl_..."). RC SDK keys are public/safe to ship, but they MUST be
-  // the production keys or release builds hit the "Wrong API Key" dialog.
+  // Production RevenueCat SDK keys (confirmed via a completed on-device
+  // purchase). RC SDK keys are public/safe to ship, but must be the
+  // production keys or release builds hit the "Wrong API Key" dialog.
   static const String _androidProductionKey =
       'goog_xkSZqDIzAXLbUfxUYsqtBUkcIjJ';
   static const String _iosProductionKey = 'appl_udfePLhIiRlxsOEEPzkILqcHjLc';

@@ -78,13 +78,33 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
   Stream<MessagesReadEvent> get messagesRead =>
       _messagesReadController.stream;
 
+  // ── Lifecycle serialization ────────────────────────────────────────
+  // Every connect()/disconnect() runs through this single-slot queue, so
+  // `stop()` can NEVER race a mid-flight `start()` (the "Failed to start the
+  // HttpConnection before stop() was called" bug) and a rapid open→close→open
+  // can't interleave two connections. Each op waits for the previous one to
+  // fully settle before it runs; the chain swallows an op's error so one
+  // failure never stalls the queue (the awaiting caller still sees it).
+  Future<void> _opChain = Future<void>.value();
+
+  Future<void> _serialize(Future<void> Function() op) {
+    final run = _opChain.then((_) => op());
+    _opChain = run.then((_) {}, onError: (_) {});
+    return run;
+  }
+
   @override
   Future<void> connect({
     required Future<String?> Function() accessTokenProvider,
-  }) async {
-    // Idempotent: tear down any previous session first so we never
-    // leak two parallel HubConnections.
-    await disconnect();
+  }) =>
+      _serialize(() => _connect(accessTokenProvider));
+
+  Future<void> _connect(
+    Future<String?> Function() accessTokenProvider,
+  ) async {
+    // Idempotent: tear down any previous session first (in-slot, direct — NOT
+    // re-enqueued) so we never leak two parallel HubConnections.
+    await _stopCurrent();
 
     // `AccessTokenFactory` requires a non-null `Future<String>`; we
     // coerce null/missing token to empty so the server simply 401s
@@ -137,13 +157,19 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
         tag: 'CHAT',
       );
       _setStatus(RealtimeStatus.disconnected);
-      _connection = null;
+      // Serialized, so `_connection` is still THIS connection; guard anyway.
+      if (identical(_connection, connection)) _connection = null;
       rethrow;
     }
   }
 
   @override
-  Future<void> disconnect() async {
+  Future<void> disconnect() => _serialize(_stopCurrent);
+
+  /// Stops the current connection (if any). Runs only inside a serialized slot
+  /// — never concurrently with `_connect`'s `start()` — so `stop()` is never
+  /// called on a half-started connection.
+  Future<void> _stopCurrent() async {
     final conn = _connection;
     _connection = null;
     if (conn == null) {
@@ -157,6 +183,13 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
     }
     _setStatus(RealtimeStatus.disconnected);
   }
+
+  /// Test seam: run [op] through the same serialization queue used by
+  /// connect/disconnect, to verify strict sequential (non-overlapping)
+  /// execution under rapid re-entrancy.
+  @visibleForTesting
+  Future<void> runSerializedForTest(Future<void> Function() op) =>
+      _serialize(op);
 
   /// Lifetime is the app singleton; close the controllers on hot-
   /// restart / shutdown via this. Not part of the port contract — DI

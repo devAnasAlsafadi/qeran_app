@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/chat/data/datasources/chat_realtime_signalr_service.dart';
 import 'package:qeran/features/chat/domain/entities/realtime_status.dart';
@@ -15,6 +17,54 @@ void main() {
       // because we never moved away from it).
       await svc.disconnect();
       expect(svc.status, RealtimeStatus.disconnected);
+    });
+  });
+
+  group('ChatRealtimeSignalRService — lifecycle serialization (re-entrancy)',
+      () {
+    test('serialized ops run strictly sequentially — never overlap', () async {
+      final svc = ChatRealtimeSignalRService();
+      final log = <String>[];
+      final gateA = Completer<void>();
+
+      // Op A starts, then blocks — models a connect() whose start() is still
+      // in-flight.
+      final a = svc.runSerializedForTest(() async {
+        log.add('A-start');
+        await gateA.future;
+        log.add('A-end');
+      });
+      // Op B is enqueued while A is still running — models a disconnect()
+      // arriving mid-start. It must NOT begin until A fully settles (so a
+      // stop() can never run against a half-started connection).
+      final b = svc.runSerializedForTest(() async {
+        log.add('B-start');
+        log.add('B-end');
+      });
+
+      // Let the event loop spin; B must still be blocked behind A.
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(log, ['A-start']);
+
+      gateA.complete();
+      await Future.wait([a, b]);
+      // Strict, non-overlapping order.
+      expect(log, ['A-start', 'A-end', 'B-start', 'B-end']);
+    });
+
+    test('a failing op surfaces to its caller AND does not stall the queue',
+        () async {
+      final svc = ChatRealtimeSignalRService();
+      final log = <String>[];
+
+      final failing = svc.runSerializedForTest(() async {
+        throw StateError('boom');
+      });
+      await expectLater(failing, throwsA(isA<StateError>()));
+
+      // A later op (e.g. the next connect) still runs.
+      await svc.runSerializedForTest(() async => log.add('next'));
+      expect(log, ['next']);
     });
   });
 

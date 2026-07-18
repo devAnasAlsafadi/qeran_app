@@ -5,7 +5,6 @@ import '../data/repositories/purchase_repository_impl.dart';
 import '../data/repositories/subscriptions_repository_impl.dart';
 import '../domain/repositories/purchase_repository.dart';
 import '../domain/repositories/subscriptions_repository.dart';
-import '../domain/usecases/check_premium_status_usecase.dart';
 import '../domain/usecases/get_current_subscription_usecase.dart';
 import '../domain/usecases/get_store_products_usecase.dart';
 import '../domain/usecases/get_subscription_plans_usecase.dart';
@@ -39,7 +38,6 @@ void initSubscriptionDependencies() {
   sl.registerLazySingleton(() => ValidateCodeUseCase(sl()));
   sl.registerLazySingleton(() => PurchasePackageUseCase(sl()));
   sl.registerLazySingleton(() => RestorePurchasesUseCase(sl()));
-  sl.registerLazySingleton(() => CheckPremiumStatusUseCase(sl()));
 
   //! Current Subscription — app-scoped lazy singleton.
   //

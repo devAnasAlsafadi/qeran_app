@@ -8,9 +8,11 @@ import '../../../../../core/design_system/widgets/qeran_monogram.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
-/// Dashboard greeting — 48px monogram + time-of-day salaam + name, with
-/// an optional trailing date block. The name comes from the cached session
-/// (zero fetch); a null/empty name falls back to the salaam alone with a
+/// Dashboard greeting — 48px monogram + a stacked name/salaam block, with an
+/// optional trailing date block. The name is the hero (large, bold, wine) and
+/// the time-of-day salaam sits beneath it as a small, muted subline. The name
+/// comes from the cached session (zero fetch); a null/empty name falls back to
+/// the salaam alone rendered as the hero line (no empty name slot), with a
 /// neutral monogram. Numerals in the date stay LTR-tabular in both locales.
 class MatchmakerGreetingRow extends StatelessWidget {
   const MatchmakerGreetingRow({
@@ -35,28 +37,51 @@ class MatchmakerGreetingRow extends StatelessWidget {
     final trimmed = name?.trim() ?? '';
     final hasName = trimmed.isNotEmpty;
 
-    // Backend-driven: with a name, the salaam is interpolated inline
-    // ("صباح الخير، لارا" / "Good morning, Lara"); a null/empty name falls back
-    // to the salaam alone (no trailing comma / empty slot).
-    final greeting = hasName
-        ? context.tr(
-            _salaamNamedKey(clock.hour),
-            namedArgs: {'name': trimmed},
-          )
-        : _salaamKey(clock.hour).t(context);
+    // Plain salaam, no inline name — the name is rendered as its own hero line
+    // above this. With no name, the salaam itself becomes the hero line.
+    final greeting = _salaamKey(clock.hour).t(context);
+
+    // Hero style — the prominent, bold, wine-toned line (headline's default
+    // color is inkStrong == wine). Used for the name, or the salaam when no
+    // name is known.
+    final heroStyle = QeranTypography.headline.copyWith(
+      fontWeight: FontWeight.w800,
+    );
 
     return Row(
       children: [
         QeranMonogram(name: hasName ? trimmed : null),
         QeranSpacing.hs12,
         Expanded(
-          child: Text(
-            greeting,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: QeranTypography.headline.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: hasName
+                ? [
+                    Text(
+                      trimmed,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: heroStyle,
+                    ),
+                    QeranSpacing.vs4,
+                    Text(
+                      greeting,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: QeranTypography.subtitle.copyWith(
+                        color: QeranColors.inkMuted,
+                      ),
+                    ),
+                  ]
+                : [
+                    Text(
+                      greeting,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: heroStyle,
+                    ),
+                  ],
           ),
         ),
         if (showDate) ...[
@@ -71,14 +96,6 @@ class MatchmakerGreetingRow extends StatelessWidget {
     if (hour < 12) return LocaleKeys.matchmaker_dashboard_salaam_morning;
     if (hour < 17) return LocaleKeys.matchmaker_dashboard_salaam_afternoon;
     return LocaleKeys.matchmaker_dashboard_salaam_evening;
-  }
-
-  String _salaamNamedKey(int hour) {
-    if (hour < 12) return LocaleKeys.matchmaker_dashboard_salaam_morning_named;
-    if (hour < 17) {
-      return LocaleKeys.matchmaker_dashboard_salaam_afternoon_named;
-    }
-    return LocaleKeys.matchmaker_dashboard_salaam_evening_named;
   }
 }
 

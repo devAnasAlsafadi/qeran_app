@@ -544,9 +544,6 @@ abstract class  LocaleKeys {
   static const matchmaker_dashboard_salaam_morning = 'matchmaker.dashboard_salaam_morning';
   static const matchmaker_dashboard_salaam_afternoon = 'matchmaker.dashboard_salaam_afternoon';
   static const matchmaker_dashboard_salaam_evening = 'matchmaker.dashboard_salaam_evening';
-  static const matchmaker_dashboard_salaam_morning_named = 'matchmaker.dashboard_salaam_morning_named';
-  static const matchmaker_dashboard_salaam_afternoon_named = 'matchmaker.dashboard_salaam_afternoon_named';
-  static const matchmaker_dashboard_salaam_evening_named = 'matchmaker.dashboard_salaam_evening_named';
   static const matchmaker_dashboard_attention_title = 'matchmaker.dashboard_attention_title';
   static const matchmaker_dashboard_attention_subtitle = 'matchmaker.dashboard_attention_subtitle';
   static const matchmaker_dashboard_overview_title = 'matchmaker.dashboard_overview_title';

@@ -40,6 +40,12 @@ class SubscriptionPlan extends Equatable {
   /// read "not VIP" as "Basic or Free").
   final int? tier;
 
+  /// Dashboard-controlled display bullets (newline-separated), per locale.
+  /// Nullable — when absent the UI falls back to the numeric checklist. Read
+  /// via [featureBullets], never split at the call site.
+  final String? featuresAr;
+  final String? featuresEn;
+
   final SubscriptionFeatures features;
   final List<SubscriptionPricing> pricings;
 
@@ -56,6 +62,8 @@ class SubscriptionPlan extends Equatable {
     required this.isPopular,
     required this.isFree,
     this.tier,
+    this.featuresAr,
+    this.featuresEn,
     required this.features,
     required this.pricings,
   });
@@ -63,6 +71,25 @@ class SubscriptionPlan extends Equatable {
   /// Tier identification (see [tier]). Null tier → both false.
   bool get isVipTier => tier == 2;
   bool get isBasicTier => tier == 1;
+
+  /// Backend display bullets for the plan card — the active-locale lines
+  /// (trimmed, blanks dropped), falling back to the other locale, then to an
+  /// empty list when neither is set (callers then show the numeric checklist).
+  /// Backend-driven: nothing is fabricated here.
+  List<String> featureBullets({required bool isArabic}) {
+    final primary = _splitBullets(isArabic ? featuresAr : featuresEn);
+    if (primary.isNotEmpty) return primary;
+    return _splitBullets(isArabic ? featuresEn : featuresAr);
+  }
+
+  static List<String> _splitBullets(String? raw) {
+    if (raw == null) return const [];
+    return raw
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList(growable: false);
+  }
 
   /// Active pricings preserved in server `sortOrder`.
   List<SubscriptionPricing> get activePricings =>
@@ -91,6 +118,8 @@ class SubscriptionPlan extends Equatable {
         isPopular,
         isFree,
         tier,
+        featuresAr,
+        featuresEn,
         features,
         pricings,
       ];

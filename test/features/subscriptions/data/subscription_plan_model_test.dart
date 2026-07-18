@@ -77,4 +77,72 @@ void main() {
       expect(planWithTier(null).isBasicTier, isFalse);
     });
   });
+
+  group('SubscriptionPlanModel.fromJson — feature bullets', () {
+    test('parses featuresAr/featuresEn through toEntity', () {
+      final entity = SubscriptionPlanModel.fromJson({
+        'id': 1,
+        'featuresAr': '50 إعجاب\nتبادل صور',
+        'featuresEn': '50 likes\nPhoto exchange',
+      }).toEntity();
+
+      expect(entity.featuresAr, '50 إعجاب\nتبادل صور');
+      expect(entity.featuresEn, '50 likes\nPhoto exchange');
+    });
+
+    test('absent bullets → null', () {
+      final entity = SubscriptionPlanModel.fromJson({'id': 1}).toEntity();
+      expect(entity.featuresAr, isNull);
+      expect(entity.featuresEn, isNull);
+    });
+  });
+
+  group('SubscriptionPlan.featureBullets', () {
+    SubscriptionPlan planWithBullets({String? ar, String? en}) =>
+        SubscriptionPlan(
+          id: 1,
+          nameAr: '',
+          nameEn: '',
+          descriptionAr: null,
+          descriptionEn: null,
+          icon: '',
+          color: '',
+          sortOrder: 0,
+          isActive: true,
+          isPopular: false,
+          isFree: false,
+          featuresAr: ar,
+          featuresEn: en,
+          features: const SubscriptionFeatures(
+            likesAllowed: 0,
+            seriousInterestsAllowed: 0,
+            photoExchangesAllowed: 0,
+            dailyProfileViewsAllowed: 0,
+          ),
+          pricings: const [],
+        );
+
+    test('splits on newlines, trims, drops blank lines', () {
+      final plan = planWithBullets(en: '50 likes\n  Photo exchange  \n\nVIP');
+      expect(plan.featureBullets(isArabic: false),
+          ['50 likes', 'Photo exchange', 'VIP']);
+    });
+
+    test('picks the active locale', () {
+      final plan = planWithBullets(ar: 'ميزة', en: 'Feature');
+      expect(plan.featureBullets(isArabic: true), ['ميزة']);
+      expect(plan.featureBullets(isArabic: false), ['Feature']);
+    });
+
+    test('falls back to the other locale when the active one is empty', () {
+      final plan = planWithBullets(ar: '', en: 'Feature');
+      expect(plan.featureBullets(isArabic: true), ['Feature']);
+    });
+
+    test('null/empty both → [] (caller shows numeric checklist)', () {
+      expect(planWithBullets().featureBullets(isArabic: true), isEmpty);
+      expect(planWithBullets(ar: '   ', en: '\n\n').featureBullets(isArabic: false),
+          isEmpty);
+    });
+  });
 }

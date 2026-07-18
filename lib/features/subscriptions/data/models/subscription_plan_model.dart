@@ -18,6 +18,11 @@ class SubscriptionPlanModel {
   /// Backend plan tier — 0=Free, 1=Basic, 2=VIP (Tariq's live contract).
   /// Nullable: absent on older/partial payloads. Identify plans by this.
   final int? tier;
+
+  /// Dashboard-controlled display bullets (newline-separated), per locale.
+  /// Nullable — the UI falls back to the numeric checklist when absent.
+  final String? featuresAr;
+  final String? featuresEn;
   final SubscriptionFeaturesModel features;
   final List<SubscriptionPricingModel> pricings;
 
@@ -34,6 +39,8 @@ class SubscriptionPlanModel {
     required this.isPopular,
     required this.isFree,
     required this.tier,
+    required this.featuresAr,
+    required this.featuresEn,
     required this.features,
     required this.pricings,
   });
@@ -52,6 +59,8 @@ class SubscriptionPlanModel {
       isPopular: json['isPopular'] as bool? ?? false,
       isFree: json['isFree'] as bool? ?? false,
       tier: (json['tier'] as num?)?.toInt(),
+      featuresAr: json['featuresAr'] as String?,
+      featuresEn: json['featuresEn'] as String?,
       features: SubscriptionFeaturesModel.fromJson(
         (json['features'] as Map<String, dynamic>?) ?? const {},
       ),
@@ -75,6 +84,8 @@ class SubscriptionPlanModel {
         isPopular: isPopular,
         isFree: isFree,
         tier: tier,
+        featuresAr: featuresAr,
+        featuresEn: featuresEn,
         features: features.toEntity(),
         pricings: pricings.map((p) => p.toEntity()).toList(),
       );

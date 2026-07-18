@@ -54,7 +54,14 @@ class PhotoExchangeLimitSheet extends StatelessWidget {
     final isArabic = context.locale.languageCode == 'ar';
     final sub = subscription;
     final planName = sub?.plan.name(isArabic: isArabic) ?? '';
-    final showRenewal = sub != null && sub.hasReliableExpiry;
+    // Defensive: a free plan (tier 0) is a non-renewing trial, so NEVER claim
+    // "renews on {date}" / "renews automatically". Post-Tariq a free user at
+    // the cap gets SUBSCRIPTION_REQUIRED (→ paywall) and shouldn't reach this
+    // sheet at all — this guard just prevents a false renewal claim if the
+    // backend behaviour ever changes. Both the renewal pill and the renewal
+    // subtitle are gated off for free.
+    final isFreePlan = sub?.plan.isFree ?? false;
+    final showRenewal = sub != null && sub.hasReliableExpiry && !isFreePlan;
     final renewalDate = showRenewal
         ? DateFormat.yMMMMd(context.locale.toString())
             .format(sub.expiresAt.toLocal())
@@ -104,12 +111,16 @@ class PhotoExchangeLimitSheet extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              QeranSpacing.vs8,
-              Text(
-                LocaleKeys.likes_matches_photo_exchange_limit_subtitle.tr(),
-                textAlign: TextAlign.center,
-                style: QeranTypography.body.copyWith(color: QeranColors.inkBody),
-              ),
+              // Renewal subtitle — hidden for a free plan (see isFreePlan note).
+              if (!isFreePlan) ...[
+                QeranSpacing.vs8,
+                Text(
+                  LocaleKeys.likes_matches_photo_exchange_limit_subtitle.tr(),
+                  textAlign: TextAlign.center,
+                  style:
+                      QeranTypography.body.copyWith(color: QeranColors.inkBody),
+                ),
+              ],
               if (renewalDate != null) ...[
                 QeranSpacing.vs16,
                 Center(

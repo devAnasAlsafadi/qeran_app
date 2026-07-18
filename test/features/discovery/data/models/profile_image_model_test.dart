@@ -33,7 +33,7 @@ void main() {
       expect(m.id, '');
       // Empty path resolves to the bare origin — defensive, not pretty,
       // but it doesn't crash.
-      expect(m.url.startsWith('http://'), isTrue);
+      expect(m.url.startsWith('http'), isTrue);
       expect(m.isProfile, false);
       expect(m.isBlurred, false);
     });

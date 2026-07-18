@@ -1,9 +1,16 @@
 import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/notifications/domain/usecases/get_notifications_usecase.dart';
+import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
+import 'package:qeran/features/subscriptions/domain/entities/current_subscription.dart';
+import 'package:qeran/features/subscriptions/domain/usecases/get_current_subscription_usecase.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_page.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_profile.dart';
 import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
@@ -65,6 +72,34 @@ class _FakePass implements PassProfileUseCase {
       const Right(unit);
 }
 
+class _FakeGetCurrent implements GetCurrentSubscriptionUseCase {
+  @override
+  Future<Either<Failure, CurrentSubscription?>> call() async =>
+      const Right(null);
+}
+
+/// Real cubit wired to a no-op use case — it stays in its initial state (never
+/// refreshed here), which is all `DiscoveryView` needs (it only `watch`es the
+/// state to decide the upgrade banner). Supplies the provider the view now
+/// requires so the widget tree builds under test.
+class _FakeCurrentSubCubit extends CurrentSubscriptionCubit {
+  _FakeCurrentSubCubit() : super(getCurrent: _FakeGetCurrent());
+}
+
+class _FakeGetNotifications extends Fake implements GetNotificationsUseCase {}
+
+class _FakePrefs extends Fake implements SharedPrefService {}
+
+/// `DiscoveryView` resolves the unread-badge cubit from GetIt and calls
+/// `refresh()` on mount; a no-op refresh keeps its `false` state and never
+/// touches the (unused) deps.
+class _FakeNotificationBadgeCubit extends NotificationBadgeCubit {
+  _FakeNotificationBadgeCubit()
+      : super(getNotifications: _FakeGetNotifications(), prefs: _FakePrefs());
+  @override
+  Future<void> refresh() async {}
+}
+
 Future<void> _pumpView(
   WidgetTester tester,
   List<DiscoveryProfile> profiles,
@@ -76,6 +111,11 @@ Future<void> _pumpView(
       passProfile: _FakePass(),
     ),
   );
+  // DiscoveryView resolves the unread-badge cubit from GetIt (app-scoped
+  // singleton in prod). Register a no-op fake so the view builds under test.
+  sl.registerLazySingleton<NotificationBadgeCubit>(
+    () => _FakeNotificationBadgeCubit(),
+  );
   await tester.pumpWidget(
     EasyLocalization(
       supportedLocales: const [Locale('en')],
@@ -86,7 +126,10 @@ Future<void> _pumpView(
           locale: ctx.locale,
           supportedLocales: ctx.supportedLocales,
           localizationsDelegates: ctx.localizationDelegates,
-          home: const Scaffold(body: DiscoveryView(showTopBar: false)),
+          home: BlocProvider<CurrentSubscriptionCubit>(
+            create: (_) => _FakeCurrentSubCubit(),
+            child: const Scaffold(body: DiscoveryView(showTopBar: false)),
+          ),
         ),
       ),
     ),

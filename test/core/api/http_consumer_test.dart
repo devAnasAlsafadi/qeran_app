@@ -9,6 +9,7 @@ import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/api/http_consumer.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/services/connectivity_service.dart';
 import 'package:qeran/core/services/language_service.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -18,6 +19,8 @@ class MockClient extends Mock implements http.Client {}
 class MockStorage extends Mock implements StorageService {}
 
 class MockLanguageService extends Mock implements LanguageService {}
+
+class MockConnectivity extends Mock implements ConnectivityService {}
 
 class _FakeBaseRequest extends Fake implements http.BaseRequest {}
 
@@ -39,6 +42,7 @@ void main() {
   late MockClient client;
   late MockStorage storage;
   late MockLanguageService language;
+  late MockConnectivity connectivity;
   late HttpConsumer consumer;
   late Directory tmpDir;
   late File tmpFile;
@@ -47,15 +51,18 @@ void main() {
     client = MockClient();
     storage = MockStorage();
     language = MockLanguageService();
+    connectivity = MockConnectivity();
 
     when(() => storage.get<String>(StorageKeys.token))
         .thenAnswer((_) async => 'jwt-1');
     when(() => language.currentLanguage).thenReturn('ar');
+    when(() => connectivity.isOnline).thenAnswer((_) async => true);
 
     consumer = HttpConsumer(
       client: client,
       storage: storage,
       languageService: language,
+      connectivity: connectivity,
     );
 
     tmpDir = await Directory.systemTemp.createTemp('hc_test_');

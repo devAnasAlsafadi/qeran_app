@@ -11,7 +11,7 @@ void main() {
       );
       expect(
         url,
-        'http://qeranadmin-001-site1.rtempurl.com'
+        'https://qeranadmin-001-site1.rtempurl.com'
         '/api/users/profile-images/abc-123',
       );
     });
@@ -33,7 +33,7 @@ void main() {
       // the helper must not corrupt it.
       expect(
         url,
-        'http://qeranadmin-001-site1.rtempurl.comusers/profile-images/x',
+        'https://qeranadmin-001-site1.rtempurl.comusers/profile-images/x',
       );
     });
   });

@@ -4,10 +4,8 @@ class AppAssets {
   static const String _iconPath = 'assets/icons/';
   static const String logo = '${_imagePath}logo.png';
   static const String splashSymbol = '${_imagePath}splash_symbol.png';
-  static const String female = '${_imagePath}female.png';
-  static const String male = '${_imagePath}male.png';
-  static const String genderMale = '${_imagePath}gender_male.png';
-  static const String genderFemale = '${_imagePath}gender_female.png';
+  static const String genderMale = '${_imagePath}gender_male.webp';
+  static const String genderFemale = '${_imagePath}gender_female.webp';
   static const String essencePortrait =
       '${_imagePath}onboarding/essence_portrait.jpg';
   static const String googleLogo = '${_iconPath}google_logo.svg';

@@ -58,6 +58,15 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            // R8 code shrinking + resource shrinking (pre-launch size lever).
+            // Keep rules live in proguard-rules.pro — err toward MORE keeps;
+            // a missing keep = a silent runtime crash, not a build error.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

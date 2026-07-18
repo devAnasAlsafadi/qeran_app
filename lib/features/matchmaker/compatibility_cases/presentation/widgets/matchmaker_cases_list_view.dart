@@ -18,6 +18,7 @@ import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
+import '../screens/matchmaker_case_detail_screen.dart';
 import 'case_note_sheet.dart';
 import 'matchmaker_case_card.dart';
 
@@ -72,13 +73,25 @@ class MatchmakerCasesListView extends StatelessWidget {
           return MatchmakerCaseCard(
             caseItem: caseItem,
             onTap: () async {
-              final changed = await NavigationManager.navigateTo(
-                context,
-                RouteNames.matchmakerCaseDetail,
-                arguments: caseItem,
+              // Direct push (not the named route) so the live cases-list cubit
+              // stays in scope on the detail: it reads the case's CURRENT status
+              // from the already-loaded, realtime-live list and builds the
+              // actions from that — never the frozen tap-time snapshot. No extra
+              // network fetch.
+              final listCubit = context.read<MatchmakerCasesListCubit>();
+              final changed = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  settings: const RouteSettings(
+                    name: RouteNames.matchmakerCaseDetail,
+                  ),
+                  builder: (_) => BlocProvider.value(
+                    value: listCubit,
+                    child: MatchmakerCaseDetailScreen(caseItem: caseItem),
+                  ),
+                ),
               );
               if (changed == true && context.mounted) {
-                context.read<MatchmakerCasesListCubit>().refresh();
+                listCubit.refresh();
               }
             },
             // Shown only when a colleague exists to message — see

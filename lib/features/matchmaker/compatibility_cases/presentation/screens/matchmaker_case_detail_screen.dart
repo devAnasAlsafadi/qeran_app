@@ -18,18 +18,23 @@ import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../blocs/matchmaker_case_status_cubit.dart';
 import '../blocs/matchmaker_case_status_state.dart';
+import '../blocs/matchmaker_cases_list_cubit.dart';
 import '../widgets/case_participants_pair.dart';
 import '../widgets/case_status_actions.dart';
 import '../widgets/case_status_section.dart';
 import '../widgets/case_timeline.dart';
 
-/// Case detail (M3b). Receives the already-loaded [CompatibilityCase] (the
-/// list payload is the whole truth — there's no detail endpoint), shows both
-/// participants + the stage timeline + every status signal, and drives the
+/// Case detail (M3b). Receives the tapped [CompatibilityCase] as a seed, but
+/// re-resolves the case's CURRENT state from the live (realtime-fed) cases-list
+/// cubit by id on every build — so the status signals and the action buttons
+/// reflect the up-to-date status, never the frozen tap-time snapshot. That is
+/// what prevents a stale same-state request (e.g. a `3→3` transition). Shows
+/// both participants + the stage timeline + every status signal, and drives the
 /// server-validated formal-request status update. A successful update shows a
 /// brief inline confirmation then pops back with `true` so the list refreshes;
 /// an `INVALID_STATUS_TRANSITION` (the case may have moved / closed) pops with
-/// `true` immediately.
+/// `true` immediately — the backstop for the narrow window where the live list
+/// hasn't yet caught a change.
 class MatchmakerCaseDetailScreen extends StatelessWidget {
   const MatchmakerCaseDetailScreen({super.key, required this.caseItem});
 
@@ -60,10 +65,25 @@ class _CaseDetailViewState extends State<_CaseDetailView> {
   /// for a beat before popping back to the refreshed list.
   bool _success = false;
 
-  CompatibilityCase get caseItem => widget.caseItem;
+  /// The case's CURRENT state, re-resolved from the live (realtime-fed)
+  /// cases-list cubit by id, so the actions build from the up-to-date status
+  /// rather than the frozen tap-time snapshot. Falls back to the seed snapshot
+  /// only if the case has left the list (went terminal) — the graceful
+  /// `INVALID_STATUS_TRANSITION` recovery is the backstop for that window.
+  // Follow-up: optional non-blocking refresh() on case-detail open to pre-empt
+  // stale-at-open when a realtime event was missed (socket was down). Rare;
+  // the graceful INVALID_STATUS_TRANSITION recovery handles it today.
+  CompatibilityCase _liveCase(BuildContext context) {
+    final items = context.watch<MatchmakerCasesListCubit>().state.items;
+    for (final c in items) {
+      if (c.caseId == widget.caseItem.caseId) return c;
+    }
+    return widget.caseItem;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final caseItem = _liveCase(context);
     return Scaffold(
       backgroundColor: QeranColors.creamCanvas,
       appBar: MatchmakerAppBar(

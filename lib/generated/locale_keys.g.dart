@@ -239,6 +239,8 @@ abstract class  LocaleKeys {
   static const discovery_daily_limit_minute_singular = 'discovery.daily_limit_minute_singular';
   static const discovery_daily_limit_minute_dual = 'discovery.daily_limit_minute_dual';
   static const discovery_daily_limit_minute_plural = 'discovery.daily_limit_minute_plural';
+  static const discovery_upgrade_banner_message = 'discovery.upgrade_banner_message';
+  static const discovery_upgrade_banner_cta = 'discovery.upgrade_banner_cta';
   static const discovery = 'discovery';
   static const likes_title = 'likes.title';
   static const likes_tab_sent = 'likes.tab_sent';

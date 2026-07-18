@@ -187,7 +187,9 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
       }
       result.fold(
         (failure) => _emitLikeFailure(
-          kind: LikeFailureKind.network,
+          kind: failure is OfflineFailure
+              ? LikeFailureKind.offline
+              : LikeFailureKind.network,
           message: failure.message,
         ),
         (outcome) => _handleLikeOutcome(outcome),

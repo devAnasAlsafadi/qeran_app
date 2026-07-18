@@ -25,9 +25,13 @@ enum LikeFailureKind {
   /// hid their profile.
   userUnavailable,
 
-  /// Transport-level failure (network, timeout, parse) OR an
-  /// unrecognised server message. UI shows a generic error toast.
+  /// Transport-level failure (timeout, parse) OR an unrecognised server
+  /// message. UI shows a generic error toast.
   network,
+
+  /// Device reported no connectivity (`OfflineFailure`). UI shows the
+  /// dedicated offline toast instead of the generic one.
+  offline,
 }
 
 sealed class DiscoveryState extends Equatable {

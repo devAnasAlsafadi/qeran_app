@@ -247,7 +247,9 @@
     "daily_limit_hour_plural": "h",
     "daily_limit_minute_singular": "m",
     "daily_limit_minute_dual": "m",
-    "daily_limit_minute_plural": "m"
+    "daily_limit_minute_plural": "m",
+    "upgrade_banner_message": "One upgrade opens up more introductions",
+    "upgrade_banner_cta": "Plans"
   },
   "likes": {
     "title": "Interests",

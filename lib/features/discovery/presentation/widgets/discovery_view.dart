@@ -241,6 +241,13 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                 message: LocaleKeys.errors_generic.t(context),
                 type: SnackBarType.error,
               );
+            case LikeFailureKind.offline:
+              unawaited(_animController.triggerSnapBack());
+              AppSnackBar.show(
+                context,
+                message: LocaleKeys.errors_offline.t(context),
+                type: SnackBarType.error,
+              );
           }
         },
         builder: (context, state) {
@@ -1084,7 +1091,6 @@ class _UpgradeFeedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     return Container(
       margin: EdgeInsets.fromLTRB(
         _kStackHPad,
@@ -1118,9 +1124,7 @@ class _UpgradeFeedBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              isArabic
-                  ? 'ترقية واحدة تفتح تعارفاً أوسع وميزات بلا حدود'
-                  : 'One upgrade opens up more introductions',
+              LocaleKeys.discovery_upgrade_banner_message.t(context),
               style: QeranTypography.body.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize: 12.5,
@@ -1138,7 +1142,7 @@ class _UpgradeFeedBanner extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                isArabic ? 'الخطط' : 'Plans',
+                LocaleKeys.discovery_upgrade_banner_cta.t(context),
                 style: QeranTypography.body.copyWith(
                   fontWeight: FontWeight.bold,
                   fontSize: 11.5,

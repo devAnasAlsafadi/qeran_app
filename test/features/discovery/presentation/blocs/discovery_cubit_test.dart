@@ -382,6 +382,20 @@ void main() {
       expect(callbackHits, 0);
     });
 
+    test('Left(OfflineFailure) keeps the card and emits offline kind',
+        () async {
+      await prime();
+      when(() => like(any())).thenAnswer(
+        (_) async => const Left<Failure, LikeOutcome>(OfflineFailure()),
+      );
+
+      await cubit.like();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.currentIndex, 0);
+      expect(loaded.actionFailureKind, LikeFailureKind.offline);
+    });
+
     test('duplicate like while in-flight is ignored', () async {
       await prime();
       final completer = Completer<Either<Failure, LikeOutcome>>();

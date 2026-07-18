@@ -247,7 +247,9 @@
     "daily_limit_hour_plural": "ساعات",
     "daily_limit_minute_singular": "دقيقة",
     "daily_limit_minute_dual": "دقيقتين",
-    "daily_limit_minute_plural": "دقائق"
+    "daily_limit_minute_plural": "دقائق",
+    "upgrade_banner_message": "ترقية واحدة تفتح تعارفاً أوسع وميزات بلا حدود",
+    "upgrade_banner_cta": "الخطط"
   },
   "likes": {
     "title": "الاهتمامات",

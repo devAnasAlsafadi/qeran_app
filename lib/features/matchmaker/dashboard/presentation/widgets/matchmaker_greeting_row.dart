@@ -35,34 +35,28 @@ class MatchmakerGreetingRow extends StatelessWidget {
     final trimmed = name?.trim() ?? '';
     final hasName = trimmed.isNotEmpty;
 
+    // Backend-driven: with a name, the salaam is interpolated inline
+    // ("صباح الخير، لارا" / "Good morning, Lara"); a null/empty name falls back
+    // to the salaam alone (no trailing comma / empty slot).
+    final greeting = hasName
+        ? context.tr(
+            _salaamNamedKey(clock.hour),
+            namedArgs: {'name': trimmed},
+          )
+        : _salaamKey(clock.hour).t(context);
+
     return Row(
       children: [
         QeranMonogram(name: hasName ? trimmed : null),
         QeranSpacing.hs12,
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _salaamKey(clock.hour).t(context),
-                style: QeranTypography.caption.copyWith(
-                  color: QeranColors.goldDeep,
-                  fontSize: 12,
-                ),
-              ),
-              if (hasName) ...[
-                const SizedBox(height: QeranSpacing.s2),
-                Text(
-                  trimmed,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: QeranTypography.headline.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ],
+          child: Text(
+            greeting,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: QeranTypography.headline.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
         if (showDate) ...[
@@ -77,6 +71,14 @@ class MatchmakerGreetingRow extends StatelessWidget {
     if (hour < 12) return LocaleKeys.matchmaker_dashboard_salaam_morning;
     if (hour < 17) return LocaleKeys.matchmaker_dashboard_salaam_afternoon;
     return LocaleKeys.matchmaker_dashboard_salaam_evening;
+  }
+
+  String _salaamNamedKey(int hour) {
+    if (hour < 12) return LocaleKeys.matchmaker_dashboard_salaam_morning_named;
+    if (hour < 17) {
+      return LocaleKeys.matchmaker_dashboard_salaam_afternoon_named;
+    }
+    return LocaleKeys.matchmaker_dashboard_salaam_evening_named;
   }
 }
 

@@ -7,13 +7,17 @@ import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../domain/entities/affiliate_commission_type.dart';
 import '../../domain/entities/affiliate_summary.dart';
+import 'affiliate_count_tile.dart';
 import 'affiliate_metric_tile.dart';
+import 'affiliate_rate_format.dart';
 
-/// Non-scrolling header of the affiliate dashboard: the shared code, the three
-/// earnings tiles (Total / Pending / Paid), and the ledger section title. Sits
-/// above the paginated commission list. Currency is backend-driven
-/// ([AffiliateSummary.currency]).
+/// Non-scrolling header of the affiliate dashboard: the shared code, the
+/// commission-rate highlight card, the three earnings tiles (Total / Pending /
+/// Paid), the two referral-count tiles (Signed up / Converted), and the ledger
+/// section title. Sits above the paginated commission list. Currency is
+/// backend-driven ([AffiliateSummary.currency]).
 class AffiliateDashboardHeader extends StatelessWidget {
   const AffiliateDashboardHeader({super.key, required this.summary});
 
@@ -26,6 +30,12 @@ class AffiliateDashboardHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _SharedCode(code: summary.referralCode),
+        QeranSpacing.vs16,
+        _RateCard(
+          rate: summary.commissionRate,
+          type: summary.commissionType,
+          currency: currency,
+        ),
         QeranSpacing.vs16,
         Row(
           children: [
@@ -54,6 +64,24 @@ class AffiliateDashboardHeader extends StatelessWidget {
             ),
           ],
         ),
+        QeranSpacing.vs8,
+        Row(
+          children: [
+            Expanded(
+              child: AffiliateCountTile(
+                labelKey: LocaleKeys.matchmaker_affiliate_signed_up_label,
+                count: summary.registeredUsersCount,
+              ),
+            ),
+            QeranSpacing.hs8,
+            Expanded(
+              child: AffiliateCountTile(
+                labelKey: LocaleKeys.matchmaker_affiliate_converted_label,
+                count: summary.codeUsedCount,
+              ),
+            ),
+          ],
+        ),
         QeranSpacing.vs24,
         Text(
           LocaleKeys.matchmaker_affiliate_ledger_title.t(context),
@@ -61,6 +89,58 @@ class AffiliateDashboardHeader extends StatelessWidget {
         ),
         QeranSpacing.vs8,
       ],
+    );
+  }
+}
+
+/// Dedicated gold-tinted highlight card for the matchmaker's commission rate —
+/// the headline number of the dashboard. The value is backend-driven and
+/// forward-safe: `10%` for a percent rate, `10 USD` for a (reserved) fixed
+/// rate, and a neutral `—` when no rate has been set (never fabricated).
+class _RateCard extends StatelessWidget {
+  const _RateCard({
+    required this.rate,
+    required this.type,
+    required this.currency,
+  });
+
+  final double? rate;
+  final AffiliateCommissionType? type;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = formatCommissionRate(rate, type, currency) ??
+        LocaleKeys.matchmaker_affiliate_rate_none.t(context);
+    final hasRate = rate != null;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: QeranSpacing.s16,
+        vertical: QeranSpacing.s16,
+      ),
+      decoration: BoxDecoration(
+        color: QeranColors.gold12,
+        borderRadius: QeranRadii.cardR,
+        border: Border.all(color: QeranColors.gold40),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            LocaleKeys.matchmaker_affiliate_rate_label.t(context),
+            style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
+          ),
+          QeranSpacing.vs8,
+          Text(
+            value,
+            textDirection: TextDirection.ltr,
+            style: QeranTypography.headline.copyWith(
+              color: hasRate ? QeranColors.goldDeep : QeranColors.inkMuted,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

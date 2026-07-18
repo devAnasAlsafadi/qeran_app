@@ -11,7 +11,8 @@ import 'affiliate_status_chip.dart';
 /// One commission-ledger row: who (masked user + plan) and the coupon/date on
 /// the leading side; the amount + settlement chip trailing. A reversed amount
 /// is struck through in ink-muted with no sign; confirmed / pending amounts are
-/// prefixed `+` in gold-deep. Currency is always `USD`.
+/// prefixed `+` in gold-deep. Currency is the backend `currency` field passed in
+/// (today always `USD`) — never a hardcoded literal.
 class AffiliateCommissionRow extends StatelessWidget {
   const AffiliateCommissionRow({
     super.key,

@@ -8,8 +8,9 @@ import '../../../../../core/extensions/localization_extension.dart';
 
 /// One earnings tile (Total / Pending / Paid). The money value uses
 /// [QeranTypography.numeric] (Montserrat tabular figures) and is LTR-pinned so
-/// the amount + currency read left-to-right in both locales. Currency is always
-/// `USD` for the affiliate program.
+/// the amount + currency read left-to-right in both locales. Currency is the
+/// backend `currency` field passed in (today always `USD`) — never a hardcoded
+/// literal.
 class AffiliateMetricTile extends StatelessWidget {
   const AffiliateMetricTile({
     super.key,

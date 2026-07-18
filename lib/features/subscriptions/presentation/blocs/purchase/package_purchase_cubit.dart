@@ -29,20 +29,40 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
   final CurrentSubscriptionCubit _currentSubscription;
   final RevenueCatService _revenueCat;
 
+  /// Delays between successive `/current` re-fetches while waiting out the
+  /// post-purchase webhook lag (the 204 window). Injectable so tests can run
+  /// the backoff with zero delay. Defaults to [_kReconcileBackoff].
+  final List<Duration> _reconcileBackoff;
+
+  /// ~11s across 4 retries (plus the immediate fetch = 5 attempts). Sized for
+  /// RevenueCat webhook → `/current` activation lag without an unbounded loop.
+  static const List<Duration> _kReconcileBackoff = [
+    Duration(seconds: 1),
+    Duration(seconds: 2),
+    Duration(seconds: 3),
+    Duration(seconds: 5),
+  ];
+
   PackagePurchaseCubit({
     required ValidateCodeUseCase validateCode,
     required PurchasePackageUseCase purchasePackage,
     required RestorePurchasesUseCase restorePurchases,
     required CurrentSubscriptionCubit currentSubscription,
     required RevenueCatService revenueCat,
+    List<Duration> reconcileBackoff = _kReconcileBackoff,
   })  : _validateCode = validateCode,
         _purchasePackage = purchasePackage,
         _restorePurchases = restorePurchases,
         _currentSubscription = currentSubscription,
         _revenueCat = revenueCat,
+        _reconcileBackoff = reconcileBackoff,
         super(const PackagePurchaseIdle());
 
   CustomerInfoUpdateListener? _entitlementListener;
+
+  /// Prevents overlapping purchase/restore reconciles from stacking backoff
+  /// loops. Reset in the loop's `finally`.
+  bool _reconcileInFlight = false;
 
   /// Validates [code] against [productId] for the current platform. Emits
   /// [PackagePurchaseValidatingCode] then success/failure. A server `valid:false`
@@ -140,16 +160,46 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
   }
 
   // Post-purchase reconcile (Q-C): success is emitted from RC's local
-  // entitlement above; /current (SOT for plan/counters) reconciles here, and a
-  // one-time RC listener catches webhook lag.
+  // entitlement above; /current (SOT for plan/counters) reconciles here with a
+  // bounded backoff (webhook lag can leave /current at 204 briefly), and a
+  // one-time RC listener catches webhook lag independently.
   void _reconcileAfterPurchase() {
-    _pullCurrentSubscription();
+    unawaited(_reconcileCurrentWithBackoff());
     _armEntitlementListener();
   }
 
+  /// Re-fetches `/current` immediately, then retries on [_reconcileBackoff]
+  /// delays until an active subscription lands — closing the post-purchase 204
+  /// window so the user never briefly sees "no subscription" right after
+  /// paying. Exits as soon as the sub is active; gives up gracefully after the
+  /// bound (the armed RC listener remains as an independent backstop). Guarded
+  /// so overlapping purchase/restore reconciles don't stack loops. Touches only
+  /// the app-scoped [CurrentSubscriptionCubit], so it's safe if this cubit
+  /// closes mid-flight.
+  Future<void> _reconcileCurrentWithBackoff() async {
+    if (_reconcileInFlight) return;
+    _reconcileInFlight = true;
+    try {
+      _currentSubscription.invalidateCache();
+      await _currentSubscription.refresh(force: true);
+      if (_currentSubscription.hasActiveSubscription) return;
+      for (final delay in _reconcileBackoff) {
+        await Future<void>.delayed(delay);
+        await _currentSubscription.refresh(force: true);
+        if (_currentSubscription.hasActiveSubscription) return;
+      }
+      // Bound exhausted — leave the last /current state; the RC listener will
+      // pull again if the webhook lands later.
+    } finally {
+      _reconcileInFlight = false;
+    }
+  }
+
+  /// Single-shot `/current` re-fetch used by the RC entitlement listener (which
+  /// fires exactly when the webhook grants premium, so `/current` is ready).
   void _pullCurrentSubscription() {
     _currentSubscription.invalidateCache();
-    unawaited(_currentSubscription.refresh());
+    unawaited(_currentSubscription.refresh(force: true));
   }
 
   /// Arms a one-time RC entitlement listener: on the next `CustomerInfo`

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -12,7 +11,7 @@ import '../../domain/entities/likes_tab.dart';
 
 /// Three-segment header on the Likes / Interests screen.
 ///
-/// A cream track holds a single white paper "pill" that slides to sit behind
+/// A soft-fill track holds a single wine "pill" that slides to sit behind
 /// the active segment via `AnimatedPositionedDirectional`, so the position is
 /// correct in both RTL and LTR without per-locale overrides. Motion, radii and
 /// shadow all come from tokens — the slide uses the hero curve for a smooth,
@@ -60,7 +59,7 @@ class LikesSegmentedTabs extends StatelessWidget {
       child: Container(
         height: _kTrackHeight,
         decoration: const BoxDecoration(
-          color: QeranColors.neutralSurface,
+          color: QeranColors.softFill,
           borderRadius: QeranRadii.pill,
         ),
         padding: const EdgeInsets.all(_kInnerPad),
@@ -78,9 +77,8 @@ class LikesSegmentedTabs extends StatelessWidget {
                   width: cellWidth,
                   child: const DecoratedBox(
                     decoration: BoxDecoration(
-                      color: QeranColors.paper,
+                      color: QeranColors.wine,
                       borderRadius: QeranRadii.pill,
-                      boxShadow: QeranShadows.e1,
                     ),
                   ),
                 ),
@@ -126,7 +124,7 @@ class _TabCell extends StatelessWidget {
           duration: QeranMotion.standard,
           curve: QeranCurves.standard,
           style: QeranTypography.subtitle.copyWith(
-            color: isActive ? QeranColors.wine : QeranColors.inkMuted,
+            color: isActive ? QeranColors.paper : QeranColors.inkBody,
             fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
           ),
           child: Text(

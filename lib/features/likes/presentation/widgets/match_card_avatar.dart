@@ -43,7 +43,12 @@ class MatchCardAvatar extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: QeranColors.wine06),
+            // Base disc. Under a HIDDEN photo it's a SOLID deep wine so no
+            // white/green shows through the frost; the empty + clear-photo
+            // states keep the soft wine06 tint (matches Sent/Received).
+            ColoredBox(
+              color: hasImage && blur ? QeranColors.wine : QeranColors.wine06,
+            ),
             if (hasImage)
               LikeBlurredImage(
                 url: u,
@@ -59,10 +64,11 @@ class MatchCardAvatar extends StatelessWidget {
                   color: QeranColors.wine,
                 ),
               ),
-            // Dark-wine frost over a hidden real photo — keeps it
-            // on-identity instead of surfacing the photo's raw tint.
+            // Strong wine frost over a hidden real photo — reads as a solid
+            // wine-tinted frosted circle, never the photo's raw (green/grey)
+            // tint. Sits over the solid base so the result is fully opaque.
             if (hasImage && blur)
-              const ColoredBox(color: QeranColors.overlayTintDark),
+              const ColoredBox(color: QeranColors.wine80),
           ],
         ),
       ),

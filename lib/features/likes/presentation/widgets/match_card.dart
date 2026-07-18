@@ -3,6 +3,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_strokes.dart';
 
 import '../../domain/entities/match_card.dart';
 import '../../domain/entities/match_stage.dart';
@@ -11,7 +12,7 @@ import 'match_card_stage1.dart';
 import 'match_card_stage2.dart';
 
 /// One row in the Matches tab. Renders the stage-specific variant inside
-/// a shared "earned" shell — a gold 1.5 dp border + soft gold-glow
+/// a shared "earned" shell — a gold hairline border + soft gold-glow
 /// elevation ([QeranShadows.eHero]) that sets matches apart from the
 /// plain like-row cards. Every stage flows through `MatchCardScaffold`,
 /// so internal padding + rhythm are identical; only the stage content
@@ -75,7 +76,10 @@ class MatchCardWidget extends StatelessWidget {
         color: QeranColors.paper,
         borderRadius: QeranRadii.cardR,
         boxShadow: QeranShadows.eHero,
-        border: Border.all(color: QeranColors.gold, width: 1.5),
+        border: Border.all(
+          color: QeranColors.gold,
+          width: QeranStrokes.hairline,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(QeranSpacing.s16),

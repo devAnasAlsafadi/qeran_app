@@ -115,7 +115,11 @@ class _MatchesList extends StatelessWidget {
             onPendingExpiredLocally: cubit.loadMatches,
             onOpenGallery: card.images.isEmpty
                 ? null
-                : () => showMatchGallerySheet(context, images: card.images),
+                : () => showMatchGallerySheet(
+                      context,
+                      images: card.images,
+                      targetUserId: card.otherUserId,
+                    ),
             onContactMatchmaker: () =>
                 onContactMatchmaker(context, card.conversationId),
             onFormalStep: () => cubit.sendFormalStep(

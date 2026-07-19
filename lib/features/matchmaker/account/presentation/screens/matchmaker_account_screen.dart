@@ -18,6 +18,7 @@ import '../blocs/matchmaker_account_cubit.dart';
 import '../blocs/matchmaker_account_state.dart';
 import '../widgets/matchmaker_account_body.dart';
 import '../widgets/matchmaker_change_password_sheet.dart';
+import '../widgets/matchmaker_delete_account_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_confirm_dialog.dart';
 import '../widgets/matchmaker_edit_name_sheet.dart';
 
@@ -85,6 +86,7 @@ class _AccountView extends StatelessWidget {
       onAffiliate: () =>
           NavigationManager.navigateTo(context, RouteNames.matchmakerAffiliate),
       onDeactivate: () => _deactivate(context),
+      onDeleteAccount: () => showMatchmakerDeleteAccountSheet(context),
       onLogout: () => _logout(context),
       bottomReserve: MediaQuery.of(context).padding.bottom,
     );

@@ -20,13 +20,19 @@ import '../widgets/legal_segmented_toggle.dart';
 /// legal endpoints, content fetched live (no static fallback). Qeran design
 /// system throughout; bilingual by app locale; RTL via ambient Directionality.
 class LegalScreen extends StatelessWidget {
-  const LegalScreen({super.key});
+  /// Which document to open on first load — lets callers deep-link straight to
+  /// Privacy vs Terms (e.g. the signup consent links). Defaults to Terms.
+  final LegalDocumentType initialType;
+
+  const LegalScreen({
+    super.key,
+    this.initialType = LegalDocumentType.termsAndConditions,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<LegalDocumentCubit>()
-        ..load(LegalDocumentType.termsAndConditions),
+      create: (_) => sl<LegalDocumentCubit>()..load(initialType),
       child: const _LegalView(),
     );
   }

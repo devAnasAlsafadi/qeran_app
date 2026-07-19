@@ -234,6 +234,15 @@ class _SettingsCard extends StatelessWidget {
           ),
           const SettingsRowDivider(),
           SettingsRow(
+            icon: Icons.block_outlined,
+            title: LocaleKeys.block_settings_row.t(context),
+            onTap: () => NavigationManager.navigateTo(
+              context,
+              RouteNames.blockedUsers,
+            ),
+          ),
+          const SettingsRowDivider(),
+          SettingsRow(
             icon: Icons.lock_outline_rounded,
             title: LocaleKeys.settings_change_password_title.t(context),
             onTap: () => showChangePasswordSheet(context),

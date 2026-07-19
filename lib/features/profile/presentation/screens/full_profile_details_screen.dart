@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/block/presentation/widgets/safety_menu_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/other_profile.dart';
@@ -118,6 +119,13 @@ class _Body extends StatelessWidget {
           top: QeranSpacing.s8,
           start: QeranSpacing.s8,
           child: _BackButton(),
+        ),
+        // Report / Block this candidate (UGC safety, Apple 1.2). Popping with
+        // the blocked userId lets the originating deck/list tear the user down.
+        PositionedDirectional(
+          top: QeranSpacing.s8,
+          end: QeranSpacing.s8,
+          child: SafetyMenuButton(targetUserId: args.userId),
         ),
       ],
     );

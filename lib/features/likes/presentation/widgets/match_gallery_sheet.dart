@@ -4,6 +4,7 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/features/report/presentation/widgets/report_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_image.dart';
@@ -12,9 +13,13 @@ import 'like_blurred_image.dart';
 /// MVP gallery — shown when the user taps the avatar on a stage-1 Match
 /// card. Renders the full server-ordered image list with the per-image
 /// blur flag honored. No tap-to-zoom yet; polish lands in a follow-up.
+///
+/// [targetUserId] enables a Report action in the header (UGC safety) — the
+/// photos are the sensitive content here. Omit it to hide the action.
 Future<void> showMatchGallerySheet(
   BuildContext context, {
   required List<MatchImage> images,
+  String? targetUserId,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -22,13 +27,14 @@ Future<void> showMatchGallerySheet(
     backgroundColor: Colors.transparent,
     barrierColor: QeranColors.overlayTintDark,
     useSafeArea: true,
-    builder: (_) => _MatchGallerySheet(images: images),
+    builder: (_) => _MatchGallerySheet(images: images, targetUserId: targetUserId),
   );
 }
 
 class _MatchGallerySheet extends StatelessWidget {
   final List<MatchImage> images;
-  const _MatchGallerySheet({required this.images});
+  final String? targetUserId;
+  const _MatchGallerySheet({required this.images, this.targetUserId});
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +60,32 @@ class _MatchGallerySheet extends StatelessWidget {
             children: [
               const _DragHandle(),
               const SizedBox(height: QeranSpacing.s12),
-              Text(
-                LocaleKeys.likes_matches_gallery_title.t(context),
-                textAlign: TextAlign.center,
-                style: QeranTypography.title.copyWith(color: QeranColors.wine),
+              Row(
+                children: [
+                  const SizedBox(width: 40),
+                  Expanded(
+                    child: Text(
+                      LocaleKeys.likes_matches_gallery_title.t(context),
+                      textAlign: TextAlign.center,
+                      style: QeranTypography.title
+                          .copyWith(color: QeranColors.wine),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 40,
+                    child: targetUserId == null
+                        ? null
+                        : IconButton(
+                            tooltip: LocaleKeys.report_title.t(context),
+                            icon: const Icon(Icons.flag_outlined,
+                                color: QeranColors.wine, size: 22),
+                            onPressed: () => showReportSheet(
+                              context,
+                              targetUserId: targetUserId,
+                            ),
+                          ),
+                  ),
+                ],
               ),
               const SizedBox(height: QeranSpacing.s12),
               Expanded(

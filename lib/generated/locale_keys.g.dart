@@ -29,6 +29,7 @@ abstract class  LocaleKeys {
   static const errors_server = 'errors.server';
   static const errors_generic = 'errors.generic';
   static const errors_unexpected = 'errors.unexpected';
+  static const errors_underage = 'errors.underage';
   static const errors_auth_failed_google = 'errors.auth_failed_google';
   static const errors_auth_failed_apple = 'errors.auth_failed_apple';
   static const errors_auth_token_error = 'errors.auth_token_error';
@@ -61,6 +62,8 @@ abstract class  LocaleKeys {
   static const auth_email_label = 'auth.email_label';
   static const auth_policy_agree = 'auth.policy_agree';
   static const auth_privacy_policy = 'auth.privacy_policy';
+  static const auth_policy_and = 'auth.policy_and';
+  static const auth_terms_of_service = 'auth.terms_of_service';
   static const auth_country_search_hint = 'auth.country_search_hint';
   static const auth_otp_resend = 'auth.otp_resend';
   static const auth_otp_resend_timer = 'auth.otp_resend_timer';
@@ -825,5 +828,36 @@ abstract class  LocaleKeys {
   static const legal_error_retry = 'legal.error_retry';
   static const legal_empty = 'legal.empty';
   static const legal = 'legal';
+  static const report_title = 'report.title';
+  static const report_prompt = 'report.prompt';
+  static const report_action_report_user = 'report.action_report_user';
+  static const report_reason_inappropriate = 'report.reason_inappropriate';
+  static const report_reason_impersonation = 'report.reason_impersonation';
+  static const report_reason_harassment = 'report.reason_harassment';
+  static const report_reason_scam = 'report.reason_scam';
+  static const report_reason_false_information = 'report.reason_false_information';
+  static const report_reason_other = 'report.reason_other';
+  static const report_note_label = 'report.note_label';
+  static const report_note_hint = 'report.note_hint';
+  static const report_submit = 'report.submit';
+  static const report_success = 'report.success';
+  static const report_error_validation = 'report.error_validation';
+  static const report_error_target_unavailable = 'report.error_target_unavailable';
+  static const report = 'report';
+  static const block_action_block = 'block.action_block';
+  static const block_action_unblock = 'block.action_unblock';
+  static const block_confirm_title = 'block.confirm_title';
+  static const block_confirm_body = 'block.confirm_body';
+  static const block_confirm_button = 'block.confirm_button';
+  static const block_success = 'block.success';
+  static const block_user_unavailable = 'block.user_unavailable';
+  static const block_list_title = 'block.list_title';
+  static const block_list_empty = 'block.list_empty';
+  static const block_list_error = 'block.list_error';
+  static const block_unblocked = 'block.unblocked';
+  static const block_unblock_failed = 'block.unblock_failed';
+  static const block_settings_row = 'block.settings_row';
+  static const block_retry = 'block.retry';
+  static const block = 'block';
 
 }

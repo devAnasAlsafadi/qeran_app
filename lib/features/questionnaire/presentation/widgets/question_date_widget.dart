@@ -24,7 +24,10 @@ class _QuestionDateWidgetState extends State<QuestionDateWidget> {
   late final FixedExtentScrollController _yearController;
 
   static const int _minYear = 1950;
-  static const int _maxYear = 2010;
+  // Adults-only (matrimony): the youngest selectable birth year is 18 years ago,
+  // so a minor's birthdate cannot be picked. Server also enforces 18+ on submit
+  // (UNDERAGE_NOT_ALLOWED) as the authoritative gate.
+  static final int _maxYear = DateTime.now().year - 18;
   static const double _itemExtent = 44;
 
   static const List<String> _months = [
@@ -52,7 +55,9 @@ class _QuestionDateWidgetState extends State<QuestionDateWidget> {
     final initial = widget.selectedDate ?? DateTime(1996, 2, 15);
     _selectedDay = initial.day;
     _selectedMonth = initial.month;
-    _selectedYear = initial.year;
+    // Clamp into the selectable [_minYear, _maxYear] range so a pre-filled
+    // under-18 date can never seed the wheel out of bounds.
+    _selectedYear = initial.year.clamp(_minYear, _maxYear);
 
     _dayController = FixedExtentScrollController(initialItem: _selectedDay - 1);
     _monthController = FixedExtentScrollController(

@@ -69,6 +69,22 @@ class EndPoints {
   /// headers). NOT a substitute for [profileById].
   static String userBasic(String id) => "users/$id";
 
+  // ── Safety / moderation (UGC) ──
+  /// `POST /api/reports` — report a user and/or a piece of content. Body
+  /// `{targetUserId?, targetContentId?, reason, note?}`; success `data` is the
+  /// created reportId. Enveloped; classify on `errorCode`
+  /// (`VALIDATION_ERROR` | `TARGET_USER_NOT_FOUND`) — never the message.
+  static const String reports = "reports";
+
+  /// `POST /api/block` `{targetUserId}` (block) · `GET /api/block` (list).
+  /// Full teardown: a blocked user vanishes from discovery/matches and existing
+  /// like/match/conversation is severed. Actions against a blocked user return
+  /// neutral `TARGET_USER_NOT_FOUND` — the UI must never reveal block status.
+  static const String block = "block";
+
+  /// `DELETE /api/block/{targetUserId}` — unblock.
+  static String blockUser(String targetUserId) => "block/$targetUserId";
+
   // Devices / FCM
   static const String registerDevice = "Devices/register";
   static const String linkDevice = "Devices/link";
@@ -309,6 +325,10 @@ class EndPoints {
 
   /// `POST /api/matchmaker/me/deactivate` — body empty.
   static const String matchmakerMeDeactivate = "matchmaker/me/deactivate";
+
+  /// `DELETE /api/matchmaker/me/account` — PERMANENT Moderator account deletion
+  /// (mirrors the user delete). Distinct from the reversible deactivate above.
+  static const String matchmakerMeDeleteAccount = "matchmaker/me/account";
 
   /// `GET /api/affiliate/summary` — the matchmaker's referral/commission
   /// totals (code, referred/registered/used counts, earnings by state).

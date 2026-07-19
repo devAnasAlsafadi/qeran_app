@@ -15,6 +15,8 @@ import '../../features/matchmaker/di/matchmaker_injection.dart';
 import '../../features/notifications/di/notifications_injection.dart';
 import '../../features/profile/di/profile_injection.dart';
 import '../../features/questionnaire/di/questionnaire_injection.dart';
+import '../../features/block/di/block_injection.dart';
+import '../../features/report/di/report_injection.dart';
 import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import '../../features/splash/presentation/blocs/splash_cubit.dart';
 import '../../features/subscriptions/di/subscriptions_injection.dart';
@@ -146,6 +148,10 @@ Future<void> init() async {
 
   //! Features - Support (Help & Support — categories + ticket submission)
   initSupportDependencies();
+
+  //! Features — Report + Block (UGC safety)
+  initReportDependencies();
+  initBlockDependencies();
 
   //! Features - Matchmaker (role=Moderator) — foundation only.
   // Currently a no-op; each subsequent milestone fills it.

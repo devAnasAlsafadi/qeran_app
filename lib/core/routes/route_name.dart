@@ -33,6 +33,7 @@ class RouteNames {
   // Settings sub-screens
   static const String settingsSupport = '/settings/support';
   static const String settingsTerms = '/settings/terms';
+  static const String blockedUsers = '/settings/blocked-users';
 
   // Matchmaker (role=Moderator)
   static const String matchmakerHome = '/matchmaker/home';

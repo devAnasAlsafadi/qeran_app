@@ -7,10 +7,12 @@ import '../account/data/repositories/matchmaker_account_repository_impl.dart';
 import '../account/domain/repositories/matchmaker_account_repository.dart';
 import '../account/domain/usecases/change_password_usecase.dart';
 import '../account/domain/usecases/deactivate_account_usecase.dart';
+import '../account/domain/usecases/delete_matchmaker_account_usecase.dart';
 import '../account/domain/usecases/get_me_usecase.dart';
 import '../account/domain/usecases/update_name_usecase.dart';
 import '../account/domain/usecases/upload_account_photo_usecase.dart';
 import '../account/presentation/blocs/matchmaker_account_cubit.dart';
+import '../account/presentation/blocs/matchmaker_delete_account_cubit.dart';
 import '../affiliate/data/datasources/affiliate_remote_datasource.dart';
 import '../affiliate/data/repositories/affiliate_repository_impl.dart';
 import '../affiliate/domain/repositories/affiliate_repository.dart';
@@ -413,6 +415,7 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(() => UpdateNameUseCase(sl()));
   sl.registerLazySingleton(() => UploadAccountPhotoUseCase(sl()));
   sl.registerLazySingleton(() => DeactivateAccountUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteMatchmakerAccountUseCase(sl()));
   sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
   // One cubit per account-screen mount (S1b/S1c).
   sl.registerFactory(
@@ -422,6 +425,14 @@ Future<void> initMatchmakerDependencies() async {
       uploadPhoto: sl(),
       deactivate: sl(),
       changePassword: sl(),
+    ),
+  );
+  // Permanent account deletion (mirrors the user delete cubit).
+  sl.registerFactory(
+    () => MatchmakerDeleteAccountCubit(
+      deleteAccount: sl(),
+      deviceBootstrap: sl(),
+      session: sl(),
     ),
   );
 

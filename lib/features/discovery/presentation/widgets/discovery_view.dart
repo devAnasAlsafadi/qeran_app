@@ -897,8 +897,8 @@ class _ScrollableCenter extends StatelessWidget {
 /// Pushes the reusable Full Profile Details screen with a Discovery
 /// seed so the layout paints instantly while the by-id endpoint
 /// hydrates in the background.
-void _openDetails(BuildContext context, DiscoveryProfile profile) {
-  NavigationManager.navigateTo(
+Future<void> _openDetails(BuildContext context, DiscoveryProfile profile) async {
+  final result = await NavigationManager.navigateTo(
     context,
     RouteNames.fullProfileDetails,
     arguments: FullProfileDetailsArgs(
@@ -907,6 +907,12 @@ void _openDetails(BuildContext context, DiscoveryProfile profile) {
       entry: ProfileEntrySource.discovery,
     ),
   );
+  // SafetyMenuButton pops the details route returning the blocked userId. The
+  // backend has already severed the user server-side, so a plain refresh drops
+  // them from the deck (no fragile in-memory deck mutation).
+  if (result is String && context.mounted) {
+    context.read<DiscoveryCubit>().refresh();
+  }
 }
 
 /// Opens the dynamic filter sheet and forwards the user's selections

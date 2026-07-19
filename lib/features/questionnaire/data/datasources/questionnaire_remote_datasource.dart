@@ -6,6 +6,7 @@ import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../../core/api/api_response.dart';
 import '../../../../core/domain/entities/success_response.dart';
+import '../error_codes.dart';
 import '../models/editable_category_model.dart';
 import '../models/question_category_model.dart';
 import '../models/question_model.dart';
@@ -101,13 +102,27 @@ class QuestionnaireRemoteDataSourceImpl
       tag: 'QUESTIONNAIRE',
     );
 
-    final response = await _apiConsumer.post(
-      EndPoints.submitAnswers,
-      body: {'answers': answers},
-    );
+    try {
+      final response = await _apiConsumer.post(
+        EndPoints.submitAnswers,
+        body: {'answers': answers},
+      );
 
-    final apiResponse = ApiResponse<dynamic>.fromJson(response, (json) => json);
+      final apiResponse = ApiResponse<dynamic>.fromJson(
+        response,
+        (json) => json,
+      );
 
-    return SuccessResponse.fromApiResponse(apiResponse);
+      return SuccessResponse.fromApiResponse(apiResponse);
+    } on CodedServerException catch (e) {
+      // Age gate: the server rejects the whole submission when the birthdate is
+      // under 18 (UNDERAGE_NOT_ALLOWED). Classify on the errorCode — never the
+      // message — and surface a localized 18+ notice instead of raw backend
+      // text. Any other coded failure bubbles unchanged.
+      if (e.errorCode == QuestionnaireErrorCodes.underageNotAllowed) {
+        throw ServerException(message: LocaleKeys.errors_underage);
+      }
+      rethrow;
+    }
   }
 }

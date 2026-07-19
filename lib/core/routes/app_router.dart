@@ -27,6 +27,8 @@ import 'package:qeran/features/profile/presentation/full_profile_details_args.da
 import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_hub_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_support_screen.dart';
+import 'package:qeran/features/block/presentation/screens/blocked_users_screen.dart';
+import 'package:qeran/features/legal/domain/entities/legal_document_type.dart';
 import 'package:qeran/features/legal/presentation/screens/legal_screen.dart';
 import 'package:qeran/features/questionnaire/domain/entities/question_entity.dart';
 import 'package:qeran/features/questionnaire/presentation/screens/gender_selection/gender_selection_screen.dart';
@@ -252,7 +254,16 @@ class AppRouter {
       case RouteNames.settingsTerms:
         return MaterialPageRoute(
           settings: settings,
-          builder: (context) => const LegalScreen(),
+          builder: (context) => LegalScreen(
+            initialType: settings.arguments is LegalDocumentType
+                ? settings.arguments as LegalDocumentType
+                : LegalDocumentType.termsAndConditions,
+          ),
+        );
+      case RouteNames.blockedUsers:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const BlockedUsersScreen(),
         );
       default:
         return MaterialPageRoute(

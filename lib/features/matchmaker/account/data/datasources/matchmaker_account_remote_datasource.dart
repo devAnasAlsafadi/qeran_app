@@ -27,6 +27,10 @@ abstract interface class MatchmakerAccountRemoteDataSource {
   /// the caller clears the session locally on success.
   Future<void> deactivate();
 
+  /// `DELETE /matchmaker/me/account` — PERMANENT account deletion. The caller
+  /// runs the post-success cleanup (device unlink → local wipe → login).
+  Future<void> deleteAccount();
+
   /// `POST /api/auth/change-password` — body
   /// `{oldPassword, newPassword, confirmNewPassword}` (the DTO requires all
   /// three; the UI's single new-password field feeds both new + confirm).
@@ -92,6 +96,12 @@ class MatchmakerAccountRemoteDataSourceImpl
   Future<void> deactivate() async {
     AppLogger.debug('MATCHMAKER — deactivate', tag: 'MATCHMAKER');
     await _apiConsumer.post(EndPoints.matchmakerMeDeactivate);
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    AppLogger.debug('MATCHMAKER — delete account', tag: 'MATCHMAKER');
+    await _apiConsumer.delete(EndPoints.matchmakerMeDeleteAccount);
   }
 
   @override

@@ -41,6 +41,12 @@ class MatchmakerAccountRepositoryImpl implements MatchmakerAccountRepository {
       });
 
   @override
+  Future<Either<Failure, Unit>> deleteAccount() => _guard(() async {
+        await _dataSource.deleteAccount();
+        return unit;
+      });
+
+  @override
   Future<Either<Failure, Unit>> changePassword({
     required String currentPassword,
     required String newPassword,

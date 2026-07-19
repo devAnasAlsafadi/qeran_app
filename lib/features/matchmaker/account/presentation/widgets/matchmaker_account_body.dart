@@ -32,6 +32,7 @@ class MatchmakerAccountBody extends StatelessWidget {
     required this.onTerms,
     required this.onAffiliate,
     required this.onDeactivate,
+    required this.onDeleteAccount,
     required this.onLogout,
     required this.bottomReserve,
   });
@@ -45,6 +46,7 @@ class MatchmakerAccountBody extends StatelessWidget {
   final VoidCallback onTerms;
   final VoidCallback onAffiliate;
   final VoidCallback onDeactivate;
+  final VoidCallback onDeleteAccount;
   final VoidCallback onLogout;
   final double bottomReserve;
 
@@ -139,6 +141,13 @@ class MatchmakerAccountBody extends StatelessWidget {
                 icon: Icons.person_off_outlined,
                 title: LocaleKeys.matchmaker_account_row_deactivate.t(context),
                 onTap: onDeactivate,
+                accent: SettingsRowAccent.danger,
+              ),
+              const SettingsRowDivider(),
+              SettingsRow(
+                icon: Icons.delete_forever_outlined,
+                title: LocaleKeys.settings_delete_account.t(context),
+                onTap: onDeleteAccount,
                 accent: SettingsRowAccent.danger,
               ),
             ],

@@ -46,6 +46,8 @@ app.*.map.json
 
 # Transient artifacts
 test_results.txt
+# Stale backend API/Swagger dump (contract lives with Tariq; regenerate if ever needed)
+data.json
 
 # Agent harness (Claude Code subagents)
 .agents/

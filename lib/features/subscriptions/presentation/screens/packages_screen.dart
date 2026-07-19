@@ -26,6 +26,7 @@ import '../widgets/order_summary_widget.dart';
 import '../widgets/paywall_hero_widget.dart';
 import '../widgets/paywall_purchase_flow.dart';
 import '../widgets/plan_selection_widget.dart';
+import '../widgets/restore_purchases_tile.dart';
 import '../widgets/sticky_cta_widget.dart';
 
 /// Full-route packages screen — thin coordinator. Provides the plans + purchase
@@ -191,6 +192,11 @@ class _PackagesViewState extends State<_PackagesView>
                 );
               },
             ),
+            QeranSpacing.vs12,
+            // Apple requires a visible "Restore purchases" on the purchase
+            // surface. Self-contained tile (own cubit + restore-specific outcome
+            // handling), enabled on both platforms — restore triggers no payment.
+            const RestorePurchasesTile(),
           ],
         ),
       ),

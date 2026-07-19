@@ -1,0 +1,96 @@
+{
+  "identifier" : "A1B2C3D4-0000-4000-8000-QERANSTOREKIT",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "6783272039",
+    "_developerTeamID" : "4C9GL7WLY7",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "22177601",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Qeran Membership",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "Qeran Membership",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "34.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "B0000001-0000-4000-8000-000000000001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Qeran Basic membership, billed monthly.",
+              "displayName" : "Basic Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "qeran_basic_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Basic Monthly",
+          "subscriptionGroupID" : "22177601",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "B0000002-0000-4000-8000-000000000002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Qeran VIP membership, billed monthly.",
+              "displayName" : "VIP Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "qeran_vip_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "VIP Monthly",
+          "subscriptionGroupID" : "22177601",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "119.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "B0000003-0000-4000-8000-000000000003",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Qeran VIP membership, billed every 3 months.",
+              "displayName" : "VIP 3 Months",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "qeran_vip_3month",
+          "recurringSubscriptionPeriod" : "P3M",
+          "referenceName" : "VIP 3 Months",
+          "subscriptionGroupID" : "22177601",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

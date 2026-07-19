@@ -2,19 +2,44 @@
 
 > **الغرض:** الطبقة غير المستنتَجة من حالة المشروع — النية، القرارات الثابتة، الخطوات الجاية، الـ gotchas، بنود الباك إند، بيانات الحسابات/الاعتمادات. حالة الكود نفسها تُستنتَج من الكود + legacy-grep.
 > اقرأه أول شي كل جلسة. حدّثه نهاية كل مهمة.
-> **آخر تحديث: 18 يوليو 2026** — بعد **إكمال موجة الاشتراكات (P2 backoff + P3 backend-features + حارس الباقة المجانية بـ P1b) + لوحة الإحالة (affiliate) UI + جولة تنظيف + موجة إصلاحات الخطّابة (تحية/حالة/SignalR)**. **كل شي مدفوع — `origin/main` عند `41a3b5d`، و`origin/main..HEAD` فارغ.** التحديث السابق: موجة الاشتراكات/الحدود/Paywall (P4+P0+P1a+P1b) + استلام عقد الباك إند الكامل من طارق (حيّ الآن). قبله: جلسة الدفع + إصلاح الوقت UTC + state-race بالديسكفري. **الجاي = تدقيق ما-قبل-الإطلاق (READ-ONLY، الورشة الكبيرة القادمة).**
+> **آخر تحديث: 19 يوليو 2026** — بعد **موجة أمان الإطلاق (launch-safety): كل الـ 13 بنداً CODE-NOW لما-قبل-الإطلاق — Report + Block (UGC) + بوّابة 18+ + موافقة التسجيل + حذف حساب الخطّابة + Restore-purchases + تقوية أندرويد + ملفّات iOS/StoreKit + splash v3** — إضافةً لـ **تنظيف Part A (R8/ProGuard + subset الخطّ + WebP)**. **كل شي مدفوع — `origin/main` عند `3017dbb`، و`origin/main..HEAD` فارغ.** analyze نظيف + 669 اختباراً أخضر + code-review بلا blockers. التحديث السابق: موجة الاشتراكات (P2/P3 + حارس الباقة المجانية) + affiliate UI + تنظيف + موجة إصلاحات الخطّابة (كانت عند `41a3b5d`). **الجاي = تحقّق البناء-الإصداري على الجهاز (post-meeting) + بنود NEEDS-MAC + جاهزية المتاجر + تبديل الاستضافة.**
 
 ---
 
 ## 🎯 الحالة الحالية — الصورة الكبيرة
 
-**تطبيق الخطّابة صار مكتملاً بصرياً 🏁** — **كل 11 شاشة أساسية + كل 3 شيتات** أُعيد تصميمها وشُحنت. **مرحلة الصقل البصري (Design Polish) انتهت** (onboarding + auth + gender + Interests/Match-success + كل شاشات الخطّابة).
+**تطبيق الخطّابة صار مكتملاً بصرياً 🏁** — **كل 11 شاشة أساسية + كل 3 شيتات** أُعيد تصميمها وشُحنت. **مرحلة الصقل البصري (Design Polish) انتهت** (onboarding + auth + gender + Interests/Match-success + كل شاشات الخطّابة). **وموجة أمان الإطلاق (كل الـ 13 بنداً CODE-NOW) شُحنت ومدفوعة** — التطبيق صار متوافقاً مع سياسات UGC للمتجرين على مستوى الكود.
 
-- **Google Play:** العروض **حيّة end-to-end** (3 اشتراكات + 30 عرضاً Active؛ شراء حقيقي مُختبَر على الجهاز).
-- **Apple App Store:** الـ metadata + إعدادات الـ 30 عرضاً **مكتملة**؛ Custom Codes + build معلّقان على Mac.
+- **Google Play:** العروض **حيّة end-to-end** (3 اشتراكات + 30 عرضاً Active؛ شراء حقيقي مُختبَر على الجهاز). أندرويد مُقوّى (`usesCleartextTraffic=false` + إسقاط `READ_MEDIA_IMAGES`).
+- **Apple App Store:** الـ metadata + إعدادات الـ 30 عرضاً **مكتملة**؛ ملفّات `PrivacyInfo.xcprivacy` + `Products.storekit` + مفتاح export-compliance **مؤلَّفة بالكود**؛ **ربط Xcode + build لا يزالان NEEDS-MAC**. Custom Codes معلّقة على Mac.
+- **الامتثال (UGC/سلامة):** Report + Block + بوّابة 18+ + موافقة تسجيل + حذف حساب (مستخدم وخطّابة) — **كلها حيّة بالكود** على عقد طارق.
 - **وثيقتا طارق جاهزتان للإرسال** (backend tasks + offers reference).
 
-**الجاي = تدقيق ما-قبل-الإطلاق (تنظيف كود + اكتمال أندرويد/iOS + جاهزية سياسات المتاجر). موجة الاشتراكات + لوحة الإحالة UI مكتملتان ومدفوعتان؛ لا صقل بصري متبقٍّ لشاشات الخطّابة الأساسية.**
+**الجاي = تحقّق البناء-الإصداري على الجهاز (SM A325F) بعد الاجتماع، ثم بنود NEEDS-MAC (Mac قادم) + جاهزية سياسات المتاجر + تبديل الاستضافة (طارق). موجة الاشتراكات + affiliate UI + موجة أمان الإطلاق كلها مكتملة ومدفوعة.**
+
+---
+
+## 🆕 موجة أمان الإطلاق (launch-safety) + تنظيف Part A (19 يوليو — **كلها مدفوعة**، `origin/main` عند `3017dbb`)
+
+**السياق:** بعد تدقيق ما-قبل-الإطلاق (READ-ONLY) → تنفيذ كل الـ 13 بنداً CODE-NOW على عقد طارق لأمان الإطلاق (UGC/امتثال متاجر) + جولة تنظيف Part A (بناء/حجم). **الكل مدفوع** (`origin/main..HEAD` فارغ). **analyze نظيف + 669 اختباراً أخضر + code-review بلا blockers.** 6 كوميتات فوق Part A: `4e8b494` feat(safety) · `2241216` fix(subscriptions) · `4d3043d` build(android) · `62c8541` chore(ios) · `7fe299e` feat(splash) · `3017dbb` chore(gitignore) — و`4405ef9` (Part A) قبلها.
+
+**تنظيف Part A (`4405ef9`):**
+- حذف 10 ملفات يتيمة · إزالة 4 حزم غير مستخدمة (`font_awesome_flutter`, `cupertino_icons`, `smooth_page_indicator`, `test`) · حذف pngs الجنس · حذف تعليق ميت + TODO قديم لـ RC.
+- **البناء/الحجم:** R8 `minifyEnabled` + `shrinkResources` مُفعّلان بـ `android/app/proguard-rules.pro` جديد (keep rules لـ Flutter/Firebase/RevenueCat) · Montserrat subset لاتيني فقط (~1.1MB) · pngs الجنس → WebP.
+- **الحكم المُسجّل:** الـ APK الشامل بقي ~ثابتاً (69.4→69.5MB — المكتبات الأصلية تهيمن)؛ **الربح الحقيقي = تقسيم ABI** (split arm64 = 28.1MB، ~59% أصغر، يأتي من الـ AAB على Play). قيمة R8 هنا = نظافة سياسة/تعتيم Play لا البايتات.
+
+**موجة أمان الإطلاق (13 بنداً CODE-NOW):**
+- **بوّابة العمر 18+:** picker يوم الميلاد يقصّ لـ `currentYear-18` (`question_date_widget.dart`)؛ `UNDERAGE_NOT_ALLOWED` مُصنَّف per-datasource → إشعار 18+ مُوطَّن عند الإرسال. + إقرار «عمري 18+» **مطويّ داخل checkbox الخصوصية/الشروط** يحرس التسجيل.
+- **موافقة التسجيل:** «سياسة الخصوصية» + «شروط الاستخدام» صارا قابلَي النقر (deep-link لتابات `LegalScreen`).
+- **Report (بلاغ):** شريحة كاملة `lib/features/report/` → `POST /api/reports`، تصنيف errorCode (`VALIDATION_ERROR`/`TARGET_USER_NOT_FOUND`)، picker سبب (enum) + شيت ملاحظة. مداخل: ⋮ البروفايل + معرض الماتش.
+- **Block (حظر):** شريحة كاملة `lib/features/block/` → حظر/فكّ/قائمة، `TARGET_USER_NOT_FOUND` **محايد (لا يكشف حالة الحظر أبداً)**، ⋮ البروفايل + شاشة الإعدادات→المحظورون (`/settings/blocked-users`) + teardown على الديسكفري عند الحظر.
+- **حذف حساب الخطّابة:** `DELETE /api/matchmaker/me/account` (Moderator) — يطابق حذف المستخدم (تأكيد-مكتوب→حذف→unlink→wipe→login). يرقّي مسار الـ deactivate-only القديم.
+- **Restore-purchases** صار ظاهراً على شاشة الباقات/الـ paywall (شرط Apple).
+- **أندرويد:** `usesCleartextTraffic=false` + إسقاط `READ_MEDIA_IMAGES` (image_picker يستخدم Photo Picker النظامي 13+).
+- **iOS (مؤلَّف بالكود؛ ربط Xcode لا يزال NEEDS-MAC):** `PrivacyInfo.xcprivacy` (`NSPrivacyTracking=false` + أنواع البيانات المجموعة + required-reason APIs) · `ITSAppUsesNonExemptEncryption=false` في Info.plist · `Products.storekit` (3 اشتراكات، أسعار/فترات صحيحة).
+- **Web:** `docs/legal/account_deletion.html` (صفحة حذف عامّة ثنائية اللغة — **تُستضاف منفصلة، لم تُكوميت للتطبيق؛ تبقى في working tree**).
+- **Splash:** Lottie جديد آمن-للموبايل موصول — `assets/animations/logo_qeran_v3.json` + `splash_screen.dart` يشير إليه؛ الـ hang-proofing محفوظ (dual-gate + errorBuilder + timeout + reduce-motion). (gotcha بالأسفل.) `logo_qeran.json` القديم (~91KB) صار بلا مرجع لكن **مُبقى كـ rollback — احذفه بعد تأكيد v3 على الجهاز.**
+- **`data.json`** حُذف + gitignored (dump API قديم لم يعد مطابقاً لعقد طارق).
 
 ---
 
@@ -96,7 +121,9 @@
 
 ## 🔴 معلّقات فورية (تُحَلّ أول الجلسة الجاية — خطر/حاجب)
 
-- ✅ **كل الكوميتات مدفوعة** — `origin/main` عند `41a3b5d`، `origin/main..HEAD` فارغ (شمل P1a/P1b + affiliate + تنظيف + موجة الخطّابة). لم يبقَ شي غير مدفوع من هذه الخيوط.
+- ✅ **كل الكوميتات مدفوعة** — `origin/main` عند `3017dbb`، `origin/main..HEAD` فارغ (شمل موجة أمان الإطلاق + Part A، فوق خيوط 18 يوليو). لم يبقَ شي غير مدفوع.
+- 🔴 **حاجب — تحقّق البناء الإصداري على الجهاز (post-meeting، أول شي):** شغّل الـ release على SM A325F وامشِ المسار المُوثَّق (login→discovery→صور→paywall) لأمان R8/ProGuard، **وأكّد أن كل روابط صور البروفايل HTTPS** (`usesCleartextTraffic=false` سيكسر أي رابط `http://`).
+- 🔴 **حاجب — الاستضافة (لا يزال أعلى حاجب):** base URL ينتقل من `rtempurl` لاستضافة مدفوعة ثابتة (ينام/يفقد البيانات)؛ **أنس يأخذ الـ base URL الجديد قبل البناء الإصداري** (تغيير سطر واحد + rebuild).
 - 🔴 **حاجب — الحالة الحدّية free-trial بـ P1b (بانتظار طارق):** «مستخدم تجربة مجانية (اشتراك مجاني نشط) استهلك 5 تبادلات وطلب المزيد — يرجع `SUBSCRIPTION_REQUIRED` أم `PHOTO_EXCHANGE_LIMIT_REACHED`؟» **حارس `isFree` شُحن (18 يوليو):** الشيت لم يعد يدّعي التجديد لمستخدمي `isFree` (pill التجديد + الـ subtitle مبوّبان الآن على `!isFree`). لكن إن كان الكود الراجع فعلاً `PHOTO_EXCHANGE_LIMIT_REACHED` فقد يحتاج **نسخة تجربة-مجانية مميّزة** في النسخ. **لا تُغلق قبل تأكيد طارق أي كود يرجع فعلاً.**
 
 1. **وثيقتا طارق جاهزتان لكن لم تُرسَلا:**
@@ -112,11 +139,19 @@
 
 ## ▶️ الخطوة الجاية
 
-**موجة الاشتراكات + لوحة الإحالة UI + موجة إصلاحات الخطّابة = مكتملة ومدفوعة.** أولويات الجلسة الجاية بالترتيب:
-1. **🔍 تدقيق ما-قبل-الإطلاق (الورشة الكبيرة القادمة، READ-ONLY):** برومبت شامل جاهز — تنظيف كود + اكتمال أندرويد + اكتمال iOS + جاهزية سياسات المتاجر لتطبيق زواج/UGC/IAP. **مخاطر متجر مرصودة من البحث:** UGC Report/Block (Apple 1.2) · حذف حساب داخل التطبيق (إلزامي على المتجرين) · حساب تجريبي للمراجعين · تمييز تطبيق المواعدة في ملاحظات المراجعة · `PrivacyInfo.xcprivacy` · target API 35/36 · Sign in with Apple إن وُجد أي دخول اجتماعي. **شغل iOS يحتاج Mac (قادم قريباً).**
-2. **أرسل وثيقتي طارق** (بعد إصلاح سطر 2.2).
-3. **round-2:** brief لـ Claude Design لـ 3 شاشات (Interests + إشعارات المستخدم + إشعارات الخطّابة) — الجرد جاهز `round2_inventory.md` → ثم تنفيذ Claude Code بمنهجية plan-first المعتادة.
-4. **حارس status:0 opt-in لـ Bucket A** (affiliate `getSummary`/`getCommissions`) — صغير، غير مبدوء، يُدمج في جولة الجودة ما-قبل-الإطلاق.
+**موجة أمان الإطلاق + موجة الاشتراكات + affiliate UI = مكتملة ومدفوعة.** أولويات الجلسة الجاية بالترتيب:
+1. **📱 post-meeting أولاً — تحقّق البناء الإصداري على الجهاز (SM A325F):** المسار المُوثَّق (login→discovery→صور→paywall) لأمان R8/ProGuard + **تأكيد كل روابط الصور HTTPS** (cleartext=false).
+2. **🩹 بنود code-review للإصلاح (should-fix، ليست blockers):**
+   - **#1 teardown الحظر موصول فقط بالديسكفري** — likes-received + البروفايل المُشارَك من chat لا يستهلكان الـ block-return، فالمحظور يظهر بائتاً حتى إعادة تحميل يدوية (الباك إند صرمه أصلاً). إصلاح #1 لكل النداءات هو الجذر.
+   - **#2 ⋮ Report/Block يظهر على البروفايل المفتوح من chat** (خارج النطاق المتّفق «لا أكشن داخل chat») — نفس جذر #1؛ إصلاحه يُلغيه.
+   - **#3 picker العمر بدقّة السنة** — ميلاد في سنة القطع قد يكون 17 وقابلاً للاختيار؛ `UNDERAGE_NOT_ALLOWED` على السيرفر هو البوّابة الفعلية.
+   - **nits:** #4 شيت البلاغ يبقى مفتوحاً على `TARGET_USER_NOT_FOUND` · #5 خطأ قائمة المحظورين يعرض رسالة الباك إند الخام عبر `.t()`.
+3. **🔧 NEEDS-MAC (Mac قادم):** SIWA capability + aps-environment + IAP capability · ربط `CODE_SIGN_ENTITLEMENTS` في `project.pbxproj` · إضافة `PrivacyInfo.xcprivacy` للـ target · إسناد `.storekit` للـ scheme · build على iOS 26/Xcode 26 · archive/upload.
+4. **🏪 المتاجر (بتنسيق منفصل):** Play Data Safety + Apple privacy labels · تصنيف عمري (17+/Mature) · روابط metadata (سياسة الخصوصية + صفحة الحذف) · حسابات تجريبية للمراجعين (طارق — مستخدم + Moderator ببيانات واقعية، تُبقى حيّة) · تبديل الاستضافة (طارق).
+5. **أرسل وثيقتي طارق** (بعد إصلاح سطر 2.2).
+6. **round-2:** brief لـ Claude Design لـ 3 شاشات (Interests + إشعارات المستخدم + إشعارات الخطّابة) — الجرد جاهز `round2_inventory.md` → ثم تنفيذ plan-first المعتاد.
+7. **حارس status:0 opt-in لـ Bucket A** (affiliate `getSummary`/`getCommissions`) — صغير، غير مبدوء، يُدمج في جولة جودة لاحقة.
+8. **استضِف `docs/legal/account_deletion.html` + احذف `logo_qeran.json` القديم** بعد تأكيد v3 على الجهاز.
 
 **مراحل لاحقة:**
 - **لوحة الإحالة (affiliate) المالية للخطّابة** — **UI مبنيّ على عقد طارق الحيّ (`6deb24d`):** كرت نسبة العمولة + كرتا عدّاد. المتبقّي = حارس status:0 (Bucket A) + أي endpoints/شاشات إحالة إضافية (تاريخ العمولات المرقّم).
@@ -226,6 +261,17 @@
 - **errorCodes المُبوَّبة الحيّة:** `SUBSCRIPTION_REQUIRED` · `LIKES_QUOTA_EXCEEDED` · `DAILY_VIEWS_EXCEEDED` (على `GET /Discovery`، **بلا-اشتراك فقط**، `data.resetAt` = «عُد غداً» **لا paywall**) · `PHOTO_EXCHANGE_LIMIT_REACHED` (مشترك عند السقف → **ترقية**). الباقة المجانية **مرّة واحدة لكل مستخدم** (server-enforced). إشعار الإعجاب يحترم اشتراك **المستقبِل**. المحادثات تبقى مفتوحة بعد الانتهاء.
 - **العرض يستخدم `storeProduct.priceString`** — لا `price` (USD الإداري) أبداً.
 
+### 🛡️ عقد إطلاق المتجر (طارق — مُسلَّم هذه الجلسة، store-launch/UGC)
+
+كله مُغلَّف `{status:1|0, data, message, errorCode}`؛ **صنّف على errorCode لا الرسالة العربية؛ per-datasource Bucket A، لا حارس مركزي.**
+- **`POST /api/reports`** — body `{targetUserId?, targetContentId?, reason, note?}`؛ `reason` enum: `InappropriateContent|Impersonation|Harassment|Scam|FalseInformation|Other` (تطابق case-insensitive)؛ نجاح `data`=reportId؛ errorCode `VALIDATION_ERROR`/`TARGET_USER_NOT_FOUND`.
+- **`/api/block`** (`POST {targetUserId}` / `DELETE /{id}` / `GET`) — **دلالات teardown كامل server-side** (المحظور يختفي من الديسكفري/الماتشات، وأي إعجاب/ماتش/محادثة قائمة تُصرَم)؛ الأكشن ضد محظور يرجع `TARGET_USER_NOT_FOUND` **محايداً — الـ UI يجب ألّا يكشف حالة الحظر أبداً**.
+- **العمر 18+:** مُطبَّق في مسار submit-answers → `UNDERAGE_NOT_ALLOWED` عند ميلاد <18. العميل يقصّ الـ picker لـ 18+ **و** يعالج الكود على الإرسال.
+- **`DELETE /api/matchmaker/me/account`** — حذف دائم للـ Moderator (يطابق حذف المستخدم).
+- **Takedown:** لوحة أدمن فقط — **لا endpoint محمول**.
+- **حسابات مراجعة:** دخول email/password يعمل؛ **حسابان (مستخدم + Moderator) ببيانات واقعية لسا يجب إنشاؤهما وإبقاؤهما حيّين** (طارق).
+- **الاستضافة (أعلى حاجب):** base URL ينتقل عن `rtempurl` لاستضافة مدفوعة ثابتة؛ **أنس يأخذ الجديد قبل البناء الإصداري** (سطر واحد + rebuild).
+
 ### الوثيقتان
 1. **`docs/_plan_drafts/TARIQ_backend_tasks.md`** (~11KB، مواصفة تقنية إنجليزية):
    - **قسم 1 (أكواد الخصم — تأكيد لا عمل جديد):** عقد `validate-code` كامل بأشكال JSON + اكتشاف تباين Swagger (v1 يوثّق GET قديماً فقط، لا الـ POST الذي يستدعيه التطبيق) + قواعد صيغة `offerId` الحرجة + تأكيد webhook RevenueCat→Play.
@@ -299,8 +345,14 @@
   - **حدّ المشاهدات اليومية = لمستخدمي بلا-اشتراك فقط** — شاشة «عُد غداً» بعدّاد `resetAt` (منتصف ليل UTC)، **لا paywall**.
   - **العرض بـ `storeProduct.priceString`** لا `price` الإداري (USD).
   - **عملة الإحالة (affiliate) = حقل باك إند، دائماً USD** — تُعرَض من الحقل لا تُحوَّل ولا تُخفى؛ `commissionType` (`percent`/`fixed`) **forward-safe** (مجهول/فارغ → `null` → «—»).
-- **حقل `status` مُثقَل — لا حارس مركزي:** success/failure مقابل قيمة عمل الخطّابة مقابل مُعشَّش في `data`؛ الحارس المركزي **مرفوض**، و«200-مع-status:0» يُعالَج per-datasource (Bucket A فقط). (التفصيل + تصنيف الدلاء الثلاثة بالـ Gotchas.)
-- **لا تُكوميت أبداً:** `.metadata` · `android/…/MainActivity.kt` · `web/` · `_design/` · token file (`qeran_colors.dart`) بلا تأكيد · شغل أنس (gender/Interests round-2/الترجمات المعلّقة).
+- **حقل `status` مُثقَل — لا حارس مركزي:** success/failure مقابل قيمة عمل الخطّابة مقابل مُعشَّش في `data`؛ الحارس المركزي **مرفوض**، و«200-مع-status:0» يُعالَج per-datasource (Bucket A فقط). (التفصيل + تصنيف الدلاء الثلاثة بالـ Gotchas.) **موجة أمان الإطلاق التزمت به:** Report/Block/questionnaire صنّفوا على errorCode per-datasource؛ `http_consumer`/`api_response`/`errors` **لم تُمَسّ**.
+- **أمان الإطلاق (UGC — احترمها):**
+  - **Block محايد دائماً:** `TARGET_USER_NOT_FOUND` يُعامَل «غير متاح» ولا يكشف حالة الحظر أبداً (لا «حظرتَه/حظرك» بأي UI/toast/state). teardown محلي عبر `refresh()` على block-return لا mutation هشّ للـ deck.
+  - **مداخل Report/Block = discovery (⋮ البروفايل) + معرض الماتش (بلاغ) + الإعدادات (المحظورون)** — **لا أكشن داخل chat** (القرار المتّفق).
+  - **`reason` enum يطابق طارق حرفياً** (`InappropriateContent|Impersonation|Harassment|Scam|FalseInformation|Other`) — أي تباين = رفض صامت من الباك إند.
+  - **`usesCleartextTraffic=false`:** كل نداء/صورة يجب أن يكون HTTPS؛ أي `http://` يُكسَر.
+  - **حذف الحساب per-role:** المستخدم والخطّابة كلاهما له مسار حذف دائم (تأكيد-مكتوب→حذف→unlink→wipe→login)؛ حذف الخطّابة يرقّي الـ deactivate-only القديم.
+- **لا تُكوميت أبداً:** `.metadata` · `android/…/MainActivity.kt` · `web/` · `docs/_design/` · `docs/_plan_drafts/PRELAUNCH_PLAN.md` · `docs/legal/account_deletion.html` (تُستضاف منفصلة) · حذوفات `_archive/*.md` · token file (`qeran_colors.dart`) بلا تأكيد · شغل أنس (gender/Interests round-2/الترجمات المعلّقة). (`data.json` صار gitignored.)
 
 ---
 
@@ -327,6 +379,9 @@
 - **⭐ حدّ المشاهدات اليومية = لمستخدمي بلا-اشتراك فقط** (`DAILY_VIEWS_EXCEEDED` «عُد غداً» + `data.resetAt`، **لا paywall**)؛ المشتركون لا يُحدّون. حدّ تبادل الصور **للمشترك** عند السقف = **ترقية** لا «اشترك» (sheet مخصّص، لا الـ paywall).
 - **⭐⭐ حقل `status` مُثقَل عبر الـ API — لا حارس مركزي أبداً:** في بعض الـ endpoints `status` = نجاح/فشل (`{status:1|0}` غلاف)، لكن بتطبيق **الخطّابة** هو **قيمة عمل** (حالات الحالة: pending/accepted/rejected)، وببعض الـ payloads مُعشَّش داخل `data`. **حارس مركزي «status:0 = خطأ» جُرِّب ورُفض** لأنه يُسيء قراءة قيمة عمل الخطّابة فيكسر ذلك التطبيق. نمط «200-مع-`{status:0}`» يُعالَج **per-datasource (Bucket A فقط)، لا عالمياً أبداً**. تصنيف الدلاء الثلاثة: **Bucket A** (status=نجاح/فشل، يحتاج الحارس) = فقط affiliate `getSummary`/`getCommissions` (+ subscriptions `validateCode`/`getCurrent` بانتظار تأكيد طارق لشكل الغلاف) · **Bucket B** (قيمة عمل / بلا غلاف — `/plans`، `/current`، كل الخطّابة) = **يجب ألّا** يأخذ الحارس · **Bucket C** (غامض) = قرار حالة-بحالة. (`_handleResponse` يحرس `status==1` مركزياً؛ `_handleRawResponse` **لا** يرمي على `status:0` قصداً ليصنّف كل caller نفسه.)
 - **⭐ جلستان Claude متوازيتان على نفس الريبو/working tree حرّرتا `ar.json`/`en.json`/`locale_keys.g.dart` معاً:** حُلّت نظيفاً بـ `git add -p` (staging جزئي لمفاتيح كل خيط فقط) + `git diff --cached` قبل الكوميت. **تجنّب تحرير ملفات الترجمة المشتركة بالتوازي دون كوميت بينهما.**
+- **⭐ Report/Block بُنيتا FRESH في هذا الريبو:** جلسة ويب موازية بنت نسخة **لم تُدفَع أبداً** — **النسخة داخل الريبو هي الكانونية؛ تجاهل/تخلّص من نسخة جلسة الويب** لتجنّب التباعد.
+- **⭐ Lottie الـ splash (v3) — Flutter يتجاهل ميزات AE:** `logo_qeran_v3.json` يحوي **3 تعابير bounce + ~5 تأثيرات Fast Box Blur + 6 track mattes ألفا** يتجاهلها/قد لا يرسمها محرّك Lottie في Flutter — **كشف الـ trim-path (16 trim paths) يشتغل، لكن الـ bounce/glow قد يغيب** (مقبول؛ الـ native splash هو الـ fallback). الـ hang-proofing محفوظ (dual-gate + errorBuilder + timeout 6s + reduce-motion). `logo_qeran.json` القديم (~91KB) بلا مرجع لكن مُبقى كـ rollback — احذفه بعد تأكيد v3 على الجهاز.
+- **⭐ `git add -A` خطر مع web/+docs/:** الشجرة تحوي `web/` (scaffolding) + `docs/` (تصاميم/خطط/صفحة الحذف) التي **يجب ألّا تُكوميت أبداً** — stage بمسارات صريحة + حارس `git diff --cached --name-only | grep -E '^(web/|docs/)'` قبل كل كوميت (استُخدم في موجة أمان الإطلاق؛ صفر تسرّب).
 
 ---
 

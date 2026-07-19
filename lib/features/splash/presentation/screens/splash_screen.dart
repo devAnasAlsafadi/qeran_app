@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -14,13 +15,20 @@ import '../blocs/splash_state.dart';
 /// canvas (edge-to-edge, painting under the status/navigation bars) and hands
 /// off to the next route.
 ///
+/// The reveal is driven by a [Ticker] that advances the Lottie controller's
+/// `value` 0→1 by hand — NOT `AnimationController.forward()`. The framework's
+/// animate methods honor the OS `disableAnimations` flag (Android "Animator
+/// duration scale = Off" / reduce-motion) and would jump straight to the end,
+/// freezing the reveal; a Ticker + direct `value` set are not gated by that
+/// flag, so the logo animates on EVERY device and can never freeze on a blank
+/// frame.
+///
 /// Timing is animation-driven but hang-proof: navigation fires only when BOTH
 /// the animation is done AND the routing decision (session / role / progress)
-/// has arrived. The animation half can settle four ways — normal completion, a
-/// load/parse error, a safety timeout, or reduce-motion — so a broken or slow
-/// animation degrades to "route as soon as the decision is ready" instead of
-/// hanging. The routing brain (SplashCubit + SplashScreenController + bootstrap)
-/// is unchanged; only the navigation TRIGGER moved off a fixed delay.
+/// has arrived. The animation half settles three ways — the reveal reaching its
+/// end, a load/parse error, or a safety timeout — so a broken or slow animation
+/// degrades to "route as soon as the decision is ready" instead of hanging. The
+/// routing brain (SplashCubit + SplashScreenController + bootstrap) is unchanged.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -29,24 +37,39 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const String _animationAsset = 'assets/animations/logo_qeran_v3.json';
 
   /// Backstop: force the animation gate open if nothing else has within this
-  /// cap (comfortably over the ~3.6s Lottie), so a stalled/never-completing
-  /// animation can never hang the splash. The real play duration is read from
-  /// the composition at runtime (see onLoaded), so this is only an upper bound.
+  /// cap (comfortably over the full reveal), so a stalled/never-loading
+  /// animation can never hang the splash. The real reveal length is read from
+  /// the composition at runtime (see [_startReveal]); this is only an upper bound.
   static const Duration _safetyCap = Duration(seconds: 6);
 
+  /// Used only if the composition reports a non-positive duration.
+  static const Duration _fallbackDuration = Duration(milliseconds: 4000);
+
+  /// The transparent logo+wordmark art (1080×795) is centred on the wine canvas
+  /// at this fraction of the screen width — sized, not full-bleed — so it never
+  /// reaches the edges. Height follows from the art's aspect ratio.
+  static const double _logoWidthFraction = 0.72;
+
   late final SplashScreenController _controller;
+
+  /// Value-holder [Animation] the Lottie renders from. We NEVER call
+  /// `forward()` on it — [_revealTicker] sets its `value` directly, so playback
+  /// bypasses the OS `disableAnimations` flag and can't freeze on frame 0.
   late final AnimationController _anim;
+
+  /// Hand-drives [_anim].value across the composition duration.
+  Ticker? _revealTicker;
   Timer? _safetyTimer;
 
   /// The route decision from [SplashCubit] — null until it resolves.
   SplashState? _pending;
 
-  /// True once the animation is done for ANY reason (completion / error /
-  /// timeout / reduce-motion).
+  /// True once the animation is done for ANY reason (reveal complete / error /
+  /// timeout).
   bool _animDone = false;
 
   /// Guards against navigating more than once when both gates are satisfied.
@@ -56,14 +79,15 @@ class _SplashScreenState extends State<SplashScreen>
   /// every rebuild.
   bool _errorSettleScheduled = false;
 
+  /// Guards [_startReveal] so a rebuild / hot-reload can't restart the reveal
+  /// mid-play.
+  bool _revealStarted = false;
+
   @override
   void initState() {
     super.initState();
     _controller = SplashScreenController(context);
-    _anim = AnimationController(vsync: this)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) _markAnimationSettled();
-      });
+    _anim = AnimationController(vsync: this);
     // Backstop timer — cancelled by the first settle (see _markAnimationSettled)
     // or in dispose.
     _safetyTimer = Timer(_safetyCap, _markAnimationSettled);
@@ -74,13 +98,34 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _safetyTimer?.cancel();
+    _revealTicker?.dispose();
     _anim.dispose();
     super.dispose();
   }
 
-  /// Flip the animation gate no matter WHY the animation is done — normal
-  /// completion, a load/parse error, the safety timeout, or reduce-motion — then
-  /// try to navigate. Idempotent: the guards in [_maybeNavigate] handle repeats.
+  /// Drive the reveal: a [Ticker] advances [_anim].value 0→1 across [duration],
+  /// independent of any `forward()` call — so the OS reduce-motion /
+  /// animator-scale flag can't skip it. Idempotent (guarded by [_revealStarted]).
+  /// Settles the animation gate when the reveal reaches its end.
+  void _startReveal(Duration duration) {
+    if (_revealStarted) return;
+    _revealStarted = true;
+    final totalUs = duration.inMicroseconds <= 0
+        ? _fallbackDuration.inMicroseconds
+        : duration.inMicroseconds;
+    _revealTicker = createTicker((elapsed) {
+      final t = (elapsed.inMicroseconds / totalUs).clamp(0.0, 1.0);
+      _anim.value = t; // direct set — NOT forward(); ignores disableAnimations
+      if (t >= 1.0) {
+        _revealTicker?.stop();
+        _markAnimationSettled();
+      }
+    })..start();
+  }
+
+  /// Flip the animation gate no matter WHY the animation is done — reveal
+  /// complete, a load/parse error, or the safety timeout — then try to navigate.
+  /// Idempotent: the guards in [_maybeNavigate] handle repeats.
   void _markAnimationSettled() {
     _safetyTimer?.cancel();
     _animDone = true;
@@ -97,10 +142,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Respect the OS "reduce motion" setting: skip the animation gate and route
-    // as soon as the decision is ready (fast path, no forced ~5s wait).
-    final reduceMotion = MediaQuery.of(context).disableAnimations;
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       // Wine runs under the system bars, so their icons must be light to stay
       // legible. `statusBarColor` covers pre-edge-to-edge Android; on
@@ -115,19 +156,14 @@ class _SplashScreenState extends State<SplashScreen>
       child: BlocListener<SplashCubit, SplashState>(
         listener: (context, state) {
           _pending = state;
-          if (reduceMotion) {
-            _markAnimationSettled();
-          } else {
-            _maybeNavigate();
-          }
+          _maybeNavigate();
         },
         child: Scaffold(
           backgroundColor: QeranColors.wine,
-          // Full-bleed wine: no SafeArea, no insets — it paints to all four
-          // edges (including behind the system bars) with the Lottie centred on
-          // top. `contain` still letterboxes the 9:16 composition on taller
-          // screens, but those gaps are now wine instead of the old cream
-          // canvas that showed through as white bars.
+          // Full-bleed wine background (paints under the system bars too). The
+          // transparent logo art (1080×795) is centred on top at
+          // [_logoWidthFraction] of the screen width with BoxFit.contain — sized,
+          // not stretched, so it never distorts or reaches the edges.
           body: SizedBox.expand(
             child: ColoredBox(
               color: QeranColors.wine,
@@ -135,12 +171,12 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Lottie.asset(
                   _animationAsset,
                   controller: _anim,
+                  width: MediaQuery.of(context).size.width * _logoWidthFraction,
                   fit: BoxFit.contain,
                   // A load/parse/render failure must NOT hang the splash: log
                   // it and settle the animation gate (deferred — errorBuilder
                   // runs during build, and we must not navigate mid-build) so
-                  // we route on the decision instead of showing a blank
-                  // forever.
+                  // we route on the decision instead of showing a blank forever.
                   errorBuilder: (context, error, stack) {
                     AppLogger.error(
                       'Splash Lottie failed to load/render',
@@ -155,14 +191,8 @@ class _SplashScreenState extends State<SplashScreen>
                     }
                     return const SizedBox.shrink();
                   },
-                  onLoaded: (composition) {
-                    // Under reduce-motion we don't play — navigation is driven
-                    // by the decision arriving (handled in the listener above).
-                    if (reduceMotion) return;
-                    _anim
-                      ..duration = composition.duration
-                      ..forward();
-                  },
+                  // Start the hand-driven reveal once the composition is ready.
+                  onLoaded: (composition) => _startReveal(composition.duration),
                 ),
               ),
             ),

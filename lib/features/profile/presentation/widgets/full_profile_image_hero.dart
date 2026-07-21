@@ -13,10 +13,10 @@ import 'full_profile_image_overlays.dart';
 import 'profile_header_gallery.dart';
 
 /// Full-profile image hero: the shared [ProfileHeaderGallery] with a
-/// dark-wine scrim and the identity overlays (name + age, gold verified,
-/// match-percentage pill, aboveImage chips, and the gold privacy lock
-/// while the photo is blurred). Mirrors the Discovery card's image panel
-/// and is fully direction-aware.
+/// dark-wine scrim and the identity overlays (name + age, match-percentage
+/// pill, aboveImage chips, and the gold privacy lock while the photo is
+/// blurred). Mirrors the Discovery card's image panel and is fully
+/// direction-aware.
 class FullProfileImageHero extends StatelessWidget {
   final OtherProfile profile;
 
@@ -91,27 +91,15 @@ class _HeroInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                title,
-                textAlign: TextAlign.start,
-                style: QeranTypography.headline.copyWith(
-                  color: QeranColors.paper,
-                  fontWeight: FontWeight.w700,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: QeranSpacing.s8),
-            const Icon(
-              Icons.verified_rounded,
-              size: 22,
-              color: QeranColors.gold,
-            ),
-          ],
+        Text(
+          title,
+          textAlign: TextAlign.start,
+          style: QeranTypography.headline.copyWith(
+            color: QeranColors.paper,
+            fontWeight: FontWeight.w700,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         if (scored) ...[
           const SizedBox(height: QeranSpacing.s8),

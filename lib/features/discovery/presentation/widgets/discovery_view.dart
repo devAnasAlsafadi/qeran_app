@@ -36,12 +36,11 @@ import '../screens/discovery_filter_sheet.dart';
 import 'discovery_action_bar.dart';
 import 'discovery_card.dart';
 import 'discovery_deck_animation_controller.dart';
-import 'discovery_deck_animator.dart';
 import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_like_burst.dart';
-import 'discovery_swipe_handler.dart';
 import 'discovery_top_bar.dart';
+import 'discovery_unified_card.dart';
 
 /// Reusable Discovery content. Self-contained — provides its own
 /// `DiscoveryCubit` and drives `loadInitial` on first build.
@@ -94,18 +93,6 @@ const double _kPeekHeight = 20.0;
 const double _kBodyHPad = QeranSpacing.s20;
 const double _kNavActionGap = 28.0;
 const double _kActionBarReserve = 120.0;
-const double _kImageHeightFraction = 0.51;
-
-/// Extra top padding inserted before the image card when the home shell's
-/// floating filter/notifications buttons sit over the scroll (showTopBar
-/// is false). Pushes the card start below those buttons (top SafeArea +
-/// 8 dp pad + 44 dp button) so they no longer overlap the image.
-const double _kOverlayClearance = 52.0;
-
-/// Negative offset applied to the white profile-body card so it slides
-/// up under the image card's rounded bottom — matches the Figma "sheet
-/// overlapping the image" look from the previous layout.
-const double _kBodyOverlap = 20.0;
 
 /// True when [state] renders a full-screen replacement that owns the
 /// whole feed area — the daily-view limit screen, the load-failure
@@ -408,19 +395,11 @@ class _ScrollableProfile extends StatelessWidget {
   }
 }
 
-/// One vertical scroll containing the image card (with peek deck
-/// behind) and the continuous profile body. Image height is fixed at
-/// 51 % of the viewport so the deck visuals match the previous Figma
-/// layout; the body below has unbounded height and drives the scroll.
-///
-/// Stateful so we can own a [ScrollController] and glide the offset
-/// back to the top when the active profile changes (like / pass /
-/// undo / swipe). Without that reset, a deep-scrolled body carries
-/// its offset over to the next profile and the new content reads as a
-/// frozen jump — the body cross-fade does its job, but the eye sees
-/// mid-content morphing into different mid-content. The glide runs
-/// alongside the body's fade-and-slide so the perceived transition is
-/// one graceful motion rather than two separate beats.
+/// The loaded discovery feed: the optional upsell banner atop a single
+/// fixed [DiscoveryUnifiedCard] (photo + internally-scrolling data), with
+/// the peek deck behind it. The page itself does not scroll — only the
+/// card's inner data region does. Stateful only to remember the
+/// per-session banner dismissal.
 class _ProfilePage extends StatefulWidget {
   final DiscoveryLoaded loaded;
   final bool hasOverlayControls;
@@ -434,283 +413,68 @@ class _ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<_ProfilePage> {
-  final ScrollController _scrollController = ScrollController();
-  String? _lastProfileId;
   bool _bannerDismissed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _lastProfileId = widget.loaded.current?.id;
-  }
-
-  @override
-  void didUpdateWidget(_ProfilePage old) {
-    super.didUpdateWidget(old);
-    final newId = widget.loaded.current?.id;
-    if (newId == null || newId == _lastProfileId) return;
-    final wasInitialized = _lastProfileId != null;
-    _lastProfileId = newId;
-    if (!wasInitialized) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      if (!_scrollController.hasClients) return;
-      if (_scrollController.offset <= 0.5) return;
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 360),
-        curve: Curves.easeOutCubic,
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final imageHeight = constraints.maxHeight * _kImageHeightFraction;
         final bottomInset = MediaQuery.of(context).padding.bottom;
         final profile = widget.loaded.current!;
         final nextProfile = widget.loaded.next;
-        final topClearance =
-            widget.hasOverlayControls ? _kOverlayClearance : 0.0;
 
         final subState = context.watch<CurrentSubscriptionCubit>().state;
         final hasActiveSub = subState is CurrentSubscriptionLoaded &&
             subState.subscription.isCurrentlyActive;
         final showBanner = !hasActiveSub && !_bannerDismissed;
 
-        final bannerTopClearance = showBanner && widget.hasOverlayControls ? topClearance : 0.0;
-        final cardTopClearance = !showBanner && widget.hasOverlayControls ? topClearance : 0.0;
-
-        return SingleChildScrollView(
-          controller: _scrollController,
-          // BouncingScrollPhysics gives a smoother deceleration curve
-          // than ClampingScrollPhysics and a more "premium" feel on
-          // both iOS and Android. Wrapped in AlwaysScrollableScrollPhysics
-          // so RefreshIndicator keeps working when content is short.
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (showBanner)
-                _UpgradeFeedBanner(
-                  topClearance: bannerTopClearance,
-                  onDismiss: () => setState(() => _bannerDismissed = true),
-                ),
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    _kStackHPad,
-                    _kStackTPad + cardTopClearance,
-                    _kStackHPad,
-                    0,
-                  ),
-                  // RepaintBoundary isolates the heavy ImageFilter.blur
-                  // inside `DiscoveryBlurredImage` so a vertical scroll
-                  // just translates the cached raster instead of
-                  // re-running the blur every frame. Cheap to add,
-                  // noticeably smoother scroll over the image area.
-                  child: RepaintBoundary(
-                    child: SizedBox(
-                      height: imageHeight,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        clipBehavior: Clip.none,
-                        children: [
-                          if (nextProfile != null)
-                            _PeekCardLayer(profile: nextProfile),
-                          Padding(
-                            padding:
-                                const EdgeInsets.only(top: _kPeekHeight),
-                            child: _ImageCard(profile: profile),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+        // Fixed layout — the page itself does not scroll. The banner is a
+        // conditional child, so when hidden the card reflows straight up
+        // under the top bar with no reserved gap. The card fills the space
+        // above the action-cluster / bottom-nav reservation; only the نبذة
+        // عني data region scrolls internally inside the card.
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (showBanner)
+              _UpgradeFeedBanner(
+                topClearance: 0,
+                onDismiss: () => setState(() => _bannerDismissed = true),
               ),
-              // Negative offset slides the white profile-body card
-              // upward into the image card's rounded bottom — the
-              // "sheet overlapping the image" look. Transform.translate
-              // only shifts visually; the column's layout is unchanged
-              // so the bottom action-bar reservation stays correct.
-              Transform.translate(
-                offset: const Offset(0, -_kBodyOverlap),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: QeranColors.paper,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(QeranRadii.panel),
-                    ),
-                    // Soft upward shadow at the sheet's top edge to
-                    // separate the body card from the image. The
-                    // QeranShadows tokens (e1/e2/e3) are all downward
-                    // shadows; this specialised upward variant uses
-                    // the same wine-tinted palette via `wine08`.
-                    boxShadow: const [
-                      BoxShadow(
-                        color: QeranColors.wine08,
-                        blurRadius: 24,
-                        offset: Offset(0, -6),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  _kStackHPad,
+                  showBanner ? 0 : _kStackTPad,
+                  _kStackHPad,
+                  0,
+                ),
+                // RepaintBoundary isolates the heavy ImageFilter.blur inside
+                // `DiscoveryBlurredImage` from the surrounding layers.
+                child: RepaintBoundary(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    clipBehavior: Clip.none,
+                    children: [
+                      if (nextProfile != null)
+                        _PeekCardLayer(profile: nextProfile),
+                      Padding(
+                        padding: const EdgeInsets.only(top: _kPeekHeight),
+                        child: DiscoveryUnifiedCard(
+                          profile: profile,
+                          onTapDetails: () => _openDetails(context, profile),
+                          bottomContentInset: QeranSpacing.s20,
+                        ),
                       ),
                     ],
-                  ),
-                  padding: const EdgeInsets.fromLTRB(
-                    _kBodyHPad,
-                    QeranSpacing.s32,
-                    _kBodyHPad,
-                    QeranSpacing.s16,
-                  ),
-                  // Directional fade + slide: old body slides UP and
-                  // fades out, new body slides UP from below and fades
-                  // in. Both halves of the transition are visible at
-                  // ~6 % of the body height (~30–40 px) — noticeable
-                  // without feeling theatrical. 420 ms is the upper
-                  // bound for "single calm beat"; longer would start
-                  // to feel like a wait. No extra opacity layer over
-                  // the blurred image — this switcher only wraps the
-                  // text body, so it can't trigger the Impeller atlas
-                  // race that ImageFilter.blur is sensitive to.
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 420),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeOutCubic,
-                    transitionBuilder: (child, animation) {
-                      return _ProfileBodyTransition(
-                        animation: animation,
-                        child: child,
-                      );
-                    },
-                    // Discovery card body is intentionally slim — only
-                    // about-me preview (2 lines max) + insideCard chips.
-                    // Long-form sections live on FullProfileDetailsScreen,
-                    // reachable via the card tap (`_openDetails`).
-                    child: RepaintBoundary(
-                      key: ValueKey<String>(profile.id),
-                      child: DiscoveryInfoPanel(profile: profile),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: bottomInset + _kActionBarReserve),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// Directional slide+fade for the profile-body AnimatedSwitcher.
-///
-/// AnimatedSwitcher applies a single `transitionBuilder` to BOTH the
-/// outgoing and incoming children, with the same `Tween`. That makes
-/// it impossible to drive opposing motions (old slides up + out, new
-/// slides up + in) from a single Tween. This helper inspects the
-/// animation's starting value once at [initState] — `1.0` means the
-/// AnimatedSwitcher just handed us an outgoing entry (was previously
-/// the live child at full opacity), `0.0` means an incoming one — and
-/// picks the matching Tween so both halves of the swap visibly move
-/// upward.
-///
-/// Outgoing: position interpolates `(0, 0) → (0, -0.05)` as animation
-/// runs `1 → 0`. Slides up + fades.
-/// Incoming: position interpolates `(0, 0.05) → (0, 0)` as animation
-/// runs `0 → 1`. Slides up from below + fades in.
-class _ProfileBodyTransition extends StatefulWidget {
-  final Animation<double> animation;
-  final Widget child;
-
-  const _ProfileBodyTransition({
-    required this.animation,
-    required this.child,
-  });
-
-  @override
-  State<_ProfileBodyTransition> createState() =>
-      _ProfileBodyTransitionState();
-}
-
-class _ProfileBodyTransitionState extends State<_ProfileBodyTransition> {
-  late final Animation<Offset> _slide;
-
-  @override
-  void initState() {
-    super.initState();
-    final isOutgoing = widget.animation.value >= 0.5;
-    _slide = Tween<Offset>(
-      begin: isOutgoing
-          ? const Offset(0, -0.05)
-          : const Offset(0, 0.05),
-      end: Offset.zero,
-    ).animate(widget.animation);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: widget.animation,
-      child: SlideTransition(position: _slide, child: widget.child),
-    );
-  }
-}
-
-/// The image card itself — wraps the deck animator and the swipe
-/// handler so horizontal drags on the image area drive the same
-/// like / pass / undo / eject flow as before. Extracted so the parent
-/// `_ProfilePage` stays readable.
-class _ImageCard extends StatelessWidget {
-  final DiscoveryProfile profile;
-  const _ImageCard({required this.profile});
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        borderRadius: QeranRadii.panelR,
-        boxShadow: QeranShadows.e3,
-      ),
-      child: ClipRRect(
-        borderRadius: QeranRadii.panelR,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeOutCubic,
-          transitionBuilder: (child, animation) {
-            final scale =
-                Tween<double>(begin: 0.94, end: 1.0).animate(animation);
-            return FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: scale, child: child),
-            );
-          },
-          child: KeyedSubtree(
-            key: ValueKey<String>(profile.id),
-            child: DiscoveryDeckAnimator(
-              child: DiscoverySwipeHandler(
-                child: Builder(
-                  builder: (ctx) => DiscoveryImagePanel(
-                    profile: profile,
-                    onTap: () => _openDetails(ctx, profile),
-                    showOverlayActions: false,
                   ),
                 ),
               ),
             ),
-          ),
-        ),
-      ),
+            SizedBox(height: bottomInset + _kActionBarReserve),
+          ],
+        );
+      },
     );
   }
 }

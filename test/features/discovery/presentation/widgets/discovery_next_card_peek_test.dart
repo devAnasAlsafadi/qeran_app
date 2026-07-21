@@ -128,7 +128,7 @@ Future<void> _pumpView(
           localizationsDelegates: ctx.localizationDelegates,
           home: BlocProvider<CurrentSubscriptionCubit>(
             create: (_) => _FakeCurrentSubCubit(),
-            child: const Scaffold(body: DiscoveryView(showTopBar: false)),
+            child: const Scaffold(body: DiscoveryView()),
           ),
         ),
       ),

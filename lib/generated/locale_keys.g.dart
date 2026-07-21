@@ -472,8 +472,6 @@ abstract class  LocaleKeys {
   static const chat_empty_title = 'chat.empty_title';
   static const chat_empty_start_with = 'chat.empty_start_with';
   static const chat_send_failed_retry = 'chat.send_failed_retry';
-  static const chat_realtime_reconnecting = 'chat.realtime_reconnecting';
-  static const chat_realtime_disconnected = 'chat.realtime_disconnected';
   static const chat_realtime_retry = 'chat.realtime_retry';
   static const chat_composer_placeholder = 'chat.composer_placeholder';
   static const chat_composer_send = 'chat.composer_send';

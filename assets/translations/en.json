@@ -486,8 +486,6 @@
     "empty_title": "No messages yet",
     "empty_start_with": "Start the conversation with {peer}",
     "send_failed_retry": "Not sent · Retry",
-    "realtime_reconnecting": "Reconnecting…",
-    "realtime_disconnected": "Live updates paused",
     "realtime_retry": "Retry",
     "composer_placeholder": "Write a message…",
     "composer_send": "Send",

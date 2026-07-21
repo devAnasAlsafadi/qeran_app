@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/current_subscription.dart';
 import '../../domain/entities/subscription_plan.dart';
@@ -65,14 +67,30 @@ class SubscriptionsRepositoryImpl
   Future<Either<Failure, CurrentSubscription>> subscribe({
     required int pricingId,
     String? discountCode,
-  }) {
-    return executeApiCall(() async {
+  }) async {
+    // NOT executeApiCall: subscribe must PRESERVE the backend `errorCode`
+    // (FREE_PLAN_ALREADY_USED / PROFILE_NOT_APPROVED) as a CodedServerFailure so
+    // the purchase flow can treat them as benign / "under review" rather than a
+    // generic failure. `base_repository` intentionally collapses errorCode.
+    try {
       final model = await _dataSource.subscribe(
         pricingId: pricingId,
         discountCode: discountCode,
       );
-      return model.toEntity();
-    });
+      return Right(model.toEntity());
+    } on OfflineException {
+      return const Left(OfflineFailure());
+    } on CodedServerException catch (e) {
+      return Left(CodedServerFailure(
+        message: e.message,
+        errorCode: e.errorCode,
+        statusCode: e.statusCode,
+      ));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (_) {
+      return const Left(ServerFailure(message: LocaleKeys.errors_unexpected));
+    }
   }
 
   @override

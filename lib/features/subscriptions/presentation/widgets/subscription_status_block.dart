@@ -38,7 +38,8 @@ class SubscriptionStatusBlock extends StatelessWidget {
             const _LoadingCard(),
           CurrentSubscriptionLoaded(:final subscription) =>
             _forSubscription(subscription),
-          // `/current` returned null → the user is on the Free plan.
+          // `/current` returned null → NO subscription yet (NOT "on Free"). The
+          // card invites activating the free trial or picking a plan.
           CurrentSubscriptionNone() => const SubscriptionFreeCard(),
           CurrentSubscriptionFailure(:final lastKnown) => lastKnown != null
               ? _forSubscription(lastKnown)

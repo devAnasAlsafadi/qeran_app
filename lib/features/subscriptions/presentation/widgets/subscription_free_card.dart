@@ -11,8 +11,10 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// Shown when `/current` is null — we map that to "on the Free plan" and invite
-/// an upgrade. A wine-gradient hero with a gold crown, matching the promo tone.
+/// Shown on the My-subscription screen when `/current` is null — the user has
+/// NO subscription yet (NOT "on Free"; the free trial is activated explicitly
+/// from the packages screen). A wine-gradient hero inviting them to activate
+/// the free trial or pick a plan.
 class SubscriptionFreeCard extends StatelessWidget {
   const SubscriptionFreeCard({super.key});
 
@@ -43,13 +45,13 @@ class SubscriptionFreeCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      LocaleKeys.subscriptions_status_free_title.t(context),
+                      LocaleKeys.subscriptions_none_title.t(context),
                       style: QeranTypography.title
                           .copyWith(color: QeranColors.paper),
                     ),
                     QeranSpacing.vs4,
                     Text(
-                      LocaleKeys.subscriptions_status_free_body.t(context),
+                      LocaleKeys.subscriptions_none_body.t(context),
                       style: QeranTypography.bodySm
                           .copyWith(color: QeranColors.gold),
                     ),

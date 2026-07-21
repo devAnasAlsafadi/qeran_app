@@ -102,8 +102,12 @@ class SubscriptionsRemoteDataSourceImpl
     }
     final data = body['data'];
     if (data is! Map<String, dynamic>) {
-      throw ServerException(
+      // A status:0 envelope (e.g. FREE_PLAN_ALREADY_USED / PROFILE_NOT_APPROVED)
+      // — carry the machine-readable errorCode so the repository can preserve it
+      // as a CodedServerFailure and the purchase flow can classify it.
+      throw CodedServerException(
         message: body['message'] as String? ?? LocaleKeys.errors_generic,
+        errorCode: body['errorCode'] as String?,
       );
     }
     AppLogger.info('Subscribe success', tag: 'SUBSCRIPTIONS');

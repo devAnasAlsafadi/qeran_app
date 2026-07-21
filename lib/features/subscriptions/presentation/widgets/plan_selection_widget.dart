@@ -6,6 +6,7 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -39,6 +40,13 @@ class PlanSelectionWidget extends StatelessWidget {
   final ValueChanged<int> onPricingSelected;
   final CurrentSubscription? currentSub;
 
+  /// True while a free-tier activation call is in flight (drives the Free card
+  /// CTA spinner).
+  final bool freeBusy;
+
+  /// User tapped the Free card's Activate CTA (null = no CTA / not activatable).
+  final VoidCallback? onActivateFree;
+
   final StoreProduct? Function(SubscriptionPricing pricing) resolveStoreProduct;
 
   const PlanSelectionWidget({
@@ -51,12 +59,15 @@ class PlanSelectionWidget extends StatelessWidget {
     required this.onPricingSelected,
     required this.resolveStoreProduct,
     this.currentSub,
+    this.freeBusy = false,
+    this.onActivateFree,
   });
 
   @override
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
-    final hasActivePaidSub = currentSub != null;
+    final isFreeActive = currentSub != null && currentSub!.plan.isFree;
+    final isPaidActive = currentSub != null && !currentSub!.plan.isFree;
     final ownedPlanId = currentSub?.plan.id;
 
     // The period the user actually owns (monthly vs 3-month), resolved from the
@@ -72,15 +83,21 @@ class PlanSelectionWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. FREE USER FLOW: Show Free Plan Card at top
-        if (!hasActivePaidSub) ...[
-          const _FreePlanCard(),
+        // 1. Free-tier card — shown unless the user is on a PAID plan. It is the
+        // "activate free" CTA when there is no subscription yet, and the
+        // "أنت هنا الآن" indicator once the free trial is actually active.
+        if (!isPaidActive) ...[
+          _FreePlanCard(
+            isActive: isFreeActive,
+            busy: freeBusy,
+            onActivate: onActivateFree,
+          ),
           QeranSpacing.vs20,
         ],
 
         // 2. PLAN CARDS LIST
         Text(
-          hasActivePaidSub
+          isPaidActive
               ? LocaleKeys.subscriptions_available_plans.t(context)
               : LocaleKeys.subscriptions_title.t(context),
           style: QeranTypography.title.copyWith(color: QeranColors.wine),

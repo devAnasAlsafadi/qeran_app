@@ -7,16 +7,20 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
+import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import '../../data/error_codes.dart';
 import '../../domain/entities/subscription_plan.dart';
 import '../../domain/entities/subscription_pricing.dart';
 import '../../domain/entities/validate_code_response.dart';
 import '../../domain/usecases/subscribe_usecase.dart';
 import '../blocs/current/current_subscription_cubit.dart';
+import '../blocs/plans/subscription_plans_cubit.dart';
+import '../blocs/plans/subscription_plans_state.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
 
@@ -131,6 +135,51 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
         );
   }
 
+  /// User-initiated free-trial activation — fired ONLY when the user taps the
+  /// Free card (never auto). Approval is checked first (the backend also rejects
+  /// with PROFILE_NOT_APPROVED). Resolves the free plan's first pricing from the
+  /// loaded plans, then activates via `/subscribe` (free pricing has no store
+  /// product — no RevenueCat).
+  Future<void> activateFree(BuildContext context) async {
+    if (freeBusy) return;
+    if (context.read<ProfileGateCubit>().isGated) {
+      _toast(context, LocaleKeys.profile_status_pending_review,
+          SnackBarType.notice);
+      return;
+    }
+    final plansState = context.read<SubscriptionPlansCubit>().state;
+    if (plansState is! SubscriptionPlansLoaded) return;
+    final freePlans = plansState.plans.where((p) => p.isFree);
+    final freePlan = freePlans.isEmpty ? null : freePlans.first;
+    final freePricing = (freePlan == null || freePlan.pricings.isEmpty)
+        ? null
+        : freePlan.pricings.first;
+    if (freePlan == null || freePricing == null) {
+      _toast(context, LocaleKeys.errors_generic, SnackBarType.error);
+      return;
+    }
+    _purchasedPlan = freePlan;
+    _purchasedPricing = freePricing;
+    await _subscribeFree(context, freePricing);
+  }
+
+  /// Free-activation failures aren't all errors: an already-used trial is a
+  /// benign "route to a paid plan" signal, and PROFILE_NOT_APPROVED is an
+  /// "under review" state — neither should hit the generic failure screen.
+  void _handleFreeActivationFailure(BuildContext context, Failure failure) {
+    final code = failure is CodedServerFailure ? failure.errorCode : null;
+    switch (code) {
+      case SubscriptionsErrorCodes.freePlanAlreadyUsed:
+        _toast(context, LocaleKeys.subscriptions_free_already_used,
+            SnackBarType.notice);
+      case SubscriptionsErrorCodes.profileNotApproved:
+        _toast(context, LocaleKeys.profile_status_pending_review,
+            SnackBarType.notice);
+      default:
+        NavigationManager.navigateTo(context, RouteNames.purchaseFailure);
+    }
+  }
+
   /// Free tier (`isFree` / price 0) — activates via `/subscribe`, never RC.
   Future<void> _subscribeFree(
     BuildContext context,
@@ -141,7 +190,7 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
     if (!mounted) return;
     setState(() => freeBusy = false);
     result.fold(
-      (_) => NavigationManager.navigateTo(context, RouteNames.purchaseFailure),
+      (failure) => _handleFreeActivationFailure(context, failure),
       (subscription) {
         sl<CurrentSubscriptionCubit>().onSubscribed(subscription);
         // Free-tier plan comes straight from the `/subscribe` response — the

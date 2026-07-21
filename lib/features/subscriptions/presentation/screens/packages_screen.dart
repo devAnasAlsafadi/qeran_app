@@ -163,6 +163,8 @@ class _PackagesViewState extends State<_PackagesView>
               resolveStoreProduct: (pricing) =>
                   state.storeProductFor(pricing, isIOS: _isIOS),
               currentSub: currentSub,
+              freeBusy: freeBusy,
+              onActivateFree: () => activateFree(context),
             ),
             if (!_isIOS && selectedPricing != null) ...[
               QeranSpacing.vs16,

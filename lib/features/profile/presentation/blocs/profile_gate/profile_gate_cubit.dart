@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
+import '../../../domain/entities/my_profile.dart';
 import '../../../domain/entities/profile_status.dart';
 import '../../../domain/usecases/get_my_profile_usecase.dart';
 import 'profile_gate_state.dart';
@@ -50,8 +51,24 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
         );
         emit(const ProfileGateUnavailable());
       },
-      (profile) => emit(ProfileGateResolved(profile.profileStatus)),
+      (profile) => emit(ProfileGateResolved(
+        profile.profileStatus,
+        name: profile.name,
+        photoUrl: _profilePhotoUrl(profile),
+      )),
     );
+  }
+
+  /// The photo to show for "my profile": the dedicated `profileImage`, else the
+  /// first image flagged `isProfile`, else the first image — null when there
+  /// are none (the hero then shows the monogram). Backend-driven; nothing is
+  /// fabricated.
+  static String? _profilePhotoUrl(MyProfile profile) {
+    if (profile.profileImage != null) return profile.profileImage!.url;
+    for (final image in profile.images) {
+      if (image.isProfile) return image.url;
+    }
+    return profile.images.isNotEmpty ? profile.images.first.url : null;
   }
 
   /// The resolved status, or `null` while loading / on failure.

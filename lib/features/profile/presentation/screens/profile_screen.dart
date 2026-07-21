@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,6 +19,8 @@ import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_state.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
@@ -81,12 +84,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: BlocBuilder<UserSessionCubit, UserSessionState>(
             builder: (context, state) {
               final user = state is UserSessionAuthenticated ? state.user : null;
-              final name = (user?.name ?? '').trim();
+              // Prefer the authoritative profile identity from GET /api/profile
+              // (reused from the already-fetched ProfileGateCubit — no second
+              // fetch); fall back to the session name, then the generic label.
+              // The photo is the user's own profile photo (Bearer-gated); no
+              // photo → the monogram, never a generic person icon.
+              final gate = context.watch<ProfileGateCubit>().state;
+              final resolved = gate is ProfileGateResolved ? gate : null;
+              final profileName = (resolved?.name ?? '').trim();
+              final sessionName = (user?.name ?? '').trim();
+              final name = profileName.isNotEmpty ? profileName : sessionName;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SettingsProfileHero(
-                    avatar: _HeroAvatar(photoUrl: user?.photoUrl, name: name),
+                    avatar: _HeroAvatar(photoUrl: resolved?.photoUrl, name: name),
                     name: name.isNotEmpty
                         ? name
                         : LocaleKeys.home_nav_profile.t(context),
@@ -146,9 +158,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-/// Hero avatar for the user: the session photo when present (with a
-/// monogram fallback if it fails to load), otherwise the wine+gold
-/// [QeranMonogram] built from the name.
+/// Hero avatar for the user: their OWN profile photo (unblurred) in a gold
+/// ring, otherwise the wine+gold [QeranMonogram] built from the name — never a
+/// generic person icon. The photo lives on the API origin
+/// (`/api/users/profile-images/...`) and is Bearer-gated, so the request
+/// carries the session token (same requirement as `LikeBlurredImage`); the
+/// monogram also covers the loading + load-error states.
 class _HeroAvatar extends StatelessWidget {
   const _HeroAvatar({required this.photoUrl, required this.name});
 
@@ -168,15 +183,29 @@ class _HeroAvatar extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(2),
       child: ClipOval(
-        child: Image.network(
-          photoUrl!,
+        child: CachedNetworkImage(
+          imageUrl: photoUrl!,
+          httpHeaders: _authHeaders(context),
           fit: BoxFit.cover,
           width: 58,
           height: 58,
-          errorBuilder: (_, _, _) => QeranMonogram(name: name, size: 58),
+          placeholder: (_, _) => QeranMonogram(name: name, size: 58),
+          errorWidget: (_, _, _) => QeranMonogram(name: name, size: 58),
         ),
       ),
     );
+  }
+
+  /// Bearer token for the profile-image request, from the in-scope session.
+  Map<String, String>? _authHeaders(BuildContext context) {
+    final state = context.read<UserSessionCubit>().state;
+    if (state is UserSessionAuthenticated) {
+      final token = state.user.token;
+      if (token != null && token.isNotEmpty) {
+        return {'Authorization': 'Bearer $token'};
+      }
+    }
+    return null;
   }
 }
 
@@ -362,10 +391,21 @@ class _UpgradeTeaserCard extends StatelessWidget {
     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
       builder: (context, state) {
-        final hasActiveSub = state is CurrentSubscriptionLoaded &&
-            state.subscription.isCurrentlyActive;
+        // Show the upsell for everyone who can still upgrade — no subscription,
+        // Free (tier 0), or Basic (tier 1). Hide it ONLY for an active VIP
+        // (tier 2), the top tier. Backend-driven: gate on tier +
+        // isCurrentlyActive (never the plan name). Honours `lastKnown` too, so
+        // a VIP doesn't flash the upsell during a transient /current failure.
+        final isActiveVip = switch (state) {
+          CurrentSubscriptionLoaded(:final subscription) =>
+            subscription.isCurrentlyActive && subscription.plan.isVipTier,
+          CurrentSubscriptionFailure(:final lastKnown) => lastKnown != null &&
+              lastKnown.isCurrentlyActive &&
+              lastKnown.plan.isVipTier,
+          _ => false,
+        };
 
-        if (hasActiveSub) return const SizedBox.shrink();
+        if (isActiveVip) return const SizedBox.shrink();
 
         return Container(
           margin: const EdgeInsets.only(top: QeranSpacing.s24),

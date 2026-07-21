@@ -38,6 +38,7 @@ import 'discovery_card.dart';
 import 'discovery_deck_animation_controller.dart';
 import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
+import 'discovery_frosted_action_zone.dart';
 import 'discovery_like_burst.dart';
 import 'discovery_top_bar.dart';
 import 'discovery_unified_card.dart';
@@ -45,14 +46,12 @@ import 'discovery_unified_card.dart';
 /// Reusable Discovery content. Self-contained — provides its own
 /// `DiscoveryCubit` and drives `loadInitial` on first build.
 ///
-/// New layout: the entire profile is one vertical scroll. The image
-/// card sits at the top and scrolls upward as the user reads down
-/// through the continuous profile body. The action bar floats over
-/// the bottom of the viewport (no surrounding card) and stays
-/// accessible from every scroll position. Horizontal drags on the
-/// image trigger the existing swipe / like / pass / undo flow; the
-/// outer vertical scroll competes in the gesture arena so the two
-/// axes never fight.
+/// Layout: a fixed page (no page scroll) — an optional upsell banner atop a
+/// single [DiscoveryUnifiedCard] whose photo is fixed and whose data region
+/// scrolls internally. The like / pass / undo cluster is pinned in a frosted
+/// zone at the card's bottom. Horizontal drags run the existing swipe / like
+/// / pass / undo flow; the card's inner vertical scroll competes in the
+/// gesture arena so the two axes never fight.
 class DiscoveryView extends StatelessWidget {
   /// When true, renders [DiscoveryTopBar] pinned above the scroll.
   /// Embedders that already supply their own header pass `false`.
@@ -90,9 +89,11 @@ class _DiscoveryContent extends StatefulWidget {
 const double _kStackHPad = 18.0;
 const double _kStackTPad = 16.0;
 const double _kPeekHeight = 20.0;
-const double _kBodyHPad = QeranSpacing.s20;
-const double _kNavActionGap = 28.0;
 const double _kActionBarReserve = 120.0;
+
+/// Height reserved at the bottom of the card's internal scroll so the last
+/// data chips can scroll clear of the pinned frosted action cluster.
+const double _kActionZoneClearance = 128.0;
 
 /// True when [state] renders a full-screen replacement that owns the
 /// whole feed area — the daily-view limit screen, the load-failure
@@ -217,8 +218,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
             case LikeFailureKind.userUnavailable:
               AppSnackBar.show(
                 context,
-                message:
-                    LocaleKeys.discovery_like_user_unavailable.t(context),
+                message: LocaleKeys.discovery_like_user_unavailable.t(context),
                 type: SnackBarType.info,
               );
             case LikeFailureKind.underReview:
@@ -281,10 +281,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                   ),
                 ),
               if (!_isFullScreenReplacement(state))
-                _FloatingActionBar(
-                  state: state,
-                  onLikeBurst: _spawnLikeBurst,
-                ),
+                _FloatingActionBar(state: state, onLikeBurst: _spawnLikeBurst),
             ],
           );
         },
@@ -383,10 +380,7 @@ class _ScrollableProfile extends StatelessWidget {
         }
         return const _ScrollableCenter(child: DiscoveryEmptyView());
       }
-      return _ProfilePage(
-        loaded: s,
-        hasOverlayControls: hasOverlayControls,
-      );
+      return _ProfilePage(loaded: s, hasOverlayControls: hasOverlayControls);
     }
     if (s is DiscoveryDailyLimit) {
       return DiscoveryDailyLimitView(resetAt: s.resetAt);
@@ -403,10 +397,7 @@ class _ScrollableProfile extends StatelessWidget {
 class _ProfilePage extends StatefulWidget {
   final DiscoveryLoaded loaded;
   final bool hasOverlayControls;
-  const _ProfilePage({
-    required this.loaded,
-    required this.hasOverlayControls,
-  });
+  const _ProfilePage({required this.loaded, required this.hasOverlayControls});
 
   @override
   State<_ProfilePage> createState() => _ProfilePageState();
@@ -424,7 +415,8 @@ class _ProfilePageState extends State<_ProfilePage> {
         final nextProfile = widget.loaded.next;
 
         final subState = context.watch<CurrentSubscriptionCubit>().state;
-        final hasActiveSub = subState is CurrentSubscriptionLoaded &&
+        final hasActiveSub =
+            subState is CurrentSubscriptionLoaded &&
             subState.subscription.isCurrentlyActive;
         final showBanner = !hasActiveSub && !_bannerDismissed;
 
@@ -463,7 +455,7 @@ class _ProfilePageState extends State<_ProfilePage> {
                         child: DiscoveryUnifiedCard(
                           profile: profile,
                           onTapDetails: () => _openDetails(context, profile),
-                          bottomContentInset: QeranSpacing.s20,
+                          bottomContentInset: _kActionZoneClearance,
                         ),
                       ),
                     ],
@@ -494,10 +486,7 @@ class _FloatingActionBar extends StatefulWidget {
   final DiscoveryState state;
   final void Function(Offset origin) onLikeBurst;
 
-  const _FloatingActionBar({
-    required this.state,
-    required this.onLikeBurst,
-  });
+  const _FloatingActionBar({required this.state, required this.onLikeBurst});
 
   @override
   State<_FloatingActionBar> createState() => _FloatingActionBarState();
@@ -543,19 +532,19 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     unawaited(_runLikeFlow(controller));
   }
 
-  Future<void> _runLikeFlow(
-    DiscoveryDeckAnimationController controller,
-  ) async {
+  Future<void> _runLikeFlow(DiscoveryDeckAnimationController controller) async {
     final cubit = context.read<DiscoveryCubit>();
     final outcomeNotifier = Completer<Either<Failure, LikeOutcome>>();
     final advanceGate = Completer<void>();
     // Fire API at tap time. The cubit will await the gate before
     // emitting; it also fires outcomeNotifier the moment the server
     // responds (well before the gate, typically).
-    unawaited(cubit.like(
-      outcomeNotifier: outcomeNotifier,
-      advanceGate: advanceGate.future,
-    ));
+    unawaited(
+      cubit.like(
+        outcomeNotifier: outcomeNotifier,
+        advanceGate: advanceGate.future,
+      ),
+    );
     final heartTimer = Future<void>.delayed(_likeBurstWait);
     try {
       // Wait for BOTH the heart (1050 ms floor) AND the API outcome.
@@ -611,8 +600,7 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     final cubit = context.read<DiscoveryCubit>();
     final state = widget.state;
     final loaded = state is DiscoveryLoaded ? state : null;
-    final hasActive =
-        loaded != null && !loaded.isEmpty && !loaded.isExhausted;
+    final hasActive = loaded != null && !loaded.isEmpty && !loaded.isExhausted;
     final hasUndoTarget = loaded != null && loaded.currentIndex > 0;
     final animController = DeckAnimationScope.of(context);
     final bottomInset = MediaQuery.of(context).padding.bottom;
@@ -624,32 +612,32 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     // visually enabled during the 1050 ms wait — rapid taps simply
     // no-op without disabling the press feedback.
     return Positioned(
-      left: _kBodyHPad,
-      right: _kBodyHPad,
-      bottom: bottomInset + _kNavActionGap,
-      child: DiscoveryActionBar(
-        onPass: hasActive
-            ? () {
-                if (animController.isAnimating) return;
-                unawaited(animController.triggerPass());
-              }
-            : null,
-        onUndo: hasUndoTarget
-            ? () {
-                if (animController.isAnimating) return;
-                unawaited(
-                  animController.triggerUndo(onUndoCall: cubit.undo),
-                );
-              }
-            : null,
-        onLike: hasActive ? () => _scheduleLike(animController) : null,
-        onLikeBurst: hasActive
-            ? (origin) {
-                if (animController.isAnimating) return;
-                if (_likePending) return;
-                widget.onLikeBurst(origin);
-              }
-            : null,
+      left: _kStackHPad,
+      right: _kStackHPad,
+      bottom: bottomInset + _kActionBarReserve,
+      child: DiscoveryFrostedActionZone(
+        child: DiscoveryActionBar(
+          onPass: hasActive
+              ? () {
+                  if (animController.isAnimating) return;
+                  unawaited(animController.triggerPass());
+                }
+              : null,
+          onUndo: hasUndoTarget
+              ? () {
+                  if (animController.isAnimating) return;
+                  unawaited(animController.triggerUndo(onUndoCall: cubit.undo));
+                }
+              : null,
+          onLike: hasActive ? () => _scheduleLike(animController) : null,
+          onLikeBurst: hasActive
+              ? (origin) {
+                  if (animController.isAnimating) return;
+                  if (_likePending) return;
+                  widget.onLikeBurst(origin);
+                }
+              : null,
+        ),
       ),
     );
   }
@@ -681,7 +669,10 @@ class _ScrollableCenter extends StatelessWidget {
 /// Pushes the reusable Full Profile Details screen with a Discovery
 /// seed so the layout paints instantly while the by-id endpoint
 /// hydrates in the background.
-Future<void> _openDetails(BuildContext context, DiscoveryProfile profile) async {
+Future<void> _openDetails(
+  BuildContext context,
+  DiscoveryProfile profile,
+) async {
   final result = await NavigationManager.navigateTo(
     context,
     RouteNames.fullProfileDetails,
@@ -727,10 +718,7 @@ class _OverlayControls extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _OverlayCircleIcon(
-          icon: Icons.tune_rounded,
-          onPressed: onFilterTap,
-        ),
+        _OverlayCircleIcon(icon: Icons.tune_rounded, onPressed: onFilterTap),
         const Spacer(),
         BlocBuilder<NotificationBadgeCubit, bool>(
           builder: (context, hasUnread) => _OverlayCircleIcon(
@@ -766,20 +754,14 @@ class _OverlayCircleIcon extends StatelessWidget {
       ),
       child: Material(
         color: QeranColors.paper,
-        shape: const CircleBorder(
-          side: BorderSide(color: QeranColors.wine08),
-        ),
+        shape: const CircleBorder(side: BorderSide(color: QeranColors.wine08)),
         child: InkWell(
           onTap: onPressed,
           customBorder: const CircleBorder(),
           child: SizedBox(
             width: 44,
             height: 44,
-            child: Icon(
-              icon,
-              size: 22,
-              color: QeranColors.wine,
-            ),
+            child: Icon(icon, size: 22, color: QeranColors.wine),
           ),
         ),
       ),
@@ -924,7 +906,10 @@ class _UpgradeFeedBanner extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           GestureDetector(
-            onTap: () => NavigationManager.navigateTo(context, RouteNames.packagesScreen),
+            onTap: () => NavigationManager.navigateTo(
+              context,
+              RouteNames.packagesScreen,
+            ),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -955,4 +940,3 @@ class _UpgradeFeedBanner extends StatelessWidget {
     );
   }
 }
-

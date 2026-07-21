@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
-/// Calm grey-X shown over the card during left drags + Pass exits.
+/// Danger-toned X shown over the card during left drags + Pass exits.
 ///
-/// Mirror of [DiscoveryLikeOverlay] but with a muted neutral color so
-/// the two directions read distinctly without either feeling alarming.
-/// Same bell-curve scale + opacity mapping; see that widget's doc for
-/// the curve shape.
+/// Mirror of [DiscoveryLikeOverlay]; the wine Like heart and the danger
+/// Pass X read as distinct directions (never a neutral grey). Same
+/// bell-curve scale + opacity mapping; see that widget's doc for the
+/// curve shape.
 class DiscoveryPassOverlay extends StatelessWidget {
   final double progress;
 
@@ -27,7 +27,7 @@ class DiscoveryPassOverlay extends StatelessWidget {
             child: const Icon(
               Icons.close_rounded,
               size: 120,
-              color: QeranColors.inkMuted,
+              color: QeranColors.danger,
             ),
           ),
         ),

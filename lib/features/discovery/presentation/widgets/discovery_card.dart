@@ -134,26 +134,14 @@ class _NameAgeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: Text(
-            '$name $age',
-            style: QeranTypography.headline.copyWith(
-              color: QeranColors.paper,
-              fontWeight: FontWeight.w700,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: QeranSpacing.s6),
-        const Icon(
-          Icons.verified_rounded,
-          size: 20,
-          color: QeranColors.gold,
-        ),
-      ],
+    return Text(
+      '$name $age',
+      style: QeranTypography.headline.copyWith(
+        color: QeranColors.paper,
+        fontWeight: FontWeight.w700,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

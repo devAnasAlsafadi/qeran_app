@@ -37,12 +37,15 @@ class QuestionCheckboxWidget extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s12),
             child: Row(
               children: [
-                // Checkbox
+                // SQUARE checkbox — signals multiple choices allowed (distinct
+                // from the circular radio in QuestionSelectWidget). `controlR`
+                // (14) on a 24px box clamps to a full circle; `xsR` (6) is the
+                // sanctioned checkbox radius and reads as a rounded square.
                 Container(
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    borderRadius: QeranRadii.controlR,
+                    borderRadius: QeranRadii.xsR,
                     border: Border.all(
                       color: isSelected
                           ? QeranColors.wine

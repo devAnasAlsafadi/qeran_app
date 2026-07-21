@@ -390,17 +390,32 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       body: {'idToken': idToken, 'displayName': displayName},
     );
 
-    final apiResponse = ApiResponse<UserModel>.fromJson(
-      response,
-      (json) => UserModel.fromJson(json),
-    );
-
-    if (apiResponse.data != null) {
-      await _sharedPref.save(StorageKeys.pendingUserId, apiResponse.data!.id);
-      await _persistAuthSession(apiResponse.data!);
+    // Parse DEFENSIVELY (mirrors register-new): a brand-new social user can
+    // come back as a partial object — no token yet, a numeric id, or missing
+    // flags. Strict UserModel parsing plus the repository's data-null guard
+    // would turn that into a false failure, so build a guaranteed-non-null user
+    // from whatever the server returns and let the routing layer send a new
+    // user into onboarding (add phone → questionnaire). A genuine envelope
+    // failure (status != 1) still throws.
+    final apiResponse = ApiResponse<dynamic>.fromJson(response, (json) => json);
+    if (!apiResponse.isSuccess) {
+      throw ServerException(
+        message: apiResponse.message ?? LocaleKeys.errors_auth_failed_google,
+      );
     }
+    final data = apiResponse.data;
+    final user = data is Map<String, dynamic>
+        ? UserModel.fromJson(data)
+        : UserModel(id: '', email: '', name: displayName);
 
-    return SuccessResponse.fromApiResponse(apiResponse);
+    await _sharedPref.save(StorageKeys.pendingUserId, user.id);
+    await _persistAuthSession(user);
+
+    return SuccessResponse(
+      status: apiResponse.status,
+      message: apiResponse.message,
+      data: user,
+    );
   }
 
   /// Persists the authenticated session locally so SplashCubit can route

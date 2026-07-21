@@ -137,7 +137,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _onSocialLoginStateChanged(BuildContext context, LoginState state) {
     if (state is LoginSuccess) {
-      NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.homeScreen);
+      // Mirror the login screen's onboarding gates so a social sign-in
+      // from the register screen doesn't skip phone-verify / questions.
+      if (state.user.role?.toLowerCase() == 'moderator') {
+        NavigationManager.pushNamedAndRemoveUntil(
+          context,
+          RouteNames.matchmakerHome,
+        );
+        return;
+      }
+      if (state.user.isPhoneVerified != true) {
+        NavigationManager.navigateTo(context, RouteNames.whatsappInput);
+      } else if (state.user.hasAnsweredQuestions != true) {
+        NavigationManager.pushNamedAndRemoveUntil(
+          context,
+          RouteNames.genderSelectionScreen,
+        );
+      } else {
+        NavigationManager.pushNamedAndRemoveUntil(
+          context,
+          RouteNames.homeScreen,
+        );
+      }
     } else if (state is LoginFailure) {
       AppSnackBar.show(
         context,

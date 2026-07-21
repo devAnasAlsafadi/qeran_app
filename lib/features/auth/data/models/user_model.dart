@@ -24,7 +24,10 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
-    id: (json['userId'] ?? json['id'] ?? '') as String,
+    // Tolerate a numeric id: a freshly-created (social) user row can come back
+    // with `userId` as a JSON number, which a hard `as String` cast would crash
+    // on. `.toString()` handles String / int / anything, defaulting to "".
+    id: (json['userId'] ?? json['id'] ?? '').toString(),
     name: (json['name'] ?? '') as String,
     email: (json['email'] ?? '') as String,
     phoneNumber: json['phoneNumber'] as String?,

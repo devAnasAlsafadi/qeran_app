@@ -89,6 +89,11 @@ class _Content extends StatelessWidget {
 class _Footer extends StatelessWidget {
   const _Footer();
 
+  void _apply(BuildContext context) {
+    final payload = context.read<DiscoveryFilterCubit>().buildPayload();
+    Navigator.of(context).pop(payload);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DiscoveryFilterCubit, DiscoveryFilterState>(
@@ -102,17 +107,27 @@ class _Footer extends StatelessWidget {
             QeranSpacing.s20,
             QeranSpacing.s16,
           ),
-          child: QeranButton(
-            label: LocaleKeys.discovery_filter_save_cta.t(context),
-            variant: QeranButtonVariant.primaryWine,
-            onPressed: enabled
-                ? () {
-                    final payload = context
-                        .read<DiscoveryFilterCubit>()
-                        .buildPayload();
-                    Navigator.of(context).pop(payload);
-                  }
-                : null,
+          child: Row(
+            children: [
+              Expanded(
+                child: QeranButton(
+                  label: LocaleKeys.discovery_filter_clear_all.t(context),
+                  variant: QeranButtonVariant.ghost,
+                  // Clears facets + ranges in place; Apply commits the payload.
+                  onPressed: enabled
+                      ? () => context.read<DiscoveryFilterCubit>().clearAll()
+                      : null,
+                ),
+              ),
+              QeranSpacing.hs12,
+              Expanded(
+                child: QeranButton(
+                  label: LocaleKeys.discovery_filter_save_cta.t(context),
+                  variant: QeranButtonVariant.primaryWine,
+                  onPressed: enabled ? () => _apply(context) : null,
+                ),
+              ),
+            ],
           ),
         );
       },

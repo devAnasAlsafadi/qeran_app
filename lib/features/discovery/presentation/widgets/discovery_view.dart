@@ -796,8 +796,9 @@ class _BellUnreadDot extends StatelessWidget {
   }
 }
 
-/// Background layer showing the next profile's image behind the active
-/// card. At rest: scale 0.94 (topCenter aligned), opacity 0.60, offset
+/// Background layer showing the next profile's card silhouette (photo over
+/// a paper panel, mirroring the front card) behind the active card. At rest:
+/// scale 0.94 (topCenter aligned), opacity 0.60, offset
 /// 8 dp down. As [DiscoveryDeckAnimationController.deckProgress] rises
 /// toward 1.0 (drag / exit), the peek card promotes to full size, full
 /// opacity, and zero vertical offset — creating the illusion of a real
@@ -838,12 +839,26 @@ class _PeekCardLayer extends StatelessWidget {
               ),
             );
           },
+          // Mirror the front card's silhouette — photo (51 %) over a paper
+          // panel (49 %) — so the promoting peek reads as the card that will
+          // replace the front, not a full-bleed photo.
           child: ClipRRect(
             borderRadius: QeranRadii.panelR,
-            child: DiscoveryImagePanel(
-              profile: profile,
-              onTap: null,
-              showOverlayActions: false,
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 51,
+                  child: DiscoveryImagePanel(
+                    profile: profile,
+                    onTap: null,
+                    showOverlayActions: false,
+                  ),
+                ),
+                const Expanded(
+                  flex: 49,
+                  child: ColoredBox(color: QeranColors.paper),
+                ),
+              ],
             ),
           ),
         ),

@@ -9,6 +9,7 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
+import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
@@ -58,6 +59,7 @@ class _LikesView extends StatelessWidget {
             return Column(
               children: [
                 _Header(),
+                const ProfileGateBanner(),
                 LikesSegmentedTabs(
                   active: state.activeTab,
                   // Tap path: just write cubit state. `_SwipeableTabBody`

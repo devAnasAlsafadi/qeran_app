@@ -6,7 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../../domain/entities/like_outcome.dart';
 import '../../domain/usecases/fetch_discovery_page_usecase.dart';
@@ -174,6 +176,24 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     if (current is! DiscoveryLoaded) return;
     final profile = current.current;
     if (profile == null) return;
+    // Approval pre-gate: an unapproved profile can browse + skip but not like.
+    // Short-circuit without a server round-trip — the deck keeps the card
+    // (LikeUnderReview → no eject) and shows the "under review" toast. Covers
+    // the swipe path; the like button is also visually disabled in the UI.
+    if (sl<ProfileGateCubit>().isGated) {
+      final gated = Right<Failure, LikeOutcome>(
+        const LikeUnderReview(serverMessage: ''),
+      );
+      if (outcomeNotifier != null && !outcomeNotifier.isCompleted) {
+        outcomeNotifier.complete(gated);
+      }
+      if (advanceGate != null) {
+        await advanceGate;
+        if (isClosed) return;
+      }
+      _handleLikeOutcome(const LikeUnderReview(serverMessage: ''));
+      return;
+    }
     _mutationInFlight = true;
     try {
       final result = await _likeProfile(profile.id);

@@ -11,6 +11,7 @@ import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import '../../domain/entities/subscription_plan.dart';
 import '../../domain/entities/subscription_pricing.dart';
 import '../../domain/entities/validate_code_response.dart';
@@ -82,6 +83,14 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
     SubscriptionPlan plan,
     SubscriptionPricing pricing,
   ) {
+    // Approval BEFORE subscription — a not-yet-approved profile can't subscribe
+    // (free OR paid); the backend also rejects /subscribe with
+    // PROFILE_NOT_APPROVED. The pre-gate banner explains why.
+    if (context.read<ProfileGateCubit>().isGated) {
+      _toast(context, LocaleKeys.profile_status_pending_review,
+          SnackBarType.notice);
+      return;
+    }
     _purchasedPlan = plan;
     _purchasedPricing = pricing;
     if (plan.isFree || pricing.price == 0) {

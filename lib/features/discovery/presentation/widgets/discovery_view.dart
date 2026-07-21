@@ -22,6 +22,7 @@ import 'package:qeran/features/notifications/presentation/routing/open_notificat
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
@@ -841,6 +842,9 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     final hasUndoTarget = loaded != null && loaded.currentIndex > 0;
     final animController = DeckAnimationScope.of(context);
     final bottomInset = MediaQuery.of(context).padding.bottom;
+    // Approval pre-gate: an unapproved profile can browse + pass/undo but not
+    // like. Disable the like affordances (the cubit guards the swipe path too).
+    final approvalGated = context.watch<ProfileGateCubit>().isGated;
 
     // Enable state derives from the cubit only (see the previous
     // _ActionBarArea note): gating on the animator's busy flag caused
@@ -867,8 +871,10 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
                 );
               }
             : null,
-        onLike: hasActive ? () => _scheduleLike(animController) : null,
-        onLikeBurst: hasActive
+        onLike: (hasActive && !approvalGated)
+            ? () => _scheduleLike(animController)
+            : null,
+        onLikeBurst: (hasActive && !approvalGated)
             ? (origin) {
                 if (animController.isAnimating) return;
                 if (_likePending) return;

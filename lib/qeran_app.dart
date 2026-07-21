@@ -17,6 +17,7 @@ import 'core/services/language_service.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'features/devices/application/device_bootstrap_service.dart';
+import 'features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'features/splash/presentation/blocs/splash_cubit.dart';
 import 'features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 
@@ -44,6 +45,7 @@ class QeranApp extends StatelessWidget {
         BlocProvider<CurrentSubscriptionCubit>.value(
           value: sl<CurrentSubscriptionCubit>(),
         ),
+        BlocProvider<ProfileGateCubit>.value(value: sl<ProfileGateCubit>()),
         BlocProvider<ConnectivityCubit>(
           create: (_) => ConnectivityCubit(service: sl<ConnectivityService>()),
         ),

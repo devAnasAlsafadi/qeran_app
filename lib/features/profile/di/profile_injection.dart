@@ -11,6 +11,7 @@ import '../domain/usecases/get_my_profile_usecase.dart';
 import '../domain/usecases/get_profile_by_id_usecase.dart';
 import '../presentation/blocs/delete_account/delete_account_cubit.dart';
 import '../presentation/blocs/my_profile/my_profile_cubit.dart';
+import '../presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import '../presentation/blocs/profile_details/profile_details_cubit.dart';
 import '../presentation/blocs/share_with_matchmaker/share_with_matchmaker_cubit.dart';
 
@@ -27,6 +28,9 @@ void initProfileDependencies() {
 
   //! UseCases
   sl.registerLazySingleton(() => GetMyProfileUseCase(sl()));
+  // App-scoped approval gate (app-lifetime state → lazy singleton, not a
+  // factory; provided at the app root, loaded when the user shell mounts).
+  sl.registerLazySingleton(() => ProfileGateCubit(getMyProfile: sl()));
   sl.registerLazySingleton(() => GetProfileByIdUseCase(sl()));
   sl.registerLazySingleton(() => GetBasicUserUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));

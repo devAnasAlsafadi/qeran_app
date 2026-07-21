@@ -2,7 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 
@@ -193,6 +195,14 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
 
   Future<void> acceptLike(int likeRequestId) async {
     if (state.isActionInFlight(likeRequestId)) return;
+    // Approval pre-gate — an unapproved user can't accept likes yet.
+    if (sl<ProfileGateCubit>().isGated) {
+      emit(state.copyWith(
+        actionEvent: LikesActionEvent.acceptUnderReview,
+        actionEventVersion: state.actionEventVersion + 1,
+      ));
+      return;
+    }
     emit(state.copyWith(
       acceptInFlightIds: {...state.acceptInFlightIds, likeRequestId},
     ));
@@ -297,6 +307,14 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
 
   Future<void> requestPhotoExchange(int likeRequestId) async {
     if (state.isPhotoExchangeRequesting(likeRequestId)) return;
+    // Approval pre-gate — an unapproved user can't request photo exchange yet.
+    if (sl<ProfileGateCubit>().isGated) {
+      emit(state.copyWith(
+        actionEvent: LikesActionEvent.photoExchangeRequestUnderReview,
+        actionEventVersion: state.actionEventVersion + 1,
+      ));
+      return;
+    }
     emit(state.copyWith(
       photoExchangeRequestInFlightLikeIds: {
         ...state.photoExchangeRequestInFlightLikeIds,

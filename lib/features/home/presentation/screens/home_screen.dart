@@ -12,6 +12,7 @@ import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -50,6 +51,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Load the approval-gate status once for the pre-gate (fail-open — a failed
+    // fetch never blocks actions; the backend PROFILE_NOT_APPROVED stays the
+    // real gate). App-scoped singleton, so this survives tab switches.
+    unawaited(sl<ProfileGateCubit>().ensureLoaded());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {

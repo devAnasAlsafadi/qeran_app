@@ -14,6 +14,7 @@ import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/plans/subscription_plans_cubit.dart';
@@ -146,6 +147,7 @@ class _PackagesViewState extends State<_PackagesView>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const ProfileGateBanner(),
             const PaywallHeroWidget(),
             QeranSpacing.vs20,
             PlanSelectionWidget(

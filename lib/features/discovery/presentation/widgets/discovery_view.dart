@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
@@ -53,11 +52,7 @@ import 'discovery_unified_card.dart';
 /// / pass / undo flow; the card's inner vertical scroll competes in the
 /// gesture arena so the two axes never fight.
 class DiscoveryView extends StatelessWidget {
-  /// When true, renders [DiscoveryTopBar] pinned above the scroll.
-  /// Embedders that already supply their own header pass `false`.
-  final bool showTopBar;
-
-  const DiscoveryView({super.key, this.showTopBar = true});
+  const DiscoveryView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -72,14 +67,13 @@ class DiscoveryView extends StatelessWidget {
           value: sl<NotificationBadgeCubit>(),
         ),
       ],
-      child: _DiscoveryContent(showTopBar: showTopBar),
+      child: const _DiscoveryContent(),
     );
   }
 }
 
 class _DiscoveryContent extends StatefulWidget {
-  final bool showTopBar;
-  const _DiscoveryContent({required this.showTopBar});
+  const _DiscoveryContent();
 
   @override
   State<_DiscoveryContent> createState() => _DiscoveryContentState();
@@ -264,22 +258,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                 child: ColoredBox(color: QeranColors.paper),
               ),
               Positioned.fill(child: _buildBody(context, state)),
-              if (!widget.showTopBar)
-                Positioned(
-                  top: 0,
-                  left: QeranSpacing.s16,
-                  right: QeranSpacing.s16,
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: QeranSpacing.s8),
-                      child: _OverlayControls(
-                        onFilterTap: () => _openFilters(context),
-                        onNotificationsTap: () => openNotifications(context),
-                      ),
-                    ),
-                  ),
-                ),
               if (!_isFullScreenReplacement(state))
                 _FloatingActionBar(state: state, onLikeBurst: _spawnLikeBurst),
             ],
@@ -290,53 +268,37 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   }
 
   Widget _buildBody(BuildContext context, DiscoveryState state) {
-    if (widget.showTopBar) {
-      return SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                QeranSpacing.s16,
-                QeranSpacing.s8,
-                QeranSpacing.s16,
-                0,
-              ),
-              child: DiscoveryTopBar(
-                onFilterTap: () => _openFilters(context),
-                onNotificationsTap: () => openNotifications(context),
-              ),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s16,
+              QeranSpacing.s8,
+              QeranSpacing.s16,
+              0,
             ),
-            const SizedBox(height: QeranSpacing.s12),
-            Expanded(
-              child: _ScrollableProfile(
-                state: state,
-                hasOverlayControls: false,
-              ),
+            child: DiscoveryTopBar(
+              onFilterTap: () => _openFilters(context),
+              onNotificationsTap: () => openNotifications(context),
             ),
-          ],
-        ),
-      );
-    }
-    return _ScrollableProfile(state: state, hasOverlayControls: true);
+          ),
+          const SizedBox(height: QeranSpacing.s12),
+          Expanded(child: _ScrollableProfile(state: state)),
+        ],
+      ),
+    );
   }
 }
 
-/// The single vertical scroll that owns the entire Discovery profile —
-/// image card at the top, full continuous body underneath. Loading /
-/// failure / empty states reuse the existing always-scrollable
-/// containers so `RefreshIndicator` keeps working.
-///
-/// [hasOverlayControls] is true when the floating filter / notifications
-/// buttons sit over the scroll (home shell). The image card then needs
-/// extra top padding to clear them.
+/// Owns the pull-to-refresh + the state switch below the top bar. Loading /
+/// failure / empty states use always-scrollable containers so
+/// `RefreshIndicator` keeps working; the loaded state renders [_ProfilePage]
+/// (a fixed card whose data region scrolls internally).
 class _ScrollableProfile extends StatelessWidget {
   final DiscoveryState state;
-  final bool hasOverlayControls;
-  const _ScrollableProfile({
-    required this.state,
-    required this.hasOverlayControls,
-  });
+  const _ScrollableProfile({required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -380,7 +342,7 @@ class _ScrollableProfile extends StatelessWidget {
         }
         return const _ScrollableCenter(child: DiscoveryEmptyView());
       }
-      return _ProfilePage(loaded: s, hasOverlayControls: hasOverlayControls);
+      return _ProfilePage(loaded: s);
     }
     if (s is DiscoveryDailyLimit) {
       return DiscoveryDailyLimitView(resetAt: s.resetAt);
@@ -396,8 +358,7 @@ class _ScrollableProfile extends StatelessWidget {
 /// per-session banner dismissal.
 class _ProfilePage extends StatefulWidget {
   final DiscoveryLoaded loaded;
-  final bool hasOverlayControls;
-  const _ProfilePage({required this.loaded, required this.hasOverlayControls});
+  const _ProfilePage({required this.loaded});
 
   @override
   State<_ProfilePage> createState() => _ProfilePageState();
@@ -703,97 +664,6 @@ Future<void> _openFilters(BuildContext context) async {
   if (result == null) return;
   if (!context.mounted) return;
   await cubit.applyFilters(result.isEmpty ? null : result);
-}
-
-class _OverlayControls extends StatelessWidget {
-  final VoidCallback onFilterTap;
-  final VoidCallback onNotificationsTap;
-
-  const _OverlayControls({
-    required this.onFilterTap,
-    required this.onNotificationsTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _OverlayCircleIcon(icon: Icons.tune_rounded, onPressed: onFilterTap),
-        const Spacer(),
-        BlocBuilder<NotificationBadgeCubit, bool>(
-          builder: (context, hasUnread) => _OverlayCircleIcon(
-            icon: Icons.notifications_none_rounded,
-            onPressed: onNotificationsTap,
-            badge: hasUnread ? const _BellUnreadDot() : null,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _OverlayCircleIcon extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  /// Small unread marker drawn at the top-trailing corner (directional).
-  final Widget? badge;
-
-  const _OverlayCircleIcon({
-    required this.icon,
-    required this.onPressed,
-    this.badge,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final button = DecoratedBox(
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: QeranShadows.e2,
-      ),
-      child: Material(
-        color: QeranColors.paper,
-        shape: const CircleBorder(side: BorderSide(color: QeranColors.wine08)),
-        child: InkWell(
-          onTap: onPressed,
-          customBorder: const CircleBorder(),
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Icon(icon, size: 22, color: QeranColors.wine),
-          ),
-        ),
-      ),
-    );
-    if (badge == null) return button;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        button,
-        PositionedDirectional(top: 1, end: 1, child: badge!),
-      ],
-    );
-  }
-}
-
-/// Subtle on-brand unread dot for the discovery bell — wine with a paper ring
-/// so it reads cleanly on the white bell.
-class _BellUnreadDot extends StatelessWidget {
-  const _BellUnreadDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 9,
-      height: 9,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: QeranColors.wine,
-        border: Border.all(color: QeranColors.paper, width: 1.5),
-      ),
-    );
-  }
 }
 
 /// Background layer showing the next profile's card silhouette (photo over

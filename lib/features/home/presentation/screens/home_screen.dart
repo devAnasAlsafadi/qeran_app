@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         body: IndexedStack(
           index: _currentTab,
           children: [
-            _lazyTab(_discoveryTabIndex, const DiscoveryView(showTopBar: true)),
+            _lazyTab(_discoveryTabIndex, const DiscoveryView()),
             _lazyTab(_likesTabIndex, const LikesScreen()),
             _lazyTab(_messagesTabIndex, const ChatEntryScreen()),
             _lazyTab(_profileTabIndex, const ProfileScreen()),

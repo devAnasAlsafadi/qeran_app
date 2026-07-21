@@ -109,7 +109,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           name: _controller.nameController.text.trim(),
           email: _controller.emailController.text.trim(),
           password: _controller.passwordController.text,
-          referralCode: _controller.referralCodeController.text.trim(),
+          // Referral code removed from signup (Issue 4). Plumbing kept but sends
+          // null for now; the code is entered at subscribe time. Revisit once
+          // Tariq confirms whether signup attribution must be preserved.
+          referralCode: null,
         ),
       );
     }

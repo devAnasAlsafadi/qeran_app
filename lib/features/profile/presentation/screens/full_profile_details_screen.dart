@@ -16,6 +16,7 @@ import '../blocs/profile_details/profile_details_cubit.dart';
 import '../blocs/profile_details/profile_details_state.dart';
 import '../full_profile_details_args.dart';
 import '../widgets/full_profile_body.dart';
+import '../widgets/share_with_matchmaker_button.dart';
 import '../widgets/states/profile_details_error_view.dart';
 import '../widgets/states/profile_details_not_available_view.dart';
 import '../widgets/states/profile_details_skeleton.dart';
@@ -127,7 +128,55 @@ class _Body extends StatelessWidget {
           end: QeranSpacing.s8,
           child: SafetyMenuButton(targetUserId: args.userId),
         ),
+        // Pinned share CTA — visible from first paint (no scrolling to the
+        // end); content scrolls behind a soft paper scrim so it stays
+        // readable. Same entry gate + share flow as before.
+        if (showShareForEntry(args.entry) && _hasProfile(state))
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: 0,
+            child: _PinnedShareCta(userId: args.userId),
+          ),
       ],
+    );
+  }
+}
+
+/// True while a profile (or its seed) is on screen — the pinned share CTA is
+/// meaningless during the skeleton / error / not-found states.
+bool _hasProfile(ProfileDetailsState state) => switch (state) {
+  ProfileDetailsSeeded() => true,
+  ProfileDetailsLoading(seed: final s) => s != null,
+  ProfileDetailsLoaded() => true,
+  ProfileDetailsFailure(seed: final s) => s != null,
+  _ => false,
+};
+
+/// Bottom-pinned share CTA with a soft paper scrim so scrolling content behind
+/// it fades to the paper surface and stays legible.
+class _PinnedShareCta extends StatelessWidget {
+  final String userId;
+  const _PinnedShareCta({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            QeranColors.paper.withValues(alpha: 0.0),
+            QeranColors.paper,
+          ],
+          stops: const [0.0, 0.55],
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: ShareWithMatchmakerButton(userId: userId),
+      ),
     );
   }
 }

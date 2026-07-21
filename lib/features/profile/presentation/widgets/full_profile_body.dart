@@ -14,7 +14,26 @@ import 'full_profile_image_hero.dart';
 import 'placement/about_me_section.dart';
 import 'placement/inside_chips_section.dart';
 import 'placement/placement_renderer.dart';
-import 'share_with_matchmaker_button.dart';
+
+/// Whether the pinned share-with-matchmaker CTA applies for this entry source
+/// (sharing another user with your matchmaker only makes sense from the
+/// browsing surfaces). Shared with the screen that pins the CTA.
+bool showShareForEntry(ProfileEntrySource entry) {
+  switch (entry) {
+    case ProfileEntrySource.discovery:
+    case ProfileEntrySource.likes:
+    case ProfileEntrySource.matches:
+      return true;
+    case ProfileEntrySource.chat:
+    case ProfileEntrySource.settings:
+    case ProfileEntrySource.mine:
+      return false;
+  }
+}
+
+/// Bottom clearance the scroll reserves (on top of the bottom safe-area inset)
+/// so its last section can scroll clear of the pinned share CTA.
+const double _kShareCtaClearance = 80.0;
 
 /// Composes the full profile read surface: image hero + the نبذة عني main
 /// card (attached to the image) + the remaining sections as separate
@@ -36,18 +55,7 @@ class FullProfileBody extends StatelessWidget {
   /// the identity's photo-into-content layered look.
   static const double _sheetOverlap = QeranSpacing.s24;
 
-  bool get _showShare {
-    switch (entry) {
-      case ProfileEntrySource.discovery:
-      case ProfileEntrySource.likes:
-      case ProfileEntrySource.matches:
-        return true;
-      case ProfileEntrySource.chat:
-      case ProfileEntrySource.settings:
-      case ProfileEntrySource.mine:
-        return false;
-    }
-  }
+  bool get _showShare => showShareForEntry(entry);
 
   Placement? _find(PlacementCode code) {
     for (final p in profile.placements) {
@@ -100,8 +108,13 @@ class FullProfileBody extends StatelessWidget {
               includeNarrative: false,
             ),
           ),
-          if (_showShare) ShareWithMatchmakerButton(userId: profile.id),
-          QeranSpacing.vs32,
+          // Trailing clearance so the last section scrolls clear of the
+          // pinned share CTA (pinned by the screen, not part of this scroll).
+          SizedBox(
+            height: _showShare
+                ? MediaQuery.of(context).padding.bottom + _kShareCtaClearance
+                : QeranSpacing.s32,
+          ),
         ],
       ),
     );

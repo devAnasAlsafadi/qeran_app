@@ -1,6 +1,10 @@
 part of 'plan_selection_widget.dart';
 
-/// The free-tier card at the top of the packages list. Two states:
+/// The free-tier card at the top of the packages list. Renders the same
+/// backend-driven feature list as the paid cards ([PlanFeaturesWidget]:
+/// `featuresAr`/`featuresEn` bullets, falling back to the numeric quota
+/// checklist — likes / photo-exchanges / … — from `features{}`), plus two
+/// free-specific states:
 /// * [isActive] true  → the user already has an ACTIVE free subscription:
 ///   shows the "أنت هنا الآن" badge (no CTA).
 /// * [isActive] false → no subscription yet: shows an **Activate** CTA that
@@ -8,11 +12,15 @@ part of 'plan_selection_widget.dart';
 /// Private to the [PlanSelectionWidget] library.
 class _FreePlanCard extends StatelessWidget {
   const _FreePlanCard({
+    required this.plan,
     required this.isActive,
     required this.busy,
     required this.onActivate,
   });
 
+  /// The backend free plan (null when the payload carries none — the card then
+  /// degrades to header + CTA only, never fabricating features).
+  final SubscriptionPlan? plan;
   final bool isActive;
   final bool busy;
   final VoidCallback? onActivate;
@@ -60,6 +68,17 @@ class _FreePlanCard extends StatelessWidget {
               if (isActive) const _YouAreHereBadge(),
             ],
           ),
+          // Feature list — same backend-driven component (and layout) as the
+          // paid cards: bullets when the backend supplies them, otherwise the
+          // numeric quota checklist. Omitted only if the payload has no free
+          // plan (nothing to render — never fabricated).
+          if (plan != null) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(color: QeranColors.divider, height: 1),
+            ),
+            PlanFeaturesWidget(plan: plan!),
+          ],
           if (!isActive) ...[
             const SizedBox(height: 14),
             QeranButton(

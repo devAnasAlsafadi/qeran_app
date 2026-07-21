@@ -163,6 +163,7 @@ class _PackagesViewState extends State<_PackagesView>
               resolveStoreProduct: (pricing) =>
                   state.storeProductFor(pricing, isIOS: _isIOS),
               currentSub: currentSub,
+              freePlan: state.freePlan,
               freeBusy: freeBusy,
               onActivateFree: () => activateFree(context),
             ),

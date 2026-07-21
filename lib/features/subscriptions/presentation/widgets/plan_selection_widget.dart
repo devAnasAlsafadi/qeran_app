@@ -40,6 +40,10 @@ class PlanSelectionWidget extends StatelessWidget {
   final ValueChanged<int> onPricingSelected;
   final CurrentSubscription? currentSub;
 
+  /// The free-tier plan from the backend (null when the payload has none). Its
+  /// feature bullets / quotas render on the free card, matching the paid cards.
+  final SubscriptionPlan? freePlan;
+
   /// True while a free-tier activation call is in flight (drives the Free card
   /// CTA spinner).
   final bool freeBusy;
@@ -59,6 +63,7 @@ class PlanSelectionWidget extends StatelessWidget {
     required this.onPricingSelected,
     required this.resolveStoreProduct,
     this.currentSub,
+    this.freePlan,
     this.freeBusy = false,
     this.onActivateFree,
   });
@@ -88,6 +93,7 @@ class PlanSelectionWidget extends StatelessWidget {
         // "أنت هنا الآن" indicator once the free trial is actually active.
         if (!isPaidActive) ...[
           _FreePlanCard(
+            plan: freePlan,
             isActive: isFreeActive,
             busy: freeBusy,
             onActivate: onActivateFree,

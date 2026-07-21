@@ -8,10 +8,10 @@ class DiscoveryAboutMe extends StatelessWidget {
   final String header;
   final String text;
 
-  /// Max number of lines for the body text. Defaults to 3 so a typical
-  /// long bio truncates with ellipsis on the card; the details sheet
-  /// shows the full text.
-  final int maxLines;
+  /// Max number of lines for the body text. `null` shows the full text
+  /// (the main card scrolls internally); a small value (e.g. 2) truncates
+  /// with ellipsis for the peek preview.
+  final int? maxLines;
 
   const DiscoveryAboutMe({
     super.key,

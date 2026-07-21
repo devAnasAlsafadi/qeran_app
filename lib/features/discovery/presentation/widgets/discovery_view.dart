@@ -854,9 +854,19 @@ class _PeekCardLayer extends StatelessWidget {
                     showOverlayActions: false,
                   ),
                 ),
-                const Expanded(
+                Expanded(
                   flex: 49,
-                  child: ColoredBox(color: QeranColors.paper),
+                  child: ColoredBox(
+                    color: QeranColors.paper,
+                    // Truncated preview of the next profile so the promoting
+                    // peek reads as a real card. Non-scrolling; clipped by the
+                    // card's ClipRRect.
+                    child: SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(QeranSpacing.s20),
+                      child: DiscoveryInfoPanel(profile: profile, maxLines: 2),
+                    ),
+                  ),
                 ),
               ],
             ),

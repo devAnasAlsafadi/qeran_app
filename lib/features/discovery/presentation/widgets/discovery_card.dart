@@ -152,7 +152,12 @@ class _NameAgeRow extends StatelessWidget {
 class DiscoveryInfoPanel extends StatelessWidget {
   final DiscoveryProfile profile;
 
-  const DiscoveryInfoPanel({super.key, required this.profile});
+  /// Body maxLines forwarded to [DiscoveryAboutMe]. `null` (default) shows
+  /// the full about-me text (main card); the peek preview passes a small
+  /// value to truncate.
+  final int? maxLines;
+
+  const DiscoveryInfoPanel({super.key, required this.profile, this.maxLines});
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +172,7 @@ class DiscoveryInfoPanel extends StatelessWidget {
           DiscoveryAboutMe(
             header: aboutMe.name,
             text: _aboutMeText(aboutMe),
-            maxLines: 2,
+            maxLines: maxLines,
           ),
           // Increased breathing room between About Me text and the inside chips
           const SizedBox(height: QeranSpacing.s20),

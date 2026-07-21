@@ -307,20 +307,31 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
 
   Widget _buildBody(BuildContext context, DiscoveryState state) {
     if (widget.showTopBar) {
-      return Column(
-        children: [
-          DiscoveryTopBar(
-            onFilterTap: () => _openFilters(context),
-            onNotificationsTap: () => openNotifications(context),
-          ),
-          const SizedBox(height: QeranSpacing.s12),
-          Expanded(
-            child: _ScrollableProfile(
-              state: state,
-              hasOverlayControls: false,
+      return SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                QeranSpacing.s16,
+                QeranSpacing.s8,
+                QeranSpacing.s16,
+                0,
+              ),
+              child: DiscoveryTopBar(
+                onFilterTap: () => _openFilters(context),
+                onNotificationsTap: () => openNotifications(context),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: QeranSpacing.s12),
+            Expanded(
+              child: _ScrollableProfile(
+                state: state,
+                hasOverlayControls: false,
+              ),
+            ),
+          ],
+        ),
       );
     }
     return _ScrollableProfile(state: state, hasOverlayControls: true);

@@ -17,9 +17,8 @@ import 'package:qeran/features/profile/presentation/screens/profile_screen.dart'
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// Home shell. Hosts the Discovery deck (image bleeds to screen edges
-/// per Figma, with filter + notification bell as overlays on the image
-/// itself) and the bottom navigation.
+/// Home shell. Hosts the Discovery deck (with its own top bar — title +
+/// filter + notification bell) and the bottom navigation.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -158,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         body: IndexedStack(
           index: _currentTab,
           children: [
-            _lazyTab(_discoveryTabIndex, const DiscoveryView(showTopBar: false)),
+            _lazyTab(_discoveryTabIndex, const DiscoveryView(showTopBar: true)),
             _lazyTab(_likesTabIndex, const LikesScreen()),
             _lazyTab(_messagesTabIndex, const ChatEntryScreen()),
             _lazyTab(_profileTabIndex, const ProfileScreen()),

@@ -215,6 +215,7 @@
     "day": "d"
   },
   "discovery": {
+    "title": "Explore",
     "privacy_message": "Photo available upon mutual interest",
     "empty_title": "No profiles right now",
     "empty_subtitle": "Check back later — we add new profiles all the time.",

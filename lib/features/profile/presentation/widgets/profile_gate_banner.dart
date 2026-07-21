@@ -53,18 +53,22 @@ class _Banner extends StatelessWidget {
         QeranSpacing.s16,
         QeranSpacing.s8,
         QeranSpacing.s16,
-        0,
+        QeranSpacing.s8,
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: QeranSpacing.s16,
-        vertical: QeranSpacing.s12,
+        vertical: QeranSpacing.s16,
       ),
       decoration: BoxDecoration(
         color: QeranColors.gold12,
         borderRadius: QeranRadii.controlR,
         border: Border.all(color: QeranColors.gold40),
       ),
+      // Center the icon against the (possibly wrapping) text; the text wraps
+      // freely inside the Expanded so it always stays within the card in both
+      // AR and EN, at any text scale.
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Icon(
             Icons.hourglass_top_rounded,
@@ -76,6 +80,7 @@ class _Banner extends StatelessWidget {
             child: Text(
               messageKey.t(context),
               style: QeranTypography.bodySm.copyWith(color: QeranColors.inkBody),
+              softWrap: true,
             ),
           ),
         ],

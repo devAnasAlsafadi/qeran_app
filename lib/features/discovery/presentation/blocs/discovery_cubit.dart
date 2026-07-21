@@ -177,9 +177,10 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     final profile = current.current;
     if (profile == null) return;
     // Approval pre-gate: an unapproved profile can browse + skip but not like.
-    // Short-circuit without a server round-trip — the deck keeps the card
-    // (LikeUnderReview → no eject) and shows the "under review" toast. Covers
-    // the swipe path; the like button is also visually disabled in the UI.
+    // The Like button stays LIVE (per product) — both the button tap and a
+    // swipe route here; we short-circuit without a server round-trip, keep the
+    // card (LikeUnderReview → no eject) and show the same "under review" toast
+    // every other gated action uses.
     if (sl<ProfileGateCubit>().isGated) {
       final gated = Right<Failure, LikeOutcome>(
         const LikeUnderReview(serverMessage: ''),

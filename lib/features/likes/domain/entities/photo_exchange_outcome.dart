@@ -57,6 +57,15 @@ final class PhotoExchangeRequestLimitReached
   const PhotoExchangeRequestLimitReached({required this.serverMessage});
 }
 
+/// `PROFILE_NOT_APPROVED` — caller's profile is not yet approved. Requesting
+/// a photo exchange is gated until the matchmaker approves. UI shows a
+/// localized "under review" message — NOT a subscription paywall.
+final class PhotoExchangeRequestProfileUnderReview
+    extends PhotoExchangeRequestOutcome {
+  final String serverMessage;
+  const PhotoExchangeRequestProfileUnderReview({required this.serverMessage});
+}
+
 /// `VALIDATION_ERROR` / other unmapped status-0 envelopes.
 final class PhotoExchangeRequestFailure extends PhotoExchangeRequestOutcome {
   final String serverMessage;

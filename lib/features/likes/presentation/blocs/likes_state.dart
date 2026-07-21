@@ -19,6 +19,7 @@ enum LikesActionEvent {
   acceptExpired,
   acceptNotFound,
   acceptFailure,
+  acceptUnderReview,
   rejectSuccess,
   rejectExpired,
   rejectNotFound,
@@ -30,6 +31,7 @@ enum LikesActionEvent {
   photoExchangeRequestRequiresSubscription,
   photoExchangeRequestLimitReached,
   photoExchangeRequestFailure,
+  photoExchangeRequestUnderReview,
   // Photo-exchange accept/reject (responder, stage 0)
   photoExchangeAcceptSuccess,
   photoExchangeRejectSuccess,

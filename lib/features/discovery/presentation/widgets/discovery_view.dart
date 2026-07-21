@@ -234,6 +234,13 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                     LocaleKeys.discovery_like_user_unavailable.t(context),
                 type: SnackBarType.info,
               );
+            case LikeFailureKind.underReview:
+              unawaited(_animController.triggerSnapBack());
+              AppSnackBar.show(
+                context,
+                message: LocaleKeys.profile_status_pending_review.t(context),
+                type: SnackBarType.info,
+              );
             case LikeFailureKind.network:
               unawaited(_animController.triggerSnapBack());
               AppSnackBar.show(
@@ -804,6 +811,8 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
           // Subscription / quota exhausted — paywall slides up, card
           // stays in place.
           LikePaywall() => false,
+          // Own profile under review — like is gated; keep the card in place.
+          LikeUnderReview() => false,
         },
       );
       if (shouldEject && !controller.isAnimating) {

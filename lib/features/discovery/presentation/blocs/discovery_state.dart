@@ -25,6 +25,11 @@ enum LikeFailureKind {
   /// hid their profile.
   userUnavailable,
 
+  /// `PROFILE_NOT_APPROVED` — the caller's OWN profile is still under
+  /// matchmaker review, so liking is gated. UI keeps the card in place and
+  /// shows a localized "under review" toast (never a paywall).
+  underReview,
+
   /// Transport-level failure (timeout, parse) OR an unrecognised server
   /// message. UI shows a generic error toast.
   network,

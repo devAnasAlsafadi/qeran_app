@@ -41,6 +41,15 @@ final class LikeActionExpired extends LikeActionOutcome {
   const LikeActionExpired({required this.serverMessage});
 }
 
+/// Caller's profile is not yet approved (`PROFILE_NOT_APPROVED`, server
+/// `ProfileStatus.pendingReview`). Accepting a like is gated until the
+/// matchmaker approves the profile. UI shows a localized "under review"
+/// message — this is NOT a subscription paywall.
+final class LikeActionProfileUnderReview extends LikeActionOutcome {
+  final String serverMessage;
+  const LikeActionProfileUnderReview({required this.serverMessage});
+}
+
 /// Backend returned `status == 0` with an unrecognised message. The
 /// raw text is logged but never shown directly — the UI surfaces a
 /// localized generic error.

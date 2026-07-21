@@ -224,6 +224,13 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
           kind: LikeFailureKind.userUnavailable,
           message: serverMessage,
         );
+      case LikeUnderReview(:final serverMessage):
+        // Own profile still under review — keep the card (no advance), like
+        // the paywall path, and surface an "under review" toast.
+        _emitLikeFailure(
+          kind: LikeFailureKind.underReview,
+          message: serverMessage,
+        );
     }
   }
 

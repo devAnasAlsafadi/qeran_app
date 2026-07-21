@@ -152,6 +152,8 @@ class LikesRemoteDataSourceImpl implements LikesRemoteDataSource {
           return LikeActionExpired(serverMessage: rawMessage);
         case LikesErrorCodes.likeNotFound:
           return LikeActionNotFoundOrExpired(serverMessage: rawMessage);
+        case LikesErrorCodes.profileNotApproved:
+          return LikeActionProfileUnderReview(serverMessage: rawMessage);
         default:
           return LikeActionFailure(serverMessage: rawMessage);
       }

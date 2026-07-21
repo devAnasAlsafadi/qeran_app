@@ -260,6 +260,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         LikesActionEvent.acceptRequiresSubscription,
       LikeActionExpired() => LikesActionEvent.acceptExpired,
       LikeActionNotFoundOrExpired() => LikesActionEvent.acceptNotFound,
+      LikeActionProfileUnderReview() => LikesActionEvent.acceptUnderReview,
       LikeActionFailure() => LikesActionEvent.acceptFailure,
     };
   }
@@ -272,6 +273,9 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
       LikeActionRequiresSubscription() => LikesActionEvent.rejectFailure,
       LikeActionExpired() => LikesActionEvent.rejectExpired,
       LikeActionNotFoundOrExpired() => LikesActionEvent.rejectNotFound,
+      // Reject is never approval-gated server-side; treat an under-review
+      // result as a generic failure rather than surfacing "under review".
+      LikeActionProfileUnderReview() => LikesActionEvent.rejectFailure,
       LikeActionFailure() => LikesActionEvent.rejectFailure,
     };
   }
@@ -336,6 +340,8 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         LikesActionEvent.photoExchangeRequestRequiresSubscription,
       PhotoExchangeRequestLimitReached() =>
         LikesActionEvent.photoExchangeRequestLimitReached,
+      PhotoExchangeRequestProfileUnderReview() =>
+        LikesActionEvent.photoExchangeRequestUnderReview,
       PhotoExchangeRequestFailure() =>
         LikesActionEvent.photoExchangeRequestFailure,
     };

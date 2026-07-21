@@ -14,6 +14,10 @@ class LikesErrorCodes {
   static const String targetUserNotFound = 'TARGET_USER_NOT_FOUND';
   static const String unauthorized = 'UNAUTHORIZED';
   static const String validationError = 'VALIDATION_ERROR';
+
+  /// Profile not yet approved by the matchmaker (server ProfileStatus is
+  /// PendingReview). Sending / accepting a like is gated until approval.
+  static const String profileNotApproved = 'PROFILE_NOT_APPROVED';
 }
 
 class PhotoExchangeErrorCodes {
@@ -29,6 +33,10 @@ class PhotoExchangeErrorCodes {
   static const String subscriptionRequired = 'SUBSCRIPTION_REQUIRED';
   static const String unauthorized = 'UNAUTHORIZED';
   static const String validationError = 'VALIDATION_ERROR';
+
+  /// Profile not yet approved — requesting a photo exchange is gated
+  /// until the matchmaker approves the profile.
+  static const String profileNotApproved = 'PROFILE_NOT_APPROVED';
 }
 
 /// Backend `errorCode` constants for the Discovery feed. `dailyViewsExceeded`
@@ -38,4 +46,7 @@ class DiscoveryErrorCodes {
   DiscoveryErrorCodes._();
 
   static const String dailyViewsExceeded = 'DAILY_VIEWS_EXCEEDED';
+
+  /// Profile not yet approved — sending a like is gated until approval.
+  static const String profileNotApproved = 'PROFILE_NOT_APPROVED';
 }

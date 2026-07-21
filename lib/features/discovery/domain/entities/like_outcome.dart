@@ -43,3 +43,11 @@ final class LikeUserUnavailable extends LikeOutcome {
   final String serverMessage;
   const LikeUserUnavailable({required this.serverMessage});
 }
+
+/// Caller's profile is not yet approved (`PROFILE_NOT_APPROVED`). Sending a
+/// like is gated until the matchmaker approves. UI keeps the card in place
+/// (no advance) and shows a localized "under review" toast — NOT a paywall.
+final class LikeUnderReview extends LikeOutcome {
+  final String serverMessage;
+  const LikeUnderReview({required this.serverMessage});
+}

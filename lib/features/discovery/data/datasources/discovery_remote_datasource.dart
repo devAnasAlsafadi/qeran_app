@@ -264,6 +264,8 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
         case LikesErrorCodes.targetUserNotFound:
         case LikesErrorCodes.likeNotFound:
           return LikeUserUnavailable(serverMessage: rawMessage);
+        case LikesErrorCodes.profileNotApproved:
+          return LikeUnderReview(serverMessage: rawMessage);
       }
       // Unrecognised code — fall through to the Arabic matcher below.
     }

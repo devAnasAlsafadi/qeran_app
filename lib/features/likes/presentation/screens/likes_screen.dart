@@ -108,6 +108,12 @@ class _LikesView extends StatelessWidget {
           message: LocaleKeys.likes_action_failed.t(context),
           type: SnackBarType.error,
         );
+      case LikesActionEvent.acceptUnderReview:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.profile_status_pending_review.t(context),
+          type: SnackBarType.info,
+        );
       case LikesActionEvent.rejectSuccess:
         AppSnackBar.show(
           context,
@@ -170,6 +176,12 @@ class _LikesView extends StatelessWidget {
           message:
               LocaleKeys.likes_matches_action_request_failed.t(context),
           type: SnackBarType.error,
+        );
+      case LikesActionEvent.photoExchangeRequestUnderReview:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.profile_status_pending_review.t(context),
+          type: SnackBarType.info,
         );
       // Photo-exchange responder
       case LikesActionEvent.photoExchangeAcceptSuccess:

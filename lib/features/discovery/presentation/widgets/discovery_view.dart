@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
@@ -83,7 +84,6 @@ class _DiscoveryContent extends StatefulWidget {
 const double _kStackHPad = 18.0;
 const double _kStackTPad = 16.0;
 const double _kPeekHeight = 20.0;
-const double _kActionBarReserve = 120.0;
 
 /// Height reserved at the bottom of the card's internal scroll so the last
 /// data chips can scroll clear of the pinned frosted action cluster.
@@ -371,7 +371,11 @@ class _ProfilePageState extends State<_ProfilePage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bottomInset = MediaQuery.of(context).padding.bottom;
+        // The card fills down to the floating bottom-nav island — the same
+        // clearance every other tab reserves (nav footprint + gesture inset),
+        // so no empty white band opens up below it. The frosted action cluster
+        // pins to the card's bottom at this exact offset.
+        final navClearance = QeranBottomNav.contentClearance(context);
         final profile = widget.loaded.current!;
         final nextProfile = widget.loaded.next;
 
@@ -424,7 +428,7 @@ class _ProfilePageState extends State<_ProfilePage> {
                 ),
               ),
             ),
-            SizedBox(height: bottomInset + _kActionBarReserve),
+            SizedBox(height: navClearance),
           ],
         );
       },
@@ -564,7 +568,9 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     final hasActive = loaded != null && !loaded.isEmpty && !loaded.isExhausted;
     final hasUndoTarget = loaded != null && loaded.currentIndex > 0;
     final animController = DeckAnimationScope.of(context);
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    // Pin the cluster to the card's bottom edge — same nav clearance the card
+    // reserves in `_ProfilePage`, so the two align above the bottom-nav island.
+    final navClearance = QeranBottomNav.contentClearance(context);
 
     // Enable state derives from the cubit only (see the previous
     // _ActionBarArea note): gating on the animator's busy flag caused
@@ -575,7 +581,7 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     return Positioned(
       left: _kStackHPad,
       right: _kStackHPad,
-      bottom: bottomInset + _kActionBarReserve,
+      bottom: navClearance,
       child: DiscoveryFrostedActionZone(
         child: DiscoveryActionBar(
           onPass: hasActive

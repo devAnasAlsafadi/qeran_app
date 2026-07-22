@@ -232,6 +232,8 @@
     "filter_subtitle": "Choose the criteria that suit you to find your ideal match",
     "filter_save_cta": "Save Changes",
     "filter_clear_all": "Clear All",
+    "filter_search_hint": "Search options",
+    "filter_search_empty": "No matching options",
     "filter_load_failed": "Couldn't load filters",
     "filter_range_format": "{label}: {min} - {max} {unit}",
     "details_interests_title": "Interests",

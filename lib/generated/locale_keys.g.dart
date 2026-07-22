@@ -223,6 +223,8 @@ abstract class  LocaleKeys {
   static const discovery_filter_subtitle = 'discovery.filter_subtitle';
   static const discovery_filter_save_cta = 'discovery.filter_save_cta';
   static const discovery_filter_clear_all = 'discovery.filter_clear_all';
+  static const discovery_filter_search_hint = 'discovery.filter_search_hint';
+  static const discovery_filter_search_empty = 'discovery.filter_search_empty';
   static const discovery_filter_load_failed = 'discovery.filter_load_failed';
   static const discovery_filter_range_format = 'discovery.filter_range_format';
   static const discovery_details_interests_title = 'discovery.details_interests_title';

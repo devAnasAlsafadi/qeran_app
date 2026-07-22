@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_range_slider.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 
@@ -11,15 +10,24 @@ import '../../domain/entities/discovery_filter_question.dart';
 import '../../domain/entities/discovery_filter_selection.dart';
 import '../../domain/entities/filter_question_type.dart';
 import '../blocs/discovery_filter_cubit.dart';
+import 'filter_chip_facet.dart';
+import 'filter_searchable_facet.dart';
+
+/// Option-count cut-off: at or below this many options a facet renders as a
+/// chip-group; above it, a searchable checklist ([FilterSearchableFacet]) so a
+/// long list (e.g. nationality) never becomes an unmanageable chip wall. The
+/// decision is purely count-based (backend-driven) — no per-question hardcoding.
+const int _kSearchableThreshold = 10;
 
 /// Renders ONE backend-driven filter facet on the branded discovery filter
 /// sheet (mirrors the matchmaker explore filter's organization):
 ///   • `isRange`  → the brand [QeranRangeSlider] (gold-active track).
-///   • checkbox / interests → a multi-select chip-group.
-///   • select / radio / unknown(with options) → a single-select chip-group.
+///   • checkbox / interests → a multi-select facet.
+///   • select / radio / unknown(with options) → a single-select facet.
 ///   • text → a branded text field.
-/// All wired to [DiscoveryFilterCubit] (the data/query layer is untouched);
-/// the facets themselves come from `/filters`, never hardcoded.
+/// Option facets render as chips for small sets and a searchable checklist for
+/// large ones. All wired to [DiscoveryFilterCubit] (the data/query layer is
+/// untouched); the facets themselves come from `/filters`, never hardcoded.
 class FilterQuestionRenderer extends StatelessWidget {
   final DiscoveryFilterQuestion question;
   final DiscoveryFilterSelection? selection;
@@ -59,7 +67,7 @@ class FilterQuestionRenderer extends StatelessWidget {
         final selected = selection is MultiValueSelection
             ? (selection as MultiValueSelection).values
             : const <String>[];
-        return _ChipFacet(
+        return _optionsFacet(
           label: question.label,
           options: options,
           isSelected: selected.contains,
@@ -71,7 +79,7 @@ class FilterQuestionRenderer extends StatelessWidget {
         final value = selection is SingleValueSelection
             ? (selection as SingleValueSelection).value
             : null;
-        return _ChipFacet(
+        return _optionsFacet(
           label: question.label,
           options: options,
           isSelected: (v) => v == value,
@@ -88,52 +96,33 @@ class FilterQuestionRenderer extends StatelessWidget {
       case FilterQuestionType.date:
       case FilterQuestionType.height:
       case FilterQuestionType.weight:
-        // These arrive as ranges (handled above); a non-range one is filtered
-        // upstream by the cubit, so this is a defensive no-op.
+        // Ranges are handled above; a non-range one is dropped by the cubit.
         return const SizedBox.shrink();
     }
   }
-}
 
-/// A labelled facet whose options are selectable chips — selected = solid
-/// wine (`score`), unselected = paper + wine border (`inside`).
-class _ChipFacet extends StatelessWidget {
-  const _ChipFacet({
-    required this.label,
-    required this.options,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  final String label;
-  final List<DiscoveryFilterOption> options;
-  final bool Function(String value) isSelected;
-  final void Function(String value) onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    if (options.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label, style: QeranTypography.subtitle),
-        QeranSpacing.vs8,
-        Wrap(
-          spacing: QeranSpacing.s8,
-          runSpacing: QeranSpacing.s8,
-          children: [
-            for (final o in options)
-              QeranChip(
-                label: o.display,
-                variant: isSelected(o.value)
-                    ? QeranChipVariant.score
-                    : QeranChipVariant.inside,
-                onTap: () => onTap(o.value),
-              ),
-          ],
-        ),
-      ],
+  /// Chips for small option sets, a searchable checklist for large ones — the
+  /// same `isSelected` / `onTap` contract either way, so the cubit's single vs
+  /// multi selection semantics are unchanged.
+  Widget _optionsFacet({
+    required String label,
+    required List<DiscoveryFilterOption> options,
+    required bool Function(String value) isSelected,
+    required void Function(String value) onTap,
+  }) {
+    if (options.length > _kSearchableThreshold) {
+      return FilterSearchableFacet(
+        label: label,
+        options: options,
+        isSelected: isSelected,
+        onTap: onTap,
+      );
+    }
+    return FilterChipFacet(
+      label: label,
+      options: options,
+      isSelected: isSelected,
+      onTap: onTap,
     );
   }
 }

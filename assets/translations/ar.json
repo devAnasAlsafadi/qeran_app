@@ -232,6 +232,8 @@
     "filter_subtitle": "اختر المعايير المناسبة لك للعثور على الشخص المثالي",
     "filter_save_cta": "حفظ التغييرات",
     "filter_clear_all": "مسح الكل",
+    "filter_search_hint": "ابحث في الخيارات",
+    "filter_search_empty": "لا توجد نتائج مطابقة",
     "filter_load_failed": "تعذّر تحميل الفلاتر",
     "filter_range_format": "{label}: {min} - {max} {unit}",
     "details_interests_title": "الاهتمامات",

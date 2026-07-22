@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
@@ -39,8 +38,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     if (!_pageController.hasClients) return;
     _pageController.animateToPage(
       page,
-      duration: QeranMotion.gentle,
-      curve: QeranCurves.standard,
+      duration: const Duration(milliseconds: 650),
+      curve: Curves.easeInOutCubicEmphasized,
     );
   }
 
@@ -83,7 +82,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   controller: _pageController,
                   itemCount: onboardingData.length,
                   onPageChanged: cubit.onPageChanged,
-                  itemBuilder: (_, index) => _frameFor(index, cubit, state),
+                  itemBuilder: (_, index) => _buildAnimatedFrame(index, cubit, state),
                 ),
                 // Chrome shows on every frame. Skip is hidden on the last frame
                 // (roadmap); each frame owns its in-dome footer, so there is no
@@ -100,6 +99,42 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildAnimatedFrame(
+    int index,
+    OnboardingCubit cubit,
+    OnboardingState state,
+  ) {
+    return AnimatedBuilder(
+      animation: _pageController,
+      builder: (context, child) {
+        double pageOffset = index.toDouble();
+        if (_pageController.position.haveDimensions &&
+            _pageController.page != null) {
+          pageOffset = _pageController.page! - index;
+        } else {
+          pageOffset = (state.currentPage - index).toDouble();
+        }
+
+        final progress = pageOffset.clamp(-1.0, 1.0);
+        final opacity = (1.0 - progress.abs() * 0.70).clamp(0.0, 1.0);
+        final scale = (1.0 - progress.abs() * 0.08).clamp(0.88, 1.0);
+        final parallax = progress * MediaQuery.of(context).size.width * 0.12;
+
+        return Transform.translate(
+          offset: Offset(parallax, 0),
+          child: Transform.scale(
+            scale: scale,
+            child: Opacity(
+              opacity: opacity,
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: _frameFor(index, cubit, state),
     );
   }
 

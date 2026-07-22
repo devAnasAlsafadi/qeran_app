@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
@@ -113,6 +115,7 @@ class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSession
   /// Clears the persisted session and emits `Unauthenticated`. Stubbed for
   /// the future logout flow — not yet wired into any UI.
   Future<void> signOut() async {
+    await _clearSocialSessions();
     await _secureStorage.remove(StorageKeys.token);
     await _sharedPrefs.remove(StorageKeys.userId);
     await _sharedPrefs.remove(StorageKeys.userName);
@@ -138,6 +141,7 @@ class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSession
   /// ⚠️ Keep in sync: a NEW account-level key in [StorageKeys] must be added to
   /// [_accountPrefKeys] below (see the note in StorageKeys).
   Future<void> wipeAllLocalData() async {
+    await _clearSocialSessions();
     // Secure: only the JWT (+ any sensitive auth) — safe to clear wholesale.
     await _secureStorage.clear();
     for (final key in _accountPrefKeys) {
@@ -145,6 +149,15 @@ class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSession
     }
     AppLogger.info('Local data wiped (account deletion)', tag: 'SESSION');
     emit(const UserSessionUnauthenticated());
+  }
+
+  Future<void> _clearSocialSessions() async {
+    try {
+      await GoogleSignIn.instance.signOut();
+      await FirebaseAuth.instance.signOut();
+    } catch (e) {
+      AppLogger.warning('Social sign-out error: $e', tag: 'SESSION');
+    }
   }
 
   /// Account/session shared-prefs keys removed on a permanent delete. Device-

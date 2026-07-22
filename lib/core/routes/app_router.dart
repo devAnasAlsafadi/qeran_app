@@ -231,15 +231,28 @@ class AppRouter {
         );
       case RouteNames.fullProfileDetails:
         final args = settings.arguments as FullProfileDetailsArgs?;
-        return MaterialPageRoute(
+        return PageRouteBuilder(
           settings: settings,
-          builder: (context) => args == null
+          transitionDuration: const Duration(milliseconds: 550),
+          reverseTransitionDuration: const Duration(milliseconds: 450),
+          pageBuilder: (context, animation, secondaryAnimation) => args == null
               ? Scaffold(
                   body: Center(
                     child: Text('Missing args for ${settings.name}'),
                   ),
                 )
               : FullProfileDetailsScreen(args: args),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curvedAnim = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOutCubic,
+              reverseCurve: Curves.easeInOutCubic,
+            );
+            return FadeTransition(
+              opacity: curvedAnim,
+              child: child,
+            );
+          },
         );
       case RouteNames.myProfile:
         return MaterialPageRoute(

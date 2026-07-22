@@ -29,6 +29,7 @@ class FullProfileImageHero extends StatelessWidget {
       children: [
         Hero(
           tag: 'profile_hero_${profile.id}',
+          createRectTween: (begin, end) => _SmoothHeroRectTween(begin: begin, end: end),
           child: ProfileHeaderGallery(images: profile.images),
         ),
         const Positioned.fill(
@@ -156,5 +157,21 @@ class _HeroInfo extends StatelessWidget {
       return Icons.location_on_outlined;
     }
     return null;
+  }
+}
+
+class _SmoothHeroRectTween extends RectTween {
+  _SmoothHeroRectTween({super.begin, super.end});
+
+  @override
+  Rect? lerp(double t) {
+    final curvedT = Curves.fastLinearToSlowEaseIn.transform(t);
+    if (begin == null || end == null) return null;
+    return Rect.fromLTRB(
+      begin!.left + (end!.left - begin!.left) * curvedT,
+      begin!.top + (end!.top - begin!.top) * curvedT,
+      begin!.right + (end!.right - begin!.right) * curvedT,
+      begin!.bottom + (end!.bottom - begin!.bottom) * curvedT,
+    );
   }
 }

@@ -20,9 +20,8 @@ import 'discovery_privacy_message.dart';
 /// `home.png`). Renders the blurred image with overlays for the filter
 /// button (top-leading), notifications bell (top-trailing) with an
 /// unread marker, the centered privacy lock + message, and at the
-/// bottom: name + age + verified badge plus the above-image chips. The
-/// top button row is direction-locked to LTR so the filter stays on
-/// the left even in Arabic.
+/// bottom: name + age plus the above-image chips. The top button row is
+/// direction-locked to LTR so the filter stays on the left even in Arabic.
 class DiscoveryImagePanel extends StatelessWidget {
   final DiscoveryProfile profile;
   final VoidCallback? onTap;
@@ -54,9 +53,37 @@ class DiscoveryImagePanel extends StatelessWidget {
             DiscoveryBlurredImage(url: imageUrl)
           else
             Container(color: QeranColors.creamSurface),
-          const Align(
-            alignment: Alignment.center,
-            child: DiscoveryPrivacyMessage(),
+          // Identity + privacy overlays. A single full-bleed Column reserves
+          // space so the centered privacy group (gold lock + caption) and the
+          // bottom identity group (name/age, then chips) can NEVER overlap,
+          // whatever the photo height: the privacy group centers in the
+          // flexible top region, the identity group pins to the photo's bottom.
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(
+                start: QeranSpacing.s16,
+                end: QeranSpacing.s16,
+                top: QeranSpacing.s16,
+                bottom: QeranSpacing.s20,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Expanded(
+                    child: Center(child: DiscoveryPrivacyMessage()),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _NameAgeRow(name: profile.name, age: profile.age),
+                      const SizedBox(height: QeranSpacing.s8),
+                      DiscoveryChipsAboveImage(items: aboveItems),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
           if (showOverlayActions)
             Positioned(
@@ -89,21 +116,6 @@ class DiscoveryImagePanel extends StatelessWidget {
                 ),
               ),
             ),
-          Positioned(
-            // Positioned higher to ensure it sits safely above the overlapping white sheet
-            bottom: QeranSpacing.s48,
-            left: QeranSpacing.s16,
-            right: QeranSpacing.s16,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _NameAgeRow(name: profile.name, age: profile.age),
-                const SizedBox(height: QeranSpacing.s8),
-                DiscoveryChipsAboveImage(items: aboveItems),
-              ],
-            ),
-          ),
         ],
       ),
     );

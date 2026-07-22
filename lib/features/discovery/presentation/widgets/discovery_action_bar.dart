@@ -597,13 +597,13 @@ class _PressableActionButtonState extends State<_PressableActionButton>
                         boxShadow: [
                           BoxShadow(
                             color: QeranColors.wine.withValues(alpha: _idleOuterOpacity.value * 0.25),
-                            blurRadius: 28,
-                            spreadRadius: 4,
+                            blurRadius: 10,
+                            spreadRadius: 1,
                           ),
                           BoxShadow(
                             color: QeranColors.wine.withValues(alpha: _idleOuterOpacity.value * 0.35),
-                            blurRadius: 36,
-                            spreadRadius: 6,
+                            blurRadius: 16,
+                            spreadRadius: 2,
                           ),
                         ],
                       ),

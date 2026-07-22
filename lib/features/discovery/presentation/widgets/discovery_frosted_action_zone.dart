@@ -18,7 +18,6 @@ class DiscoveryFrostedActionZone extends StatelessWidget {
   const DiscoveryFrostedActionZone({super.key, required this.child});
 
 
-
   @override
   Widget build(BuildContext context) {
     return ClipRRect(

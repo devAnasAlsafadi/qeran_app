@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "517112282743-eh5e4r8rkcl98b7ne5if4dfk3l6kokad.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qeran.app",
+            "certificate_hash": "10d07f4c8bbe261bdc5b3bf07fbc2ad3a21355ca"
+          }
+        },
+        {
           "client_id": "517112282743-gvbqlph4k6ovcd0h2uoml7n7k359jbid.apps.googleusercontent.com",
           "client_type": 3
         }

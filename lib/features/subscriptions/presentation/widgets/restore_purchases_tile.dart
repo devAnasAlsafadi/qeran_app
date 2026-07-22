@@ -79,7 +79,8 @@ class _Tile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    final isRtl = Directionality.of(context) == TextDirection.rtl ||
+        Localizations.localeOf(context).languageCode == 'ar';
     return QeranCard(
       padding: EdgeInsets.zero,
       child: Material(

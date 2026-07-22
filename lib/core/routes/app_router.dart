@@ -41,59 +41,90 @@ import 'package:qeran/features/subscriptions/presentation/screens/purchase_succe
 import 'package:qeran/features/subscriptions/presentation/screens/purchase_failure_screen.dart';
 
 class AppRouter {
+  /// Helper for building smooth, luxury page transitions (Fade + subtle Slide).
+  static PageRouteBuilder<T> _buildSmoothRoute<T>({
+    required RouteSettings settings,
+    required Widget Function(BuildContext context) builder,
+    Duration duration = const Duration(milliseconds: 400),
+  }) {
+    return PageRouteBuilder<T>(
+      settings: settings,
+      transitionDuration: duration,
+      reverseTransitionDuration: Duration(milliseconds: (duration.inMilliseconds * 0.80).round()),
+      pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curvedAnim = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOutCubicEmphasized,
+          reverseCurve: Curves.easeInOutCubic,
+        );
+        return FadeTransition(
+          opacity: curvedAnim,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.04, 0.0),
+              end: Offset.zero,
+            ).animate(curvedAnim),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RouteNames.splashScreen:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const SplashScreen(),
         );
 
       case RouteNames.onboarding:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const OnBoardingScreen(),
         );
 
       case RouteNames.loginScreen:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const LoginScreen(),
         );
 
       case RouteNames.registerScreen:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const RegisterScreen(),
         );
       case RouteNames.forgotPasswordEmail:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const ForgetPassScreen(),
         );
       case RouteNames.resetPassword:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const ResetPassScreen(),
         );
       case RouteNames.whatsappInput:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const WhatsappInputScreen(),
         );
       case RouteNames.whatsappVerification:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const WhatsappVerificationScreen(),
         );
       case RouteNames.genderSelectionScreen:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const GenderSelectionScreen(),
         );
       case RouteNames.questionsScreen:
         final questions = settings.arguments as List<QuestionEntity>?;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => QuestionnaireFlowScreen(questions: questions),
         );
@@ -102,38 +133,38 @@ class AppRouter {
             settings.arguments is List<Map<String, dynamic>>
                 ? settings.arguments as List<Map<String, dynamic>>
                 : null;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => OathScreen(answersPayload: answersPayload),
         );
       case RouteNames.matchmakerHome:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const MatchmakerHomeScreen(),
         );
       case RouteNames.matchmakerNotifications:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const MatchmakerNotificationsScreen(),
         );
       case RouteNames.matchmakerAccount:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const MatchmakerAccountScreen(),
         );
       case RouteNames.matchmakerColleaguesDirectory:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const MatchmakerColleaguesDirectoryScreen(),
         );
       case RouteNames.matchmakerAffiliate:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const MatchmakerAffiliateScreen(),
         );
       case RouteNames.matchmakerUserProfile:
         final userId = settings.arguments as String?;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => userId == null
               ? Scaffold(
@@ -145,7 +176,7 @@ class AppRouter {
         );
       case RouteNames.matchmakerCaseDetail:
         final caseArg = settings.arguments as CompatibilityCase?;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => caseArg == null
               ? Scaffold(
@@ -157,7 +188,7 @@ class AppRouter {
         );
       case RouteNames.matchmakerInterests:
         final userId = settings.arguments as String?;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => userId == null
               ? Scaffold(
@@ -169,7 +200,7 @@ class AppRouter {
         );
       case RouteNames.matchmakerUserChat:
         final conv = settings.arguments as MatchmakerConversation?;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => conv == null
               ? Scaffold(
@@ -180,39 +211,39 @@ class AppRouter {
               : MatchmakerUserChatScreen(conversation: conv),
         );
       case RouteNames.homeScreen:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const HomeScreen(),
         );
       case RouteNames.photoUploadScreen:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const UploadImageProfileScreen(),
         );
       case RouteNames.notifications:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const NotificationsScreen(),
         );
       case RouteNames.packagesScreen:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const PackagesScreen(),
         );
       case RouteNames.subscriptionDetails:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const SubscriptionDetailsScreen(),
         );
       case RouteNames.purchaseSuccess:
         final purchasedPlan = settings.arguments as SubscriptionPlan?;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => PurchaseSuccessScreen(plan: purchasedPlan),
         );
       case RouteNames.purchaseFailure:
         final failureMessageKey = settings.arguments as String?;
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) =>
               PurchaseFailureScreen(messageKey: failureMessageKey),
@@ -255,17 +286,17 @@ class AppRouter {
           },
         );
       case RouteNames.myProfile:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const ProfileHubScreen(),
         );
       case RouteNames.settingsSupport:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const SettingsSupportScreen(),
         );
       case RouteNames.settingsTerms:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => LegalScreen(
             initialType: settings.arguments is LegalDocumentType
@@ -274,12 +305,12 @@ class AppRouter {
           ),
         );
       case RouteNames.blockedUsers:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const BlockedUsersScreen(),
         );
       default:
-        return MaterialPageRoute(
+        return _buildSmoothRoute(
           settings: settings,
           builder: (context) => Scaffold(
             body: Center(child: Text('No route defined for ${settings.name}')),

@@ -152,7 +152,7 @@ class _SendButton extends StatelessWidget {
           height: 44,
           child: Center(
             child: Transform.scale(
-              scaleX: isRtl ? -1 : 1,
+              scaleX: isRtl ? 1 : -1,
               child: const Icon(
                 Icons.send_rounded,
                 size: 20,

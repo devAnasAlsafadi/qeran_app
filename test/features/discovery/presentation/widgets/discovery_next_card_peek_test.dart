@@ -217,23 +217,20 @@ void main() {
       expect(find.byType(DiscoveryImagePanel), findsOneWidget);
     });
 
-    testWidgets('overlay icons belong to the screen layer only — never inside cards',
+    testWidgets('overlay icons render on the front card image panel — never on the peek card',
         (tester) async {
       await _pumpView(tester, [_profile('a'), _profile('b')]);
-      // Both the active card (showOverlayActions: false) and the peek card
-      // (showOverlayActions: false) suppress DiscoveryImagePanel's internal
-      // overlay row. Only the screen-level _OverlayControls renders, using
-      // Icons.notifications_none_rounded (not outlined).
+      // The active card (showOverlayActions: true) renders overlay actions, while the peek card
+      // (showOverlayActions: false) suppresses DiscoveryImagePanel's internal overlay row.
       expect(
         find.byIcon(Icons.notifications_outlined),
-        findsNothing,
-        reason: 'card-panel overlay icons must be suppressed in home context',
-      );
-      // Screen-level overlay renders exactly one notifications button.
-      expect(
-        find.byIcon(Icons.notifications_none_rounded),
         findsOneWidget,
-        reason: 'exactly one screen-level notifications icon expected',
+        reason: 'front card image panel renders notifications icon',
+      );
+      expect(
+        find.byIcon(Icons.tune_rounded),
+        findsOneWidget,
+        reason: 'front card image panel renders filter icon',
       );
     });
 

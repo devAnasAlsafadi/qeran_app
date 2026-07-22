@@ -25,6 +25,7 @@ import 'discovery_swipe_handler.dart';
 class DiscoveryUnifiedCard extends StatelessWidget {
   final DiscoveryProfile profile;
   final VoidCallback onTapDetails;
+  final VoidCallback onFilterTap;
 
   /// Bottom padding inside the scroll so the last chips clear the floating
   /// action cluster / bottom nav.
@@ -34,6 +35,7 @@ class DiscoveryUnifiedCard extends StatelessWidget {
     super.key,
     required this.profile,
     required this.onTapDetails,
+    required this.onFilterTap,
     required this.bottomContentInset,
   });
 
@@ -65,6 +67,7 @@ class DiscoveryUnifiedCard extends StatelessWidget {
                 child: _CardContent(
                   profile: profile,
                   onTapDetails: onTapDetails,
+                  onFilterTap: onFilterTap,
                   bottomContentInset: bottomContentInset,
                 ),
               ),
@@ -79,11 +82,13 @@ class DiscoveryUnifiedCard extends StatelessWidget {
 class _CardContent extends StatelessWidget {
   final DiscoveryProfile profile;
   final VoidCallback onTapDetails;
+  final VoidCallback onFilterTap;
   final double bottomContentInset;
 
   const _CardContent({
     required this.profile,
     required this.onTapDetails,
+    required this.onFilterTap,
     required this.bottomContentInset,
   });
 
@@ -98,7 +103,8 @@ class _CardContent extends StatelessWidget {
           child: DiscoveryImagePanel(
             profile: profile,
             onTap: onTapDetails,
-            showOverlayActions: false,
+            onFilterTap: onFilterTap,
+            showOverlayActions: true,
           ),
         ),
         // Internal scroll region on the white surface. Pull-to-refresh keeps

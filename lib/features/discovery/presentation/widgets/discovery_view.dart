@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
@@ -18,14 +17,11 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
-import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
-import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
-import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/discovery_profile.dart';
@@ -40,7 +36,6 @@ import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_frosted_action_zone.dart';
 import 'discovery_like_burst.dart';
-import 'discovery_top_bar.dart';
 import 'discovery_unified_card.dart';
 
 /// Reusable Discovery content. Self-contained — provides its own
@@ -270,24 +265,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   Widget _buildBody(BuildContext context, DiscoveryState state) {
     return SafeArea(
       bottom: false,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              QeranSpacing.s16,
-              QeranSpacing.s8,
-              QeranSpacing.s16,
-              0,
-            ),
-            child: DiscoveryTopBar(
-              onFilterTap: () => _openFilters(context),
-              onNotificationsTap: () => openNotifications(context),
-            ),
-          ),
-          const SizedBox(height: QeranSpacing.s12),
-          Expanded(child: _ScrollableProfile(state: state)),
-        ],
-      ),
+      child: _ScrollableProfile(state: state),
     );
   }
 }
@@ -351,11 +329,9 @@ class _ScrollableProfile extends StatelessWidget {
   }
 }
 
-/// The loaded discovery feed: the optional upsell banner atop a single
-/// fixed [DiscoveryUnifiedCard] (photo + internally-scrolling data), with
-/// the peek deck behind it. The page itself does not scroll — only the
-/// card's inner data region does. Stateful only to remember the
-/// per-session banner dismissal.
+/// The loaded discovery feed: a single fixed [DiscoveryUnifiedCard] (photo +
+/// internally-scrolling data), with the peek deck behind it. The page itself does
+/// not scroll — only the card's inner data region does.
 class _ProfilePage extends StatefulWidget {
   final DiscoveryLoaded loaded;
   const _ProfilePage({required this.loaded});
@@ -365,44 +341,24 @@ class _ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<_ProfilePage> {
-  bool _bannerDismissed = false;
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The card fills down to the floating bottom-nav island — the same
-        // clearance every other tab reserves (nav footprint + gesture inset),
-        // so no empty white band opens up below it. The frosted action cluster
-        // pins to the card's bottom at this exact offset.
-        final navClearance = QeranBottomNav.contentClearance(context);
+        // The card fills down to above the floating bottom-nav island with extra clearance
+        // so the action buttons and floating nav never collide.
+        final navClearance = QeranBottomNav.contentClearance(context) + 48.0;
         final profile = widget.loaded.current!;
         final nextProfile = widget.loaded.next;
 
-        final subState = context.watch<CurrentSubscriptionCubit>().state;
-        final hasActiveSub =
-            subState is CurrentSubscriptionLoaded &&
-            subState.subscription.isCurrentlyActive;
-        final showBanner = !hasActiveSub && !_bannerDismissed;
-
-        // Fixed layout — the page itself does not scroll. The banner is a
-        // conditional child, so when hidden the card reflows straight up
-        // under the top bar with no reserved gap. The card fills the space
-        // above the action-cluster / bottom-nav reservation; only the نبذة
-        // عني data region scrolls internally inside the card.
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (showBanner)
-              _UpgradeFeedBanner(
-                topClearance: 0,
-                onDismiss: () => setState(() => _bannerDismissed = true),
-              ),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   _kStackHPad,
-                  showBanner ? 0 : _kStackTPad,
+                  _kStackTPad,
                   _kStackHPad,
                   0,
                 ),
@@ -420,6 +376,7 @@ class _ProfilePageState extends State<_ProfilePage> {
                         child: DiscoveryUnifiedCard(
                           profile: profile,
                           onTapDetails: () => _openDetails(context, profile),
+                          onFilterTap: () => _openFilters(context),
                           bottomContentInset: _kActionZoneClearance,
                         ),
                       ),
@@ -568,9 +525,8 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     final hasActive = loaded != null && !loaded.isEmpty && !loaded.isExhausted;
     final hasUndoTarget = loaded != null && loaded.currentIndex > 0;
     final animController = DeckAnimationScope.of(context);
-    // Pin the cluster to the card's bottom edge — same nav clearance the card
-    // reserves in `_ProfilePage`, so the two align above the bottom-nav island.
-    final navClearance = QeranBottomNav.contentClearance(context);
+    // Pin the cluster to the card's bottom edge with extra clearance so it sits cleanly above the bottom-nav island.
+    final navClearance = QeranBottomNav.contentClearance(context) + 48.0;
 
     // Enable state derives from the cubit only (see the previous
     // _ActionBarArea note): gating on the animator's busy flag caused
@@ -765,91 +721,3 @@ class _PeekCardLayer extends StatelessWidget {
   }
 }
 
-class _UpgradeFeedBanner extends StatelessWidget {
-  final double topClearance;
-  final VoidCallback onDismiss;
-
-  const _UpgradeFeedBanner({
-    required this.topClearance,
-    required this.onDismiss,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.fromLTRB(
-        _kStackHPad,
-        topClearance + _kStackTPad,
-        _kStackHPad,
-        0,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: QeranColors.gold.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(QeranRadii.card),
-        border: Border.all(color: QeranColors.gold.withValues(alpha: 0.30)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: QeranColors.gold.withValues(alpha: 0.18),
-              border: Border.all(color: QeranColors.gold, width: 1),
-            ),
-            alignment: Alignment.center,
-            child: const Icon(
-              Icons.workspace_premium_rounded,
-              color: QeranColors.goldDeep,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              LocaleKeys.discovery_upgrade_banner_message.t(context),
-              style: QeranTypography.body.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 12.5,
-                color: QeranColors.wine,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () => NavigationManager.navigateTo(
-              context,
-              RouteNames.packagesScreen,
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: QeranColors.wine,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                LocaleKeys.discovery_upgrade_banner_cta.t(context),
-                style: QeranTypography.body.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11.5,
-                  color: QeranColors.gold,
-                ),
-              ),
-            ),
-          ),
-          QeranSpacing.hs8,
-          GestureDetector(
-            onTap: onDismiss,
-            child: Icon(
-              Icons.close_rounded,
-              size: 18,
-              color: QeranColors.wine.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -9,12 +9,9 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/discovery_filter_option.dart';
 
-/// A labelled facet for LARGE option sets (e.g. nationality) — a search field
-/// over a selectable checklist, so a long list never becomes an unmanageable
-/// chip wall. Wired to the same `isSelected` / `onTap` contract as the chip
-/// facet, so it works for both single- and multi-select questions (the cubit
-/// owns the toggle/replace semantics). Selected options always sort to the top
-/// so a search never hides an active pick.
+/// An expandable Dropdown / Accordion facet for LARGE option sets (e.g. nationality).
+/// Shows a neat trigger field summarizing current selections when collapsed,
+/// and expands into a searchable checklist when tapped.
 class FilterSearchableFacet extends StatefulWidget {
   const FilterSearchableFacet({
     super.key,
@@ -36,6 +33,7 @@ class FilterSearchableFacet extends StatefulWidget {
 class _FilterSearchableFacetState extends State<FilterSearchableFacet> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  bool _isExpanded = false;
 
   @override
   void dispose() {
@@ -46,6 +44,13 @@ class _FilterSearchableFacetState extends State<FilterSearchableFacet> {
   @override
   Widget build(BuildContext context) {
     if (widget.options.isEmpty) return const SizedBox.shrink();
+
+    final selectedList =
+        widget.options.where((o) => widget.isSelected(o.value)).toList();
+    final selectedText = selectedList.isEmpty
+        ? null
+        : selectedList.map((e) => e.display).join('، ');
+
     final q = _query.trim().toLowerCase();
     final selected =
         widget.options.where((o) => widget.isSelected(o.value)).toList();
@@ -62,37 +67,117 @@ class _FilterSearchableFacetState extends State<FilterSearchableFacet> {
       children: [
         Text(widget.label, style: QeranTypography.subtitle),
         QeranSpacing.vs8,
-        QeranTextField(
-          controller: _searchController,
-          hint: LocaleKeys.discovery_filter_search_hint.t(context),
-          prefix: const Icon(
-            Icons.search_rounded,
-            color: QeranColors.inkFaint,
-            size: 20,
-          ),
-          onChanged: (v) => setState(() => _query = v),
-        ),
-        QeranSpacing.vs8,
-        if (rows.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s12),
-            child: Text(
-              LocaleKeys.discovery_filter_search_empty.t(context),
-              style: QeranTypography.caption
-                  .copyWith(color: QeranColors.inkMuted),
+        // Dropdown Header / Trigger Container
+        InkWell(
+          onTap: () => setState(() => _isExpanded = !_isExpanded),
+          borderRadius: QeranRadii.controlR,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: QeranSpacing.s16,
+              vertical: QeranSpacing.s12,
             ),
-          )
-        else
-          Column(
-            children: [
-              for (final o in rows)
-                _OptionRow(
-                  label: o.display,
-                  selected: widget.isSelected(o.value),
-                  onTap: () => widget.onTap(o.value),
+            decoration: BoxDecoration(
+              color: QeranColors.creamSurface,
+              borderRadius: QeranRadii.controlR,
+              border: Border.all(
+                color: selectedList.isNotEmpty
+                    ? QeranColors.wine
+                    : QeranColors.inkFaint.withValues(alpha: 0.3),
+                width: selectedList.isNotEmpty ? 1.5 : 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    selectedText ?? widget.label,
+                    style: QeranTypography.body.copyWith(
+                      color: selectedText != null
+                          ? QeranColors.wine
+                          : QeranColors.inkMuted,
+                      fontWeight: selectedText != null
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-            ],
+                Icon(
+                  _isExpanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  color: selectedList.isNotEmpty
+                      ? QeranColors.wine
+                      : QeranColors.inkFaint,
+                ),
+              ],
+            ),
           ),
+        ),
+
+        // Expandable List Panel
+        if (_isExpanded) ...[
+          QeranSpacing.vs8,
+          Container(
+            padding: const EdgeInsets.all(QeranSpacing.s12),
+            decoration: BoxDecoration(
+              color: QeranColors.paper,
+              borderRadius: QeranRadii.cardR,
+              border: Border.all(
+                color: QeranColors.inkFaint.withValues(alpha: 0.2),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                QeranTextField(
+                  controller: _searchController,
+                  hint: LocaleKeys.discovery_filter_search_hint.t(context),
+                  prefix: const Icon(
+                    Icons.search_rounded,
+                    color: QeranColors.inkFaint,
+                    size: 20,
+                  ),
+                  onChanged: (v) => setState(() => _query = v),
+                ),
+                QeranSpacing.vs8,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  child: rows.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: QeranSpacing.s12),
+                          child: Text(
+                            LocaleKeys.discovery_filter_search_empty.t(context),
+                            style: QeranTypography.caption
+                                .copyWith(color: QeranColors.inkMuted),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: rows.length,
+                          itemBuilder: (context, i) {
+                            final o = rows[i];
+                            return _OptionRow(
+                              label: o.display,
+                              selected: widget.isSelected(o.value),
+                              onTap: () => widget.onTap(o.value),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

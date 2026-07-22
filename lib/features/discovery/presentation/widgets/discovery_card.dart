@@ -25,6 +25,7 @@ import 'discovery_privacy_message.dart';
 class DiscoveryImagePanel extends StatelessWidget {
   final DiscoveryProfile profile;
   final VoidCallback? onTap;
+  final VoidCallback? onFilterTap;
 
   /// When `false`, the top filter/notifications overlay row is omitted.
   /// Used by the next-card peek layer so the rear card stays purely
@@ -35,6 +36,7 @@ class DiscoveryImagePanel extends StatelessWidget {
     super.key,
     required this.profile,
     this.onTap,
+    this.onFilterTap,
     this.showOverlayActions = true,
   });
 
@@ -95,15 +97,29 @@ class DiscoveryImagePanel extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
                     QeranSpacing.s16,
-                    QeranSpacing.s8,
+                    QeranSpacing.s12,
                     QeranSpacing.s16,
                     0,
                   ),
                   child: Row(
                     children: [
-                      const ImageOverlayButton(
+                      ImageOverlayButton(
                         icon: Icons.tune_rounded,
-                        onPressed: null,
+                        onPressed: onFilterTap,
+                      ),
+                      const Spacer(),
+                      Text(
+                        'استكشاف',
+                        style: QeranTypography.title.copyWith(
+                          color: QeranColors.paper,
+                          fontWeight: FontWeight.w700,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
                       ),
                       const Spacer(),
                       ImageOverlayButton(

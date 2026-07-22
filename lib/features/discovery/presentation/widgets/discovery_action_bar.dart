@@ -492,10 +492,11 @@ class _PressableActionButtonState extends State<_PressableActionButton>
         disabled ? palette.disabledIconColor : palette.iconColor;
     final bgColor =
         disabled ? palette.disabledBackground : palette.background;
+    final borderWidth = palette.borderColor == QeranColors.gold ? 3.5 : 2.0;
     final shape = palette.borderColor == null
         ? const CircleBorder()
         : CircleBorder(
-            side: BorderSide(color: palette.borderColor!, width: 2.0),
+            side: BorderSide(color: palette.borderColor!, width: borderWidth),
           );
 
     final button = Tooltip(

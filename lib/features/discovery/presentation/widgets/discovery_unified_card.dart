@@ -38,47 +38,47 @@ class DiscoveryUnifiedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: QeranRadii.panelR,
-        color: QeranColors.paper,
-        border: Border.all(
-          color: QeranColors.wine.withValues(alpha: 0.10),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: QeranColors.wine.withValues(alpha: 0.08),
-            blurRadius: 24,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            spreadRadius: -2,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: QeranRadii.panelR,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeOutCubic,
-          transitionBuilder: (child, animation) {
-            final scale =
-                Tween<double>(begin: 0.94, end: 1.0).animate(animation);
-            return FadeTransition(
-              opacity: animation,
-              child: ScaleTransition(scale: scale, child: child),
-            );
-          },
-          child: KeyedSubtree(
-            key: ValueKey<String>(profile.id),
-            child: DiscoveryDeckAnimator(
-              child: DiscoverySwipeHandler(
+    return KeyedSubtree(
+      key: ValueKey<String>(profile.id),
+      child: DiscoveryDeckAnimator(
+        child: DiscoverySwipeHandler(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: QeranRadii.panelR,
+              color: QeranColors.paper,
+              border: Border.all(
+                color: QeranColors.wine.withValues(alpha: 0.10),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: QeranColors.wine.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  spreadRadius: -2,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: QeranRadii.panelR,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeOutCubic,
+                transitionBuilder: (child, animation) {
+                  final scale =
+                      Tween<double>(begin: 0.94, end: 1.0).animate(animation);
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: scale, child: child),
+                  );
+                },
                 child: _CardContent(
                   profile: profile,
                   onTapDetails: onTapDetails,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_page.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_profile.dart';
@@ -14,12 +15,15 @@ import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_deck_animation_controller.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_deck_animator.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 class _MockFetchPage extends Mock implements FetchDiscoveryPageUseCase {}
 
 class _MockLike extends Mock implements LikeProfileUseCase {}
 
 class _MockPass extends Mock implements PassProfileUseCase {}
+
+class _MockProfileGateCubit extends Mock implements ProfileGateCubit {}
 
 DiscoveryProfile _profile(String id) => DiscoveryProfile(
       id: id,
@@ -85,6 +89,7 @@ void main() {
   late _MockFetchPage fetch;
   late _MockLike like;
   late _MockPass pass;
+  late _MockProfileGateCubit mockGate;
   late DiscoveryCubit cubit;
   late DiscoveryDeckAnimationController controller;
 
@@ -92,6 +97,9 @@ void main() {
     fetch = _MockFetchPage();
     like = _MockLike();
     pass = _MockPass();
+    mockGate = _MockProfileGateCubit();
+    when(() => mockGate.isGated).thenReturn(false);
+    sl.registerLazySingleton<ProfileGateCubit>(() => mockGate);
     when(() => fetch(
           page: any(named: 'page'),
           pageSize: any(named: 'pageSize'),
@@ -111,6 +119,7 @@ void main() {
   tearDown(() async {
     await cubit.close();
     controller.dispose();
+    await sl.unregister<ProfileGateCubit>();
   });
 
   testWidgets(

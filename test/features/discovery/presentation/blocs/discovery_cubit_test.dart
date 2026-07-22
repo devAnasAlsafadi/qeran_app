@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_page.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_profile.dart';
@@ -12,12 +13,15 @@ import 'package:qeran/features/discovery/domain/usecases/like_profile_usecase.da
 import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 class MockFetchPage extends Mock implements FetchDiscoveryPageUseCase {}
 
 class MockLike extends Mock implements LikeProfileUseCase {}
 
 class MockPass extends Mock implements PassProfileUseCase {}
+
+class MockProfileGateCubit extends Mock implements ProfileGateCubit {}
 
 DiscoveryProfile _profile(String id) => DiscoveryProfile(
       id: id,
@@ -45,12 +49,16 @@ void main() {
   late MockFetchPage fetch;
   late MockLike like;
   late MockPass pass;
+  late MockProfileGateCubit mockGate;
   late DiscoveryCubit cubit;
 
   setUp(() {
     fetch = MockFetchPage();
     like = MockLike();
     pass = MockPass();
+    mockGate = MockProfileGateCubit();
+    when(() => mockGate.isGated).thenReturn(false);
+    sl.registerLazySingleton<ProfileGateCubit>(() => mockGate);
     cubit = DiscoveryCubit(
       fetchPage: fetch,
       likeProfile: like,
@@ -58,7 +66,10 @@ void main() {
     );
   });
 
-  tearDown(() => cubit.close());
+  tearDown(() async {
+    await cubit.close();
+    await sl.unregister<ProfileGateCubit>();
+  });
 
   // ──────────────────────────────────────────────────────────────────
   // loadInitial

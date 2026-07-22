@@ -38,8 +38,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     if (!_pageController.hasClients) return;
     _pageController.animateToPage(
       page,
-      duration: const Duration(milliseconds: 650),
-      curve: Curves.easeInOutCubicEmphasized,
+      duration: const Duration(milliseconds: 850),
+      curve: Curves.easeInOutCubic,
     );
   }
 
@@ -57,6 +57,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
     return BlocProvider(
       create: (_) => sl<OnboardingCubit>(),
       child: BlocConsumer<OnboardingCubit, OnboardingState>(
@@ -82,7 +83,12 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   controller: _pageController,
                   itemCount: onboardingData.length,
                   onPageChanged: cubit.onPageChanged,
-                  itemBuilder: (_, index) => _buildAnimatedFrame(index, cubit, state),
+                  itemBuilder: (_, index) => _buildAnimatedFrame(
+                    index,
+                    cubit,
+                    state,
+                    screenWidth,
+                  ),
                 ),
                 // Chrome shows on every frame. Skip is hidden on the last frame
                 // (roadmap); each frame owns its in-dome footer, so there is no
@@ -106,6 +112,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     int index,
     OnboardingCubit cubit,
     OnboardingState state,
+    double screenWidth,
   ) {
     return AnimatedBuilder(
       animation: _pageController,
@@ -119,22 +126,26 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
         }
 
         final progress = pageOffset.clamp(-1.0, 1.0);
-        final opacity = (1.0 - progress.abs() * 0.70).clamp(0.0, 1.0);
-        final scale = (1.0 - progress.abs() * 0.08).clamp(0.88, 1.0);
-        final parallax = progress * MediaQuery.of(context).size.width * 0.12;
+        final opacity = (1.0 - progress.abs() * 0.65).clamp(0.0, 1.0);
+        final scale = (1.0 - progress.abs() * 0.06).clamp(0.92, 1.0);
+        final parallax = progress * screenWidth * 0.10;
 
-        return Transform.translate(
-          offset: Offset(parallax, 0),
-          child: Transform.scale(
-            scale: scale,
-            child: Opacity(
-              opacity: opacity,
-              child: child,
+        return RepaintBoundary(
+          child: Transform.translate(
+            offset: Offset(parallax, 0),
+            child: Transform.scale(
+              scale: scale,
+              child: Opacity(
+                opacity: opacity,
+                child: child,
+              ),
             ),
           ),
         );
       },
-      child: _frameFor(index, cubit, state),
+      child: RepaintBoundary(
+        child: _frameFor(index, cubit, state),
+      ),
     );
   }
 

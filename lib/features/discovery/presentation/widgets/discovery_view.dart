@@ -553,9 +553,9 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     // visually enabled during the 1050 ms wait — rapid taps simply
     // no-op without disabling the press feedback.
     return Positioned(
-      left: _kStackHPad,
-      right: _kStackHPad,
-      bottom: navClearance,
+      left: _kStackHPad + 14.0,
+      right: _kStackHPad + 14.0,
+      bottom: navClearance + 14.0,
       child: DiscoveryFrostedActionZone(
         child: DiscoveryActionBar(
           onPass: hasActive

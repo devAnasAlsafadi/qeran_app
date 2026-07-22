@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
 /// The frosted bottom zone of the discovery card. Wraps the action cluster
@@ -21,29 +20,23 @@ class DiscoveryFrostedActionZone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(
-        bottom: Radius.circular(QeranRadii.panel),
-      ),
+      borderRadius: BorderRadius.circular(32),
       child: BackdropFilter(
         // Very subtle hint of blur — minimal frost to lift the buttons slightly without washing out content.
         filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                QeranColors.wine.withValues(alpha: 0.0),
-                QeranColors.wine.withValues(alpha: 0.06),
-              ],
+            borderRadius: BorderRadius.circular(32),
+            color: QeranColors.paper.withValues(alpha: 0.35),
+            border: Border.all(
+              color: QeranColors.wine.withValues(alpha: 0.08),
+              width: 1.0,
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              QeranSpacing.s16,
-              QeranSpacing.s20,
-              QeranSpacing.s16,
-              QeranSpacing.s16,
+            padding: const EdgeInsets.symmetric(
+              horizontal: QeranSpacing.s16,
+              vertical: QeranSpacing.s12,
             ),
             child: child,
           ),

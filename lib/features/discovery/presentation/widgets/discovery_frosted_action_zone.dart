@@ -28,10 +28,6 @@ class DiscoveryFrostedActionZone extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
             color: QeranColors.paper.withValues(alpha: 0.35),
-            border: Border.all(
-              color: QeranColors.wine.withValues(alpha: 0.08),
-              width: 1.0,
-            ),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(

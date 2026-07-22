@@ -6,15 +6,15 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'blur_reveal_portrait.dart';
 import 'onboarding_profile_card_layers.dart';
 import 'onboarding_profile_meta_overlay.dart';
-import 'onboarding_split_blur_portrait.dart';
 
-/// The privacy hero — a full-bleed sample portrait (Sara) whose photo carries a
-/// baked-in split from frosted to clear, with a top scrim for the floating
-/// chrome, a gold lock badge over the frosted half, and the name/age + category
-/// chips integrated over a wine scrim at the base. It bleeds to the screen top;
-/// the dome surfaces beneath it.
+/// The privacy hero — a full-bleed sample portrait (Sara) with an animated
+/// blur-reveal seam sweeping across it (frosted+wine ↔ softly revealed, the face
+/// never fully sharp), a top scrim for the floating chrome, a gold lock badge
+/// over it, and the name/age + category chips integrated over a wine scrim at
+/// the base. It bleeds to the screen top; the dome surfaces beneath it.
 class OnboardingBlurredProfileCard extends StatelessWidget {
   const OnboardingBlurredProfileCard({super.key});
 
@@ -24,10 +24,9 @@ class OnboardingBlurredProfileCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          OnboardingSplitBlurPortrait(),
+          BlurRevealPortrait(),
           OnboardingCardFullOverlay(),
           OnboardingCardTopScrim(),
-          OnboardingCardSplitDivider(),
           OnboardingCardBottomScrim(),
           _LockBadge(),
           Positioned(

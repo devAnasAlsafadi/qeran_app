@@ -38,18 +38,22 @@ class LoginActions extends StatelessWidget {
         const OrDivider(),
         QeranSpacing.vs16,
         BlocBuilder<LoginBloc, LoginState>(
-          builder: (context, state) => SocialLoginButtons(
-            onGoogleTap: state is LoginLoading
-                ? () {}
-                : () => context.read<LoginBloc>().add(
-                    LoginWithGoogleRequested(),
-                  ),
-            onAppleTap: state is LoginLoading
-                ? () {}
-                : () => context.read<LoginBloc>().add(
-                    LoginWithAppleRequested(),
-                  ),
-          ),
+          builder: (context, state) {
+            final isLoading = state is LoginLoading;
+            return SocialLoginButtons(
+              loading: isLoading,
+              onGoogleTap: isLoading
+                  ? () {}
+                  : () => context.read<LoginBloc>().add(
+                      LoginWithGoogleRequested(),
+                    ),
+              onAppleTap: isLoading
+                  ? () {}
+                  : () => context.read<LoginBloc>().add(
+                      LoginWithAppleRequested(),
+                    ),
+            );
+          },
         ),
         const SizedBox(height: QeranSpacing.s32),
         AuthFooterLink(

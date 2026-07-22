@@ -8,5 +8,10 @@ class AppAssets {
   static const String genderFemale = '${_imagePath}gender_female.webp';
   static const String essencePortrait =
       '${_imagePath}onboarding/essence_portrait.jpg';
+
+  /// Clean (unblurred) privacy hero portrait for the onboarding blur-reveal —
+  /// blur is applied at runtime, so the source must be sharp. Covered by the
+  /// `assets/images/` directory declaration in pubspec (no per-file entry).
+  static const String welcomePortrait = '${_imagePath}welcome_portrait.webp';
   static const String googleLogo = '${_iconPath}google_logo.svg';
 }

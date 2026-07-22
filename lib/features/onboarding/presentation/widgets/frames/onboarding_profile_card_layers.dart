@@ -62,35 +62,6 @@ class OnboardingCardFullOverlay extends StatelessWidget {
   }
 }
 
-/// The 1.5px gold seam marking the frosted/clear midline.
-class OnboardingCardSplitDivider extends StatelessWidget {
-  const OnboardingCardSplitDivider({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: Center(
-        child: Container(
-          width: 1.5,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [0.0, 0.55, 0.88],
-              colors: [
-                QeranColors.gold80,
-                QeranColors.gold40,
-                QeranColors.gold08,
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// A wine gradient shielding the lower card so the paper meta stays legible.
 class OnboardingCardBottomScrim extends StatelessWidget {
   const OnboardingCardBottomScrim({super.key});

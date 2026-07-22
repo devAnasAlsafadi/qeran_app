@@ -8,6 +8,10 @@ import 'qeran_colors.dart';
 /// [TextTheme] resolves NotoKufiArabic (Arabic) or Montserrat (Latin)
 /// based on locale. Numeric styles force Montserrat for tabular figures
 /// (Arabic Kufi has no tabular numerals).
+///
+/// Every style sets `letterSpacing: 0` explicitly because Material 3's
+/// defaults inject non-zero spacing that breaks Arabic connected script
+/// (letters appear separated instead of joined).
 class QeranTypography {
   const QeranTypography._();
 
@@ -17,6 +21,7 @@ class QeranTypography {
     fontSize: 32,
     fontWeight: FontWeight.w800,
     height: 1.15,
+    letterSpacing: 0,
     color: QeranColors.inkStrong,
   );
 
@@ -24,6 +29,7 @@ class QeranTypography {
     fontSize: 26,
     fontWeight: FontWeight.w800,
     height: 1.20,
+    letterSpacing: 0,
     color: QeranColors.inkStrong,
   );
 
@@ -31,6 +37,7 @@ class QeranTypography {
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 1.25,
+    letterSpacing: 0,
     color: QeranColors.inkStrong,
   );
 
@@ -38,6 +45,7 @@ class QeranTypography {
     fontSize: 18,
     fontWeight: FontWeight.w700,
     height: 1.30,
+    letterSpacing: 0,
     color: QeranColors.inkStrong,
   );
 
@@ -45,6 +53,7 @@ class QeranTypography {
     fontSize: 16,
     fontWeight: FontWeight.w600,
     height: 1.40,
+    letterSpacing: 0,
     color: QeranColors.inkStrong,
   );
 
@@ -52,6 +61,7 @@ class QeranTypography {
     fontSize: 15,
     fontWeight: FontWeight.w500,
     height: 1.55,
+    letterSpacing: 0,
     color: QeranColors.inkBody,
   );
 
@@ -59,6 +69,7 @@ class QeranTypography {
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.55,
+    letterSpacing: 0,
     color: QeranColors.inkBody,
   );
 
@@ -66,6 +77,7 @@ class QeranTypography {
     fontSize: 13,
     fontWeight: FontWeight.w700,
     height: 1.20,
+    letterSpacing: 0,
     color: QeranColors.inkStrong,
   );
 
@@ -73,6 +85,7 @@ class QeranTypography {
     fontSize: 11,
     fontWeight: FontWeight.w600,
     height: 1.40,
+    letterSpacing: 0,
     color: QeranColors.inkMuted,
   );
 
@@ -83,7 +96,9 @@ class QeranTypography {
     fontSize: 15,
     fontWeight: FontWeight.w700,
     height: 1.20,
+    letterSpacing: 0,
     fontFeatures: [FontFeature.tabularFigures()],
     color: QeranColors.inkStrong,
   );
 }
+

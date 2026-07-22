@@ -12,10 +12,14 @@ class SocialLoginButtons extends StatelessWidget {
   final VoidCallback onGoogleTap;
   final VoidCallback onAppleTap;
 
+  /// When true, replaces button icons with a spinner and disables taps.
+  final bool loading;
+
   const SocialLoginButtons({
     super.key,
     required this.onGoogleTap,
     required this.onAppleTap,
+    this.loading = false,
   });
 
   @override
@@ -24,13 +28,15 @@ class SocialLoginButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _SocialButton(
-          onTap: onGoogleTap,
+          onTap: loading ? null : onGoogleTap,
+          loading: loading,
           child: SvgPicture.asset(AppAssets.googleLogo),
         ),
         if (Platform.isIOS) ...[
           QeranSpacing.hs8,
           _SocialButton(
-            onTap: onAppleTap,
+            onTap: loading ? null : onAppleTap,
+            loading: loading,
             child: const Icon(
               Icons.apple,
               size: 28,
@@ -45,25 +51,46 @@ class SocialLoginButtons extends StatelessWidget {
 }
 
 class _SocialButton extends StatelessWidget {
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Widget child;
+  final bool loading;
 
-  const _SocialButton({required this.onTap, required this.child});
+  const _SocialButton({
+    required this.onTap,
+    required this.child,
+    this.loading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: const BoxDecoration(
-          color: QeranColors.paper,
-          borderRadius: QeranRadii.controlR,
-          boxShadow: QeranShadows.e2,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: loading ? 0.6 : 1.0,
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: const BoxDecoration(
+            color: QeranColors.paper,
+            borderRadius: QeranRadii.controlR,
+            boxShadow: QeranShadows.e2,
+          ),
+          child: Center(
+            child: loading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: QeranColors.wine,
+                    ),
+                  )
+                : child,
+          ),
         ),
-        child: Center(child: child),
       ),
     );
   }
 }
+

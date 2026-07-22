@@ -25,6 +25,12 @@ class QeranMotion {
 
   /// [QeranLoader] full rotation cycle.
   static const Duration loaderCycle = Duration(milliseconds: 1600);
+
+  /// One pass of the onboarding privacy blur-reveal seam (it ping-pongs, so a
+  /// full cycle is 2×). Deliberately the slowest token in the set — meditative,
+  /// not a UI transition. Matches the motion designer's reference exactly
+  /// (`docs/_design/Qeran Privacy Seam.html` → `6s ease-in-out alternate`).
+  static const Duration revealSweep = Duration(seconds: 6);
 }
 
 class QeranCurves {
@@ -38,4 +44,8 @@ class QeranCurves {
 
   /// Shimmer — symmetric ease.
   static const Curve shimmer = Curves.easeInOut;
+
+  /// Blur-reveal seam sweep — symmetric ease so the seam eases in and out at
+  /// both ends of every ping-pong pass (used as both curve and reverseCurve).
+  static const Curve revealSweep = Curves.easeInOut;
 }

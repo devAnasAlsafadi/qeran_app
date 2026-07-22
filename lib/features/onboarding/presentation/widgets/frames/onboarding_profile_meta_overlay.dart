@@ -64,42 +64,77 @@ class _InfoChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chips = <(IconData, String, String)>[
+    // Fixed 2×2 grid: التعليم/العمل on top, التديّن/الجنسية below. Each chip is
+    // capped at half the row width so a long label ellipsizes instead of
+    // overflowing — the pair always fits on one line in AR and EN.
+    final chips = _chipData(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final half = (constraints.maxWidth - QeranSpacing.s8) / 2;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _row(chips[0], chips[1], half),
+            QeranSpacing.vs8,
+            _row(chips[2], chips[3], half),
+          ],
+        );
+      },
+    );
+  }
+
+  List<(IconData, String)> _chipData(BuildContext context) {
+    String pair(String label, String value) => '$label · $value';
+    return [
       (
         Icons.school_rounded,
-        LocaleKeys.onboarding_essence_chip_education_label.t(context),
-        LocaleKeys.onboarding_essence_chip_education_value.t(context),
+        pair(
+          LocaleKeys.onboarding_essence_chip_education_label.t(context),
+          LocaleKeys.onboarding_essence_chip_education_value.t(context),
+        ),
       ),
       (
         Icons.work_rounded,
-        LocaleKeys.onboarding_essence_chip_work_label.t(context),
-        LocaleKeys.onboarding_essence_chip_work_value.t(context),
+        pair(
+          LocaleKeys.onboarding_essence_chip_work_label.t(context),
+          LocaleKeys.onboarding_essence_chip_work_value.t(context),
+        ),
       ),
       (
         Icons.mosque_rounded,
-        LocaleKeys.onboarding_essence_chip_religiosity_label.t(context),
-        LocaleKeys.onboarding_essence_chip_religiosity_value.t(context),
+        pair(
+          LocaleKeys.onboarding_essence_chip_religiosity_label.t(context),
+          LocaleKeys.onboarding_essence_chip_religiosity_value.t(context),
+        ),
       ),
       (
         // Nationality chip — globe glyph (the former heart suited "goal").
         Icons.public_rounded,
-        LocaleKeys.onboarding_essence_chip_goal_label.t(context),
-        LocaleKeys.onboarding_essence_chip_goal_value.t(context),
+        pair(
+          LocaleKeys.onboarding_essence_chip_goal_label.t(context),
+          LocaleKeys.onboarding_essence_chip_goal_value.t(context),
+        ),
       ),
     ];
-    return Wrap(
-      spacing: QeranSpacing.s8,
-      runSpacing: QeranSpacing.s8,
-      children: [
-        for (final (icon, label, value) in chips)
-          QeranChip(
-            icon: icon,
-            iconColor: QeranColors.gold,
-            label: '$label · $value',
-            variant: QeranChipVariant.glass,
-            compact: true,
-          ),
-      ],
+  }
+
+  Widget _row((IconData, String) a, (IconData, String) b, double maxWidth) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [_chip(a, maxWidth), QeranSpacing.hs8, _chip(b, maxWidth)],
+    );
+  }
+
+  Widget _chip((IconData, String) data, double maxWidth) {
+    final (icon, label) = data;
+    return QeranChip(
+      icon: icon,
+      iconColor: QeranColors.gold,
+      label: label,
+      variant: QeranChipVariant.glass,
+      compact: true,
+      maxWidth: maxWidth,
     );
   }
 }

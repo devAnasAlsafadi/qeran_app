@@ -42,7 +42,11 @@ void main() async {
   // to secure storage. Fire-and-forget: a slow response must not block
   // launch; widgets render against `CurrentSubscriptionInitial` and
   // observe the transition reactively.
-  unawaited(di.sl<CurrentSubscriptionCubit>().hydrate());
+  // Guard: skip the request entirely when there is no authenticated
+  // session — avoids a pointless 401 on every cold start for guests.
+  if (di.sl<UserSessionCubit>().state is UserSessionAuthenticated) {
+    unawaited(di.sl<CurrentSubscriptionCubit>().hydrate());
+  }
 
   // FCM init — wires onTokenRefresh to the device-bootstrap orchestrator.
   // Failures here must not block app launch.

@@ -233,8 +233,8 @@ class AppRouter {
         final args = settings.arguments as FullProfileDetailsArgs?;
         return PageRouteBuilder(
           settings: settings,
-          transitionDuration: const Duration(milliseconds: 750),
-          reverseTransitionDuration: const Duration(milliseconds: 600),
+          transitionDuration: const Duration(milliseconds: 1100),
+          reverseTransitionDuration: const Duration(milliseconds: 850),
           pageBuilder: (context, animation, secondaryAnimation) => args == null
               ? Scaffold(
                   body: Center(
@@ -245,15 +245,12 @@ class AppRouter {
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final curvedAnim = CurvedAnimation(
               parent: animation,
-              curve: Curves.fastLinearToSlowEaseIn,
+              curve: Curves.easeInOutCubicEmphasized,
               reverseCurve: Curves.easeInOutCubic,
             );
             return FadeTransition(
               opacity: curvedAnim,
-              child: ScaleTransition(
-                scale: Tween<double>(begin: 0.98, end: 1.0).animate(curvedAnim),
-                child: child,
-              ),
+              child: child,
             );
           },
         );

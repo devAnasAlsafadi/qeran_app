@@ -53,13 +53,12 @@ const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
   borderColor: QeranColors.wine08,
 );
 
-// Like — wine-filled primary CTA with a gold heart icon + gold border ring.
+// Like — wine-filled primary CTA with a gold heart icon. Pure weightless CTA.
 const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
   background: QeranColors.wine,
   disabledBackground: QeranColors.wine40,
   iconColor: QeranColors.gold,
   disabledIconColor: QeranColors.gold40,
-  borderColor: QeranColors.gold,
 );
 
 /// Three-button action bar under the Discovery card.

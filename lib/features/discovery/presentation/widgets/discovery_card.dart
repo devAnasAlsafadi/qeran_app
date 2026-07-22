@@ -227,7 +227,7 @@ class _SmoothHeroRectTween extends RectTween {
 
   @override
   Rect? lerp(double t) {
-    final curvedT = Curves.fastLinearToSlowEaseIn.transform(t);
+    final curvedT = Curves.easeInOutCubicEmphasized.transform(t);
     if (begin == null || end == null) return null;
     return Rect.fromLTRB(
       begin!.left + (end!.left - begin!.left) * curvedT,

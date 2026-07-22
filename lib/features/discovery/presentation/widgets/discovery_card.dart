@@ -50,7 +50,10 @@ class DiscoveryImagePanel extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (imageUrl.isNotEmpty)
-            DiscoveryBlurredImage(url: imageUrl)
+            Hero(
+              tag: 'profile_hero_${profile.id}',
+              child: DiscoveryBlurredImage(url: imageUrl),
+            )
           else
             Container(color: QeranColors.creamSurface),
           // Identity + privacy overlays. A single full-bleed Column reserves

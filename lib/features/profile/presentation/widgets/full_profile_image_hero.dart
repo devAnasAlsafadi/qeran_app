@@ -27,7 +27,10 @@ class FullProfileImageHero extends StatelessWidget {
     final blurred = profile.primaryImage?.isBlurred ?? false;
     return Stack(
       children: [
-        ProfileHeaderGallery(images: profile.images),
+        Hero(
+          tag: 'profile_hero_${profile.id}',
+          child: ProfileHeaderGallery(images: profile.images),
+        ),
         const Positioned.fill(
           child: IgnorePointer(child: ProfileImageScrim()),
         ),

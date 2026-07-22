@@ -53,13 +53,13 @@ const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
   borderColor: QeranColors.wine08,
 );
 
-// Like — wine-filled primary CTA with a gold heart icon + gold border ring.
+// Like — wine-filled primary CTA with a gold heart icon + paper white border ring.
 const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
   background: QeranColors.wine,
   disabledBackground: QeranColors.wine40,
   iconColor: QeranColors.gold,
   disabledIconColor: QeranColors.gold40,
-  borderColor: QeranColors.gold,
+  borderColor: QeranColors.paper,
 );
 
 /// Three-button action bar under the Discovery card.
@@ -492,7 +492,7 @@ class _PressableActionButtonState extends State<_PressableActionButton>
         disabled ? palette.disabledIconColor : palette.iconColor;
     final bgColor =
         disabled ? palette.disabledBackground : palette.background;
-    final borderWidth = palette.borderColor == QeranColors.gold ? 3.5 : 2.0;
+    final borderWidth = palette.borderColor == QeranColors.paper ? 3.0 : 2.0;
     final shape = palette.borderColor == null
         ? const CircleBorder()
         : CircleBorder(

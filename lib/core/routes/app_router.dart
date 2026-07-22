@@ -45,26 +45,23 @@ class AppRouter {
   static PageRouteBuilder<T> _buildSmoothRoute<T>({
     required RouteSettings settings,
     required Widget Function(BuildContext context) builder,
-    Duration duration = const Duration(milliseconds: 400),
+    Duration duration = const Duration(milliseconds: 480),
   }) {
     return PageRouteBuilder<T>(
       settings: settings,
       transitionDuration: duration,
-      reverseTransitionDuration: Duration(milliseconds: (duration.inMilliseconds * 0.80).round()),
+      reverseTransitionDuration: Duration(milliseconds: (duration.inMilliseconds * 0.75).round()),
       pageBuilder: (context, animation, secondaryAnimation) => builder(context),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         final curvedAnim = CurvedAnimation(
           parent: animation,
-          curve: Curves.easeInOutCubicEmphasized,
-          reverseCurve: Curves.easeInOutCubic,
+          curve: Curves.easeInOutCubic,
+          reverseCurve: Curves.easeInOut,
         );
         return FadeTransition(
           opacity: curvedAnim,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.04, 0.0),
-              end: Offset.zero,
-            ).animate(curvedAnim),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.98, end: 1.0).animate(curvedAnim),
             child: child,
           ),
         );

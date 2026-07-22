@@ -137,7 +137,11 @@ class _SplashScreenState extends State<SplashScreen>
   void _maybeNavigate() {
     if (_navigated || !_animDone || _pending == null) return;
     _navigated = true;
-    _controller.handleNavigation(_pending!);
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _controller.handleNavigation(_pending!);
+      }
+    });
   }
 
   @override

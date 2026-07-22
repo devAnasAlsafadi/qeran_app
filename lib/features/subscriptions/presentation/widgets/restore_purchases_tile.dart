@@ -132,8 +132,8 @@ class _Tile extends StatelessWidget {
                     ? QeranLoader.inline(color: QeranColors.wine)
                     : Icon(
                         isRtl
-                            ? Icons.chevron_left_rounded
-                            : Icons.chevron_right_rounded,
+                            ? Icons.chevron_right_rounded
+                            : Icons.chevron_left_rounded,
                         size: 22,
                         color: QeranColors.wine20,
                       ),

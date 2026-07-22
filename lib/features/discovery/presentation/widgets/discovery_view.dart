@@ -17,6 +17,7 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
+import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
@@ -36,6 +37,7 @@ import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_frosted_action_zone.dart';
 import 'discovery_like_burst.dart';
+import 'discovery_top_bar.dart';
 import 'discovery_unified_card.dart';
 
 /// Reusable Discovery content. Self-contained — provides its own
@@ -265,7 +267,24 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   Widget _buildBody(BuildContext context, DiscoveryState state) {
     return SafeArea(
       bottom: false,
-      child: _ScrollableProfile(state: state),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s16,
+              QeranSpacing.s8,
+              QeranSpacing.s16,
+              0,
+            ),
+            child: DiscoveryTopBar(
+              onFilterTap: () => _openFilters(context),
+              onNotificationsTap: () => openNotifications(context),
+            ),
+          ),
+          const SizedBox(height: QeranSpacing.s12),
+          Expanded(child: _ScrollableProfile(state: state)),
+        ],
+      ),
     );
   }
 }
@@ -376,7 +395,6 @@ class _ProfilePageState extends State<_ProfilePage> {
                         child: DiscoveryUnifiedCard(
                           profile: profile,
                           onTapDetails: () => _openDetails(context, profile),
-                          onFilterTap: () => _openFilters(context),
                           bottomContentInset: _kActionZoneClearance,
                         ),
                       ),

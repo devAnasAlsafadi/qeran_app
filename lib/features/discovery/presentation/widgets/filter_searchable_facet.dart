@@ -77,7 +77,7 @@ class _FilterSearchableFacetState extends State<FilterSearchableFacet> {
               vertical: QeranSpacing.s12,
             ),
             decoration: BoxDecoration(
-              color: QeranColors.creamSurface,
+              color: QeranColors.paper,
               borderRadius: QeranRadii.controlR,
               border: Border.all(
                 color: selectedList.isNotEmpty

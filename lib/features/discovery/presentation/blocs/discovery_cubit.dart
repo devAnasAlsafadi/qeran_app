@@ -10,6 +10,7 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
+import '../../domain/entities/discovery_filter_selection.dart';
 import '../../domain/entities/like_outcome.dart';
 import '../../domain/usecases/fetch_discovery_page_usecase.dart';
 import '../../domain/usecases/like_profile_usecase.dart';
@@ -52,6 +53,17 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   /// AND every prefetch — so pagination stays consistent with the
   /// user's filter selection. `null` means unconstrained.
   Map<String, String>? _activeFilters;
+
+  /// Raw selections behind [_activeFilters], kept so the filter sheet can be
+  /// re-seeded with the currently-applied state when it reopens. The flat
+  /// [_activeFilters] map is lossy (it can't be rendered back into chips /
+  /// sliders), so the structured selections are held alongside it.
+  Map<int, DiscoveryFilterSelection> _activeSelections = const {};
+
+  /// The applied filter selections — used to seed the filter sheet on reopen
+  /// so previously-picked facets show as selected.
+  Map<int, DiscoveryFilterSelection> get activeFilterSelections =>
+      _activeSelections;
 
   /// Blocks a second [like] from racing the first while the API call
   /// is in flight. Released in `like`'s `finally` block. `pass` does
@@ -108,9 +120,17 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   /// The reload uses the same path as `_loadFirstPage`, so any in-flight
   /// prefetch from the previous filter state is discarded by the
   /// page-mismatch guard in `_prefetch`.
-  Future<void> applyFilters(Map<String, String>? filters) {
+  ///
+  /// [selections] is the structured snapshot behind [filters] (optional, empty
+  /// by default so the existing positional contract is unchanged). It is kept
+  /// only to re-seed the filter sheet on reopen — it never affects the query.
+  Future<void> applyFilters(
+    Map<String, String>? filters, {
+    Map<int, DiscoveryFilterSelection> selections = const {},
+  }) {
     final hasFilters = filters != null && filters.isNotEmpty;
     _activeFilters = hasFilters ? Map.unmodifiable(filters) : null;
+    _activeSelections = Map.unmodifiable(selections);
     return _loadFirstPage();
   }
 

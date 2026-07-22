@@ -9,7 +9,6 @@ import '../domain/usecases/get_discovery_filters_usecase.dart';
 import '../domain/usecases/like_profile_usecase.dart';
 import '../domain/usecases/pass_profile_usecase.dart';
 import '../presentation/blocs/discovery_cubit.dart';
-import '../presentation/blocs/discovery_filter_cubit.dart';
 
 void initDiscoveryDependencies() {
   //! DataSource
@@ -42,10 +41,7 @@ void initDiscoveryDependencies() {
       onLikeSuccess: sl<CurrentSubscriptionCubit>().onActionConsumedCounter,
     ),
   );
-  // Sheet-scoped. Chunk D may switch to `registerFactoryParam` to
-  // seed with currently-active filters; for now the cubit opens with
-  // an empty selection map.
-  sl.registerFactory(
-    () => DiscoveryFilterCubit(getFilters: sl()),
-  );
+  // `DiscoveryFilterCubit` is constructed directly inside the filter sheet
+  // (seeded with the currently-applied selections), so it isn't registered
+  // here — it only needs the app-scoped `GetDiscoveryFiltersUseCase` above.
 }

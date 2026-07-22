@@ -9,22 +9,37 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../../domain/entities/discovery_filter_selection.dart';
 import '../blocs/discovery_filter_cubit.dart';
 import '../blocs/discovery_filter_state.dart';
 import '../widgets/filter_question_renderer.dart';
 
+/// The filter sheet's result on Save: the flat query [payload] (fed straight
+/// into `DiscoveryCubit.applyFilters`) plus the raw [selections] snapshot, kept
+/// by the deck so the sheet re-seeds with the applied state when it reopens.
+typedef DiscoveryFilterResult = ({
+  Map<String, String> payload,
+  Map<int, DiscoveryFilterSelection> selections,
+});
+
 /// Convenience opener for the dynamic discovery filter, on the shared DS
 /// bottom-sheet shell ([QeranBottomSheetScaffold]).
 ///
-/// Returns the cubit's flat query map (`RangeFrom[...]` / `QuestionFilters[...]`
-/// keys) or `null` if the user dismissed the sheet without applying. An empty
-/// map means the user applied with no selections — the caller treats that as
-/// "clear all filters".
-Future<Map<String, String>?> showDiscoveryFilterSheet(BuildContext context) {
-  return showQeranBottomSheet<Map<String, String>>(
+/// [initialSelections] seeds the draft so already-applied facets open as
+/// selected. Returns a [DiscoveryFilterResult] on Save, or `null` if the user
+/// dismissed the sheet without applying. An empty payload means the user
+/// applied with no selections — the caller treats that as "clear all filters".
+Future<DiscoveryFilterResult?> showDiscoveryFilterSheet(
+  BuildContext context, {
+  Map<int, DiscoveryFilterSelection> initialSelections = const {},
+}) {
+  return showQeranBottomSheet<DiscoveryFilterResult>(
     context: context,
     builder: (_) => BlocProvider<DiscoveryFilterCubit>(
-      create: (_) => sl<DiscoveryFilterCubit>()..loadFilters(),
+      create: (_) => DiscoveryFilterCubit(
+        getFilters: sl(),
+        initialSelections: initialSelections,
+      )..loadFilters(),
       child: const _DiscoveryFilterSheet(),
     ),
   );
@@ -90,8 +105,12 @@ class _Footer extends StatelessWidget {
   const _Footer();
 
   void _apply(BuildContext context) {
-    final payload = context.read<DiscoveryFilterCubit>().buildPayload();
-    Navigator.of(context).pop(payload);
+    final cubit = context.read<DiscoveryFilterCubit>();
+    // Commit + close; the opener applies the payload and refreshes the deck.
+    Navigator.of(context).pop((
+      payload: cubit.buildPayload(),
+      selections: cubit.currentSelections(),
+    ));
   }
 
   @override

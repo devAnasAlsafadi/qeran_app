@@ -175,6 +175,13 @@ class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState> with SafeEmit<Dis
     return payload;
   }
 
+  /// Snapshot of the current raw selections, so the opener can persist them and
+  /// re-seed the sheet on reopen (mirrors the matchmaker explore filter).
+  Map<int, DiscoveryFilterSelection> currentSelections() {
+    final loaded = _requireLoaded();
+    return loaded == null ? const {} : Map.of(loaded.selections);
+  }
+
   DiscoveryFilterLoaded? _requireLoaded() {
     final s = state;
     return s is DiscoveryFilterLoaded ? s : null;

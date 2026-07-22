@@ -25,9 +25,8 @@ class DiscoveryFrostedActionZone extends StatelessWidget {
         bottom: Radius.circular(QeranRadii.panel),
       ),
       child: BackdropFilter(
-        // Gentle hint of blur — enough to lift the buttons off scrolling data
-        // behind them, not a heavy frost. Paired with a soft wine scrim.
-        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        // Very subtle hint of blur — minimal frost to lift the buttons slightly without washing out content.
+        filter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
         child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -35,7 +34,7 @@ class DiscoveryFrostedActionZone extends StatelessWidget {
               end: Alignment.bottomCenter,
               colors: [
                 QeranColors.wine.withValues(alpha: 0.0),
-                QeranColors.wine.withValues(alpha: 0.16),
+                QeranColors.wine.withValues(alpha: 0.06),
               ],
             ),
           ),

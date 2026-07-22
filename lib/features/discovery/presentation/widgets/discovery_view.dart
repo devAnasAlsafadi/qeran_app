@@ -239,21 +239,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              // Issue 1 fix — fixed white backdrop covering the lower
-              // portion of the screen. Sits BEHIND the scroll content so
-              // it only shows through where the scroll content doesn't
-              // paint (e.g. the 20 dp gap the body card's overlap
-              // Transform creates at max scroll, and the margins around
-              // the bottom-nav pill). The scroll's image + body cards
-              // are opaque, so this backdrop is invisible everywhere
-              // they paint — no visual side effects above.
-              const Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: 260,
-                child: ColoredBox(color: QeranColors.paper),
-              ),
               Positioned.fill(child: _buildBody(context, state)),
               if (!_isFullScreenReplacement(state))
                 _FloatingActionBar(state: state, onLikeBurst: _spawnLikeBurst),
@@ -704,33 +689,57 @@ class _PeekCardLayer extends StatelessWidget {
           // Mirror the front card's silhouette — photo (51 %) over a paper
           // panel (49 %) — so the promoting peek reads as the card that will
           // replace the front, not a full-bleed photo.
-          child: ClipRRect(
-            borderRadius: QeranRadii.panelR,
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 51,
-                  child: DiscoveryImagePanel(
-                    profile: profile,
-                    onTap: null,
-                    showOverlayActions: false,
-                  ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: QeranRadii.panelR,
+              color: QeranColors.paper,
+              border: Border.all(
+                color: QeranColors.wine.withValues(alpha: 0.10),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: QeranColors.wine.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
                 ),
-                Expanded(
-                  flex: 49,
-                  child: ColoredBox(
-                    color: QeranColors.paper,
-                    // Truncated preview of the next profile so the promoting
-                    // peek reads as a real card. Non-scrolling; clipped by the
-                    // card's ClipRRect.
-                    child: SingleChildScrollView(
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(QeranSpacing.s20),
-                      child: DiscoveryInfoPanel(profile: profile, maxLines: 2),
-                    ),
-                  ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  spreadRadius: -2,
+                  offset: const Offset(0, 4),
                 ),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: QeranRadii.panelR,
+              child: Column(
+                children: [
+                  Expanded(
+                    flex: 51,
+                    child: DiscoveryImagePanel(
+                      profile: profile,
+                      onTap: null,
+                      showOverlayActions: false,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 49,
+                    child: ColoredBox(
+                      color: QeranColors.paper,
+                      // Truncated preview of the next profile so the promoting
+                      // peek reads as a real card. Non-scrolling; clipped by the
+                      // card's ClipRRect.
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(QeranSpacing.s20),
+                        child: DiscoveryInfoPanel(profile: profile, maxLines: 2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

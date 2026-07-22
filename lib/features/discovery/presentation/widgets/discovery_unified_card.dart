@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
 import '../../domain/entities/discovery_profile.dart';
@@ -40,9 +39,27 @@ class DiscoveryUnifiedCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         borderRadius: QeranRadii.panelR,
-        boxShadow: QeranShadows.e3,
+        color: QeranColors.paper,
+        border: Border.all(
+          color: QeranColors.wine.withValues(alpha: 0.10),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: QeranColors.wine.withValues(alpha: 0.08),
+            blurRadius: 24,
+            spreadRadius: 0,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            spreadRadius: -2,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: QeranRadii.panelR,

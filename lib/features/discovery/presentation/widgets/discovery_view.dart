@@ -79,7 +79,7 @@ class _DiscoveryContent extends StatefulWidget {
 
 // ── Design constants ────────────────────────────────────────────────────────
 const double _kStackHPad = 18.0;
-const double _kStackTPad = 16.0;
+const double _kStackTPad = 4.0;
 const double _kPeekHeight = 20.0;
 
 /// Height reserved at the bottom of the card's internal scroll so the last
@@ -281,7 +281,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
               onNotificationsTap: () => openNotifications(context),
             ),
           ),
-          const SizedBox(height: QeranSpacing.s12),
+          const SizedBox(height: QeranSpacing.s4),
           Expanded(child: _ScrollableProfile(state: state)),
         ],
       ),

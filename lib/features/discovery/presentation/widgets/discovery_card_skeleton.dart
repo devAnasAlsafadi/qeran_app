@@ -31,7 +31,7 @@ class DiscoveryCardSkeleton extends StatelessWidget {
         final reservedBottom =
             bottomClearance ??
             (QeranBottomNav.contentClearance(context) +
-                (isLandscape ? 12.0 : 48.0));
+                (isLandscape ? 12.0 : 24.0));
 
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -97,14 +97,14 @@ class _SkeletonCardContent extends StatelessWidget {
           direction: isLandscape ? Axis.horizontal : Axis.vertical,
           children: [
             Expanded(
-              flex: isLandscape ? 45 : 51,
+              flex: isLandscape ? 45 : 54,
               child: LayoutBuilder(
                 builder: (context, constraints) =>
                     QeranSkeleton.box(height: constraints.maxHeight, radius: 0),
               ),
             ),
             Expanded(
-              flex: isLandscape ? 55 : 49,
+              flex: isLandscape ? 55 : 46,
               child: ColoredBox(
                 color: QeranColors.paper,
                 child: Padding(

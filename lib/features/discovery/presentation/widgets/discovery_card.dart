@@ -168,6 +168,42 @@ class _AdaptiveImageOverlay extends StatelessWidget {
           ),
         );
 
+        // On regular portrait cards the privacy group belongs to the visual
+        // center of the whole photo. Previously it occupied the first half of
+        // a Column, which made the lock and caption look noticeably too high.
+        // Compact landscape/split-screen layouts keep the collision-safe flex
+        // arrangement below because the identity block shares very little
+        // vertical space with the privacy message there.
+        if (!isCompact) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: SizedBox(
+                    width: contentWidth,
+                    child: const DiscoveryPrivacyMessage(),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  start: horizontalPadding,
+                  end: horizontalPadding,
+                  top: topPadding,
+                  bottom: bottomPadding,
+                ),
+                child: Align(
+                  alignment: AlignmentDirectional.bottomStart,
+                  child: identity,
+                ),
+              ),
+            ],
+          );
+        }
+
         return Padding(
           padding: EdgeInsetsDirectional.only(
             start: horizontalPadding,

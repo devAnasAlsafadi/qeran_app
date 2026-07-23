@@ -393,7 +393,7 @@ class _ProfilePageState extends State<_ProfilePage> {
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
         final navClearance =
             QeranBottomNav.contentClearance(context) +
-            (isLandscape ? 12.0 : 48.0);
+            (isLandscape ? 12.0 : 24.0);
         final profile = widget.loaded.current!;
         final nextProfile = widget.loaded.next;
 
@@ -557,7 +557,7 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     final media = MediaQuery.sizeOf(context);
     final isLandscape = media.width > media.height;
     final navClearance =
-        QeranBottomNav.contentClearance(context) + (isLandscape ? 12.0 : 48.0);
+        QeranBottomNav.contentClearance(context) + (isLandscape ? 12.0 : 24.0);
 
     // Enable state derives from the cubit only (see the previous
     // _ActionBarArea note): gating on the animator's busy flag caused
@@ -742,7 +742,7 @@ class _PeekCardLayer extends StatelessWidget {
                     direction: isLandscape ? Axis.horizontal : Axis.vertical,
                     children: [
                       Expanded(
-                        flex: isLandscape ? 45 : 51,
+                        flex: isLandscape ? 45 : 54,
                         child: DecoratedBox(
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
@@ -761,7 +761,7 @@ class _PeekCardLayer extends StatelessWidget {
                         ),
                       ),
                       Expanded(
-                        flex: isLandscape ? 55 : 49,
+                        flex: isLandscape ? 55 : 46,
                         child: ColoredBox(
                           color: QeranColors.paper,
                           child: Padding(

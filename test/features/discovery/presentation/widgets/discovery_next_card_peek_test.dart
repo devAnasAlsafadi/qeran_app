@@ -20,6 +20,8 @@ import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.da
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_privacy_message.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_unified_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -223,6 +225,30 @@ void main() {
     ) async {
       await _pumpView(tester, [_profile('a')]);
       expect(find.byType(DiscoveryImagePanel), findsOneWidget);
+    });
+
+    testWidgets('portrait card gives 54 percent of its height to the photo', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final cardHeight = tester
+          .getSize(find.byType(DiscoveryUnifiedCard))
+          .height;
+      final photoHeight = tester
+          .getSize(find.byType(DiscoveryImagePanel))
+          .height;
+      final photoCenter = tester.getCenter(find.byType(DiscoveryImagePanel));
+      final privacyCenter = tester.getCenter(
+        find.byType(DiscoveryPrivacyMessage),
+      );
+
+      expect(photoHeight / cardHeight, closeTo(0.54, 0.01));
+      expect(privacyCenter.dy, closeTo(photoCenter.dy, 1));
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('loaded deck rotates to landscape without overflow', (

@@ -10,7 +10,7 @@ import 'discovery_card.dart';
 import 'discovery_deck_animator.dart';
 import 'discovery_swipe_handler.dart';
 
-/// The unified discovery card: one rounded block whose top ~51 % is the
+/// The unified discovery card: one rounded block whose top ~54 % is the
 /// FIXED blurred photo (name / age / chips overlaid) and whose bottom is a
 /// white surface hosting the نبذة عني preview + inside chips that scrolls
 /// INTERNALLY. The photo never scrolls and the page itself doesn't scroll —
@@ -108,7 +108,7 @@ class _CardContent extends StatelessWidget {
             // FIXED photo — top slice of the card. Tapping it opens the full
             // profile (unchanged navigation).
             Expanded(
-              flex: isLandscape ? 45 : 51,
+              flex: isLandscape ? 45 : 54,
               child: DiscoveryImagePanel(
                 profile: profile,
                 onTap: onTapDetails,
@@ -118,7 +118,7 @@ class _CardContent extends StatelessWidget {
             // Internal scroll region on the white surface. Pull-to-refresh keeps
             // the exact same DiscoveryCubit.refresh() wiring, re-hosted here.
             Expanded(
-              flex: isLandscape ? 55 : 49,
+              flex: isLandscape ? 55 : 46,
               child: ColoredBox(
                 color: QeranColors.paper,
                 child: RefreshIndicator(

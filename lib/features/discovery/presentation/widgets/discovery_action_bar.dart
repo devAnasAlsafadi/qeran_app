@@ -19,34 +19,28 @@ class _ActionButtonPalette {
   final Color iconColor;
   final Color disabledIconColor;
 
-  /// Optional thin outline. `null` → no border (filled CTA style).
-  final Color? borderColor;
-
   const _ActionButtonPalette({
     required this.background,
     required this.disabledBackground,
     required this.iconColor,
     required this.disabledIconColor,
-    this.borderColor,
   });
 }
 
-// Pass — paper surface with an elegant wine border.
+// Pass — quiet paper surface with no outline.
 const _ActionButtonPalette _kPassPalette = _ActionButtonPalette(
   background: QeranColors.paper,
   disabledBackground: QeranColors.paper,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
-  borderColor: QeranColors.wine20,
 );
 
-// Undo — cream-lifted secondary with a subtle wine border.
+// Undo — cream-lifted secondary with no outline.
 const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
   background: QeranColors.creamSurface,
   disabledBackground: QeranColors.creamSurface,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
-  borderColor: QeranColors.wine08,
 );
 
 // Like — wine-filled primary CTA with a gold heart icon. Pure weightless CTA.
@@ -519,11 +513,7 @@ class _PressableActionButtonState extends State<_PressableActionButton>
     final palette = widget.palette;
     final iconColor = disabled ? palette.disabledIconColor : palette.iconColor;
     final bgColor = disabled ? palette.disabledBackground : palette.background;
-    final shape = palette.borderColor == null
-        ? const CircleBorder()
-        : CircleBorder(
-            side: BorderSide(color: palette.borderColor!, width: 1.6),
-          );
+    const shape = CircleBorder();
 
     final button = Tooltip(
       message: widget.tooltip,

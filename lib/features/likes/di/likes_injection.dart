@@ -1,4 +1,5 @@
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../data/datasources/likes_remote_datasource.dart';
 import '../data/datasources/matches_remote_datasource.dart';
@@ -61,6 +62,7 @@ void initLikesDependencies() {
       // the formal-step auto-send.
       shareProfile: sl(),
       sendText: sl(),
+      profileGate: sl<ProfileGateCubit>(),
     ),
   );
 }

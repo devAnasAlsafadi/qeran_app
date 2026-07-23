@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
-import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
@@ -46,6 +45,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   // Chat use-cases (cross-feature) for the formal-step auto-send.
   final ShareProfileUseCase _shareProfile;
   final SendTextMessageUseCase _sendText;
+  final ProfileGateCubit _profileGate;
 
   LikesCubit({
     required GetIncomingLikesUseCase getIncoming,
@@ -58,6 +58,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required RejectPhotoExchangeUseCase rejectPhotoExchange,
     required ShareProfileUseCase shareProfile,
     required SendTextMessageUseCase sendText,
+    required ProfileGateCubit profileGate,
   })  : _getIncoming = getIncoming,
         _getOutgoing = getOutgoing,
         _acceptLike = acceptLike,
@@ -68,6 +69,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         _rejectPhotoExchange = rejectPhotoExchange,
         _shareProfile = shareProfile,
         _sendText = sendText,
+        _profileGate = profileGate,
         super(const LikesState());
 
   /// Kicks off the active tab if it hasn't loaded yet. Called once
@@ -196,7 +198,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   Future<void> acceptLike(int likeRequestId) async {
     if (state.isActionInFlight(likeRequestId)) return;
     // Approval pre-gate — an unapproved user can't accept likes yet.
-    if (sl<ProfileGateCubit>().isGated) {
+    if (_profileGate.isGated) {
       emit(state.copyWith(
         actionEvent: LikesActionEvent.acceptUnderReview,
         actionEventVersion: state.actionEventVersion + 1,
@@ -308,7 +310,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   Future<void> requestPhotoExchange(int likeRequestId) async {
     if (state.isPhotoExchangeRequesting(likeRequestId)) return;
     // Approval pre-gate — an unapproved user can't request photo exchange yet.
-    if (sl<ProfileGateCubit>().isGated) {
+    if (_profileGate.isGated) {
       emit(state.copyWith(
         actionEvent: LikesActionEvent.photoExchangeRequestUnderReview,
         actionEventVersion: state.actionEventVersion + 1,

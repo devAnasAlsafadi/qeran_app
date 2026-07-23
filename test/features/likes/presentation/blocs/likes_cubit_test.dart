@@ -21,6 +21,7 @@ import 'package:qeran/features/likes/presentation/blocs/likes_cubit.dart';
 import 'package:qeran/features/likes/presentation/blocs/likes_state.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 class _MockIncoming extends Mock implements GetIncomingLikesUseCase {}
 
@@ -42,6 +43,8 @@ class _MockShareProfile extends Mock implements ShareProfileUseCase {}
 
 class _MockSendText extends Mock implements SendTextMessageUseCase {}
 
+class _MockProfileGate extends Mock implements ProfileGateCubit {}
+
 const _empty = LikeRequestsData(
   pending: [],
   archived: [],
@@ -61,6 +64,7 @@ void main() {
   late _MockRejectPx rejectPx;
   late _MockShareProfile shareProfile;
   late _MockSendText sendText;
+  late _MockProfileGate profileGate;
   late LikesCubit cubit;
 
   setUp(() {
@@ -74,6 +78,8 @@ void main() {
     rejectPx = _MockRejectPx();
     shareProfile = _MockShareProfile();
     sendText = _MockSendText();
+    profileGate = _MockProfileGate();
+    when(() => profileGate.isGated).thenReturn(false);
     cubit = LikesCubit(
       getIncoming: incoming,
       getOutgoing: outgoing,
@@ -85,6 +91,7 @@ void main() {
       rejectPhotoExchange: rejectPx,
       shareProfile: shareProfile,
       sendText: sendText,
+      profileGate: profileGate,
     );
   });
 

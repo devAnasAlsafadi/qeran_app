@@ -42,6 +42,10 @@ class LikeBlurredImage extends StatelessWidget {
   /// viewers pass `BoxFit.contain` so the entire image is visible.
   final BoxFit fit;
 
+  /// Allows large profile surfaces to match the stronger discovery blur
+  /// during a shared-photo transition. Existing compact callers keep 6.
+  final double blurSigma;
+
   const LikeBlurredImage({
     super.key,
     required this.url,
@@ -52,12 +56,13 @@ class LikeBlurredImage extends StatelessWidget {
     this.borderRadius,
     this.alignment = Alignment.center,
     this.fit = BoxFit.cover,
+    this.blurSigma = _defaultSigma,
   });
 
   /// Soft blur — strong enough to obscure facial features without
   /// wiping the image into a uniform gray disc. The Figma reference
   /// shows a recognisable silhouette + colour mood; 6 sigma matches.
-  static const double _sigma = 6.0;
+  static const double _defaultSigma = 6.0;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +90,7 @@ class LikeBlurredImage extends StatelessWidget {
     );
     if (!blur) return img;
     return ImageFiltered(
-      imageFilter: ImageFilter.blur(sigmaX: _sigma, sigmaY: _sigma),
+      imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
       child: img,
     );
   }
@@ -107,9 +112,7 @@ class LikeBlurredImage extends StatelessWidget {
   }
 
   Widget _placeholder() {
-    return ColoredBox(
-      color: QeranColors.wine.withValues(alpha: 0.06),
-    );
+    return ColoredBox(color: QeranColors.wine.withValues(alpha: 0.06));
   }
 
   Widget _fallback() {

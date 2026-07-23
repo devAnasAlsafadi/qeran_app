@@ -85,6 +85,30 @@ class AppRouter {
     );
   }
 
+  /// Shared-photo route used by Discovery -> full profile.
+  ///
+  /// The photo owns the spatial movement through Hero. The route itself only
+  /// fades, avoiding a competing horizontal slide underneath the flying image.
+  static PageRouteBuilder<T> _buildProfileDetailsRoute<T>({
+    required RouteSettings settings,
+    required Widget Function(BuildContext context) builder,
+  }) {
+    return PageRouteBuilder<T>(
+      settings: settings,
+      transitionDuration: const Duration(milliseconds: 340),
+      reverseTransitionDuration: const Duration(milliseconds: 260),
+      pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final fade = CurvedAnimation(
+          parent: animation,
+          curve: const Interval(0, 0.82, curve: Curves.easeOutCubic),
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(opacity: fade, child: child);
+      },
+    );
+  }
+
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RouteNames.splashScreen:
@@ -274,9 +298,8 @@ class AppRouter {
         );
       case RouteNames.fullProfileDetails:
         final args = settings.arguments as FullProfileDetailsArgs?;
-        return _buildSmoothRoute(
+        return _buildProfileDetailsRoute(
           settings: settings,
-          duration: const Duration(milliseconds: 360),
           builder: (context) => args == null
               ? Scaffold(
                   body: Center(

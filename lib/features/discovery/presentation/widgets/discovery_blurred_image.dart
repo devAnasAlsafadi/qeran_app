@@ -16,6 +16,7 @@ import 'package:qeran/features/auth/presentation/blocs/user_session/user_session
 /// 401 produces an error widget — never a crash.
 class DiscoveryBlurredImage extends StatelessWidget {
   final String url;
+  final Alignment alignment;
 
   /// Visible only to the test layer, where the blur sigma matters
   /// (some test environments choke on `ImageFilter.blur`). Production
@@ -26,6 +27,7 @@ class DiscoveryBlurredImage extends StatelessWidget {
     super.key,
     required this.url,
     this.sigma = 24.0,
+    this.alignment = Alignment.center,
   });
 
   @override
@@ -41,6 +43,7 @@ class DiscoveryBlurredImage extends StatelessWidget {
               imageUrl: url,
               httpHeaders: headers,
               fit: BoxFit.cover,
+              alignment: alignment,
               filterQuality: FilterQuality.low,
               memCacheWidth: 600,
               maxWidthDiskCache: 600,

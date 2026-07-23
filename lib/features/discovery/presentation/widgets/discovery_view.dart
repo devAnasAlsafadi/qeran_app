@@ -8,7 +8,6 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
-import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/errors/errors.dart';
@@ -32,6 +31,7 @@ import '../blocs/discovery_state.dart';
 import '../screens/discovery_filter_sheet.dart';
 import 'discovery_action_bar.dart';
 import 'discovery_blurred_image.dart';
+import 'discovery_card_skeleton.dart';
 import 'discovery_deck_animation_controller.dart';
 import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
@@ -294,7 +294,7 @@ class _ScrollableProfile extends StatelessWidget {
   Widget _buildContent(BuildContext context) {
     final s = state;
     if (s is DiscoveryInitial || s is DiscoveryLoading) {
-      return const _ScrollableCenter(child: QeranLoader());
+      return const DiscoveryCardSkeleton();
     }
     if (s is DiscoveryFailure) {
       return _ScrollableCenter(
@@ -320,7 +320,7 @@ class _ScrollableProfile extends StatelessWidget {
           WidgetsBinding.instance.addPostFrameCallback(
             (_) => cubit.ensurePrefetch(),
           );
-          return const _ScrollableCenter(child: QeranLoader());
+          return const DiscoveryCardSkeleton();
         }
         return const _ScrollableCenter(child: DiscoveryEmptyView());
       }

@@ -3,6 +3,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
+import 'package:qeran/features/profile/presentation/widgets/profile_photo_hero_motion.dart';
 
 import '../../domain/entities/discovery_profile.dart';
 import '../../domain/entities/placement.dart';
@@ -51,9 +52,13 @@ class DiscoveryImagePanel extends StatelessWidget {
         children: [
           if (imageUrl.isNotEmpty)
             Hero(
-              tag: 'profile_hero_${profile.id}',
-              createRectTween: (begin, end) => _SmoothHeroRectTween(begin: begin, end: end),
-              child: DiscoveryBlurredImage(url: imageUrl),
+              tag: profilePhotoHeroTag(profile.id),
+              createRectTween: profilePhotoHeroRectTween,
+              flightShuttleBuilder: profilePhotoFlightShuttle,
+              child: DiscoveryBlurredImage(
+                url: imageUrl,
+                alignment: profilePhotoAlignment,
+              ),
             )
           else
             Container(color: QeranColors.creamSurface),
@@ -219,21 +224,5 @@ class DiscoveryInfoPanel extends StatelessWidget {
       PlacementSingle(value: final s) => s,
       PlacementMulti(values: final vs) => vs.join('\n'),
     };
-  }
-}
-
-class _SmoothHeroRectTween extends RectTween {
-  _SmoothHeroRectTween({super.begin, super.end});
-
-  @override
-  Rect? lerp(double t) {
-    final curvedT = Curves.easeInOutCubicEmphasized.transform(t);
-    if (begin == null || end == null) return null;
-    return Rect.fromLTRB(
-      begin!.left + (end!.left - begin!.left) * curvedT,
-      begin!.top + (end!.top - begin!.top) * curvedT,
-      begin!.right + (end!.right - begin!.right) * curvedT,
-      begin!.bottom + (end!.bottom - begin!.bottom) * curvedT,
-    );
   }
 }

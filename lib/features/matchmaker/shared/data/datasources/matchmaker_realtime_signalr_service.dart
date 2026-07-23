@@ -132,7 +132,10 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
   Future<void> _start(HubConnection connection) async {
     _setStatus(MatchmakerRealtimeStatus.connecting);
     try {
-      await connection.start();
+      final startFut = connection.start();
+      if (startFut != null) {
+        await startFut.timeout(const Duration(seconds: 10));
+      }
       AppLogger.info('MM-RT — connected', tag: 'MM-RT');
       _setStatus(MatchmakerRealtimeStatus.connected);
     } catch (e, st) {

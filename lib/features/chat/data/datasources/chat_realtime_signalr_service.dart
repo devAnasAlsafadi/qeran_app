@@ -146,7 +146,10 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
 
     _setStatus(RealtimeStatus.connecting);
     try {
-      await connection.start();
+      final startFut = connection.start();
+      if (startFut != null) {
+        await startFut.timeout(const Duration(seconds: 10));
+      }
       AppLogger.info('CHAT — SignalR connected', tag: 'CHAT');
       _setStatus(RealtimeStatus.connected);
     } catch (e, st) {

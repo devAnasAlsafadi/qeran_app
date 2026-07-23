@@ -8,6 +8,7 @@ import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dar
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/profile_image.dart';
+import 'profile_photo_hero_motion.dart';
 
 /// Image hero for the Full Profile Details screen. A 3:4 aspect-ratio
 /// PageView over the gallery (or a single primary photo) with:
@@ -30,10 +31,6 @@ class ProfileHeaderGallery extends StatefulWidget {
 }
 
 class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
-  /// Bias the crop to the top third — face-preservation rule of thumb
-  /// for matrimony products (Hinge, Match, eHarmony all do this).
-  static const Alignment _topBiasedAlignment = Alignment(0, -0.3);
-
   final PageController _controller = PageController();
   int _index = 0;
 
@@ -45,7 +42,8 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.images.isEmpty) {
+    final images = _primaryFirst(widget.images);
+    if (images.isEmpty) {
       return const _EmptyState();
     }
     return AspectRatio(
@@ -56,11 +54,12 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
           PageView.builder(
             controller: _controller,
             onPageChanged: (i) => setState(() => _index = i),
-            itemCount: widget.images.length,
+            itemCount: images.length,
             itemBuilder: (_, i) {
-              final image = widget.images[i];
+              final image = images[i];
               final blurred = _isBlurred(image);
               return GestureDetector(
+                key: ValueKey<String>('profile-gallery-image-${image.id}'),
                 onTap: () => _openFullscreen(context, image, blurred),
                 child: RepaintBoundary(
                   child: LikeBlurredImage(
@@ -69,29 +68,24 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
                     size: null,
                     shape: BoxShape.rectangle,
                     borderRadius: BorderRadius.zero,
-                    alignment: _topBiasedAlignment,
+                    alignment: profilePhotoAlignment,
+                    blurSigma: 24,
                   ),
                 ),
               );
             },
           ),
-          if (widget.images.length > 1) ...[
+          if (images.length > 1) ...[
             PositionedDirectional(
               top: QeranSpacing.s12,
               end: QeranSpacing.s12,
-              child: _IndexBadge(
-                index: _index + 1,
-                total: widget.images.length,
-              ),
+              child: _IndexBadge(index: _index + 1, total: images.length),
             ),
             Positioned(
               left: 0,
               right: 0,
               bottom: 16,
-              child: _DotsIndicator(
-                count: widget.images.length,
-                current: _index,
-              ),
+              child: _DotsIndicator(count: images.length, current: _index),
             ),
           ],
         ],
@@ -99,12 +93,23 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
     );
   }
 
+  List<ProfileImage> _primaryFirst(List<ProfileImage> images) {
+    final primaryIndex = images.indexWhere((image) => image.isProfile);
+    if (primaryIndex <= 0) return images;
+    return <ProfileImage>[
+      images[primaryIndex],
+      ...images.take(primaryIndex),
+      ...images.skip(primaryIndex + 1),
+    ];
+  }
+
   void _openFullscreen(BuildContext context, ProfileImage image, bool blurred) {
     Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
         barrierColor: Colors.black87,
-        pageBuilder: (_, _, _) => _FullscreenViewer(image: image, blurred: blurred),
+        pageBuilder: (_, _, _) =>
+            _FullscreenViewer(image: image, blurred: blurred),
         transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
@@ -133,11 +138,7 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.person_rounded,
-              size: 80,
-              color: QeranColors.wine,
-            ),
+            const Icon(Icons.person_rounded, size: 80, color: QeranColors.wine),
             QeranSpacing.vs8,
             Text(
               LocaleKeys.profile_no_photo.t(context),
@@ -258,11 +259,7 @@ class _FullscreenCloseButton extends StatelessWidget {
         child: const SizedBox(
           width: 40,
           height: 40,
-          child: Icon(
-            Icons.close_rounded,
-            color: QeranColors.wine,
-            size: 22,
-          ),
+          child: Icon(Icons.close_rounded, color: QeranColors.wine, size: 22),
         ),
       ),
     );

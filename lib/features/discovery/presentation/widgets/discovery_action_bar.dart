@@ -325,21 +325,6 @@ class _PressableActionButtonState extends State<_PressableActionButton>
 
   void _scheduleNextIdlePulse({bool isInitial = false}) {
     _idleTimer?.cancel();
-    if (!mounted || !_enabled || _idleCtrl == null) return;
-    
-    final delay = isInitial 
-        ? const Duration(milliseconds: 300) 
-        : const Duration(milliseconds: 2500);
-        
-    _idleTimer = Timer(delay, () {
-      if (mounted && _enabled && !_ctrl.isAnimating && (_scale.value - 1.0).abs() < 0.0005) {
-        _idleCtrl!.forward(from: 0).whenComplete(() {
-          if (mounted) _scheduleNextIdlePulse(isInitial: false);
-        });
-      } else {
-        if (mounted) _scheduleNextIdlePulse(isInitial: false);
-      }
-    });
   }
 
   @override

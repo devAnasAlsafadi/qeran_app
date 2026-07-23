@@ -168,6 +168,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
         case PhotoExchangeErrorCodes.photoExchangeAlreadyPending:
           return PhotoExchangeRequestAlreadyPending(serverMessage: rawMessage);
         case PhotoExchangeErrorCodes.photoExchangeLimitReached:
+        case PhotoExchangeErrorCodes.photoExchangeFreeLimitReached:
           return PhotoExchangeRequestLimitReached(serverMessage: rawMessage);
         case PhotoExchangeErrorCodes.likeNotAccepted:
           return PhotoExchangeRequestLikeNotAccepted(serverMessage: rawMessage);

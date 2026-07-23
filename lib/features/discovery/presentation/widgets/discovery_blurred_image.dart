@@ -40,6 +40,8 @@ class DiscoveryBlurredImage extends StatelessWidget {
             imageUrl: url,
             httpHeaders: headers,
             fit: BoxFit.cover,
+            memCacheWidth: 600,
+            maxWidthDiskCache: 600,
             placeholder: (_, _) => Container(color: QeranColors.creamSurface),
             errorWidget: (_, _, _) =>
                 Container(color: QeranColors.creamSurface),

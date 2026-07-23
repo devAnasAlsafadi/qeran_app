@@ -10,6 +10,7 @@ class LikesErrorCodes {
   static const String likeExpired = 'LIKE_EXPIRED';
   static const String likeAlreadyExists = 'LIKE_ALREADY_EXISTS';
   static const String likesQuotaExceeded = 'LIKES_QUOTA_EXCEEDED';
+  static const String likesFreeQuotaExceeded = 'LIKES_FREE_QUOTA_EXCEEDED';
   static const String sameGenderNotAllowed = 'SAME_GENDER_NOT_ALLOWED';
   static const String targetUserNotFound = 'TARGET_USER_NOT_FOUND';
   static const String unauthorized = 'UNAUTHORIZED';
@@ -30,6 +31,8 @@ class PhotoExchangeErrorCodes {
       'PHOTO_EXCHANGE_ALREADY_PENDING';
   static const String photoExchangeLimitReached =
       'PHOTO_EXCHANGE_LIMIT_REACHED';
+  static const String photoExchangeFreeLimitReached =
+      'PHOTO_EXCHANGE_FREE_LIMIT_REACHED';
   static const String subscriptionRequired = 'SUBSCRIPTION_REQUIRED';
   static const String unauthorized = 'UNAUTHORIZED';
   static const String validationError = 'VALIDATION_ERROR';

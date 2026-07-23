@@ -325,16 +325,21 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
         ? 1.0
         : (1.0 - (progress - 0.6) / 0.4).clamp(0.0, 1.0);
 
+    final cardChild = Transform.translate(
+      offset: Offset(_dragOffset, 0),
+      child: Transform.rotate(angle: angle, child: widget.child),
+    );
+
     return Stack(
       fit: StackFit.passthrough,
       children: [
-        Opacity(
-          opacity: cardOpacity,
-          child: Transform.translate(
-            offset: Offset(_dragOffset, 0),
-            child: Transform.rotate(angle: angle, child: widget.child),
+        if (cardOpacity >= 0.99)
+          cardChild
+        else
+          Opacity(
+            opacity: cardOpacity,
+            child: cardChild,
           ),
-        ),
         if (_dragOffset > 0 && !_isUndoEntry)
           Positioned.fill(child: DiscoveryLikeOverlay(progress: progress)),
         if (_dragOffset < 0 && !_isUndoEntry)

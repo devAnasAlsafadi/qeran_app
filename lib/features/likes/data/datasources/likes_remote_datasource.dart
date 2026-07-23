@@ -147,6 +147,8 @@ class LikesRemoteDataSourceImpl implements LikesRemoteDataSource {
     if (errorCode != null && errorCode.isNotEmpty) {
       switch (errorCode) {
         case LikesErrorCodes.subscriptionRequired:
+        case LikesErrorCodes.likesQuotaExceeded:
+        case LikesErrorCodes.likesFreeQuotaExceeded:
           return LikeActionRequiresSubscription(serverMessage: rawMessage);
         case LikesErrorCodes.likeExpired:
           return LikeActionExpired(serverMessage: rawMessage);

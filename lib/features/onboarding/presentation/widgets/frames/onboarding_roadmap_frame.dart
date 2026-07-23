@@ -41,50 +41,33 @@ class OnboardingRoadmapFrame extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
-            // Fill the available height and distribute the timeline evenly; if
-            // content (longer EN subtitles) ever exceeds it, the region scrolls
-            // instead of overflowing.
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                    child: IntrinsicHeight(
-                      child: Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(
-                          QeranSpacing.s24,
-                          safe.top + 52,
-                          QeranSpacing.s24,
-                          QeranSpacing.s16,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const _Header(),
-                            QeranSpacing.vs16,
-                            // The 9-step list flows straight from the header
-                            // (top-aligned) so a long journey reads as one clean
-                            // list; the Expanded pushes the rings capstone toward
-                            // the bottom on tall screens and lets the region
-                            // scroll on short ones.
-                            const Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  OnboardingRoadmapTimeline(),
-                                  QeranSpacing.vs8,
-                                  OnboardingMarriageDestination(),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+            // Slivers avoid the expensive IntrinsicHeight double-layout that
+            // used to run while page 3 was sliding into view.
+            child: CustomScrollView(
+              physics: const ClampingScrollPhysics(),
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                    QeranSpacing.s24,
+                    safe.top + 52,
+                    QeranSpacing.s24,
+                    QeranSpacing.s16,
+                  ),
+                  sliver: const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _Header(),
+                        QeranSpacing.vs16,
+                        OnboardingRoadmapTimeline(),
+                        QeranSpacing.vs8,
+                        OnboardingMarriageDestination(),
+                      ],
                     ),
                   ),
-                );
-              },
+                ),
+              ],
             ),
           ),
           _RoadmapDomePanel(
@@ -178,4 +161,3 @@ class _RoadmapDomePanel extends StatelessWidget {
     );
   }
 }
-

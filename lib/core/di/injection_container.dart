@@ -28,6 +28,8 @@ import '../services/connectivity_service_impl.dart';
 import '../datasources/shared_pref_service.dart';
 import '../datasources/secure_storage_service.dart';
 import '../services/device_info_service.dart';
+import '../services/firebase_initialization_service.dart';
+import '../services/google_sign_in_service.dart';
 import '../services/language_service.dart';
 import '../services/notification_service.dart';
 import '../services/revenuecat_service.dart';
@@ -69,6 +71,10 @@ Future<void> init() async {
     ),
   );
   sl.registerLazySingleton(() => http.Client());
+  sl.registerSingleton<FirebaseInitializationService>(
+    FirebaseInitializationService(),
+  );
+  sl.registerSingleton<GoogleSignInService>(GoogleSignInService());
 
   //! Storage
   sl.registerLazySingleton<SecureStorageService>(
@@ -103,7 +109,7 @@ Future<void> init() async {
   sl.registerLazySingleton<RevenueCatService>(() => RevenueCatService());
 
   //! Features - Auth
-  await initAuthDependencies();
+  initAuthDependencies();
 
   //! User Session — app-scoped Cubit.
   //
@@ -116,6 +122,7 @@ Future<void> init() async {
     () => UserSessionCubit(
       secureStorage: sl<StorageService>(),
       sharedPrefs: sl<SharedPrefService>(),
+      googleSignIn: sl<GoogleSignInService>(),
     ),
   );
 

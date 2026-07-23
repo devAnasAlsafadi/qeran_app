@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
@@ -11,14 +12,18 @@ class MockStorageService extends Mock implements StorageService {}
 
 class MockSharedPrefService extends Mock implements SharedPrefService {}
 
+class MockGoogleSignInService extends Mock implements GoogleSignInService {}
+
 void main() {
   late MockStorageService secure;
   late MockSharedPrefService prefs;
+  late MockGoogleSignInService googleSignIn;
   late UserSessionCubit cubit;
 
   setUp(() {
     secure = MockStorageService();
     prefs = MockSharedPrefService();
+    googleSignIn = MockGoogleSignInService();
 
     // Defaults — overridden per test as needed.
     when(() => secure.get<String>(any())).thenAnswer((_) async => null);
@@ -26,8 +31,13 @@ void main() {
     when(() => prefs.get<bool>(any())).thenAnswer((_) async => null);
     when(() => secure.remove(any())).thenAnswer((_) async {});
     when(() => prefs.remove(any())).thenAnswer((_) async {});
+    when(() => googleSignIn.signOut()).thenAnswer((_) async {});
 
-    cubit = UserSessionCubit(secureStorage: secure, sharedPrefs: prefs);
+    cubit = UserSessionCubit(
+      secureStorage: secure,
+      sharedPrefs: prefs,
+      googleSignIn: googleSignIn,
+    );
   });
 
   group('hydrate', () {
@@ -38,67 +48,77 @@ void main() {
     });
 
     test('empty token → Unauthenticated', () async {
-      when(() => secure.get<String>(StorageKeys.token))
-          .thenAnswer((_) async => '');
+      when(
+        () => secure.get<String>(StorageKeys.token),
+      ).thenAnswer((_) async => '');
 
       await cubit.hydrate();
 
       expect(cubit.state, isA<UserSessionUnauthenticated>());
     });
 
-    test('token + flags + name/email → Authenticated with populated user',
-        () async {
-      when(() => secure.get<String>(StorageKeys.token))
-          .thenAnswer((_) async => 'jwt-1');
-      when(() => prefs.get<String>(StorageKeys.userId))
-          .thenAnswer((_) async => 'user-1');
-      when(() => prefs.get<String>(StorageKeys.userName))
-          .thenAnswer((_) async => 'Ahmed');
-      when(() => prefs.get<String>(StorageKeys.userEmail))
-          .thenAnswer((_) async => 'ahmed@example.com');
-      when(() => prefs.get<String>(StorageKeys.userRole))
-          .thenAnswer((_) async => 'user');
-      when(() => prefs.get<bool>(StorageKeys.isWhatsappVerified))
-          .thenAnswer((_) async => true);
-      when(() => prefs.get<bool>(StorageKeys.finishedQuestions))
-          .thenAnswer((_) async => true);
-
-      await cubit.hydrate();
-
-      expect(cubit.state, isA<UserSessionAuthenticated>());
-      final user = (cubit.state as UserSessionAuthenticated).user;
-      expect(user.id, 'user-1');
-      expect(user.name, 'Ahmed');
-      expect(user.email, 'ahmed@example.com');
-      expect(user.token, 'jwt-1');
-      expect(user.role, 'user');
-      expect(user.isPhoneVerified, true);
-      expect(user.hasAnsweredQuestions, true);
-    });
-
     test(
-      'pre-migration session (no name/email in storage) → Authenticated '
-      'with empty name/email',
+      'token + flags + name/email → Authenticated with populated user',
       () async {
-        when(() => secure.get<String>(StorageKeys.token))
-            .thenAnswer((_) async => 'jwt-1');
-        when(() => prefs.get<String>(StorageKeys.userId))
-            .thenAnswer((_) async => 'user-1');
-        // userName / userEmail keys deliberately unstubbed — default
-        // returns null, simulating a session persisted before Option A.
+        when(
+          () => secure.get<String>(StorageKeys.token),
+        ).thenAnswer((_) async => 'jwt-1');
+        when(
+          () => prefs.get<String>(StorageKeys.userId),
+        ).thenAnswer((_) async => 'user-1');
+        when(
+          () => prefs.get<String>(StorageKeys.userName),
+        ).thenAnswer((_) async => 'Ahmed');
+        when(
+          () => prefs.get<String>(StorageKeys.userEmail),
+        ).thenAnswer((_) async => 'ahmed@example.com');
+        when(
+          () => prefs.get<String>(StorageKeys.userRole),
+        ).thenAnswer((_) async => 'user');
+        when(
+          () => prefs.get<bool>(StorageKeys.isWhatsappVerified),
+        ).thenAnswer((_) async => true);
+        when(
+          () => prefs.get<bool>(StorageKeys.finishedQuestions),
+        ).thenAnswer((_) async => true);
 
         await cubit.hydrate();
 
+        expect(cubit.state, isA<UserSessionAuthenticated>());
         final user = (cubit.state as UserSessionAuthenticated).user;
         expect(user.id, 'user-1');
-        expect(user.name, isEmpty);
-        expect(user.email, isEmpty);
+        expect(user.name, 'Ahmed');
+        expect(user.email, 'ahmed@example.com');
+        expect(user.token, 'jwt-1');
+        expect(user.role, 'user');
+        expect(user.isPhoneVerified, true);
+        expect(user.hasAnsweredQuestions, true);
       },
     );
 
+    test('pre-migration session (no name/email in storage) → Authenticated '
+        'with empty name/email', () async {
+      when(
+        () => secure.get<String>(StorageKeys.token),
+      ).thenAnswer((_) async => 'jwt-1');
+      when(
+        () => prefs.get<String>(StorageKeys.userId),
+      ).thenAnswer((_) async => 'user-1');
+      // userName / userEmail keys deliberately unstubbed — default
+      // returns null, simulating a session persisted before Option A.
+
+      await cubit.hydrate();
+
+      final user = (cubit.state as UserSessionAuthenticated).user;
+      expect(user.id, 'user-1');
+      expect(user.name, isEmpty);
+      expect(user.email, isEmpty);
+    });
+
     test('exception during read → Unauthenticated (does not throw)', () async {
-      when(() => secure.get<String>(StorageKeys.token))
-          .thenThrow(Exception('storage offline'));
+      when(
+        () => secure.get<String>(StorageKeys.token),
+      ).thenThrow(Exception('storage offline'));
 
       await cubit.hydrate();
 

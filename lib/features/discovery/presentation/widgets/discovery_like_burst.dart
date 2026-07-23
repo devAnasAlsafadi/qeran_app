@@ -9,11 +9,11 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 /// it visually originates from the gold heart inside the wine Like
 /// circle (the icon "lifts off" without changing colour).
 ///
-/// Stage 1 (travel) — 0 → 900 ms: heart appears at the button center
+/// Stage 1 (travel) — 0 → 380 ms: heart appears at the button center
 /// at full opacity / scale 1.0, then arcs upward toward the target,
 /// peaking ~44 px above the straight line at midpoint and growing to
 /// 1.20. No birth/spawn animation — feels faster and cleaner.
-/// Stage 2 (settle + fade) — 900 → 1050 ms: settles to 1.00 while
+/// Stage 2 (settle + fade) — 380 → 480 ms: settles to 1.00 while
 /// fading out into the card-level Like overlay.
 ///
 /// Self-contained: owns its `AnimationController`, calls `onComplete`
@@ -37,10 +37,10 @@ class DiscoveryLikeBurst extends StatefulWidget {
 
 class _DiscoveryLikeBurstState extends State<DiscoveryLikeBurst>
     with SingleTickerProviderStateMixin {
-  static const Duration _duration = Duration(milliseconds: 1050);
+  static const Duration _duration = Duration(milliseconds: 480);
 
-  /// 900 / 1050 ≈ 0.857 — end of travel stage / start of fade.
-  static const double _travelEnd = 900 / 1050;
+  /// End of travel stage / start of fade.
+  static const double _travelEnd = 380 / 480;
 
   static const double _arcHeight = 44.0;
   static const double _iconSize = 56.0;
@@ -55,33 +55,36 @@ class _DiscoveryLikeBurstState extends State<DiscoveryLikeBurst>
     _ctrl = AnimationController(vsync: this, duration: _duration);
 
     // Scale (weights are ms — TweenSequence normalises):
-    //   0   → 900  ms  1.00 → 1.20  (grow during travel)
-    //   900 → 1050 ms  1.20 → 1.00  (settle)
+    //   0   → 380 ms  1.00 → 1.20  (grow during travel)
+    //   380 → 480 ms  1.20 → 1.00  (settle)
     _scale = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.00, end: 1.20)
-            .chain(CurveTween(curve: Curves.easeOutCubic)),
-        weight: 900,
+        tween: Tween<double>(
+          begin: 1.00,
+          end: 1.20,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 380,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.20, end: 1.00)
-            .chain(CurveTween(curve: Curves.easeIn)),
-        weight: 150,
+        tween: Tween<double>(
+          begin: 1.20,
+          end: 1.00,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 100,
       ),
     ]).animate(_ctrl);
 
     // Opacity:
-    //   0   → 900  ms  hold 1   (fully opaque through travel)
-    //   900 → 1050 ms  1 → 0    (fade into card overlay)
+    //   0   → 380 ms  hold 1   (fully opaque through travel)
+    //   380 → 480 ms  1 → 0    (fade into card overlay)
     _opacity = TweenSequence<double>([
+      TweenSequenceItem(tween: ConstantTween<double>(1.0), weight: 380),
       TweenSequenceItem(
-        tween: ConstantTween<double>(1.0),
-        weight: 900,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeIn)),
-        weight: 150,
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 100,
       ),
     ]).animate(_ctrl);
 

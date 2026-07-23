@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
 import 'package:qeran/features/questionnaire/domain/usecases/submit_answers_usecase.dart';
 import '../data/datasources/auth_remote_datasource.dart';
@@ -36,9 +36,7 @@ import '../presentation/blocs/register/register_bloc.dart';
 import '../presentation/blocs/user_session/user_session_cubit.dart';
 import '../presentation/blocs/whatsapp/whatsapp_bloc.dart';
 
-Future<void> initAuthDependencies() async {
-  //! External — GoogleSignIn v7 uses singleton; initialize it here
-  await GoogleSignIn.instance.initialize();
+void initAuthDependencies() {
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
 
   //! DataSources
@@ -48,6 +46,7 @@ Future<void> initAuthDependencies() async {
       apiConsumer: sl(),
       sharedPref: sl<SharedPrefService>(),
       secureStorage: sl<StorageService>(),
+      googleSignIn: sl<GoogleSignInService>(),
     ),
   );
 
@@ -98,10 +97,7 @@ Future<void> initAuthDependencies() async {
   );
 
   sl.registerFactory(
-    () => RegisterBloc(
-      registerUser: sl(),
-      userSession: sl<UserSessionCubit>(),
-    ),
+    () => RegisterBloc(registerUser: sl(), userSession: sl<UserSessionCubit>()),
   );
 
   sl.registerFactory(

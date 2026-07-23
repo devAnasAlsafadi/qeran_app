@@ -26,12 +26,25 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   static const int _discoveryTabIndex = 0;
   static const int _likesTabIndex = 1;
   static const int _messagesTabIndex = 2;
   static const int _profileTabIndex = 3;
   int _currentTab = _discoveryTabIndex;
+  int? _previousTab;
+  int _tabDirection = 1;
+  bool _tabTransitionPending = false;
+
+  late final AnimationController _tabTransition = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 240),
+  );
+  late final CurvedAnimation _tabCurve = CurvedAnimation(
+    parent: _tabTransition,
+    curve: Curves.easeOutCubic,
+  );
 
   // Tabs mount lazily: an index enters this set the first time it is shown and
   // stays (IndexedStack keeps it alive after), so each tab fetches on first
@@ -70,6 +83,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_notifTapSub?.cancel());
     unawaited(_notifForegroundSub?.cancel());
+    _tabCurve.dispose();
+    _tabTransition.dispose();
     super.dispose();
   }
 
@@ -100,18 +115,105 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
-  void _selectTab(int index) {
-    if (index == _currentTab) return;
+  Future<void> _selectTab(int index) async {
+    if (index == _currentTab || _tabTransitionPending) return;
+    _tabTransitionPending = true;
+    final firstVisit = !_visited.contains(index);
+    if (firstVisit) {
+      // Build the destination offstage first. Its initial layout/fetch can no
+      // longer land on the first frame of the visible tab transition.
+      setState(() => _visited.add(index));
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+    }
+
+    final previous = _currentTab;
     setState(() {
+      _previousTab = previous;
+      _tabDirection = index > previous ? 1 : -1;
       _currentTab = index;
-      _visited.add(index);
     });
+    try {
+      await _tabTransition.forward(from: 0);
+    } finally {
+      if (mounted) {
+        setState(() => _previousTab = null);
+      }
+      _tabTransitionPending = false;
+    }
   }
 
-  /// A tab body once it has been visited, else a zero-size placeholder so the
-  /// tab's cubit (and its initial fetch) doesn't spin up until first visit.
-  Widget _lazyTab(int index, Widget child) =>
-      _visited.contains(index) ? child : const SizedBox.shrink();
+  Widget _tabBody(int index) => switch (index) {
+    _discoveryTabIndex => const DiscoveryView(),
+    _likesTabIndex => const LikesScreen(),
+    _messagesTabIndex => const ChatEntryScreen(),
+    _profileTabIndex => const ProfileScreen(),
+    _ => const SizedBox.shrink(),
+  };
+
+  Widget _tabEntry(
+    int index, {
+    required bool enabled,
+    bool offstage = false,
+    Offset offset = Offset.zero,
+  }) {
+    return KeyedSubtree(
+      key: ValueKey<String>('home-tab-$index'),
+      child: Offstage(
+        offstage: offstage,
+        child: Transform.translate(
+          offset: offset,
+          child: TickerMode(
+            enabled: enabled,
+            child: IgnorePointer(
+              ignoring: !enabled || _tabTransition.isAnimating,
+              child: RepaintBoundary(child: _tabBody(index)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Keeps visited tabs alive while giving the active pair a transform-only
+  /// page transition. No full-screen Opacity/saveLayer is introduced.
+  Widget _buildTabStage() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final isRtl = Directionality.of(context) == TextDirection.rtl;
+        final direction = _tabDirection * (isRtl ? -1 : 1);
+        return ClipRect(
+          child: AnimatedBuilder(
+            animation: _tabCurve,
+            builder: (context, _) {
+              final previous = _previousTab;
+              final t = previous == null ? 1.0 : _tabCurve.value;
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  for (final index in _visited)
+                    if (index != _currentTab && index != previous)
+                      _tabEntry(index, enabled: false, offstage: true),
+                  if (previous != null)
+                    _tabEntry(
+                      previous,
+                      enabled: true,
+                      offset: Offset(-direction * width * 0.18 * t, 0),
+                    ),
+                  _tabEntry(
+                    _currentTab,
+                    enabled: true,
+                    offset: Offset(direction * width * (1.0 - t), 0),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
   void _openLikesTab() => _selectTab(_likesTabIndex);
   void _openMessagesTab() => _selectTab(_messagesTabIndex);
@@ -147,22 +249,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       openProfileTab: _openProfileTab,
       child: Scaffold(
         extendBody: true,
-        // IndexedStack keeps each tab's state alive across switches —
-        // mirrors the matchmaker shell. This kills the refetch spinner on
-        // every tab change AND keeps the Discovery deck (and its animation
-        // controllers) mounted, so a rapid like/skip mash that overlaps a
-        // tab switch can't orphan an in-flight animation. Trade-off: all
-        // four tabs build once on shell mount. Order = tab-index order
-        // (0 discovery · 1 likes · 2 messages · 3 profile).
-        body: IndexedStack(
-          index: _currentTab,
-          children: [
-            _lazyTab(_discoveryTabIndex, const DiscoveryView()),
-            _lazyTab(_likesTabIndex, const LikesScreen()),
-            _lazyTab(_messagesTabIndex, const ChatEntryScreen()),
-            _lazyTab(_profileTabIndex, const ProfileScreen()),
-          ],
-        ),
+        body: _buildTabStage(),
         bottomNavigationBar: QeranBottomNav(
           items: items,
           currentIndex: _currentTab,

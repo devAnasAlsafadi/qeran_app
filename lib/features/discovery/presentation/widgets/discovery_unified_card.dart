@@ -40,49 +40,42 @@ class DiscoveryUnifiedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return KeyedSubtree(
       key: ValueKey<String>(profile.id),
-      child: DiscoveryDeckAnimator(
-        child: DiscoverySwipeHandler(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: QeranRadii.panelR,
-              color: QeranColors.paper,
-              border: Border.all(
-                color: QeranColors.wine.withValues(alpha: 0.10),
-                width: 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: QeranColors.wine.withValues(alpha: 0.08),
-                  blurRadius: 24,
-                  spreadRadius: 0,
-                  offset: const Offset(0, 8),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        builder: (context, progress, child) => Transform.translate(
+          offset: Offset(0, 8 * (1 - progress)),
+          child: child,
+        ),
+        child: DiscoveryDeckAnimator(
+          child: DiscoverySwipeHandler(
+            // The animator transforms this cached card layer as a whole. The
+            // expensive blurred image no longer repaints on every drag tick.
+            child: RepaintBoundary(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: QeranRadii.panelR,
+                  color: QeranColors.paper,
+                  border: Border.all(
+                    color: QeranColors.wine.withValues(alpha: 0.10),
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: QeranColors.wine.withValues(alpha: 0.08),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 16,
-                  spreadRadius: -2,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: QeranRadii.panelR,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeOutCubic,
-                transitionBuilder: (child, animation) {
-                  final scale =
-                      Tween<double>(begin: 0.94, end: 1.0).animate(animation);
-                  return FadeTransition(
-                    opacity: animation,
-                    child: ScaleTransition(scale: scale, child: child),
-                  );
-                },
-                child: _CardContent(
-                  profile: profile,
-                  onTapDetails: onTapDetails,
-                  bottomContentInset: bottomContentInset,
+                child: ClipRRect(
+                  borderRadius: QeranRadii.panelR,
+                  child: _CardContent(
+                    profile: profile,
+                    onTapDetails: onTapDetails,
+                    bottomContentInset: bottomContentInset,
+                  ),
                 ),
               ),
             ),

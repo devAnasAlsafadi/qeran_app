@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
@@ -5,6 +7,7 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'package:qeran/core/utils/app_assets.dart';
 
 import '../../on_boarding_model.dart';
 import '../cubit/onboarding_cubit.dart';
@@ -27,6 +30,18 @@ class OnBoardingScreen extends StatefulWidget {
 
 class _OnBoardingScreenState extends State<OnBoardingScreen> {
   final PageController _pageController = PageController();
+  bool _portraitPrecached = false;
+  bool _pageAnimating = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_portraitPrecached) return;
+    _portraitPrecached = true;
+    unawaited(
+      precacheImage(const AssetImage(AppAssets.welcomePortrait), context),
+    );
+  }
 
   @override
   void dispose() {
@@ -34,13 +49,26 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     super.dispose();
   }
 
-  void _animateToPage(int page) {
-    if (!_pageController.hasClients) return;
-    _pageController.animateToPage(
-      page,
-      duration: const Duration(milliseconds: 850),
-      curve: Curves.easeInOutCubic,
-    );
+  Future<void> _animateToPage(int page) async {
+    if (!_pageController.hasClients || _pageAnimating) return;
+    _pageAnimating = true;
+    try {
+      await _pageController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutQuart,
+      );
+    } finally {
+      _pageAnimating = false;
+    }
+  }
+
+  void _advance(OnboardingCubit cubit, OnboardingState state) {
+    if (state.isLastPage) {
+      cubit.nextPage();
+      return;
+    }
+    unawaited(_animateToPage(state.currentPage + 1));
   }
 
   /// Where to land after onboarding finishes. Unauthenticated → login; an
@@ -57,21 +85,17 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
     return BlocProvider(
       create: (_) => sl<OnboardingCubit>(),
       child: BlocConsumer<OnboardingCubit, OnboardingState>(
-        listenWhen: (prev, curr) =>
-            curr is OnboardingDone || prev.currentPage != curr.currentPage,
+        listenWhen: (_, curr) => curr is OnboardingDone,
         listener: (context, state) {
           if (state is OnboardingDone) {
             NavigationManager.pushNamedAndRemoveUntil(
               context,
               _postOnboardingRoute(),
             );
-            return;
           }
-          _animateToPage(state.currentPage);
         },
         builder: (context, state) {
           final cubit = context.read<OnboardingCubit>();
@@ -82,12 +106,19 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                 PageView.builder(
                   controller: _pageController,
                   itemCount: onboardingData.length,
+                  allowImplicitScrolling: true,
+                  physics: const PageScrollPhysics(
+                    parent: ClampingScrollPhysics(),
+                  ),
                   onPageChanged: cubit.onPageChanged,
-                  itemBuilder: (_, index) => _buildAnimatedFrame(
-                    index,
-                    cubit,
-                    state,
-                    screenWidth,
+                  itemBuilder: (_, index) => RepaintBoundary(
+                    child: TickerMode(
+                      // The blur-reveal seam remains fully animated on the
+                      // visible privacy page, but all repeating tickers pause
+                      // as soon as their page leaves the viewport.
+                      enabled: index == state.currentPage,
+                      child: _frameFor(index, cubit, state),
+                    ),
                   ),
                 ),
                 // Chrome shows on every frame. Skip is hidden on the last frame
@@ -108,47 +139,6 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     );
   }
 
-  Widget _buildAnimatedFrame(
-    int index,
-    OnboardingCubit cubit,
-    OnboardingState state,
-    double screenWidth,
-  ) {
-    return AnimatedBuilder(
-      animation: _pageController,
-      builder: (context, child) {
-        double pageOffset = index.toDouble();
-        if (_pageController.position.haveDimensions &&
-            _pageController.page != null) {
-          pageOffset = _pageController.page! - index;
-        } else {
-          pageOffset = (state.currentPage - index).toDouble();
-        }
-
-        final progress = pageOffset.clamp(-1.0, 1.0);
-        final opacity = (1.0 - progress.abs() * 0.65).clamp(0.0, 1.0);
-        final scale = (1.0 - progress.abs() * 0.06).clamp(0.92, 1.0);
-        final parallax = progress * screenWidth * 0.10;
-
-        return RepaintBoundary(
-          child: Transform.translate(
-            offset: Offset(parallax, 0),
-            child: Transform.scale(
-              scale: scale,
-              child: Opacity(
-                opacity: opacity,
-                child: child,
-              ),
-            ),
-          ),
-        );
-      },
-      child: RepaintBoundary(
-        child: _frameFor(index, cubit, state),
-      ),
-    );
-  }
-
   Widget _frameFor(int index, OnboardingCubit cubit, OnboardingState state) {
     // The 3 frames map 1:1 to the 3 dots: dotCount = total frames, activeDot =
     // the current page, and onDot navigates straight to that page (no offset —
@@ -159,15 +149,15 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           dotCount: onboardingData.length,
           activeDot: state.currentPage,
           onDot: _animateToPage,
-          onNext: cubit.nextPage,
+          onNext: () => _advance(cubit, state),
         );
       case OnboardingFrame.mediation:
         return OnboardingMediationFrame(
           dotCount: onboardingData.length,
           activeDot: state.currentPage,
           onDot: _animateToPage,
-          onNext: cubit.nextPage,
-          onSearch: cubit.nextPage,
+          onNext: () => _advance(cubit, state),
+          onSearch: () => _advance(cubit, state),
         );
       case OnboardingFrame.roadmap:
         return OnboardingRoadmapFrame(

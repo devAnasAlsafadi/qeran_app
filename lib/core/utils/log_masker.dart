@@ -6,6 +6,10 @@
 class LogMasker {
   LogMasker._();
 
+  static final RegExp _jwtPattern = RegExp(
+    r'\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b',
+  );
+
   /// Masks a phone number for safe logging.
   ///
   /// Keeps the first 3 and last 4 digits and replaces the middle with `*`.
@@ -39,4 +43,8 @@ class LogMasker {
   /// - `'123456'` → `'otp_len=6'`
   /// - `null`     → `'otp_len=0'`
   static String otp(String? value) => 'otp_len=${value?.length ?? 0}';
+
+  /// Removes JWTs from arbitrary diagnostic text before it is logged.
+  static String secrets(String value) =>
+      value.replaceAll(_jwtPattern, '<redacted-jwt>');
 }

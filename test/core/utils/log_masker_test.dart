@@ -56,4 +56,19 @@ void main() {
       expect(LogMasker.otp('123456'), 'otp_len=6');
     });
   });
+
+  group('LogMasker.secrets', () {
+    test('redacts JWTs embedded in diagnostic text', () {
+      const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.signature_123';
+
+      expect(
+        LogMasker.secrets('UserEntity(token: $jwt)'),
+        'UserEntity(token: <redacted-jwt>)',
+      );
+    });
+
+    test('leaves ordinary diagnostic text unchanged', () {
+      expect(LogMasker.secrets('LoginSuccess(user-1)'), 'LoginSuccess(user-1)');
+    });
+  });
 }

@@ -35,11 +35,12 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
   static const double _ejectFraction = 0.35;
   static const double _velocityThreshold = 800.0;
   static const double _fullExitFraction = 1.2;
+  static const Duration _buttonExitDuration = Duration(milliseconds: 260);
 
   double _dragOffset = 0;
 
   late final AnimationController _animator = AnimationController(
-    duration: const Duration(milliseconds: 480),
+    duration: _buttonExitDuration,
     vsync: this,
   );
 
@@ -90,14 +91,15 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
         onEnd: _handleDragEnd,
       );
       // On mount after a Like/Pass exit the controller's deckProgress still
-      // holds the exit value (~1.0). Settle it to 0 over 200 ms so the new
+      // holds the exit value (~1.0). Settle it quickly so the new
       // card feels like it smoothly slides into position rather than the
       // peek card snapping immediately to its resting state.
       if (!_isUndoEntry) {
         final prev = _scope!.deckProgress.value;
         if (prev > 0.01) {
-          WidgetsBinding.instance
-              .addPostFrameCallback((_) => _runProgressSettle(prev));
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => _runProgressSettle(prev),
+          );
         } else {
           _setDeckProgress(0.0);
         }
@@ -122,7 +124,7 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     if (!mounted) return;
     await _animateOffsetTo(
       target: 0,
-      duration: const Duration(milliseconds: 420),
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
     );
     if (!mounted) return;
@@ -173,7 +175,9 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     if (_scope == null || !mounted) return;
     if (_progressSettleAnimation != null) return;
     final w = MediaQuery.sizeOf(context).width;
-    _setDeckProgress((_dragOffset.abs() / (w * _fullExitFraction)).clamp(0.0, 1.0));
+    _setDeckProgress(
+      (_dragOffset.abs() / (w * _fullExitFraction)).clamp(0.0, 1.0),
+    );
   }
 
   /// Aborts a running progress-settle so [_animateOffsetTo] can claim the
@@ -186,15 +190,16 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     if (mounted && _scope != null) _setDeckProgress(0.0);
   }
 
-  /// Smoothly reduces `deckProgress` from [from] → 0 over 200 ms. Called
+  /// Smoothly reduces `deckProgress` from [from] → 0. Called
   /// once per new animator mount after a Like/Pass exit so the peek card
   /// settles naturally as the incoming card fades in.
   Future<void> _runProgressSettle(double from) async {
     if (!mounted || _scope == null) return;
-    _animator.duration = const Duration(milliseconds: 200);
-    _progressSettleAnimation = Tween<double>(begin: from, end: 0.0)
-        .chain(CurveTween(curve: Curves.easeOut))
-        .animate(_animator);
+    _animator.duration = const Duration(milliseconds: 140);
+    _progressSettleAnimation = Tween<double>(
+      begin: from,
+      end: 0.0,
+    ).chain(CurveTween(curve: Curves.easeOut)).animate(_animator);
     try {
       await _animator.forward(from: 0);
     } finally {
@@ -213,9 +218,10 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
   }) async {
     _cancelSettle();
     _animator.duration = duration;
-    _offsetAnimation = Tween<double>(begin: _dragOffset, end: target)
-        .chain(CurveTween(curve: curve))
-        .animate(_animator);
+    _offsetAnimation = Tween<double>(
+      begin: _dragOffset,
+      end: target,
+    ).chain(CurveTween(curve: curve)).animate(_animator);
     try {
       await _animator.forward(from: 0);
     } finally {
@@ -230,7 +236,7 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     final width = MediaQuery.of(context).size.width;
     await _animateOffsetTo(
       target: width * _fullExitFraction,
-      duration: const Duration(milliseconds: 480),
+      duration: _buttonExitDuration,
       curve: Curves.easeInCubic,
     );
     if (!mounted) return;
@@ -243,7 +249,7 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     final width = MediaQuery.of(context).size.width;
     await _animateOffsetTo(
       target: -width * _fullExitFraction,
-      duration: const Duration(milliseconds: 480),
+      duration: _buttonExitDuration,
       curve: Curves.easeInCubic,
     );
     if (!mounted) return;
@@ -262,7 +268,7 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     if (_dragOffset.abs() < 0.5) return;
     await _animateOffsetTo(
       target: 0,
-      duration: const Duration(milliseconds: 360),
+      duration: const Duration(milliseconds: 220),
       curve: Curves.easeOutCubic,
     );
   }
@@ -297,8 +303,9 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
         ? (_dragOffset > 0 ? 1 : -1)
         : (velocity > 0 ? 1 : -1);
     final target = dir * width * _fullExitFraction;
-    final remaining = (target - _dragOffset).abs() / (width * _fullExitFraction);
-    final durationMs = (480 * remaining).clamp(240.0, 480.0).toInt();
+    final remaining =
+        (target - _dragOffset).abs() / (width * _fullExitFraction);
+    final durationMs = (260 * remaining).clamp(140.0, 260.0).toInt();
     await _animateOffsetTo(
       target: target,
       duration: Duration(milliseconds: durationMs),
@@ -321,10 +328,6 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     final fullExit = width * _fullExitFraction;
     final progress = (_dragOffset.abs() / fullExit).clamp(0.0, 1.0);
     final angle = (_dragOffset / width) * 0.2;
-    final cardOpacity = progress <= 0.6
-        ? 1.0
-        : (1.0 - (progress - 0.6) / 0.4).clamp(0.0, 1.0);
-
     final cardChild = Transform.translate(
       offset: Offset(_dragOffset, 0),
       child: Transform.rotate(angle: angle, child: widget.child),
@@ -333,13 +336,7 @@ class _DiscoveryDeckAnimatorState extends State<DiscoveryDeckAnimator>
     return Stack(
       fit: StackFit.passthrough,
       children: [
-        if (cardOpacity >= 0.99)
-          cardChild
-        else
-          Opacity(
-            opacity: cardOpacity,
-            child: cardChild,
-          ),
+        cardChild,
         if (_dragOffset > 0 && !_isUndoEntry)
           Positioned.fill(child: DiscoveryLikeOverlay(progress: progress)),
         if (_dragOffset < 0 && !_isUndoEntry)

@@ -1,17 +1,17 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'user_session_state.dart';
 
 /// App-scoped holder for the currently signed-in user.
 ///
-/// Hydrated once from storage by `main()` before `runApp`, then mutated by
+/// Hydrated once from storage while the branded splash is visible, then mutated by
 /// the auth blocs (`LoginBloc`, `RegisterBloc`, `WhatsappBloc`) and
 /// `OathCubit` after their respective success branches. Provided at the
 /// root of the widget tree via `BlocProvider.value` so any descendant can
@@ -19,16 +19,20 @@ import 'user_session_state.dart';
 ///
 /// Deviates from §2 of `CLAUDE.md` (factory for Cubits): this cubit holds
 /// app-lifetime state and is registered as a lazy singleton in DI.
-class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSessionState> {
+class UserSessionCubit extends Cubit<UserSessionState>
+    with SafeEmit<UserSessionState> {
   final StorageService _secureStorage;
   final SharedPrefService _sharedPrefs;
+  final GoogleSignInService _googleSignIn;
 
   UserSessionCubit({
     required StorageService secureStorage,
     required SharedPrefService sharedPrefs,
-  })  : _secureStorage = secureStorage,
-        _sharedPrefs = sharedPrefs,
-        super(const UserSessionInitial());
+    required GoogleSignInService googleSignIn,
+  }) : _secureStorage = secureStorage,
+       _sharedPrefs = sharedPrefs,
+       _googleSignIn = googleSignIn,
+       super(const UserSessionInitial());
 
   /// Synchronous accessor for call sites that can't await a stream.
   UserEntity? get currentUser {
@@ -54,25 +58,28 @@ class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSession
 
       final id = await _sharedPrefs.get<String>(StorageKeys.userId) ?? '';
       final name = await _sharedPrefs.get<String>(StorageKeys.userName) ?? '';
-      final email =
-          await _sharedPrefs.get<String>(StorageKeys.userEmail) ?? '';
+      final email = await _sharedPrefs.get<String>(StorageKeys.userEmail) ?? '';
       final role = await _sharedPrefs.get<String>(StorageKeys.userRole);
-      final phoneVerified =
-          await _sharedPrefs.get<bool>(StorageKeys.isWhatsappVerified);
-      final answered =
-          await _sharedPrefs.get<bool>(StorageKeys.finishedQuestions);
+      final phoneVerified = await _sharedPrefs.get<bool>(
+        StorageKeys.isWhatsappVerified,
+      );
+      final answered = await _sharedPrefs.get<bool>(
+        StorageKeys.finishedQuestions,
+      );
 
-      emit(UserSessionAuthenticated(
-        UserEntity(
-          id: id,
-          name: name,
-          email: email,
-          token: token,
-          role: role,
-          isPhoneVerified: phoneVerified,
-          hasAnsweredQuestions: answered,
+      emit(
+        UserSessionAuthenticated(
+          UserEntity(
+            id: id,
+            name: name,
+            email: email,
+            token: token,
+            role: role,
+            isPhoneVerified: phoneVerified,
+            hasAnsweredQuestions: answered,
+          ),
         ),
-      ));
+      );
     } catch (e, s) {
       AppLogger.error(
         'UserSession hydrate failed',
@@ -97,19 +104,21 @@ class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSession
     final current = state;
     if (current is! UserSessionAuthenticated) return;
     final u = current.user;
-    emit(UserSessionAuthenticated(
-      UserEntity(
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        phoneNumber: u.phoneNumber,
-        photoUrl: u.photoUrl,
-        token: u.token,
-        role: u.role,
-        isPhoneVerified: u.isPhoneVerified,
-        hasAnsweredQuestions: true,
+    emit(
+      UserSessionAuthenticated(
+        UserEntity(
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phoneNumber: u.phoneNumber,
+          photoUrl: u.photoUrl,
+          token: u.token,
+          role: u.role,
+          isPhoneVerified: u.isPhoneVerified,
+          hasAnsweredQuestions: true,
+        ),
       ),
-    ));
+    );
   }
 
   /// Clears the persisted session and emits `Unauthenticated`. Stubbed for
@@ -153,7 +162,7 @@ class UserSessionCubit extends Cubit<UserSessionState> with SafeEmit<UserSession
 
   Future<void> _clearSocialSessions() async {
     try {
-      await GoogleSignIn.instance.signOut();
+      await _googleSignIn.signOut();
       await FirebaseAuth.instance.signOut();
     } catch (e) {
       AppLogger.warning('Social sign-out error: $e', tag: 'SESSION');

@@ -107,7 +107,11 @@ class HttpConsumer extends ApiConsumer {
     try {
       await _ensureOnline();
       final response = await client
-          .post(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .post(
+            uri,
+            body: body == null ? null : jsonEncode(body),
+            headers: await _getHeaders(),
+          )
           .timeout(_timeout);
       return _handleResponse(response);
     } catch (e) {
@@ -156,7 +160,11 @@ class HttpConsumer extends ApiConsumer {
     try {
       await _ensureOnline();
       final response = await client
-          .post(uri, body: jsonEncode(body), headers: await _getHeaders())
+          .post(
+            uri,
+            body: body == null ? null : jsonEncode(body),
+            headers: await _getHeaders(),
+          )
           .timeout(_timeout);
       return _handleRawResponse(response);
     } catch (e) {

@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
@@ -28,30 +26,25 @@ class OnboardingChatBackdrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Recessed behind the card: ~60% strength + a light overall softening so
-    // the conversation reads as context, never competing with the crisp card.
+    // Recessed behind the card using baked alpha values. Avoiding a full-frame
+    // Opacity + ImageFiltered pair removes two offscreen layers while the
+    // abstract bars remain intentionally unreadable.
     return IgnorePointer(
-      child: Opacity(
-        opacity: 0.60,
-        child: ImageFiltered(
-          imageFilter: ui.ImageFilter.blur(sigmaX: 1.4, sigmaY: 1.4),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: QeranSpacing.s12,
-              vertical: QeranSpacing.s16,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (final (outgoing, width, twoLines) in _messages)
-                  _Bubble(
-                    outgoing: outgoing,
-                    widthFactor: width,
-                    twoLines: twoLines,
-                  ),
-              ],
-            ),
-          ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: QeranSpacing.s12,
+          vertical: QeranSpacing.s16,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (final (outgoing, width, twoLines) in _messages)
+              _Bubble(
+                outgoing: outgoing,
+                widthFactor: width,
+                twoLines: twoLines,
+              ),
+          ],
         ),
       ),
     );
@@ -77,14 +70,14 @@ class _Bubble extends StatelessWidget {
     // Incoming uses a mauve wine ink (clearly lighter than the wine canvas so
     // the bubble reads); outgoing uses soft gold.
     final bubbleColor = outgoing
-        ? QeranColors.gold40
-        : QeranColors.inkBody.withValues(alpha: 0.82);
+        ? QeranColors.gold20
+        : QeranColors.inkBody.withValues(alpha: 0.48);
     final barColor = outgoing
-        ? QeranColors.wine.withValues(alpha: 0.50)
-        : QeranColors.paper.withValues(alpha: 0.60);
+        ? QeranColors.wine.withValues(alpha: 0.30)
+        : QeranColors.paper.withValues(alpha: 0.36);
     final metaColor = outgoing
-        ? QeranColors.wine.withValues(alpha: 0.42)
-        : QeranColors.paper.withValues(alpha: 0.42);
+        ? QeranColors.wine.withValues(alpha: 0.25)
+        : QeranColors.paper.withValues(alpha: 0.25);
     return Align(
       alignment: align,
       child: FractionallySizedBox(
@@ -103,20 +96,16 @@ class _Bubble extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Only the message lines are blurred — no word survives.
-              ImageFiltered(
-                imageFilter: ui.ImageFilter.blur(sigmaX: 2.4, sigmaY: 2.4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _Bar(color: barColor, widthFactor: 0.92, align: align),
-                    if (twoLines) ...[
-                      QeranSpacing.vs4,
-                      _Bar(color: barColor, widthFactor: 0.60, align: align),
-                    ],
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _Bar(color: barColor, widthFactor: 0.92, align: align),
+                  if (twoLines) ...[
+                    QeranSpacing.vs4,
+                    _Bar(color: barColor, widthFactor: 0.60, align: align),
                   ],
-                ),
+                ],
               ),
               QeranSpacing.vs4,
               _MetaRow(outgoing: outgoing, color: metaColor),
@@ -138,13 +127,17 @@ class _MetaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment:
-          outgoing ? MainAxisAlignment.end : MainAxisAlignment.start,
+      mainAxisAlignment: outgoing
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
       children: [
         Container(
           width: 16,
           height: 4,
-          decoration: BoxDecoration(color: color, borderRadius: QeranRadii.pill),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: QeranRadii.pill,
+          ),
         ),
         if (outgoing) ...[
           QeranSpacing.hs4,
@@ -177,10 +170,7 @@ class _Bar extends StatelessWidget {
       alignment: align,
       child: Container(
         height: 6,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: QeranRadii.pill,
-        ),
+        decoration: BoxDecoration(color: color, borderRadius: QeranRadii.pill),
       ),
     );
   }

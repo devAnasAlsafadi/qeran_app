@@ -25,7 +25,8 @@ import 'discovery_state.dart';
 ///
 /// Pagination: prefetch fires when the user is within 3 cards of the end
 /// of the loaded deck (per `DISCOVERY_PLAN.md` §10 R5).
-class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState> {
+class DiscoveryCubit extends Cubit<DiscoveryState>
+    with SafeEmit<DiscoveryState> {
   /// Server default. Tunable; lifted into a constant so tests can
   /// reference it without magic numbers.
   static const int pageSize = 10;
@@ -54,6 +55,11 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   /// user's filter selection. `null` means unconstrained.
   Map<String, String>? _activeFilters;
 
+  /// Monotonically increasing identity for the currently visible deck.
+  /// Every page-1 reload invalidates older page and prefetch responses, even
+  /// when both responses use the same page number.
+  int _deckGeneration = 0;
+
   /// Raw selections behind [_activeFilters], kept so the filter sheet can be
   /// re-seeded with the currently-applied state when it reopens. The flat
   /// [_activeFilters] map is lossy (it can't be rendered back into chips /
@@ -71,6 +77,10 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   /// fires the network call in the background. The two guards are
   /// independent: a like never blocks a pass and vice versa.
   bool _mutationInFlight = false;
+
+  /// Exposed for the card gesture adapter so a tap-driven like can reserve
+  /// the deck until its server outcome and gated animation are complete.
+  bool get isLikeInFlight => _mutationInFlight;
 
   /// Minimum spacing between two ACCEPTED passes. Taps arriving inside
   /// this window are dropped (no-op), throttling the burst of parallel
@@ -94,11 +104,11 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     required LikeProfileUseCase likeProfile,
     required PassProfileUseCase passProfile,
     VoidCallback? onLikeSuccess,
-  })  : _fetchPage = fetchPage,
-        _likeProfile = likeProfile,
-        _passProfile = passProfile,
-        _onLikeSuccess = (onLikeSuccess ?? _noOp),
-        super(const DiscoveryInitial());
+  }) : _fetchPage = fetchPage,
+       _likeProfile = likeProfile,
+       _passProfile = passProfile,
+       _onLikeSuccess = (onLikeSuccess ?? _noOp),
+       super(const DiscoveryInitial());
 
   static void _noOp() {}
 
@@ -135,26 +145,32 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   }
 
   Future<void> _loadFirstPage() async {
+    final generation = ++_deckGeneration;
+    final filters = _activeFilters;
     emit(const DiscoveryLoading());
     final result = await _fetchPage(
       page: 1,
       pageSize: pageSize,
-      filterParams: _activeFilters,
+      filterParams: filters,
     );
     // The screen can dispose (e.g. rapid back-navigation, app teardown)
     // while the page fetch is in flight. Without this guard, the fold
     // below would call `emit` on a closed cubit and throw StateError.
-    if (isClosed) return;
+    if (isClosed || generation != _deckGeneration) return;
     result.fold(
-      (failure) => emit(failure is DailyViewsExceededFailure
-          ? DiscoveryDailyLimit(failure.resetAt)
-          : DiscoveryFailure(failure.message)),
-      (page) => emit(DiscoveryLoaded(
-        profiles: page.profiles,
-        currentIndex: 0,
-        currentPage: page.pageNumber,
-        totalPages: page.totalPages,
-      )),
+      (failure) => emit(
+        failure is DailyViewsExceededFailure
+            ? DiscoveryDailyLimit(failure.resetAt)
+            : DiscoveryFailure(failure.message),
+      ),
+      (page) => emit(
+        DiscoveryLoaded(
+          profiles: page.profiles,
+          currentIndex: 0,
+          currentPage: page.pageNumber,
+          totalPages: page.totalPages,
+        ),
+      ),
     );
   }
 
@@ -171,7 +187,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   ///
   /// [advanceGate], when provided, defers the visible emit until the
   /// future completes. Phase 5 uses this from the Like button so the
-  /// API can start at tap time (in parallel with the 1050 ms heart
+  /// API can start at tap time (in parallel with the short heart
   /// burst) while the deck transition still waits for the heart to
   /// finish. Swipe-like calls without a gate — immediate emit.
   ///
@@ -246,10 +262,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
         _advance();
         _onLikeSuccess();
       case LikePaywall(:final serverMessage):
-        _emitLikeFailure(
-          kind: LikeFailureKind.paywall,
-          message: serverMessage,
-        );
+        _emitLikeFailure(kind: LikeFailureKind.paywall, message: serverMessage);
       case LikeAlreadyPending(:final serverMessage):
         _advanceWithFailure(
           kind: LikeFailureKind.alreadyPending,
@@ -287,11 +300,13 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     // captured copy would revert both `profiles` and `isPrefetching`.
     final live = state;
     if (live is! DiscoveryLoaded) return;
-    emit(live.copyWith(
-      actionError: message,
-      actionFailureKind: kind,
-      actionErrorVersion: live.actionErrorVersion + 1,
-    ));
+    emit(
+      live.copyWith(
+        actionError: message,
+        actionFailureKind: kind,
+        actionErrorVersion: live.actionErrorVersion + 1,
+      ),
+    );
   }
 
   /// Advances the deck AND attaches a kinded failure message in a
@@ -307,12 +322,14 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     // pages, mutate just the index + error fields.
     final live = state;
     if (live is! DiscoveryLoaded) return;
-    emit(live.copyWith(
-      currentIndex: live.currentIndex + 1,
-      actionError: message,
-      actionFailureKind: kind,
-      actionErrorVersion: live.actionErrorVersion + 1,
-    ));
+    emit(
+      live.copyWith(
+        currentIndex: live.currentIndex + 1,
+        actionError: message,
+        actionFailureKind: kind,
+        actionErrorVersion: live.actionErrorVersion + 1,
+      ),
+    );
     _maybePrefetch();
   }
 
@@ -352,19 +369,23 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     _advance();
     if (_skipInFlight.contains(profile.id)) return;
     _skipInFlight.add(profile.id);
-    unawaited(_passProfile(profile.id).then((result) {
-      result.fold(
-        (failure) => AppLogger.warning(
-          'skip endpoint failed silently for targetUserId=${profile.id} '
-          '(UX optimistic — card already advanced). '
-          'Server message: "${failure.message}". '
-          'Endpoint: POST /api/discovery/skip/${profile.id}. '
-          'Check HTTP layer log for status code and raw body.',
-          tag: 'DISCOVERY',
-        ),
-        (_) => null,
-      );
-    }).whenComplete(() => _skipInFlight.remove(profile.id)));
+    unawaited(
+      _passProfile(profile.id)
+          .then((result) {
+            result.fold(
+              (failure) => AppLogger.warning(
+                'skip endpoint failed silently for targetUserId=${profile.id} '
+                '(UX optimistic — card already advanced). '
+                'Server message: "${failure.message}". '
+                'Endpoint: POST /api/discovery/skip/${profile.id}. '
+                'Check HTTP layer log for status code and raw body.',
+                tag: 'DISCOVERY',
+              ),
+              (_) => null,
+            );
+          })
+          .whenComplete(() => _skipInFlight.remove(profile.id)),
+    );
   }
 
   /// Pure visual rewind (per `DISCOVERY_PLAN.md` Q1 answer): decrements
@@ -374,13 +395,12 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
   void undo() {
     final current = state;
     if (current is! DiscoveryLoaded) return;
-    final newIndex =
-        (current.currentIndex - 1).clamp(0, current.profiles.length);
+    final newIndex = (current.currentIndex - 1).clamp(
+      0,
+      current.profiles.length,
+    );
     if (newIndex == current.currentIndex) return;
-    emit(current.copyWith(
-      currentIndex: newIndex,
-      resetActionError: true,
-    ));
+    emit(current.copyWith(currentIndex: newIndex, resetActionError: true));
   }
 
   /// Public hook for the UI's "retry" affordance on a failed prefetch.
@@ -413,10 +433,12 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     // off the live index is the same card progression, minus the clobber.
     final live = state;
     if (live is! DiscoveryLoaded) return;
-    emit(live.copyWith(
-      currentIndex: live.currentIndex + 1,
-      resetActionError: true,
-    ));
+    emit(
+      live.copyWith(
+        currentIndex: live.currentIndex + 1,
+        resetActionError: true,
+      ),
+    );
     _maybePrefetch();
   }
 
@@ -432,17 +454,17 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
 
   Future<void> _prefetch(DiscoveryLoaded base) async {
     if (base.isPrefetching || !base.hasMore) return;
-    emit(base.copyWith(
-      isPrefetching: true,
-      resetPrefetchError: true,
-    ));
+    final generation = _deckGeneration;
+    final filters = _activeFilters;
+    emit(base.copyWith(isPrefetching: true, resetPrefetchError: true));
     final nextPage = base.currentPage + 1;
     final result = await _fetchPage(
       page: nextPage,
       pageSize: pageSize,
-      filterParams: _activeFilters,
+      filterParams: filters,
     );
     if (isClosed) return;
+    if (generation != _deckGeneration) return;
     final post = state;
     if (post is! DiscoveryLoaded) return; // refresh / shutdown happened
     result.fold(
@@ -451,10 +473,9 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
         // prefetched a page then hits DAILY_VIEWS_EXCEEDED here, we keep it
         // as a non-fatal prefetchError — the limit screen only appears once
         // the loaded cards run out (the page-1 load is the primary trigger).
-        emit(post.copyWith(
-          isPrefetching: false,
-          prefetchError: failure.message,
-        ));
+        emit(
+          post.copyWith(isPrefetching: false, prefetchError: failure.message),
+        );
       },
       (page) {
         // Guard: drop stale results when a refresh reset currentPage back to 1
@@ -466,13 +487,15 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
           emit(post.copyWith(isPrefetching: false));
           return;
         }
-        emit(post.copyWith(
-          profiles: [...post.profiles, ...page.profiles],
-          currentPage: page.pageNumber,
-          totalPages: page.totalPages,
-          isPrefetching: false,
-          resetPrefetchError: true,
-        ));
+        emit(
+          post.copyWith(
+            profiles: [...post.profiles, ...page.profiles],
+            currentPage: page.pageNumber,
+            totalPages: page.totalPages,
+            isPrefetching: false,
+            resetPrefetchError: true,
+          ),
+        );
         // Eager chain: a fast swiper may already sit within the threshold of
         // this freshly appended page's tail. Re-check now so the next page
         // starts loading immediately instead of waiting for the next swipe.
@@ -481,7 +504,3 @@ class DiscoveryCubit extends Cubit<DiscoveryState> with SafeEmit<DiscoveryState>
     );
   }
 }
-
-
-
-

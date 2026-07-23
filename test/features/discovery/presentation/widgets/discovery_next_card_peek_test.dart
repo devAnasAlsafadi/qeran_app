@@ -26,13 +26,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 // ── Fakes ────────────────────────────────────────────────────────────────────
 
 DiscoveryProfile _profile(String id) => DiscoveryProfile(
-      id: id,
-      name: 'Name-$id',
-      age: 25,
-      images: const [],
-      matchingScore: 0,
-      placements: const [],
-    );
+  id: id,
+  name: 'Name-$id',
+  age: 25,
+  images: const [],
+  matchingScore: 0,
+  placements: const [],
+);
 
 class _StubAssetLoader extends AssetLoader {
   const _StubAssetLoader();
@@ -50,14 +50,15 @@ class _FakeFetch implements FetchDiscoveryPageUseCase {
     int page = 1,
     int pageSize = 10,
     Map<String, String>? filterParams,
-  }) async =>
-      Right(DiscoveryPage(
-        profiles: _profiles,
-        pageNumber: 1,
-        pageSize: _profiles.length,
-        totalCount: _profiles.length,
-        totalPages: 1,
-      ));
+  }) async => Right(
+    DiscoveryPage(
+      profiles: _profiles,
+      pageNumber: 1,
+      pageSize: _profiles.length,
+      totalCount: _profiles.length,
+      totalPages: 1,
+    ),
+  );
 }
 
 class _FakeLike implements LikeProfileUseCase {
@@ -95,7 +96,7 @@ class _FakePrefs extends Fake implements SharedPrefService {}
 /// touches the (unused) deps.
 class _FakeNotificationBadgeCubit extends NotificationBadgeCubit {
   _FakeNotificationBadgeCubit()
-      : super(getNotifications: _FakeGetNotifications(), prefs: _FakePrefs());
+    : super(getNotifications: _FakeGetNotifications(), prefs: _FakePrefs());
   @override
   Future<void> refresh() async {}
 }
@@ -205,39 +206,49 @@ void main() {
 
     setUp(() async => sl.reset());
 
-    testWidgets('two DiscoveryImagePanel widgets when two profiles exist',
-        (tester) async {
-      await _pumpView(tester, [_profile('a'), _profile('b')]);
-      expect(find.byType(DiscoveryImagePanel), findsNWidgets(2));
-    });
+    testWidgets(
+      'peek uses a lightweight silhouette instead of a second image',
+      (tester) async {
+        await _pumpView(tester, [_profile('a'), _profile('b')]);
+        expect(find.byType(DiscoveryImagePanel), findsOneWidget);
+        expect(
+          find.byKey(const ValueKey<String>('discovery-peek-silhouette')),
+          findsOneWidget,
+        );
+      },
+    );
 
-    testWidgets('one DiscoveryImagePanel widget when only one profile',
-        (tester) async {
+    testWidgets('one DiscoveryImagePanel widget when only one profile', (
+      tester,
+    ) async {
       await _pumpView(tester, [_profile('a')]);
       expect(find.byType(DiscoveryImagePanel), findsOneWidget);
     });
 
-    testWidgets('overlay icons belong to the screen layer top bar — never inside cards',
-        (tester) async {
-      await _pumpView(tester, [_profile('a'), _profile('b')]);
-      // Both the active card (showOverlayActions: false) and the peek card
-      // (showOverlayActions: false) suppress DiscoveryImagePanel's internal
-      // overlay row. Only the screen-level top bar renders, using
-      // Icons.notifications_none_rounded.
-      expect(
-        find.byIcon(Icons.notifications_outlined),
-        findsNothing,
-        reason: 'card-panel overlay icons must be suppressed in home context',
-      );
-      expect(
-        find.byIcon(Icons.notifications_none_rounded),
-        findsOneWidget,
-        reason: 'exactly one top bar notifications icon expected',
-      );
-    });
+    testWidgets(
+      'overlay icons belong to the screen layer top bar — never inside cards',
+      (tester) async {
+        await _pumpView(tester, [_profile('a'), _profile('b')]);
+        // Both the active card (showOverlayActions: false) and the peek card
+        // (showOverlayActions: false) suppress DiscoveryImagePanel's internal
+        // overlay row. Only the screen-level top bar renders, using
+        // Icons.notifications_none_rounded.
+        expect(
+          find.byIcon(Icons.notifications_outlined),
+          findsNothing,
+          reason: 'card-panel overlay icons must be suppressed in home context',
+        );
+        expect(
+          find.byIcon(Icons.notifications_none_rounded),
+          findsOneWidget,
+          reason: 'exactly one top bar notifications icon expected',
+        );
+      },
+    );
 
-    testWidgets('peek Opacity(0.60) is wrapped in IgnorePointer',
-        (tester) async {
+    testWidgets('peek Opacity(0.60) is wrapped in IgnorePointer', (
+      tester,
+    ) async {
       await _pumpView(tester, [_profile('a'), _profile('b')]);
       // _PeekCardLayer renders Opacity(opacity: 0.60). The active card
       // renders at full opacity, so this finder is unique to the peek.

@@ -11,16 +11,16 @@ class _MockApiConsumer extends Mock implements ApiConsumer {}
 
 /// Minimal `data` envelope so `DiscoveryPageModel.fromJson` doesn't bail.
 Map<String, dynamic> _emptyPage() => {
-      'status': 1,
-      'message': 'ok',
-      'data': {
-        'data': const [],
-        'pageNumber': 1,
-        'pageSize': 10,
-        'totalCount': 0,
-        'totalPages': 0,
-      },
-    };
+  'status': 1,
+  'message': 'ok',
+  'data': {
+    'data': const [],
+    'pageNumber': 1,
+    'pageSize': 10,
+    'totalCount': 0,
+    'totalPages': 0,
+  },
+};
 
 void main() {
   late _MockApiConsumer api;
@@ -34,9 +34,9 @@ void main() {
   group('fetchPage — query parameter shape', () {
     test('spreads flat filterParams directly into the query map '
         '(no JSON encoding)', () async {
-      when(() => api.getRaw(any(),
-              queryParameters: any(named: 'queryParameters')))
-          .thenAnswer((_) async => _emptyPage());
+      when(
+        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer((_) async => _emptyPage());
 
       const filters = {
         'RangeFrom[1]': '18',
@@ -67,36 +67,47 @@ void main() {
         expect(qp[k], v, reason: 'expected qp[$k]=$v');
       });
       // Critically: NO legacy "QuestionFilters" JSON-blob key.
-      expect(qp.containsKey('QuestionFilters'), isFalse,
-          reason: 'must not jsonEncode into a "QuestionFilters" blob');
+      expect(
+        qp.containsKey('QuestionFilters'),
+        isFalse,
+        reason: 'must not jsonEncode into a "QuestionFilters" blob',
+      );
     });
 
     test('null filterParams → only Page + PageSize sent', () async {
-      when(() => api.getRaw(any(),
-              queryParameters: any(named: 'queryParameters')))
-          .thenAnswer((_) async => _emptyPage());
+      when(
+        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer((_) async => _emptyPage());
 
       await ds.fetchPage();
 
-      final qp = verify(
-        () => api.getRaw(any(),
-            queryParameters: captureAny(named: 'queryParameters')),
-      ).captured.single as Map<String, dynamic>;
+      final qp =
+          verify(
+                () => api.getRaw(
+                  any(),
+                  queryParameters: captureAny(named: 'queryParameters'),
+                ),
+              ).captured.single
+              as Map<String, dynamic>;
 
       expect(qp.keys.toSet(), {'Page', 'PageSize'});
     });
 
     test('empty filterParams behaves like null (no spread)', () async {
-      when(() => api.getRaw(any(),
-              queryParameters: any(named: 'queryParameters')))
-          .thenAnswer((_) async => _emptyPage());
+      when(
+        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer((_) async => _emptyPage());
 
       await ds.fetchPage(filterParams: const {});
 
-      final qp = verify(
-        () => api.getRaw(any(),
-            queryParameters: captureAny(named: 'queryParameters')),
-      ).captured.single as Map<String, dynamic>;
+      final qp =
+          verify(
+                () => api.getRaw(
+                  any(),
+                  queryParameters: captureAny(named: 'queryParameters'),
+                ),
+              ).captured.single
+              as Map<String, dynamic>;
 
       expect(qp.keys.toSet(), {'Page', 'PageSize'});
     });
@@ -108,29 +119,35 @@ void main() {
 
     test('200 {status:0, DAILY_VIEWS_EXCEEDED, data.resetAt} → typed '
         'exception carrying the parsed resetAt', () async {
-      when(() => api.getRaw(any(),
-              queryParameters: any(named: 'queryParameters')))
-          .thenAnswer((_) async => {
-                'status': 0,
-                'errorCode': DiscoveryErrorCodes.dailyViewsExceeded,
-                'message': 'capped',
-                'data': {'resetAt': '2026-07-18T00:00:00Z'},
-              });
+      when(
+        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenAnswer(
+        (_) async => {
+          'status': 0,
+          'errorCode': DiscoveryErrorCodes.dailyViewsExceeded,
+          'message': 'capped',
+          'data': {'resetAt': '2026-07-18T00:00:00Z'},
+        },
+      );
 
       final err = await fetchError();
       expect(err, isA<DailyViewsExceededException>());
-      expect((err as DailyViewsExceededException).resetAt.toUtc(),
-          DateTime.utc(2026, 7, 18));
+      expect(
+        (err as DailyViewsExceededException).resetAt.toUtc(),
+        DateTime.utc(2026, 7, 18),
+      );
     });
 
     test('non-2xx thrown CodedServerException with the code → typed '
         'exception (fallback resetAt = next UTC midnight)', () async {
-      when(() => api.getRaw(any(),
-              queryParameters: any(named: 'queryParameters')))
-          .thenThrow(CodedServerException(
-        message: 'capped',
-        errorCode: DiscoveryErrorCodes.dailyViewsExceeded,
-      ));
+      when(
+        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+      ).thenThrow(
+        CodedServerException(
+          message: 'capped',
+          errorCode: DiscoveryErrorCodes.dailyViewsExceeded,
+        ),
+      );
 
       final err = await fetchError();
       expect(err, isA<DailyViewsExceededException>());
@@ -140,29 +157,32 @@ void main() {
       expect(resetAt.minute, 0);
     });
 
-    test('other status:0 failure → plain ServerException, not the daily type',
-        () async {
-      when(() => api.getRaw(any(),
-              queryParameters: any(named: 'queryParameters')))
-          .thenAnswer((_) async => {
-                'status': 0,
-                'errorCode': 'SOMETHING_ELSE',
-                'message': 'nope',
-              });
+    test(
+      'other status:0 failure → plain ServerException, not the daily type',
+      () async {
+        when(
+          () =>
+              api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+        ).thenAnswer(
+          (_) async => {
+            'status': 0,
+            'errorCode': 'SOMETHING_ELSE',
+            'message': 'nope',
+          },
+        );
 
-      final err = await fetchError();
-      expect(err, isA<ServerException>());
-      expect(err, isNot(isA<DailyViewsExceededException>()));
-    });
+        final err = await fetchError();
+        expect(err, isA<ServerException>());
+        expect(err, isNot(isA<DailyViewsExceededException>()));
+      },
+    );
   });
 
   group('fetchFilters', () {
     test('hits the filters endpoint with no params', () async {
-      when(() => api.get(any())).thenAnswer((_) async => {
-            'status': 1,
-            'message': 'ok',
-            'data': const [],
-          });
+      when(() => api.get(any())).thenAnswer(
+        (_) async => {'status': 1, 'message': 'ok', 'data': const []},
+      );
 
       await ds.fetchFilters();
 
@@ -173,10 +193,9 @@ void main() {
   group('likeProfile — errorCode classification', () {
     // Gated failure arriving as a thrown CodedServerException (non-2xx or a
     // {success:false} envelope) is classified by the stable errorCode.
-    void whenThrows(String code) =>
-        when(() => api.postRaw(any())).thenThrow(
-          CodedServerException(message: 'server msg', errorCode: code),
-        );
+    void whenThrows(String code) => when(
+      () => api.postRaw(any()),
+    ).thenThrow(CodedServerException(message: 'server msg', errorCode: code));
 
     test('SUBSCRIPTION_REQUIRED → LikePaywall', () async {
       whenThrows(LikesErrorCodes.subscriptionRequired);
@@ -185,6 +204,11 @@ void main() {
 
     test('LIKES_QUOTA_EXCEEDED → LikePaywall', () async {
       whenThrows(LikesErrorCodes.likesQuotaExceeded);
+      expect(await ds.likeProfile('u1'), isA<LikePaywall>());
+    });
+
+    test('LIKES_FREE_QUOTA_EXCEEDED → LikePaywall', () async {
+      whenThrows(LikesErrorCodes.likesFreeQuotaExceeded);
       expect(await ds.likeProfile('u1'), isA<LikePaywall>());
     });
 
@@ -203,15 +227,19 @@ void main() {
       expect(await ds.likeProfile('u1'), isA<LikeUserUnavailable>());
     });
 
-    test('200 {status:0, errorCode} body is classified, NOT accepted',
-        () async {
-      when(() => api.postRaw(any())).thenAnswer((_) async => {
+    test(
+      '200 {status:0, errorCode} body is classified, NOT accepted',
+      () async {
+        when(() => api.postRaw(any())).thenAnswer(
+          (_) async => {
             'status': 0,
             'errorCode': LikesErrorCodes.subscriptionRequired,
             'message': 'server msg',
-          });
-      expect(await ds.likeProfile('u1'), isA<LikePaywall>());
-    });
+          },
+        );
+        expect(await ds.likeProfile('u1'), isA<LikePaywall>());
+      },
+    );
 
     test('Arabic message is the fallback when no errorCode', () async {
       when(() => api.postRaw(any())).thenThrow(
@@ -221,26 +249,24 @@ void main() {
     });
 
     test('success {status:1, data} → LikeAccepted', () async {
-      when(() => api.postRaw(any())).thenAnswer((_) async => {
-            'status': 1,
-            'message': 'ok',
-            'data': '42',
-          });
+      when(
+        () => api.postRaw(any()),
+      ).thenAnswer((_) async => {'status': 1, 'message': 'ok', 'data': '42'});
       final outcome = await ds.likeProfile('u1');
       expect(outcome, isA<LikeAccepted>());
       expect((outcome as LikeAccepted).likeId, '42');
     });
 
-    test('success {success:true, data} (no status) stays LikeAccepted',
-        () async {
-      // Regression guard: rejection is only flagged on a positive failure
-      // marker, so a plain success Map without `status` is never mis-read.
-      when(() => api.postRaw(any())).thenAnswer((_) async => {
-            'success': true,
-            'message': 'ok',
-            'data': '7',
-          });
-      expect(await ds.likeProfile('u1'), isA<LikeAccepted>());
-    });
+    test(
+      'success {success:true, data} (no status) stays LikeAccepted',
+      () async {
+        // Regression guard: rejection is only flagged on a positive failure
+        // marker, so a plain success Map without `status` is never mis-read.
+        when(() => api.postRaw(any())).thenAnswer(
+          (_) async => {'success': true, 'message': 'ok', 'data': '7'},
+        );
+        expect(await ds.likeProfile('u1'), isA<LikeAccepted>());
+      },
+    );
   });
 }

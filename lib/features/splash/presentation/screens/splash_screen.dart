@@ -44,10 +44,15 @@ class _SplashScreenState extends State<SplashScreen>
   /// cap (comfortably over the full reveal), so a stalled/never-loading
   /// animation can never hang the splash. The real reveal length is read from
   /// the composition at runtime (see [_startReveal]); this is only an upper bound.
-  static const Duration _safetyCap = Duration(seconds: 6);
+  static const Duration _safetyCap = Duration(seconds: 3);
 
   /// Used only if the composition reports a non-positive duration.
-  static const Duration _fallbackDuration = Duration(milliseconds: 4000);
+  static const Duration _fallbackDuration = Duration(milliseconds: 1800);
+
+  /// Preserve every authored Lottie frame but cap wall-clock playback. The
+  /// current 3.5-second composition is played faster instead of keeping the
+  /// user on a decorative screen after routing is already ready.
+  static const Duration _maxRevealDuration = Duration(milliseconds: 1800);
 
   /// The transparent logo+wordmark art (1080×795) is centred on the wine canvas
   /// at this fraction of the screen width — sized, not full-bleed — so it never
@@ -91,8 +96,8 @@ class _SplashScreenState extends State<SplashScreen>
     // Backstop timer — cancelled by the first settle (see _markAnimationSettled)
     // or in dispose.
     _safetyTimer = Timer(_safetyCap, _markAnimationSettled);
-    // Kick off the routing decision + device bootstrap (unchanged).
-    _controller.init();
+    // Hydrate the session and resolve the route while the animation is visible.
+    unawaited(_controller.init());
   }
 
   @override
@@ -110,9 +115,13 @@ class _SplashScreenState extends State<SplashScreen>
   void _startReveal(Duration duration) {
     if (_revealStarted) return;
     _revealStarted = true;
-    final totalUs = duration.inMicroseconds <= 0
-        ? _fallbackDuration.inMicroseconds
-        : duration.inMicroseconds;
+    final reportedDuration = duration.inMicroseconds <= 0
+        ? _fallbackDuration
+        : duration;
+    final playbackDuration = reportedDuration > _maxRevealDuration
+        ? _maxRevealDuration
+        : reportedDuration;
+    final totalUs = playbackDuration.inMicroseconds;
     _revealTicker = createTicker((elapsed) {
       final t = (elapsed.inMicroseconds / totalUs).clamp(0.0, 1.0);
       _anim.value = t; // direct set — NOT forward(); ignores disableAnimations
@@ -137,11 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _maybeNavigate() {
     if (_navigated || !_animDone || _pending == null) return;
     _navigated = true;
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) {
-        _controller.handleNavigation(_pending!);
-      }
-    });
+    _controller.handleNavigation(_pending!);
   }
 
   @override
@@ -190,8 +195,9 @@ class _SplashScreenState extends State<SplashScreen>
                     );
                     if (!_animDone && !_errorSettleScheduled) {
                       _errorSettleScheduled = true;
-                      WidgetsBinding.instance
-                          .addPostFrameCallback((_) => _markAnimationSettled());
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => _markAnimationSettled(),
+                      );
                     }
                     return const SizedBox.shrink();
                   },

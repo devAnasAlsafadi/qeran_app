@@ -2,78 +2,28 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/services/notification_service.dart';
 import 'package:qeran/core/services/revenuecat_service.dart';
+import 'package:qeran/core/services/firebase_initialization_service.dart';
+import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
-import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'core/di/injection_container.dart' as di;
 import 'core/utils/app_assets.dart';
 import 'core/utils/app_bloc_observer.dart';
-import 'firebase_options.dart';
 import 'qeran_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    AppLogger.debug("✅ Firebase Connected Successfully!");
-  } catch (e) {
-    AppLogger.error("❌ Firebase Connection Failed: $e");
-  }
+  // Keep only root-widget prerequisites on the cold-start path. These jobs are
+  // independent, so running them together avoids serial startup latency.
+  await Future.wait<void>([di.init(), EasyLocalization.ensureInitialized()]);
 
-  //  Dependency Injection
-  await di.init();
-
-  // Hydrate the user session from storage before runApp so no widget
-  // renders against UserSessionInitial.
-  await di.sl<UserSessionCubit>().hydrate();
-
-  // Subscription state is hydrated AFTER the user session — the
-  // /current endpoint needs the bearer token the session just wrote
-  // to secure storage. Fire-and-forget: a slow response must not block
-  // launch; widgets render against `CurrentSubscriptionInitial` and
-  // observe the transition reactively.
-  // Guard: skip the request entirely when there is no authenticated
-  // session — avoids a pointless 401 on every cold start for guests.
-  if (di.sl<UserSessionCubit>().state is UserSessionAuthenticated) {
-    unawaited(di.sl<CurrentSubscriptionCubit>().hydrate());
-  }
-
-  // FCM init — wires onTokenRefresh to the device-bootstrap orchestrator.
-  // Failures here must not block app launch.
-  try {
-    await di.sl<NotificationService>().init(
-      onTokenRefresh: (token) =>
-          di.sl<DeviceBootstrapService>().onTokenRefreshed(token),
-    );
-  } catch (e) {
-    AppLogger.error("NotificationService init failed: $e", tag: 'FCM');
-  }
-
-  // RevenueCat (P1) — configure the SDK anonymously, then bind its appUserID
-  // to the session. Same non-blocking contract as Firebase/FCM: a payment-SDK
-  // failure must never block launch.
-  try {
-    final rc = di.sl<RevenueCatService>();
-    await rc.configure();
-    _bindRevenueCatToSession(di.sl<UserSessionCubit>(), rc);
-  } catch (e) {
-    AppLogger.error("RevenueCat init failed: $e", tag: 'RC');
-  }
-
-  await EasyLocalization.ensureInitialized();
-  // Load intl date symbols for all locales so locale-aware DateFormat
-  // (e.g. the matchmaker dashboard greeting) works in Arabic + English.
-  await initializeDateFormatting();
   Bloc.observer = SimpleBlocObserver();
   runApp(
     EasyLocalization(
@@ -86,9 +36,67 @@ void main() async {
       startLocale: const Locale('ar'),
       fallbackLocale: const Locale('ar'),
       path: AppAssets.translations,
-      child: QeranApp(),
+      child: const QeranApp(),
     ),
   );
+
+  // These SDKs are not needed to paint the first Flutter frame. Starting them
+  // after it keeps launch responsive without removing any functionality.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(_initializeDeferredServices());
+  });
+}
+
+Future<void> _initializeDeferredServices() async {
+  final session = di.sl<UserSessionCubit>();
+  final firebase = di.sl<FirebaseInitializationService>();
+  final firebaseReady = firebase.initialize();
+  unawaited(_initializeRevenueCat(session));
+  unawaited(_initializeGoogleSignIn());
+  unawaited(_initializeSupportedDateFormatting());
+  await firebaseReady;
+  await _initializeNotifications();
+  unawaited(di.sl<DeviceBootstrapService>().bootstrap());
+}
+
+Future<void> _initializeNotifications() async {
+  try {
+    await di.sl<NotificationService>().init(
+      onTokenRefresh: (token) =>
+          di.sl<DeviceBootstrapService>().onTokenRefreshed(token),
+    );
+  } catch (e) {
+    AppLogger.error("NotificationService init failed: $e", tag: 'FCM');
+  }
+}
+
+Future<void> _initializeRevenueCat(UserSessionCubit session) async {
+  try {
+    final rc = di.sl<RevenueCatService>();
+    await rc.configure();
+    _bindRevenueCatToSession(session, rc);
+  } catch (e) {
+    AppLogger.error("RevenueCat init failed: $e", tag: 'RC');
+  }
+}
+
+Future<void> _initializeGoogleSignIn() async {
+  try {
+    await di.sl<GoogleSignInService>().initialize();
+  } catch (e) {
+    AppLogger.error("Google Sign-In init failed: $e", tag: 'AUTH');
+  }
+}
+
+Future<void> _initializeSupportedDateFormatting() async {
+  try {
+    await Future.wait<void>([
+      initializeDateFormatting('ar'),
+      initializeDateFormatting('en'),
+    ]);
+  } catch (e) {
+    AppLogger.error("Date formatting init failed: $e", tag: 'INTL');
+  }
 }
 
 /// Keeps RevenueCat's `appUserID` in sync with the backend session, without

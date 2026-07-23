@@ -49,7 +49,7 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
   final ApiConsumer _apiConsumer;
 
   const DiscoveryRemoteDataSourceImpl({required ApiConsumer apiConsumer})
-      : _apiConsumer = apiConsumer;
+    : _apiConsumer = apiConsumer;
 
   @override
   Future<DiscoveryPageModel> fetchPage({
@@ -144,13 +144,14 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
 
     final response = await _apiConsumer.get(EndPoints.discoveryFilters);
 
-    final apiResponse = ApiResponse<List<DiscoveryFilterQuestionModel>>.fromJson(
-      response,
-      (json) => (json as List<dynamic>? ?? [])
-          .whereType<Map<String, dynamic>>()
-          .map(DiscoveryFilterQuestionModel.fromJson)
-          .toList(),
-    );
+    final apiResponse =
+        ApiResponse<List<DiscoveryFilterQuestionModel>>.fromJson(
+          response,
+          (json) => (json as List<dynamic>? ?? [])
+              .whereType<Map<String, dynamic>>()
+              .map(DiscoveryFilterQuestionModel.fromJson)
+              .toList(),
+        );
 
     if (apiResponse.data == null) {
       throw ServerException(
@@ -256,6 +257,7 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
       switch (errorCode) {
         case LikesErrorCodes.subscriptionRequired:
         case LikesErrorCodes.likesQuotaExceeded:
+        case LikesErrorCodes.likesFreeQuotaExceeded:
           return LikePaywall(serverMessage: rawMessage);
         case LikesErrorCodes.likeAlreadyExists:
           return LikeAlreadyPending(serverMessage: rawMessage);

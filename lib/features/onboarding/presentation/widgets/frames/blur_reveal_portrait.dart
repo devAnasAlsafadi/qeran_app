@@ -58,9 +58,17 @@ class _BlurRevealPortraitState extends State<BlurRevealPortrait>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // reduce-motion needs MediaQuery, so the ticker is created here (once).
-    // If accessibility flips motion back on later, this recreates it.
-    if (MediaQuery.of(context).disableAnimations || _controller != null) return;
+    // Reduce-motion and page-level TickerMode both remain respected. If the
+    // accessibility setting changes at runtime, dispose/recreate the ticker
+    // without changing the half-blurred visual.
+    if (MediaQuery.of(context).disableAnimations) {
+      _sweep?.dispose();
+      _sweep = null;
+      _controller?.dispose();
+      _controller = null;
+      return;
+    }
+    if (_controller != null) return;
     final controller = AnimationController(
       vsync: this,
       duration: QeranMotion.revealSweep,
@@ -119,6 +127,7 @@ class _BlurRevealPortraitState extends State<BlurRevealPortrait>
     return [
       ClipRect(clipper: _LeftClipper(seamX), child: frostedLayer),
       Positioned(
+        key: const ValueKey<String>('onboarding-blur-reveal-seam'),
         left: seamX - _seamWidth / 2,
         top: 0,
         bottom: 0,
@@ -149,6 +158,7 @@ class _BlurRevealPortraitState extends State<BlurRevealPortrait>
         child: const Image(
           image: AssetImage(AppAssets.welcomePortrait),
           fit: BoxFit.cover,
+          filterQuality: FilterQuality.low,
         ),
       ),
     );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../blocs/discovery_cubit.dart';
 import 'discovery_deck_animation_controller.dart';
 
 /// Translates raw horizontal-drag gestures on the Discovery card into
@@ -23,18 +25,38 @@ class DiscoverySwipeHandler extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = DeckAnimationScope.maybeOf(context);
+    DiscoveryCubit? discoveryCubit() {
+      try {
+        return BlocProvider.of<DiscoveryCubit>(context, listen: false);
+      } catch (_) {
+        // Keep the widget a transparent pass-through in isolated fixtures
+        // that only provide the animation scope.
+        return null;
+      }
+    }
+
+    bool isLikeInFlight() => discoveryCubit()?.isLikeInFlight ?? false;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onHorizontalDragStart: controller == null
           ? null
-          : (_) => controller.onDragStart(),
+          : (_) {
+              if (isLikeInFlight()) return;
+              controller.onDragStart();
+            },
       onHorizontalDragUpdate: controller == null
           ? null
-          : (details) => controller.onDragUpdate(details.delta.dx),
+          : (details) {
+              if (isLikeInFlight()) return;
+              controller.onDragUpdate(details.delta.dx);
+            },
       onHorizontalDragEnd: controller == null
           ? null
-          : (details) =>
-              controller.onDragEnd(velocity: details.primaryVelocity ?? 0),
+          : (details) {
+              if (isLikeInFlight()) return;
+              controller.onDragEnd(velocity: details.primaryVelocity ?? 0);
+            },
       child: child,
     );
   }

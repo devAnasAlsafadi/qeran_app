@@ -45,24 +45,40 @@ class AppRouter {
   static PageRouteBuilder<T> _buildSmoothRoute<T>({
     required RouteSettings settings,
     required Widget Function(BuildContext context) builder,
-    Duration duration = const Duration(milliseconds: 480),
+    Duration duration = const Duration(milliseconds: 280),
   }) {
     return PageRouteBuilder<T>(
       settings: settings,
       transitionDuration: duration,
-      reverseTransitionDuration: Duration(milliseconds: (duration.inMilliseconds * 0.75).round()),
+      reverseTransitionDuration: Duration(
+        milliseconds: (duration.inMilliseconds * 0.75).round(),
+      ),
       pageBuilder: (context, animation, secondaryAnimation) => builder(context),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final curvedAnim = CurvedAnimation(
+        final incomingCurve = CurvedAnimation(
           parent: animation,
-          curve: Curves.easeInOutCubic,
-          reverseCurve: Curves.easeInOut,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
         );
-        return FadeTransition(
-          opacity: curvedAnim,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.98, end: 1.0).animate(curvedAnim),
-            child: child,
+        final outgoingCurve = CurvedAnimation(
+          parent: secondaryAnimation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        final isRtl = Directionality.of(context) == TextDirection.rtl;
+        final incomingOffset = Tween<Offset>(
+          begin: Offset(isRtl ? -0.035 : 0.035, 0),
+          end: Offset.zero,
+        ).animate(incomingCurve);
+        final outgoingOffset = Tween<Offset>(
+          begin: Offset.zero,
+          end: Offset(isRtl ? 0.015 : -0.015, 0),
+        ).animate(outgoingCurve);
+        return SlideTransition(
+          position: outgoingOffset,
+          child: FadeTransition(
+            opacity: incomingCurve,
+            child: SlideTransition(position: incomingOffset, child: child),
           ),
         );
       },
@@ -126,10 +142,9 @@ class AppRouter {
           builder: (context) => QuestionnaireFlowScreen(questions: questions),
         );
       case RouteNames.oathScreen:
-        final answersPayload =
-            settings.arguments is List<Map<String, dynamic>>
-                ? settings.arguments as List<Map<String, dynamic>>
-                : null;
+        final answersPayload = settings.arguments is List<Map<String, dynamic>>
+            ? settings.arguments as List<Map<String, dynamic>>
+            : null;
         return _buildSmoothRoute(
           settings: settings,
           builder: (context) => OathScreen(answersPayload: answersPayload),
@@ -259,28 +274,16 @@ class AppRouter {
         );
       case RouteNames.fullProfileDetails:
         final args = settings.arguments as FullProfileDetailsArgs?;
-        return PageRouteBuilder(
+        return _buildSmoothRoute(
           settings: settings,
-          transitionDuration: const Duration(milliseconds: 1100),
-          reverseTransitionDuration: const Duration(milliseconds: 850),
-          pageBuilder: (context, animation, secondaryAnimation) => args == null
+          duration: const Duration(milliseconds: 360),
+          builder: (context) => args == null
               ? Scaffold(
                   body: Center(
                     child: Text('Missing args for ${settings.name}'),
                   ),
                 )
               : FullProfileDetailsScreen(args: args),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final curvedAnim = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOutCubicEmphasized,
-              reverseCurve: Curves.easeInOutCubic,
-            );
-            return FadeTransition(
-              opacity: curvedAnim,
-              child: child,
-            );
-          },
         );
       case RouteNames.myProfile:
         return _buildSmoothRoute(

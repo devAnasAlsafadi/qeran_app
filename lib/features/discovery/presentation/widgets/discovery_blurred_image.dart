@@ -30,21 +30,26 @@ class DiscoveryBlurredImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headers = _authHeaders(context);
+    final headers = _discoveryImageAuthHeaders(context);
     return Stack(
       fit: StackFit.expand,
       children: [
-        ImageFiltered(
-          imageFilter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-          child: CachedNetworkImage(
-            imageUrl: url,
-            httpHeaders: headers,
-            fit: BoxFit.cover,
-            memCacheWidth: 600,
-            maxWidthDiskCache: 600,
-            placeholder: (_, _) => Container(color: QeranColors.creamSurface),
-            errorWidget: (_, _, _) =>
-                Container(color: QeranColors.creamSurface),
+        RepaintBoundary(
+          child: ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+            child: CachedNetworkImage(
+              imageUrl: url,
+              httpHeaders: headers,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.low,
+              memCacheWidth: 600,
+              maxWidthDiskCache: 600,
+              fadeInDuration: Duration.zero,
+              fadeOutDuration: Duration.zero,
+              placeholder: (_, _) => Container(color: QeranColors.creamSurface),
+              errorWidget: (_, _, _) =>
+                  Container(color: QeranColors.creamSurface),
+            ),
           ),
         ),
         Container(color: QeranColors.wine.withValues(alpha: 0.35)),
@@ -55,22 +60,36 @@ class DiscoveryBlurredImage extends StatelessWidget {
       ],
     );
   }
+}
 
-  Map<String, String>? _authHeaders(BuildContext context) {
-    try {
-      final state = context.read<UserSessionCubit>().state;
-      if (state is UserSessionAuthenticated) {
-        final token = state.user.token;
-        if (token != null && token.isNotEmpty) {
-          return {'Authorization': 'Bearer $token'};
-        }
+/// Warms the next profile photo in the file + decoded image caches without
+/// placing another blurred image in the render tree.
+Future<void> precacheDiscoveryPhoto(BuildContext context, String url) {
+  if (url.isEmpty) return Future<void>.value();
+  final provider = ResizeImage.resizeIfNeeded(
+    600,
+    null,
+    CachedNetworkImageProvider(
+      url,
+      headers: _discoveryImageAuthHeaders(context),
+    ),
+  );
+  return precacheImage(provider, context, onError: (_, _) {});
+}
+
+Map<String, String>? _discoveryImageAuthHeaders(BuildContext context) {
+  try {
+    final state = context.read<UserSessionCubit>().state;
+    if (state is UserSessionAuthenticated) {
+      final token = state.user.token;
+      if (token != null && token.isNotEmpty) {
+        return {'Authorization': 'Bearer $token'};
       }
-    } catch (_) {
-      // No cubit in scope — happens in widget tests. Fall through to
-      // anonymous request.
     }
-    return null;
+  } catch (_) {
+    // No cubit in scope — happens in widget tests. Fall through to anonymous.
   }
+  return null;
 }
 
 class _BottomGradient extends StatelessWidget {

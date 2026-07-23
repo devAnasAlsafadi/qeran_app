@@ -83,6 +83,31 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
+  testWidgets('all three action buttons have no border', (tester) async {
+    await _pumpActionBar(
+      tester,
+      onPass: () {},
+      onUndo: () {},
+      onLike: () {},
+    );
+
+    final materials = tester
+        .widgetList<Material>(
+          find.descendant(
+            of: find.byType(DiscoveryActionBar),
+            matching: find.byType(Material),
+          ),
+        )
+        .where((material) => material.shape is CircleBorder)
+        .toList();
+
+    expect(materials, hasLength(3));
+    for (final material in materials) {
+      final shape = material.shape! as CircleBorder;
+      expect(shape.side, BorderSide.none);
+    }
+  });
+
   group('DiscoveryActionBar — per-button enable from nullable callbacks', () {
     testWidgets('all callbacks set → all three buttons enabled',
         (tester) async {

@@ -31,7 +31,7 @@ import '../blocs/discovery_cubit.dart';
 import '../blocs/discovery_state.dart';
 import '../screens/discovery_filter_sheet.dart';
 import 'discovery_action_bar.dart';
-import 'discovery_card.dart';
+import 'discovery_blurred_image.dart';
 import 'discovery_deck_animation_controller.dart';
 import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
@@ -345,6 +345,44 @@ class _ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<_ProfilePage> {
+  String? _precachedNextProfileId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scheduleNextPhotoPrecache();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProfilePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.loaded.next?.id != widget.loaded.next?.id) {
+      _scheduleNextPhotoPrecache();
+    }
+  }
+
+  void _scheduleNextPhotoPrecache() {
+    final next = widget.loaded.next;
+    if (next == null || next.id == _precachedNextProfileId) return;
+    final imageUrl = _primaryImageUrl(next);
+    if (imageUrl.isEmpty) return;
+    _precachedNextProfileId = next.id;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(precacheDiscoveryPhoto(context, imageUrl));
+    });
+  }
+
+  String _primaryImageUrl(DiscoveryProfile profile) {
+    if (profile.images.isEmpty) return '';
+    return profile.images
+        .firstWhere(
+          (image) => image.isProfile,
+          orElse: () => profile.images.first,
+        )
+        .url;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -366,25 +404,20 @@ class _ProfilePageState extends State<_ProfilePage> {
                   _kStackHPad,
                   0,
                 ),
-                // RepaintBoundary isolates the heavy ImageFilter.blur inside
-                // `DiscoveryBlurredImage` from the surrounding layers.
-                child: RepaintBoundary(
-                  child: Stack(
-                    fit: StackFit.expand,
-                    clipBehavior: Clip.none,
-                    children: [
-                      if (nextProfile != null)
-                        _PeekCardLayer(profile: nextProfile),
-                      Padding(
-                        padding: const EdgeInsets.only(top: _kPeekHeight),
-                        child: DiscoveryUnifiedCard(
-                          profile: profile,
-                          onTapDetails: () => _openDetails(context, profile),
-                          bottomContentInset: _kActionZoneClearance,
-                        ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  clipBehavior: Clip.none,
+                  children: [
+                    if (nextProfile != null) const _PeekCardLayer(),
+                    Padding(
+                      padding: const EdgeInsets.only(top: _kPeekHeight),
+                      child: DiscoveryUnifiedCard(
+                        profile: profile,
+                        onTapDetails: () => _openDetails(context, profile),
+                        bottomContentInset: _kActionZoneClearance,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -402,11 +435,9 @@ class _ProfilePageState extends State<_ProfilePage> {
 /// buttons own their own visuals so there's no surrounding white
 /// container.
 ///
-/// Stateful so the Like tap can defer `triggerLike()` until the
-/// 1050 ms flying-heart burst completes — otherwise the card swap
-/// cuts the heart mid-arc. Pass, Undo, and horizontal swipe gestures
-/// stay immediate. A re-entry flag prevents double-tap stacking
-/// during the wait.
+/// Stateful so the Like API, heart burst and card eject can overlap safely.
+/// Pass, Undo, and horizontal swipe gestures stay immediate. A re-entry flag
+/// prevents double-tap stacking during the short sequence.
 class _FloatingActionBar extends StatefulWidget {
   final DiscoveryState state;
   final void Function(Offset origin) onLikeBurst;
@@ -418,11 +449,12 @@ class _FloatingActionBar extends StatefulWidget {
 }
 
 class _FloatingActionBarState extends State<_FloatingActionBar> {
-  /// Matches `DiscoveryLikeBurst` total duration. The heart finishes its
-  /// travel + settle exactly here; the action bar uses this as the
-  /// floor for the visible response (heart must complete before any
-  /// paywall / advance / toast fires).
-  static const Duration _likeBurstWait = Duration(milliseconds: 1050);
+  /// Matches `DiscoveryLikeBurst` total duration.
+  static const Duration _likeBurstWait = Duration(milliseconds: 480);
+
+  /// Let the heart clearly leave the button before the card starts moving.
+  /// The API already runs in parallel from t=0.
+  static const Duration _minimumEjectLead = Duration(milliseconds: 300);
 
   bool _likePending = false;
 
@@ -436,20 +468,17 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
   /// the cubit's emit deferred until the heart finishes:
   ///
   /// ```
-  /// tap ──┬── spawn heart (1050 ms)
+  /// tap ──┬── spawn heart (480 ms)
   ///       └── cubit.like(outcomeNotifier, advanceGate)
   ///                ├── fires API
   ///                ├── notifies outcomeNotifier when server responds
   ///                └── awaits advanceGate before emitting state
   /// ```
   ///
-  /// After the 1050 ms heart wait, we have the outcome in hand. Eject
-  /// runs only when the outcome warrants advancing the deck (accepted
-  /// + stale failures). Paywall / network failures skip the eject so
-  /// the card stays visible behind the paywall sheet. The gate then
-  /// releases and the cubit emits — the listener picks up paywall /
-  /// toast and the AnimatedSwitcher handles the cross-fade for any
-  /// advance.
+  /// Once the minimum lead and API outcome are ready, an accepted card ejects
+  /// while the heart finishes. Paywall / network failures skip the eject so
+  /// the card stays visible. The cubit gate releases only after both visuals
+  /// settle.
   void _scheduleLike(DiscoveryDeckAnimationController controller) {
     if (_likePending) return;
     if (controller.isAnimating) return;
@@ -472,21 +501,12 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     );
     final heartTimer = Future<void>.delayed(_likeBurstWait);
     try {
-      // Wait for BOTH the heart (1050 ms floor) AND the API outcome.
-      // In practice the API usually resolves inside the heart window;
-      // when it doesn't we wait a bit longer rather than emit early.
-      await heartTimer;
+      await Future<void>.delayed(_minimumEjectLead);
       if (!mounted) return;
-      _likePending = false;
-      Either<Failure, LikeOutcome>? result;
-      if (outcomeNotifier.isCompleted) {
-        result = await outcomeNotifier.future;
-      } else {
-        // API still pending — keep the heart visible by holding the
-        // gate while we wait. No timeout: the use case eventually
-        // resolves to a Failure on transport timeout.
-        result = await outcomeNotifier.future;
-      }
+      // No timeout here: the use case already maps transport timeouts to a
+      // Failure, and advancing before the server result could remove a card
+      // that actually needs to stay (paywall/network).
+      final result = await outcomeNotifier.future;
       if (!mounted) return;
       final shouldEject = result.fold<bool>(
         (_) => false, // network/unknown — keep the card
@@ -511,6 +531,7 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
         // gate below), so no duplicate API request fires.
         await controller.triggerLike();
       }
+      await heartTimer;
     } finally {
       _likePending = false;
       // Always release the gate so the cubit's in-flight `like()` can
@@ -535,7 +556,7 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     // _ActionBarArea note): gating on the animator's busy flag caused
     // a synchronized colour flash across all three buttons. The Like
     // re-entry guard lives inside `_scheduleLike` so the button stays
-    // visually enabled during the 1050 ms wait — rapid taps simply
+    // visually enabled during the short wait — rapid taps simply
     // no-op without disabling the press feedback.
     return Positioned(
       left: _kStackHPad + 14.0,
@@ -643,20 +664,11 @@ Future<void> _openFilters(BuildContext context) async {
   );
 }
 
-/// Background layer showing the next profile's card silhouette (photo over
-/// a paper panel, mirroring the front card) behind the active card. At rest:
-/// scale 0.94 (topCenter aligned), opacity 0.60, offset
-/// 8 dp down. As [DiscoveryDeckAnimationController.deckProgress] rises
-/// toward 1.0 (drag / exit), the peek card promotes to full size, full
-/// opacity, and zero vertical offset — creating the illusion of a real
-/// layered deck.
-///
-/// [RepaintBoundary] isolates the image raster from the front-card
-/// and surrounding scroll layers. [IgnorePointer] ensures no touches
-/// escape.
+/// Lightweight next-card silhouette. It preserves the layered-deck cue without
+/// rendering a second live network image + sigma-24 blur during every drag
+/// frame. The real next profile enters immediately after the short eject.
 class _PeekCardLayer extends StatelessWidget {
-  final DiscoveryProfile profile;
-  const _PeekCardLayer({required this.profile});
+  const _PeekCardLayer();
 
   static const double _peekScale = 0.94;
   static const double _peekOpacity = 0.60;
@@ -686,10 +698,8 @@ class _PeekCardLayer extends StatelessWidget {
               ),
             );
           },
-          // Mirror the front card's silhouette — photo (51 %) over a paper
-          // panel (49 %) — so the promoting peek reads as the card that will
-          // replace the front, not a full-bleed photo.
           child: DecoratedBox(
+            key: const ValueKey<String>('discovery-peek-silhouette'),
             decoration: BoxDecoration(
               borderRadius: QeranRadii.panelR,
               color: QeranColors.paper,
@@ -700,15 +710,8 @@ class _PeekCardLayer extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: QeranColors.wine.withValues(alpha: 0.08),
-                  blurRadius: 24,
-                  spreadRadius: 0,
-                  offset: const Offset(0, 8),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 16,
-                  spreadRadius: -2,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -718,23 +721,39 @@ class _PeekCardLayer extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 51,
-                    child: DiscoveryImagePanel(
-                      profile: profile,
-                      onTap: null,
-                      showOverlayActions: false,
+                    child: DecoratedBox(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [QeranColors.wineLight, QeranColors.wine],
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.layers_rounded,
+                          color: QeranColors.gold40,
+                          size: 36,
+                        ),
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 49,
-                    child: ColoredBox(
+                    child: const ColoredBox(
                       color: QeranColors.paper,
-                      // Truncated preview of the next profile so the promoting
-                      // peek reads as a real card. Non-scrolling; clipped by the
-                      // card's ClipRRect.
-                      child: SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(QeranSpacing.s20),
-                        child: DiscoveryInfoPanel(profile: profile, maxLines: 2),
+                      child: Padding(
+                        padding: EdgeInsets.all(QeranSpacing.s20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _PeekSkeletonBar(width: 104, height: 12),
+                            SizedBox(height: QeranSpacing.s12),
+                            _PeekSkeletonBar(width: 220, height: 8),
+                            SizedBox(height: QeranSpacing.s8),
+                            _PeekSkeletonBar(width: 164, height: 8),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -748,3 +767,23 @@ class _PeekCardLayer extends StatelessWidget {
   }
 }
 
+class _PeekSkeletonBar extends StatelessWidget {
+  const _PeekSkeletonBar({required this.width, required this.height});
+
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: const DecoratedBox(
+        decoration: BoxDecoration(
+          color: QeranColors.wine08,
+          borderRadius: QeranRadii.pill,
+        ),
+      ),
+    );
+  }
+}

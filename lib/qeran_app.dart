@@ -13,7 +13,9 @@ import 'core/di/injection_container.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_name.dart';
 import 'core/services/connectivity_service.dart';
+import 'core/services/firebase_initialization_service.dart';
 import 'core/services/language_service.dart';
+import 'core/utils/app_snackbar.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'features/devices/application/device_bootstrap_service.dart';
@@ -32,10 +34,7 @@ class QeranApp extends StatelessWidget {
     final language = sl<LanguageService>();
     if (language.currentLanguage != code) {
       language.setLanguage(code);
-      // Re-register the device with the new language so the server can switch
-      // topic subscriptions. The orchestrator itself is idempotent against the
-      // last-registered language, so unrelated rebuilds are no-ops.
-      unawaited(sl<DeviceBootstrapService>().onLanguageChanged(code));
+      unawaited(_notifyLanguageChangedWhenReady(code));
     }
 
     return MultiBlocProvider(
@@ -74,11 +73,18 @@ class QeranApp extends StatelessWidget {
               const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
             ],
           );
-          return _ConnectivityBannerHost(child: responsive);
+          return AppSnackBarHost(
+            child: _ConnectivityBannerHost(child: responsive),
+          );
         },
       ),
     );
   }
+}
+
+Future<void> _notifyLanguageChangedWhenReady(String languageCode) async {
+  await sl<FirebaseInitializationService>().ready;
+  await sl<DeviceBootstrapService>().onLanguageChanged(languageCode);
 }
 
 /// Overlays [QeranConnectivityBanner] above every route. Post-login gate (S9):
@@ -101,12 +107,13 @@ class _ConnectivityBannerHost extends StatelessWidget {
           child: BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
             builder: (context, status) =>
                 BlocBuilder<UserSessionCubit, UserSessionState>(
-              builder: (context, session) {
-                final show = status == ConnectivityStatus.offline &&
-                    session is UserSessionAuthenticated;
-                return QeranConnectivityBanner(visible: show);
-              },
-            ),
+                  builder: (context, session) {
+                    final show =
+                        status == ConnectivityStatus.offline &&
+                        session is UserSessionAuthenticated;
+                    return QeranConnectivityBanner(visible: show);
+                  },
+                ),
           ),
         ),
       ],

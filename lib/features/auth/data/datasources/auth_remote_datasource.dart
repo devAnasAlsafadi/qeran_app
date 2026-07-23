@@ -10,6 +10,7 @@ import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/domain/entities/success_response.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/core/utils/log_masker.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../models/user_model.dart';
@@ -59,16 +60,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiConsumer _apiConsumer;
   final SharedPrefService _sharedPref;
   final StorageService _secureStorage;
+  final GoogleSignInService _googleSignIn;
 
   AuthRemoteDataSourceImpl({
     required FirebaseAuth firebaseAuth,
     required ApiConsumer apiConsumer,
     required SharedPrefService sharedPref,
     required StorageService secureStorage,
+    required GoogleSignInService googleSignIn,
   }) : _firebaseAuth = firebaseAuth,
        _apiConsumer = apiConsumer,
        _sharedPref = sharedPref,
-       _secureStorage = secureStorage;
+       _secureStorage = secureStorage,
+       _googleSignIn = googleSignIn;
 
   // ─── Manual Auth (Custom REST API) ────────────────────────────
 
@@ -280,7 +284,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<SuccessResponse<UserModel>> loginWithGoogle() async {
     try {
-      final googleUser = await GoogleSignIn.instance.authenticate();
+      final googleUser = await _googleSignIn.authenticate();
       final idToken = googleUser.authentication.idToken;
       final credential = GoogleAuthProvider.credential(idToken: idToken);
       final userCredential = await _firebaseAuth.signInWithCredential(

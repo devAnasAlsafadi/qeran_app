@@ -76,15 +76,17 @@ void main() {
   // ──────────────────────────────────────────────────────────────────
   group('loadInitial', () {
     test('terminal state is Loaded on success', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 2,
-            profileIds: const ['a', 'b'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 2, profileIds: const ['a', 'b']),
+        ),
+      );
 
       await cubit.loadInitial();
 
@@ -96,15 +98,16 @@ void main() {
     });
 
     test('emits Loading synchronously before the terminal state', () {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
 
       // Do NOT await — verify the synchronous emit before the use case
       // resolves.
@@ -114,11 +117,13 @@ void main() {
     });
 
     test('terminal state is Failure on Left', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer(
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
         (_) async =>
             const Left<Failure, DiscoveryPage>(ServerFailure(message: 'boom')),
       );
@@ -129,35 +134,40 @@ void main() {
       expect((cubit.state as DiscoveryFailure).message, 'boom');
     });
 
-    test('terminal state is DiscoveryDailyLimit on DailyViewsExceededFailure',
-        () async {
-      final resetAt = DateTime.utc(2026, 7, 18);
-      when(() => fetch(
+    test(
+      'terminal state is DiscoveryDailyLimit on DailyViewsExceededFailure',
+      () async {
+        final resetAt = DateTime.utc(2026, 7, 18);
+        when(
+          () => fetch(
             page: any(named: 'page'),
             pageSize: any(named: 'pageSize'),
             filterParams: any(named: 'filterParams'),
-          )).thenAnswer(
-        (_) async => Left<Failure, DiscoveryPage>(
-          DailyViewsExceededFailure(resetAt: resetAt),
-        ),
-      );
+          ),
+        ).thenAnswer(
+          (_) async => Left<Failure, DiscoveryPage>(
+            DailyViewsExceededFailure(resetAt: resetAt),
+          ),
+        );
 
-      await cubit.loadInitial();
+        await cubit.loadInitial();
 
-      expect(cubit.state, isA<DiscoveryDailyLimit>());
-      expect((cubit.state as DiscoveryDailyLimit).resetAt, resetAt);
-    });
+        expect(cubit.state, isA<DiscoveryDailyLimit>());
+        expect((cubit.state as DiscoveryDailyLimit).resetAt, resetAt);
+      },
+    );
 
     test('empty page → Loaded with empty profiles list', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const [],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const [])),
+      );
 
       await cubit.loadInitial();
 
@@ -173,15 +183,17 @@ void main() {
   // ──────────────────────────────────────────────────────────────────
   group('like', () {
     Future<void> primeWithTwoProfiles() async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a', 'b'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
+        ),
+      );
       await cubit.loadInitial();
     }
 
@@ -239,15 +251,16 @@ void main() {
     });
 
     test('no-op when deck is exhausted', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const [],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const [])),
+      );
       await cubit.loadInitial();
 
       await cubit.like();
@@ -261,41 +274,45 @@ void main() {
   // ──────────────────────────────────────────────────────────────────
   group('like — typed outcomes', () {
     Future<void> prime() async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a', 'b'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
+        ),
+      );
       await cubit.loadInitial();
     }
 
-    test('LikeAccepted advances and calls onLikeSuccess exactly once',
-        () async {
-      var callbackHits = 0;
-      cubit = DiscoveryCubit(
-        fetchPage: fetch,
-        likeProfile: like,
-        passProfile: pass,
-        onLikeSuccess: () => callbackHits++,
-      );
-      await prime();
-      when(() => like(any())).thenAnswer(
-        (_) async =>
-            const Right<Failure, LikeOutcome>(LikeAccepted(likeId: '42')),
-      );
+    test(
+      'LikeAccepted advances and calls onLikeSuccess exactly once',
+      () async {
+        var callbackHits = 0;
+        cubit = DiscoveryCubit(
+          fetchPage: fetch,
+          likeProfile: like,
+          passProfile: pass,
+          onLikeSuccess: () => callbackHits++,
+        );
+        await prime();
+        when(() => like(any())).thenAnswer(
+          (_) async =>
+              const Right<Failure, LikeOutcome>(LikeAccepted(likeId: '42')),
+        );
 
-      await cubit.like();
+        await cubit.like();
 
-      final loaded = cubit.state as DiscoveryLoaded;
-      expect(loaded.currentIndex, 1);
-      expect(loaded.actionFailureKind, isNull);
-      expect(loaded.actionError, isNull);
-      expect(callbackHits, 1);
-    });
+        final loaded = cubit.state as DiscoveryLoaded;
+        expect(loaded.currentIndex, 1);
+        expect(loaded.actionFailureKind, isNull);
+        expect(loaded.actionError, isNull);
+        expect(callbackHits, 1);
+      },
+    );
 
     test('LikePaywall keeps the card and emits paywall kind', () async {
       var callbackHits = 0;
@@ -353,8 +370,7 @@ void main() {
       expect(loaded.actionFailureKind, LikeFailureKind.genderMismatch);
     });
 
-    test('LikeUserUnavailable advances + emits userUnavailable kind',
-        () async {
+    test('LikeUserUnavailable advances + emits userUnavailable kind', () async {
       await prime();
       when(() => like(any())).thenAnswer(
         (_) async => const Right<Failure, LikeOutcome>(
@@ -393,19 +409,21 @@ void main() {
       expect(callbackHits, 0);
     });
 
-    test('Left(OfflineFailure) keeps the card and emits offline kind',
-        () async {
-      await prime();
-      when(() => like(any())).thenAnswer(
-        (_) async => const Left<Failure, LikeOutcome>(OfflineFailure()),
-      );
+    test(
+      'Left(OfflineFailure) keeps the card and emits offline kind',
+      () async {
+        await prime();
+        when(() => like(any())).thenAnswer(
+          (_) async => const Left<Failure, LikeOutcome>(OfflineFailure()),
+        );
 
-      await cubit.like();
+        await cubit.like();
 
-      final loaded = cubit.state as DiscoveryLoaded;
-      expect(loaded.currentIndex, 0);
-      expect(loaded.actionFailureKind, LikeFailureKind.offline);
-    });
+        final loaded = cubit.state as DiscoveryLoaded;
+        expect(loaded.currentIndex, 0);
+        expect(loaded.actionFailureKind, LikeFailureKind.offline);
+      },
+    );
 
     test('duplicate like while in-flight is ignored', () async {
       await prime();
@@ -423,44 +441,49 @@ void main() {
       verify(() => like('a')).called(1); // exactly one API call
     });
 
-    test('advanceGate defers the advance emit until the gate completes',
-        () async {
-      await prime();
-      when(() => like(any())).thenAnswer(
-        (_) async =>
-            const Right<Failure, LikeOutcome>(LikeAccepted(likeId: '1')),
-      );
+    test(
+      'advanceGate defers the advance emit until the gate completes',
+      () async {
+        await prime();
+        when(() => like(any())).thenAnswer(
+          (_) async =>
+              const Right<Failure, LikeOutcome>(LikeAccepted(likeId: '1')),
+        );
 
-      final gate = Completer<void>();
-      final pending = cubit.like(advanceGate: gate.future);
-      // Yield so the API future resolves but the gate await blocks.
-      await Future<void>.delayed(Duration.zero);
-      expect((cubit.state as DiscoveryLoaded).currentIndex, 0);
+        final gate = Completer<void>();
+        final pending = cubit.like(advanceGate: gate.future);
+        // Yield so the API future resolves but the gate await blocks.
+        await Future<void>.delayed(Duration.zero);
+        expect((cubit.state as DiscoveryLoaded).currentIndex, 0);
 
-      gate.complete();
-      await pending;
-      expect((cubit.state as DiscoveryLoaded).currentIndex, 1);
-    });
+        gate.complete();
+        await pending;
+        expect((cubit.state as DiscoveryLoaded).currentIndex, 1);
+      },
+    );
   });
 
   group('pass — optimistic', () {
     Future<void> primeTwoCards() async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a', 'b'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
+        ),
+      );
       await cubit.loadInitial();
     }
 
     test('success advances currentIndex', () async {
       await primeTwoCards();
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+      when(
+        () => pass(any()),
+      ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
 
       await cubit.pass();
 
@@ -469,8 +492,7 @@ void main() {
       verify(() => pass('a')).called(1);
     });
 
-    test('advance is synchronous (does not wait for the API future)',
-        () async {
+    test('advance is synchronous (does not wait for the API future)', () async {
       await primeTwoCards();
       // Hold the network call open. The advance must happen anyway.
       final completer = Completer<Either<Failure, Unit>>();
@@ -483,23 +505,25 @@ void main() {
       completer.complete(const Right<Failure, Unit>(unit));
     });
 
-    test('transport failure does NOT emit actionError (silent log only)',
-        () async {
-      await primeTwoCards();
-      when(() => pass(any())).thenAnswer(
-        (_) async =>
-            const Left<Failure, Unit>(ServerFailure(message: 'offline')),
-      );
+    test(
+      'transport failure does NOT emit actionError (silent log only)',
+      () async {
+        await primeTwoCards();
+        when(() => pass(any())).thenAnswer(
+          (_) async =>
+              const Left<Failure, Unit>(ServerFailure(message: 'offline')),
+        );
 
-      await cubit.pass();
-      // Let the background then-callback resolve so it sees the Left.
-      await Future<void>.delayed(Duration.zero);
+        await cubit.pass();
+        // Let the background then-callback resolve so it sees the Left.
+        await Future<void>.delayed(Duration.zero);
 
-      final loaded = cubit.state as DiscoveryLoaded;
-      expect(loaded.currentIndex, 1); // still advanced
-      expect(loaded.actionError, isNull); // silent — no UI surface
-      expect(loaded.actionFailureKind, isNull);
-    });
+        final loaded = cubit.state as DiscoveryLoaded;
+        expect(loaded.currentIndex, 1); // still advanced
+        expect(loaded.actionError, isNull); // silent — no UI surface
+        expect(loaded.actionFailureKind, isNull);
+      },
+    );
   });
 
   // ──────────────────────────────────────────────────────────────────
@@ -507,15 +531,21 @@ void main() {
   // ──────────────────────────────────────────────────────────────────
   group('undo', () {
     Future<void> primeAtIndex1() async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
             pageNumber: 1,
             totalPages: 1,
             profileIds: const ['a', 'b', 'c'],
-          )));
+          ),
+        ),
+      );
       await cubit.loadInitial();
       when(() => like(any())).thenAnswer(
         (_) async =>
@@ -532,15 +562,16 @@ void main() {
 
     test('clamps at 0 when already at start', () async {
       // load + don't advance
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
       await cubit.loadInitial();
 
       cubit.undo();
@@ -548,49 +579,55 @@ void main() {
     });
 
     test(
-        'recovers the last profile after passing the only card in the deck',
-        () async {
-      // 1-profile deck. Passing it exhausts the deck — undo must still
-      // bring it back. Regression guard for the action-bar `enabled`
-      // cascade bug.
-      when(() => fetch(
+      'recovers the last profile after passing the only card in the deck',
+      () async {
+        // 1-profile deck. Passing it exhausts the deck — undo must still
+        // bring it back. Regression guard for the action-bar `enabled`
+        // cascade bug.
+        when(
+          () => fetch(
             page: any(named: 'page'),
             pageSize: any(named: 'pageSize'),
             filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['solo'],
-          )));
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+          ),
+        ).thenAnswer(
+          (_) async => Right(
+            _page(pageNumber: 1, totalPages: 1, profileIds: const ['solo']),
+          ),
+        );
+        when(
+          () => pass(any()),
+        ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
 
-      await cubit.loadInitial();
-      await cubit.pass();
+        await cubit.loadInitial();
+        await cubit.pass();
 
-      var loaded = cubit.state as DiscoveryLoaded;
-      expect(loaded.isExhausted, isTrue);
-      expect(loaded.currentIndex, 1);
-      expect(loaded.current, isNull);
+        var loaded = cubit.state as DiscoveryLoaded;
+        expect(loaded.isExhausted, isTrue);
+        expect(loaded.currentIndex, 1);
+        expect(loaded.current, isNull);
 
-      cubit.undo();
+        cubit.undo();
 
-      loaded = cubit.state as DiscoveryLoaded;
-      expect(loaded.isExhausted, isFalse);
-      expect(loaded.currentIndex, 0);
-      expect(loaded.current?.id, 'solo');
-    });
+        loaded = cubit.state as DiscoveryLoaded;
+        expect(loaded.isExhausted, isFalse);
+        expect(loaded.currentIndex, 0);
+        expect(loaded.current?.id, 'solo');
+      },
+    );
 
     test('clears actionError', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a', 'b'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
+        ),
+      );
       await cubit.loadInitial();
       when(() => like(any())).thenAnswer(
         (_) async => const Left<Failure, LikeOutcome>(
@@ -601,8 +638,9 @@ void main() {
       // currentIndex still 0 but actionError set — undo from here
 
       // advance via pass success so we can undo
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+      when(
+        () => pass(any()),
+      ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
       await cubit.pass();
       // index is 1, but actionError was already cleared by pass success.
       // Set it again, then undo.
@@ -627,26 +665,35 @@ void main() {
     test('triggers when within 3 cards of end + appends profiles', () async {
       // Page 1: 5 profiles (a..e), totalPages=2.
       // Threshold = profiles.length - 3 = 2 → advance to index 2 triggers.
-      when(() => fetch(
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
+      when(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
             pageNumber: 1,
             totalPages: 2,
             profileIds: const ['a', 'b', 'c', 'd', 'e'],
-          )));
-      when(() => fetch(
-            page: 2,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 2,
-            totalPages: 2,
-            profileIds: const ['f', 'g'],
-          )));
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+          ),
+        ),
+      );
+      when(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 2, totalPages: 2, profileIds: const ['f', 'g']),
+        ),
+      );
+      when(
+        () => pass(any()),
+      ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
 
       await cubit.loadInitial();
       await cubit.pass(); // index 0 → 1
@@ -656,29 +703,45 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       final loaded = cubit.state as DiscoveryLoaded;
-      expect(loaded.profiles.map((p) => p.id),
-          ['a', 'b', 'c', 'd', 'e', 'f', 'g']);
+      expect(loaded.profiles.map((p) => p.id), [
+        'a',
+        'b',
+        'c',
+        'd',
+        'e',
+        'f',
+        'g',
+      ]);
       expect(loaded.currentPage, 2);
       expect(loaded.isPrefetching, isFalse);
-      verify(() => fetch(
-            page: 2,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).called(1);
+      verify(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).called(1);
     });
 
     test('does NOT trigger when !hasMore', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
             pageNumber: 1,
             totalPages: 1,
             profileIds: const ['a', 'b', 'c'],
-          )));
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+          ),
+        ),
+      );
+      when(
+        () => pass(any()),
+      ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
 
       await cubit.loadInitial();
       await cubit.pass();
@@ -686,39 +749,52 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
 
       // Page 1 was the only fetch.
-      verify(() => fetch(
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).called(1);
-      verifyNever(() => fetch(
-            page: 2,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          ));
+      verify(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).called(1);
+      verifyNever(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      );
     });
 
     test('failure → prefetchError set; no profiles appended', () async {
-      when(() => fetch(
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
+      when(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
             pageNumber: 1,
             totalPages: 2,
             profileIds: const ['a', 'b', 'c', 'd'],
-          )));
-      when(() => fetch(
-            page: 2,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer(
+          ),
+        ),
+      );
+      when(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
         (_) async => const Left<Failure, DiscoveryPage>(
           ServerFailure(message: 'offline'),
         ),
       );
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+      when(
+        () => pass(any()),
+      ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
 
       await cubit.loadInitial();
       // Threshold = 4 - 3 = 1; advance to index 1 triggers prefetch.
@@ -730,6 +806,68 @@ void main() {
       expect(loaded.prefetchError, 'offline');
       expect(loaded.isPrefetching, isFalse);
     });
+
+    test(
+      'late prefetch result cannot overwrite a newer filtered deck',
+      () async {
+        final oldPageTwo = Completer<Either<Failure, DiscoveryPage>>();
+        var pageOneCalls = 0;
+        when(
+          () => fetch(
+            page: 1,
+            pageSize: any(named: 'pageSize'),
+            filterParams: any(named: 'filterParams'),
+          ),
+        ).thenAnswer((_) async {
+          pageOneCalls++;
+          return Right(
+            _page(
+              pageNumber: 1,
+              totalPages: pageOneCalls == 1 ? 2 : 1,
+              profileIds: pageOneCalls == 1
+                  ? List<String>.generate(
+                      DiscoveryCubit.prefetchThreshold + 1,
+                      (i) => 'old$i',
+                    )
+                  : const ['new'],
+            ),
+          );
+        });
+        when(
+          () => fetch(
+            page: 2,
+            pageSize: any(named: 'pageSize'),
+            filterParams: any(named: 'filterParams'),
+          ),
+        ).thenAnswer((_) => oldPageTwo.future);
+        when(
+          () => pass(any()),
+        ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
+
+        await cubit.loadInitial();
+        await cubit.pass(); // Starts the old page-2 prefetch.
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        verify(
+          () => fetch(
+            page: 2,
+            pageSize: any(named: 'pageSize'),
+            filterParams: any(named: 'filterParams'),
+          ),
+        ).called(1);
+
+        await cubit.applyFilters(const {'QuestionFilters[99]': 'new'});
+        oldPageTwo.complete(
+          Right(
+            _page(pageNumber: 2, totalPages: 2, profileIds: const ['stale']),
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        expect((cubit.state as DiscoveryLoaded).profiles.map((p) => p.id), [
+          'new',
+        ]);
+      },
+    );
   });
 
   // ──────────────────────────────────────────────────────────────────
@@ -738,17 +876,21 @@ void main() {
   group('refresh', () {
     test('resets to page 1, discards previous deck', () async {
       var callCount = 0;
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async {
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer((_) async {
         callCount++;
-        return Right(_page(
-          pageNumber: 1,
-          totalPages: 1,
-          profileIds: callCount == 1 ? const ['a'] : const ['x', 'y'],
-        ));
+        return Right(
+          _page(
+            pageNumber: 1,
+            totalPages: 1,
+            profileIds: callCount == 1 ? const ['a'] : const ['x', 'y'],
+          ),
+        );
       });
 
       await cubit.loadInitial();
@@ -758,6 +900,44 @@ void main() {
       expect(loaded.profiles.map((p) => p.id), ['x', 'y']);
       expect(loaded.currentIndex, 0);
     });
+
+    test(
+      'late result from an older reload cannot overwrite the newest deck',
+      () async {
+        final first = Completer<Either<Failure, DiscoveryPage>>();
+        final second = Completer<Either<Failure, DiscoveryPage>>();
+        var calls = 0;
+        when(
+          () => fetch(
+            page: 1,
+            pageSize: any(named: 'pageSize'),
+            filterParams: any(named: 'filterParams'),
+          ),
+        ).thenAnswer((_) {
+          calls++;
+          return calls == 1 ? first.future : second.future;
+        });
+
+        final initial = cubit.loadInitial();
+        await Future<void>.delayed(Duration.zero);
+        final refreshed = cubit.refresh();
+        await Future<void>.delayed(Duration.zero);
+
+        second.complete(
+          Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['new'])),
+        );
+        await refreshed;
+
+        first.complete(
+          Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['old'])),
+        );
+        await initial;
+
+        expect((cubit.state as DiscoveryLoaded).profiles.map((p) => p.id), [
+          'new',
+        ]);
+      },
+    );
   });
 
   // ──────────────────────────────────────────────────────────────────
@@ -765,15 +945,16 @@ void main() {
   // ──────────────────────────────────────────────────────────────────
   group('applyFilters', () {
     test('reloads from page 1 with the given filterParams', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
 
       const filters = {
         'RangeFrom[5]': '160',
@@ -783,54 +964,62 @@ void main() {
       await cubit.applyFilters(filters);
 
       // Page 1 must be fetched with EXACTLY those filter params.
-      verify(() => fetch(
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-            filterParams: filters,
-          )).called(1);
+      verify(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: filters,
+        ),
+      ).called(1);
     });
 
     test('null clears filters; subsequent fetches pass null', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
 
       // First apply with filters, then clear.
       await cubit.applyFilters(const {'QuestionFilters[11]': 'SA'});
       await cubit.applyFilters(null);
 
       // The second reload sends null (no filter constraint).
-      verify(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: null,
-          )).called(greaterThanOrEqualTo(1));
+      verify(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: null,
+        ),
+      ).called(greaterThanOrEqualTo(1));
     });
 
     test('empty map is treated as "no filters"', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
 
       await cubit.applyFilters(const {});
 
-      verify(() => fetch(
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-            filterParams: null,
-          )).called(1);
+      verify(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: null,
+        ),
+      ).called(1);
     });
   });
 
@@ -842,26 +1031,35 @@ void main() {
         'QuestionFilters[11]': 'SA',
       };
 
-      when(() => fetch(
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
+      when(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
             pageNumber: 1,
             totalPages: 2,
             profileIds: const ['a', 'b', 'c', 'd', 'e'],
-          )));
-      when(() => fetch(
-            page: 2,
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 2,
-            totalPages: 2,
-            profileIds: const ['f', 'g'],
-          )));
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+          ),
+        ),
+      );
+      when(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 2, totalPages: 2, profileIds: const ['f', 'g']),
+        ),
+      );
+      when(
+        () => pass(any()),
+      ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
 
       await cubit.applyFilters(filters);
       await cubit.pass(); // 0 → 1
@@ -870,11 +1068,13 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
       // The prefetch must carry the SAME filterParams instance as page 1.
-      verify(() => fetch(
-            page: 2,
-            pageSize: any(named: 'pageSize'),
-            filterParams: filters,
-          )).called(1);
+      verify(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: filters,
+        ),
+      ).called(1);
     });
   });
 
@@ -884,11 +1084,13 @@ void main() {
   group('lifecycle (closed-before-emit guards)', () {
     test('loadInitial: close before fetch completes does not throw', () async {
       final completer = Completer<Either<Failure, DiscoveryPage>>();
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) => completer.future);
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer((_) => completer.future);
 
       // Fire the load but do not await — keep the fetch in flight.
       final pending = cubit.loadInitial();
@@ -899,25 +1101,25 @@ void main() {
       // Late server response arrives after close. Without the
       // isClosed guard inside _loadFirstPage, the fold below would
       // throw StateError: Cannot emit new states after calling close.
-      completer.complete(Right(_page(
-        pageNumber: 1,
-        totalPages: 1,
-        profileIds: const ['a'],
-      )));
+      completer.complete(
+        Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
 
       await expectLater(pending, completes);
     });
 
     test('like: close before usecase completes does not throw', () async {
-      when(() => fetch(
-            page: any(named: 'page'),
-            pageSize: any(named: 'pageSize'),
-            filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 1,
-            profileIds: const ['a', 'b'],
-          )));
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
+        ),
+      );
       await cubit.loadInitial();
 
       final completer = Completer<Either<Failure, LikeOutcome>>();
@@ -933,47 +1135,51 @@ void main() {
       await expectLater(pending, completes);
     });
 
-    test('prefetch: close before second-page fetch completes does not throw',
-        () async {
-      // Prime with profile count == prefetchThreshold so the next pass()
-      // triggers _prefetch immediately.
-      final ids = List<String>.generate(
-        DiscoveryCubit.prefetchThreshold + 1,
-        (i) => 'p$i',
-      );
-      when(() => fetch(
+    test(
+      'prefetch: close before second-page fetch completes does not throw',
+      () async {
+        // Prime with profile count == prefetchThreshold so the next pass()
+        // triggers _prefetch immediately.
+        final ids = List<String>.generate(
+          DiscoveryCubit.prefetchThreshold + 1,
+          (i) => 'p$i',
+        );
+        when(
+          () => fetch(
             page: 1,
             pageSize: any(named: 'pageSize'),
             filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) async => Right(_page(
-            pageNumber: 1,
-            totalPages: 2,
-            profileIds: ids,
-          )));
-      when(() => pass(any()))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
-      await cubit.loadInitial();
+          ),
+        ).thenAnswer(
+          (_) async =>
+              Right(_page(pageNumber: 1, totalPages: 2, profileIds: ids)),
+        );
+        when(
+          () => pass(any()),
+        ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
+        await cubit.loadInitial();
 
-      // Page-2 fetch is the one we hold pending.
-      final completer = Completer<Either<Failure, DiscoveryPage>>();
-      when(() => fetch(
+        // Page-2 fetch is the one we hold pending.
+        final completer = Completer<Either<Failure, DiscoveryPage>>();
+        when(
+          () => fetch(
             page: 2,
             pageSize: any(named: 'pageSize'),
             filterParams: any(named: 'filterParams'),
-          )).thenAnswer((_) => completer.future);
+          ),
+        ).thenAnswer((_) => completer.future);
 
-      await cubit.pass(); // advance → triggers prefetch (unawaited)
-      await cubit.close();
+        await cubit.pass(); // advance → triggers prefetch (unawaited)
+        await cubit.close();
 
-      completer.complete(Right(_page(
-        pageNumber: 2,
-        totalPages: 2,
-        profileIds: const ['x'],
-      )));
+        completer.complete(
+          Right(_page(pageNumber: 2, totalPages: 2, profileIds: const ['x'])),
+        );
 
-      // Let any microtask scheduled by the prefetch fold run.
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      // Reaching here without a StateError is the assertion.
-    });
+        // Let any microtask scheduled by the prefetch fold run.
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        // Reaching here without a StateError is the assertion.
+      },
+    );
   });
 }

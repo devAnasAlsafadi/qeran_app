@@ -24,6 +24,16 @@ class MockConnectivity extends Mock implements ConnectivityService {}
 
 class _FakeBaseRequest extends Fake implements http.BaseRequest {}
 
+class _RecordingClient extends http.BaseClient {
+  String? lastBody;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    lastBody = await request.finalize().bytesToString();
+    return _streamed('null', 200);
+  }
+}
+
 http.StreamedResponse _streamed(String body, int status) {
   return http.StreamedResponse(
     Stream.fromIterable([utf8.encode(body)]),
@@ -74,6 +84,40 @@ void main() {
     if (tmpDir.existsSync()) {
       await tmpDir.delete(recursive: true);
     }
+  });
+
+  group('JSON POST body', () {
+    test('postRaw omits the request body when the endpoint expects none',
+        () async {
+      final recordingClient = _RecordingClient();
+      final recordingConsumer = HttpConsumer(
+        client: recordingClient,
+        storage: storage,
+        languageService: language,
+        connectivity: connectivity,
+      );
+
+      await recordingConsumer.postRaw('Discovery/skip/user-1');
+
+      expect(recordingClient.lastBody, isEmpty);
+    });
+
+    test('postRaw still JSON-encodes an explicit body', () async {
+      final recordingClient = _RecordingClient();
+      final recordingConsumer = HttpConsumer(
+        client: recordingClient,
+        storage: storage,
+        languageService: language,
+        connectivity: connectivity,
+      );
+
+      await recordingConsumer.postRaw(
+        'Chat/conversations/1/messages',
+        body: const {'content': 'hello'},
+      );
+
+      expect(recordingClient.lastBody, '{"content":"hello"}');
+    });
   });
 
   group('postMultipart', () {

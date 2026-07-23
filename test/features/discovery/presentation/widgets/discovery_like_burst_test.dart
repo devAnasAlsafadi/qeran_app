@@ -24,14 +24,15 @@ Future<void> _pump(
 }
 
 void main() {
-  testWidgets('DiscoveryLikeBurst calls onComplete after its animation',
-      (tester) async {
+  testWidgets('DiscoveryLikeBurst calls onComplete after its animation', (
+    tester,
+  ) async {
     var completed = false;
     await _pump(tester, onComplete: () => completed = true);
     expect(completed, isFalse, reason: 'not yet — animation just started');
 
-    // 1050 ms total duration. Pump 900 ms — still running.
-    await tester.pump(const Duration(milliseconds: 900));
+    // 480 ms total duration. Pump 380 ms — still running.
+    await tester.pump(const Duration(milliseconds: 380));
     expect(completed, isFalse);
 
     // Settle the rest.
@@ -39,8 +40,9 @@ void main() {
     expect(completed, isTrue);
   });
 
-  testWidgets('DiscoveryLikeBurst wraps its visual in an IgnorePointer',
-      (tester) async {
+  testWidgets('DiscoveryLikeBurst wraps its visual in an IgnorePointer', (
+    tester,
+  ) async {
     await _pump(tester, onComplete: () {});
     // Scope to the burst — Scaffold / MaterialApp use IgnorePointer
     // internally, so an unscoped find returns multiple matches.
@@ -54,8 +56,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('DiscoveryLikeBurst disposes its AnimationController cleanly',
-      (tester) async {
+  testWidgets('DiscoveryLikeBurst disposes its AnimationController cleanly', (
+    tester,
+  ) async {
     // pumpAndSettle would surface a "ticker still attached" failure
     // if dispose() didn't release the controller.
     var completed = false;

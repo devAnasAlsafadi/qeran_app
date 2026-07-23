@@ -17,7 +17,7 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
   /// the source of truth for the combined onboarding block:
   /// gender + questionnaire + oath. When true, none of those screens may be
   /// re-shown on cold start. Photo upload is optional and never gates Home.
-  void checkAuthStatus() async {
+  Future<void> checkAuthStatus() async {
     // No artificial delay: the route decision resolves as fast as storage
     // reads allow. The splash's on-screen duration is driven by the Lottie
     // animation completing (see SplashScreen), not by a timer here.
@@ -75,11 +75,10 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
           StorageKeys.questionnaireDraft,
         );
         final gender = await sharedPrefs.get<String>(StorageKeys.gender);
-        final hasProgress = (draft != null && draft.isNotEmpty) ||
+        final hasProgress =
+            (draft != null && draft.isNotEmpty) ||
             (gender != null && gender.isNotEmpty);
-        emit(
-          NavigateToIncompleteProfile(hasProgress ? 'questions' : 'gender'),
-        );
+        emit(NavigateToIncompleteProfile(hasProgress ? 'questions' : 'gender'));
         return;
       }
 

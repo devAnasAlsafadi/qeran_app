@@ -1,5 +1,3 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
@@ -13,8 +11,8 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import 'onboarding_mediation_blocks.dart';
 
 /// The matchmaker (Huda) as a **dark frosted glass** card: a wine tint over a
-/// `BackdropFilter` blur (which frosts the chat backdrop showing through), a
-/// gold rim, and crisp paper content on top — header, the mediation status
+/// layered wine tint (which reads as frosted glass), a gold rim, and crisp
+/// paper content on top — header, the mediation status
 /// rows, and the "search with the matchmaker" CTA. [onSearch] advances the flow.
 class OnboardingMatchmakerGlassCard extends StatelessWidget {
   final VoidCallback onSearch;
@@ -27,12 +25,19 @@ class OnboardingMatchmakerGlassCard extends StatelessWidget {
       borderRadius: QeranRadii.cardR,
       child: Stack(
         children: [
-          // Frost the chat backdrop showing through, tinted dark wine.
+          // Baked translucent gradient keeps the glass character without a
+          // live BackdropFilter over the full card on every raster frame.
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 13, sigmaY: 13),
-              child: ColoredBox(
-                color: QeranColors.wine.withValues(alpha: 0.60),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
+                  colors: [
+                    QeranColors.wine.withValues(alpha: 0.90),
+                    QeranColors.wine.withValues(alpha: 0.78),
+                  ],
+                ),
               ),
             ),
           ),

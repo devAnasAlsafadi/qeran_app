@@ -130,12 +130,15 @@ class _Header extends StatelessWidget {
           ),
         ),
         QeranSpacing.hs8,
-        QeranChip(
-          icon: Icons.verified_rounded,
-          label: LocaleKeys.onboarding_mediation_verified.t(context),
-          variant: QeranChipVariant.status,
-          statusColor: QeranColors.gold,
-          compact: true,
+        Flexible(
+          child: QeranChip(
+            icon: Icons.verified_rounded,
+            label: LocaleKeys.onboarding_mediation_verified.t(context),
+            variant: QeranChipVariant.status,
+            statusColor: QeranColors.gold,
+            compact: true,
+            maxWidth: double.infinity,
+          ),
         ),
       ],
     );

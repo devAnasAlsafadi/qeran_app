@@ -40,19 +40,26 @@ class _NameRow extends StatelessWidget {
         ),
         QeranSpacing.hs8,
         // Age is a numeric cluster — pinned LTR + tabular figures.
-        Text(
-          LocaleKeys.onboarding_essence_person_age.t(context),
-          textDirection: TextDirection.ltr,
-          style: QeranTypography.numeric.copyWith(color: QeranColors.gold),
+        Flexible(
+          child: Text(
+            LocaleKeys.onboarding_essence_person_age.t(context),
+            textDirection: TextDirection.ltr,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: QeranTypography.numeric.copyWith(color: QeranColors.gold),
+          ),
         ),
         QeranSpacing.hs8,
         // "Verified identity" badge replaces the former initial disc.
-        QeranChip(
-          icon: Icons.verified_rounded,
-          label: LocaleKeys.onboarding_essence_identity_badge.t(context),
-          variant: QeranChipVariant.status,
-          statusColor: QeranColors.gold,
-          compact: true,
+        Flexible(
+          child: QeranChip(
+            icon: Icons.verified_rounded,
+            label: LocaleKeys.onboarding_essence_identity_badge.t(context),
+            variant: QeranChipVariant.status,
+            statusColor: QeranColors.gold,
+            compact: true,
+            maxWidth: double.infinity,
+          ),
         ),
       ],
     );

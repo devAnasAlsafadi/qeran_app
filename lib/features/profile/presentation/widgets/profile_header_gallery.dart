@@ -46,8 +46,13 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
     if (images.isEmpty) {
       return const _EmptyState();
     }
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return AspectRatio(
-      aspectRatio: 3 / 4,
+      // A portrait crop remains dominant in portrait. In landscape a wide hero
+      // prevents an 800 px-wide phone from creating a 1000+ px-tall image that
+      // pushes every profile detail several screens below the fold.
+      aspectRatio: isLandscape ? 16 / 9 : 3 / 4,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -129,8 +134,10 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return AspectRatio(
-      aspectRatio: 3 / 4,
+      aspectRatio: isLandscape ? 16 / 9 : 3 / 4,
       child: Container(
         color: QeranColors.creamSurface,
         alignment: Alignment.center,

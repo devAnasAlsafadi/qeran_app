@@ -99,43 +99,49 @@ class _CardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // FIXED photo — top slice of the card. Tapping it opens the full
-        // profile (unchanged navigation).
-        Expanded(
-          flex: 51,
-          child: DiscoveryImagePanel(
-            profile: profile,
-            onTap: onTapDetails,
-            showOverlayActions: false,
-          ),
-        ),
-        // Internal scroll region on the white surface. Pull-to-refresh keeps
-        // the exact same DiscoveryCubit.refresh() wiring, re-hosted here.
-        Expanded(
-          flex: 49,
-          child: ColoredBox(
-            color: QeranColors.paper,
-            child: RefreshIndicator(
-              color: QeranColors.wine,
-              onRefresh: () => context.read<DiscoveryCubit>().refresh(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
-                padding: EdgeInsets.fromLTRB(
-                  QeranSpacing.s20,
-                  QeranSpacing.s20,
-                  QeranSpacing.s20,
-                  bottomContentInset,
-                ),
-                child: DiscoveryInfoPanel(profile: profile),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        return Flex(
+          direction: isLandscape ? Axis.horizontal : Axis.vertical,
+          children: [
+            // FIXED photo — top slice of the card. Tapping it opens the full
+            // profile (unchanged navigation).
+            Expanded(
+              flex: isLandscape ? 45 : 51,
+              child: DiscoveryImagePanel(
+                profile: profile,
+                onTap: onTapDetails,
+                showOverlayActions: false,
               ),
             ),
-          ),
-        ),
-      ],
+            // Internal scroll region on the white surface. Pull-to-refresh keeps
+            // the exact same DiscoveryCubit.refresh() wiring, re-hosted here.
+            Expanded(
+              flex: isLandscape ? 55 : 49,
+              child: ColoredBox(
+                color: QeranColors.paper,
+                child: RefreshIndicator(
+                  color: QeranColors.wine,
+                  onRefresh: () => context.read<DiscoveryCubit>().refresh(),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: EdgeInsets.fromLTRB(
+                      QeranSpacing.s20,
+                      QeranSpacing.s20,
+                      QeranSpacing.s20,
+                      isLandscape ? QeranSpacing.s24 : bottomContentInset,
+                    ),
+                    child: DiscoveryInfoPanel(profile: profile),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

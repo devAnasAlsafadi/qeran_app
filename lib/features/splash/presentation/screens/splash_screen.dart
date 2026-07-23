@@ -176,33 +176,39 @@ class _SplashScreenState extends State<SplashScreen>
           body: SizedBox.expand(
             child: ColoredBox(
               color: QeranColors.wine,
-              child: Center(
-                child: Lottie.asset(
-                  _animationAsset,
-                  controller: _anim,
-                  width: MediaQuery.of(context).size.width * _logoWidthFraction,
-                  fit: BoxFit.contain,
-                  // A load/parse/render failure must NOT hang the splash: log
-                  // it and settle the animation gate (deferred — errorBuilder
-                  // runs during build, and we must not navigate mid-build) so
-                  // we route on the decision instead of showing a blank forever.
-                  errorBuilder: (context, error, stack) {
-                    AppLogger.error(
-                      'Splash Lottie failed to load/render',
-                      error: error,
-                      stack: stack,
-                      tag: 'SPLASH',
-                    );
-                    if (!_animDone && !_errorSettleScheduled) {
-                      _errorSettleScheduled = true;
-                      WidgetsBinding.instance.addPostFrameCallback(
-                        (_) => _markAnimationSettled(),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                  // Start the hand-driven reveal once the composition is ready.
-                  onLoaded: (composition) => _startReveal(composition.duration),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Center(
+                  child: SizedBox(
+                    width: constraints.maxWidth * _logoWidthFraction,
+                    height: constraints.maxHeight * 0.78,
+                    child: Lottie.asset(
+                      _animationAsset,
+                      controller: _anim,
+                      fit: BoxFit.contain,
+                      // A load/parse/render failure must NOT hang the splash: log
+                      // it and settle the animation gate (deferred — errorBuilder
+                      // runs during build, and we must not navigate mid-build) so
+                      // we route on the decision instead of showing a blank forever.
+                      errorBuilder: (context, error, stack) {
+                        AppLogger.error(
+                          'Splash Lottie failed to load/render',
+                          error: error,
+                          stack: stack,
+                          tag: 'SPLASH',
+                        );
+                        if (!_animDone && !_errorSettleScheduled) {
+                          _errorSettleScheduled = true;
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) => _markAnimationSettled(),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                      // Start the hand-driven reveal once the composition is ready.
+                      onLoaded: (composition) =>
+                          _startReveal(composition.duration),
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -390,7 +390,10 @@ class _ProfilePageState extends State<_ProfilePage> {
       builder: (context, constraints) {
         // The card fills down to above the floating bottom-nav island with extra clearance
         // so the action buttons and floating nav never collide.
-        final navClearance = QeranBottomNav.contentClearance(context) + 48.0;
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        final navClearance =
+            QeranBottomNav.contentClearance(context) +
+            (isLandscape ? 12.0 : 48.0);
         final profile = widget.loaded.current!;
         final nextProfile = widget.loaded.next;
 
@@ -551,7 +554,10 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     final hasUndoTarget = loaded != null && loaded.currentIndex > 0;
     final animController = DeckAnimationScope.of(context);
     // Pin the cluster to the card's bottom edge with extra clearance so it sits cleanly above the bottom-nav island.
-    final navClearance = QeranBottomNav.contentClearance(context) + 48.0;
+    final media = MediaQuery.sizeOf(context);
+    final isLandscape = media.width > media.height;
+    final navClearance =
+        QeranBottomNav.contentClearance(context) + (isLandscape ? 12.0 : 48.0);
 
     // Enable state derives from the cubit only (see the previous
     // _ActionBarArea note): gating on the animator's busy flag caused
@@ -728,47 +734,56 @@ class _PeekCardLayer extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: QeranRadii.panelR,
-              child: Column(
-                children: [
-                  Expanded(
-                    flex: 51,
-                    child: DecoratedBox(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [QeranColors.wineLight, QeranColors.wine],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isLandscape =
+                      constraints.maxWidth > constraints.maxHeight;
+                  return Flex(
+                    direction: isLandscape ? Axis.horizontal : Axis.vertical,
+                    children: [
+                      Expanded(
+                        flex: isLandscape ? 45 : 51,
+                        child: DecoratedBox(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [QeranColors.wineLight, QeranColors.wine],
+                            ),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.layers_rounded,
+                              color: QeranColors.gold40,
+                              size: 36,
+                            ),
+                          ),
                         ),
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.layers_rounded,
-                          color: QeranColors.gold40,
-                          size: 36,
+                      Expanded(
+                        flex: isLandscape ? 55 : 49,
+                        child: ColoredBox(
+                          color: QeranColors.paper,
+                          child: Padding(
+                            padding: EdgeInsets.all(
+                              isLandscape ? QeranSpacing.s12 : QeranSpacing.s20,
+                            ),
+                            child: const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _PeekSkeletonBar(width: 104, height: 12),
+                                SizedBox(height: QeranSpacing.s12),
+                                _PeekSkeletonBar(width: 220, height: 8),
+                                SizedBox(height: QeranSpacing.s8),
+                                _PeekSkeletonBar(width: 164, height: 8),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 49,
-                    child: const ColoredBox(
-                      color: QeranColors.paper,
-                      child: Padding(
-                        padding: EdgeInsets.all(QeranSpacing.s20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _PeekSkeletonBar(width: 104, height: 12),
-                            SizedBox(height: QeranSpacing.s12),
-                            _PeekSkeletonBar(width: 220, height: 8),
-                            SizedBox(height: QeranSpacing.s8),
-                            _PeekSkeletonBar(width: 164, height: 8),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
           ),

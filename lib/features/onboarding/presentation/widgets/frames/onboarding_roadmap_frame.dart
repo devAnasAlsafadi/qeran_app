@@ -11,6 +11,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../custom_dot_indicator.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_marriage_destination.dart';
+import 'onboarding_responsive_frame.dart';
 import 'onboarding_roadmap_timeline.dart';
 import 'onboarding_trust_badges.dart';
 
@@ -37,47 +38,46 @@ class OnboardingRoadmapFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safe = MediaQuery.paddingOf(context);
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return OnboardingHeroBackground(
-      child: Column(
-        children: [
-          Expanded(
-            // Slivers avoid the expensive IntrinsicHeight double-layout that
-            // used to run while page 3 was sliding into view.
-            child: CustomScrollView(
-              physics: const ClampingScrollPhysics(),
-              slivers: [
-                SliverPadding(
-                  padding: EdgeInsetsDirectional.fromSTEB(
-                    QeranSpacing.s24,
-                    safe.top + 52,
-                    QeranSpacing.s24,
-                    QeranSpacing.s16,
-                  ),
-                  sliver: const SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _Header(),
-                        QeranSpacing.vs16,
-                        OnboardingRoadmapTimeline(),
-                        QeranSpacing.vs8,
-                        OnboardingMarriageDestination(),
-                      ],
-                    ),
-                  ),
+      child: OnboardingResponsiveFrame(
+        hero: CustomScrollView(
+          physics: const ClampingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                QeranSpacing.s24,
+                safe.top + 52,
+                QeranSpacing.s24,
+                QeranSpacing.s16,
+              ),
+              sliver: const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Header(),
+                    QeranSpacing.vs16,
+                    OnboardingRoadmapTimeline(),
+                    QeranSpacing.vs8,
+                    OnboardingMarriageDestination(),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-          _RoadmapDomePanel(
-            bottomInset: safe.bottom + QeranSpacing.s16,
-            dotCount: dotCount,
-            activeDot: activeDot,
-            onDot: onDot,
-            onFinish: onFinish,
-          ),
-        ],
+          ],
+        ),
+        panel: _RoadmapDomePanel(
+          topInset: isLandscape
+              ? safe.top + QeranSpacing.s64
+              : QeranSpacing.s16,
+          bottomInset: safe.bottom + QeranSpacing.s16,
+          dotCount: dotCount,
+          activeDot: activeDot,
+          onDot: onDot,
+          onFinish: onFinish,
+        ),
       ),
     );
   }
@@ -109,6 +109,7 @@ class _Header extends StatelessWidget {
 }
 
 class _RoadmapDomePanel extends StatelessWidget {
+  final double topInset;
   final double bottomInset;
   final int dotCount;
   final int activeDot;
@@ -116,6 +117,7 @@ class _RoadmapDomePanel extends StatelessWidget {
   final VoidCallback onFinish;
 
   const _RoadmapDomePanel({
+    required this.topInset,
     required this.bottomInset,
     required this.dotCount,
     required this.activeDot,
@@ -134,7 +136,7 @@ class _RoadmapDomePanel extends StatelessWidget {
       ),
       padding: EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s20,
-        QeranSpacing.s16,
+        topInset,
         QeranSpacing.s20,
         bottomInset,
       ),

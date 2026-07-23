@@ -52,14 +52,13 @@ class QuestionnaireFlowBody extends StatelessWidget {
                   : null);
 
         if (inProgressState == null) {
-          return const Scaffold(
-            body: Center(child: QeranLoader()),
-          );
+          return const Scaffold(body: Center(child: QeranLoader()));
         }
 
         final categorySteps = CategoryProgressCalculator.buildSteps(
           inProgressState.questions,
         );
+        final isCompactHeight = MediaQuery.sizeOf(context).height < 520;
 
         return PopScope(
           canPop: false,
@@ -75,16 +74,19 @@ class QuestionnaireFlowBody extends StatelessWidget {
           child: Scaffold(
             body: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: QeranSpacing.s24,
-                  vertical: QeranSpacing.s16,
+                  vertical: isCompactHeight
+                      ? QeranSpacing.s8
+                      : QeranSpacing.s16,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     QuestionnaireAppBar(
                       isFirst: inProgressState.isFirst,
-                      categoryName: inProgressState.currentQuestion.categoryName,
+                      categoryName:
+                          inProgressState.currentQuestion.categoryName,
                       steps: categorySteps,
                       currentQuestionIndex: inProgressState.currentIndex,
                       questions: inProgressState.questions,
@@ -97,44 +99,67 @@ class QuestionnaireFlowBody extends StatelessWidget {
                         }
                       },
                     ),
-                    QeranSpacing.vs32,
-                    QuestionHeader(
-                      question: inProgressState.currentQuestion,
+                    SizedBox(
+                      height: isCompactHeight
+                          ? QeranSpacing.s8
+                          : QeranSpacing.s32,
                     ),
-                    QeranSpacing.vs24,
                     Expanded(
                       child: SingleChildScrollView(
-                        child: QuestionRenderer(
-                          key: ValueKey(
-                            inProgressState.currentQuestion.questionId,
-                          ),
-                          question: inProgressState.currentQuestion,
-                          currentAnswer: inProgressState
-                              .answers[inProgressState
-                                  .currentQuestion.questionId],
-                          onAnswerChanged: (value) {
-                            context
-                                .read<QuestionnaireCubit>()
-                                .answerQuestion(
-                                  inProgressState.currentQuestion.questionId,
-                                  value,
-                                );
-                          },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            QuestionHeader(
+                              question: inProgressState.currentQuestion,
+                            ),
+                            SizedBox(
+                              height: isCompactHeight
+                                  ? QeranSpacing.s12
+                                  : QeranSpacing.s24,
+                            ),
+                            QuestionRenderer(
+                              key: ValueKey(
+                                inProgressState.currentQuestion.questionId,
+                              ),
+                              question: inProgressState.currentQuestion,
+                              currentAnswer:
+                                  inProgressState.answers[inProgressState
+                                      .currentQuestion
+                                      .questionId],
+                              onAnswerChanged: (value) {
+                                context
+                                    .read<QuestionnaireCubit>()
+                                    .answerQuestion(
+                                      inProgressState
+                                          .currentQuestion
+                                          .questionId,
+                                      value,
+                                    );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    QeranSpacing.vs16,
+                    SizedBox(
+                      height: isCompactHeight
+                          ? QeranSpacing.s8
+                          : QeranSpacing.s16,
+                    ),
                     QuestionnaireNavigationButton(
                       isLast: inProgressState.isLast,
                       isLoading: false,
                       enabled: inProgressState.hasCurrentAnswer,
                       onNext: () =>
                           context.read<QuestionnaireCubit>().nextQuestion(),
-                      onFinish: () => context
-                          .read<QuestionnaireCubit>()
-                          .prepareForOath(),
+                      onFinish: () =>
+                          context.read<QuestionnaireCubit>().prepareForOath(),
                     ),
-                    QeranSpacing.vs16,
+                    SizedBox(
+                      height: isCompactHeight
+                          ? QeranSpacing.s8
+                          : QeranSpacing.s16,
+                    ),
                   ],
                 ),
               ),

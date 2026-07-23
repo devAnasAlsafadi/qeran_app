@@ -225,6 +225,18 @@ void main() {
       expect(find.byType(DiscoveryImagePanel), findsOneWidget);
     });
 
+    testWidgets('loaded deck rotates to landscape without overflow', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(DiscoveryImagePanel), findsOneWidget);
+    });
+
     testWidgets(
       'overlay icons belong to the screen layer top bar — never inside cards',
       (tester) async {

@@ -55,66 +55,73 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
         child: OnboardingPopScope(
           child: Scaffold(
             backgroundColor: QeranColors.wine,
-            body: Column(
-              children: [
-                // Wine hero band (onboarding family: wineLight→wine gradient +
-                // ring motif) carrying the heading + language pill.
-                const GenderHeroHeader(),
-                // Cream dome surfacing out of the hero, holding the two cards
-                // and the continue action.
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: QeranColors.creamCanvas,
-                      borderRadius: QeranRadii.domeTop,
-                      boxShadow: QeranShadows.eLiftUp,
-                    ),
-                    child: SafeArea(
-                      top: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          QeranSpacing.s24,
-                          QeranSpacing.s32,
-                          QeranSpacing.s24,
-                          QeranSpacing.s24,
+            body: LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth > constraints.maxHeight) {
+                  return _LandscapeGenderSelection(controller: _controller);
+                }
+                return Column(
+                  children: [
+                    // Wine hero band (onboarding family: wineLight→wine gradient +
+                    // ring motif) carrying the heading + language pill.
+                    const GenderHeroHeader(),
+                    // Cream dome surfacing out of the hero, holding the two cards
+                    // and the continue action.
+                    Expanded(
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: QeranColors.creamCanvas,
+                          borderRadius: QeranRadii.domeTop,
+                          boxShadow: QeranShadows.eLiftUp,
                         ),
-                        child: Column(
-                          children: [
-                            // Center the cards in the space above the pinned
-                            // action (equal flex above/below) so they breathe
-                            // rather than sitting high with a dead zone below.
-                            const Spacer(),
-                            GenderRow(controller: _controller),
-                            const Spacer(),
-                            GenderContinueButton(controller: _controller),
-                            QeranSpacing.vs16,
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                        child: SafeArea(
+                          top: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              QeranSpacing.s24,
+                              QeranSpacing.s32,
+                              QeranSpacing.s24,
+                              QeranSpacing.s24,
+                            ),
+                            child: Column(
                               children: [
-                                const Icon(
-                                  Icons.shield_outlined,
-                                  size: 16,
-                                  color: QeranColors.inkMuted,
-                                ),
-                                QeranSpacing.hs4,
-                                Flexible(
-                                  child: Text(
-                                    LocaleKeys.questionnaire_gender_privacy
-                                        .t(context),
-                                    style: QeranTypography.bodySm.copyWith(
+                                // Center the cards in the space above the pinned
+                                // action (equal flex above/below) so they breathe
+                                // rather than sitting high with a dead zone below.
+                                const Spacer(),
+                                GenderRow(controller: _controller),
+                                const Spacer(),
+                                GenderContinueButton(controller: _controller),
+                                QeranSpacing.vs16,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.shield_outlined,
+                                      size: 16,
                                       color: QeranColors.inkMuted,
                                     ),
-                                  ),
+                                    QeranSpacing.hs4,
+                                    Flexible(
+                                      child: Text(
+                                        LocaleKeys.questionnaire_gender_privacy
+                                            .t(context),
+                                        style: QeranTypography.bodySm.copyWith(
+                                          color: QeranColors.inkMuted,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -140,5 +147,70 @@ class _GenderSelectionScreenState extends State<GenderSelectionScreen> {
         type: SnackBarType.error,
       );
     }
+  }
+}
+
+class _LandscapeGenderSelection extends StatelessWidget {
+  const _LandscapeGenderSelection({required this.controller});
+
+  final GenderSelectionController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final privacy = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.shield_outlined,
+          size: 16,
+          color: QeranColors.inkMuted,
+        ),
+        QeranSpacing.hs4,
+        Flexible(
+          child: Text(
+            LocaleKeys.questionnaire_gender_privacy.t(context),
+            style: QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
+          ),
+        ),
+      ],
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Expanded(flex: 4, child: GenderHeroHeader()),
+        Expanded(
+          flex: 6,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: QeranColors.creamCanvas,
+              borderRadius: QeranRadii.domeTop,
+              boxShadow: QeranShadows.eLiftUp,
+            ),
+            child: SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  QeranSpacing.s24,
+                  QeranSpacing.s64,
+                  QeranSpacing.s24,
+                  QeranSpacing.s16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GenderRow(controller: controller),
+                    QeranSpacing.vs16,
+                    GenderContinueButton(controller: controller),
+                    QeranSpacing.vs16,
+                    privacy,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -53,14 +53,22 @@ class QeranBottomNav extends StatefulWidget {
   static const double notchRadius = discRadius + 10;
   static const double hMargin = 16;
   static const double bMargin = 16;
+  static const double compactLandscapeHeight = 64;
+  static const double compactLandscapeMargin = 8;
 
   /// Bottom inset a tab scrollable needs so its LAST item clears the floating
   /// island + the device gesture area, while items above still scroll under it.
   /// [totalHeight] ≈ bar + bottom margin + breathing; [viewPadding].bottom
   /// re-adds the home-indicator inset the tab body no longer reserves (its
   /// `SafeArea` drops `bottom`). Used as the scrollables' bottom padding.
-  static double contentClearance(BuildContext context) =>
-      totalHeight + MediaQuery.of(context).viewPadding.bottom;
+  static double contentClearance(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isLandscape = media.size.width > media.size.height;
+    return (isLandscape
+            ? compactLandscapeHeight + compactLandscapeMargin
+            : totalHeight) +
+        media.viewPadding.bottom;
+  }
 
   @override
   State<QeranBottomNav> createState() => _QeranBottomNavState();
@@ -143,6 +151,15 @@ class _QeranBottomNavState extends State<QeranBottomNav>
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    if (media.size.width > media.size.height) {
+      return _CompactLandscapeNav(
+        items: widget.items,
+        currentIndex: widget.currentIndex,
+        onTap: widget.onTap,
+      );
+    }
+
     return SafeArea(
       top: false,
       child: Padding(
@@ -159,7 +176,8 @@ class _QeranBottomNavState extends State<QeranBottomNav>
               final isRtl = Directionality.of(context) == TextDirection.rtl;
               final count = widget.items.length;
               final tabWidth = c.maxWidth / count;
-              const discBottom = QeranBottomNav.barHeight +
+              const discBottom =
+                  QeranBottomNav.barHeight +
                   QeranBottomNav.discLift -
                   QeranBottomNav.discRadius;
               return AnimatedBuilder(
@@ -236,6 +254,113 @@ class _QeranBottomNavState extends State<QeranBottomNav>
   }
 }
 
+class _CompactLandscapeNav extends StatelessWidget {
+  const _CompactLandscapeNav({
+    required this.items,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  final List<QeranNavItem> items;
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          QeranBottomNav.hMargin,
+          0,
+          QeranBottomNav.hMargin,
+          QeranBottomNav.compactLandscapeMargin,
+        ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: QeranColors.paper,
+            borderRadius: QeranRadii.cardR,
+            boxShadow: [
+              BoxShadow(
+                color: QeranColors.wine.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: SizedBox(
+            height: QeranBottomNav.compactLandscapeHeight,
+            child: Row(
+              children: List.generate(items.length, (index) {
+                final item = items[index];
+                final isActive = index == currentIndex;
+                return Expanded(
+                  child: Semantics(
+                    button: true,
+                    selected: isActive,
+                    label: item.label,
+                    child: InkWell(
+                      borderRadius: QeranRadii.pill,
+                      onTap: isActive
+                          ? null
+                          : () {
+                              HapticFeedback.lightImpact();
+                              onTap(index);
+                            },
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: QeranMotion.standard,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? QeranColors.gold20
+                                : Colors.transparent,
+                            borderRadius: QeranRadii.pill,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _IconWithBadge(
+                                icon: isActive
+                                    ? item.filledIcon
+                                    : item.outlineIcon,
+                                badgeCount: item.badgeCount,
+                              ),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  item.label,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: QeranTypography.caption.copyWith(
+                                    color: isActive
+                                        ? QeranColors.wine
+                                        : QeranColors.inkMuted,
+                                    fontWeight: isActive
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _NotchedBarPainter extends CustomPainter {
   final double notchCenterX;
   final double notchRadius;
@@ -270,7 +395,11 @@ class _NotchedBarPainter extends CustomPainter {
       ..quadraticBezierTo(size.width, 0, size.width, cornerR)
       ..lineTo(size.width, size.height - cornerR)
       ..quadraticBezierTo(
-          size.width, size.height, size.width - cornerR, size.height)
+        size.width,
+        size.height,
+        size.width - cornerR,
+        size.height,
+      )
       ..lineTo(cornerR, size.height)
       ..quadraticBezierTo(0, size.height, 0, size.height - cornerR)
       ..close();
@@ -293,10 +422,12 @@ class _NotchedBarPainter extends CustomPainter {
       ..addOval(Rect.fromCircle(center: discCenter, radius: discRadius));
 
     canvas.save();
-    canvas.clipRRect(RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(cornerR),
-    ));
+    canvas.clipRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(cornerR),
+      ),
+    );
 
     // Cream fill — the recess reads as a recess by colour hierarchy:
     // bar surface is paper (white, lifted), cradle is creamSurface

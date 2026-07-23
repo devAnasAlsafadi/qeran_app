@@ -27,9 +27,11 @@ class DiscoveryCardSkeleton extends StatelessWidget {
         final viewportHeight = constraints.hasBoundedHeight
             ? constraints.maxHeight
             : MediaQuery.sizeOf(context).height;
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
         final reservedBottom =
             bottomClearance ??
-            (QeranBottomNav.contentClearance(context) + 48.0);
+            (QeranBottomNav.contentClearance(context) +
+                (isLandscape ? 12.0 : 48.0));
 
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -88,49 +90,57 @@ class _SkeletonCardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          flex: 51,
-          child: LayoutBuilder(
-            builder: (context, constraints) =>
-                QeranSkeleton.box(height: constraints.maxHeight, radius: 0),
-          ),
-        ),
-        const Expanded(
-          flex: 49,
-          child: ColoredBox(
-            color: QeranColors.paper,
-            child: Padding(
-              padding: EdgeInsets.all(QeranSpacing.s20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  QeranSkeleton(width: 156, height: 20),
-                  SizedBox(height: QeranSpacing.s16),
-                  QeranSkeleton(height: 12),
-                  SizedBox(height: QeranSpacing.s8),
-                  FractionallySizedBox(
-                    widthFactor: 0.72,
-                    alignment: AlignmentDirectional.centerStart,
-                    child: QeranSkeleton(height: 12),
-                  ),
-                  SizedBox(height: QeranSpacing.s20),
-                  Row(
-                    children: [
-                      QeranSkeleton(width: 76, height: 28, radius: 999),
-                      SizedBox(width: QeranSpacing.s8),
-                      QeranSkeleton(width: 92, height: 28, radius: 999),
-                      SizedBox(width: QeranSpacing.s8),
-                      QeranSkeleton(width: 68, height: 28, radius: 999),
-                    ],
-                  ),
-                ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        return Flex(
+          direction: isLandscape ? Axis.horizontal : Axis.vertical,
+          children: [
+            Expanded(
+              flex: isLandscape ? 45 : 51,
+              child: LayoutBuilder(
+                builder: (context, constraints) =>
+                    QeranSkeleton.box(height: constraints.maxHeight, radius: 0),
               ),
             ),
-          ),
-        ),
-      ],
+            Expanded(
+              flex: isLandscape ? 55 : 49,
+              child: ColoredBox(
+                color: QeranColors.paper,
+                child: Padding(
+                  padding: EdgeInsets.all(
+                    isLandscape ? QeranSpacing.s12 : QeranSpacing.s20,
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      QeranSkeleton(width: 156, height: 20),
+                      SizedBox(height: QeranSpacing.s16),
+                      QeranSkeleton(height: 12),
+                      SizedBox(height: QeranSpacing.s8),
+                      FractionallySizedBox(
+                        widthFactor: 0.72,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: QeranSkeleton(height: 12),
+                      ),
+                      SizedBox(height: QeranSpacing.s20),
+                      Row(
+                        children: [
+                          QeranSkeleton(width: 76, height: 28, radius: 999),
+                          SizedBox(width: QeranSpacing.s8),
+                          QeranSkeleton(width: 92, height: 28, radius: 999),
+                          SizedBox(width: QeranSpacing.s8),
+                          QeranSkeleton(width: 68, height: 28, radius: 999),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

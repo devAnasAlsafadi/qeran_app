@@ -67,18 +67,20 @@ class MatchSuccessScreen extends StatelessWidget {
               top: QeranSpacing.s8,
               end: QeranSpacing.s8,
               child: IconButton(
-                icon: const Icon(
-                  Icons.close_rounded,
-                  color: QeranColors.gold,
-                ),
+                icon: const Icon(Icons.close_rounded, color: QeranColors.gold),
                 onPressed: () => NavigationManager.pop(context),
               ),
             ),
             Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 360),
-                child: Padding(
-                  padding: const EdgeInsets.all(QeranSpacing.s32),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    QeranSpacing.s32,
+                    QeranSpacing.s64,
+                    QeranSpacing.s32,
+                    104,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -93,8 +95,9 @@ class MatchSuccessScreen extends StatelessWidget {
                         child: Text(
                           LocaleKeys.likes_action_accepted_success.t(context),
                           textAlign: TextAlign.center,
-                          style: QeranTypography.displaySm
-                              .copyWith(color: QeranColors.paper),
+                          style: QeranTypography.displaySm.copyWith(
+                            color: QeranColors.paper,
+                          ),
                         ),
                       ),
                       if (hasName) ...[
@@ -105,8 +108,9 @@ class MatchSuccessScreen extends StatelessWidget {
                           child: Text(
                             args!.otherName!,
                             textAlign: TextAlign.center,
-                            style: QeranTypography.title
-                                .copyWith(color: QeranColors.gold),
+                            style: QeranTypography.title.copyWith(
+                              color: QeranColors.gold,
+                            ),
                           ),
                         ),
                       ],
@@ -237,11 +241,7 @@ class _Portrait extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: QeranColors.gold, width: 2),
         boxShadow: const [
-          BoxShadow(
-            color: QeranColors.gold20,
-            blurRadius: 36,
-            spreadRadius: 2,
-          ),
+          BoxShadow(color: QeranColors.gold20, blurRadius: 36, spreadRadius: 2),
         ],
       ),
       child: ClipOval(

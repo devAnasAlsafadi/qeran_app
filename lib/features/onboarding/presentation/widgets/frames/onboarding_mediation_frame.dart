@@ -15,6 +15,7 @@ import 'onboarding_chat_backdrop.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_matchmaker_glass_card.dart';
 import 'onboarding_profile_card_layers.dart';
+import 'onboarding_responsive_frame.dart';
 
 /// Frame 2 — Dignified Mediation (الوساطة الجادة).
 ///
@@ -41,62 +42,68 @@ class OnboardingMediationFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safe = MediaQuery.paddingOf(context);
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return OnboardingHeroBackground(
-      child: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                // The conversation fills the whole upper zone (up under the
-                // floating top bar); the card floats over its centre.
-                const Positioned.fill(child: OnboardingChatBackdrop()),
-                const PositionedDirectional(
-                  top: -20,
-                  end: -40,
-                  child: RingMotif(
-                    color: QeranColors.gold,
-                    opacity: 0.07,
-                    size: 240,
-                    ringCount: 3,
-                    spacing: 26,
-                  ),
-                ),
-                // Keeps the floating skip / language controls legible.
-                const OnboardingCardTopScrim(),
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(
-                    QeranSpacing.s16,
-                    safe.top + 56,
-                    QeranSpacing.s16,
-                    0,
-                  ),
-                  child: Center(
-                    child: OnboardingMatchmakerGlassCard(onSearch: onSearch),
-                  ),
-                ),
-              ],
+      child: OnboardingResponsiveFrame(
+        hero: Stack(
+          children: [
+            // The conversation fills the whole upper zone (up under the
+            // floating top bar); the card floats over its centre.
+            const Positioned.fill(child: OnboardingChatBackdrop()),
+            const PositionedDirectional(
+              top: -20,
+              end: -40,
+              child: RingMotif(
+                color: QeranColors.gold,
+                opacity: 0.07,
+                size: 240,
+                ringCount: 3,
+                spacing: 26,
+              ),
             ),
-          ),
-          _MediationDomePanel(
-            bottomInset: safe.bottom + QeranSpacing.s16,
-            footer: OnboardingDomeFooter(
-              dotCount: dotCount,
-              activeDot: activeDot,
-              onDot: onDot,
-              onNext: onNext,
+            // Keeps the floating skip / language controls legible.
+            const OnboardingCardTopScrim(),
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(
+                QeranSpacing.s16,
+                safe.top + 56,
+                QeranSpacing.s16,
+                0,
+              ),
+              child: Center(
+                child: OnboardingMatchmakerGlassCard(onSearch: onSearch),
+              ),
             ),
+          ],
+        ),
+        panel: _MediationDomePanel(
+          topInset: isLandscape
+              ? safe.top + QeranSpacing.s64
+              : QeranSpacing.s20,
+          bottomInset: safe.bottom + QeranSpacing.s16,
+          footer: OnboardingDomeFooter(
+            dotCount: dotCount,
+            activeDot: activeDot,
+            onDot: onDot,
+            onNext: onNext,
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _MediationDomePanel extends StatelessWidget {
+  final double topInset;
   final double bottomInset;
   final Widget footer;
 
-  const _MediationDomePanel({required this.bottomInset, required this.footer});
+  const _MediationDomePanel({
+    required this.topInset,
+    required this.bottomInset,
+    required this.footer,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +116,7 @@ class _MediationDomePanel extends StatelessWidget {
       ),
       padding: EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s20,
-        QeranSpacing.s20,
+        topInset,
         QeranSpacing.s20,
         bottomInset,
       ),

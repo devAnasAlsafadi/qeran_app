@@ -13,6 +13,7 @@ import '../onboarding_dome_highlight.dart';
 import 'onboarding_blurred_profile_card.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_privacy_step_strip.dart';
+import 'onboarding_responsive_frame.dart';
 
 /// Frame 1 — Essence & Privacy (الجوهر والخصوصية).
 ///
@@ -37,38 +38,44 @@ class OnboardingEssenceFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safe = MediaQuery.paddingOf(context);
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return OnboardingHeroBackground(
-      child: Column(
-        children: [
-          const Expanded(
-            child: Padding(
-              // Full-bleed to the screen top + sides; the floating top bar rides
-              // over the photo (top scrim keeps it legible). Only a small gap
-              // before the dome remains.
-              padding: EdgeInsetsDirectional.only(bottom: QeranSpacing.s8),
-              child: OnboardingBlurredProfileCard(),
-            ),
+      child: OnboardingResponsiveFrame(
+        hero: const Padding(
+          // Full-bleed to the screen top + sides; the floating top bar rides
+          // over the photo (top scrim keeps it legible). Only a small gap
+          // before the dome remains.
+          padding: EdgeInsetsDirectional.only(bottom: QeranSpacing.s8),
+          child: OnboardingBlurredProfileCard(),
+        ),
+        panel: _EssenceDomePanel(
+          topInset: isLandscape
+              ? safe.top + QeranSpacing.s64
+              : QeranSpacing.s20,
+          bottomInset: safe.bottom + QeranSpacing.s16,
+          footer: OnboardingDomeFooter(
+            dotCount: dotCount,
+            activeDot: activeDot,
+            onDot: onDot,
+            onNext: onNext,
           ),
-          _EssenceDomePanel(
-            bottomInset: safe.bottom + QeranSpacing.s16,
-            footer: OnboardingDomeFooter(
-              dotCount: dotCount,
-              activeDot: activeDot,
-              onDot: onDot,
-              onNext: onNext,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _EssenceDomePanel extends StatelessWidget {
+  final double topInset;
   final double bottomInset;
   final Widget footer;
 
-  const _EssenceDomePanel({required this.bottomInset, required this.footer});
+  const _EssenceDomePanel({
+    required this.topInset,
+    required this.bottomInset,
+    required this.footer,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +88,7 @@ class _EssenceDomePanel extends StatelessWidget {
       ),
       padding: EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s20,
-        QeranSpacing.s20,
+        topInset,
         QeranSpacing.s20,
         bottomInset,
       ),

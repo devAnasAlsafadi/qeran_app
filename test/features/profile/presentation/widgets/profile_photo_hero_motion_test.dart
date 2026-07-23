@@ -61,6 +61,31 @@ void main() {
     expect(renderedImages.first.blurSigma, 24);
   });
 
+  testWidgets('gallery uses a bounded wide hero in landscape', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: ProfileHeaderGallery(images: [primary]),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final galleryAspect = tester.widget<AspectRatio>(
+      find.descendant(
+        of: find.byType(ProfileHeaderGallery),
+        matching: find.byType(AspectRatio),
+      ),
+    );
+    expect(galleryAspect.aspectRatio, 16 / 9);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('full profile exposes the shared photo flight configuration', (
     tester,
   ) async {

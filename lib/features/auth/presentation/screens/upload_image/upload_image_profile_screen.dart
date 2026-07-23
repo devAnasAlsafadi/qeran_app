@@ -55,36 +55,47 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
         return OnboardingPopScope(
           child: Scaffold(
             body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(QeranSpacing.s16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const QuestionProgressBar(progress: 1.0),
-                    QeranSpacing.vs16,
-
-                    _buildHeader(isUploading: isUploading),
-                    QeranSpacing.vs8,
-
-                    _buildTitleArea(),
-                    QeranSpacing.vs16,
-
-                    const PrivacyInfoBox(),
-                    QeranSpacing.vs24,
-
-                    _buildPhotoGrid(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth > constraints.maxHeight) {
+                    return _buildLandscapeBody(
                       imagePaths: imagePaths,
                       primaryIndex: primaryIndex,
                       isUploading: isUploading,
-                    ),
+                    );
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.all(QeranSpacing.s16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const QuestionProgressBar(progress: 1.0),
+                        QeranSpacing.vs16,
 
-                    _buildUploadButton(
-                      imagePaths: imagePaths,
-                      isUploading: isUploading,
+                        _buildHeader(isUploading: isUploading),
+                        QeranSpacing.vs8,
+
+                        _buildTitleArea(),
+                        QeranSpacing.vs16,
+
+                        const PrivacyInfoBox(),
+                        QeranSpacing.vs24,
+
+                        _buildPhotoGrid(
+                          imagePaths: imagePaths,
+                          primaryIndex: primaryIndex,
+                          isUploading: isUploading,
+                        ),
+
+                        _buildUploadButton(
+                          imagePaths: imagePaths,
+                          isUploading: isUploading,
+                        ),
+                        QeranSpacing.vs12,
+                      ],
                     ),
-                    QeranSpacing.vs12,
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -122,7 +133,10 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
       children: [
         GestureDetector(
           onTap: isUploading ? null : () => ExitAppDialog.show(context),
-          child: const Icon(Icons.chevron_left_rounded, color: QeranColors.wine),
+          child: const Icon(
+            Icons.chevron_left_rounded,
+            color: QeranColors.wine,
+          ),
         ),
         TextButton(
           onPressed: isUploading ? null : _cubit.skipUpload,
@@ -146,9 +160,7 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
         QeranSpacing.vs8,
         Text(
           LocaleKeys.auth_photo_upload_subtitle.t(context),
-          style: QeranTypography.bodySm.copyWith(
-            color: QeranColors.inkMuted,
-          ),
+          style: QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
         ),
       ],
     );
@@ -190,6 +202,85 @@ class _UploadImageProfileScreenState extends State<UploadImageProfileScreen> {
             onSetPrimary: () => _cubit.setPrimary(index),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLandscapeBody({
+    required List<String> imagePaths,
+    required int primaryIndex,
+    required bool isUploading,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(QeranSpacing.s16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            flex: 4,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const QuestionProgressBar(progress: 1.0),
+                  QeranSpacing.vs8,
+                  _buildHeader(isUploading: isUploading),
+                  QeranSpacing.vs8,
+                  _buildTitleArea(),
+                  QeranSpacing.vs12,
+                  const PrivacyInfoBox(),
+                ],
+              ),
+            ),
+          ),
+          QeranSpacing.hs16,
+          Expanded(
+            flex: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: QeranSpacing.s12,
+                          mainAxisSpacing: QeranSpacing.s12,
+                          childAspectRatio: 0.9,
+                        ),
+                    itemCount: 5,
+                    itemBuilder: (context, index) {
+                      final hasImage = index < imagePaths.length;
+                      if (!hasImage) {
+                        return EmptyPhotoSlot(
+                          isUploading: isUploading,
+                          index: index,
+                          onAddTap: () => PhotoPickerBottomSheet.show(
+                            context,
+                            onImagePicked: _cubit.addImage,
+                          ),
+                        );
+                      }
+                      return FilledPhotoSlot(
+                        index: index,
+                        file: File(imagePaths[index]),
+                        isPrimary: primaryIndex == index,
+                        isUploading: isUploading,
+                        onRemove: () => _cubit.removeImage(index),
+                        onSetPrimary: () => _cubit.setPrimary(index),
+                      );
+                    },
+                  ),
+                ),
+                QeranSpacing.vs8,
+                _buildUploadButton(
+                  imagePaths: imagePaths,
+                  isUploading: isUploading,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

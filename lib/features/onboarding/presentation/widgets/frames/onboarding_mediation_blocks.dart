@@ -70,7 +70,9 @@ class _StatusRow extends StatelessWidget {
           decoration: BoxDecoration(
             color: QeranColors.paper.withValues(alpha: 0.10),
             borderRadius: QeranRadii.controlR,
-            border: Border.all(color: QeranColors.paper.withValues(alpha: 0.12)),
+            border: Border.all(
+              color: QeranColors.paper.withValues(alpha: 0.12),
+            ),
           ),
           child: Icon(data.icon, color: QeranColors.gold, size: 18),
         ),
@@ -84,12 +86,15 @@ class _StatusRow extends StatelessWidget {
           ),
         ),
         QeranSpacing.hs8,
-        QeranChip(
-          icon: data.chipIcon,
-          label: data.status,
-          variant: QeranChipVariant.status,
-          statusColor: QeranColors.gold,
-          compact: true,
+        Flexible(
+          child: QeranChip(
+            icon: data.chipIcon,
+            label: data.status,
+            variant: QeranChipVariant.status,
+            statusColor: QeranColors.gold,
+            compact: true,
+            maxWidth: double.infinity,
+          ),
         ),
       ],
     );

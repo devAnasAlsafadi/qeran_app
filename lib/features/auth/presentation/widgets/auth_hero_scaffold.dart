@@ -41,15 +41,34 @@ class AuthHeroScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: QeranColors.wine,
-      body: Column(
-        children: [
-          _AuthHero(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final hero = _AuthHero(
             showBack: showBack,
             onBack: onBack,
             showLanguageSwitch: showLanguageSwitch,
-          ),
-          Expanded(child: _AuthDome(children: children)),
-        ],
+          );
+          final dome = _AuthDome(children: children);
+          if (constraints.maxWidth <= constraints.maxHeight) {
+            return Column(
+              children: [
+                hero,
+                Expanded(child: dome),
+              ],
+            );
+          }
+
+          // Landscape keeps the brand visible without sacrificing form height.
+          // The form remains independently scrollable for keyboards and larger
+          // accessibility text.
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(width: constraints.maxWidth * 0.36, child: hero),
+              Expanded(child: dome),
+            ],
+          );
+        },
       ),
     );
   }

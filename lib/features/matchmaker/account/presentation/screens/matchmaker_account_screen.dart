@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
+import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
-import '../../../../../core/design_system/widgets/qeran_error_state.dart';
-import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
@@ -16,6 +16,7 @@ import '../../../../../generated/locale_keys.g.dart';
 import '../../../../settings/presentation/widgets/settings_language_sheet.dart';
 import '../blocs/matchmaker_account_cubit.dart';
 import '../blocs/matchmaker_account_state.dart';
+import '../../domain/entities/matchmaker_me.dart';
 import '../widgets/matchmaker_account_body.dart';
 import '../widgets/matchmaker_change_password_sheet.dart';
 import '../widgets/matchmaker_delete_account_sheet.dart';
@@ -58,21 +59,13 @@ class _AccountView extends StatelessWidget {
 
   Widget _buildBody(BuildContext context, MatchmakerAccountState state) {
     final cubit = context.read<MatchmakerAccountCubit>();
-    final me = state.me;
-    if (me == null) {
-      if (state.status == MatchmakerAccountStatus.failure) {
-        return QeranErrorState(
-          title: LocaleKeys.matchmaker_account_load_error.t(context),
-          message: (state.loadErrorKey ?? LocaleKeys.errors_generic).t(context),
-          retryLabel: LocaleKeys.matchmaker_users_retry.t(context),
-          onRetry: cubit.load,
-        );
-      }
-      return const Center(child: QeranLoader());
-    }
+    final session = context.watch<UserSessionCubit>().state;
+    final user = session is UserSessionAuthenticated ? session.user : null;
+    final me = state.me ?? _sessionFallback(user);
+    final identityReady = state.me != null;
     return MatchmakerAccountBody(
       me: me,
-      onEditName: () => _editName(context),
+      onEditName: identityReady ? () => _editName(context) : null,
       onChangePassword: () => _changePassword(context),
       onLanguage: () => showSettingsLanguageSheet(context),
       onNotifications: () => NavigationManager.navigateTo(
@@ -88,9 +81,26 @@ class _AccountView extends StatelessWidget {
       onDeactivate: () => _deactivate(context),
       onDeleteAccount: () => showMatchmakerDeleteAccountSheet(context),
       onLogout: () => _logout(context),
+      loadErrorKey: state.status == MatchmakerAccountStatus.failure
+          ? state.loadErrorKey ?? LocaleKeys.errors_generic
+          : null,
+      onRetryLoad: cubit.load,
       bottomReserve: MediaQuery.of(context).padding.bottom,
     );
   }
+
+  MatchmakerMe _sessionFallback(UserEntity? user) => MatchmakerMe(
+    userId: user?.id ?? '',
+    name: user?.name ?? '',
+    email: user?.email ?? '',
+    phoneNumber: user?.phoneNumber ?? '',
+    gender: '',
+    isActive: true,
+    isPhoneVerified: user?.isPhoneVerified ?? false,
+    createdAt: null,
+    image: null,
+    referralCode: null,
+  );
 
   void _onOutcome(BuildContext context, MatchmakerAccountState state) {
     switch (state.outcome) {
@@ -100,8 +110,11 @@ class _AccountView extends StatelessWidget {
       case MatchmakerAccountOutcome.changePasswordSuccess:
         break;
       case MatchmakerAccountOutcome.uploadPhotoSuccess:
-        _toast(context, LocaleKeys.matchmaker_account_photo_updated,
-            SnackBarType.success);
+        _toast(
+          context,
+          LocaleKeys.matchmaker_account_photo_updated,
+          SnackBarType.success,
+        );
       case MatchmakerAccountOutcome.deactivateSuccess:
         _clearSessionAndExit(
           context,
@@ -114,8 +127,11 @@ class _AccountView extends StatelessWidget {
             state.errorKind == MatchmakerAccountErrorKind.incorrectPassword) {
           break;
         }
-        _toast(context, state.actionErrorKey ?? LocaleKeys.errors_generic,
-            SnackBarType.error);
+        _toast(
+          context,
+          state.actionErrorKey ?? LocaleKeys.errors_generic,
+          SnackBarType.error,
+        );
       case MatchmakerAccountOutcome.none:
         break;
     }
@@ -143,8 +159,9 @@ class _AccountView extends StatelessWidget {
     final confirmed = await QeranConfirmDialog.show(
       context,
       title: LocaleKeys.matchmaker_account_deactivate_confirm_title.t(context),
-      message:
-          LocaleKeys.matchmaker_account_deactivate_confirm_message.t(context),
+      message: LocaleKeys.matchmaker_account_deactivate_confirm_message.t(
+        context,
+      ),
       confirmLabel: LocaleKeys.matchmaker_account_row_deactivate.t(context),
       icon: Icons.person_off_outlined,
     );

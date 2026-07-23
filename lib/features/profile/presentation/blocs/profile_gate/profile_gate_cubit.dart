@@ -23,10 +23,11 @@ import 'profile_gate_state.dart';
 class ProfileGateCubit extends Cubit<ProfileGateState>
     with SafeEmit<ProfileGateState> {
   final GetMyProfileUseCase _getMyProfile;
+  int _requestVersion = 0;
 
   ProfileGateCubit({required GetMyProfileUseCase getMyProfile})
-      : _getMyProfile = getMyProfile,
-        super(const ProfileGateInitial());
+    : _getMyProfile = getMyProfile,
+      super(const ProfileGateInitial());
 
   /// Fetches the profile status once. No-op if already loading or resolved —
   /// safe to call on every shell mount. Use [refresh] to force a re-fetch
@@ -39,9 +40,12 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
   Future<void> refresh() => _load();
 
   Future<void> _load() async {
+    final requestVersion = ++_requestVersion;
     emit(const ProfileGateLoading());
     final result = await _getMyProfile();
-    if (isClosed) return;
+    // A previous account's request may finish after a newer session has
+    // already started. Only the latest request may publish profile state.
+    if (isClosed || requestVersion != _requestVersion) return;
     result.fold(
       (failure) {
         // Fail-open — never block on a transient status-fetch error.
@@ -51,11 +55,13 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
         );
         emit(const ProfileGateUnavailable());
       },
-      (profile) => emit(ProfileGateResolved(
-        profile.profileStatus,
-        name: profile.name,
-        photoUrl: _profilePhotoUrl(profile),
-      )),
+      (profile) => emit(
+        ProfileGateResolved(
+          profile.profileStatus,
+          name: profile.name,
+          photoUrl: _profilePhotoUrl(profile),
+        ),
+      ),
     );
   }
 
@@ -72,13 +78,18 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
   }
 
   /// The resolved status, or `null` while loading / on failure.
-  ProfileStatus? get status =>
-      state is ProfileGateResolved ? (state as ProfileGateResolved).status : null;
+  ProfileStatus? get status => state is ProfileGateResolved
+      ? (state as ProfileGateResolved).status
+      : null;
 
   /// `true` only when the status is KNOWN and not [ProfileStatus.visible].
   /// Fail-open otherwise (loading / unavailable / unknown → not gated).
   bool get isGated {
-    final s = status;
-    return s != null && s != ProfileStatus.visible;
+    return switch (status) {
+      ProfileStatus.pendingReview ||
+      ProfileStatus.hidden ||
+      ProfileStatus.rejected => true,
+      ProfileStatus.visible || ProfileStatus.unknown || null => false,
+    };
   }
 }

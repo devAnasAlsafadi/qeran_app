@@ -18,8 +18,15 @@ enum ProfileStatus {
   unknown;
 
   static ProfileStatus fromString(String? raw) {
-    switch ((raw ?? '').toLowerCase()) {
+    final normalized = (raw ?? '').trim().toLowerCase().replaceAll(
+      RegExp(r'[\s_-]'),
+      '',
+    );
+
+    switch (normalized) {
       case 'visible':
+      case 'approved':
+      case 'active':
         return ProfileStatus.visible;
       case 'pendingreview':
       case 'pending':

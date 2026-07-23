@@ -36,7 +36,7 @@ class SettingsProfileHero extends StatelessWidget {
   final Widget avatar;
   final String name;
   final String editLabel;
-  final VoidCallback onEdit;
+  final VoidCallback? onEdit;
 
   /// Matchmaker: the account email, rendered LTR tabular under the name.
   final String? email;
@@ -112,15 +112,14 @@ class SettingsProfileHero extends StatelessWidget {
                           QeranSpacing.vs4,
                           _CompletionLine(label: completionLabel!),
                         ],
-                        QeranSpacing.vs8,
-                        _EditLink(label: editLabel, onTap: onEdit),
+                        if (onEdit != null) ...[
+                          QeranSpacing.vs8,
+                          _EditLink(label: editLabel, onTap: onEdit!),
+                        ],
                       ],
                     ),
                   ),
-                  if (verified) ...[
-                    QeranSpacing.hs8,
-                    const _VerifiedBadge(),
-                  ],
+                  if (verified) ...[QeranSpacing.hs8, const _VerifiedBadge()],
                 ],
               ),
             ),
@@ -201,7 +200,11 @@ class _EditLink extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.edit_outlined, size: 14, color: QeranColors.gold),
+              const Icon(
+                Icons.edit_outlined,
+                size: 14,
+                color: QeranColors.gold,
+              ),
               QeranSpacing.hs4,
               Flexible(
                 child: Text(

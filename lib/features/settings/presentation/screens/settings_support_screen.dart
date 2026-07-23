@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
-import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
+import 'package:qeran/core/design_system/widgets/qeran_skeleton.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -68,9 +68,11 @@ class _SupportBodyState extends State<_SupportBody> {
       );
       return;
     }
-    context
-        .read<SupportCubit>()
-        .submit(categoryId: categoryId, subject: subject, details: details);
+    context.read<SupportCubit>().submit(
+      categoryId: categoryId,
+      subject: subject,
+      details: details,
+    );
   }
 
   void _onState(BuildContext context, SupportState state) {
@@ -114,32 +116,22 @@ class _SupportBodyState extends State<_SupportBody> {
                     prev.eventVersion != curr.eventVersion,
                 listener: _onState,
                 builder: (context, state) {
-                  switch (state.categoriesStatus) {
-                    case SupportCategoriesStatus.loading:
-                      return const Center(child: QeranLoader());
-                    case SupportCategoriesStatus.failure:
-                      return QeranErrorState(
-                        title: LocaleKeys.settings_support_categories_error
-                            .t(context),
-                        message: state.categoriesErrorKey.t(context),
-                        retryLabel:
-                            LocaleKeys.settings_support_retry.t(context),
-                        onRetry: context.read<SupportCubit>().loadCategories,
-                      );
-                    case SupportCategoriesStatus.loaded:
-                      return _Form(
-                        categories: state.categories,
-                        selectedId: _categoryId,
-                        subject: _subject,
-                        details: _details,
-                        subjectMax: _subjectMax,
-                        detailsMax: _detailsMax,
-                        loading: state.isSubmitting,
-                        onCategoryChanged: (id) =>
-                            setState(() => _categoryId = id),
-                        onSubmit: _submit,
-                      );
-                  }
+                  return _Form(
+                    categories: state.categories,
+                    categoriesStatus: state.categoriesStatus,
+                    categoriesErrorKey: state.categoriesErrorKey,
+                    selectedId: _categoryId,
+                    subject: _subject,
+                    details: _details,
+                    subjectMax: _subjectMax,
+                    detailsMax: _detailsMax,
+                    loading: state.isSubmitting,
+                    onRetryCategories: context
+                        .read<SupportCubit>()
+                        .loadCategories,
+                    onCategoryChanged: (id) => setState(() => _categoryId = id),
+                    onSubmit: _submit,
+                  );
                 },
               ),
             ),
@@ -152,23 +144,29 @@ class _SupportBodyState extends State<_SupportBody> {
 
 class _Form extends StatelessWidget {
   final List<SupportCategory> categories;
+  final SupportCategoriesStatus categoriesStatus;
+  final String categoriesErrorKey;
   final int? selectedId;
   final TextEditingController subject;
   final TextEditingController details;
   final int subjectMax;
   final int detailsMax;
   final bool loading;
+  final VoidCallback onRetryCategories;
   final ValueChanged<int> onCategoryChanged;
   final VoidCallback onSubmit;
 
   const _Form({
     required this.categories,
+    required this.categoriesStatus,
+    required this.categoriesErrorKey,
     required this.selectedId,
     required this.subject,
     required this.details,
     required this.subjectMax,
     required this.detailsMax,
     required this.loading,
+    required this.onRetryCategories,
     required this.onCategoryChanged,
     required this.onSubmit,
   });
@@ -187,16 +185,20 @@ class _Form extends StatelessWidget {
                 QeranSpacing.vs8,
                 Text(
                   LocaleKeys.settings_support_intro.t(context),
-                  style: QeranTypography.bodySm
-                      .copyWith(color: QeranColors.inkMuted),
+                  style: QeranTypography.bodySm.copyWith(
+                    color: QeranColors.inkMuted,
+                  ),
                 ),
                 QeranSpacing.vs24,
                 _Label(LocaleKeys.settings_support_type_label.t(context)),
                 QeranSpacing.vs8,
-                SupportTypeField(
+                _CategoryFieldState(
+                  status: categoriesStatus,
+                  errorKey: categoriesErrorKey,
                   categories: categories,
                   selectedId: selectedId,
                   onChanged: onCategoryChanged,
+                  onRetry: onRetryCategories,
                 ),
                 QeranSpacing.vs16,
                 _Label(LocaleKeys.settings_support_subject_label.t(context)),
@@ -235,7 +237,11 @@ class _Form extends StatelessWidget {
                 label: LocaleKeys.settings_support_submit.t(context),
                 variant: QeranButtonVariant.primaryWine,
                 loading: loading,
-                onPressed: loading ? null : onSubmit,
+                onPressed:
+                    loading ||
+                        categoriesStatus != SupportCategoriesStatus.loaded
+                    ? null
+                    : onSubmit,
               ),
               QeranSpacing.vs12,
               Text(
@@ -248,6 +254,82 @@ class _Form extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _CategoryFieldState extends StatelessWidget {
+  const _CategoryFieldState({
+    required this.status,
+    required this.errorKey,
+    required this.categories,
+    required this.selectedId,
+    required this.onChanged,
+    required this.onRetry,
+  });
+
+  final SupportCategoriesStatus status;
+  final String errorKey;
+  final List<SupportCategory> categories;
+  final int? selectedId;
+  final ValueChanged<int> onChanged;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (status) {
+      SupportCategoriesStatus.loading => Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s16),
+        alignment: AlignmentDirectional.centerStart,
+        decoration: BoxDecoration(
+          color: QeranColors.paper,
+          borderRadius: QeranRadii.controlR,
+          border: Border.all(color: QeranColors.wine08),
+        ),
+        child: const QeranSkeleton(width: 180, height: 16),
+      ),
+      SupportCategoriesStatus.failure => Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          QeranSpacing.s16,
+          QeranSpacing.s8,
+          QeranSpacing.s8,
+          QeranSpacing.s8,
+        ),
+        decoration: BoxDecoration(
+          color: QeranColors.paper,
+          borderRadius: QeranRadii.controlR,
+          border: Border.all(color: QeranColors.danger12),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.cloud_off_outlined,
+              color: QeranColors.danger,
+              size: 20,
+            ),
+            QeranSpacing.hs8,
+            Expanded(
+              child: Text(
+                errorKey.t(context),
+                style: QeranTypography.caption,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            TextButton(
+              onPressed: onRetry,
+              child: Text(LocaleKeys.settings_support_retry.t(context)),
+            ),
+          ],
+        ),
+      ),
+      SupportCategoriesStatus.loaded => SupportTypeField(
+        categories: categories,
+        selectedId: selectedId,
+        onChanged: onChanged,
+      ),
+    };
   }
 }
 

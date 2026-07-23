@@ -34,11 +34,13 @@ class MatchmakerAccountBody extends StatelessWidget {
     required this.onDeactivate,
     required this.onDeleteAccount,
     required this.onLogout,
+    required this.loadErrorKey,
+    required this.onRetryLoad,
     required this.bottomReserve,
   });
 
   final MatchmakerMe me;
-  final VoidCallback onEditName;
+  final VoidCallback? onEditName;
   final VoidCallback onChangePassword;
   final VoidCallback onLanguage;
   final VoidCallback onNotifications;
@@ -48,6 +50,8 @@ class MatchmakerAccountBody extends StatelessWidget {
   final VoidCallback onDeactivate;
   final VoidCallback onDeleteAccount;
   final VoidCallback onLogout;
+  final String? loadErrorKey;
+  final VoidCallback onRetryLoad;
   final double bottomReserve;
 
   @override
@@ -68,11 +72,20 @@ class MatchmakerAccountBody extends StatelessWidget {
       children: [
         SettingsProfileHero(
           avatar: _HeroAvatar(url: me.image?.url, name: me.name),
-          name: me.name,
+          name: me.name.isNotEmpty
+              ? me.name
+              : LocaleKeys.matchmaker_account_title.t(context),
           email: me.email,
           editLabel: LocaleKeys.matchmaker_account_edit_profile.t(context),
           onEdit: onEditName,
         ),
+        if (loadErrorKey != null) ...[
+          QeranSpacing.vs12,
+          _AccountDetailsError(
+            message: loadErrorKey!.t(context),
+            onRetry: onRetryLoad,
+          ),
+        ],
         // Referral/affiliate share card — shown only when the backend has issued
         // a code (never a fabricated placeholder for an absent one).
         if (me.referralCode != null && me.referralCode!.isNotEmpty) ...[
@@ -96,8 +109,7 @@ class MatchmakerAccountBody extends StatelessWidget {
               const SettingsRowDivider(),
               SettingsRow(
                 icon: Icons.lock_outline_rounded,
-                title:
-                    LocaleKeys.matchmaker_account_change_password.t(context),
+                title: LocaleKeys.matchmaker_account_change_password.t(context),
                 onTap: onChangePassword,
               ),
               const SettingsRowDivider(),
@@ -125,8 +137,9 @@ class MatchmakerAccountBody extends StatelessWidget {
               SettingsRow(
                 icon: Icons.insights_outlined,
                 title: LocaleKeys.matchmaker_affiliate_row_title.t(context),
-                subtitle:
-                    LocaleKeys.matchmaker_affiliate_row_subtitle.t(context),
+                subtitle: LocaleKeys.matchmaker_affiliate_row_subtitle.t(
+                  context,
+                ),
                 onTap: onAffiliate,
               ),
               const SettingsRowDivider(),
@@ -156,6 +169,47 @@ class MatchmakerAccountBody extends StatelessWidget {
         QeranSpacing.vs24,
         SettingsLogoutCard(onTap: onLogout),
       ],
+    );
+  }
+}
+
+class _AccountDetailsError extends StatelessWidget {
+  const _AccountDetailsError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return QeranCard(
+      padding: const EdgeInsets.symmetric(
+        horizontal: QeranSpacing.s16,
+        vertical: QeranSpacing.s12,
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.cloud_off_outlined,
+            color: QeranColors.danger,
+            size: 22,
+          ),
+          QeranSpacing.hs12,
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: QeranColors.inkMuted),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(LocaleKeys.matchmaker_users_retry.t(context)),
+          ),
+        ],
+      ),
     );
   }
 }

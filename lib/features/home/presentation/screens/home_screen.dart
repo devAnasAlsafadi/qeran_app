@@ -64,10 +64,10 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Load the approval-gate status once for the pre-gate (fail-open — a failed
-    // fetch never blocks actions; the backend PROFILE_NOT_APPROVED stays the
-    // real gate). App-scoped singleton, so this survives tab switches.
-    unawaited(sl<ProfileGateCubit>().ensureLoaded());
+    // A new shell means a new signed-in session. Refresh the app-scoped gate
+    // instead of reusing another account's resolved status. Fetch failures
+    // remain fail-open; the backend stays the real action gate.
+    unawaited(sl<ProfileGateCubit>().refresh());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {

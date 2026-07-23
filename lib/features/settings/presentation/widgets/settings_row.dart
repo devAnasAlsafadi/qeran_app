@@ -27,7 +27,7 @@ class SettingsRow extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? trailing;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final SettingsRowAccent accent;
 
   @override
@@ -43,7 +43,11 @@ class SettingsRow extends StatelessWidget {
       SettingsRowAccent.gold => QeranColors.gold12,
       SettingsRowAccent.danger => QeranColors.danger12,
     };
-    final titleColor = destructive ? QeranColors.danger : QeranColors.wine;
+    final titleColor = onTap == null
+        ? QeranColors.inkMuted
+        : destructive
+        ? QeranColors.danger
+        : QeranColors.wine;
 
     return Material(
       type: MaterialType.transparency,
@@ -92,14 +96,16 @@ class SettingsRow extends StatelessWidget {
                 ),
               ),
               if (trailing != null) ...[QeranSpacing.hs8, trailing!],
-              QeranSpacing.hs8,
-              // `chevron_right_rounded` auto-mirrors under the ambient
-              // Directionality: points inward in RTL, right in LTR.
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: QeranColors.wine,
-                size: 22,
-              ),
+              if (onTap != null) ...[
+                QeranSpacing.hs8,
+                // `chevron_right_rounded` auto-mirrors under the ambient
+                // Directionality: points inward in RTL, right in LTR.
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: QeranColors.wine,
+                  size: 22,
+                ),
+              ],
             ],
           ),
         ),
@@ -117,10 +123,7 @@ class SettingsRowDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsetsDirectional.only(start: 60, end: 16),
-      child: SizedBox(
-        height: 1,
-        child: ColoredBox(color: QeranColors.divider),
-      ),
+      child: SizedBox(height: 1, child: ColoredBox(color: QeranColors.divider)),
     );
   }
 }

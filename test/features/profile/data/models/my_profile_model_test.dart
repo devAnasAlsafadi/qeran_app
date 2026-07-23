@@ -60,6 +60,23 @@ void main() {
       expect(entity.profileStatus, ProfileStatus.pendingReview);
     });
 
+    test('approved status aliases are treated as visible', () {
+      for (final status in ['Approved', 'active', 'VISIBLE']) {
+        final entity = MyProfileModel.fromJson({
+          'userId': 'guid',
+          'profileStatus': status,
+          'images': const [],
+          'placements': const [],
+        }).toEntity();
+
+        expect(
+          entity.profileStatus,
+          ProfileStatus.visible,
+          reason: '$status must not show the pending-review gate',
+        );
+      }
+    });
+
     test('falls back to id when userId is missing', () {
       final entity = MyProfileModel.fromJson({
         'id': 'legacy-shape',

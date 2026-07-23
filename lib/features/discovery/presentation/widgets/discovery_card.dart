@@ -62,36 +62,15 @@ class DiscoveryImagePanel extends StatelessWidget {
             )
           else
             Container(color: QeranColors.creamSurface),
-          // Identity + privacy overlays. A single full-bleed Column reserves
-          // space so the centered privacy group (gold lock + caption) and the
-          // bottom identity group (name/age, then chips) can NEVER overlap,
-          // whatever the photo height: the privacy group centers in the
-          // flexible top region, the identity group pins to the photo's bottom.
+          // Identity + privacy overlays adapt independently when the available
+          // height is reduced (small device, split screen, or a transient IME).
+          // Each region scales down inside its own bounded flex slot, so neither
+          // can collide with the other or produce a RenderFlex overflow.
           Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(
-                start: QeranSpacing.s16,
-                end: QeranSpacing.s16,
-                top: QeranSpacing.s16,
-                bottom: QeranSpacing.s20,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Expanded(
-                    child: Center(child: DiscoveryPrivacyMessage()),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _NameAgeRow(name: profile.name, age: profile.age),
-                      const SizedBox(height: QeranSpacing.s8),
-                      DiscoveryChipsAboveImage(items: aboveItems),
-                    ],
-                  ),
-                ],
-              ),
+            child: _AdaptiveImageOverlay(
+              name: profile.name,
+              age: profile.age,
+              aboveItems: aboveItems,
             ),
           ),
           if (showOverlayActions)
@@ -144,6 +123,86 @@ class DiscoveryImagePanel extends StatelessWidget {
       if (p.code == PlacementCode.aboveImage) return p.items;
     }
     return const <PlacementItem>[];
+  }
+}
+
+class _AdaptiveImageOverlay extends StatelessWidget {
+  const _AdaptiveImageOverlay({
+    required this.name,
+    required this.age,
+    required this.aboveItems,
+  });
+
+  final String name;
+  final int age;
+  final List<PlacementItem> aboveItems;
+
+  static const double _compactHeight = 220;
+  static const double _veryCompactHeight = 150;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxHeight < _compactHeight;
+        final isVeryCompact = constraints.maxHeight < _veryCompactHeight;
+        final horizontalPadding = isCompact
+            ? QeranSpacing.s12
+            : QeranSpacing.s16;
+        final topPadding = isCompact ? QeranSpacing.s8 : QeranSpacing.s16;
+        final bottomPadding = isCompact ? QeranSpacing.s8 : QeranSpacing.s20;
+        final contentWidth = (constraints.maxWidth - horizontalPadding * 2)
+            .clamp(0.0, double.infinity)
+            .toDouble();
+
+        final identity = SizedBox(
+          width: contentWidth,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _NameAgeRow(name: name, age: age),
+              SizedBox(height: isCompact ? QeranSpacing.s4 : QeranSpacing.s8),
+              DiscoveryChipsAboveImage(items: aboveItems),
+            ],
+          ),
+        );
+
+        return Padding(
+          padding: EdgeInsetsDirectional.only(
+            start: horizontalPadding,
+            end: horizontalPadding,
+            top: topPadding,
+            bottom: bottomPadding,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!isVeryCompact)
+                Expanded(
+                  flex: isCompact ? 4 : 5,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: contentWidth,
+                      child: const DiscoveryPrivacyMessage(),
+                    ),
+                  ),
+                ),
+              Expanded(
+                flex: isVeryCompact ? 1 : (isCompact ? 6 : 5),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.bottomStart,
+                  child: identity,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

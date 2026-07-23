@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
@@ -117,6 +118,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _selectTab(int index) async {
     if (index == _currentTab || _tabTransitionPending) return;
+    // Visited tabs stay mounted offstage. Clear a composer/form focus before
+    // hiding its tab so Android cannot restore that invisible field (and its
+    // keyboard) over the newly selected tab later.
+    unawaited(dismissKeyboard());
     _tabTransitionPending = true;
     final firstVisit = !_visited.contains(index);
     if (firstVisit) {

@@ -15,6 +15,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
@@ -620,6 +621,11 @@ Future<void> _openDetails(
   BuildContext context,
   DiscoveryProfile profile,
 ) async {
+  // The home shell keeps visited tabs alive. Clear any focus retained by an
+  // offstage composer before pushing, otherwise Android may restore its IME
+  // when this details route is popped back to Discovery.
+  await dismissKeyboard();
+  if (!context.mounted) return;
   final result = await NavigationManager.navigateTo(
     context,
     RouteNames.fullProfileDetails,
@@ -629,10 +635,15 @@ Future<void> _openDetails(
       entry: ProfileEntrySource.discovery,
     ),
   );
+  if (!context.mounted) return;
+  // Also clear after the pop: route focus restoration happens while the
+  // reverse transition completes, so this closes that final race.
+  await dismissKeyboard();
+  if (!context.mounted) return;
   // SafetyMenuButton pops the details route returning the blocked userId. The
   // backend has already severed the user server-side, so a plain refresh drops
   // them from the deck (no fragile in-memory deck mutation).
-  if (result is String && context.mounted) {
+  if (result is String) {
     context.read<DiscoveryCubit>().refresh();
   }
 }

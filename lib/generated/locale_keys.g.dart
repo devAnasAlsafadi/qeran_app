@@ -38,6 +38,8 @@ abstract class  LocaleKeys {
   static const errors_upload_failed = 'errors.upload_failed';
   static const errors_invalid_server_response = 'errors.invalid_server_response';
   static const errors_unauthorized_access = 'errors.unauthorized_access';
+  static const errors_invalid_credentials = 'errors.invalid_credentials';
+  static const errors_account_deactivated = 'errors.account_deactivated';
   static const errors_questions_load_failed = 'errors.questions_load_failed';
   static const errors_network_failed = 'errors.network_failed';
   static const errors_firebase_user_not_found = 'errors.firebase_user_not_found';

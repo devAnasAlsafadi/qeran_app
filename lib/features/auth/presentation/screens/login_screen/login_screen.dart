@@ -131,9 +131,13 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else if (state is LoginFailure) {
+      // `tOrRaw`, never `t`: email login now classifies on errorCode and hands
+      // up a locale key, but the Firebase social paths still throw pre-worded
+      // messages. Translating one of those would print the server's English
+      // into an Arabic UI.
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }

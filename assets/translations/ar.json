@@ -37,6 +37,8 @@
     "upload_failed": "فشل رفع الصور",
     "invalid_server_response": "استجابة غير صالحة من الخادم",
     "unauthorized_access": "غير مصرح بالوصول",
+    "invalid_credentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "account_deactivated": "تم إيقاف هذا الحساب. تواصل مع الدعم للمساعدة.",
     "questions_load_failed": "فشل تحميل الأسئلة",
     "network_failed": "تحقق من الاتصال بالإنترنت",
     "firebase_user_not_found": "لا يوجد مستخدم بهذا البريد الإلكتروني",

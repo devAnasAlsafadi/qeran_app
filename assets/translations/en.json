@@ -37,6 +37,8 @@
     "upload_failed": "Failed to upload photos.",
     "invalid_server_response": "Invalid server response.",
     "unauthorized_access": "Unauthorized access.",
+    "invalid_credentials": "Incorrect email or password.",
+    "account_deactivated": "This account has been deactivated. Please contact support.",
     "questions_load_failed": "Failed to load questions.",
     "network_failed": "Check your internet connection.",
     "firebase_user_not_found": "No account found with this email.",

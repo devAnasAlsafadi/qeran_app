@@ -13,6 +13,7 @@ import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/core/utils/log_masker.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import '../error_codes.dart';
 import '../models/user_model.dart';
 
 abstract interface class AuthRemoteDataSource {
@@ -81,10 +82,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    final response = await _apiConsumer.post(
-      EndPoints.login,
-      body: {'email': email, 'password': password},
-    );
+    final dynamic response;
+    try {
+      response = await _apiConsumer.post(
+        EndPoints.login,
+        body: {'email': email, 'password': password},
+      );
+    } on ServerException catch (e) {
+      // Classify HERE, on errorCode — the repository flattens every
+      // ServerException into `ServerFailure(message)` and the code is lost
+      // after this point. What leaves this method is always a locale KEY.
+      throw ServerException(message: _loginFailureKey(e));
+    }
 
     final apiResponse = ApiResponse<UserModel>.fromJson(
       response,
@@ -453,6 +462,39 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       tag: 'AUTH_DEBUG',
     );
   }
+
+  /// Maps a failed `POST /api/auth/login` onto a locale key.
+  ///
+  /// Known `errorCode`s translate locally. Anything else falls back to the
+  /// transport key the network layer already produced (`errors.timeout`,
+  /// `errors.server`, …) and, failing that, `errors.generic` — the server's
+  /// own prose is logged for diagnosis but never surfaced.
+  String _loginFailureKey(ServerException e) {
+    final code = e is CodedServerException ? e.errorCode : null;
+    final key = switch (code) {
+      AuthErrorCodes.invalidCredentials => LocaleKeys.errors_invalid_credentials,
+      AuthErrorCodes.accountDeactivated => LocaleKeys.errors_account_deactivated,
+      AuthErrorCodes.validationError => LocaleKeys.errors_bad_request,
+      _ => _transportKeyOrGeneric(e.message),
+    };
+    AppLogger.warning(
+      'LOGIN failed — errorCode="${code ?? '-'}" key=$key '
+      'serverMessage="${e.message}"',
+      tag: 'AUTH',
+    );
+    return key;
+  }
+
+  /// `HttpConsumer` already emits locale keys for transport failures, so keep
+  /// those; a raw server sentence becomes `errors.generic`.
+  static String _transportKeyOrGeneric(String message) =>
+      _kLocaleKeyShape.hasMatch(message.trim())
+      ? message.trim()
+      : LocaleKeys.errors_generic;
+
+  static final RegExp _kLocaleKeyShape = RegExp(
+    r'^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$',
+  );
 
   String _mapFirebaseError(String code) {
     return switch (code) {

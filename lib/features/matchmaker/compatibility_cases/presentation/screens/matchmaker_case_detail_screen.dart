@@ -187,10 +187,7 @@ class _CaseDetailViewState extends State<_CaseDetailView> {
   ) {
     final value = message?.trim();
     if (value == null || value.isEmpty) return fallbackKey.t(context);
-    final looksLikeKey = RegExp(
-      r'^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$',
-    ).hasMatch(value);
-    return looksLikeKey ? value.t(context) : value;
+    return value.tOrRaw(context);
   }
 }
 

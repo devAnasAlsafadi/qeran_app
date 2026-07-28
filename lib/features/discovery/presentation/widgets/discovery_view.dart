@@ -89,9 +89,10 @@ const double _kActionBarHPad = 12.0;
 const double _kActionZoneClearance = 128.0;
 
 /// Scroll distance over which the action cluster's backdrop fades from
-/// invisible to its (already light) peak. Short, because content reaches the
-/// buttons almost immediately once the spacer starts moving.
-const double _kFrostRampDistance = 140.0;
+/// invisible to its (already light) peak. Short, because the fold gap gives
+/// way at twice the scroll rate — the sections are behind the buttons within
+/// the first few tens of pixels.
+const double _kFrostRampDistance = 80.0;
 
 /// True when [state] renders a full-screen replacement that owns the
 /// whole feed area — the daily-view limit screen, the load-failure

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
@@ -10,14 +12,24 @@ import 'discovery_deck_animator.dart';
 import 'discovery_merged_profile_body.dart';
 import 'discovery_swipe_handler.dart';
 
+/// How fast the empty paper under نبذة عني gives way, per pixel scrolled.
+///
+/// 1.0 would let the gap merely travel down the page with the content, which
+/// is what made it read as dead space; at 2.0 it is spent within about half a
+/// flick and the partner sections dock straight under the chips. The photo and
+/// نبذة still track the finger exactly — only the gap moves at this rate.
+const double _kFoldCollapseRate = 2.0;
+
 /// The merged discovery surface for ONE profile: a single full-bleed scroll
 /// whose first screenful is the photo plus نبذة عني, and whose continuation is
 /// the rest of the profile, inline.
 ///
-/// The first screenful is padded out to exactly the viewport height, so
+/// At rest the first screenful measures exactly one viewport, so
 /// نبذة عن شريك الحياة and everything after it start just BELOW the fold —
 /// the user has to scroll to reach them, and the action buttons sit over empty
-/// paper rather than over text.
+/// paper rather than over text. That surplus then collapses as the user
+/// scrolls, so the sections arrive flush under the chips instead of behind a
+/// screen-tall blank.
 ///
 /// The deck-animator → swipe-handler nesting is unchanged, so horizontal
 /// like / pass / undo / eject behave exactly as before — except the swipe is
@@ -36,8 +48,8 @@ class DiscoveryUnifiedCard extends StatefulWidget {
   final DiscoveryProfile profile;
 
   /// Height of the visible area (already excluding the status bar). The first
-  /// screenful is padded to exactly this, which is what puts the fold between
-  /// نبذة عني and نبذة عن شريك الحياة.
+  /// screenful measures exactly this at rest, which is what puts the fold
+  /// between نبذة عني and نبذة عن شريك الحياة.
   final double viewportHeight;
 
   /// Height of the photo block.
@@ -122,18 +134,37 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
     );
   }
 
-  /// Photo + نبذة عني, padded out to a full viewport.
+  /// Photo + نبذة عني, held to a full viewport at rest and giving that surplus
+  /// back as the user scrolls.
   ///
   /// `minHeight` on a `mainAxisSize.min` Column makes the column at least a
   /// screen tall while its children still lay out from the top, so the leftover
-  /// becomes empty paper under نبذة عني — the "spacer" that keeps the action
-  /// buttons off the text and pushes the partner sections below the fold. A
-  /// long نبذة simply grows past it instead of overflowing.
+  /// becomes empty paper under نبذة عني — that is what keeps the action buttons
+  /// off the text and puts نبذة عن شريك الحياة below the fold. A long نبذة
+  /// simply grows past it instead of overflowing.
+  ///
+  /// The surplus is NOT a fixed spacer: it shrinks with the scroll (at
+  /// [_kFoldCollapseRate]× the scroll distance), so the empty paper closes up
+  /// instead of travelling down the page ahead of the content. The photo and
+  /// نبذة still move 1:1 with the finger; only the sections below rise faster,
+  /// docking flush under the chips once the surplus is spent. From there on
+  /// everything scrolls normally.
   Widget _firstScreenful() {
     return ColoredBox(
       color: QeranColors.paper,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: widget.viewportHeight),
+      child: ValueListenableBuilder<double>(
+        valueListenable: widget.scrollOffset,
+        // The column is built once and passed through — a scroll re-runs the
+        // ConstrainedBox only, never the blurred photo.
+        builder: (context, offset, child) => ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: math.max(
+              0,
+              widget.viewportHeight - offset * _kFoldCollapseRate,
+            ),
+          ),
+          child: child,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

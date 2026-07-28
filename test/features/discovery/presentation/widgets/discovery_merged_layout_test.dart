@@ -663,7 +663,7 @@ void main() {
       expect(find.byType(QaDefaultSection), findsOneWidget);
     });
 
-    testWidgets('a spacer pads the first screenful to exactly one viewport', (
+    testWidgets('at rest the buttons sit over empty paper, not over text', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
@@ -671,12 +671,63 @@ void main() {
 
       await _pumpView(tester, [_profile('a')]);
 
-      // Photo + نبذة عني are far shorter than a screen; the spacer makes up
-      // the difference so the buttons sit over empty paper.
+      // Photo + نبذة عني are far shorter than a screen, and the first
+      // screenful is held to a full viewport, so the surplus lands under the
+      // chips — exactly where the action cluster floats.
       final photo = tester.getRect(find.byType(DiscoveryImagePanel));
       final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
       const visible = 800 - kTopInset;
       expect(photo.height + intro.height, lessThan(visible));
+      expect(
+        intro.bottom,
+        lessThan(tester.getRect(find.byType(DiscoveryActionBar)).top),
+      );
+    });
+
+    testWidgets('the gap collapses instead of travelling with the scroll', (
+      tester,
+    ) async {
+      // It used to be a fixed viewport-sized spacer, so the blank simply moved
+      // down the page with the content and نبذة عن شريك الحياة stayed a screen
+      // away no matter how far you scrolled.
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final photoBefore = tester.getRect(find.byType(DiscoveryImagePanel)).top;
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -120));
+      await tester.pump();
+
+      // Whatever the gesture's touch slop actually delivered:
+      final scrolled =
+          photoBefore - tester.getRect(find.byType(DiscoveryImagePanel)).top;
+      expect(scrolled, greaterThan(0));
+
+      // The sections rise faster than the finger — that is the gap closing.
+      final body = tester.getRect(find.byType(DiscoveryMergedProfileBody));
+      expect(800 - body.top, greaterThan(scrolled * 2));
+    });
+
+    testWidgets('once scrolled, the sections dock flush under the chips', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+
+      // No dead space left: the only distance between the intro sheet and the
+      // sections is the overlap the sheet is deliberately lifted by.
+      final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
+      final body = tester.getRect(find.byType(DiscoveryMergedProfileBody));
+      expect(
+        body.top - intro.bottom,
+        closeTo(DiscoveryMergedProfileBody.sheetOverlap, 1),
+      );
     });
   });
 

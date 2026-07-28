@@ -3,12 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/profile/domain/entities/placement_item.dart';
 import 'package:qeran/features/profile/domain/entities/placement_value.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
-import '../../../../../core/design_system/widgets/qeran_sheet_handle.dart';
 import '../../../../../core/design_system/widgets/qeran_text_field.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
@@ -25,11 +22,8 @@ Future<void> showMatchmakerTextAnswerSheet(
   required MatchmakerAnswerSaveCubit cubit,
   required PlacementItem item,
 }) {
-  return showModalBottomSheet<void>(
+  return showQeranBottomSheet<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: QeranColors.paper,
-    shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
     builder: (_) => BlocProvider.value(
       value: cubit,
       child: _TextAnswerSheet(item: item),
@@ -84,44 +78,45 @@ class _TextAnswerSheetState extends State<_TextAnswerSheet> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<MatchmakerAnswerSaveCubit>();
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        QeranSpacing.s20,
-        QeranSpacing.s12,
-        QeranSpacing.s20,
-        QeranSpacing.s20 + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: BlocConsumer<MatchmakerAnswerSaveCubit, MatchmakerAnswerSaveState>(
-        listenWhen: (p, c) => p.eventVersion != c.eventVersion,
-        listener: _onOutcome,
-        builder: (context, state) {
-          final saving = state.isSaving(widget.item.questionId);
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Center(child: QeranSheetHandle()),
-              QeranSpacing.vs16,
-              Text(widget.item.question, style: QeranTypography.title),
-              QeranSpacing.vs16,
-              QeranTextField(
-                controller: _controller,
-                hint: LocaleKeys.matchmaker_answers_hint.t(context),
-                maxLines: 4,
-                onChanged: (_) => setState(() {}),
-              ),
-              QeranSpacing.vs20,
-              QeranButton(
-                label: LocaleKeys.matchmaker_answers_save.t(context),
-                variant: QeranButtonVariant.primaryWine,
-                loading: saving,
-                onPressed:
-                    (saving || !_canSave) ? null : () => _save(cubit),
-              ),
-            ],
-          );
-        },
-      ),
+    return BlocConsumer<MatchmakerAnswerSaveCubit, MatchmakerAnswerSaveState>(
+      listenWhen: (p, c) => p.eventVersion != c.eventVersion,
+      listener: _onOutcome,
+      builder: (context, state) {
+        final saving = state.isSaving(widget.item.questionId);
+        return QeranBottomSheetScaffold(
+          // The edited question IS the sheet's title.
+          title: widget.item.question,
+          // Multiline answer field — the body must scroll under the keyboard.
+          scrollableBody: true,
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              QeranSpacing.s20,
+              QeranSpacing.s4,
+              QeranSpacing.s20,
+              QeranSpacing.s16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                QeranTextField(
+                  controller: _controller,
+                  hint: LocaleKeys.matchmaker_answers_hint.t(context),
+                  maxLines: 4,
+                  onChanged: (_) => setState(() {}),
+                ),
+                QeranSpacing.vs20,
+                QeranButton(
+                  label: LocaleKeys.matchmaker_answers_save.t(context),
+                  variant: QeranButtonVariant.primaryWine,
+                  loading: saving,
+                  onPressed: (saving || !_canSave) ? null : () => _save(cubit),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

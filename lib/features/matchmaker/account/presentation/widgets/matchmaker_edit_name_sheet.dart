@@ -86,6 +86,7 @@ class _EditNameSheetState extends State<_EditNameSheet> {
         final saving = state.inFlight == MatchmakerAccountAction.savingName;
         return QeranBottomSheetScaffold(
           title: LocaleKeys.matchmaker_account_edit_name_title.t(context),
+          scrollableBody: true,
           body: Padding(
             padding: const EdgeInsets.fromLTRB(
               QeranSpacing.s20,

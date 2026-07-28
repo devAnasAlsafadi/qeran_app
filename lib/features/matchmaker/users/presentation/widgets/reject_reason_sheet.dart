@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
-import '../../../../../core/design_system/tokens/qeran_shadows.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
-import '../../../../../core/design_system/widgets/qeran_sheet_handle.dart';
 import '../../../../../core/design_system/widgets/qeran_text_field.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
@@ -16,12 +13,8 @@ import '../../../../../generated/locale_keys.g.dart';
 /// forwarded to the user verbatim as a chat message — NO prefix — so the
 /// matchmaker writes the complete message here.
 Future<String?> showRejectReasonSheet(BuildContext context) {
-  return showModalBottomSheet<String>(
+  return showQeranBottomSheet<String>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: QeranColors.overlayTintDark,
-    useSafeArea: true,
     builder: (_) => const _RejectReasonSheet(),
   );
 }
@@ -58,33 +51,21 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: QeranColors.paper,
-          borderRadius: QeranRadii.domeTop,
-          boxShadow: QeranShadows.e3,
-        ),
+    return QeranBottomSheetScaffold(
+      title: LocaleKeys.matchmaker_profile_reject_title.t(context),
+      // Multiline reason field — the body must scroll under the keyboard.
+      scrollableBody: true,
+      body: Padding(
         padding: const EdgeInsets.fromLTRB(
-          QeranSpacing.s24,
-          QeranSpacing.s12,
-          QeranSpacing.s24,
-          QeranSpacing.s24,
+          QeranSpacing.s20,
+          QeranSpacing.s4,
+          QeranSpacing.s20,
+          QeranSpacing.s16,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const QeranSheetHandle(),
-            QeranSpacing.vs20,
-            Text(
-              LocaleKeys.matchmaker_profile_reject_title.t(context),
-              style: QeranTypography.headline,
-            ),
-            QeranSpacing.vs8,
             Text(
               LocaleKeys.matchmaker_profile_reject_subtitle.t(context),
               style: QeranTypography.body,

@@ -30,6 +30,11 @@ Future<T?> showQeranBottomSheet<T>({
 /// row with a soft-fill circular close, the scrollable [body], and an optional
 /// pinned [footer]. The sheet wraps its content when short and grows to
 /// [maxHeightFactor] of the screen when the body is long (the body scrolls).
+///
+/// **Any sheet with a text field must pass [scrollableBody] `true`.** The
+/// keyboard shrinks the available height (via the `viewInsets` padding below),
+/// and a fixed `Column` body cannot absorb that — it overflows. See the flag's
+/// own doc for why this is opt-in rather than automatic.
 class QeranBottomSheetScaffold extends StatelessWidget {
   const QeranBottomSheetScaffold({
     super.key,
@@ -38,6 +43,7 @@ class QeranBottomSheetScaffold extends StatelessWidget {
     this.footer,
     this.onClose,
     this.maxHeightFactor = 0.92,
+    this.scrollableBody = false,
   });
 
   final String title;
@@ -45,6 +51,15 @@ class QeranBottomSheetScaffold extends StatelessWidget {
   /// The main content. A `Column(mainAxisSize: min)` wraps; a `ListView` (or
   /// any scrollable) fills up to [maxHeightFactor] and scrolls.
   final Widget body;
+
+  /// Wraps [body] in a `SingleChildScrollView` so a fixed-height body SHRINKS
+  /// (scrolls) instead of overflowing when the keyboard eats the sheet's
+  /// height. Required for every sheet that hosts an input.
+  ///
+  /// Opt-in, not automatic: bodies that are already scrollable or that use
+  /// `Expanded`/`Flexible` internally (e.g. the share picker's `ListView`)
+  /// would get unbounded height inside a scroll view and assert.
+  final bool scrollableBody;
 
   /// Optional pinned footer (kept out of the scroll area), e.g. the actions.
   final Widget? footer;
@@ -76,7 +91,11 @@ class QeranBottomSheetScaffold extends StatelessWidget {
                 title: title,
                 onClose: onClose ?? () => Navigator.of(context).pop(),
               ),
-              Flexible(child: body),
+              Flexible(
+                child: scrollableBody
+                    ? SingleChildScrollView(child: body)
+                    : body,
+              ),
               ?footer,
             ],
           ),

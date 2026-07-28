@@ -93,6 +93,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
         return QeranBottomSheetScaffold(
           title:
               LocaleKeys.matchmaker_account_change_password_title.t(context),
+          scrollableBody: true,
           body: Padding(
             padding: const EdgeInsets.fromLTRB(
               QeranSpacing.s20,

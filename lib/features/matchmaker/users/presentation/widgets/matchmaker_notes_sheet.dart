@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
-import '../../../../../core/design_system/tokens/qeran_shadows.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
+import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
-import '../../../../../core/design_system/widgets/qeran_sheet_handle.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/enum/snakebar_tybe.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -25,12 +22,8 @@ Future<void> showMatchmakerNotesSheet(
   BuildContext context, {
   required String userId,
 }) {
-  return showModalBottomSheet<void>(
+  return showQeranBottomSheet<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: QeranColors.overlayTintDark,
-    useSafeArea: true,
     builder: (_) => BlocProvider<MatchmakerUserNotesCubit>(
       create: (_) => sl<MatchmakerUserNotesCubit>(param1: userId)..load(),
       child: const _NotesSheet(),
@@ -86,33 +79,23 @@ class _NotesSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: QeranColors.paper,
-          borderRadius: QeranRadii.domeTop,
-          boxShadow: QeranShadows.e3,
-        ),
-        padding: const EdgeInsets.fromLTRB(
-          QeranSpacing.s24,
-          QeranSpacing.s12,
-          QeranSpacing.s24,
-          QeranSpacing.s24,
-        ),
-        child: BlocConsumer<MatchmakerUserNotesCubit, MatchmakerUserNotesState>(
-          listenWhen: (p, c) => p.eventVersion != c.eventVersion,
-          listener: _onOutcome,
-          buildWhen: (p, c) => p.load != c.load,
-          builder: (context, state) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const QeranSheetHandle(),
-              QeranSpacing.vs20,
-              _body(context, state),
-            ],
+    return BlocConsumer<MatchmakerUserNotesCubit, MatchmakerUserNotesState>(
+      listenWhen: (p, c) => p.eventVersion != c.eventVersion,
+      listener: _onOutcome,
+      buildWhen: (p, c) => p.load != c.load,
+      builder: (context, state) => QeranBottomSheetScaffold(
+        title: LocaleKeys.matchmaker_notes_title.t(context),
+        // The editor hosts a multiline field — the body MUST scroll or the
+        // keyboard overflows it (this sheet was the reported 51px overflow).
+        scrollableBody: true,
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            QeranSpacing.s20,
+            QeranSpacing.s4,
+            QeranSpacing.s20,
+            QeranSpacing.s16,
           ),
+          child: _body(context, state),
         ),
       ),
     );

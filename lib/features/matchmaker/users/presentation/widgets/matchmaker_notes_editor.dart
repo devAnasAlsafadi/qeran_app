@@ -66,11 +66,8 @@ class _MatchmakerNotesEditorState extends State<MatchmakerNotesEditor> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              LocaleKeys.matchmaker_notes_title.t(context),
-              style: QeranTypography.headline,
-            ),
-            QeranSpacing.vs8,
+            // The title lives in the sheet scaffold's title row — repeating it
+            // here would render it twice.
             Text(
               LocaleKeys.matchmaker_notes_subtitle.t(context),
               style: QeranTypography.body,

@@ -124,6 +124,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
       builder: (context, state) {
         return QeranBottomSheetScaffold(
           title: LocaleKeys.settings_change_password_title.t(context),
+          scrollableBody: true,
           body: Padding(
             padding: const EdgeInsets.fromLTRB(
               QeranSpacing.s20,

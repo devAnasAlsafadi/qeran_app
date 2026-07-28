@@ -20,6 +20,14 @@ import 'discovery_swipe_handler.dart';
 /// نبذة still track the finger exactly — only the gap moves at this rate.
 const double _kFoldCollapseRate = 2.0;
 
+/// Scroll distance over which the compatibility pill fades onto the photo.
+///
+/// It is deliberately absent at rest: the first thing the card shows is the
+/// person, and a percentage next to their name reads as a verdict before the
+/// user has read anything. Scrolling into the profile is the moment it becomes
+/// useful, so that is when it arrives.
+const double _kMatchPillRevealDistance = 90.0;
+
 /// The merged discovery surface for ONE profile: a single full-bleed scroll
 /// whose first screenful is the photo plus نبذة عني, and whose continuation is
 /// the rest of the profile, inline.
@@ -75,17 +83,25 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
   /// re-run the sigma blur every frame.
   late final ValueNotifier<bool> _atTop = ValueNotifier<bool>(true);
 
+  /// 0 → the compatibility pill is hidden (first open), 1 → fully faded in.
+  /// Derived here rather than inside the photo so a scroll repaints the pill
+  /// alone.
+  late final ValueNotifier<double> _pillReveal = ValueNotifier<double>(0);
+
   @override
   void dispose() {
     _atTop.dispose();
+    _pillReveal.dispose();
     super.dispose();
   }
 
   bool _onScroll(ScrollNotification notification) {
     if (notification.depth != 0) return false;
     final pixels = notification.metrics.pixels;
-    widget.scrollOffset.value = pixels < 0 ? 0 : pixels;
+    final offset = pixels < 0 ? 0.0 : pixels;
+    widget.scrollOffset.value = offset;
     _atTop.value = pixels <= 0.5;
+    _pillReveal.value = (offset / _kMatchPillRevealDistance).clamp(0.0, 1.0);
     return false;
   }
 
@@ -182,6 +198,7 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
                 // — or the sheet slices through them.
                 bottomContentInset:
                     DiscoveryMergedProfileBody.sheetOverlap + QeranSpacing.s16,
+                matchPillReveal: _pillReveal,
               ),
             ),
             // Transform, not padding: it lifts the sheet over the photo's

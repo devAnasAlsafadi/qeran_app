@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
@@ -44,6 +45,15 @@ class DiscoveryImagePanel extends StatelessWidget {
   /// it lives inside a scroll, which has no bounded height to expand into.
   final double? height;
 
+  /// Reveal factor for the compatibility pill: 0 hides it, 1 shows it in full.
+  ///
+  /// Null keeps the pill permanently visible. The merged screen drives it from
+  /// the scroll so the score is absent on first open — the first impression is
+  /// the person, not a percentage — and fades onto the photo as the user
+  /// scrolls into the profile. The pill keeps its space either way, so the
+  /// chips never jump when it arrives.
+  final ValueListenable<double>? matchPillReveal;
+
   /// Minimum gap the identity block (name, pill, chips) keeps from the panel's
   /// bottom edge.
   ///
@@ -61,6 +71,7 @@ class DiscoveryImagePanel extends StatelessWidget {
     this.onFilterTap,
     this.height,
     this.bottomContentInset = 0,
+    this.matchPillReveal,
   });
 
   @override
@@ -97,6 +108,7 @@ class DiscoveryImagePanel extends StatelessWidget {
               name: profile.name,
               age: profile.age,
               matchPercent: profile.matchingScore,
+              matchPillReveal: matchPillReveal,
               aboveItems: aboveItems,
               bottomContentInset: bottomContentInset,
             ),
@@ -165,6 +177,7 @@ class _AdaptiveImageOverlay extends StatelessWidget {
     required this.name,
     required this.age,
     required this.matchPercent,
+    required this.matchPillReveal,
     required this.aboveItems,
     required this.bottomContentInset,
   });
@@ -172,6 +185,7 @@ class _AdaptiveImageOverlay extends StatelessWidget {
   final String name;
   final int age;
   final double matchPercent;
+  final ValueListenable<double>? matchPillReveal;
   final List<PlacementItem> aboveItems;
   final double bottomContentInset;
 
@@ -206,17 +220,15 @@ class _AdaptiveImageOverlay extends StatelessWidget {
             children: [
               _NameAgeRow(name: name, age: age),
               // Compatibility pill — directly under name+age, exactly where
-              // the standalone full profile puts it. Now that the two screens
-              // are one, the score is visible on the deck.
+              // the standalone full profile puts it. On the merged screen it
+              // is a scroll reveal (see [matchPillReveal]).
               if (matchPercent > 0) ...[
                 SizedBox(height: isCompact ? QeranSpacing.s4 : QeranSpacing.s8),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: ProfileMatchPill(
-                    label: context.tr(
-                      LocaleKeys.profile_compatibility_label,
-                      namedArgs: {'percent': '${matchPercent.round()}'},
-                    ),
+                  child: _RevealingMatchPill(
+                    percent: matchPercent,
+                    reveal: matchPillReveal,
                   ),
                 ),
               ],
@@ -296,6 +308,35 @@ class _AdaptiveImageOverlay extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// The compatibility pill, faded in by [reveal].
+///
+/// Opacity only — the pill holds its space at every value, so the name and the
+/// chips never shift while it appears. A null [reveal] renders it outright.
+class _RevealingMatchPill extends StatelessWidget {
+  const _RevealingMatchPill({required this.percent, required this.reveal});
+
+  final double percent;
+  final ValueListenable<double>? reveal;
+
+  @override
+  Widget build(BuildContext context) {
+    final pill = ProfileMatchPill(
+      label: context.tr(
+        LocaleKeys.profile_compatibility_label,
+        namedArgs: {'percent': '${percent.round()}'},
+      ),
+    );
+    final source = reveal;
+    if (source == null) return pill;
+    return ValueListenableBuilder<double>(
+      valueListenable: source,
+      builder: (context, t, child) =>
+          Opacity(opacity: t.clamp(0.0, 1.0), child: child),
+      child: pill,
     );
   }
 }

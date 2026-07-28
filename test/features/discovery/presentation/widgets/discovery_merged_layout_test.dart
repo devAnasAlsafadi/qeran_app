@@ -29,6 +29,7 @@ import 'package:qeran/features/profile/domain/entities/placement_value.dart'
 import 'package:qeran/features/profile/domain/entities/profile_fetch_outcome.dart';
 import 'package:qeran/features/profile/domain/repositories/profile_repository.dart';
 import 'package:qeran/features/profile/domain/usecases/get_profile_by_id_usecase.dart';
+import 'package:qeran/features/profile/presentation/widgets/full_profile_image_overlays.dart';
 import 'package:qeran/features/profile/presentation/widgets/placement/qa_default_section.dart';
 import 'package:qeran/features/subscriptions/domain/entities/current_subscription.dart';
 import 'package:qeran/features/subscriptions/domain/usecases/get_current_subscription_usecase.dart';
@@ -85,7 +86,7 @@ DiscoveryProfile _profile(String id) => DiscoveryProfile(
   name: 'Name-$id',
   age: 25,
   images: const [],
-  matchingScore: 0,
+  matchingScore: 27,
   placements: [
     discovery_placement.Placement(
       code: discovery_code.PlacementCode.aboveImage,
@@ -127,11 +128,16 @@ const String kAboutMeBody =
     'نص تعريفي طويل بما يكفي ليأخذ الجزء الأعلى من ورقة المحتوى، '
     'تمامًا كما يفعل النص الحقيقي القادم من الخادم في شاشة الاستكشاف.';
 
+/// Everything falls back to echoing the key, EXCEPT the compatibility label —
+/// that one is interpolated and sits in a fixed-width overlay pill, so the raw
+/// key would overflow the row for reasons the screen is not responsible for.
 class _StubAssetLoader extends AssetLoader {
   const _StubAssetLoader();
   @override
   Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
-      const {};
+      const {
+        'profile': {'compatibility_label': '{percent}٪'},
+      };
 }
 
 class _FakeFetch implements FetchDiscoveryPageUseCase {
@@ -727,6 +733,75 @@ void main() {
       expect(
         body.top - intro.bottom,
         closeTo(DiscoveryMergedProfileBody.sheetOverlap, 1),
+      );
+    });
+  });
+
+  group('the compatibility pill is a scroll reveal (R1)', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    /// Opacity the pill is actually painted at.
+    double pillOpacity(WidgetTester tester) => tester
+        .widget<Opacity>(
+          find
+              .ancestor(
+                of: find.byType(ProfileMatchPill),
+                matching: find.byType(Opacity),
+              )
+              .first,
+        )
+        .opacity;
+
+    testWidgets('invisible on first open', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // Reverses the earlier "show it on the hero" call: the first impression
+      // is the person, not a verdict on them.
+      expect(pillOpacity(tester), 0);
+      // Laid out all the same, so nothing shifts when it arrives.
+      expect(find.byType(ProfileMatchPill), findsOneWidget);
+    });
+
+    testWidgets('fades in as the user scrolls into the profile', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+
+      expect(pillOpacity(tester), 1);
+    });
+
+    testWidgets('the chips do not move when it appears', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final photoBefore = tester.getRect(find.byType(DiscoveryImagePanel));
+      final chipsBefore = tester.getRect(find.byType(DiscoveryChipsAboveImage));
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+
+      final photoAfter = tester.getRect(find.byType(DiscoveryImagePanel));
+      final chipsAfter = tester.getRect(find.byType(DiscoveryChipsAboveImage));
+      // The chips travel with the photo and by exactly the same amount — the
+      // reveal is opacity, never layout.
+      expect(
+        chipsBefore.top - chipsAfter.top,
+        closeTo(photoBefore.top - photoAfter.top, 0.5),
       );
     });
   });

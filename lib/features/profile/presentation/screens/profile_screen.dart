@@ -13,8 +13,10 @@ import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
 import 'package:qeran/core/design_system/widgets/qeran_section_header.dart';
+import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
+import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
@@ -143,6 +145,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       icon: Icons.logout_rounded,
     );
     if (!confirmed || !context.mounted) return;
+    // Resolve the copy BEFORE the sign-out + route replacement — this context
+    // is gone by the time the toast is shown.
+    final message = LocaleKeys.common_logout_success.t(context);
     await context.read<UserSessionCubit>().signOut();
     // Drop the cached subscription so a future sign-in re-hydrates
     // cleanly. The bloc lives at the app root so the same instance
@@ -155,6 +160,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context,
       RouteNames.loginScreen,
     );
+    // showOnRoot (not show) so the confirmation survives the route removal.
+    await AppSnackBar.showOnRoot(message: message, type: SnackBarType.success);
   }
 }
 

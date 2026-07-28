@@ -6,6 +6,7 @@ abstract class  LocaleKeys {
   static const common_cancel = 'common.cancel';
   static const common_exit = 'common.exit';
   static const common_logout = 'common.logout';
+  static const common_logout_success = 'common.logout_success';
   static const common_or = 'common.or';
   static const common_send = 'common.send';
   static const common_next = 'common.next';

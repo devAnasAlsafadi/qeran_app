@@ -177,9 +177,15 @@ class _AccountView extends StatelessWidget {
       icon: Icons.logout_rounded,
     );
     if (!confirmed || !context.mounted) return;
+    // Resolve the copy BEFORE the sign-out + route replacement — this context
+    // is gone by the time the toast is shown.
+    final message = LocaleKeys.common_logout_success.t(context);
     await context.read<UserSessionCubit>().signOut();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
+    // showOnRoot (not show) so the confirmation survives the route removal —
+    // same ordering as _clearSessionAndExit below.
+    await AppSnackBar.showOnRoot(message: message, type: SnackBarType.success);
   }
 
   /// Deactivate succeeded — clear the session (same path as logout; removing

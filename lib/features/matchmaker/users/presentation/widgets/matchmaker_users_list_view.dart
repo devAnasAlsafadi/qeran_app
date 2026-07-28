@@ -12,6 +12,7 @@ import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
+import '../../../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
 import '../../../conversations/presentation/widgets/matchmaker_open_chat_host.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/matchmaker_user_row.dart';
@@ -66,6 +67,22 @@ class _ListBody extends StatelessWidget {
 
   final MatchmakerUsersList list;
   final bool showPlanChip;
+
+  /// A row left the list (approved or rejected). Refresh the list AND the
+  /// dashboard stats.
+  ///
+  /// The "بالانتظار" badge is fed by the dashboard's `pendingUsersCount`, not
+  /// by this list, so refreshing only the list left the old number sitting
+  /// over an empty list. Refetching the count on the very action that removed
+  /// the row keeps the two in step without the client ever guessing at a
+  /// decrement.
+  void _onRowMutated(
+    BuildContext context,
+    MatchmakerUsersListCubit cubit,
+  ) {
+    cubit.refresh();
+    context.read<MatchmakerDashboardCubit>().refresh();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +165,7 @@ class _ListBody extends StatelessWidget {
                 row: row,
                 list: list,
                 showPlanChip: showPlanChip,
-                onMutated: () => cubit.refresh(),
+                onMutated: () => _onRowMutated(context, cubit),
                 onMessage: () =>
                     context.read<MatchmakerOpenChatCubit>().open(
                           userId: row.userId,

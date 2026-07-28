@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
@@ -36,12 +35,13 @@ import 'discovery_unified_card.dart';
 /// Reusable Discovery content. Self-contained — provides its own
 /// `DiscoveryCubit` and drives `loadInitial` on first build.
 ///
-/// Layout: ONE full-bleed scroll per card. The photo runs edge to edge from
-/// under a transparent status bar down to the bottom nav; scrolling reveals
-/// the whole profile inline (there is no separate Full Profile screen to tap
-/// through to any more). The like / skip / undo cluster is pinned in a frosted
-/// zone above the nav and stays reachable at every scroll offset. Horizontal
-/// drags run the existing swipe flow, gated on being scrolled to the top.
+/// Layout: ONE scroll per card. The photo runs edge to edge horizontally and
+/// takes the top half of the viewport, starting just BELOW the status bar;
+/// scrolling reveals the whole profile inline (there is no separate Full
+/// Profile screen to tap through to any more). The like / skip / undo cluster
+/// is pinned above the nav and stays reachable at every scroll offset, its
+/// backdrop fading in only once content is behind it. Horizontal drags run the
+/// existing swipe flow, gated on being scrolled to the top.
 class DiscoveryView extends StatelessWidget {
   const DiscoveryView({super.key});
 
@@ -86,10 +86,10 @@ const double _kActionBarHPad = 32.0;
 /// CTA can travel clear of the pinned frosted action cluster.
 const double _kActionZoneClearance = 128.0;
 
-/// Fraction of the viewport the photo occupies before the profile begins.
-/// Leaves a deliberate sliver of the content sheet peeking above the action
-/// cluster, which is what tells the user there is more below.
-const double _kPhotoViewportFraction = 0.78;
+/// Scroll distance over which the action cluster's backdrop fades from
+/// invisible to its (already light) peak. Short, because content reaches the
+/// buttons almost immediately once the spacer starts moving.
+const double _kFrostRampDistance = 140.0;
 
 /// True when [state] renders a full-screen replacement that owns the
 /// whole feed area — the daily-view limit screen, the load-failure
@@ -121,6 +121,14 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   /// because hearts can outlive the controller's busy window.
   bool _likeBurstInFlight = false;
 
+  /// Current card's scroll offset, published by [DiscoveryUnifiedCard].
+  ///
+  /// Lives here, above both, because the card owns the scroll while the action
+  /// cluster — a sibling in the screen-level Stack — needs the same value to
+  /// decide whether to draw a backdrop. A notifier rather than state so a
+  /// scroll repaints only the cluster's backdrop, never the blurred photo.
+  final ValueNotifier<double> _scrollOffset = ValueNotifier<double>(0);
+
   @override
   void initState() {
     super.initState();
@@ -141,6 +149,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _animController.dispose();
+    _scrollOffset.dispose();
     super.dispose();
   }
 
@@ -241,37 +250,30 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
           }
         },
         builder: (context, state) {
-          // The photo now runs under the status bar, so the bar itself must be
-          // transparent with light icons — the wine scrim over the photo is
-          // what keeps them legible.
-          return AnnotatedRegion<SystemUiOverlayStyle>(
-            value: const SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.light,
-              statusBarBrightness: Brightness.dark,
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned.fill(child: _buildBody(context, state)),
-                if (!_isFullScreenReplacement(state))
-                  _FloatingActionBar(
-                    state: state,
-                    onLikeBurst: _spawnLikeBurst,
-                  ),
-              ],
-            ),
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(child: _buildBody(context, state)),
+              if (!_isFullScreenReplacement(state))
+                _FloatingActionBar(
+                  state: state,
+                  onLikeBurst: _spawnLikeBurst,
+                  scrollOffset: _scrollOffset,
+                ),
+            ],
           );
         },
       ),
     );
   }
 
-  /// No SafeArea and no top bar: the photo starts at y=0, under the status
-  /// bar. The two overlay buttons carry their own SafeArea so they clear the
-  /// clock / notch, and the non-photo states keep theirs below.
-  Widget _buildBody(BuildContext context, DiscoveryState state) =>
-      _ScrollableProfile(state: state);
+  /// The status bar stays opaque and the photo starts BELOW it — hence the
+  /// top SafeArea here rather than inside the card. No title bar: the two
+  /// overlay buttons float on the photo itself.
+  Widget _buildBody(BuildContext context, DiscoveryState state) => SafeArea(
+    bottom: false,
+    child: _ScrollableProfile(state: state, scrollOffset: _scrollOffset),
+  );
 }
 
 /// Owns the pull-to-refresh + the state switch below the top bar. Loading /
@@ -280,7 +282,8 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
 /// (a fixed card whose data region scrolls internally).
 class _ScrollableProfile extends StatelessWidget {
   final DiscoveryState state;
-  const _ScrollableProfile({required this.state});
+  final ValueNotifier<double> scrollOffset;
+  const _ScrollableProfile({required this.state, required this.scrollOffset});
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +297,7 @@ class _ScrollableProfile extends StatelessWidget {
     return RefreshIndicator(
       color: QeranColors.wine,
       onRefresh: () => context.read<DiscoveryCubit>().refresh(),
-      child: SafeArea(bottom: false, child: _buildContent(context)),
+      child: _buildContent(context),
     );
   }
 
@@ -331,7 +334,7 @@ class _ScrollableProfile extends StatelessWidget {
         }
         return const _ScrollableCenter(child: DiscoveryEmptyView());
       }
-      return _ProfilePage(loaded: s);
+      return _ProfilePage(loaded: s, scrollOffset: scrollOffset);
     }
     if (s is DiscoveryDailyLimit) {
       return DiscoveryDailyLimitView(resetAt: s.resetAt);
@@ -345,7 +348,8 @@ class _ScrollableProfile extends StatelessWidget {
 /// out from behind it; the swipe replaces the surface wholesale.
 class _ProfilePage extends StatefulWidget {
   final DiscoveryLoaded loaded;
-  const _ProfilePage({required this.loaded});
+  final ValueNotifier<double> scrollOffset;
+  const _ProfilePage({required this.loaded, required this.scrollOffset});
 
   @override
   State<_ProfilePage> createState() => _ProfilePageState();
@@ -413,18 +417,26 @@ class _ProfilePageState extends State<_ProfilePage> {
             QeranBottomNav.contentClearance(context) +
             (isLandscape ? 12.0 : 24.0);
         final profile = widget.loaded.current!;
+        // constraints.maxHeight is already the area below the status bar (the
+        // screen-level SafeArea), so this is the visible viewport — the same
+        // height the first screenful is padded out to.
+        final viewportHeight = constraints.maxHeight;
         // Landscape has far less height to spend, so the photo takes a
         // smaller share and the profile starts sooner.
-        final photoHeight =
-            constraints.maxHeight * (isLandscape ? 0.62 : _kPhotoViewportFraction);
+        final photoHeight = viewportHeight *
+            (isLandscape
+                ? kDiscoveryPhotoFractionLandscape
+                : kDiscoveryPhotoFraction);
 
-        // Zero margins on every side: the surface is the screen. The bottom
+        // Zero left/right margins: the surface is the screen. The bottom
         // clearance lives INSIDE the scroll so content can travel past the
         // action cluster instead of being boxed above it.
         return DiscoveryUnifiedCard(
           profile: profile,
+          viewportHeight: viewportHeight,
           photoHeight: photoHeight,
           bottomInset: navClearance + _kActionZoneClearance,
+          scrollOffset: widget.scrollOffset,
           onFilterTap: () => _openFilters(context),
         );
       },
@@ -444,8 +456,13 @@ class _ProfilePageState extends State<_ProfilePage> {
 class _FloatingActionBar extends StatefulWidget {
   final DiscoveryState state;
   final void Function(Offset origin) onLikeBurst;
+  final ValueNotifier<double> scrollOffset;
 
-  const _FloatingActionBar({required this.state, required this.onLikeBurst});
+  const _FloatingActionBar({
+    required this.state,
+    required this.onLikeBurst,
+    required this.scrollOffset,
+  });
 
   @override
   State<_FloatingActionBar> createState() => _FloatingActionBarState();
@@ -568,7 +585,15 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
       left: _kActionBarHPad,
       right: _kActionBarHPad,
       bottom: navClearance + 14.0,
-      child: DiscoveryFrostedActionZone(
+      // At the top the buttons float over the empty paper under نبذة عني, so
+      // a backdrop would be pure decoration; it fades in only once profile
+      // content is actually passing behind them.
+      child: ValueListenableBuilder<double>(
+        valueListenable: widget.scrollOffset,
+        builder: (context, offset, child) => DiscoveryFrostedActionZone(
+          opacity: (offset / _kFrostRampDistance).clamp(0.0, 1.0),
+          child: child!,
+        ),
         child: DiscoveryActionBar(
           onPass: hasActive
               ? () {

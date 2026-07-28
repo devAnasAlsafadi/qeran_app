@@ -53,6 +53,8 @@ import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart
 import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_card_skeleton.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_frosted_action_zone.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_merged_profile_body.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_unified_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
@@ -60,11 +62,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Discovery + Full Profile are ONE screen.
 ///
-/// What changed and is pinned here: the photo runs full-bleed from y=0 (under
-/// a transparent status bar) to the screen edges; the filter / bell float ON
-/// the photo, bell at the START; there is no peek deck behind a floating card
-/// any more; and scrolling DOWN reveals the rest of the profile inline instead
-/// of navigating to a second screen.
+/// What is pinned here: the photo runs edge to edge horizontally and takes the
+/// top HALF of the viewport, starting just BELOW the status bar; the filter /
+/// bell float ON the photo, bell at the START; there is no peek deck; the
+/// first screenful ends after نبذة عني so everything from نبذة عن شريك الحياة
+/// on sits below the fold; and the action cluster's backdrop only appears once
+/// content is behind it.
+
+/// A realistic status-bar inset, so "below the status bar" is actually
+/// testable — the default test MediaQuery has zero padding.
+const double kTopInset = 24.0;
 
 // ── Fakes ────────────────────────────────────────────────────────────────────
 
@@ -85,15 +92,15 @@ DiscoveryProfile _profile(String id) => DiscoveryProfile(
           questionId: 11,
           question: 'نبذة عني',
           type: discovery_item_type.PlacementItemType.text,
-          value: const discovery_value.PlacementSingle(_kAboutMeBody),
-          display: const discovery_value.PlacementSingle(_kAboutMeBody),
+          value: const discovery_value.PlacementSingle(kAboutMeBody),
+          display: const discovery_value.PlacementSingle(kAboutMeBody),
         ),
       ],
     ),
   ],
 );
 
-const String _kAboutMeBody =
+const String kAboutMeBody =
     'نص تعريفي طويل بما يكفي ليأخذ الجزء الأعلى من ورقة المحتوى، '
     'تمامًا كما يفعل النص الحقيقي القادم من الخادم في شاشة الاستكشاف.';
 
@@ -213,6 +220,7 @@ Future<_FakeProfileRepository> _pumpView(
   List<DiscoveryProfile> profiles, {
   bool hydrationFails = false,
   TextDirection direction = TextDirection.rtl,
+  double topInset = kTopInset,
 }) async {
   final profileRepo = _FakeProfileRepository(failing: hydrationFails);
   sl.registerFactory<DiscoveryCubit>(
@@ -247,11 +255,19 @@ Future<_FakeProfileRepository> _pumpView(
           locale: ctx.locale,
           supportedLocales: ctx.supportedLocales,
           localizationsDelegates: ctx.localizationDelegates,
-          home: Directionality(
-            textDirection: direction,
-            child: BlocProvider<CurrentSubscriptionCubit>(
-              create: (_) => _FakeCurrentSubCubit(),
-              child: const Scaffold(body: DiscoveryView()),
+          home: Builder(
+            builder: (inner) => MediaQuery(
+              data: MediaQuery.of(inner).copyWith(
+                padding: EdgeInsets.only(top: topInset),
+                viewPadding: EdgeInsets.only(top: topInset),
+              ),
+              child: Directionality(
+                textDirection: direction,
+                child: BlocProvider<CurrentSubscriptionCubit>(
+                  create: (_) => _FakeCurrentSubCubit(),
+                  child: const Scaffold(body: DiscoveryView()),
+                ),
+              ),
             ),
           ),
         ),
@@ -319,18 +335,16 @@ void main() {
 
     setUp(() async => sl.reset());
 
-    testWidgets('the photo starts at y=0, under the status bar', (
-      tester,
-    ) async {
+    testWidgets('the photo starts BELOW the status bar', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await _pumpView(tester, [_profile('a')]);
 
+      // It must NOT run under the clock / wifi / battery. Flush to the safe
+      // area, with no title bar between.
       final photo = tester.getRect(find.byType(DiscoveryImagePanel));
-      // The old layout inset the card by SafeArea + a top bar + 4dp + a 20dp
-      // peek gap.
-      expect(photo.top, 0);
+      expect(photo.top, kTopInset);
     });
 
     testWidgets('the photo runs edge to edge horizontally', (tester) async {
@@ -345,7 +359,7 @@ void main() {
       expect(photo.right, 400);
     });
 
-    testWidgets('the photo takes the agreed share of the viewport', (
+    testWidgets('the photo takes half the viewport, not most of it', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
@@ -356,9 +370,10 @@ void main() {
       final photoHeight = tester
           .getSize(find.byType(DiscoveryImagePanel))
           .height;
-      // 78% leaves a sliver of the content sheet showing, which is the cue
-      // that there is more below.
-      expect(photoHeight / 800, closeTo(0.78, 0.01));
+      // Half of what is VISIBLE — the viewport below the status bar, not the
+      // raw screen.
+      const visible = 800 - kTopInset;
+      expect(photoHeight, closeTo(visible * kDiscoveryPhotoFraction, 0.5));
       expect(tester.takeException(), isNull);
     });
 
@@ -468,7 +483,13 @@ void main() {
 
       await _pumpView(tester, [_profile('a')]);
 
-      expect(find.byType(DiscoveryMergedProfileBody), findsOneWidget);
+      // skipOffstage: false — at offset 0 the body sits past the cache
+      // extent and is never laid out, which is exactly the D4 guarantee. It
+      // is still ONE scrollable, not a second route.
+      expect(
+        find.byType(DiscoveryMergedProfileBody, skipOffstage: false),
+        findsOneWidget,
+      );
       expect(find.byType(CustomScrollView), findsOneWidget);
     });
 
@@ -490,10 +511,8 @@ void main() {
 
       await _pumpView(tester, [_profile('a')]);
 
-      // Built (it is one sliver) but running off the bottom — the photo owns
-      // the first screenful, so it cannot be read without scrolling.
-      final before = tester.getRect(find.byType(QaDefaultSection));
-      expect(before.bottom, greaterThan(800));
+      // Nothing of the Q&A is on screen before scrolling.
+      expect(find.byType(QaDefaultSection), findsNothing);
 
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
       await tester.pumpAndSettle();
@@ -579,6 +598,113 @@ void main() {
       expect(find.byType(QaDefaultSection), findsNothing);
       expect(find.byType(DiscoveryImagePanel), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('the fold sits after نبذة عني (D4)', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('نبذة عني is fully visible on first open', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // Not clipped by the action buttons, not pushed off-screen.
+      final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
+      expect(intro.top, greaterThan(0));
+      expect(intro.bottom, lessThanOrEqualTo(800));
+      expect(find.text(kAboutMeBody), findsOneWidget);
+    });
+
+    testWidgets('the partner sections start below the fold', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // Nothing from نبذة عن شريك الحياة onward is on screen — the sections
+      // sit past the fold and are not even laid out until the user scrolls.
+      expect(find.byType(QaDefaultSection), findsNothing);
+      expect(find.byType(DiscoveryMergedProfileBody), findsNothing);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QaDefaultSection), findsOneWidget);
+    });
+
+    testWidgets('a spacer pads the first screenful to exactly one viewport', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // Photo + نبذة عني are far shorter than a screen; the spacer makes up
+      // the difference so the buttons sit over empty paper.
+      final photo = tester.getRect(find.byType(DiscoveryImagePanel));
+      final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
+      const visible = 800 - kTopInset;
+      expect(photo.height + intro.height, lessThan(visible));
+    });
+  });
+
+  group('action backdrop is scroll-conditional (D6)', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    double frostOpacity(WidgetTester tester) => tester
+        .widget<DiscoveryFrostedActionZone>(
+          find.byType(DiscoveryFrostedActionZone),
+        )
+        .opacity;
+
+    testWidgets('no card at all at the top', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // The buttons float over the empty spacer — a card there is pure
+      // decoration, and the old always-on paper strip read as a white bar.
+      expect(frostOpacity(tester), 0);
+    });
+
+    testWidgets('fades in once content is behind the buttons', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      expect(frostOpacity(tester), 1);
+    });
+
+    testWidgets('it is a ramp, not a switch', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -40));
+      await tester.pump();
+
+      final mid = frostOpacity(tester);
+      expect(mid, greaterThan(0));
+      expect(mid, lessThan(1));
     });
   });
 }

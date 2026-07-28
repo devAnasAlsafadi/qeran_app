@@ -15,68 +15,16 @@ import '../blocs/discovery_hydration_cubit.dart';
 import '../blocs/discovery_hydration_state.dart';
 import 'discovery_card.dart';
 
-/// Everything BELOW the photo on the merged discovery screen — the content the
-/// user used to have to tap through to a separate Full Profile screen for.
+/// نبذة عني + the chips under it — the ONLY profile content above the fold.
 ///
-/// Two data sources, deliberately:
-/// * the نبذة عني + inside chips come from the DECK payload, so they paint the
-///   instant the card appears with no network wait;
-/// * نبذة عن شريك الحياة, the Q&A groups and الاهتمامات come from the by-id
-///   hydrate, which lands a moment later. Until then this shows the same
-///   shimmer the standalone full profile uses.
+/// Lives in the card's first screenful rather than here so it can be measured
+/// as part of it; the rest of the profile follows in
+/// [DiscoveryMergedProfileBody], below the fold.
 ///
-/// A failed hydrate degrades silently to the deck payload — the user keeps the
-/// نبذة and the chips, and like / skip / undo are unaffected.
-class DiscoveryMergedProfileBody extends StatelessWidget {
-  const DiscoveryMergedProfileBody({
-    super.key,
-    required this.profile,
-    required this.bottomInset,
-  });
-
-  final DiscoveryProfile profile;
-
-  /// Cleared at the end of the scroll so the last section (and the share CTA)
-  /// can travel above the floating action cluster and the bottom nav.
-  final double bottomInset;
-
-  /// How far the content sheet slides up under the photo's bottom edge — the
-  /// identity's photo-into-content layered look, same value as the standalone
-  /// full profile.
-  static const double _sheetOverlap = QeranSpacing.s24;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<DiscoveryHydrationCubit, DiscoveryHydrationState>(
-      buildWhen: (prev, curr) =>
-          prev.profileFor(profile.id) != curr.profileFor(profile.id) ||
-          prev.isLoading(profile.id) != curr.isLoading(profile.id),
-      builder: (context, hydration) {
-        final hydrated = hydration.profileFor(profile.id);
-        return Transform.translate(
-          offset: const Offset(0, -_sheetOverlap),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _MainSheet(profile: profile),
-              if (hydrated != null)
-                _Sections(profile: hydrated)
-              else if (hydration.isLoading(profile.id))
-                const FullProfileContentSkeleton(),
-              SizedBox(height: bottomInset),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// The نبذة عني + inside-chips sheet, flush under the photo with a rounded
-/// top. Straight from the deck payload — no hydration wait.
-class _MainSheet extends StatelessWidget {
-  const _MainSheet({required this.profile});
+/// Straight from the deck payload, so it paints the instant the card appears
+/// with no network wait.
+class DiscoveryProfileIntroSheet extends StatelessWidget {
+  const DiscoveryProfileIntroSheet({super.key, required this.profile});
 
   final DiscoveryProfile profile;
 
@@ -100,8 +48,61 @@ class _MainSheet extends StatelessWidget {
   }
 }
 
-/// The hydrated remainder: نبذة عن شريك الحياة, the Q&A groups and الاهتمامات
-/// as cards, then the share CTA.
+/// Everything BELOW the fold on the merged discovery screen — the content the
+/// user used to have to tap through to a separate Full Profile screen for:
+/// نبذة عن شريك الحياة, الدين ونمط الحياة, الحياة الزوجية, الاهتمامات, and the
+/// "اسأل خطّابتي" CTA.
+///
+/// Comes from the by-id hydrate, which lands a moment after the card appears.
+/// Until then this shows the same shimmer the standalone full profile uses. A
+/// failed hydrate degrades silently — the user keeps the نبذة and the chips
+/// above the fold, and like / skip / undo are unaffected.
+class DiscoveryMergedProfileBody extends StatelessWidget {
+  const DiscoveryMergedProfileBody({
+    super.key,
+    required this.profile,
+    required this.bottomInset,
+  });
+
+  final DiscoveryProfile profile;
+
+  /// Cleared at the end of the scroll so the last section (and the share CTA)
+  /// can travel above the floating action cluster and the bottom nav.
+  final double bottomInset;
+
+  /// How far the intro sheet slides up under the photo's bottom edge — the
+  /// identity's photo-into-content layered look, same value as the standalone
+  /// full profile.
+  static const double sheetOverlap = QeranSpacing.s24;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DiscoveryHydrationCubit, DiscoveryHydrationState>(
+      buildWhen: (prev, curr) =>
+          prev.profileFor(profile.id) != curr.profileFor(profile.id) ||
+          prev.isLoading(profile.id) != curr.isLoading(profile.id),
+      builder: (context, hydration) {
+        final hydrated = hydration.profileFor(profile.id);
+        return ColoredBox(
+          color: QeranColors.paper,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (hydrated != null)
+                _Sections(profile: hydrated)
+              else if (hydration.isLoading(profile.id))
+                const FullProfileContentSkeleton(),
+              SizedBox(height: bottomInset),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The hydrated remainder, as cards, then the share CTA.
 ///
 /// The CTA is INLINE at the end rather than pinned: the merged screen already
 /// pins the like / skip / undo cluster above the bottom nav, so a second
@@ -114,34 +115,31 @@ class _Sections extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: QeranColors.paper,
-      child: SoftScaleIn(
-        duration: QeranMotion.gentle,
-        beginScale: 0.97,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                QeranSpacing.s20,
-                QeranSpacing.s16,
-                QeranSpacing.s20,
-                0,
-              ),
-              // Renders ONLY what the backend sent — an absent group emits
-              // nothing, so no empty headers appear.
-              child: PlacementRenderer(
-                placements: profile.placements,
-                asCards: true,
-                includeNarrative: false,
-              ),
+    return SoftScaleIn(
+      duration: QeranMotion.gentle,
+      beginScale: 0.97,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(
+              QeranSpacing.s20,
+              0,
+              QeranSpacing.s20,
+              0,
             ),
-            QeranSpacing.vs16,
-            ShareWithMatchmakerButton(userId: profile.id),
-          ],
-        ),
+            // Renders ONLY what the backend sent — an absent group emits
+            // nothing, so no empty headers appear.
+            child: PlacementRenderer(
+              placements: profile.placements,
+              asCards: true,
+              includeNarrative: false,
+            ),
+          ),
+          QeranSpacing.vs16,
+          ShareWithMatchmakerButton(userId: profile.id),
+        ],
       ),
     );
   }

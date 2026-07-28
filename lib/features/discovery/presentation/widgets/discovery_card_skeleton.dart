@@ -2,23 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/design_system/widgets/qeran_skeleton.dart';
 
-/// First-load placeholder that reserves the exact discovery-card geometry.
+/// First-load placeholder for the merged discovery screen.
 ///
-/// The dominant photo region and a few content hints shimmer independently.
-/// The widget is isolated behind one repaint boundary and remains vertically
-/// scrollable so the parent [RefreshIndicator] keeps working while loading.
+/// Mirrors the loaded geometry exactly: a full-bleed photo block taking the
+/// top half of the viewport, then the نبذة عني sheet running edge to edge. It
+/// used to draw a floating rounded card with 18dp side margins and a shadow,
+/// which is what the screen looked like BEFORE the merge — so the shimmer
+/// promised one layout and the loaded state delivered another.
+///
+/// Stays vertically scrollable so the parent [RefreshIndicator] keeps working
+/// while loading.
 class DiscoveryCardSkeleton extends StatelessWidget {
-  const DiscoveryCardSkeleton({super.key, this.bottomClearance});
+  const DiscoveryCardSkeleton({super.key, this.photoFraction});
 
   @visibleForTesting
   static const cardKey = ValueKey<String>('discovery-loading-card');
 
-  /// Override used by focused layout tests. Production derives this from the
-  /// floating bottom navigation geometry.
-  final double? bottomClearance;
+  /// Override used by focused layout tests. Production matches the loaded
+  /// screen's own fraction.
+  final double? photoFraction;
 
   @override
   Widget build(BuildContext context) {
@@ -28,55 +32,32 @@ class DiscoveryCardSkeleton extends StatelessWidget {
             ? constraints.maxHeight
             : MediaQuery.sizeOf(context).height;
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
-        final reservedBottom =
-            bottomClearance ??
-            (QeranBottomNav.contentClearance(context) +
-                (isLandscape ? 12.0 : 24.0));
+        final fraction =
+            photoFraction ?? (isLandscape ? kDiscoveryPhotoFractionLandscape
+                : kDiscoveryPhotoFraction);
 
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: viewportHeight,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 4, 18, 0),
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: ExcludeSemantics(
-                        child: RepaintBoundary(
-                          child: DecoratedBox(
-                            key: cardKey,
-                            decoration: BoxDecoration(
-                              color: QeranColors.paper,
-                              borderRadius: QeranRadii.panelR,
-                              border: Border.all(
-                                color: QeranColors.wine.withValues(alpha: 0.10),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: QeranColors.wine.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: const ClipRRect(
-                              borderRadius: QeranRadii.panelR,
-                              child: _SkeletonCardContent(),
-                            ),
-                          ),
-                        ),
-                      ),
+          child: ExcludeSemantics(
+            child: RepaintBoundary(
+              child: SizedBox(
+                key: cardKey,
+                height: viewportHeight,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Full-bleed photo block — no side margins, no radius, no
+                    // shadow. Same shape the real photo takes.
+                    QeranSkeleton.box(
+                      height: viewportHeight * fraction,
+                      radius: 0,
                     ),
-                  ),
+                    Expanded(
+                      child: _SkeletonSheet(isLandscape: isLandscape),
+                    ),
+                  ],
                 ),
-                SizedBox(height: reservedBottom),
-              ],
+              ),
             ),
           ),
         );
@@ -85,62 +66,53 @@ class DiscoveryCardSkeleton extends StatelessWidget {
   }
 }
 
-class _SkeletonCardContent extends StatelessWidget {
-  const _SkeletonCardContent();
+/// Fraction of the viewport the discovery photo occupies. Shared so the
+/// shimmer and the loaded card can never drift apart.
+const double kDiscoveryPhotoFraction = 0.50;
+const double kDiscoveryPhotoFractionLandscape = 0.45;
+
+/// The نبذة عني sheet placeholder: full width, rounded top only, paper fill.
+class _SkeletonSheet extends StatelessWidget {
+  const _SkeletonSheet({required this.isLandscape});
+
+  final bool isLandscape;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isLandscape = constraints.maxWidth > constraints.maxHeight;
-        return Flex(
-          direction: isLandscape ? Axis.horizontal : Axis.vertical,
-          children: [
-            Expanded(
-              flex: isLandscape ? 45 : 54,
-              child: LayoutBuilder(
-                builder: (context, constraints) =>
-                    QeranSkeleton.box(height: constraints.maxHeight, radius: 0),
-              ),
-            ),
-            Expanded(
-              flex: isLandscape ? 55 : 46,
-              child: ColoredBox(
-                color: QeranColors.paper,
-                child: Padding(
-                  padding: EdgeInsets.all(
-                    isLandscape ? QeranSpacing.s12 : QeranSpacing.s20,
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      QeranSkeleton(width: 156, height: 20),
-                      SizedBox(height: QeranSpacing.s16),
-                      QeranSkeleton(height: 12),
-                      SizedBox(height: QeranSpacing.s8),
-                      FractionallySizedBox(
-                        widthFactor: 0.72,
-                        alignment: AlignmentDirectional.centerStart,
-                        child: QeranSkeleton(height: 12),
-                      ),
-                      SizedBox(height: QeranSpacing.s20),
-                      Wrap(
-                        spacing: QeranSpacing.s8,
-                        runSpacing: QeranSpacing.s8,
-                        children: [
-                          QeranSkeleton(width: 76, height: 28, radius: 999),
-                          QeranSkeleton(width: 92, height: 28, radius: 999),
-                          QeranSkeleton(width: 68, height: 28, radius: 999),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+    return Container(
+      decoration: const BoxDecoration(
+        color: QeranColors.paper,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(QeranRadii.panel),
+        ),
+      ),
+      padding: EdgeInsets.all(
+        isLandscape ? QeranSpacing.s12 : QeranSpacing.s20,
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          QeranSkeleton(width: 156, height: 20),
+          SizedBox(height: QeranSpacing.s16),
+          QeranSkeleton(height: 12),
+          SizedBox(height: QeranSpacing.s8),
+          FractionallySizedBox(
+            widthFactor: 0.72,
+            alignment: AlignmentDirectional.centerStart,
+            child: QeranSkeleton(height: 12),
+          ),
+          SizedBox(height: QeranSpacing.s20),
+          Wrap(
+            spacing: QeranSpacing.s8,
+            runSpacing: QeranSpacing.s8,
+            children: [
+              QeranSkeleton(width: 76, height: 28, radius: 999),
+              QeranSkeleton(width: 92, height: 28, radius: 999),
+              QeranSkeleton(width: 68, height: 28, radius: 999),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

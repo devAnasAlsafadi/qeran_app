@@ -93,14 +93,21 @@ class QeranSnackBarWidget extends StatelessWidget {
     );
   }
 
-  /// Surface + foreground + icon per tone. [notice] uses a soft cream surface
-  /// with wine ink (+ hairline edge); the rest sit on a dark surface.
+  /// Surface + foreground + icon per tone. [error] and [notice] both use a
+  /// SOFT surface with a hairline edge and inked-on text — error in the danger
+  /// ramp, notice in cream/wine; [success] and [info] sit on dark wine.
   _SnackSpec _spec(SnackBarType type) => switch (type) {
-    SnackBarType.error => const _SnackSpec(
-      surface: QeranColors.danger,
-      foreground: QeranColors.paper,
-      iconColor: QeranColors.paper,
+    // Soft danger: a danger-12 fill + danger-40 hairline + danger ink, so a
+    // failure reads as clearly ours rather than a full-bleed red banner.
+    // The fill is COMPOSITED over paper (like notice's opaque creamSurface)
+    // — a translucent surface would let the page bleed through the toast and
+    // would tint the drop shadow built from it.
+    SnackBarType.error => _SnackSpec(
+      surface: Color.alphaBlend(QeranColors.danger12, QeranColors.paper),
+      foreground: QeranColors.danger,
+      iconColor: QeranColors.danger,
       icon: Icons.error_outline_rounded,
+      border: Border.all(color: QeranColors.danger40),
     ),
     SnackBarType.success => const _SnackSpec(
       surface: QeranColors.wine,

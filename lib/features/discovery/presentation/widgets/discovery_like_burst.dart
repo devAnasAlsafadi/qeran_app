@@ -4,12 +4,15 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
-/// Gold heart that flies from the Like button to the card image area
-/// in two stages and fades into the card-level Like overlay. Gold so
-/// it visually originates from the gold heart inside the wine Like
-/// circle (the icon "lifts off" without changing colour).
+/// Gold checkmark that flies from the Like button to the card image area
+/// in two stages and fades into the card-level Like overlay. Gold, and the
+/// same glyph as the button, so it reads as the button's own icon lifting
+/// off rather than a second unrelated mark.
 ///
-/// Stage 1 (travel) — 0 → 380 ms: heart appears at the button center
+/// No new asset: this is a Flutter [Icon], so matching the button is a
+/// one-token change.
+///
+/// Stage 1 (travel) — 0 → 380 ms: the mark appears at the button center
 /// at full opacity / scale 1.0, then arcs upward toward the target,
 /// peaking ~44 px above the straight line at midpoint and growing to
 /// 1.20. No birth/spawn animation — feels faster and cleaner.
@@ -128,7 +131,7 @@ class _DiscoveryLikeBurstState extends State<DiscoveryLikeBurst>
               child: Transform.scale(
                 scale: _scale.value,
                 child: const Icon(
-                  Icons.favorite_rounded,
+                  Icons.check_rounded,
                   size: _iconSize,
                   color: QeranColors.gold,
                 ),

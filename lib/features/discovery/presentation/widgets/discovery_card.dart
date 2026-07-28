@@ -1,9 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
+import 'package:qeran/features/profile/presentation/widgets/full_profile_image_overlays.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_photo_hero_motion.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/discovery_profile.dart';
 import '../../domain/entities/placement.dart';
@@ -17,26 +20,35 @@ import 'discovery_chips_above_image.dart';
 import 'discovery_inside_chips.dart';
 import 'discovery_privacy_message.dart';
 
-/// Full-bleed image panel for a single Discovery profile (per Figma
-/// `home.png`). Renders the blurred image with overlays for the filter
-/// button (top-leading), notifications bell (top-trailing) with an
-/// unread marker, the centered privacy lock + message, and at the
-/// bottom: name + age plus the above-image chips. The top button row is
-/// direction-locked to LTR so the filter stays on the left even in Arabic.
+/// Full-bleed image panel for a single Discovery profile. Renders the blurred
+/// image with the notifications bell (top-start) and filter button (top-end)
+/// overlaid, the centered privacy lock + message, and at the bottom: name +
+/// age, the compatibility pill, and the above-image chips.
+///
+/// The overlay row is fully directional: in Arabic (RTL) the bell sits on the
+/// RIGHT and the filter on the LEFT, and it mirrors in English.
 class DiscoveryImagePanel extends StatelessWidget {
   final DiscoveryProfile profile;
   final VoidCallback? onTap;
 
-  /// When `false`, the top filter/notifications overlay row is omitted.
-  /// Used by the next-card peek layer so the rear card stays purely
-  /// decorative (no duplicate action icons).
+  /// When `false`, the top notifications/filter overlay row is omitted.
   final bool showOverlayActions;
+
+  /// Opens the discovery filter sheet. Null renders the button inert.
+  final VoidCallback? onFilterTap;
+
+  /// Fixed panel height. Null lets the panel fill its parent (the legacy
+  /// flex-slot layout); the merged screen passes an explicit height because
+  /// it lives inside a scroll, which has no bounded height to expand into.
+  final double? height;
 
   const DiscoveryImagePanel({
     super.key,
     required this.profile,
     this.onTap,
     this.showOverlayActions = true,
+    this.onFilterTap,
+    this.height,
   });
 
   @override
@@ -47,7 +59,9 @@ class DiscoveryImagePanel extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Stack(
+      child: SizedBox(
+        height: height,
+        child: Stack(
         fit: StackFit.expand,
         children: [
           if (imageUrl.isNotEmpty)
@@ -70,6 +84,7 @@ class DiscoveryImagePanel extends StatelessWidget {
             child: _AdaptiveImageOverlay(
               name: profile.name,
               age: profile.age,
+              matchPercent: profile.matchingScore,
               aboveItems: aboveItems,
             ),
           ),
@@ -78,6 +93,8 @@ class DiscoveryImagePanel extends StatelessWidget {
               top: 0,
               left: 0,
               right: 0,
+              // SafeArea keeps both buttons below the clock / notch now that
+              // the photo runs edge-to-edge under a transparent status bar.
               child: SafeArea(
                 bottom: false,
                 child: Padding(
@@ -87,17 +104,20 @@ class DiscoveryImagePanel extends StatelessWidget {
                     QeranSpacing.s16,
                     0,
                   ),
+                  // Bell at the START, filter at the END — in Arabic that puts
+                  // the bell on the right and the filter on the left, and the
+                  // Row mirrors itself for English.
                   child: Row(
                     children: [
-                      const ImageOverlayButton(
-                        icon: Icons.tune_rounded,
-                        onPressed: null,
-                      ),
-                      const Spacer(),
                       ImageOverlayButton(
                         icon: Icons.notifications_outlined,
                         onPressed: () => openNotifications(context),
                         badge: const OverlayUnreadDot(),
+                      ),
+                      const Spacer(),
+                      ImageOverlayButton(
+                        icon: Icons.tune_rounded,
+                        onPressed: onFilterTap,
                       ),
                     ],
                   ),
@@ -105,6 +125,7 @@ class DiscoveryImagePanel extends StatelessWidget {
               ),
             ),
         ],
+      ),
       ),
     );
   }
@@ -130,11 +151,13 @@ class _AdaptiveImageOverlay extends StatelessWidget {
   const _AdaptiveImageOverlay({
     required this.name,
     required this.age,
+    required this.matchPercent,
     required this.aboveItems,
   });
 
   final String name;
   final int age;
+  final double matchPercent;
   final List<PlacementItem> aboveItems;
 
   static const double _compactHeight = 220;
@@ -162,6 +185,21 @@ class _AdaptiveImageOverlay extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               _NameAgeRow(name: name, age: age),
+              // Compatibility pill — directly under name+age, exactly where
+              // the standalone full profile puts it. Now that the two screens
+              // are one, the score is visible on the deck.
+              if (matchPercent > 0) ...[
+                SizedBox(height: isCompact ? QeranSpacing.s4 : QeranSpacing.s8),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: ProfileMatchPill(
+                    label: context.tr(
+                      LocaleKeys.profile_compatibility_label,
+                      namedArgs: {'percent': '${matchPercent.round()}'},
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(height: isCompact ? QeranSpacing.s4 : QeranSpacing.s8),
               DiscoveryChipsAboveImage(items: aboveItems),
             ],

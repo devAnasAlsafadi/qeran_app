@@ -74,7 +74,7 @@ InkWell _inkForIcon(WidgetTester tester, IconData icon) {
 InkWell _pass(WidgetTester tester) => _inkForIcon(tester, Icons.close_rounded);
 InkWell _undo(WidgetTester tester) => _inkForIcon(tester, Icons.replay_rounded);
 InkWell _like(WidgetTester tester) =>
-    _inkForIcon(tester, Icons.favorite_rounded);
+    _inkForIcon(tester, Icons.check_rounded);
 
 void main() {
   setUpAll(() async {
@@ -196,7 +196,7 @@ void main() {
         onLike: () => likeCalls++,
       );
 
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
       await tester.pumpAndSettle();
 
       expect(likeCalls, 1);
@@ -238,19 +238,19 @@ void main() {
       // Idle: AnimatedBuilder short-circuits — no Transform.
       expect(
         find.ancestor(
-          of: find.byIcon(Icons.favorite_rounded),
+          of: find.byIcon(Icons.check_rounded),
           matching: find.byType(Transform),
         ),
         findsNothing,
       );
 
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
       var sawTransform = false;
       for (var i = 0; i < 30 && !sawTransform; i++) {
         await tester.pump(const Duration(milliseconds: 10));
         sawTransform = find
             .ancestor(
-              of: find.byIcon(Icons.favorite_rounded),
+              of: find.byIcon(Icons.check_rounded),
               matching: find.byType(Transform),
             )
             .evaluate()
@@ -266,7 +266,7 @@ void main() {
       await _pumpActionBar(tester); // all callbacks null
 
       final gesture = await tester.startGesture(
-        tester.getCenter(find.byIcon(Icons.favorite_rounded)),
+        tester.getCenter(find.byIcon(Icons.check_rounded)),
       );
       await tester.pump(const Duration(milliseconds: 50));
 
@@ -275,7 +275,7 @@ void main() {
       final transforms = tester
           .widgetList<Transform>(
             find.ancestor(
-              of: find.byIcon(Icons.favorite_rounded),
+              of: find.byIcon(Icons.check_rounded),
               matching: find.byType(Transform),
             ),
           )
@@ -297,8 +297,8 @@ void main() {
         onLike: () => likeCalls++,
       );
 
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
       await tester.pumpAndSettle();
 
       expect(likeCalls, 2, reason: 'each tap fires the callback');
@@ -341,7 +341,7 @@ void main() {
       for (final other in <IconData>[
         Icons.close_rounded,
         Icons.replay_rounded,
-        Icons.favorite_rounded,
+        Icons.check_rounded,
       ]) {
         if (other == iconBeingPressed) continue;
         expect(
@@ -364,7 +364,7 @@ void main() {
         onLike: () {},
       );
       await assertOnlyOneAnimates(tester,
-          iconBeingPressed: Icons.favorite_rounded);
+          iconBeingPressed: Icons.check_rounded);
     });
 
     testWidgets('pressing Pass only animates Pass', (tester) async {
@@ -390,7 +390,7 @@ void main() {
     });
   });
 
-  group('DiscoveryActionBar — flying-heart burst callback', () {
+  group('DiscoveryActionBar — flying-mark burst callback', () {
     testWidgets('enabled Like tap fires onLikeBurst with a global Offset',
         (tester) async {
       Offset? receivedOrigin;
@@ -402,7 +402,7 @@ void main() {
         onLikeBurst: (origin) => receivedOrigin = origin,
       );
 
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
       await tester.pumpAndSettle();
 
       expect(receivedOrigin, isNotNull);
@@ -422,7 +422,7 @@ void main() {
         onLikeBurst: (origin) => receivedOrigin = origin,
       );
 
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
       await tester.pumpAndSettle();
 
       expect(receivedOrigin, isNull);
@@ -474,7 +474,7 @@ void main() {
         onLike: () {},
       );
 
-      expect(stacksAboveIcon(tester, Icons.favorite_rounded), 1,
+      expect(stacksAboveIcon(tester, Icons.check_rounded), 1,
           reason: 'Like wraps in one Clip.none Stack to host the halo');
       expect(stacksAboveIcon(tester, Icons.close_rounded), 0,
           reason: 'Pass has no halo wrapper');
@@ -496,13 +496,13 @@ void main() {
       // IgnorePointer wrapping an AnimatedBuilder). Before the tap, the
       // ring builder short-circuits to SizedBox.shrink — no Container.
       // Mid-animation, a circle Container appears.
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
       var sawHaloContainer = false;
       for (var i = 0; i < 30 && !sawHaloContainer; i++) {
         await tester.pump(const Duration(milliseconds: 10));
         sawHaloContainer = find
             .descendant(
-              of: find.byIcon(Icons.favorite_rounded),
+              of: find.byIcon(Icons.check_rounded),
               matching: find.byType(Container),
             )
             .evaluate()
@@ -515,7 +515,7 @@ void main() {
         // A more direct probe: count the IgnorePointer descendants of
         // the wrapping Stack — it's there only during the halo run.
         final stackFinder = find.ancestor(
-          of: find.byIcon(Icons.favorite_rounded),
+          of: find.byIcon(Icons.check_rounded),
           matching: find.byType(Stack),
         );
         if (stackFinder.evaluate().isNotEmpty) {
@@ -543,10 +543,10 @@ void main() {
 
     testWidgets('disabled Like does NOT fire the halo', (tester) async {
       await _pumpActionBar(tester); // all callbacks null → all disabled
-      await tester.tap(find.byIcon(Icons.favorite_rounded));
+      await tester.tap(find.byIcon(Icons.check_rounded));
       await tester.pumpAndSettle();
       final stackFinder = find.ancestor(
-        of: find.byIcon(Icons.favorite_rounded),
+        of: find.byIcon(Icons.check_rounded),
         matching: find.byType(Stack),
       );
       if (stackFinder.evaluate().isNotEmpty) {

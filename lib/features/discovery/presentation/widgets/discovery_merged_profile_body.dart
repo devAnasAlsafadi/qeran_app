@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/motion/soft_scale_in.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
+import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/features/profile/domain/entities/other_profile.dart';
+import 'package:qeran/features/profile/presentation/widgets/full_profile_content_skeleton.dart';
+import 'package:qeran/features/profile/presentation/widgets/placement/placement_renderer.dart';
+import 'package:qeran/features/profile/presentation/widgets/share_with_matchmaker_button.dart';
+
+import '../../domain/entities/discovery_profile.dart';
+import '../blocs/discovery_hydration_cubit.dart';
+import '../blocs/discovery_hydration_state.dart';
+import 'discovery_card.dart';
+
+/// Everything BELOW the photo on the merged discovery screen — the content the
+/// user used to have to tap through to a separate Full Profile screen for.
+///
+/// Two data sources, deliberately:
+/// * the نبذة عني + inside chips come from the DECK payload, so they paint the
+///   instant the card appears with no network wait;
+/// * نبذة عن شريك الحياة, the Q&A groups and الاهتمامات come from the by-id
+///   hydrate, which lands a moment later. Until then this shows the same
+///   shimmer the standalone full profile uses.
+///
+/// A failed hydrate degrades silently to the deck payload — the user keeps the
+/// نبذة and the chips, and like / skip / undo are unaffected.
+class DiscoveryMergedProfileBody extends StatelessWidget {
+  const DiscoveryMergedProfileBody({
+    super.key,
+    required this.profile,
+    required this.bottomInset,
+  });
+
+  final DiscoveryProfile profile;
+
+  /// Cleared at the end of the scroll so the last section (and the share CTA)
+  /// can travel above the floating action cluster and the bottom nav.
+  final double bottomInset;
+
+  /// How far the content sheet slides up under the photo's bottom edge — the
+  /// identity's photo-into-content layered look, same value as the standalone
+  /// full profile.
+  static const double _sheetOverlap = QeranSpacing.s24;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<DiscoveryHydrationCubit, DiscoveryHydrationState>(
+      buildWhen: (prev, curr) =>
+          prev.profileFor(profile.id) != curr.profileFor(profile.id) ||
+          prev.isLoading(profile.id) != curr.isLoading(profile.id),
+      builder: (context, hydration) {
+        final hydrated = hydration.profileFor(profile.id);
+        return Transform.translate(
+          offset: const Offset(0, -_sheetOverlap),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _MainSheet(profile: profile),
+              if (hydrated != null)
+                _Sections(profile: hydrated)
+              else if (hydration.isLoading(profile.id))
+                const FullProfileContentSkeleton(),
+              SizedBox(height: bottomInset),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The نبذة عني + inside-chips sheet, flush under the photo with a rounded
+/// top. Straight from the deck payload — no hydration wait.
+class _MainSheet extends StatelessWidget {
+  const _MainSheet({required this.profile});
+
+  final DiscoveryProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: QeranColors.paper,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(QeranRadii.panel),
+        ),
+      ),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        QeranSpacing.s20,
+        QeranSpacing.s24,
+        QeranSpacing.s20,
+        QeranSpacing.s24,
+      ),
+      child: DiscoveryInfoPanel(profile: profile),
+    );
+  }
+}
+
+/// The hydrated remainder: نبذة عن شريك الحياة, the Q&A groups and الاهتمامات
+/// as cards, then the share CTA.
+///
+/// The CTA is INLINE at the end rather than pinned: the merged screen already
+/// pins the like / skip / undo cluster above the bottom nav, so a second
+/// pinned bar would collide with it. Reaching this by scrolling to the bottom
+/// is also the right moment to offer it — the profile has just been read.
+class _Sections extends StatelessWidget {
+  const _Sections({required this.profile});
+
+  final OtherProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: QeranColors.paper,
+      child: SoftScaleIn(
+        duration: QeranMotion.gentle,
+        beginScale: 0.97,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                QeranSpacing.s20,
+                QeranSpacing.s16,
+                QeranSpacing.s20,
+                0,
+              ),
+              // Renders ONLY what the backend sent — an absent group emits
+              // nothing, so no empty headers appear.
+              child: PlacementRenderer(
+                placements: profile.placements,
+                asCards: true,
+                includeNarrative: false,
+              ),
+            ),
+            QeranSpacing.vs16,
+            ShareWithMatchmakerButton(userId: profile.id),
+          ],
+        ),
+      ),
+    );
+  }
+}

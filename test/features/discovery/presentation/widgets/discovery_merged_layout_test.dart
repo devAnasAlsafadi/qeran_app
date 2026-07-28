@@ -1,0 +1,584 @@
+import 'package:dartz/dartz.dart';
+// easy_localization re-exports intl, whose TextDirection collides with
+// dart:ui's — the one Directionality actually takes.
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/datasources/shared_pref_service.dart';
+import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
+import 'package:qeran/features/chat/domain/repositories/chat_repository.dart';
+import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
+import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
+import 'package:qeran/features/notifications/domain/usecases/get_notifications_usecase.dart';
+import 'package:qeran/features/profile/presentation/blocs/share_with_matchmaker/share_with_matchmaker_cubit.dart';
+import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
+import 'package:qeran/features/profile/domain/entities/other_profile.dart';
+import 'package:qeran/features/profile/domain/entities/placement.dart'
+    as profile_placement;
+import 'package:qeran/features/profile/domain/entities/placement_code.dart'
+    as profile_code;
+import 'package:qeran/features/profile/domain/entities/placement_item.dart'
+    as profile_item;
+import 'package:qeran/features/profile/domain/entities/placement_item_type.dart'
+    as profile_item_type;
+import 'package:qeran/features/profile/domain/entities/placement_value.dart'
+    as profile_value;
+import 'package:qeran/features/profile/domain/entities/profile_fetch_outcome.dart';
+import 'package:qeran/features/profile/domain/repositories/profile_repository.dart';
+import 'package:qeran/features/profile/domain/usecases/get_profile_by_id_usecase.dart';
+import 'package:qeran/features/profile/presentation/widgets/placement/qa_default_section.dart';
+import 'package:qeran/features/subscriptions/domain/entities/current_subscription.dart';
+import 'package:qeran/features/subscriptions/domain/usecases/get_current_subscription_usecase.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_page.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_profile.dart';
+import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
+import 'package:qeran/features/discovery/domain/entities/placement.dart'
+    as discovery_placement;
+import 'package:qeran/features/discovery/domain/entities/placement_code.dart'
+    as discovery_code;
+import 'package:qeran/features/discovery/domain/entities/placement_item.dart'
+    as discovery_item;
+import 'package:qeran/features/discovery/domain/entities/placement_item_type.dart'
+    as discovery_item_type;
+import 'package:qeran/features/discovery/domain/entities/placement_value.dart'
+    as discovery_value;
+import 'package:qeran/features/discovery/domain/usecases/fetch_discovery_page_usecase.dart';
+import 'package:qeran/features/discovery/domain/usecases/like_profile_usecase.dart';
+import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.dart';
+import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
+import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
+import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_merged_profile_body.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_unified_card.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Discovery + Full Profile are ONE screen.
+///
+/// What changed and is pinned here: the photo runs full-bleed from y=0 (under
+/// a transparent status bar) to the screen edges; the filter / bell float ON
+/// the photo, bell at the START; there is no peek deck behind a floating card
+/// any more; and scrolling DOWN reveals the rest of the profile inline instead
+/// of navigating to a second screen.
+
+// ── Fakes ────────────────────────────────────────────────────────────────────
+
+/// Carries an aboutMe placement like the real deck payload does, so the
+/// content sheet has realistic height under the photo.
+DiscoveryProfile _profile(String id) => DiscoveryProfile(
+  id: id,
+  name: 'Name-$id',
+  age: 25,
+  images: const [],
+  matchingScore: 0,
+  placements: [
+    discovery_placement.Placement(
+      code: discovery_code.PlacementCode.aboutMe,
+      name: 'نبذة عني',
+      items: [
+        discovery_item.PlacementItem(
+          questionId: 11,
+          question: 'نبذة عني',
+          type: discovery_item_type.PlacementItemType.text,
+          value: const discovery_value.PlacementSingle(_kAboutMeBody),
+          display: const discovery_value.PlacementSingle(_kAboutMeBody),
+        ),
+      ],
+    ),
+  ],
+);
+
+const String _kAboutMeBody =
+    'نص تعريفي طويل بما يكفي ليأخذ الجزء الأعلى من ورقة المحتوى، '
+    'تمامًا كما يفعل النص الحقيقي القادم من الخادم في شاشة الاستكشاف.';
+
+class _StubAssetLoader extends AssetLoader {
+  const _StubAssetLoader();
+  @override
+  Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
+      const {};
+}
+
+class _FakeFetch implements FetchDiscoveryPageUseCase {
+  final List<DiscoveryProfile> _profiles;
+  _FakeFetch(this._profiles);
+
+  @override
+  Future<Either<Failure, DiscoveryPage>> call({
+    int page = 1,
+    int pageSize = 10,
+    Map<String, String>? filterParams,
+  }) async => Right(
+    DiscoveryPage(
+      profiles: _profiles,
+      pageNumber: 1,
+      pageSize: _profiles.length,
+      totalCount: _profiles.length,
+      totalPages: 1,
+    ),
+  );
+}
+
+class _FakeLike implements LikeProfileUseCase {
+  @override
+  Future<Either<Failure, LikeOutcome>> call(String profileId) async =>
+      const Right(LikeAccepted(likeId: '1'));
+}
+
+class _FakePass implements PassProfileUseCase {
+  @override
+  Future<Either<Failure, Unit>> call(String profileId) async =>
+      const Right(unit);
+}
+
+class _FakeGetCurrent implements GetCurrentSubscriptionUseCase {
+  @override
+  Future<Either<Failure, CurrentSubscription?>> call() async =>
+      const Right(null);
+}
+
+class _FakeCurrentSubCubit extends CurrentSubscriptionCubit {
+  _FakeCurrentSubCubit() : super(getCurrent: _FakeGetCurrent());
+}
+
+class _FakeGetNotifications extends Fake implements GetNotificationsUseCase {}
+
+class _FakePrefs extends Fake implements SharedPrefService {}
+
+class _FakeNotificationBadgeCubit extends NotificationBadgeCubit {
+  _FakeNotificationBadgeCubit()
+    : super(getNotifications: _FakeGetNotifications(), prefs: _FakePrefs());
+  @override
+  Future<void> refresh() async {}
+}
+
+/// The share CTA at the end of the merged scroll resolves its cubit from
+/// GetIt; this keeps it in its unresolved state without any network.
+class _FakeChatRepository extends Fake implements ChatRepository {
+  @override
+  Future<Either<Failure, MyMatchmakerOutcome>> getMyMatchmaker() async =>
+      const Left(ServerFailure(message: 'errors.generic'));
+}
+
+/// Serves the by-id hydration behind the below-the-fold sections. [failing]
+/// models the degrade path — the card must still render from the deck payload.
+class _FakeProfileRepository extends Fake implements ProfileRepository {
+  _FakeProfileRepository({this.failing = false});
+
+  final bool failing;
+  final List<String> requested = [];
+
+  @override
+  Future<Either<Failure, ProfileFetchOutcome>> getProfileById(
+    String userId,
+  ) async {
+    requested.add(userId);
+    if (failing) return const Left(ServerFailure(message: 'errors.generic'));
+    return Right(
+      ProfileFetched(
+        OtherProfile(
+          id: userId,
+          name: 'Name-$userId',
+          age: 25,
+          matchingScore: 52,
+          images: const [],
+          placements: [
+            profile_placement.Placement(
+              code: profile_code.PlacementCode.defaultGroup,
+              name: 'الدين ونمط الحياة',
+              items: [
+                profile_item.PlacementItem(
+                  questionId: 7,
+                  question: 'الديانة',
+                  type: profile_item_type.PlacementItemType.select,
+                  value: const profile_value.PlacementSingle('مسلمة'),
+                  display: const profile_value.PlacementSingle('مسلمة'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<_FakeProfileRepository> _pumpView(
+  WidgetTester tester,
+  List<DiscoveryProfile> profiles, {
+  bool hydrationFails = false,
+  TextDirection direction = TextDirection.rtl,
+}) async {
+  final profileRepo = _FakeProfileRepository(failing: hydrationFails);
+  sl.registerFactory<DiscoveryCubit>(
+    () => DiscoveryCubit(
+      fetchPage: _FakeFetch(profiles),
+      likeProfile: _FakeLike(),
+      passProfile: _FakePass(),
+    ),
+  );
+  sl.registerFactory<DiscoveryHydrationCubit>(
+    () => DiscoveryHydrationCubit(
+      getProfileById: GetProfileByIdUseCase(profileRepo),
+    ),
+  );
+  sl.registerLazySingleton<NotificationBadgeCubit>(
+    () => _FakeNotificationBadgeCubit(),
+  );
+  final chatRepo = _FakeChatRepository();
+  sl.registerFactory<ShareWithMatchmakerCubit>(
+    () => ShareWithMatchmakerCubit(
+      getMyMatchmaker: GetMyMatchmakerUseCase(chatRepo),
+      shareProfile: ShareProfileUseCase(chatRepo),
+    ),
+  );
+  await tester.pumpWidget(
+    EasyLocalization(
+      supportedLocales: const [Locale('en')],
+      path: 'assets/translations',
+      assetLoader: const _StubAssetLoader(),
+      child: Builder(
+        builder: (ctx) => MaterialApp(
+          locale: ctx.locale,
+          supportedLocales: ctx.supportedLocales,
+          localizationsDelegates: ctx.localizationDelegates,
+          home: Directionality(
+            textDirection: direction,
+            child: BlocProvider<CurrentSubscriptionCubit>(
+              create: (_) => _FakeCurrentSubCubit(),
+              child: const Scaffold(body: DiscoveryView()),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return profileRepo;
+}
+
+// ── Tests ────────────────────────────────────────────────────────────────────
+
+void main() {
+  // `next` still drives the next photo's precache even though nothing peeks.
+  group('DiscoveryLoaded.next', () {
+    test('null when only one profile', () {
+      final s = DiscoveryLoaded(
+        profiles: [_profile('a')],
+        currentIndex: 0,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, isNull);
+    });
+
+    test('returns second profile at index 0', () {
+      final p1 = _profile('a');
+      final p2 = _profile('b');
+      final s = DiscoveryLoaded(
+        profiles: [p1, p2],
+        currentIndex: 0,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, equals(p2));
+    });
+
+    test('null when profile list is empty', () {
+      final s = DiscoveryLoaded(
+        profiles: const [],
+        currentIndex: 0,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, isNull);
+    });
+
+    test('null when currentIndex is the last slot', () {
+      final s = DiscoveryLoaded(
+        profiles: [_profile('a'), _profile('b')],
+        currentIndex: 1,
+        currentPage: 1,
+        totalPages: 1,
+      );
+      expect(s.next, isNull);
+    });
+  });
+
+  group('merged full-bleed layout', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('the photo starts at y=0, under the status bar', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final photo = tester.getRect(find.byType(DiscoveryImagePanel));
+      // The old layout inset the card by SafeArea + a top bar + 4dp + a 20dp
+      // peek gap.
+      expect(photo.top, 0);
+    });
+
+    testWidgets('the photo runs edge to edge horizontally', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final photo = tester.getRect(find.byType(DiscoveryImagePanel));
+      // Was inset by 18dp on each side for the floating card.
+      expect(photo.left, 0);
+      expect(photo.right, 400);
+    });
+
+    testWidgets('the photo takes the agreed share of the viewport', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final photoHeight = tester
+          .getSize(find.byType(DiscoveryImagePanel))
+          .height;
+      // 78% leaves a sliver of the content sheet showing, which is the cue
+      // that there is more below.
+      expect(photoHeight / 800, closeTo(0.78, 0.01));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the peek deck is gone', (tester) async {
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+
+      expect(
+        find.byKey(const ValueKey<String>('discovery-peek-silhouette')),
+        findsNothing,
+      );
+      // One live card, never two.
+      expect(find.byType(DiscoveryUnifiedCard), findsOneWidget);
+      expect(find.byType(DiscoveryImagePanel), findsOneWidget);
+    });
+
+    testWidgets('landscape rotates without overflow', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(DiscoveryImagePanel), findsOneWidget);
+    });
+  });
+
+  group('floating overlay icons', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('both icons render ON the photo, not in a title bar', (
+      tester,
+    ) async {
+      await _pumpView(tester, [_profile('a')]);
+
+      // The screen-level DiscoveryTopBar (and its "استكشاف" title) is gone.
+      expect(find.byIcon(Icons.notifications_none_rounded), findsNothing);
+      expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
+
+      final photo = tester.getRect(find.byType(DiscoveryImagePanel));
+      for (final icon in [Icons.notifications_outlined, Icons.tune_rounded]) {
+        expect(photo.contains(tester.getCenter(find.byIcon(icon))), isTrue);
+      }
+    });
+
+    testWidgets('the filter button is live, not the old inert placeholder', (
+      tester,
+    ) async {
+      await _pumpView(tester, [_profile('a')]);
+
+      final inkWell = tester.widget<InkWell>(
+        find
+            .ancestor(
+              of: find.byIcon(Icons.tune_rounded),
+              matching: find.byType(InkWell),
+            )
+            .first,
+      );
+      expect(inkWell.onTap, isNotNull);
+    });
+
+    testWidgets('RTL puts the bell on the RIGHT and the filter on the LEFT', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final bell = tester.getCenter(find.byIcon(Icons.notifications_outlined));
+      final filter = tester.getCenter(find.byIcon(Icons.tune_rounded));
+      expect(bell.dx, greaterThan(200));
+      expect(filter.dx, lessThan(200));
+    });
+
+    testWidgets('LTR mirrors them', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')], direction: TextDirection.ltr);
+
+      final bell = tester.getCenter(find.byIcon(Icons.notifications_outlined));
+      final filter = tester.getCenter(find.byIcon(Icons.tune_rounded));
+      expect(bell.dx, lessThan(200));
+      expect(filter.dx, greaterThan(200));
+    });
+  });
+
+  group('scroll reveals the full profile inline', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('the merged body is part of the same scroll', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      expect(find.byType(DiscoveryMergedProfileBody), findsOneWidget);
+      expect(find.byType(CustomScrollView), findsOneWidget);
+    });
+
+    testWidgets('the card hydrates by id as soon as it becomes current', (
+      tester,
+    ) async {
+      // Fired on becoming current, NOT on scroll — so the sections are already
+      // there by the time the user reaches them.
+      final repo = await _pumpView(tester, [_profile('a')]);
+
+      expect(repo.requested, ['a']);
+    });
+
+    testWidgets('scrolling down reveals a hydrated Q&A section', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // Built (it is one sliver) but running off the bottom — the photo owns
+      // the first screenful, so it cannot be read without scrolling.
+      final before = tester.getRect(find.byType(QaDefaultSection));
+      expect(before.bottom, greaterThan(800));
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+
+      // Fully on screen now, in the SAME route — no navigation happened.
+      final after = tester.getRect(find.byType(QaDefaultSection));
+      expect(after.top, greaterThanOrEqualTo(0));
+      expect(after.bottom, lessThanOrEqualTo(800));
+      expect(find.text('الديانة'), findsOneWidget);
+    });
+
+    testWidgets('the scroll survives the swipe gate closing under it', (
+      tester,
+    ) async {
+      // Regression: the gate used to swap the swipe GestureDetector out of the
+      // tree the moment the scroll left the top. That tore down its render
+      // object mid-pointer, cancelling the arena entry — so the very scroll
+      // that closed the gate died on its first frame and the page never moved.
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      expect(position.maxScrollExtent, greaterThan(0));
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, position.maxScrollExtent);
+    });
+
+    testWidgets('at the top a horizontal swipe still ejects the card', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+      expect(find.text('Name-a 25'), findsOneWidget);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(-350, 0));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Name-b 25'), findsOneWidget);
+    });
+
+    testWidgets('scrolled down, a horizontal drag does NOT eject the card', (
+      tester,
+    ) async {
+      // The other half of the gate: ejecting the card out from under someone
+      // mid-read is unrecoverable, and a near-horizontal drag while reading is
+      // far more likely to be a clumsy scroll than a deliberate swipe. The
+      // action buttons stay live, so nothing becomes unreachable.
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a'), _profile('b')]);
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(-350, 0));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Name-a 25'), findsOneWidget);
+      expect(find.text('Name-b 25'), findsNothing);
+    });
+
+    testWidgets('a failed hydrate degrades to the deck payload, silently', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')], hydrationFails: true);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
+      await tester.pumpAndSettle();
+
+      // No sections, but the card is intact and nothing threw — like / skip /
+      // undo must never be blocked by a hydration failure.
+      expect(find.byType(QaDefaultSection), findsNothing);
+      expect(find.byType(DiscoveryImagePanel), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+}

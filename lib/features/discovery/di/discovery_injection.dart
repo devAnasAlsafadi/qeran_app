@@ -9,6 +9,7 @@ import '../domain/usecases/get_discovery_filters_usecase.dart';
 import '../domain/usecases/like_profile_usecase.dart';
 import '../domain/usecases/pass_profile_usecase.dart';
 import '../presentation/blocs/discovery_cubit.dart';
+import '../presentation/blocs/discovery_hydration_cubit.dart';
 
 void initDiscoveryDependencies() {
   //! DataSource
@@ -41,6 +42,11 @@ void initDiscoveryDependencies() {
       onLikeSuccess: sl<CurrentSubscriptionCubit>().onActionConsumedCounter,
     ),
   );
+  // Below-the-fold hydration for the merged discovery screen. Reuses the
+  // profile feature's by-id use case — the same call the standalone full
+  // profile makes — so there is one hydration path, not two.
+  sl.registerFactory(() => DiscoveryHydrationCubit(getProfileById: sl()));
+
   // `DiscoveryFilterCubit` is constructed directly inside the filter sheet
   // (seeded with the currently-applied selections), so it isn't registered
   // here — it only needs the app-scoped `GetDiscoveryFiltersUseCase` above.

@@ -209,7 +209,6 @@ abstract class  LocaleKeys {
   static const time_hour = 'time.hour';
   static const time_day = 'time.day';
   static const time = 'time';
-  static const discovery_title = 'discovery.title';
   static const discovery_privacy_message = 'discovery.privacy_message';
   static const discovery_empty_title = 'discovery.empty_title';
   static const discovery_empty_subtitle = 'discovery.empty_subtitle';

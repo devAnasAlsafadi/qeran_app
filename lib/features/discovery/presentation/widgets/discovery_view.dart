@@ -2,25 +2,17 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/routes/navigation_manager.dart';
-import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
-import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
-import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
-import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
-import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
-import 'package:qeran/features/profile/presentation/other_profile_seed.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -28,6 +20,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../domain/entities/discovery_profile.dart';
 import '../../domain/entities/like_outcome.dart';
 import '../blocs/discovery_cubit.dart';
+import '../blocs/discovery_hydration_cubit.dart';
 import '../blocs/discovery_state.dart';
 import '../screens/discovery_filter_sheet.dart';
 import 'discovery_action_bar.dart';
@@ -38,18 +31,17 @@ import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_frosted_action_zone.dart';
 import 'discovery_like_burst.dart';
-import 'discovery_top_bar.dart';
 import 'discovery_unified_card.dart';
 
 /// Reusable Discovery content. Self-contained — provides its own
 /// `DiscoveryCubit` and drives `loadInitial` on first build.
 ///
-/// Layout: a fixed page (no page scroll) — an optional upsell banner atop a
-/// single [DiscoveryUnifiedCard] whose photo is fixed and whose data region
-/// scrolls internally. The like / pass / undo cluster is pinned in a frosted
-/// zone at the card's bottom. Horizontal drags run the existing swipe / like
-/// / pass / undo flow; the card's inner vertical scroll competes in the
-/// gesture arena so the two axes never fight.
+/// Layout: ONE full-bleed scroll per card. The photo runs edge to edge from
+/// under a transparent status bar down to the bottom nav; scrolling reveals
+/// the whole profile inline (there is no separate Full Profile screen to tap
+/// through to any more). The like / skip / undo cluster is pinned in a frosted
+/// zone above the nav and stays reachable at every scroll offset. Horizontal
+/// drags run the existing swipe flow, gated on being scrolled to the top.
 class DiscoveryView extends StatelessWidget {
   const DiscoveryView({super.key});
 
@@ -59,6 +51,12 @@ class DiscoveryView extends StatelessWidget {
       providers: [
         BlocProvider<DiscoveryCubit>(
           create: (_) => sl<DiscoveryCubit>()..loadInitial(),
+        ),
+        // Below-the-fold profile hydration, cached per profile id. Separate
+        // from DiscoveryCubit so a hydrate failure can never touch the deck,
+        // its pagination, or the paywall / daily-limit gating.
+        BlocProvider<DiscoveryHydrationCubit>(
+          create: (_) => sl<DiscoveryHydrationCubit>(),
         ),
         // App-wide unread-badge singleton (refreshed in initState + on resume,
         // not per build). `.value` so the shared singleton is never closed here.
@@ -79,13 +77,19 @@ class _DiscoveryContent extends StatefulWidget {
 }
 
 // ── Design constants ────────────────────────────────────────────────────────
-const double _kStackHPad = 18.0;
-const double _kStackTPad = 4.0;
-const double _kPeekHeight = 20.0;
 
-/// Height reserved at the bottom of the card's internal scroll so the last
-/// data chips can scroll clear of the pinned frosted action cluster.
+/// Inset of the floating action cluster from the card's side edges. The card
+/// itself is now full-bleed, so this is the cluster's own margin.
+const double _kActionBarHPad = 32.0;
+
+/// Height reserved at the end of the scroll so the last section and the share
+/// CTA can travel clear of the pinned frosted action cluster.
 const double _kActionZoneClearance = 128.0;
+
+/// Fraction of the viewport the photo occupies before the profile begins.
+/// Leaves a deliberate sliver of the content sheet peeking above the action
+/// cluster, which is what tells the user there is more below.
+const double _kPhotoViewportFraction = 0.78;
 
 /// True when [state] renders a full-screen replacement that owns the
 /// whole feed area — the daily-view limit screen, the load-failure
@@ -237,42 +241,37 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
           }
         },
         builder: (context, state) {
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(child: _buildBody(context, state)),
-              if (!_isFullScreenReplacement(state))
-                _FloatingActionBar(state: state, onLikeBurst: _spawnLikeBurst),
-            ],
+          // The photo now runs under the status bar, so the bar itself must be
+          // transparent with light icons — the wine scrim over the photo is
+          // what keeps them legible.
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.light,
+              statusBarBrightness: Brightness.dark,
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(child: _buildBody(context, state)),
+                if (!_isFullScreenReplacement(state))
+                  _FloatingActionBar(
+                    state: state,
+                    onLikeBurst: _spawnLikeBurst,
+                  ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, DiscoveryState state) {
-    return SafeArea(
-      bottom: false,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              QeranSpacing.s16,
-              QeranSpacing.s8,
-              QeranSpacing.s16,
-              0,
-            ),
-            child: DiscoveryTopBar(
-              onFilterTap: () => _openFilters(context),
-              onNotificationsTap: () => openNotifications(context),
-            ),
-          ),
-          const SizedBox(height: QeranSpacing.s4),
-          Expanded(child: _ScrollableProfile(state: state)),
-        ],
-      ),
-    );
-  }
+  /// No SafeArea and no top bar: the photo starts at y=0, under the status
+  /// bar. The two overlay buttons carry their own SafeArea so they clear the
+  /// clock / notch, and the non-photo states keep theirs below.
+  Widget _buildBody(BuildContext context, DiscoveryState state) =>
+      _ScrollableProfile(state: state);
 }
 
 /// Owns the pull-to-refresh + the state switch below the top bar. Loading /
@@ -285,10 +284,17 @@ class _ScrollableProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The loaded card owns its own RefreshIndicator (it IS the scrollable);
+    // wrapping it again here would nest two indicators on one gesture.
+    if (state is DiscoveryLoaded &&
+        !(state as DiscoveryLoaded).isEmpty &&
+        !(state as DiscoveryLoaded).isExhausted) {
+      return _buildContent(context);
+    }
     return RefreshIndicator(
       color: QeranColors.wine,
       onRefresh: () => context.read<DiscoveryCubit>().refresh(),
-      child: _buildContent(context),
+      child: SafeArea(bottom: false, child: _buildContent(context)),
     );
   }
 
@@ -334,9 +340,9 @@ class _ScrollableProfile extends StatelessWidget {
   }
 }
 
-/// The loaded discovery feed: a single fixed [DiscoveryUnifiedCard] (photo +
-/// internally-scrolling data), with the peek deck behind it. The page itself does
-/// not scroll — only the card's inner data region does.
+/// The loaded discovery feed: one full-bleed [DiscoveryUnifiedCard] filling
+/// the viewport. No peek layer — a full-screen surface has nothing to peek
+/// out from behind it; the swipe replaces the surface wholesale.
 class _ProfilePage extends StatefulWidget {
   final DiscoveryLoaded loaded;
   const _ProfilePage({required this.loaded});
@@ -352,6 +358,7 @@ class _ProfilePageState extends State<_ProfilePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _scheduleNextPhotoPrecache();
+    _hydrateCurrent();
   }
 
   @override
@@ -360,6 +367,19 @@ class _ProfilePageState extends State<_ProfilePage> {
     if (oldWidget.loaded.next?.id != widget.loaded.next?.id) {
       _scheduleNextPhotoPrecache();
     }
+    if (oldWidget.loaded.current?.id != widget.loaded.current?.id) {
+      _hydrateCurrent();
+    }
+  }
+
+  /// Fetches the current card's full profile so the below-the-fold sections
+  /// are already in place by the time the user scrolls to them — no spinner
+  /// on a scroll, and no fetch storm while swiping quickly. Cached by id, so
+  /// undo never refetches.
+  void _hydrateCurrent() {
+    final current = widget.loaded.current;
+    if (current == null) return;
+    context.read<DiscoveryHydrationCubit>().hydrate(current.id);
   }
 
   void _scheduleNextPhotoPrecache() {
@@ -388,45 +408,24 @@ class _ProfilePageState extends State<_ProfilePage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The card fills down to above the floating bottom-nav island with extra clearance
-        // so the action buttons and floating nav never collide.
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
         final navClearance =
             QeranBottomNav.contentClearance(context) +
             (isLandscape ? 12.0 : 24.0);
         final profile = widget.loaded.current!;
-        final nextProfile = widget.loaded.next;
+        // Landscape has far less height to spend, so the photo takes a
+        // smaller share and the profile starts sooner.
+        final photoHeight =
+            constraints.maxHeight * (isLandscape ? 0.62 : _kPhotoViewportFraction);
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  _kStackHPad,
-                  _kStackTPad,
-                  _kStackHPad,
-                  0,
-                ),
-                child: Stack(
-                  fit: StackFit.expand,
-                  clipBehavior: Clip.none,
-                  children: [
-                    if (nextProfile != null) const _PeekCardLayer(),
-                    Padding(
-                      padding: const EdgeInsets.only(top: _kPeekHeight),
-                      child: DiscoveryUnifiedCard(
-                        profile: profile,
-                        onTapDetails: () => _openDetails(context, profile),
-                        bottomContentInset: _kActionZoneClearance,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: navClearance),
-          ],
+        // Zero margins on every side: the surface is the screen. The bottom
+        // clearance lives INSIDE the scroll so content can travel past the
+        // action cluster instead of being boxed above it.
+        return DiscoveryUnifiedCard(
+          profile: profile,
+          photoHeight: photoHeight,
+          bottomInset: navClearance + _kActionZoneClearance,
+          onFilterTap: () => _openFilters(context),
         );
       },
     );
@@ -566,8 +565,8 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
     // visually enabled during the short wait — rapid taps simply
     // no-op without disabling the press feedback.
     return Positioned(
-      left: _kStackHPad + 14.0,
-      right: _kStackHPad + 14.0,
+      left: _kActionBarHPad,
+      right: _kActionBarHPad,
       bottom: navClearance + 14.0,
       child: DiscoveryFrostedActionZone(
         child: DiscoveryActionBar(
@@ -620,40 +619,6 @@ class _ScrollableCenter extends StatelessWidget {
   }
 }
 
-/// Pushes the reusable Full Profile Details screen with a Discovery
-/// seed so the layout paints instantly while the by-id endpoint
-/// hydrates in the background.
-Future<void> _openDetails(
-  BuildContext context,
-  DiscoveryProfile profile,
-) async {
-  // The home shell keeps visited tabs alive. Clear any focus retained by an
-  // offstage composer before pushing, otherwise Android may restore its IME
-  // when this details route is popped back to Discovery.
-  await dismissKeyboard();
-  if (!context.mounted) return;
-  final result = await NavigationManager.navigateTo(
-    context,
-    RouteNames.fullProfileDetails,
-    arguments: FullProfileDetailsArgs(
-      userId: profile.id,
-      initialData: OtherProfileSeed.fromDiscovery(profile),
-      entry: ProfileEntrySource.discovery,
-    ),
-  );
-  if (!context.mounted) return;
-  // Also clear after the pop: route focus restoration happens while the
-  // reverse transition completes, so this closes that final race.
-  await dismissKeyboard();
-  if (!context.mounted) return;
-  // SafetyMenuButton pops the details route returning the blocked userId. The
-  // backend has already severed the user server-side, so a plain refresh drops
-  // them from the deck (no fragile in-memory deck mutation).
-  if (result is String) {
-    context.read<DiscoveryCubit>().refresh();
-  }
-}
-
 /// Opens the dynamic filter sheet and forwards the user's selections
 /// into [DiscoveryCubit.applyFilters].
 ///
@@ -679,137 +644,4 @@ Future<void> _openFilters(BuildContext context) async {
     payload.isEmpty ? null : payload,
     selections: result.selections,
   );
-}
-
-/// Lightweight next-card silhouette. It preserves the layered-deck cue without
-/// rendering a second live network image + sigma-24 blur during every drag
-/// frame. The real next profile enters immediately after the short eject.
-class _PeekCardLayer extends StatelessWidget {
-  const _PeekCardLayer();
-
-  static const double _peekScale = 0.94;
-  static const double _peekOpacity = 0.60;
-  static const double _peekOffsetDp = 8.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final deckProgress = DeckAnimationScope.of(context).deckProgress;
-    return RepaintBoundary(
-      child: IgnorePointer(
-        child: ValueListenableBuilder<double>(
-          valueListenable: deckProgress,
-          builder: (context, rawProgress, child) {
-            final t = Curves.easeOut.transform(rawProgress);
-            final scale = _peekScale + (1.0 - _peekScale) * t;
-            final dy = _peekOffsetDp * (1.0 - t);
-            final opacity = _peekOpacity + (1.0 - _peekOpacity) * t;
-            return Opacity(
-              opacity: opacity.clamp(0.0, 1.0),
-              child: Transform.translate(
-                offset: Offset(0.0, dy),
-                child: Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.topCenter,
-                  child: child,
-                ),
-              ),
-            );
-          },
-          child: DecoratedBox(
-            key: const ValueKey<String>('discovery-peek-silhouette'),
-            decoration: BoxDecoration(
-              borderRadius: QeranRadii.panelR,
-              color: QeranColors.paper,
-              border: Border.all(
-                color: QeranColors.wine.withValues(alpha: 0.10),
-                width: 1.0,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: QeranColors.wine.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: QeranRadii.panelR,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isLandscape =
-                      constraints.maxWidth > constraints.maxHeight;
-                  return Flex(
-                    direction: isLandscape ? Axis.horizontal : Axis.vertical,
-                    children: [
-                      Expanded(
-                        flex: isLandscape ? 45 : 54,
-                        child: DecoratedBox(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [QeranColors.wineLight, QeranColors.wine],
-                            ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.layers_rounded,
-                              color: QeranColors.gold40,
-                              size: 36,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: isLandscape ? 55 : 46,
-                        child: ColoredBox(
-                          color: QeranColors.paper,
-                          child: Padding(
-                            padding: EdgeInsets.all(
-                              isLandscape ? QeranSpacing.s12 : QeranSpacing.s20,
-                            ),
-                            child: const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _PeekSkeletonBar(width: 104, height: 12),
-                                SizedBox(height: QeranSpacing.s12),
-                                _PeekSkeletonBar(width: 220, height: 8),
-                                SizedBox(height: QeranSpacing.s8),
-                                _PeekSkeletonBar(width: 164, height: 8),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PeekSkeletonBar extends StatelessWidget {
-  const _PeekSkeletonBar({required this.width, required this.height});
-
-  final double width;
-  final double height;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: const DecoratedBox(
-        decoration: BoxDecoration(
-          color: QeranColors.wine08,
-          borderRadius: QeranRadii.pill,
-        ),
-      ),
-    );
-  }
 }

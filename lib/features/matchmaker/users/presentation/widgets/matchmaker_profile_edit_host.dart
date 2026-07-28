@@ -14,10 +14,10 @@ import '../blocs/matchmaker_profile_detail_cubit.dart';
 import 'matchmaker_text_answer_sheet.dart';
 
 /// Installs the [TextAnswerEditScope] around the matchmaker profile body — but
-/// ONLY when the profile is editable (`pendingReview` / `rejected`; the backend
-/// rejects edits otherwise). When not editable it returns [child] unwrapped, so
-/// no scope is present and the P2b pencils never appear. The user-app profile
-/// never mounts this host → it never installs the scope → no pencils there.
+/// ONLY when the profile is editable (see [_editable]). When not editable it
+/// returns [child] unwrapped, so no scope is present and the P2b pencils never
+/// appear. The user-app profile never mounts this host → it never installs the
+/// scope → no pencils there.
 ///
 /// The scope's `onEdit` opens the inline text-answer sheet; the save cubit's
 /// `inFlightQuestionId` drives the tapped item's loader. On a successful save
@@ -32,16 +32,16 @@ class MatchmakerProfileEditHost extends StatelessWidget {
   final MatchmakerUserProfile profile;
   final Widget child;
 
-  // TODO(#7-relax): editing an APPROVED (visible) profile is blocked on Tariq
-  // confirming that PUT /matchmaker/users/{id}/text-answer accepts
-  // post-approval edits. This gate is why the matchmaker sees no pencils on
-  // the common case — an already-approved user — and it is intentionally left
-  // as-is until that answer lands. When it does, widen this to every status
-  // (or to the exact set the endpoint allows); the pencils themselves are
-  // already wired on both the Q&A rows and the two نبذات.
+  /// The backend accepts a text-answer edit while the profile is under review,
+  /// after a rejection, and — since the post-approval rollout — on an approved
+  /// (`visible`) profile too, which stays `visible` with no re-review.
+  ///
+  /// `hidden` stays out: a hidden profile is withdrawn from circulation, so
+  /// there is nothing for the matchmaker to be polishing.
   bool get _editable =>
       profile.profileStatus == ProfileStatus.pendingReview ||
-      profile.profileStatus == ProfileStatus.rejected;
+      profile.profileStatus == ProfileStatus.rejected ||
+      profile.profileStatus == ProfileStatus.visible;
 
   @override
   Widget build(BuildContext context) {

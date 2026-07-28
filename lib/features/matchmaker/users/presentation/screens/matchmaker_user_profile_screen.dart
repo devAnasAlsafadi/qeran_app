@@ -17,9 +17,9 @@ import '../widgets/matchmaker_profile_edit_host.dart';
 /// Matchmaker view of a user's full profile
 /// (`GET /matchmaker/users/{id}/profile`). Images are never blurred and the
 /// email is visible — both matchmaker privileges. Approve / reject live on the
-/// list card (M3b). Text answers are edited INLINE on the profile (PV3, gated
-/// to pendingReview / rejected) — the standalone edit-answers screen was
-/// removed in PV4.
+/// list card (M3b). Text answers are edited INLINE on the profile (PV3; see
+/// `MatchmakerProfileEditHost` for the status gate) — the standalone
+/// edit-answers screen was removed in PV4.
 class MatchmakerUserProfileScreen extends StatelessWidget {
   const MatchmakerUserProfileScreen({super.key, required this.userId});
 

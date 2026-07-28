@@ -232,14 +232,16 @@ void main() {
       expect(_pencil, findsNWidgets(2));
     });
 
-    testWidgets('approved (visible) → NO pencils, gate holds', (tester) async {
-      // Guards TODO(#7-relax): relaxing the gate is blocked on the backend
-      // confirming post-approval edits are accepted.
+    testWidgets('visible installs the scope → pencils', (tester) async {
+      // The backend accepts post-approval text edits and leaves the profile
+      // visible, so the common case — an already-approved user — is editable.
       await tester.pumpWidget(_hosted(ProfileStatus.visible));
-      expect(_pencil, findsNothing);
+      expect(_pencil, findsNWidgets(2));
     });
 
     testWidgets('hidden → NO pencils', (tester) async {
+      // The one status still out: a withdrawn profile isn't in circulation,
+      // so there is nothing to polish. Also proves the gate still gates.
       await tester.pumpWidget(_hosted(ProfileStatus.hidden));
       expect(_pencil, findsNothing);
     });

@@ -38,6 +38,15 @@ class MatchmakerUserProfileRemoteDataSourceImpl
       );
       throw ServerException(message: LocaleKeys.errors_generic);
     }
+    // TEMPORARY DIAGNOSTIC (M2) — remove once read. Distinguishes "the
+    // AddImageRequestStatus migration isn't applied" (key ABSENT) from "the
+    // client isn't re-reading it" (key PRESENT with a value).
+    AppLogger.info(
+      'DIAG profile $userId imageRequestStatus '
+      'present=${profileJson.containsKey('imageRequestStatus')} '
+      'value=${profileJson['imageRequestStatus']}',
+      tag: 'MATCHMAKER',
+    );
     return MatchmakerUserProfileModel.fromJson(profileJson);
   }
 }

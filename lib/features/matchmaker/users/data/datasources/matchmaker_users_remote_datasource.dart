@@ -79,6 +79,18 @@ class MatchmakerUsersRemoteDataSourceImpl
       );
       throw ServerException(message: LocaleKeys.errors_generic);
     }
+    // TEMPORARY DIAGNOSTIC (M2) — remove once read. The request-photo button
+    // lives on THIS list's row sheet, but Tariq documented imageRequestStatus
+    // on the profile payload only. This says whether the list carries it.
+    final rawRows = (response['data'] as Map<String, dynamic>?)?['data'];
+    if (rawRows is List) {
+      AppLogger.info(
+        'DIAG list ${list.name} imageRequestStatus per row: '
+        '${rawRows.whereType<Map<String, dynamic>>().map((r) => '${r['userId']}='
+            '${r.containsKey('imageRequestStatus') ? r['imageRequestStatus'] : 'ABSENT'}').toList()}',
+        tag: 'MATCHMAKER',
+      );
+    }
     return data;
   }
 

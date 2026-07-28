@@ -20,10 +20,9 @@ import 'reject_reason_sheet.dart';
 /// Confirm sheet opened by the pending card's موافقة button — offers Approve
 /// (direct), Reject (opens the reason sheet), and — when the user has no
 /// profile image ([hasNoImage]) — Request-photo, for one user. Owns a scoped
-/// [MatchmakerUserActionsCubit] (param1: userId); pops `true` on approve/reject
-/// success so the caller refreshes the list. Request-photo pops without a
-/// refresh (the row's status is unchanged). A failure shows a snackbar and
-/// keeps the sheet open for a retry.
+/// [MatchmakerUserActionsCubit] (param1: userId); pops `true` on ANY success —
+/// approve, reject, or request-photo — so the caller refetches the row. A
+/// failure shows a snackbar and keeps the sheet open for a retry.
 Future<bool?> showMatchmakerReviewSheet(
   BuildContext context, {
   required String userId,
@@ -107,7 +106,15 @@ class _ReviewActionSheet extends StatelessWidget {
               LocaleKeys.matchmaker_profile_request_image_success.t(context),
           type: SnackBarType.success,
         );
-        Navigator.of(context).pop();
+        // Pop `true` so the host refetches the row. Today the row looks the
+        // same afterwards, so this changes nothing visible — it is the wiring
+        // for the pending-request state, which the row DTO cannot express yet
+        // (no imageRequestPending / lastImageRequestedAt field). Once the
+        // backend ships it, the refreshed row carries it and طلب صورة can be
+        // replaced by a "تم إرسال الطلب" state with no extra plumbing.
+        // A local flag was rejected deliberately: it would not survive a
+        // relaunch and would then LIE about whether a request is outstanding.
+        Navigator.of(context).pop(true);
       case MatchmakerActionOutcome.failure:
         AppSnackBar.show(
           context,

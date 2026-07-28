@@ -55,6 +55,7 @@ import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart
 import 'package:qeran/features/discovery/presentation/widgets/discovery_action_bar.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card_skeleton.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_chips_above_image.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_frosted_action_zone.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_merged_profile_body.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_unified_card.dart';
@@ -76,8 +77,9 @@ const double kTopInset = 24.0;
 
 // ── Fakes ────────────────────────────────────────────────────────────────────
 
-/// Carries an aboutMe placement like the real deck payload does, so the
-/// content sheet has realistic height under the photo.
+/// Carries aboveImage chips and an aboutMe placement like the real deck
+/// payload does, so the identity block and the content sheet have realistic
+/// height and the geometry assertions below mean something.
 DiscoveryProfile _profile(String id) => DiscoveryProfile(
   id: id,
   name: 'Name-$id',
@@ -85,6 +87,26 @@ DiscoveryProfile _profile(String id) => DiscoveryProfile(
   images: const [],
   matchingScore: 0,
   placements: [
+    discovery_placement.Placement(
+      code: discovery_code.PlacementCode.aboveImage,
+      name: 'فوق الصورة',
+      items: [
+        discovery_item.PlacementItem(
+          questionId: 3,
+          question: 'المهنة',
+          type: discovery_item_type.PlacementItemType.text,
+          value: const discovery_value.PlacementSingle('طبيب'),
+          display: const discovery_value.PlacementSingle('طبيب'),
+        ),
+        discovery_item.PlacementItem(
+          questionId: 4,
+          question: 'الجنسية',
+          type: discovery_item_type.PlacementItemType.text,
+          value: const discovery_value.PlacementSingle('بحريني'),
+          display: const discovery_value.PlacementSingle('بحريني'),
+        ),
+      ],
+    ),
     discovery_placement.Placement(
       code: discovery_code.PlacementCode.aboutMe,
       name: 'نبذة عني',
@@ -655,6 +677,32 @@ void main() {
       final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
       const visible = 800 - kTopInset;
       expect(photo.height + intro.height, lessThan(visible));
+    });
+  });
+
+  group('the on-image chips clear the intro sheet (R2)', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('the sheet does not slice through the job / nationality row', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // The sheet is lifted 24dp over the photo's bottom edge while the chips
+      // sat only 20dp above it — a 4dp collision, plus zero breathing room.
+      final chips = tester.getRect(find.byType(DiscoveryChipsAboveImage));
+      final sheet = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
+      expect(chips.bottom, lessThanOrEqualTo(sheet.top));
+      expect(sheet.top - chips.bottom, greaterThanOrEqualTo(12));
     });
   });
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
 import '../../domain/entities/discovery_profile.dart';
 import '../blocs/discovery_cubit.dart';
@@ -145,6 +146,11 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
                 profile: widget.profile,
                 height: widget.photoHeight,
                 onFilterTap: widget.onFilterTap,
+                // The intro sheet slides up over the photo's bottom edge, so
+                // the chips have to clear that overlap — plus room to breathe
+                // — or the sheet slices through them.
+                bottomContentInset:
+                    DiscoveryMergedProfileBody.sheetOverlap + QeranSpacing.s16,
               ),
             ),
             // Transform, not padding: it lifts the sheet over the photo's

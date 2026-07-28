@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
@@ -42,6 +44,15 @@ class DiscoveryImagePanel extends StatelessWidget {
   /// it lives inside a scroll, which has no bounded height to expand into.
   final double? height;
 
+  /// Minimum gap the identity block (name, pill, chips) keeps from the panel's
+  /// bottom edge.
+  ///
+  /// The merged screen slides the نبذة عني sheet UP over that edge, so the
+  /// last few dp of the panel are covered; the caller passes how much is
+  /// covered plus the breathing room it wants, and the chips clear the sheet
+  /// instead of being sliced by it.
+  final double bottomContentInset;
+
   const DiscoveryImagePanel({
     super.key,
     required this.profile,
@@ -49,6 +60,7 @@ class DiscoveryImagePanel extends StatelessWidget {
     this.showOverlayActions = true,
     this.onFilterTap,
     this.height,
+    this.bottomContentInset = 0,
   });
 
   @override
@@ -86,6 +98,7 @@ class DiscoveryImagePanel extends StatelessWidget {
               age: profile.age,
               matchPercent: profile.matchingScore,
               aboveItems: aboveItems,
+              bottomContentInset: bottomContentInset,
             ),
           ),
           if (showOverlayActions)
@@ -153,12 +166,14 @@ class _AdaptiveImageOverlay extends StatelessWidget {
     required this.age,
     required this.matchPercent,
     required this.aboveItems,
+    required this.bottomContentInset,
   });
 
   final String name;
   final int age;
   final double matchPercent;
   final List<PlacementItem> aboveItems;
+  final double bottomContentInset;
 
   static const double _compactHeight = 220;
   static const double _veryCompactHeight = 150;
@@ -173,7 +188,12 @@ class _AdaptiveImageOverlay extends StatelessWidget {
             ? QeranSpacing.s12
             : QeranSpacing.s16;
         final topPadding = isCompact ? QeranSpacing.s8 : QeranSpacing.s16;
-        final bottomPadding = isCompact ? QeranSpacing.s8 : QeranSpacing.s20;
+        // Whichever is larger: the panel's own breathing room, or the space
+        // the caller reserved for whatever overlaps the bottom edge.
+        final bottomPadding = math.max(
+          isCompact ? QeranSpacing.s8 : QeranSpacing.s20,
+          bottomContentInset,
+        );
         final contentWidth = (constraints.maxWidth - horizontalPadding * 2)
             .clamp(0.0, double.infinity)
             .toDouble();

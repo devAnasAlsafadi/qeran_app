@@ -348,13 +348,6 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
   ///     stays); only accepted passes advance and fire a skip;
   ///   * [_skipInFlight] dedup around the network call — a profile can
   ///     never have two concurrent `POST /skip/{id}` requests.
-  ///
-  /// **Known backend issue**: `POST /api/discovery/skip/{id}` has been
-  /// observed returning HTTP 500 with an empty body. The log line
-  /// below is the single place a backend report can be lifted from —
-  /// the HTTP layer separately logs the status code and the raw
-  /// response body via `_handleRawResponse`, so the two together give
-  /// enough context (endpoint, target id, status, body) for a ticket.
   Future<void> pass() async {
     final now = DateTime.now();
     if (_lastPassAcceptedAt != null &&
@@ -376,9 +369,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
               (failure) => AppLogger.warning(
                 'skip endpoint failed silently for targetUserId=${profile.id} '
                 '(UX optimistic — card already advanced). '
-                'Server message: "${failure.message}". '
-                'Endpoint: POST /api/discovery/skip/${profile.id}. '
-                'Check HTTP layer log for status code and raw body.',
+                'Server message: "${failure.message}".',
                 tag: 'DISCOVERY',
               ),
               (_) => null,

@@ -617,6 +617,7 @@
     "profile_reject_validation_empty": "اكتب سبب الرفض أولًا",
     "profile_reject_success": "تم رفض البروفايل",
     "profile_request_image_success": "تم إرسال طلب الصورة",
+    "profile_request_image_awaiting": "بانتظار رفع الصورة",
     "answers_save": "حفظ",
     "answers_hint": "اكتب الإجابة…",
     "answers_save_success": "تم حفظ الإجابة",

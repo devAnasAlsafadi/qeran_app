@@ -617,6 +617,7 @@
     "profile_reject_validation_empty": "Please enter a reason",
     "profile_reject_success": "Profile rejected",
     "profile_request_image_success": "Photo request sent",
+    "profile_request_image_awaiting": "Awaiting the photo",
     "answers_save": "Save",
     "answers_hint": "Write the answer…",
     "answers_save_success": "Answer saved",

@@ -602,6 +602,7 @@ abstract class  LocaleKeys {
   static const matchmaker_profile_reject_validation_empty = 'matchmaker.profile_reject_validation_empty';
   static const matchmaker_profile_reject_success = 'matchmaker.profile_reject_success';
   static const matchmaker_profile_request_image_success = 'matchmaker.profile_request_image_success';
+  static const matchmaker_profile_request_image_awaiting = 'matchmaker.profile_request_image_awaiting';
   static const matchmaker_answers_save = 'matchmaker.answers_save';
   static const matchmaker_answers_hint = 'matchmaker.answers_hint';
   static const matchmaker_answers_save_success = 'matchmaker.answers_save_success';

@@ -3,6 +3,8 @@ import 'package:qeran/features/profile/domain/entities/placement.dart';
 import 'package:qeran/features/profile/domain/entities/profile_image.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 
+import 'image_request_status.dart';
+
 /// A user's full profile as seen by the matchmaker
 /// (`GET /api/matchmaker/users/{id}/profile`). This is the owner-ish shape:
 /// it carries [email], [gender] and [profileStatus] and has no matching
@@ -32,6 +34,10 @@ class MatchmakerUserProfile extends Equatable {
   final List<ProfileImage> images;
   final List<Placement> placements;
 
+  /// Whether the matchmaker already asked this user for a photo. Defaults to
+  /// [MatchmakerImageRequestStatus.none] when the server omits the field.
+  final MatchmakerImageRequestStatus imageRequestStatus;
+
   const MatchmakerUserProfile({
     required this.userId,
     required this.name,
@@ -44,6 +50,7 @@ class MatchmakerUserProfile extends Equatable {
     required this.profileImage,
     required this.images,
     required this.placements,
+    this.imageRequestStatus = MatchmakerImageRequestStatus.none,
   });
 
   @override
@@ -59,5 +66,6 @@ class MatchmakerUserProfile extends Equatable {
         profileImage,
         images,
         placements,
+        imageRequestStatus,
       ];
 }

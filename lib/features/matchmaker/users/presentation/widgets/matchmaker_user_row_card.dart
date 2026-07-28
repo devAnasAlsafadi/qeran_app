@@ -213,6 +213,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
       context,
       userId: row.userId,
       hasNoImage: row.hasProfileImage == false,
+      imageRequestStatus: row.imageRequestStatus,
     );
     if (mutated == true) onMutated?.call();
   }

@@ -1,6 +1,7 @@
 import 'package:qeran/core/api/end_points.dart';
 
 import '../../../shared/data/json_parsers.dart';
+import '../../domain/entities/image_request_status.dart';
 import '../../domain/entities/matchmaker_card_answer.dart';
 import '../../domain/entities/matchmaker_user_row.dart';
 
@@ -20,6 +21,7 @@ class MatchmakerUserRowModel {
   final int? age;
   final List<MatchmakerCardAnswer> answers;
   final bool? hasProfileImage;
+  final String? imageRequestStatus;
   final int? chatConversationId;
   final int? subscriptionPlanId;
   final String? subscriptionPlanName;
@@ -33,6 +35,7 @@ class MatchmakerUserRowModel {
     required this.age,
     required this.answers,
     required this.hasProfileImage,
+    required this.imageRequestStatus,
     required this.chatConversationId,
     required this.subscriptionPlanId,
     required this.subscriptionPlanName,
@@ -64,6 +67,9 @@ class MatchmakerUserRowModel {
           )
           .toList(growable: false),
       hasProfileImage: parseNullableBool(json['hasProfileImage']),
+      // Documented on the profile payload; read here too so the request
+      // button lights up the moment the list DTO carries it. Absent → none.
+      imageRequestStatus: parseNullableString(json['imageRequestStatus']),
       chatConversationId: parseNullableInt(json['chatConversationId']),
       // Stable plan key (for cross-locale plan filtering); `null` off the
       // approved-subscribed list, where the subscription map is absent.
@@ -87,6 +93,8 @@ class MatchmakerUserRowModel {
       age: age,
       answers: answers,
       hasProfileImage: hasProfileImage,
+      imageRequestStatus:
+          MatchmakerImageRequestStatus.fromString(imageRequestStatus),
       chatConversationId: chatConversationId,
       subscriptionPlanId: subscriptionPlanId,
       subscriptionPlanName: subscriptionPlanName,

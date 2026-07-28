@@ -13,6 +13,7 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../domain/entities/image_request_status.dart';
 import '../blocs/matchmaker_user_actions_cubit.dart';
 import '../blocs/matchmaker_user_actions_state.dart';
 import 'reject_reason_sheet.dart';
@@ -23,10 +24,16 @@ import 'reject_reason_sheet.dart';
 /// [MatchmakerUserActionsCubit] (param1: userId); pops `true` on ANY success —
 /// approve, reject, or request-photo — so the caller refetches the row. A
 /// failure shows a snackbar and keeps the sheet open for a retry.
+///
+/// [imageRequestStatus] is the server's persisted answer to "have I already
+/// asked?" — `pending` turns the request button into a disabled awaiting
+/// state so the matchmaker doesn't nag a user who simply hasn't uploaded yet.
 Future<bool?> showMatchmakerReviewSheet(
   BuildContext context, {
   required String userId,
   bool hasNoImage = false,
+  MatchmakerImageRequestStatus imageRequestStatus =
+      MatchmakerImageRequestStatus.none,
 }) {
   return showModalBottomSheet<bool>(
     context: context,
@@ -36,15 +43,22 @@ Future<bool?> showMatchmakerReviewSheet(
     useSafeArea: true,
     builder: (_) => BlocProvider<MatchmakerUserActionsCubit>(
       create: (_) => sl<MatchmakerUserActionsCubit>(param1: userId),
-      child: _ReviewActionSheet(hasNoImage: hasNoImage),
+      child: _ReviewActionSheet(
+        hasNoImage: hasNoImage,
+        imageRequestStatus: imageRequestStatus,
+      ),
     ),
   );
 }
 
 class _ReviewActionSheet extends StatelessWidget {
-  const _ReviewActionSheet({required this.hasNoImage});
+  const _ReviewActionSheet({
+    required this.hasNoImage,
+    required this.imageRequestStatus,
+  });
 
   final bool hasNoImage;
+  final MatchmakerImageRequestStatus imageRequestStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +93,10 @@ class _ReviewActionSheet extends StatelessWidget {
               style: QeranTypography.body,
             ),
             QeranSpacing.vs20,
-            _ReviewButtons(hasNoImage: hasNoImage),
+            _ReviewButtons(
+              hasNoImage: hasNoImage,
+              imageRequestStatus: imageRequestStatus,
+            ),
           ],
         ),
       ),
@@ -106,14 +123,10 @@ class _ReviewActionSheet extends StatelessWidget {
               LocaleKeys.matchmaker_profile_request_image_success.t(context),
           type: SnackBarType.success,
         );
-        // Pop `true` so the host refetches the row. Today the row looks the
-        // same afterwards, so this changes nothing visible — it is the wiring
-        // for the pending-request state, which the row DTO cannot express yet
-        // (no imageRequestPending / lastImageRequestedAt field). Once the
-        // backend ships it, the refreshed row carries it and طلب صورة can be
-        // replaced by a "تم إرسال الطلب" state with no extra plumbing.
-        // A local flag was rejected deliberately: it would not survive a
-        // relaunch and would then LIE about whether a request is outstanding.
+        // Pop `true` so the host refetches the row: the refreshed payload
+        // carries imageRequestStatus == pending, which renders the awaiting
+        // state. Deliberately NOT a local flag — that would not survive a
+        // relaunch and would then lie about whether a request is outstanding.
         Navigator.of(context).pop(true);
       case MatchmakerActionOutcome.failure:
         AppSnackBar.show(
@@ -131,9 +144,13 @@ class _ReviewActionSheet extends StatelessWidget {
 /// [طلب صورة when the user has no photo] · إلغاء (ghost). The active action
 /// shows an inline loader; all disable while any action is in flight.
 class _ReviewButtons extends StatelessWidget {
-  const _ReviewButtons({required this.hasNoImage});
+  const _ReviewButtons({
+    required this.hasNoImage,
+    required this.imageRequestStatus,
+  });
 
   final bool hasNoImage;
+  final MatchmakerImageRequestStatus imageRequestStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -161,14 +178,29 @@ class _ReviewButtons extends StatelessWidget {
               onPressed: busy ? null : () => _onReject(context, cubit),
             ),
             QeranSpacing.vs8,
-            if (hasNoImage) ...[
+            // `approved` means the user uploaded after the request, so there
+            // is nothing left to ask for — the button drops out entirely, the
+            // same as for a user who already had a photo.
+            if (hasNoImage &&
+                imageRequestStatus !=
+                    MatchmakerImageRequestStatus.approved) ...[
               QeranButton(
-                label: LocaleKeys.matchmaker_profile_action_request_image
-                    .t(context),
+                label:
+                    (imageRequestStatus.isAwaitingUpload
+                            ? LocaleKeys
+                                  .matchmaker_profile_request_image_awaiting
+                            : LocaleKeys.matchmaker_profile_action_request_image)
+                        .t(context),
                 variant: QeranButtonVariant.ghost,
-                leadingIcon: Icons.add_a_photo_outlined,
+                leadingIcon: imageRequestStatus.isAwaitingUpload
+                    ? Icons.hourglass_top_rounded
+                    : Icons.add_a_photo_outlined,
                 loading: state.inFlight == MatchmakerUserAction.requestImage,
-                onPressed: busy ? null : cubit.requestImage,
+                // Awaiting: already asked, the user simply hasn't uploaded
+                // yet. Disabled so a second request can't be fired.
+                onPressed: busy || imageRequestStatus.isAwaitingUpload
+                    ? null
+                    : cubit.requestImage,
               ),
               QeranSpacing.vs8,
             ],

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'image_request_status.dart';
 import 'matchmaker_card_answer.dart';
 
 /// A single row in any of the three matchmaker user lists. The common
@@ -26,6 +27,12 @@ class MatchmakerUserRow extends Equatable {
   final List<MatchmakerCardAnswer> answers;
 
   final bool? hasProfileImage;
+
+  /// Whether a photo request is already outstanding for this user. Parsed
+  /// tolerantly: a payload without the field yields
+  /// [MatchmakerImageRequestStatus.none], i.e. "offer the request", which is
+  /// exactly the pre-rollout behaviour.
+  final MatchmakerImageRequestStatus imageRequestStatus;
   final int? chatConversationId;
 
   /// Stable plan key for cross-locale plan matching — pair against
@@ -42,6 +49,7 @@ class MatchmakerUserRow extends Equatable {
     this.age,
     this.answers = const [],
     this.hasProfileImage,
+    this.imageRequestStatus = MatchmakerImageRequestStatus.none,
     this.chatConversationId,
     this.subscriptionPlanId,
     this.subscriptionPlanName,
@@ -60,6 +68,7 @@ class MatchmakerUserRow extends Equatable {
         age,
         answers,
         hasProfileImage,
+        imageRequestStatus,
         chatConversationId,
         subscriptionPlanId,
         subscriptionPlanName,

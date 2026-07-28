@@ -78,16 +78,28 @@ class MatchmakerShareCubit extends Cubit<MatchmakerShareState> with SafeEmit<Mat
           _page = 1;
         }
         final hasMore = morePages || moreSources;
+        // Source exhausted with another still queued → pull it NOW rather than
+        // waiting for a scroll. `loadMore` only fires from the sheet's scroll
+        // listener, so a short first source (e.g. 6 unsubscribed users) never
+        // scrolls and the SUBSCRIBED users were never fetched at all — the
+        // picker silently listed a subset of the matchmaker's users.
+        // Guarded on !morePages so this only ever BRIDGES sources; it never
+        // eagerly paginates a source that still has pages of its own.
+        final bridging = !morePages && moreSources;
         emit(state.copyWith(
+          // Stay in the initial-load state while bridging on a still-empty
+          // list, so an empty first source shows the loader rather than
+          // flashing "no recipients" before the next source arrives.
+          loading: bridging && items.isEmpty,
+          // Keep the in-flight flag up across the bridge so a concurrent
+          // scroll-driven loadMore is rejected by its own guard instead of
+          // re-fetching the page we are already pulling.
+          loadingMore: bridging && items.isNotEmpty,
           recipients: items,
-          loading: false,
-          loadingMore: false,
           hasMore: hasMore,
           clearError: true,
         ));
-        // First source empty but another remains → pull it so the picker
-        // never shows an empty list while recipients still exist.
-        if (items.isEmpty && hasMore) _fetchNext();
+        if (bridging) _fetchNext();
       },
     );
   }

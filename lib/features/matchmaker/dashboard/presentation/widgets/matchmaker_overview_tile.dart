@@ -25,7 +25,6 @@ class MatchmakerOverviewTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
     return QeranCard(
       onTap: onTap,
       padding: const EdgeInsets.all(QeranSpacing.s16),
@@ -36,8 +35,8 @@ class MatchmakerOverviewTile extends StatelessWidget {
             children: [
               _IconChip(icon: icon),
               const Spacer(),
-              Icon(
-                isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+              const Icon(
+                Icons.chevron_right_rounded,
                 size: 20,
                 color: QeranColors.wine40,
               ),

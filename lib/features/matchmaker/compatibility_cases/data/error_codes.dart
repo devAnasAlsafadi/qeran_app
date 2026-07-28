@@ -10,4 +10,7 @@ class CompatibilityCasesErrorCodes {
   /// is numeric ("…من الحالة 2 إلى الحالة 2") — surface a local string
   /// instead and refresh the list, since the real status may have moved.
   static const String invalidStatusTransition = 'INVALID_STATUS_TRANSITION';
+
+  /// Returned when the current matchmaker may not drive this request.
+  static const String unauthorized = 'UNAUTHORIZED';
 }

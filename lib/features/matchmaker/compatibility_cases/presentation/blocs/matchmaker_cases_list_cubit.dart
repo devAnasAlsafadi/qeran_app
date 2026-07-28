@@ -18,8 +18,8 @@ import '../../domain/usecases/get_compatibility_cases_usecase.dart';
 /// refresh and load-more bookkeeping come from [PaginatedListCubitMixin];
 /// this class wires the fetch (throw-on-failure) AND the matchmaker
 /// realtime port:
-///   • `CompatibilityCaseUpdated` → update a row in place, or drop it on
-///     a terminal status (the server removes terminal cases from the list).
+///   • `CompatibilityCaseUpdated` → update a row in place, including terminal
+///     states so completed/ended filters keep working.
 ///   • realtime reconnect → re-fetch page 1 to catch up on anything missed
 ///     while the socket was down (SignalR does not replay missed events).
 ///
@@ -28,7 +28,9 @@ import '../../domain/usecases/get_compatibility_cases_usecase.dart';
 /// connection itself is owned by the shell, never by this cubit.
 class MatchmakerCasesListCubit
     extends Cubit<PaginatedListState<CompatibilityCase>>
-    with SafeEmit<PaginatedListState<CompatibilityCase>>, PaginatedListCubitMixin<CompatibilityCase> {
+    with
+        SafeEmit<PaginatedListState<CompatibilityCase>>,
+        PaginatedListCubitMixin<CompatibilityCase> {
   final GetCompatibilityCasesUseCase _getCases;
   final MatchmakerRealtimePort _realtimePort;
 
@@ -39,11 +41,11 @@ class MatchmakerCasesListCubit
   MatchmakerCasesListCubit({
     required GetCompatibilityCasesUseCase getCases,
     required MatchmakerRealtimePort realtimePort,
-  })  : _getCases = getCases,
-        _realtimePort = realtimePort,
-        _hasBeenConnected =
-            realtimePort.status == MatchmakerRealtimeStatus.connected,
-        super(const PaginatedListState()) {
+  }) : _getCases = getCases,
+       _realtimePort = realtimePort,
+       _hasBeenConnected =
+           realtimePort.status == MatchmakerRealtimeStatus.connected,
+       super(const PaginatedListState()) {
     _caseUpdatesSub = _realtimePort.caseUpdates.listen(_onCaseUpdate);
     _statusSub = _realtimePort.statusStream.listen(_onStatus);
   }
@@ -69,34 +71,58 @@ class MatchmakerCasesListCubit
     );
   }
 
-  /// Apply a live `CompatibilityCaseUpdated`: drop the row on a terminal
-  /// status (the server drops it from the list), else replace its
-  /// formal-request status in place. Unknown caseId (not on a loaded
-  /// page) → ignored.
+  /// Apply a live `CompatibilityCaseUpdated` by replacing its formal-request
+  /// status in place. Terminal rows stay loaded so completed/ended filters do
+  /// not lose them immediately after an update. Unknown caseId is ignored.
   void _onCaseUpdate(CompatibilityCaseUpdate update) {
+    applyStatusUpdate(
+      caseId: update.caseId,
+      formalRequestId: update.formalRequestId,
+      status: FormalRequestStatus.fromString(update.newStatus),
+    );
+  }
+
+  /// Applies a confirmed status locally. This is used by both SignalR and the
+  /// mutation success path, so a completed row survives even if the realtime
+  /// event arrives late or the following list endpoint omits terminal rows.
+  void applyStatusUpdate({
+    required int caseId,
+    required int formalRequestId,
+    required FormalRequestStatus status,
+  }) {
     if (isClosed) return;
-    final index = state.items.indexWhere((c) => c.caseId == update.caseId);
+    final index = state.items.indexWhere((c) => c.caseId == caseId);
     if (index < 0) return;
-    final status = FormalRequestStatus.fromString(update.newStatus);
-    if (status.isTerminal) {
-      emit(state.copyWith(items: [...state.items]..removeAt(index)));
-      AppLogger.info(
-        'MM-RT — case ${update.caseId} terminal ($status) → removed',
-        tag: 'MM-RT',
-      );
-      return;
-    }
     final existing = state.items[index];
-    final formalRequest = (existing.formalRequest ??
-            CaseFormalRequest(id: update.formalRequestId, status: status))
-        .copyWith(status: status);
-    emit(state.copyWith(
-      items: [...state.items]
-        ..[index] = existing.copyWith(formalRequest: formalRequest),
-    ));
+    final formalRequest =
+        (existing.formalRequest ??
+                CaseFormalRequest(id: formalRequestId, status: status))
+            .copyWith(status: status);
+    emit(
+      state.copyWith(
+        items: [...state.items]
+          ..[index] = existing.copyWith(formalRequest: formalRequest),
+      ),
+    );
     AppLogger.info(
-      'MM-RT — case ${update.caseId} status → $status (in place)',
+      'MATCHMAKER — case $caseId status → $status (in place)',
       tag: 'MM-RT',
+    );
+  }
+
+  /// If the mutation endpoint rejects a stale list permission, stop offering
+  /// the same action until a later server refresh says it is available again.
+  void markStatusUpdateUnavailable(int caseId) {
+    if (isClosed) return;
+    final index = state.items.indexWhere((c) => c.caseId == caseId);
+    if (index < 0 || !state.items[index].canUpdateFormalRequestStatus) return;
+    emit(
+      state.copyWith(
+        items: [...state.items]
+          ..[index] = state.items[index].copyWith(
+            canUpdateFormalRequestStatus: false,
+          ),
+      ),
     );
   }
 
@@ -107,10 +133,12 @@ class MatchmakerCasesListCubit
     if (isClosed) return;
     final index = state.items.indexWhere((c) => c.caseId == caseId);
     if (index < 0 || state.items[index].hasMyNote == hasNote) return;
-    emit(state.copyWith(
-      items: [...state.items]
-        ..[index] = state.items[index].copyWith(hasMyNote: hasNote),
-    ));
+    emit(
+      state.copyWith(
+        items: [...state.items]
+          ..[index] = state.items[index].copyWith(hasMyNote: hasNote),
+      ),
+    );
   }
 
   /// Catch-up: on re-entry into `connected` after a prior connection

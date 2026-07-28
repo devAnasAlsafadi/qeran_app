@@ -18,13 +18,13 @@ const _chat = CaseChat(
 );
 
 CaseUser _user(String name) => CaseUser(
-      userId: name,
-      firstName: name,
-      profileImageUrl: null,
-      age: null,
-      gender: null,
-      isAssignedToMe: true,
-    );
+  userId: name,
+  firstName: name,
+  profileImageUrl: null,
+  age: null,
+  gender: null,
+  isAssignedToMe: true,
+);
 
 CompatibilityCase _case({
   required int id,
@@ -40,8 +40,9 @@ CompatibilityCase _case({
     likeAcceptedAt: null,
     stage: stage,
     photoExchange: null,
-    formalRequest:
-        formal == null ? null : CaseFormalRequest(id: id, status: formal),
+    formalRequest: formal == null
+        ? null
+        : CaseFormalRequest(id: id, status: formal),
     chat: _chat,
     canUpdateFormalRequestStatus: true,
     hasMyNote: false,
@@ -50,7 +51,10 @@ CompatibilityCase _case({
 
 void main() {
   final like = _case(id: 1, stage: CompatibilityCaseStage.likeAccepted);
-  final photo = _case(id: 2, stage: CompatibilityCaseStage.photoExchangePending);
+  final photo = _case(
+    id: 2,
+    stage: CompatibilityCaseStage.photoExchangePending,
+  );
   final waiting = _case(
     id: 3,
     stage: CompatibilityCaseStage.photoExchangeAccepted,
@@ -63,7 +67,12 @@ void main() {
     my: 'خالد',
     other: 'ليان',
   );
-  final all = [like, photo, waiting, closed];
+  final completed = _case(
+    id: 5,
+    stage: CompatibilityCaseStage.photoExchangeAccepted,
+    formal: FormalRequestStatus.successfullyClosed,
+  );
+  final all = [like, photo, waiting, closed, completed];
 
   List<int> ids(List<CompatibilityCase> cs) => cs.map((c) => c.caseId).toList();
 
@@ -74,6 +83,7 @@ void main() {
       expect(caseStageOf(waiting), CaseStage.waitingAppointment);
       // closed/cancelled anchor to the first formal stage.
       expect(caseStageOf(closed), CaseStage.waitingAppointment);
+      expect(caseStageOf(completed), CaseStage.completed);
     });
   });
 
@@ -81,7 +91,7 @@ void main() {
     test('الكل (no stage, no name) passes everything', () {
       const f = MatchmakerCasesFilter();
       expect(f.isActive, isFalse);
-      expect(ids(f.apply(all)), [1, 2, 3, 4]);
+      expect(ids(f.apply(all)), [1, 2, 3, 4, 5]);
     });
 
     test('single stage keeps only cases at that stage', () {
@@ -93,6 +103,11 @@ void main() {
     test('waitingAppointment includes the closed case anchored there', () {
       const f = MatchmakerCasesFilter(stage: CaseStage.waitingAppointment);
       expect(ids(f.apply(all)), [3, 4]);
+    });
+
+    test('completed keeps successfully closed cases visible', () {
+      const f = MatchmakerCasesFilter(stage: CaseStage.completed);
+      expect(ids(f.apply(all)), [5]);
     });
 
     test('name query matches either participant, case-insensitive', () {

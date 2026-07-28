@@ -22,12 +22,22 @@ class MatchmakerCaseStatusState extends Equatable {
   /// shows a local message and refreshes the list (the real status moved).
   final bool isInvalidTransition;
 
+  /// True when the server says this matchmaker cannot update the request.
+  final bool isUnauthorized;
+
+  /// The status confirmed by the latest successful mutation. The detail
+  /// screen uses it to update the list immediately without a terminal-dropping
+  /// refresh.
+  final FormalRequestStatus? successfulTarget;
+
   const MatchmakerCaseStatusState({
     this.inFlight,
     this.outcome = CaseStatusOutcome.none,
     this.eventVersion = 0,
     this.message,
     this.isInvalidTransition = false,
+    this.isUnauthorized = false,
+    this.successfulTarget,
   });
 
   bool get isBusy => inFlight != null;
@@ -40,6 +50,9 @@ class MatchmakerCaseStatusState extends Equatable {
     String? message,
     bool clearMessage = false,
     bool? isInvalidTransition,
+    bool? isUnauthorized,
+    FormalRequestStatus? successfulTarget,
+    bool clearSuccessfulTarget = false,
   }) {
     return MatchmakerCaseStatusState(
       inFlight: clearInFlight ? null : (inFlight ?? this.inFlight),
@@ -47,10 +60,21 @@ class MatchmakerCaseStatusState extends Equatable {
       eventVersion: eventVersion ?? this.eventVersion,
       message: clearMessage ? null : (message ?? this.message),
       isInvalidTransition: isInvalidTransition ?? this.isInvalidTransition,
+      isUnauthorized: isUnauthorized ?? this.isUnauthorized,
+      successfulTarget: clearSuccessfulTarget
+          ? null
+          : (successfulTarget ?? this.successfulTarget),
     );
   }
 
   @override
-  List<Object?> get props =>
-      [inFlight, outcome, eventVersion, message, isInvalidTransition];
+  List<Object?> get props => [
+    inFlight,
+    outcome,
+    eventVersion,
+    message,
+    isInvalidTransition,
+    isUnauthorized,
+    successfulTarget,
+  ];
 }

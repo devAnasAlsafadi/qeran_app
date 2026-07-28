@@ -52,4 +52,20 @@ void main() {
     );
     expect(scrollView.physics, isA<AlwaysScrollableScrollPhysics>());
   });
+
+  testWidgets('wraps detail hints when the loading card becomes narrow', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(400, 350));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: DiscoveryCardSkeleton(bottomClearance: 50)),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Wrap), findsOneWidget);
+  });
 }

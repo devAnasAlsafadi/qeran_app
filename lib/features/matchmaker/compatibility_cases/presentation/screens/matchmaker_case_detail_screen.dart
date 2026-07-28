@@ -124,19 +124,42 @@ class _CaseDetailViewState extends State<_CaseDetailView> {
   ) async {
     switch (state.outcome) {
       case CaseStatusOutcome.success:
-        // Show the inline confirmation, then pop back to the refreshed list.
+        final target = state.successfulTarget;
+        final formalRequestId = widget.caseItem.formalRequest?.id;
+        if (target != null && formalRequestId != null) {
+          context.read<MatchmakerCasesListCubit>().applyStatusUpdate(
+            caseId: widget.caseItem.caseId,
+            formalRequestId: formalRequestId,
+            status: target,
+          );
+        }
+        // Show the inline confirmation, then return to the locally updated list.
         setState(() => _success = true);
         await Future<void>.delayed(const Duration(milliseconds: 1200));
         if (!mounted) return;
         // Use the State's context after the gap (the param may be stale).
-        NavigationManager.pop(this.context, true);
+        NavigationManager.pop(this.context);
       case CaseStatusOutcome.failure:
-        if (state.isInvalidTransition) {
+        if (state.isUnauthorized) {
+          context.read<MatchmakerCasesListCubit>().markStatusUpdateUnavailable(
+            widget.caseItem.caseId,
+          );
+          AppSnackBar.showOnRoot(
+            message: _localizedOrRaw(
+              context,
+              state.message,
+              LocaleKeys.errors_forbidden,
+            ),
+            type: SnackBarType.error,
+          );
+          NavigationManager.pop(context);
+        } else if (state.isInvalidTransition) {
           // Local message instead of the server's numeric text; pop so the
           // list refetches the case's real (possibly moved) status.
           AppSnackBar.showOnRoot(
             message:
-                (state.message ?? LocaleKeys.matchmaker_cases_invalid_transition)
+                (state.message ??
+                        LocaleKeys.matchmaker_cases_invalid_transition)
                     .t(context),
             type: SnackBarType.error,
           );
@@ -144,13 +167,30 @@ class _CaseDetailViewState extends State<_CaseDetailView> {
         } else {
           AppSnackBar.show(
             context,
-            message: (state.message ?? LocaleKeys.errors_generic).t(context),
+            message: _localizedOrRaw(
+              context,
+              state.message,
+              LocaleKeys.errors_generic,
+            ),
             type: SnackBarType.error,
           );
         }
       case CaseStatusOutcome.none:
         break;
     }
+  }
+
+  String _localizedOrRaw(
+    BuildContext context,
+    String? message,
+    String fallbackKey,
+  ) {
+    final value = message?.trim();
+    if (value == null || value.isEmpty) return fallbackKey.t(context);
+    final looksLikeKey = RegExp(
+      r'^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$',
+    ).hasMatch(value);
+    return looksLikeKey ? value.t(context) : value;
   }
 }
 
@@ -214,16 +254,16 @@ class _TimelineSection extends StatelessWidget {
   }
 
   QeranStepState _mapState(CaseStepState s) => switch (s) {
-        CaseStepState.done => QeranStepState.done,
-        CaseStepState.current => QeranStepState.current,
-        CaseStepState.future => QeranStepState.future,
-      };
+    CaseStepState.done => QeranStepState.done,
+    CaseStepState.current => QeranStepState.current,
+    CaseStepState.future => QeranStepState.future,
+  };
 
   QeranStepTone _mapTone(CaseStepTone t) => switch (t) {
-        CaseStepTone.normal => QeranStepTone.normal,
-        CaseStepTone.success => QeranStepTone.success,
-        CaseStepTone.ended => QeranStepTone.ended,
-      };
+    CaseStepTone.normal => QeranStepTone.normal,
+    CaseStepTone.success => QeranStepTone.success,
+    CaseStepTone.ended => QeranStepTone.ended,
+  };
 }
 
 /// Inline success confirmation shown briefly after an update lands.

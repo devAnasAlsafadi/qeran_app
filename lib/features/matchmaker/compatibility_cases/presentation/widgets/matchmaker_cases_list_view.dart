@@ -45,10 +45,14 @@ class MatchmakerCasesListView extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<MatchmakerCasesListCubit>();
     // The peer whose chat is resolving (early tap) — drives the chip loader.
-    final openingUserId =
-        context.watch<MatchmakerOpenChatCubit>().state.openingUserId;
-    final colleagueOpeningId =
-        context.watch<MatchmakerColleagueOpenChatCubit>().state.openingUserId;
+    final openingUserId = context
+        .watch<MatchmakerOpenChatCubit>()
+        .state
+        .openingUserId;
+    final colleagueOpeningId = context
+        .watch<MatchmakerColleagueOpenChatCubit>()
+        .state
+        .openingUserId;
     return MatchmakerPaginatedList(
       hasMore: state.hasMore,
       onRefresh: cubit.refresh,
@@ -96,18 +100,22 @@ class MatchmakerCasesListView extends StatelessWidget {
             },
             // Shown only when a colleague exists to message — see
             // [_matchmakerButtonEnabled] for the feature gate.
-            onMessageMatchmaker: (!_matchmakerButtonEnabled ||
-                    (chat.otherMatchmakerId?.isEmpty ?? true))
+            onMessageMatchmaker:
+                (!_matchmakerButtonEnabled ||
+                    !caseItem.canMessageOtherMatchmaker)
                 ? null
                 : () => _messageMatchmaker(context, caseItem),
-            matchmakerLoading: colleagueOpeningId == chat.otherMatchmakerId,
-            // Message the other person — available on EVERY case. Direct nav
-            // when the conversation id is already populated (advanced cases);
-            // otherwise resolve-or-create it on tap (early cases).
-            onMessagePerson: caseItem.otherUser.userId.isEmpty
+            matchmakerLoading:
+                caseItem.canMessageOtherMatchmaker &&
+                colleagueOpeningId == chat.otherMatchmakerId,
+            // Direct person chat is available only when the other participant
+            // is assigned to this matchmaker.
+            onMessagePerson: !caseItem.canMessageOtherUser
                 ? null
                 : () => _messagePerson(context, caseItem),
-            personLoading: openingUserId == caseItem.otherUser.userId,
+            personLoading:
+                caseItem.canMessageOtherUser &&
+                openingUserId == caseItem.otherUser.userId,
             onNotes: () => _openNotes(context, caseItem),
           );
         },
@@ -144,10 +152,10 @@ class MatchmakerCasesListView extends StatelessWidget {
       return;
     }
     context.read<MatchmakerOpenChatCubit>().open(
-          userId: other.userId,
-          fullName: other.firstName,
-          profileImageUrl: other.profileImageUrl,
-        );
+      userId: other.userId,
+      fullName: other.firstName,
+      profileImageUrl: other.profileImageUrl,
+    );
   }
 
   /// Opens the OTHER side's matchmaker chat via the colleague path — direct nav
@@ -175,10 +183,10 @@ class MatchmakerCasesListView extends StatelessWidget {
       return;
     }
     context.read<MatchmakerColleagueOpenChatCubit>().open(
-          colleagueId: id,
-          fullName: name,
-          profileImageUrl: imageUrl,
-        );
+      colleagueId: id,
+      fullName: name,
+      profileImageUrl: imageUrl,
+    );
   }
 
   /// Pushes the matchmaker chat for [conversationId] (loaded by id alone; the
@@ -219,8 +227,9 @@ class MatchmakerCasesFilteredEmpty extends StatelessWidget {
           child: QeranEmptyState(
             icon: Icons.filter_alt_off_outlined,
             title: LocaleKeys.matchmaker_cases_filter_empty_title.t(context),
-            message:
-                LocaleKeys.matchmaker_cases_filter_empty_message.t(context),
+            message: LocaleKeys.matchmaker_cases_filter_empty_message.t(
+              context,
+            ),
           ),
         ),
         Padding(
@@ -233,8 +242,7 @@ class MatchmakerCasesFilteredEmpty extends StatelessWidget {
           child: QeranButton(
             label: LocaleKeys.matchmaker_cases_filter_clear.t(context),
             variant: QeranButtonVariant.ghost,
-            onPressed: () =>
-                context.read<MatchmakerCasesFilterCubit>().clear(),
+            onPressed: () => context.read<MatchmakerCasesFilterCubit>().clear(),
           ),
         ),
       ],

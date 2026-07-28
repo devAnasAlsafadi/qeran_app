@@ -15,23 +15,28 @@ import 'matchmaker_case_status_state.dart';
 /// (snackbar + pop). An `INVALID_STATUS_TRANSITION` is flagged so the screen
 /// shows a local message and refreshes the list instead of the server's
 /// numeric text.
-class MatchmakerCaseStatusCubit extends Cubit<MatchmakerCaseStatusState> with SafeEmit<MatchmakerCaseStatusState> {
+class MatchmakerCaseStatusCubit extends Cubit<MatchmakerCaseStatusState>
+    with SafeEmit<MatchmakerCaseStatusState> {
   final UpdateFormalRequestStatusUseCase _update;
   final int formalRequestId;
 
   MatchmakerCaseStatusCubit({
     required this.formalRequestId,
     required UpdateFormalRequestStatusUseCase update,
-  })  : _update = update,
-        super(const MatchmakerCaseStatusState());
+  }) : _update = update,
+       super(const MatchmakerCaseStatusState());
 
   Future<void> submit(FormalRequestStatus target) async {
     if (state.isBusy) return; // guard double-submit
-    emit(state.copyWith(
-      inFlight: target,
-      clearMessage: true,
-      isInvalidTransition: false,
-    ));
+    emit(
+      state.copyWith(
+        inFlight: target,
+        clearMessage: true,
+        isInvalidTransition: false,
+        isUnauthorized: false,
+        clearSuccessfulTarget: true,
+      ),
+    );
     final result = await _update(
       formalRequestId: formalRequestId,
       newStatus: target,
@@ -39,30 +44,57 @@ class MatchmakerCaseStatusCubit extends Cubit<MatchmakerCaseStatusState> with Sa
     if (isClosed) return;
     result.fold(
       (failure) {
-        final isInvalid = failure is CodedServerFailure &&
+        final isInvalid =
+            failure is CodedServerFailure &&
             failure.errorCode ==
                 CompatibilityCasesErrorCodes.invalidStatusTransition;
+        final isUnauthorized =
+            failure is AuthFailure ||
+            (failure is CodedServerFailure &&
+                (failure.errorCode ==
+                        CompatibilityCasesErrorCodes.unauthorized ||
+                    failure.statusCode == 403 ||
+                    _isUnauthorizedMessage(failure.message)));
         AppLogger.warning(
-          'MATCHMAKER — case status update failed invalid=$isInvalid',
+          'MATCHMAKER — case status update failed '
+          'invalid=$isInvalid unauthorized=$isUnauthorized',
           tag: 'MATCHMAKER',
         );
-        emit(state.copyWith(
-          clearInFlight: true,
-          outcome: CaseStatusOutcome.failure,
-          eventVersion: state.eventVersion + 1,
-          message: isInvalid
-              ? LocaleKeys.matchmaker_cases_invalid_transition
-              : failure.message,
-          isInvalidTransition: isInvalid,
-        ));
+        emit(
+          state.copyWith(
+            clearInFlight: true,
+            outcome: CaseStatusOutcome.failure,
+            eventVersion: state.eventVersion + 1,
+            message: isInvalid
+                ? LocaleKeys.matchmaker_cases_invalid_transition
+                : failure.message,
+            isInvalidTransition: isInvalid,
+            isUnauthorized: isUnauthorized,
+            clearSuccessfulTarget: true,
+          ),
+        );
       },
-      (message) => emit(state.copyWith(
-        clearInFlight: true,
-        outcome: CaseStatusOutcome.success,
-        eventVersion: state.eventVersion + 1,
-        message: message,
-        isInvalidTransition: false,
-      )),
+      (message) => emit(
+        state.copyWith(
+          clearInFlight: true,
+          outcome: CaseStatusOutcome.success,
+          eventVersion: state.eventVersion + 1,
+          message: message,
+          isInvalidTransition: false,
+          isUnauthorized: false,
+          successfulTarget: target,
+        ),
+      ),
     );
+  }
+
+  /// Compatibility fallback for the current backend response: authorization
+  /// failures arrive as HTTP 200/status:0 without an errorCode. Prefer the
+  /// typed code/status above; keep this exact match until the backend returns
+  /// `UNAUTHORIZED`.
+  bool _isUnauthorizedMessage(String message) {
+    final normalized = message.trim();
+    return normalized == 'ليس لديك صلاحية تحديث هذا الطلب' ||
+        normalized == 'You do not have permission to update this request';
   }
 }

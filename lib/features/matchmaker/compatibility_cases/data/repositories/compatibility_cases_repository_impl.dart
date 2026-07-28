@@ -48,16 +48,34 @@ class CompatibilityCasesRepositoryImpl
       );
       return Right(message);
     } on CodedServerException catch (e) {
-      AppLogger.error('MATCHMAKER — update status failed', error: e, tag: 'REPO');
-      return Left(CodedServerFailure(message: e.message, errorCode: e.errorCode));
+      AppLogger.error(
+        'MATCHMAKER — update status failed',
+        error: e,
+        tag: 'REPO',
+      );
+      return Left(
+        CodedServerFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
     } on ServerException catch (e) {
-      AppLogger.error('MATCHMAKER — update status failed', error: e, tag: 'REPO');
+      AppLogger.error(
+        'MATCHMAKER — update status failed',
+        error: e,
+        tag: 'REPO',
+      );
       return Left(ServerFailure(message: e.message));
     } on AuthException catch (e) {
       AppLogger.error('MATCHMAKER — update status auth', error: e, tag: 'REPO');
       return Left(AuthFailure(message: e.message));
     } catch (e) {
-      AppLogger.error('MATCHMAKER — update status crashed', error: e, tag: 'REPO');
+      AppLogger.error(
+        'MATCHMAKER — update status crashed',
+        error: e,
+        tag: 'REPO',
+      );
       return const Left(ServerFailure(message: LocaleKeys.errors_unexpected));
     }
   }

@@ -124,12 +124,12 @@ class _SkeletonCardContent extends StatelessWidget {
                         child: QeranSkeleton(height: 12),
                       ),
                       SizedBox(height: QeranSpacing.s20),
-                      Row(
+                      Wrap(
+                        spacing: QeranSpacing.s8,
+                        runSpacing: QeranSpacing.s8,
                         children: [
                           QeranSkeleton(width: 76, height: 28, radius: 999),
-                          SizedBox(width: QeranSpacing.s8),
                           QeranSkeleton(width: 92, height: 28, radius: 999),
-                          SizedBox(width: QeranSpacing.s8),
                           QeranSkeleton(width: 68, height: 28, radius: 999),
                         ],
                       ),

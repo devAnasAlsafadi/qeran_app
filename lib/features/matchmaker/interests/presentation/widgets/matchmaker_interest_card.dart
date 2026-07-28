@@ -100,17 +100,11 @@ class MatchmakerInterestCard extends StatelessWidget {
                   children: chips,
                 ),
               ],
-              if (!locked && facts != null) ...[
-                QeranSpacing.vs8,
-                facts!,
-              ],
+              if (!locked && facts != null) ...[QeranSpacing.vs8, facts!],
             ],
           ),
         ),
-        if (showChevron) ...[
-          QeranSpacing.hs8,
-          const _TrailingChevron(),
-        ],
+        if (showChevron) ...[QeranSpacing.hs8, const _TrailingChevron()],
       ],
     );
   }
@@ -171,9 +165,8 @@ class _TrailingChevron extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
-    return Icon(
-      isRtl ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+    return const Icon(
+      Icons.chevron_right_rounded,
       color: QeranColors.wine40,
       size: 22,
     );

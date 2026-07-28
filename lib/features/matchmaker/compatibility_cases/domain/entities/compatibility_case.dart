@@ -40,6 +40,18 @@ class CompatibilityCase extends Equatable {
     required this.hasMyNote,
   });
 
+  /// Direct chat is valid only for a user currently assigned to this
+  /// matchmaker. An external participant is contacted through their
+  /// matchmaker instead.
+  bool get canMessageOtherUser =>
+      otherUser.isAssignedToMe && otherUser.userId.isNotEmpty;
+
+  /// Show the colleague action only for an external participant whose
+  /// matchmaker id is available.
+  bool get canMessageOtherMatchmaker =>
+      !otherUser.isAssignedToMe &&
+      (chat.otherMatchmakerId?.isNotEmpty ?? false);
+
   /// Minimal additive copy — [formalRequest] supports the live
   /// `CompatibilityCaseUpdated` flow (4c); [hasMyNote] supports the in-place
   /// notes-indicator update after the note sheet saves/deletes (M3-notes).
@@ -47,6 +59,7 @@ class CompatibilityCase extends Equatable {
   CompatibilityCase copyWith({
     CaseFormalRequest? formalRequest,
     bool? hasMyNote,
+    bool? canUpdateFormalRequestStatus,
   }) {
     return CompatibilityCase(
       caseId: caseId,
@@ -57,22 +70,23 @@ class CompatibilityCase extends Equatable {
       photoExchange: photoExchange,
       formalRequest: formalRequest ?? this.formalRequest,
       chat: chat,
-      canUpdateFormalRequestStatus: canUpdateFormalRequestStatus,
+      canUpdateFormalRequestStatus:
+          canUpdateFormalRequestStatus ?? this.canUpdateFormalRequestStatus,
       hasMyNote: hasMyNote ?? this.hasMyNote,
     );
   }
 
   @override
   List<Object?> get props => [
-        caseId,
-        myUser,
-        otherUser,
-        likeAcceptedAt,
-        stage,
-        photoExchange,
-        formalRequest,
-        chat,
-        canUpdateFormalRequestStatus,
-        hasMyNote,
-      ];
+    caseId,
+    myUser,
+    otherUser,
+    likeAcceptedAt,
+    stage,
+    photoExchange,
+    formalRequest,
+    chat,
+    canUpdateFormalRequestStatus,
+    hasMyNote,
+  ];
 }

@@ -72,6 +72,14 @@ class PlacementRenderer extends StatelessWidget {
     );
   }
 
+  /// Bucket-sorts by code. `interests` (5) and `defaultGroup` (0) are LISTS —
+  /// the server may legitimately send several of each and every one renders.
+  ///
+  /// aboutMe / insideCard / aboutPartner are singletons: the profile has one
+  /// نبذة, so `??=` keeps the first and ignores any repeat. That is first-wins,
+  /// not a merge — the narrative sections paint `items.first`, so folding a
+  /// second placement's items in would not show them anyway. The backend sends
+  /// one group per code, so this is unexercised today.
   _Buckets _bucket() {
     final b = _Buckets();
     for (final p in placements) {

@@ -700,8 +700,7 @@ abstract class  LocaleKeys {
   static const matchmaker_cases_photo_status_expired = 'matchmaker.cases_photo_status_expired';
   static const matchmaker_cases_action_parents_visited = 'matchmaker.cases_action_parents_visited';
   static const matchmaker_cases_action_successfully_closed = 'matchmaker.cases_action_successfully_closed';
-  static const matchmaker_cases_action_close = 'matchmaker.cases_action_close';
-  static const matchmaker_cases_action_cancel = 'matchmaker.cases_action_cancel';
+  static const matchmaker_cases_action_close_case = 'matchmaker.cases_action_close_case';
   static const matchmaker_cases_action_message = 'matchmaker.cases_action_message';
   static const matchmaker_cases_action_message_matchmaker = 'matchmaker.cases_action_message_matchmaker';
   static const matchmaker_cases_action_notes = 'matchmaker.cases_action_notes';

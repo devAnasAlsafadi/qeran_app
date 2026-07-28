@@ -72,21 +72,26 @@ String? photoStatusLabelKey(CasePhotoExchangeStatus status) => switch (status) {
       CasePhotoExchangeStatus.unknown => null,
     };
 
-/// Imperative button label for a status-update target. The two closures use
-/// action verbs ("إغلاق" / "إلغاء") rather than their state labels. The two
-/// non-target values are unreachable (never in `allowedNext`).
+/// Imperative button label for a status-update target, using an action verb
+/// rather than the state label.
+///
+/// The negative terminal is now ONE action, so the old "إغلاق" / "إلغاء" split
+/// is gone: both closed and cancelled read "إغلاق الحالة". A bare "إلغاء" was
+/// the worst of the two anyway — it is also the dismiss button on the confirm
+/// dialog that opens right on top of it.
+///
+/// Only `parentsVisited`, `successfullyClosed` and `compatibilityCancelled`
+/// are reachable; the rest never appear in `allowedNext`.
 String actionLabelKey(FormalRequestStatus target) => switch (target) {
       FormalRequestStatus.parentsVisited =>
         LocaleKeys.matchmaker_cases_action_parents_visited,
       FormalRequestStatus.successfullyClosed =>
         LocaleKeys.matchmaker_cases_action_successfully_closed,
-      FormalRequestStatus.compatibilityClosed =>
-        LocaleKeys.matchmaker_cases_action_close,
-      FormalRequestStatus.compatibilityCancelled =>
-        LocaleKeys.matchmaker_cases_action_cancel,
+      FormalRequestStatus.compatibilityClosed ||
+      FormalRequestStatus.compatibilityCancelled ||
       FormalRequestStatus.waitingForParentAppointment ||
       FormalRequestStatus.unknown =>
-        LocaleKeys.matchmaker_cases_action_close,
+        LocaleKeys.matchmaker_cases_action_close_case,
     };
 
 /// Terminal closures that must be confirmed before submitting.

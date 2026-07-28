@@ -32,6 +32,10 @@ enum FormalRequestStatus {
   }
 
   /// Verbatim PascalCase value sent by the status POST. [unknown] has none.
+  ///
+  /// [compatibilityClosed] keeps a wire value so an existing closed case still
+  /// round-trips, but it is never SENT — it is absent from every [allowedNext]
+  /// set (see the merge note there).
   String? get apiValue => switch (this) {
         FormalRequestStatus.waitingForParentAppointment =>
           'WaitingForParentAppointment',
@@ -42,16 +46,21 @@ enum FormalRequestStatus {
         FormalRequestStatus.unknown => null,
       };
 
-  /// Server-validated transitions: 1→{2,4,5}, 2→{3,4,5}, 3/4/5 terminal.
+  /// Server-validated transitions: 1→{2,5}, 2→{3,5}, 3/4/5 terminal.
+  ///
+  /// `CompatibilityClosed(4)` and `CompatibilityCancelled(5)` are both negative
+  /// terminal states and the backend treats them identically, so the two used
+  /// to appear here as two separate buttons ("إغلاق" / "إلغاء") that did the
+  /// same thing. They are merged: we offer ONE closure and always send
+  /// `CompatibilityCancelled`, which is legal from both stages. `4` survives
+  /// only for DISPLAYING cases closed before the merge.
   Set<FormalRequestStatus> get allowedNext => switch (this) {
         FormalRequestStatus.waitingForParentAppointment => const {
             FormalRequestStatus.parentsVisited,
-            FormalRequestStatus.compatibilityClosed,
             FormalRequestStatus.compatibilityCancelled,
           },
         FormalRequestStatus.parentsVisited => const {
             FormalRequestStatus.successfullyClosed,
-            FormalRequestStatus.compatibilityClosed,
             FormalRequestStatus.compatibilityCancelled,
           },
         FormalRequestStatus.successfullyClosed ||

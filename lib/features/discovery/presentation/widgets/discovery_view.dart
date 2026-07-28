@@ -79,8 +79,10 @@ class _DiscoveryContent extends StatefulWidget {
 // ── Design constants ────────────────────────────────────────────────────────
 
 /// Inset of the floating action cluster from the card's side edges. The card
-/// itself is now full-bleed, so this is the cluster's own margin.
-const double _kActionBarHPad = 32.0;
+/// itself is now full-bleed, so this is the cluster's own margin. Combined
+/// with the zone's own 12dp this puts the outer buttons 24dp from the screen
+/// edge — half the old 48, so the cluster spreads instead of huddling.
+const double _kActionBarHPad = 12.0;
 
 /// Height reserved at the end of the scroll so the last section and the share
 /// CTA can travel clear of the pinned frosted action cluster.

@@ -39,7 +39,7 @@ class DiscoveryFrostedActionZone extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: QeranSpacing.s16,
+          horizontal: QeranSpacing.s12,
           vertical: QeranSpacing.s12,
         ),
         child: child,

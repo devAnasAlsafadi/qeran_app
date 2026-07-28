@@ -52,6 +52,7 @@ import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.da
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_action_bar.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card_skeleton.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_frosted_action_zone.dart';
@@ -654,6 +655,31 @@ void main() {
       final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
       const visible = 800 - kTopInset;
       expect(photo.height + intro.height, lessThan(visible));
+    });
+  });
+
+  group('the action cluster spreads toward the screen edges (R5)', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('outer buttons sit well inside the old 48dp inset', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // 32 (positioned) + 16 (zone padding) used to leave the buttons huddled
+      // in the middle. Now 12 + 12.
+      final bar = tester.getRect(find.byType(DiscoveryActionBar));
+      expect(bar.left, lessThanOrEqualTo(24));
+      expect(bar.right, greaterThanOrEqualTo(400 - 24));
     });
   });
 

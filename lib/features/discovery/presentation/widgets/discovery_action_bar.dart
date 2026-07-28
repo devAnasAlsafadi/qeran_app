@@ -27,21 +27,21 @@ class _ActionButtonPalette {
   });
 }
 
-// Pass — quiet paper surface with no outline.
-const _ActionButtonPalette _kPassPalette = _ActionButtonPalette(
+// Skip and undo — one shared quiet paper surface with no outline. They are a
+// matched pair of plain circles; the glyph, not the colour, is what tells them
+// apart. Undo used to be cream and a size smaller, which read as a third,
+// weaker tier rather than a sibling of skip.
+const _ActionButtonPalette _kSecondaryPalette = _ActionButtonPalette(
   background: QeranColors.paper,
   disabledBackground: QeranColors.paper,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
 );
 
-// Undo — cream-lifted secondary with no outline.
-const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
-  background: QeranColors.creamSurface,
-  disabledBackground: QeranColors.creamSurface,
-  iconColor: QeranColors.wine,
-  disabledIconColor: QeranColors.wine40,
-);
+/// Diameter shared by skip and undo. Equal circles: neither action outranks
+/// the other, and only the like CTA is allowed to be bigger.
+const double _kSecondarySize = 56;
+const double _kSecondaryIconSize = 26;
 
 // Like — wine-filled primary CTA with a gold heart icon. Pure weightless CTA.
 const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
@@ -53,11 +53,12 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
 
 /// Three-button action bar under the Discovery card.
 ///
-/// Children are declared like (gold-filled primary, larger) → undo
-/// (cream-lifted, smaller) → pass (X, paper surface). The Row
-/// mirrors automatically by locale via natural Directionality (no manual
-/// flip / textDirection override): LTR renders like (leading) … undo · pass
-/// (trailing); RTL mirrors it so pass · undo … like reads right-to-left.
+/// Children are declared like (wine-filled primary, 72) → undo → pass, the
+/// last two a matched pair of 56dp paper circles told apart by their glyph
+/// alone (rewind vs dismiss). The Row mirrors automatically by locale via
+/// natural Directionality (no manual flip / textDirection override): LTR
+/// renders like (leading) … undo · pass (trailing); RTL mirrors it so
+/// pass · undo … like reads right-to-left.
 ///
 /// Each button owns its own `AnimationController` for press feedback
 /// and is fully independent — a press on one button never affects the
@@ -108,22 +109,25 @@ class DiscoveryActionBar extends StatelessWidget {
         ),
         const Spacer(),
         _PressableActionButton(
+          // Rewind — a circular arrow, distinct at a glance from the skip X
+          // now that the two circles are the same size and colour.
           icon: Icons.replay_rounded,
-          size: 44,
-          iconSize: 20,
+          size: _kSecondarySize,
+          iconSize: _kSecondaryIconSize,
           tooltip: LocaleKeys.discovery_action_undo_label.t(context),
           onPressed: onUndo,
           rewindRotate: true,
-          palette: _kUndoPalette,
+          palette: _kSecondaryPalette,
         ),
-        const SizedBox(width: QeranSpacing.s12),
+        const SizedBox(width: QeranSpacing.s16),
         _PressableActionButton(
+          // Dismiss.
           icon: Icons.close_rounded,
-          size: 64,
-          iconSize: 30,
+          size: _kSecondarySize,
+          iconSize: _kSecondaryIconSize,
           tooltip: LocaleKeys.discovery_action_pass_label.t(context),
           onPressed: onPass,
-          palette: _kPassPalette,
+          palette: _kSecondaryPalette,
         ),
       ],
     );

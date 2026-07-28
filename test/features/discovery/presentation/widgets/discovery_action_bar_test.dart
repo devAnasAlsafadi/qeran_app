@@ -71,6 +71,11 @@ InkWell _inkForIcon(WidgetTester tester, IconData icon) {
   );
 }
 
+/// Tap-target size of the button carrying [icon].
+Size _buttonSize(WidgetTester tester, IconData icon) => tester.getSize(
+  find.ancestor(of: find.byIcon(icon), matching: find.byType(InkWell)),
+);
+
 InkWell _pass(WidgetTester tester) => _inkForIcon(tester, Icons.close_rounded);
 InkWell _undo(WidgetTester tester) => _inkForIcon(tester, Icons.replay_rounded);
 InkWell _like(WidgetTester tester) =>
@@ -117,6 +122,38 @@ void main() {
 
     expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
     expect(find.byIcon(Icons.check_rounded), findsNothing);
+  });
+
+  testWidgets('skip and undo are equal circles; only like is bigger', (
+    tester,
+  ) async {
+    // Undo used to be 44 against skip's 64, which read as a third, weaker
+    // tier rather than a sibling. The glyph is what tells them apart now.
+    await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
+
+    final skip = _buttonSize(tester, Icons.close_rounded);
+    final undo = _buttonSize(tester, Icons.replay_rounded);
+    expect(undo, skip);
+    expect(skip.width, skip.height);
+    expect(
+      _buttonSize(tester, Icons.favorite_rounded).width,
+      greaterThan(skip.width),
+    );
+  });
+
+  testWidgets('skip and undo share one surface colour', (tester) async {
+    await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
+
+    Color surface(IconData icon) => tester
+        .widget<Material>(
+          find
+              .ancestor(of: find.byIcon(icon), matching: find.byType(Material))
+              .first,
+        )
+        .color!;
+
+    expect(surface(Icons.replay_rounded), surface(Icons.close_rounded));
+    expect(surface(Icons.favorite_rounded), isNot(surface(Icons.close_rounded)));
   });
 
   group('DiscoveryActionBar — per-button enable from nullable callbacks', () {

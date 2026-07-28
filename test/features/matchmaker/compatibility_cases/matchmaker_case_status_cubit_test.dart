@@ -74,8 +74,12 @@ void main() {
   );
 
   test(
-    'current HTTP 200 permission message is classified without errorCode',
+    'the Arabic permission sentence alone is NOT enough — codes only',
     () async {
+      // Guards the removal of the message-matching shim. The backend now
+      // returns 403 + UNAUTHORIZED, so the exact Arabic string carries no
+      // classification weight; matching on it would resurrect a rule that
+      // silently breaks the moment anyone rewords the copy.
       const failure = CodedServerFailure(
         message: 'ليس لديك صلاحية تحديث هذا الطلب',
         errorCode: null,
@@ -90,7 +94,23 @@ void main() {
 
       await cubit.submit(FormalRequestStatus.parentsVisited);
 
-      expect(cubit.state.isUnauthorized, isTrue);
+      expect(cubit.state.outcome, CaseStatusOutcome.failure);
+      expect(cubit.state.isUnauthorized, isFalse);
     },
   );
+
+  test('AuthFailure (401 session loss) still classifies', () async {
+    const failure = AuthFailure(message: 'errors.unauthorized');
+    final cubit = MatchmakerCaseStatusCubit(
+      formalRequestId: 8,
+      update: const UpdateFormalRequestStatusUseCase(
+        _RejectingRepository(failure),
+      ),
+    );
+    addTearDown(cubit.close);
+
+    await cubit.submit(FormalRequestStatus.parentsVisited);
+
+    expect(cubit.state.isUnauthorized, isTrue);
+  });
 }

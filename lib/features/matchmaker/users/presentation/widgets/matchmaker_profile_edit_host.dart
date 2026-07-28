@@ -32,6 +32,13 @@ class MatchmakerProfileEditHost extends StatelessWidget {
   final MatchmakerUserProfile profile;
   final Widget child;
 
+  // TODO(#7-relax): editing an APPROVED (visible) profile is blocked on Tariq
+  // confirming that PUT /matchmaker/users/{id}/text-answer accepts
+  // post-approval edits. This gate is why the matchmaker sees no pencils on
+  // the common case — an already-approved user — and it is intentionally left
+  // as-is until that answer lands. When it does, widen this to every status
+  // (or to the exact set the endpoint allows); the pencils themselves are
+  // already wired on both the Q&A rows and the two نبذات.
   bool get _editable =>
       profile.profileStatus == ProfileStatus.pendingReview ||
       profile.profileStatus == ProfileStatus.rejected;

@@ -4,8 +4,16 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import '../../../domain/entities/placement.dart';
 import '../../../domain/entities/placement_value.dart';
+import 'items/editable_text_answer.dart';
 import 'profile_section_header.dart';
 
+/// Renders the `aboutPartner` placement — the paragraph the user wrote about
+/// the spouse they're looking for.
+///
+/// Wrapped in [EditableTextAnswer] for the matchmaker's edit pencil, for the
+/// same reason as [AboutMeSection]: this section paints its body directly and
+/// so never reached `PlacementItemRenderer`, the only thing attaching the
+/// pencil. A pass-through outside the matchmaker edit scope.
 class AboutPartnerSection extends StatelessWidget {
   final Placement placement;
   const AboutPartnerSection({super.key, required this.placement});
@@ -13,18 +21,24 @@ class AboutPartnerSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final body = _bodyText();
+    // No body → nothing to render, and therefore nothing to edit either.
     if (body.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ProfileSectionHeader(
-          title: placement.name,
-          icon: Icons.favorite_outline_rounded,
-        ),
-        QeranSpacing.vs8,
-        Text(body, style: QeranTypography.body),
-      ],
+    return EditableTextAnswer(
+      item: placement.items.isEmpty ? null : placement.items.first,
+      // Level with the section header (see AboutMeSection).
+      affordancePadding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ProfileSectionHeader(
+            title: placement.name,
+            icon: Icons.favorite_outline_rounded,
+          ),
+          QeranSpacing.vs8,
+          Text(body, style: QeranTypography.body),
+        ],
+      ),
     );
   }
 

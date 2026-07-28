@@ -52,6 +52,23 @@ class CompatibilityCase extends Equatable {
       !otherUser.isAssignedToMe &&
       (chat.otherMatchmakerId?.isNotEmpty ?? false);
 
+  /// Both participants are mine — so the card carries TWO direct chats and each
+  /// needs its own chip. With only [canMessageOtherUser] the card showed a
+  /// single name-labelled chip and there was no way to reach `myUser` at all.
+  ///
+  /// Deliberately scoped to the both-mine case: when the other participant is
+  /// external the card's contact affordance is the colleague chat, and adding a
+  /// second chip there would change an untouched flow.
+  bool get canMessageMyUser =>
+      canMessageOtherUser &&
+      myUser.isAssignedToMe &&
+      myUser.userId.isNotEmpty;
+
+  /// Whether the OTHER participant has no matchmaker at all (as opposed to
+  /// belonging to a colleague) — drives the honest "no matchmaker" role label.
+  bool get otherPartyIsUnassigned =>
+      !otherUser.isAssignedToMe && (chat.otherMatchmakerId?.isEmpty ?? true);
+
   /// Minimal additive copy — [formalRequest] supports the live
   /// `CompatibilityCaseUpdated` flow (4c); [hasMyNote] supports the in-place
   /// notes-indicator update after the note sheet saves/deletes (M3-notes).

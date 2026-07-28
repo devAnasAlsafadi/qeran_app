@@ -27,24 +27,31 @@ class MatchmakerCaseCard extends StatelessWidget {
     this.onTap,
     this.onMessageMatchmaker,
     this.onMessagePerson,
+    this.onMessageMyUser,
     this.onNotes,
     this.personLoading = false,
+    this.myUserLoading = false,
     this.matchmakerLoading = false,
   });
 
   final CompatibilityCase caseItem;
   final VoidCallback? onTap;
 
-  /// Contact actions on the card. The person callback is always present (the
-  /// chat is resolved-or-created on tap); the matchmaker callback is null when
-  /// its conversation doesn't exist yet, so that chip is omitted.
+  /// Contact actions on the card — each chip renders only when its callback is
+  /// non-null, so ownership decides the set (see the list view's gating).
   final VoidCallback? onMessageMatchmaker;
   final VoidCallback? onMessagePerson;
+
+  /// Direct chat with the matchmaker's own participant — set only when BOTH
+  /// participants are hers.
+  final VoidCallback? onMessageMyUser;
+
   final VoidCallback? onNotes;
 
-  /// True while the person / matchmaker chat is resolving on tap — shows that
-  /// chip's loader.
+  /// True while the person / my-user / matchmaker chat is resolving on tap —
+  /// shows that chip's loader.
   final bool personLoading;
+  final bool myUserLoading;
   final bool matchmakerLoading;
 
   @override
@@ -87,9 +94,12 @@ class MatchmakerCaseCard extends StatelessWidget {
           ),
           CaseContactActions(
             personLabel: _personLabel(context),
+            myUserLabel: caseItem.myUser.firstName,
             onMessageMatchmaker: onMessageMatchmaker,
             onMessagePerson: onMessagePerson,
+            onMessageMyUser: onMessageMyUser,
             personLoading: personLoading,
+            myUserLoading: myUserLoading,
             matchmakerLoading: matchmakerLoading,
             onNotes: onNotes,
             hasNote: caseItem.hasMyNote,

@@ -18,10 +18,13 @@ class CaseContactActions extends StatelessWidget {
   const CaseContactActions({
     super.key,
     required this.personLabel,
+    this.myUserLabel,
     this.onMessageMatchmaker,
     this.onMessagePerson,
+    this.onMessageMyUser,
     this.onNotes,
     this.personLoading = false,
+    this.myUserLoading = false,
     this.matchmakerLoading = false,
     this.hasNote = false,
   });
@@ -29,13 +32,23 @@ class CaseContactActions extends StatelessWidget {
   /// The other person's display name for their chip (the card falls back to a
   /// generic label upstream when the name is blank).
   final String personLabel;
+
+  /// `myUser`'s display name — only meaningful alongside [onMessageMyUser].
+  final String? myUserLabel;
+
   final VoidCallback? onMessageMatchmaker;
   final VoidCallback? onMessagePerson;
+
+  /// Direct chat with the matchmaker's OWN participant. Non-null only when both
+  /// participants are hers, so the two name-labelled chips are unambiguous.
+  final VoidCallback? onMessageMyUser;
+
   final VoidCallback? onNotes;
 
-  /// True while the person / matchmaker chat is resolving on tap — shows that
-  /// chip's loader.
+  /// True while the person / my-user / matchmaker chat is resolving on tap —
+  /// shows that chip's loader.
   final bool personLoading;
+  final bool myUserLoading;
   final bool matchmakerLoading;
 
   /// Whether THIS matchmaker has a private note on the case — fills the Notes
@@ -51,6 +64,17 @@ class CaseContactActions extends StatelessWidget {
           Icons.support_agent_rounded,
           onMessageMatchmaker!,
           loading: matchmakerLoading,
+        ),
+      // Both participants are mine → one chip each, ordered the same way the
+      // pair is drawn (my user first) so the labels map onto the avatars.
+      if (onMessageMyUser != null)
+        _chip(
+          (myUserLabel?.trim().isNotEmpty ?? false)
+              ? myUserLabel!.trim()
+              : LocaleKeys.matchmaker_cases_action_message.t(context),
+          Icons.chat_bubble_outline_rounded,
+          onMessageMyUser!,
+          loading: myUserLoading,
         ),
       if (onMessagePerson != null)
         _chip(

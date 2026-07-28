@@ -16,9 +16,10 @@ CaseUser _user(String id, {required bool assigned}) => CaseUser(
 CompatibilityCase _case({
   required bool otherAssigned,
   String? otherMatchmakerId,
+  bool myAssigned = true,
 }) => CompatibilityCase(
   caseId: 1,
-  myUser: _user('mine', assigned: true),
+  myUser: _user('mine', assigned: myAssigned),
   otherUser: _user('other', assigned: otherAssigned),
   likeAcceptedAt: null,
   stage: CompatibilityCaseStage.likeAccepted,
@@ -63,4 +64,39 @@ void main() {
       expect(item.canMessageOtherMatchmaker, isFalse);
     },
   );
+
+  group('both participants mine', () {
+    test('each one gets its own direct chat', () {
+      final item = _case(otherAssigned: true);
+
+      // Without canMessageMyUser the card showed a single name-labelled chip
+      // and myUser was unreachable, even though myUserConversationId existed.
+      expect(item.canMessageMyUser, isTrue);
+      expect(item.canMessageOtherUser, isTrue);
+      expect(item.canMessageOtherMatchmaker, isFalse);
+    });
+
+    test('an external other party keeps the single-chat card', () {
+      final item = _case(otherAssigned: false, otherMatchmakerId: 'colleague');
+
+      // Scoped deliberately: the contact affordance there is the colleague
+      // chat, and a second chip would change an untouched flow.
+      expect(item.canMessageMyUser, isFalse);
+    });
+  });
+
+  group('other-party ownership label', () {
+    test('mine is not flagged unassigned', () {
+      expect(_case(otherAssigned: true).otherPartyIsUnassigned, isFalse);
+    });
+
+    test('a colleague-owned participant is not unassigned', () {
+      final item = _case(otherAssigned: false, otherMatchmakerId: 'colleague');
+      expect(item.otherPartyIsUnassigned, isFalse);
+    });
+
+    test('nobody-owned participant IS unassigned', () {
+      expect(_case(otherAssigned: false).otherPartyIsUnassigned, isTrue);
+    });
+  });
 }

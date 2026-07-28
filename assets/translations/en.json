@@ -701,6 +701,7 @@
     "cases_detail_title": "Case details",
     "cases_mine": "My user",
     "cases_other_party": "Other party",
+    "cases_party_unassigned": "No matchmaker",
     "cases_section_status": "Status",
     "cases_field_stage": "Stage",
     "cases_field_formal_status": "Formal request",

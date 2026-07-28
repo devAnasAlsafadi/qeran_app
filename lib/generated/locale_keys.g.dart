@@ -686,6 +686,7 @@ abstract class  LocaleKeys {
   static const matchmaker_cases_detail_title = 'matchmaker.cases_detail_title';
   static const matchmaker_cases_mine = 'matchmaker.cases_mine';
   static const matchmaker_cases_other_party = 'matchmaker.cases_other_party';
+  static const matchmaker_cases_party_unassigned = 'matchmaker.cases_party_unassigned';
   static const matchmaker_cases_section_status = 'matchmaker.cases_section_status';
   static const matchmaker_cases_field_stage = 'matchmaker.cases_field_stage';
   static const matchmaker_cases_field_formal_status = 'matchmaker.cases_field_formal_status';

@@ -215,6 +215,9 @@ class _HeroPanel extends StatelessWidget {
         otherUser: caseItem.otherUser,
         avatarSize: 72,
         showRoleLabels: true,
+        // Lets the role chip name the owning colleague instead of the generic
+        // "الطرف الآخر" when the other participant belongs to one.
+        otherMatchmakerName: caseItem.chat.otherMatchmakerName,
       ),
     );
   }

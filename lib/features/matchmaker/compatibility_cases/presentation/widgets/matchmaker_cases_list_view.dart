@@ -15,6 +15,7 @@ import '../../../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cu
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
+import '../../domain/entities/case_user.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
@@ -116,6 +117,14 @@ class MatchmakerCasesListView extends StatelessWidget {
             personLoading:
                 caseItem.canMessageOtherUser &&
                 openingUserId == caseItem.otherUser.userId,
+            // Both participants mine → the card also needs a chat for MY user;
+            // with only the other-person chip there was no way to reach them.
+            onMessageMyUser: !caseItem.canMessageMyUser
+                ? null
+                : () => _messageMyUser(context, caseItem),
+            myUserLoading:
+                caseItem.canMessageMyUser &&
+                openingUserId == caseItem.myUser.userId,
             onNotes: () => _openNotes(context, caseItem),
           );
         },
@@ -138,23 +147,41 @@ class MatchmakerCasesListView extends StatelessWidget {
 
   /// Opens the other-person chat — direct nav when it exists, else
   /// resolve-or-create by user id (host navigates / shows the calm notice).
-  void _messagePerson(BuildContext context, CompatibilityCase caseItem) {
-    final other = caseItem.otherUser;
-    final existingId = caseItem.chat.otherUserConversationId;
-    if (existingId != null) {
+  void _messagePerson(BuildContext context, CompatibilityCase caseItem) =>
+      _messageParticipant(
+        context,
+        user: caseItem.otherUser,
+        existingConversationId: caseItem.chat.otherUserConversationId,
+      );
+
+  /// Same path for the matchmaker's OWN participant, off `myUserConversationId`
+  /// — the id was already modelled on `CaseChat` but nothing consumed it.
+  void _messageMyUser(BuildContext context, CompatibilityCase caseItem) =>
+      _messageParticipant(
+        context,
+        user: caseItem.myUser,
+        existingConversationId: caseItem.chat.myUserConversationId,
+      );
+
+  void _messageParticipant(
+    BuildContext context, {
+    required CaseUser user,
+    required int? existingConversationId,
+  }) {
+    if (existingConversationId != null) {
       _openChat(
         context,
-        conversationId: existingId,
-        peerId: other.userId,
-        name: other.firstName,
-        imageUrl: other.profileImageUrl,
+        conversationId: existingConversationId,
+        peerId: user.userId,
+        name: user.firstName,
+        imageUrl: user.profileImageUrl,
       );
       return;
     }
     context.read<MatchmakerOpenChatCubit>().open(
-      userId: other.userId,
-      fullName: other.firstName,
-      profileImageUrl: other.profileImageUrl,
+      userId: user.userId,
+      fullName: user.firstName,
+      profileImageUrl: user.profileImageUrl,
     );
   }
 

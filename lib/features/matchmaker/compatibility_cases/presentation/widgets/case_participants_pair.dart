@@ -13,9 +13,15 @@ import '../../domain/entities/case_user.dart';
 /// The two participants of a compatibility case, rendered identically across
 /// the list card and the detail hero: unblurred avatars + first names
 /// (age/gender shown only when present), joined by a gold heart. With
-/// [showRoleLabels] the detail view marks the matchmaker's own user
-/// ("مستخدمي", a wine chip) and the other party (a muted caption); the list
-/// card omits these to stay scannable.
+/// [showRoleLabels] each participant is marked by OWNERSHIP; the list card
+/// omits the labels to stay scannable.
+///
+/// The labels used to be positional — slot 1 was always "مستخدمي" and slot 2
+/// always "الطرف الآخر" — which read as "this one is not mine" even when BOTH
+/// participants belonged to this matchmaker. They are now driven by
+/// `CaseUser.isAssignedToMe`, the same field that decides the contact chips:
+///   mine → "مستخدمي" · a colleague's → that colleague's name
+///   · nobody's → "بلا خطّابة".
 class CaseParticipantsPair extends StatelessWidget {
   const CaseParticipantsPair({
     super.key,
@@ -23,12 +29,17 @@ class CaseParticipantsPair extends StatelessWidget {
     required this.otherUser,
     this.avatarSize = 56,
     this.showRoleLabels = false,
+    this.otherMatchmakerName,
   });
 
   final CaseUser myUser;
   final CaseUser otherUser;
   final double avatarSize;
   final bool showRoleLabels;
+
+  /// The other side's matchmaker (`CaseChat.otherMatchmakerName`). Null when
+  /// the other participant is mine or has no matchmaker — never fabricated.
+  final String? otherMatchmakerName;
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +50,8 @@ class CaseParticipantsPair extends StatelessWidget {
           child: _ParticipantColumn(
             user: myUser,
             avatarSize: avatarSize,
-            roleLabelKey:
-                showRoleLabels ? LocaleKeys.matchmaker_cases_mine : null,
-            isMine: true,
+            roleLabel: showRoleLabels ? _roleLabelFor(context, myUser) : null,
+            isMine: myUser.isAssignedToMe,
           ),
         ),
         _Connector(height: avatarSize),
@@ -49,13 +59,24 @@ class CaseParticipantsPair extends StatelessWidget {
           child: _ParticipantColumn(
             user: otherUser,
             avatarSize: avatarSize,
-            roleLabelKey:
-                showRoleLabels ? LocaleKeys.matchmaker_cases_other_party : null,
-            isMine: false,
+            roleLabel: showRoleLabels ? _roleLabelFor(context, otherUser) : null,
+            isMine: otherUser.isAssignedToMe,
           ),
         ),
       ],
     );
+  }
+
+  /// Ownership label for one participant. A colleague's name is preferred over
+  /// the generic "الطرف الآخر" when the server sent one; with no name and no
+  /// assignment the participant genuinely has no matchmaker.
+  String _roleLabelFor(BuildContext context, CaseUser user) {
+    if (user.isAssignedToMe) {
+      return LocaleKeys.matchmaker_cases_mine.t(context);
+    }
+    final owner = otherMatchmakerName?.trim() ?? '';
+    if (owner.isNotEmpty) return owner;
+    return LocaleKeys.matchmaker_cases_party_unassigned.t(context);
   }
 }
 
@@ -63,19 +84,21 @@ class _ParticipantColumn extends StatelessWidget {
   const _ParticipantColumn({
     required this.user,
     required this.avatarSize,
-    required this.roleLabelKey,
+    required this.roleLabel,
     required this.isMine,
   });
 
   final CaseUser user;
   final double avatarSize;
-  final String? roleLabelKey;
+
+  /// Already-resolved label text (the pair owns the ownership decision).
+  final String? roleLabel;
   final bool isMine;
 
   @override
   Widget build(BuildContext context) {
     final meta = _meta();
-    final roleKey = roleLabelKey;
+    final roleKey = roleLabel;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -93,26 +116,28 @@ class _ParticipantColumn extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         if (meta != null) ...[QeranSpacing.vs4, meta],
-        if (roleKey != null) ...[QeranSpacing.vs8, _roleLabel(context, roleKey)],
+        if (roleKey != null) ...[QeranSpacing.vs8, _roleChip(roleKey)],
       ],
     );
   }
 
-  Widget _roleLabel(BuildContext context, String key) {
-    // Mine → solid wine chip / white; other party → soft wine-tinted chip.
+  Widget _roleChip(String label) {
+    // Mine → solid wine chip / white; not mine → soft wine-tinted chip. The
+    // label text is already resolved by the parent.
     if (isMine) {
       return QeranChip(
-        label: key.t(context),
+        label: label,
         variant: QeranChipVariant.score,
         compact: true,
         icon: Icons.person_rounded,
       );
     }
     return QeranChip(
-      label: key.t(context),
+      label: label,
       variant: QeranChipVariant.status,
       statusColor: QeranColors.wine,
       compact: true,
+      maxWidth: 120,
     );
   }
 

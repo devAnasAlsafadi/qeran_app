@@ -763,7 +763,7 @@
     "empty_explore_message": "ابحثي وتصفّحي البروفايلات المعتمدة من جميع الخطّابات، مع إمكانية المشاركة.",
     "explore_filter_title": "تصفية البروفايلات",
     "explore_filter_apply": "تطبيق",
-    "explore_filter_clear": "مسح عوامل التصفية",
+    "explore_filter_clear": "مسح",
     "explore_filter_error": "تعذّر تحميل عوامل التصفية",
     "explore_filter_retry": "إعادة المحاولة",
     "explore_filter_empty": "لا توجد عوامل تصفية متاحة.",

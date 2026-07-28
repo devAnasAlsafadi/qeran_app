@@ -763,7 +763,7 @@
     "empty_explore_message": "Browse and search approved profiles across all matchmakers, and share them.",
     "explore_filter_title": "Filter profiles",
     "explore_filter_apply": "Apply",
-    "explore_filter_clear": "Clear filters",
+    "explore_filter_clear": "Clear",
     "explore_filter_error": "Couldn't load filters",
     "explore_filter_retry": "Retry",
     "explore_filter_empty": "No filters available.",

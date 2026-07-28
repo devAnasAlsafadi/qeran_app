@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
@@ -31,6 +32,25 @@ class MatchmakerShareCubit extends Cubit<MatchmakerShareState> with SafeEmit<Mat
   int _sourceIndex = 0;
   int _page = 1;
 
+  /// Server-side recipient gender filter.
+  ///
+  /// ⚠️ NOT wired to any control yet, and deliberately so. The picker reads
+  /// `GET /api/matchmaker/users/approved-{unsubscribed,subscribed}`, which
+  /// neither accepts `?gender=` nor returns a `gender` field on the row — so a
+  /// visible filter would silently do nothing, and a client-side fallback is
+  /// impossible with no gender to filter on. `/matchmaker/explore` does
+  /// support it, but the picker cannot use explore: recipients must be the
+  /// matchmaker's OWN users. The path is threaded end-to-end so adding the
+  /// control is a UI-only change once the backend accepts the param.
+  Gender? _gender;
+
+  /// Re-runs the picker from page 1 under a new gender filter.
+  Future<void> setGender(Gender? gender) {
+    if (_gender == gender) return Future.value();
+    _gender = gender;
+    return loadFirst();
+  }
+
   MatchmakerShareCubit({
     required this.sharedUserId,
     required FetchMatchmakerUsersUseCase fetchUsers,
@@ -59,6 +79,7 @@ class MatchmakerShareCubit extends Cubit<MatchmakerShareState> with SafeEmit<Mat
       list: _sources[_sourceIndex],
       page: _page,
       pageSize: _pageSize,
+      gender: _gender,
     );
     if (isClosed) return;
     result.fold(

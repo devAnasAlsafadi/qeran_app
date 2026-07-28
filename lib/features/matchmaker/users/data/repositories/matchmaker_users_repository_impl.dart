@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
+import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../../domain/entities/matchmaker_users_list.dart';
@@ -21,6 +22,7 @@ class MatchmakerUsersRepositoryImpl
     required int page,
     required int pageSize,
     int? planId,
+    Gender? gender,
   }) {
     return executeApiCall(() async {
       final model = await _dataSource.getUsers(
@@ -28,6 +30,7 @@ class MatchmakerUsersRepositoryImpl
         page: page,
         pageSize: pageSize,
         planId: planId,
+        gender: gender,
       );
       return model.toEntity();
     });

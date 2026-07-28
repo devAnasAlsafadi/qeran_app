@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../entities/matchmaker_users_list.dart';
@@ -14,11 +15,13 @@ class FetchMatchmakerUsersUseCase {
     required int page,
     required int pageSize,
     int? planId,
+    Gender? gender,
   }) =>
       _repository.getUsers(
         list: list,
         page: page,
         pageSize: pageSize,
         planId: planId,
+        gender: gender,
       );
 }

@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/api_consumer.dart';
+import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
@@ -16,6 +17,7 @@ abstract interface class MatchmakerUsersRemoteDataSource {
     required int page,
     required int pageSize,
     int? planId,
+    Gender? gender,
   });
 
   /// The dynamic plan list backing the مشتركون plan-filter rail.
@@ -35,6 +37,7 @@ class MatchmakerUsersRemoteDataSourceImpl
     required int page,
     required int pageSize,
     int? planId,
+    Gender? gender,
   }) async {
     final path = switch (list) {
       MatchmakerUsersList.pending => EndPoints.matchmakerUsersPending,
@@ -56,6 +59,12 @@ class MatchmakerUsersRemoteDataSourceImpl
         // Server-side plan filter — only the subscribed list ever passes it;
         // the null-aware value drops the entry entirely when planId is null.
         'planId': ?planId,
+        // Server-side gender filter for the share picker. ⚠️ NOT yet
+        // supported by these endpoints — `/matchmaker/explore` has it, but
+        // the picker cannot use explore (recipients must be the matchmaker's
+        // OWN users). Wired end-to-end and left unset by every caller, so
+        // nothing sends it until the backend accepts it.
+        'gender': ?gender?.apiValue,
       },
     );
     final apiResponse = ApiResponse<MatchmakerUsersPageModel>.fromJson(

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/chat/domain/repositories/chat_repository.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
@@ -27,6 +28,7 @@ class _FakeUsersRepository implements MatchmakerUsersRepository {
   /// list -> page number -> page.
   final Map<MatchmakerUsersList, Map<int, MatchmakerUsersPage>> pages;
   final List<(MatchmakerUsersList, int)> calls = [];
+  final List<Gender?> genders = [];
 
   @override
   Future<Either<Failure, MatchmakerUsersPage>> getUsers({
@@ -34,8 +36,10 @@ class _FakeUsersRepository implements MatchmakerUsersRepository {
     required int page,
     required int pageSize,
     int? planId,
+    Gender? gender,
   }) async {
     calls.add((list, page));
+    genders.add(gender);
     final found = pages[list]?[page];
     if (found == null) {
       return const Left(ServerFailure(message: 'unexpected fetch'));
@@ -160,5 +164,71 @@ void main() {
     expect(repo.calls, [(MatchmakerUsersList.approvedUnsubscribed, 1)]);
     expect(cubit.state.hasMore, isTrue);
     await cubit.close();
+  });
+
+  group('recipient gender filter (#12b)', () {
+    _FakeUsersRepository singlePageRepo() => _FakeUsersRepository({
+      MatchmakerUsersList.approvedUnsubscribed: const {
+        1: MatchmakerUsersPage(items: [], pageNumber: 1, totalPages: 1),
+      },
+      MatchmakerUsersList.approvedSubscribed: const {
+        1: MatchmakerUsersPage(items: [], pageNumber: 1, totalPages: 1),
+      },
+    });
+
+    test('unset by default — nothing sends a gender today', () async {
+      // The picker's endpoints do not accept ?gender= yet, so no control sets
+      // it and every fetch must go out unfiltered.
+      final repo = singlePageRepo();
+      final cubit = _cubit(repo);
+
+      await cubit.loadFirst();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.genders, everyElement(isNull));
+      await cubit.close();
+    });
+
+    test('setGender threads through to every source', () async {
+      final repo = singlePageRepo();
+      final cubit = _cubit(repo);
+
+      await cubit.setGender(Gender.female);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.genders, isNotEmpty);
+      expect(repo.genders, everyElement(Gender.female));
+      await cubit.close();
+    });
+
+    test('setGender restarts from page 1', () async {
+      final repo = singlePageRepo();
+      final cubit = _cubit(repo);
+      await cubit.loadFirst();
+      await Future<void>.delayed(Duration.zero);
+      repo.calls.clear();
+
+      await cubit.setGender(Gender.male);
+      await Future<void>.delayed(Duration.zero);
+
+      // A filter change invalidates what is already listed, so it reloads
+      // rather than appending onto the unfiltered results.
+      expect(repo.calls.first, (MatchmakerUsersList.approvedUnsubscribed, 1));
+      await cubit.close();
+    });
+
+    test('setting the same gender twice does not refetch', () async {
+      final repo = singlePageRepo();
+      final cubit = _cubit(repo);
+      await cubit.setGender(Gender.male);
+      await Future<void>.delayed(Duration.zero);
+      repo.calls.clear();
+
+      await cubit.setGender(Gender.male);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.calls, isEmpty);
+      await cubit.close();
+    });
   });
 }

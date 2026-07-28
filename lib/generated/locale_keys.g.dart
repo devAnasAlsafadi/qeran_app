@@ -802,6 +802,9 @@ abstract class  LocaleKeys {
   static const settings_delete_account_confirm_hint = 'settings.delete_account_confirm_hint';
   static const settings_delete_account_confirm_word = 'settings.delete_account_confirm_word';
   static const settings_delete_account_confirm_button = 'settings.delete_account_confirm_button';
+  static const settings_delete_account_final_confirm_title = 'settings.delete_account_final_confirm_title';
+  static const settings_delete_account_final_confirm_message = 'settings.delete_account_final_confirm_message';
+  static const settings_delete_account_final_confirm_action = 'settings.delete_account_final_confirm_action';
   static const settings_delete_account_success = 'settings.delete_account_success';
   static const settings_delete_account_failed = 'settings.delete_account_failed';
   static const settings_lang_arabic = 'settings.lang_arabic';

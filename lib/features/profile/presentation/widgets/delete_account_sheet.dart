@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/design_system/widgets/qeran_sheet_handle.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/di/injection_container.dart';
@@ -71,6 +72,25 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
   bool _matches(BuildContext context) {
     final word = LocaleKeys.settings_delete_account_confirm_word.t(context);
     return _confirm.text.trim().toLowerCase() == word.toLowerCase();
+  }
+
+  /// Typing the confirm word ARMS the button; it must not also fire the
+  /// deletion. A final danger dialog stands between the two so the gravity of
+  /// a permanent, unrecoverable delete is stated once more before it happens.
+  Future<void> _confirmThenDelete(BuildContext context) async {
+    final cubit = context.read<DeleteAccountCubit>();
+    final confirmed = await QeranConfirmDialog.show(
+      context,
+      title: LocaleKeys.settings_delete_account_final_confirm_title.t(context),
+      message: LocaleKeys.settings_delete_account_final_confirm_message.t(
+        context,
+      ),
+      confirmLabel: LocaleKeys.settings_delete_account_final_confirm_action.t(
+        context,
+      ),
+      icon: Icons.delete_forever_outlined,
+    );
+    if (confirmed) cubit.delete();
   }
 
   /// The subscription-forfeit line with the formatted expiry — null when there
@@ -177,7 +197,7 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
                     variant: QeranButtonVariant.destructive,
                     loading: state.deleting,
                     onPressed: _matches(context)
-                        ? () => context.read<DeleteAccountCubit>().delete()
+                        ? () => _confirmThenDelete(context)
                         : null,
                   ),
                   QeranSpacing.vs8,

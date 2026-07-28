@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 
-/// Gold checkmark that flies from the Like button to the card image area
+/// Gold heart that flies from the Like button to the card image area
 /// in two stages and fades into the card-level Like overlay. Gold, and the
 /// same glyph as the button, so it reads as the button's own icon lifting
 /// off rather than a second unrelated mark.
@@ -131,7 +131,7 @@ class _DiscoveryLikeBurstState extends State<DiscoveryLikeBurst>
               child: Transform.scale(
                 scale: _scale.value,
                 child: const Icon(
-                  Icons.check_rounded,
+                  Icons.favorite_rounded,
                   size: _iconSize,
                   color: QeranColors.gold,
                 ),

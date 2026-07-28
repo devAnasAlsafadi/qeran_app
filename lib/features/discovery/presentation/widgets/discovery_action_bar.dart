@@ -91,11 +91,10 @@ class DiscoveryActionBar extends StatelessWidget {
     return Row(
       children: [
         _PressableActionButton(
-          // A checkmark, not a heart: the gesture is "yes, I'm interested",
-          // and a heart reads as romance in a matrimony context the app
-          // deliberately keeps formal. Palette is unchanged — wine circle,
-          // gold glyph.
-          icon: Icons.check_rounded,
+          // The heart is the app's own like glyph — it is what the like
+          // overlay, the likes tab and the paywall all use, so the button has
+          // to match them. Wine circle, gold heart.
+          icon: Icons.favorite_rounded,
           size: 72,
           iconSize: 34,
           tooltip: LocaleKeys.discovery_action_like_label.t(context),

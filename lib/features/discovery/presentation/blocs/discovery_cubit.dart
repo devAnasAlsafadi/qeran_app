@@ -71,6 +71,12 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
   Map<int, DiscoveryFilterSelection> get activeFilterSelections =>
       _activeSelections;
 
+  /// True while a filter is constraining the deck. Read off the QUERY, not the
+  /// selections, so it answers "is the server being narrowed?" rather than
+  /// "does the sheet have chips ticked". Lets the empty state tell "nobody left"
+  /// apart from "your filter matched nobody".
+  bool get hasActiveFilters => _activeFilters?.isNotEmpty ?? false;
+
   /// Blocks a second [like] from racing the first while the API call
   /// is in flight. Released in `like`'s `finally` block. `pass` does
   /// NOT take this guard — it has its own [_passCooldown] throttle and

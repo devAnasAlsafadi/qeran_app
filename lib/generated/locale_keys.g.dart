@@ -213,6 +213,10 @@ abstract class  LocaleKeys {
   static const discovery_privacy_message = 'discovery.privacy_message';
   static const discovery_empty_title = 'discovery.empty_title';
   static const discovery_empty_subtitle = 'discovery.empty_subtitle';
+  static const discovery_empty_filtered_title = 'discovery.empty_filtered_title';
+  static const discovery_empty_filtered_subtitle = 'discovery.empty_filtered_subtitle';
+  static const discovery_empty_edit_filters = 'discovery.empty_edit_filters';
+  static const discovery_empty_clear_filters = 'discovery.empty_clear_filters';
   static const discovery_error_retry = 'discovery.error_retry';
   static const discovery_load_failed = 'discovery.load_failed';
   static const discovery_prefetch_failed = 'discovery.prefetch_failed';

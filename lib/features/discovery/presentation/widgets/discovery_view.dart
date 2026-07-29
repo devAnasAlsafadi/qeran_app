@@ -335,7 +335,16 @@ class _ScrollableProfile extends StatelessWidget {
           );
           return const DiscoveryCardSkeleton();
         }
-        return const _ScrollableCenter(child: DiscoveryEmptyView());
+        // A filtered deck that came back empty is otherwise a dead end: the
+        // filter button lives on the card photo, and there is no card.
+        final cubit = context.read<DiscoveryCubit>();
+        return _ScrollableCenter(
+          child: DiscoveryEmptyView(
+            hasFilters: cubit.hasActiveFilters,
+            onEditFilters: () => _openFilters(context),
+            onClearFilters: () => cubit.applyFilters(null),
+          ),
+        );
       }
       return _ProfilePage(loaded: s, scrollOffset: scrollOffset);
     }

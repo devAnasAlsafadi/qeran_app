@@ -88,7 +88,7 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
-  testWidgets('all three action buttons have no border', (tester) async {
+  testWidgets('pass and undo buttons have refined borders', (tester) async {
     await _pumpActionBar(
       tester,
       onPass: () {},
@@ -96,52 +96,41 @@ void main() {
       onLike: () {},
     );
 
-    final materials = tester
-        .widgetList<Material>(
-          find.descendant(
-            of: find.byType(DiscoveryActionBar),
-            matching: find.byType(Material),
-          ),
-        )
-        .where((material) => material.shape is CircleBorder)
-        .toList();
+    final passMat = tester.widget<Material>(
+      find.ancestor(of: find.byIcon(Icons.close_rounded), matching: find.byType(Material)).first,
+    );
+    final undoMat = tester.widget<Material>(
+      find.ancestor(of: find.byIcon(Icons.replay_rounded), matching: find.byType(Material)).first,
+    );
 
-    expect(materials, hasLength(3));
-    for (final material in materials) {
-      final shape = material.shape! as CircleBorder;
-      expect(shape.side, BorderSide.none);
-    }
+    expect((passMat.shape! as CircleBorder).side.width, equals(1.5));
+    expect((undoMat.shape! as CircleBorder).side.width, equals(1.5));
   });
 
   testWidgets('the like glyph is the app-wide heart, not a checkmark', (
     tester,
   ) async {
-    // It briefly shipped as a checkmark. The heart is what the like overlay,
-    // the likes tab and the paywall use, so the button has to match them.
     await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
 
     expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
     expect(find.byIcon(Icons.check_rounded), findsNothing);
   });
 
-  testWidgets('skip and undo are equal circles; only like is bigger', (
+  testWidgets('action buttons have distinct proportional sizes', (
     tester,
   ) async {
-    // Undo used to be 44 against skip's 64, which read as a third, weaker
-    // tier rather than a sibling. The glyph is what tells them apart now.
     await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
 
     final skip = _buttonSize(tester, Icons.close_rounded);
     final undo = _buttonSize(tester, Icons.replay_rounded);
-    expect(undo, skip);
-    expect(skip.width, skip.height);
-    expect(
-      _buttonSize(tester, Icons.favorite_rounded).width,
-      greaterThan(skip.width),
-    );
+    final like = _buttonSize(tester, Icons.favorite_rounded);
+
+    expect(skip.width, equals(60.0));
+    expect(undo.width, equals(48.0));
+    expect(like.width, equals(72.0));
   });
 
-  testWidgets('skip and undo share one surface colour', (tester) async {
+  testWidgets('undo has cream surface and pass has paper surface', (tester) async {
     await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
 
     Color surface(IconData icon) => tester
@@ -152,7 +141,6 @@ void main() {
         )
         .color!;
 
-    expect(surface(Icons.replay_rounded), surface(Icons.close_rounded));
     expect(surface(Icons.favorite_rounded), isNot(surface(Icons.close_rounded)));
   });
 

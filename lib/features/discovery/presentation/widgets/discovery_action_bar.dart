@@ -18,30 +18,38 @@ class _ActionButtonPalette {
   final Color disabledBackground;
   final Color iconColor;
   final Color disabledIconColor;
+  final Color? borderColor;
+  final double elevation;
 
   const _ActionButtonPalette({
     required this.background,
     required this.disabledBackground,
     required this.iconColor,
     required this.disabledIconColor,
+    this.borderColor,
+    this.elevation = 1.0,
   });
 }
 
-// Skip and undo — one shared quiet paper surface with no outline. They are a
-// matched pair of plain circles; the glyph, not the colour, is what tells them
-// apart. Undo used to be cream and a size smaller, which read as a third,
-// weaker tier rather than a sibling of skip.
-const _ActionButtonPalette _kSecondaryPalette = _ActionButtonPalette(
+// Pass — paper surface with a refined wine border and subtle elevation.
+const _ActionButtonPalette _kPassPalette = _ActionButtonPalette(
   background: QeranColors.paper,
   disabledBackground: QeranColors.paper,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
+  borderColor: Color(0x38501222), // wine ~22%
+  elevation: 2.5,
 );
 
-/// Diameter shared by skip and undo. Equal circles: neither action outranks
-/// the other, and only the like CTA is allowed to be bigger.
-const double _kSecondarySize = 56;
-const double _kSecondaryIconSize = 26;
+// Undo — cream-lifted secondary with a delicate border.
+const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
+  background: QeranColors.creamSurface,
+  disabledBackground: QeranColors.creamSurface,
+  iconColor: QeranColors.wine,
+  disabledIconColor: QeranColors.wine40,
+  borderColor: Color(0x1F501222), // wine ~12%
+  elevation: 2.0,
+);
 
 // Like — wine-filled primary CTA with a gold heart icon. Pure weightless CTA.
 const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
@@ -49,34 +57,22 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
   disabledBackground: QeranColors.wine40,
   iconColor: QeranColors.gold,
   disabledIconColor: QeranColors.gold40,
+  elevation: 4.0,
 );
 
 /// Three-button action bar under the Discovery card.
 ///
-/// Children are declared like (wine-filled primary, 72) → undo → pass, the
-/// last two a matched pair of 56dp paper circles told apart by their glyph
-/// alone (rewind vs dismiss). The Row mirrors automatically by locale via
-/// natural Directionality (no manual flip / textDirection override): LTR
+/// Children are declared like (wine-filled primary, 72) → undo (48) → pass (60).
+/// The Row mirrors automatically by locale via natural Directionality: LTR
 /// renders like (leading) … undo · pass (trailing); RTL mirrors it so
 /// pass · undo … like reads right-to-left.
-///
-/// Each button owns its own `AnimationController` for press feedback
-/// and is fully independent — a press on one button never affects the
-/// visual of the others, and the deck animator's `isAnimating` flag
-/// does NOT gate enable state here (the caller's `onLike`/`onPass`/
-/// `onUndo` closures may internally bail when the deck is mid-animation,
-/// but the buttons stay visually enabled to avoid the synchronized
-/// color flash that was misread as "all three buttons animating
-/// together").
 class DiscoveryActionBar extends StatelessWidget {
   final VoidCallback? onPass;
   final VoidCallback? onUndo;
   final VoidCallback? onLike;
 
   /// Optional — invoked on an ENABLED Like tap with the button's
-  /// screen-space center. Used by the surrounding view to spawn a
-  /// flying-heart overlay that visually connects the button to the
-  /// card's like overlay.
+  /// screen-space center.
   final void Function(Offset origin)? onLikeBurst;
 
   const DiscoveryActionBar({
@@ -92,9 +88,6 @@ class DiscoveryActionBar extends StatelessWidget {
     return Row(
       children: [
         _PressableActionButton(
-          // The heart is the app's own like glyph — it is what the like
-          // overlay, the likes tab and the paywall all use, so the button has
-          // to match them. Wine circle, gold heart.
           icon: Icons.favorite_rounded,
           size: 72,
           iconSize: 34,
@@ -109,25 +102,22 @@ class DiscoveryActionBar extends StatelessWidget {
         ),
         const Spacer(),
         _PressableActionButton(
-          // Rewind — a circular arrow, distinct at a glance from the skip X
-          // now that the two circles are the same size and colour.
           icon: Icons.replay_rounded,
-          size: _kSecondarySize,
-          iconSize: _kSecondaryIconSize,
+          size: 48,
+          iconSize: 22,
           tooltip: LocaleKeys.discovery_action_undo_label.t(context),
           onPressed: onUndo,
           rewindRotate: true,
-          palette: _kSecondaryPalette,
+          palette: _kUndoPalette,
         ),
-        const SizedBox(width: QeranSpacing.s16),
+        const SizedBox(width: QeranSpacing.s12),
         _PressableActionButton(
-          // Dismiss.
           icon: Icons.close_rounded,
-          size: _kSecondarySize,
-          iconSize: _kSecondaryIconSize,
+          size: 60,
+          iconSize: 28,
           tooltip: LocaleKeys.discovery_action_pass_label.t(context),
           onPressed: onPass,
-          palette: _kSecondaryPalette,
+          palette: _kPassPalette,
         ),
       ],
     );
@@ -520,7 +510,14 @@ class _PressableActionButtonState extends State<_PressableActionButton>
     final palette = widget.palette;
     final iconColor = disabled ? palette.disabledIconColor : palette.iconColor;
     final bgColor = disabled ? palette.disabledBackground : palette.background;
-    const shape = CircleBorder();
+    final shape = palette.borderColor == null
+        ? const CircleBorder()
+        : CircleBorder(
+            side: BorderSide(
+              color: palette.borderColor!,
+              width: 1.5,
+            ),
+          );
 
     final button = Tooltip(
       message: widget.tooltip,
@@ -541,8 +538,8 @@ class _PressableActionButtonState extends State<_PressableActionButton>
           final currentElevation = widget.filled
               ? (isTapAnimActive && widget.overshoot
                     ? _elevationAnim.value
-                    : (isIdleAnimActive ? _idleElevation.value : 4.0))
-              : 1.0;
+                    : (isIdleAnimActive ? _idleElevation.value : palette.elevation))
+              : palette.elevation;
 
           final iconScaleVal = widget.overshoot ? _iconScale.value : 1.0;
           final glowOp = widget.overshoot

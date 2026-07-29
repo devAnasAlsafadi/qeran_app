@@ -4,6 +4,8 @@ import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 
+import 'like_user_card.dart';
+
 /// Shared body for every Matches-tab card so all stages read with one
 /// padding + alignment rhythm.
 ///
@@ -89,7 +91,9 @@ class MatchCardScaffold extends StatelessWidget {
                           textAlign: TextAlign.start,
                           style: QeranTypography.subtitle
                               .copyWith(color: QeranColors.wine),
-                          maxLines: 1,
+                          // Wraps rather than abbreviating — same rule as the
+                          // likes row it sits beside on this screen.
+                          maxLines: kLikeCardNameMaxLines,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

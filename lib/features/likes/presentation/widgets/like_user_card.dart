@@ -12,6 +12,14 @@ import 'like_card_countdown_chip.dart';
 import 'like_card_locked.dart';
 import 'like_card_status.dart';
 
+/// How far a name may wrap on a likes/matches row before it is finally
+/// ellipsised. Three lines covers every realistic Arabic or Latin full name
+/// beside the countdown chip, while still bounding the row's height.
+///
+/// Shared with [MatchCardScaffold] so the two sibling rows on the same screen
+/// cannot drift apart.
+const int kLikeCardNameMaxLines = 3;
+
 /// One row in the Likes / Interests list.
 ///
 /// Figma layout, mirrored automatically by locale: avatar on the leading
@@ -128,7 +136,12 @@ class _VisibleContent extends StatelessWidget {
                           textAlign: TextAlign.start,
                           style: QeranTypography.subtitle
                               .copyWith(color: QeranColors.wine),
-                          maxLines: 1,
+                          // A three-part name next to the countdown chip was
+                          // being cut to "Anas Ashraf Al…". Names are the one
+                          // thing on this row that must never be abbreviated,
+                          // so it wraps under itself instead; the ellipsis is
+                          // now only a backstop for something pathological.
+                          maxLines: kLikeCardNameMaxLines,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

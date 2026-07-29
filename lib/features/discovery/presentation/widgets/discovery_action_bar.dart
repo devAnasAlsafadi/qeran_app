@@ -116,6 +116,10 @@ class DiscoveryActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      // Bottom-aligned, not centred: three circles of different diameters
+      // centred on one axis leave the small ones floating high. Sitting them
+      // on a shared baseline is what makes the row read as one cluster.
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         _PressableActionButton(
           // The heart is the app's own like glyph — it is what the like

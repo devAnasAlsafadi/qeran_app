@@ -165,6 +165,24 @@ void main() {
     }
   });
 
+  testWidgets('all three sit on one baseline, not on one centre line', (
+    tester,
+  ) async {
+    // Centred, the smaller circles floated visibly high against the like
+    // button; a shared bottom edge is what makes the row read as one cluster.
+    await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
+
+    Finder disc(IconData icon) =>
+        find.ancestor(of: find.byIcon(icon), matching: find.byType(InkWell));
+
+    final like = tester.getRect(disc(Icons.favorite_rounded)).bottom;
+    expect(tester.getRect(disc(Icons.close_rounded)).bottom, closeTo(like, 0.5));
+    expect(
+      tester.getRect(disc(Icons.replay_rounded)).bottom,
+      closeTo(like, 0.5),
+    );
+  });
+
   testWidgets('skip and like sit at opposite ends, far apart', (tester) async {
     await tester.binding.setSurfaceSize(const Size(400, 200));
     addTearDown(() => tester.binding.setSurfaceSize(null));

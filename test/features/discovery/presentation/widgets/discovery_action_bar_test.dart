@@ -77,9 +77,12 @@ Size _buttonSize(WidgetTester tester, IconData icon) => tester.getSize(
 );
 
 InkWell _pass(WidgetTester tester) => _inkForIcon(tester, Icons.close_rounded);
-InkWell _undo(WidgetTester tester) => _inkForIcon(tester, Icons.replay_rounded);
 InkWell _like(WidgetTester tester) =>
     _inkForIcon(tester, Icons.favorite_rounded);
+
+/// Undo is no longer a disc in the row — it is a labelled pill that exists
+/// ONLY while there is a decision to reverse. Presence IS its enabled state.
+Finder _undoPill() => find.byIcon(Icons.undo_rounded);
 
 void main() {
   setUpAll(() async {
@@ -88,9 +91,7 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
-  testWidgets('all three action buttons are outline-free discs', (
-    tester,
-  ) async {
+  testWidgets('the decision row is exactly two discs', (tester) async {
     await _pumpActionBar(
       tester,
       onPass: () {},
@@ -98,7 +99,7 @@ void main() {
       onLike: () {},
     );
 
-    final materials = tester
+    final discs = tester
         .widgetList<Material>(
           find.descendant(
             of: find.byType(DiscoveryActionBar),
@@ -108,10 +109,40 @@ void main() {
         .where((material) => material.shape is CircleBorder)
         .toList();
 
-    expect(materials, hasLength(3));
-    for (final material in materials) {
-      expect((material.shape! as CircleBorder).side, BorderSide.none);
-    }
+    // Undo used to make three. It is a pill above the row now, not a peer of
+    // the decision.
+    expect(discs, hasLength(2));
+  });
+
+  testWidgets('skip is outlined so it reads as a control, not an absence', (
+    tester,
+  ) async {
+    await _pumpActionBar(
+      tester,
+      onPass: () {},
+      onUndo: () {},
+      onLike: () {},
+    );
+
+    CircleBorder shapeFor(IconData icon) =>
+        tester
+                .widget<Material>(
+                  find
+                      .ancestor(
+                        of: find.byIcon(icon),
+                        matching: find.byType(Material),
+                      )
+                      .first,
+                )
+                .shape!
+            as CircleBorder;
+
+    // A bare X on white read as neutral system chrome beside a fully branded
+    // heart. The outline is a token, never a raw hex.
+    expect(shapeFor(Icons.close_rounded).side.color, isNot(Colors.transparent));
+    expect(shapeFor(Icons.close_rounded).side.width, greaterThan(0));
+    // The filled disc needs no outline — its fill already carries the weight.
+    expect(shapeFor(Icons.favorite_rounded).side, BorderSide.none);
   });
 
   testWidgets('the like glyph is the app-wide heart, not a checkmark', (
@@ -123,29 +154,36 @@ void main() {
     expect(find.byIcon(Icons.check_rounded), findsNothing);
   });
 
-  testWidgets('skip and undo are equal circles; only like is bigger', (
-    tester,
-  ) async {
-    // Skip and undo are peers — neither outranks the other, so neither is
-    // allowed to be the bigger disc. Only the like CTA breaks the tie.
+  testWidgets('skip and like carry equal weight', (tester) async {
+    // They are the two halves of one choice, and skip is the MORE permanent of
+    // the two — the server records it forever, while a like is a request the
+    // other person can still decline. Making skip the smaller, lighter thing
+    // inverted weight against consequence.
     await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
 
     final skip = _buttonSize(tester, Icons.close_rounded);
-    final undo = _buttonSize(tester, Icons.replay_rounded);
+    final like = _buttonSize(tester, Icons.favorite_rounded);
 
-    expect(undo, skip);
+    expect(skip, like);
     expect(skip.width, skip.height);
-    expect(
-      _buttonSize(tester, Icons.favorite_rounded).width,
-      greaterThan(skip.width),
-    );
   });
 
-  testWidgets('skip and undo share one surface; like stands apart', (
+  testWidgets('skip and like sit at opposite ends, far apart', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
+
+    // Opposite decisions must not be neighbours — a slip on skip is the one
+    // mistake whose only remedy is another button entirely.
+    final skip = tester.getRect(find.byIcon(Icons.close_rounded));
+    final like = tester.getRect(find.byIcon(Icons.favorite_rounded));
+    expect((skip.center.dx - like.center.dx).abs(), greaterThan(150));
+  });
+
+  testWidgets('the two decisions are told apart by fill, not by size', (
     tester,
   ) async {
-    // The glyph is what separates skip from undo. Giving them different
-    // surfaces as well read as a third, weaker tier rather than a pair.
     await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
 
     Color surface(IconData icon) => tester
@@ -156,12 +194,11 @@ void main() {
         )
         .color!;
 
-    expect(surface(Icons.replay_rounded), surface(Icons.close_rounded));
     expect(surface(Icons.favorite_rounded), isNot(surface(Icons.close_rounded)));
   });
 
   group('DiscoveryActionBar — per-button enable from nullable callbacks', () {
-    testWidgets('all callbacks set → all three buttons enabled',
+    testWidgets('all callbacks set → both discs enabled, undo offered',
         (tester) async {
       await _pumpActionBar(
         tester,
@@ -171,12 +208,12 @@ void main() {
       );
 
       expect(_pass(tester).onTap, isNotNull);
-      expect(_undo(tester).onTap, isNotNull);
       expect(_like(tester).onTap, isNotNull);
+      expect(_undoPill(), findsOneWidget);
     });
 
     testWidgets(
-        'pass/like null (no active card), undo set → only undo is enabled',
+        'pass/like null (no active card), undo set → only undo is live',
         (tester) async {
       // The bug-fix scenario: deck just exhausted after passing the
       // last profile. Pass and Like must be inert; Undo must remain
@@ -189,15 +226,16 @@ void main() {
       );
 
       expect(_pass(tester).onTap, isNull);
-      expect(_undo(tester).onTap, isNotNull);
       expect(_like(tester).onTap, isNull);
+      expect(_undoPill(), findsOneWidget);
     });
 
     testWidgets(
-        'pass/like set, undo null (start of deck) → undo disabled, others enabled',
+        'nothing to rewind → undo is ABSENT, not sitting there greyed out',
         (tester) async {
-      // currentIndex == 0 → nothing to rewind. Pass/Like remain active
-      // on the current card.
+      // currentIndex == 0. A permanently disabled control on the first card
+      // teaches people to ignore it, and a greyed paper disc on a light
+      // background barely reads as a state at all.
       await _pumpActionBar(
         tester,
         onPass: () {},
@@ -206,17 +244,17 @@ void main() {
       );
 
       expect(_pass(tester).onTap, isNotNull);
-      expect(_undo(tester).onTap, isNull);
       expect(_like(tester).onTap, isNotNull);
+      expect(_undoPill(), findsNothing);
     });
 
-    testWidgets('all callbacks null → all three buttons disabled',
+    testWidgets('all callbacks null → discs disabled, undo absent',
         (tester) async {
       await _pumpActionBar(tester);
 
       expect(_pass(tester).onTap, isNull);
-      expect(_undo(tester).onTap, isNull);
       expect(_like(tester).onTap, isNull);
+      expect(_undoPill(), findsNothing);
     });
 
     testWidgets('tapping undo invokes only the undo callback', (tester) async {
@@ -231,7 +269,7 @@ void main() {
         onLike: () => likeCalls++,
       );
 
-      await tester.tap(find.byIcon(Icons.replay_rounded));
+      await tester.tap(find.byIcon(Icons.undo_rounded));
       await tester.pumpAndSettle();
 
       expect(undoCalls, 1);
@@ -392,7 +430,6 @@ void main() {
       );
       for (final other in <IconData>[
         Icons.close_rounded,
-        Icons.replay_rounded,
         Icons.favorite_rounded,
       ]) {
         if (other == iconBeingPressed) continue;
@@ -430,16 +467,8 @@ void main() {
           iconBeingPressed: Icons.close_rounded);
     });
 
-    testWidgets('pressing Undo only animates Undo', (tester) async {
-      await _pumpActionBar(
-        tester,
-        onPass: () {},
-        onUndo: () {},
-        onLike: () {},
-      );
-      await assertOnlyOneAnimates(tester,
-          iconBeingPressed: Icons.replay_rounded);
-    });
+    // Undo has no equivalent case any more: it is a pill outside the row, not
+    // a disc sharing the decision's press vocabulary.
   });
 
   group('DiscoveryActionBar — flying-mark burst callback', () {
@@ -492,7 +521,7 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.close_rounded));
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.replay_rounded));
+      await tester.tap(find.byIcon(Icons.undo_rounded));
       await tester.pumpAndSettle();
 
       expect(bursts, 0);

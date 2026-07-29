@@ -153,6 +153,7 @@ class _StubAssetLoader extends AssetLoader {
   Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
       const {
         'profile': {'compatibility_label': '{percent}٪'},
+        'discovery': {'action_undo_label': 'تراجع'},
       };
 }
 

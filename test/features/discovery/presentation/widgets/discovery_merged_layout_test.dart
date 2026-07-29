@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 // dart:ui's — the one Directionality actually takes.
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
@@ -131,6 +132,11 @@ const String kAboutMeBody =
     'نص تعريفي طويل بما يكفي ليأخذ الجزء الأعلى من ورقة المحتوى، '
     'تمامًا كما يفعل النص الحقيقي القادم من الخادم في شاشة الاستكشاف.';
 
+/// A نبذة short enough that photo + intro still fit inside one viewport, so
+/// the fold group can measure the surplus it is there to measure. A long نبذة
+/// legitimately has no surplus to give — see the group's own note.
+const String kShortAboutMeBody = 'نبذة قصيرة.';
+
 /// What the by-id profile sends: the paragraph the user actually wrote.
 const String kFullAboutMeBody =
     'نص تعريفي طويل بما يكفي ليأخذ الجزء الأعلى من ورقة المحتوى، '
@@ -217,9 +223,14 @@ class _FakeChatRepository extends Fake implements ChatRepository {
 /// Serves the by-id hydration behind the below-the-fold sections. [failing]
 /// models the degrade path — the card must still render from the deck payload.
 class _FakeProfileRepository extends Fake implements ProfileRepository {
-  _FakeProfileRepository({this.failing = false});
+  _FakeProfileRepository({this.failing = false, this.aboutMe = kFullAboutMeBody});
 
   final bool failing;
+
+  /// The نبذة عني the by-id profile carries. Length matters: the fold
+  /// guarantees only apply while photo + نبذة still fit inside one viewport.
+  final String aboutMe;
+
   final List<String> requested = [];
 
   @override
@@ -247,8 +258,8 @@ class _FakeProfileRepository extends Fake implements ProfileRepository {
                   questionId: 11,
                   question: 'نبذة عني',
                   type: profile_item_type.PlacementItemType.text,
-                  value: const profile_value.PlacementSingle(kFullAboutMeBody),
-                  display: const profile_value.PlacementSingle(kFullAboutMeBody),
+                  value: profile_value.PlacementSingle(aboutMe),
+                  display: profile_value.PlacementSingle(aboutMe),
                 ),
               ],
             ),
@@ -278,8 +289,12 @@ Future<_FakeProfileRepository> _pumpView(
   bool hydrationFails = false,
   TextDirection direction = TextDirection.rtl,
   double topInset = kTopInset,
+  String fullAboutMe = kFullAboutMeBody,
 }) async {
-  final profileRepo = _FakeProfileRepository(failing: hydrationFails);
+  final profileRepo = _FakeProfileRepository(
+    failing: hydrationFails,
+    aboutMe: fullAboutMe,
+  );
   sl.registerFactory<DiscoveryCubit>(
     () => DiscoveryCubit(
       fetchPage: _FakeFetch(profiles),
@@ -659,6 +674,13 @@ void main() {
   });
 
   group('the fold sits after نبذة عني (D4)', () {
+    // Measured with a SHORT نبذة. The surplus these tests are about only
+    // exists while photo + نبذة fit inside one viewport; a long one legitimately
+    // fills the screen on its own and pushes the sections down by its own
+    // height, which is the documented degradation, not a regression.
+    Future<void> pumpShort(WidgetTester tester) =>
+        _pumpView(tester, [_profile('a')], fullAboutMe: kShortAboutMeBody);
+
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
@@ -671,20 +693,20 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await _pumpView(tester, [_profile('a')]);
+      await pumpShort(tester);
 
       // Not clipped by the action buttons, not pushed off-screen.
       final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
       expect(intro.top, greaterThan(0));
       expect(intro.bottom, lessThanOrEqualTo(800));
-      expect(find.text(kFullAboutMeBody), findsOneWidget);
+      expect(find.text(kShortAboutMeBody), findsOneWidget);
     });
 
     testWidgets('the partner sections start below the fold', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await _pumpView(tester, [_profile('a')]);
+      await pumpShort(tester);
 
       // Nothing from نبذة عن شريك الحياة onward is on screen — the sections
       // sit past the fold and are not even laid out until the user scrolls.
@@ -703,7 +725,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await _pumpView(tester, [_profile('a')]);
+      await pumpShort(tester);
 
       // Photo + نبذة عني are far shorter than a screen, and the first
       // screenful is held to a full viewport, so the surplus lands under the
@@ -727,7 +749,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await _pumpView(tester, [_profile('a')]);
+      await pumpShort(tester);
 
       final photoBefore = tester.getRect(find.byType(DiscoveryImagePanel)).top;
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -120));
@@ -749,7 +771,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await _pumpView(tester, [_profile('a')]);
+      await pumpShort(tester);
 
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
       await tester.pumpAndSettle();
@@ -786,7 +808,7 @@ void main() {
       expect(find.text(kAboutMeBody), findsNothing);
     });
 
-    testWidgets('nothing is truncated once it is there', (tester) async {
+    testWidgets('it runs to as many lines as it needs', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -794,6 +816,15 @@ void main() {
 
       final text = tester.widget<Text>(find.text(kFullAboutMeBody));
       expect(text.maxLines, isNull);
+      // The paragraph was collapsing to ONE line: an ellipsis with a null
+      // maxLines is applied to the first line that outgrows the width, not
+      // after some unlimited number of them.
+      expect(text.overflow, isNot(TextOverflow.ellipsis));
+
+      final painter = tester.renderObject<RenderParagraph>(
+        find.text(kFullAboutMeBody),
+      );
+      expect(painter.size.height, greaterThan(painter.preferredLineHeight * 2));
     });
 
     testWidgets('a failed hydrate still shows the deck preview', (

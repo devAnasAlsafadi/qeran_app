@@ -41,7 +41,14 @@ class DiscoveryAboutMe extends StatelessWidget {
           text,
           style: QeranTypography.body,
           maxLines: maxLines,
-          overflow: TextOverflow.ellipsis,
+          // Only ellipsize when there is a line budget to exceed. An ellipsis
+          // with a null maxLines does NOT mean "unlimited lines, then …" — it
+          // is applied to the first line that outgrows the width, which cut
+          // the whole paragraph down to one line. Same rule as
+          // `AboutMeSection` / `AboutPartnerSection` on the full profile.
+          overflow: maxLines == null
+              ? TextOverflow.clip
+              : TextOverflow.ellipsis,
         ),
       ],
     );

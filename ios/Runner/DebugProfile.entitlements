@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Debug entitlements — Xcode-installed builds on a wired device.
+
+  aps-environment = development targets the APNs sandbox, which is the only
+  environment a debug-signed build can receive push on. Release.entitlements
+  carries `production` for TestFlight; keep the two in step but never equal.
+
+  See Release.entitlements for why applesignin is mandatory.
+-->
 <plist version="1.0">
 <dict>
+	<key>aps-environment</key>
+	<string>development</string>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 	<key>keychain-access-groups</key>
 	<array/>
 </dict>

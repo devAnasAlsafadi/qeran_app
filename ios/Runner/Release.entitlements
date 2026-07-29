@@ -1,7 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Release entitlements — Profile/Release builds, and everything that reaches
+  TestFlight or the App Store.
+
+  aps-environment = production: the APNs sandbox serves Xcode-installed debug
+  builds only. A TestFlight build signed with `development` here gets no push
+  at all, silently — the classic "but it worked on my device" trap.
+
+  applesignin is not optional. Review guideline 4.8 requires an equivalent
+  login option wherever a third-party social login is offered, and this app
+  ships Google Sign-In. sign_in_with_apple is already wired in Dart; without
+  this key the native sheet fails to present and the submission is rejected.
+
+  In-App Purchase needs no entitlement key — it is enabled on the App ID and
+  arrives through the provisioning profile.
+
+  Xcode rewrites this file when the matching capabilities are added under
+  Signing & Capabilities. Expected; the keys should come out identical.
+-->
 <plist version="1.0">
 <dict>
+	<key>aps-environment</key>
+	<string>production</string>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 	<key>keychain-access-groups</key>
 	<array/>
 </dict>

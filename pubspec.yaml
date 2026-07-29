@@ -49,7 +49,6 @@ dependencies:
   package_info_plus: ^8.0.0
   dartz: ^0.10.1
   flutter_svg: ^2.2.4
-  flutter_animate: ^4.5.2
   country_picker: ^2.0.27
   image_picker: ^1.2.1
   http_parser: ^4.1.1

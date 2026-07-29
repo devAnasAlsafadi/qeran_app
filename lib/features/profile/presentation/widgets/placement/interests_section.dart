@@ -102,8 +102,12 @@ class _InterestGroup extends StatelessWidget {
           runSpacing: QeranSpacing.s12,
           children: chips
               .map(
+                // `inside`, not `interest`: paper with a wine hairline rather
+                // than the gold-tinted fill. Reuses the variant the on-card
+                // chips already use instead of restyling `interest`, which the
+                // subscriptions and matchmaker screens also render.
                 (label) =>
-                    QeranChip(label: label, variant: QeranChipVariant.interest),
+                    QeranChip(label: label, variant: QeranChipVariant.inside),
               )
               .toList(growable: false),
         ),

@@ -213,6 +213,7 @@ abstract class  LocaleKeys {
   static const discovery_privacy_message = 'discovery.privacy_message';
   static const discovery_empty_title = 'discovery.empty_title';
   static const discovery_empty_subtitle = 'discovery.empty_subtitle';
+  static const discovery_scroll_hint = 'discovery.scroll_hint';
   static const discovery_empty_filtered_title = 'discovery.empty_filtered_title';
   static const discovery_empty_filtered_subtitle = 'discovery.empty_filtered_subtitle';
   static const discovery_empty_edit_filters = 'discovery.empty_edit_filters';
@@ -235,7 +236,6 @@ abstract class  LocaleKeys {
   static const discovery_filter_load_failed = 'discovery.filter_load_failed';
   static const discovery_filter_range_format = 'discovery.filter_range_format';
   static const discovery_details_interests_title = 'discovery.details_interests_title';
-  static const discovery_scroll_hint = 'discovery.scroll_hint';
   static const discovery_like_already_pending = 'discovery.like_already_pending';
   static const discovery_like_gender_mismatch = 'discovery.like_gender_mismatch';
   static const discovery_like_user_unavailable = 'discovery.like_user_unavailable';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
@@ -17,7 +17,7 @@ class DiscoveryAboutMe extends StatelessWidget {
     super.key,
     required this.header,
     required this.text,
-    this.maxLines = 3,
+    this.maxLines,
   });
 
   @override

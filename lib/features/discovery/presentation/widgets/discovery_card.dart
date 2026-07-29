@@ -229,17 +229,14 @@ class _AdaptiveImageOverlay extends StatelessWidget {
               _NameAgeRow(name: name, age: age),
               // Compatibility pill — directly under name+age, exactly where
               // the standalone full profile puts it. On the merged screen it
-              // is a scroll reveal (see [matchPillReveal]).
-              if (matchPercent > 0) ...[
-                SizedBox(height: isCompact ? QeranSpacing.s4 : QeranSpacing.s8),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: _RevealingMatchPill(
-                    percent: matchPercent,
-                    reveal: matchPillReveal,
-                  ),
+              // is a scroll reveal (see [matchPillReveal]) that takes up NO
+              // room until it arrives.
+              if (matchPercent > 0)
+                _RevealingMatchPill(
+                  percent: matchPercent,
+                  reveal: matchPillReveal,
+                  gap: isCompact ? QeranSpacing.s4 : QeranSpacing.s8,
                 ),
-              ],
               SizedBox(height: isCompact ? QeranSpacing.s4 : QeranSpacing.s8),
               DiscoveryChipsAboveImage(items: aboveItems),
             ],
@@ -320,15 +317,29 @@ class _AdaptiveImageOverlay extends StatelessWidget {
   }
 }
 
-/// The compatibility pill, faded in by [reveal].
+/// The compatibility pill, revealed by [reveal].
 ///
-/// Opacity only — the pill holds its space at every value, so the name and the
-/// chips never shift while it appears. A null [reveal] renders it outright.
+/// It occupies NO height at rest — name and chips sit directly against each
+/// other — and grows into place as [reveal] runs 0 → 1. Because the identity
+/// block is anchored to the BOTTOM of the photo, that growth pushes the name
+/// upward and the pill slides into the room the name just left, which is the
+/// whole point: no reserved gap waiting to be filled.
+///
+/// A null [reveal] renders the pill outright (any caller that isn't the merged
+/// scroll).
 class _RevealingMatchPill extends StatelessWidget {
-  const _RevealingMatchPill({required this.percent, required this.reveal});
+  const _RevealingMatchPill({
+    required this.percent,
+    required this.reveal,
+    required this.gap,
+  });
 
   final double percent;
   final ValueListenable<double>? reveal;
+
+  /// Space between the name and the pill. Part of what collapses, so at rest
+  /// it costs nothing either.
+  final double gap;
 
   @override
   Widget build(BuildContext context) {
@@ -339,12 +350,28 @@ class _RevealingMatchPill extends StatelessWidget {
       ),
     );
     final source = reveal;
-    if (source == null) return pill;
+    final block = Padding(
+      padding: EdgeInsets.only(top: gap),
+      child: Align(alignment: AlignmentDirectional.centerStart, child: pill),
+    );
+    if (source == null) return block;
     return ValueListenableBuilder<double>(
       valueListenable: source,
-      builder: (context, t, child) =>
-          Opacity(opacity: t.clamp(0.0, 1.0), child: child),
-      child: pill,
+      builder: (context, value, child) {
+        final t = value.clamp(0.0, 1.0);
+        if (t == 0) return const SizedBox.shrink();
+        // heightFactor scales the box; bottom alignment means the pill emerges
+        // from under the chips rather than being squashed. Opacity on top so
+        // it fades rather than wipes.
+        return ClipRect(
+          child: Align(
+            alignment: AlignmentDirectional.bottomStart,
+            heightFactor: t,
+            child: Opacity(opacity: t, child: child),
+          ),
+        );
+      },
+      child: block,
     );
   }
 }

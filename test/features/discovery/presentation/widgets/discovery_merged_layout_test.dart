@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
@@ -848,63 +849,71 @@ void main() {
 
     setUp(() async => sl.reset());
 
-    /// Opacity the pill is actually painted at.
-    double pillOpacity(WidgetTester tester) => tester
-        .widget<Opacity>(
-          find
-              .ancestor(
-                of: find.byType(ProfileMatchPill),
-                matching: find.byType(Opacity),
-              )
-              .first,
-        )
-        .opacity;
-
-    testWidgets('invisible on first open', (tester) async {
+    testWidgets('absent on first open — and holding no space either', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await _pumpView(tester, [_profile('a')]);
 
       // Reverses the earlier "show it on the hero" call: the first impression
-      // is the person, not a verdict on them.
-      expect(pillOpacity(tester), 0);
-      // Laid out all the same, so nothing shifts when it arrives.
+      // is the person, not a verdict on them. And it is genuinely gone — an
+      // invisible-but-reserved gap under the name read as a layout bug.
+      expect(find.byType(ProfileMatchPill), findsNothing);
+
+      final name = tester.getRect(find.text('Name-a 25'));
+      final chips = tester.getRect(find.byType(DiscoveryChipsAboveImage));
+      expect(chips.top - name.bottom, lessThan(QeranSpacing.s16));
+    });
+
+    testWidgets('grows in as the user scrolls into the profile', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+
       expect(find.byType(ProfileMatchPill), findsOneWidget);
+      final name = tester.getRect(find.text('Name-a 25'));
+      final pill = tester.getRect(find.byType(ProfileMatchPill));
+      final chips = tester.getRect(find.byType(DiscoveryChipsAboveImage));
+      // Between the two, where the standalone full profile puts it.
+      expect(pill.top, greaterThanOrEqualTo(name.bottom - 1));
+      expect(pill.bottom, lessThanOrEqualTo(chips.top + 1));
     });
 
-    testWidgets('fades in as the user scrolls into the profile', (tester) async {
+    testWidgets('the name climbs to make room; the chips stay put', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await _pumpView(tester, [_profile('a')]);
 
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
-      await tester.pumpAndSettle();
-
-      expect(pillOpacity(tester), 1);
-    });
-
-    testWidgets('the chips do not move when it appears', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await _pumpView(tester, [_profile('a')]);
-
-      final photoBefore = tester.getRect(find.byType(DiscoveryImagePanel));
-      final chipsBefore = tester.getRect(find.byType(DiscoveryChipsAboveImage));
+      final photoBefore = tester.getRect(find.byType(DiscoveryImagePanel)).top;
+      final nameBefore = tester.getRect(find.text('Name-a 25')).top;
+      final chipsBefore = tester
+          .getRect(find.byType(DiscoveryChipsAboveImage))
+          .top;
 
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
       await tester.pumpAndSettle();
 
-      final photoAfter = tester.getRect(find.byType(DiscoveryImagePanel));
-      final chipsAfter = tester.getRect(find.byType(DiscoveryChipsAboveImage));
-      // The chips travel with the photo and by exactly the same amount — the
-      // reveal is opacity, never layout.
-      expect(
-        chipsBefore.top - chipsAfter.top,
-        closeTo(photoBefore.top - photoAfter.top, 0.5),
-      );
+      final scrolled =
+          photoBefore - tester.getRect(find.byType(DiscoveryImagePanel)).top;
+      final chipsRose =
+          chipsBefore -
+          tester.getRect(find.byType(DiscoveryChipsAboveImage)).top;
+      final nameRose = nameBefore - tester.getRect(find.text('Name-a 25')).top;
+
+      // The chips just ride the photo…
+      expect(chipsRose, closeTo(scrolled, 1));
+      // …while the name climbs further still, by the room the pill now takes.
+      final pill = tester.getRect(find.byType(ProfileMatchPill));
+      expect(nameRose - chipsRose, greaterThan(pill.height - 1));
     });
   });
 

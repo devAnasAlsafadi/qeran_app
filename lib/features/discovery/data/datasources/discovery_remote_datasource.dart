@@ -104,16 +104,6 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
         );
       }
 
-      // TEMPORARY DIAGNOSTIC — remove once read. Answers "does the LIST
-      // endpoint carry the full profile, or only a card subset?", i.e. whether
-      // the merged discovery screen must lazily hydrate each card. Revert this
-      // whole commit after reading one run.
-      AppLogger.info(
-        'DIAG placementCodes per profile: '
-        '${apiResponse.data!.profiles.map((p) => p.placements.map((pl) => pl.code.name).toList()).toList()}',
-        tag: 'DISCOVERY',
-      );
-
       AppLogger.info(
         'Discovery page ${apiResponse.data!.pageNumber}/'
         '${apiResponse.data!.totalPages} — '

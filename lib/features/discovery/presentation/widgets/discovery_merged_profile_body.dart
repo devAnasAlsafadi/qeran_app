@@ -6,6 +6,10 @@ import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/features/profile/domain/entities/other_profile.dart';
+import 'package:qeran/features/profile/domain/entities/placement_code.dart'
+    as profile_code;
+import 'package:qeran/features/profile/domain/entities/placement_value.dart'
+    as profile_value;
 import 'package:qeran/features/profile/presentation/widgets/full_profile_content_skeleton.dart';
 import 'package:qeran/features/profile/presentation/widgets/placement/placement_renderer.dart';
 import 'package:qeran/features/profile/presentation/widgets/share_with_matchmaker_button.dart';
@@ -21,8 +25,10 @@ import 'discovery_card.dart';
 /// as part of it; the rest of the profile follows in
 /// [DiscoveryMergedProfileBody], below the fold.
 ///
-/// Straight from the deck payload, so it paints the instant the card appears
-/// with no network wait.
+/// Paints instantly from the deck payload, then upgrades: the deck only sends
+/// a short PREVIEW of نبذة عني, so when the by-id hydrate lands its full
+/// paragraph replaces the preview in place. No network wait, no truncation
+/// left standing once the real text is available.
 class DiscoveryProfileIntroSheet extends StatelessWidget {
   const DiscoveryProfileIntroSheet({super.key, required this.profile});
 
@@ -43,8 +49,32 @@ class DiscoveryProfileIntroSheet extends StatelessWidget {
         QeranSpacing.s20,
         QeranSpacing.s24,
       ),
-      child: DiscoveryInfoPanel(profile: profile),
+      child: BlocBuilder<DiscoveryHydrationCubit, DiscoveryHydrationState>(
+        buildWhen: (prev, curr) =>
+            prev.profileFor(profile.id) != curr.profileFor(profile.id),
+        builder: (context, hydration) => DiscoveryInfoPanel(
+          profile: profile,
+          aboutMeOverride: _fullAboutMe(hydration.profileFor(profile.id)),
+        ),
+      ),
     );
+  }
+
+  /// The whole نبذة عني from the by-id profile, or null while only the deck's
+  /// preview is available.
+  String? _fullAboutMe(OtherProfile? hydrated) {
+    if (hydrated == null) return null;
+    for (final placement in hydrated.placements) {
+      if (placement.code != profile_code.PlacementCode.aboutMe) continue;
+      if (placement.items.isEmpty) return null;
+      final value = placement.items.first.display;
+      final text = switch (value) {
+        profile_value.PlacementSingle(value: final s) => s,
+        profile_value.PlacementMulti(values: final vs) => vs.join('\n'),
+      };
+      return text.trim().isEmpty ? null : text.trim();
+    }
+    return null;
   }
 }
 

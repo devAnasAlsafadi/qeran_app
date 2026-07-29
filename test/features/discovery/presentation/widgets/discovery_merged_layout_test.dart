@@ -125,9 +125,17 @@ DiscoveryProfile _profile(String id) => DiscoveryProfile(
   ],
 );
 
+/// What the DECK sends: a short preview, cut off by the server.
 const String kAboutMeBody =
     'نص تعريفي طويل بما يكفي ليأخذ الجزء الأعلى من ورقة المحتوى، '
     'تمامًا كما يفعل النص الحقيقي القادم من الخادم في شاشة الاستكشاف.';
+
+/// What the by-id profile sends: the paragraph the user actually wrote.
+const String kFullAboutMeBody =
+    'نص تعريفي طويل بما يكفي ليأخذ الجزء الأعلى من ورقة المحتوى، '
+    'تمامًا كما يفعل النص الحقيقي القادم من الخادم في شاشة الاستكشاف. '
+    'ويتضمن الحديث عن المستوى التعليمي والدورات والشهادات التي حصل عليها، '
+    'وذكر عدد سنوات الخبرة العملية والجهات التي عمل معها.';
 
 /// Everything falls back to echoing the key, EXCEPT the compatibility label —
 /// that one is interpolated and sits in a fixed-width overlay pill, so the raw
@@ -228,6 +236,21 @@ class _FakeProfileRepository extends Fake implements ProfileRepository {
           matchingScore: 52,
           images: const [],
           placements: [
+            // The by-id profile carries the WHOLE نبذة عني; the deck only
+            // sends the preview in [kAboutMeBody].
+            profile_placement.Placement(
+              code: profile_code.PlacementCode.aboutMe,
+              name: 'نبذة عني',
+              items: [
+                profile_item.PlacementItem(
+                  questionId: 11,
+                  question: 'نبذة عني',
+                  type: profile_item_type.PlacementItemType.text,
+                  value: const profile_value.PlacementSingle(kFullAboutMeBody),
+                  display: const profile_value.PlacementSingle(kFullAboutMeBody),
+                ),
+              ],
+            ),
             profile_placement.Placement(
               code: profile_code.PlacementCode.defaultGroup,
               name: 'الدين ونمط الحياة',
@@ -653,7 +676,7 @@ void main() {
       final intro = tester.getRect(find.byType(DiscoveryProfileIntroSheet));
       expect(intro.top, greaterThan(0));
       expect(intro.bottom, lessThanOrEqualTo(800));
-      expect(find.text(kAboutMeBody), findsOneWidget);
+      expect(find.text(kFullAboutMeBody), findsOneWidget);
     });
 
     testWidgets('the partner sections start below the fold', (tester) async {
@@ -738,6 +761,49 @@ void main() {
         body.top - intro.bottom,
         closeTo(DiscoveryMergedProfileBody.sheetOverlap, 1),
       );
+    });
+  });
+
+  group('نبذة عني upgrades from preview to the full paragraph', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('the hydrated text replaces the deck preview', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      // The deck's version was being left on screen, ellipsised, even though
+      // the by-id profile with the whole paragraph had already arrived.
+      expect(find.text(kFullAboutMeBody), findsOneWidget);
+      expect(find.text(kAboutMeBody), findsNothing);
+    });
+
+    testWidgets('nothing is truncated once it is there', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      final text = tester.widget<Text>(find.text(kFullAboutMeBody));
+      expect(text.maxLines, isNull);
+    });
+
+    testWidgets('a failed hydrate still shows the deck preview', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await _pumpView(tester, [_profile('a')], hydrationFails: true);
+
+      expect(find.text(kAboutMeBody), findsOneWidget);
     });
   });
 

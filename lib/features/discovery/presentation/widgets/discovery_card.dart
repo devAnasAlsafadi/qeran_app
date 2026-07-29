@@ -380,7 +380,19 @@ class DiscoveryInfoPanel extends StatelessWidget {
   /// value to truncate.
   final int? maxLines;
 
-  const DiscoveryInfoPanel({super.key, required this.profile, this.maxLines});
+  /// Replaces the deck payload's about-me body when set.
+  ///
+  /// The deck sends a SHORT preview of نبذة عني; the by-id profile carries the
+  /// whole thing. The caller passes the fuller text through once it has landed
+  /// so the user reads the paragraph, not its first line.
+  final String? aboutMeOverride;
+
+  const DiscoveryInfoPanel({
+    super.key,
+    required this.profile,
+    this.maxLines,
+    this.aboutMeOverride,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -394,7 +406,9 @@ class DiscoveryInfoPanel extends StatelessWidget {
         if (aboutMe != null) ...[
           DiscoveryAboutMe(
             header: aboutMe.name,
-            text: _aboutMeText(aboutMe),
+            text: aboutMeOverride?.trim().isNotEmpty ?? false
+                ? aboutMeOverride!.trim()
+                : _aboutMeText(aboutMe),
             maxLines: maxLines,
           ),
           // Increased breathing room between About Me text and the inside chips

@@ -209,7 +209,8 @@
     "empty_subtitle": "New matches, likes, and messages will appear here.",
     "error_title": "Couldn't load notifications",
     "error_message": "Something went wrong. Please try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "mark_all_read": "Mark all as read"
   },
   "time": {
     "now": "Now",

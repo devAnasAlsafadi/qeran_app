@@ -5,6 +5,7 @@ import '../data/repositories/notifications_repository_impl.dart';
 import '../domain/repositories/notifications_repository.dart';
 import '../domain/usecases/get_notifications_usecase.dart';
 import '../presentation/blocs/notification_badge_cubit.dart';
+import '../presentation/blocs/notification_read_cubit.dart';
 import '../presentation/blocs/notifications_cubit.dart';
 
 /// User-app notifications (shared inbox `GET /api/notifications`). The unread
@@ -24,4 +25,7 @@ void initNotificationsDependencies() {
   sl.registerLazySingleton(
     () => NotificationBadgeCubit(getNotifications: sl(), prefs: sl()),
   );
+  // Local read-state for the inbox rows (separate from the bell's "seen"
+  // heuristic). Singleton so the styling survives leaving and re-entering.
+  sl.registerLazySingleton(() => NotificationReadCubit(prefs: sl()));
 }

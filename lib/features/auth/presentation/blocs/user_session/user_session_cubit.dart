@@ -188,6 +188,8 @@ class UserSessionCubit extends Cubit<UserSessionState>
     StorageKeys.pendingUserId,
     // Notification read-state heuristics (account-level)
     StorageKeys.notifLastSeenId,
+    StorageKeys.notifReadWatermark,
+    StorageKeys.notifReadIds,
     StorageKeys.matchmakerNotifLastSeenCount,
     // Account-LINK marker only — the device REGISTRATION markers are preserved
     // so the next login re-links cleanly without a redundant re-register.

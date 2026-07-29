@@ -38,4 +38,18 @@ class StorageKeys {
   /// newest server id > this — the backend exposes no read-state. Distinct from
   /// the matchmaker count heuristic above (the user app keys off the id).
   static const String notifLastSeenId = 'notif_last_seen_id';
+
+  /// Local READ watermark for the USER-app inbox — everything with an id at or
+  /// below it counts as read. Set by "mark all as read".
+  ///
+  /// Deliberately SEPARATE from [notifLastSeenId]: "seen" clears the bell dot
+  /// (you visited the inbox), "read" is what greys a row out (you opened that
+  /// notification, or cleared the lot). Still a local heuristic — the backend
+  /// exposes no read-state.
+  static const String notifReadWatermark = 'notif_read_watermark';
+
+  /// Ids read one by one, ABOVE [notifReadWatermark]. Stored as strings because
+  /// SharedPreferences has no int list. Emptied whenever the watermark
+  /// advances past them, so it stays small.
+  static const String notifReadIds = 'notif_read_ids';
 }

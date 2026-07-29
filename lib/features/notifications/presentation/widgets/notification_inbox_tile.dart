@@ -10,8 +10,12 @@ import 'notification_tile_visuals.dart';
 /// One inbox row — a flat pressable feed row (rows sit on the cream canvas,
 /// separated by hairline dividers; no per-row card). A 44px leading icon-chip
 /// whose TONE signals meaning (not a rainbow), a title + relative-time top
-/// line, and a 2-line body preview. No per-row unread dot — the backend
-/// exposes no read-state (render only what the backend backs).
+/// line, and a 2-line body preview.
+///
+/// An [isUnread] row lifts onto the cream surface, bolds its title and carries
+/// a gold dot — the house unread marker (see `MatchmakerCountBadge`), never
+/// Material red. Read-state is LOCAL: the backend exposes none, so it comes
+/// from [NotificationReadCubit], not from the payload.
 ///
 /// Tone families:
 /// * **Match** — solid gold chip (the hero; most prominent).
@@ -27,18 +31,25 @@ class NotificationInboxTile extends StatelessWidget {
     super.key,
     required this.notification,
     required this.isArabic,
+    this.isUnread = false,
     this.onTap,
   });
 
   final NotificationItem notification;
   final bool isArabic;
+
+  /// Drives the unread treatment. Local state — see the class doc.
+  final bool isUnread;
+
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final time = QeranRelativeTime.format(notification.createdAt, context);
     return Material(
-      type: MaterialType.transparency,
+      // The wash lives on the Material, not on a box inside the InkWell, so
+      // the press ripple still paints ABOVE it.
+      color: isUnread ? QeranColors.creamSurface : QeranColors.creamCanvas,
       child: InkWell(
         onTap: onTap,
         splashColor: QeranColors.creamSurface,
@@ -65,8 +76,10 @@ class NotificationInboxTile extends StatelessWidget {
                           child: Text(
                             notification.title(isArabic: isArabic),
                             textAlign: TextAlign.start,
-                            style: QeranTypography.subtitle
-                                .copyWith(color: QeranColors.wine),
+                            style: QeranTypography.subtitle.copyWith(
+                              color: QeranColors.wine,
+                              fontWeight: isUnread ? FontWeight.w700 : null,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -78,6 +91,10 @@ class NotificationInboxTile extends StatelessWidget {
                             style: QeranTypography.caption
                                 .copyWith(color: QeranColors.inkMuted),
                           ),
+                        ],
+                        if (isUnread) ...[
+                          QeranSpacing.hs8,
+                          const NotificationUnreadDot(),
                         ],
                       ],
                     ),
@@ -95,6 +112,27 @@ class NotificationInboxTile extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The unread marker: a small gold disc, matching `MatchmakerCountBadge`'s
+/// "gold, never Material red" convention. Sized to sit on the title line
+/// without pushing it around.
+class NotificationUnreadDot extends StatelessWidget {
+  const NotificationUnreadDot({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 8,
+      height: 8,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: QeranColors.gold,
+          shape: BoxShape.circle,
         ),
       ),
     );

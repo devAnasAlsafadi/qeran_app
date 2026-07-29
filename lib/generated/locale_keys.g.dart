@@ -203,6 +203,7 @@ abstract class  LocaleKeys {
   static const notifications_error_title = 'notifications.error_title';
   static const notifications_error_message = 'notifications.error_message';
   static const notifications_retry = 'notifications.retry';
+  static const notifications_mark_all_read = 'notifications.mark_all_read';
   static const notifications = 'notifications';
   static const time_now = 'time.now';
   static const time_minute = 'time.minute';

@@ -14,6 +14,8 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/notification_item.dart';
 import '../blocs/notification_badge_cubit.dart';
+import '../blocs/notification_read_cubit.dart';
+import '../blocs/notification_read_state.dart';
 import '../blocs/notifications_cubit.dart';
 import '../routing/notification_deep_link.dart';
 import '../widgets/notification_inbox_tile.dart';
@@ -22,8 +24,14 @@ import '../widgets/notifications_paginated_list.dart';
 /// The user-app notification inbox. A paginated list backed by
 /// `GET /api/notifications`. A row tap resolves a [NotificationDeepLink] and
 /// pops it back to [openNotifications], which switches the home tab; rows with
-/// no destination ([NoDeepLink]) don't pop. No read-state / mark-all-read — the
-/// backend exposes none (render only what the backend backs).
+/// no destination ([NoDeepLink]) don't pop.
+///
+/// Read-state is LOCAL — the backend exposes none. Two separate ideas:
+/// * **seen** ([NotificationBadgeCubit]) clears the bell dot. Marked on the way
+///   OUT, not on load, so arriving at the inbox doesn't erase the very thing
+///   the user came to look at.
+/// * **read** ([NotificationReadCubit]) greys a row out. A row is read once it
+///   is tapped, or once "mark all as read" is used.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -33,34 +41,41 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late final NotificationsCubit _cubit;
+  final NotificationReadCubit _readCubit = sl<NotificationReadCubit>();
 
-  /// Guards the one-shot "mark seen" — fires once the list first loads.
-  bool _markedSeen = false;
+  /// Highest id the screen has loaded — the "seen" watermark written on exit,
+  /// and what "mark all as read" reads up to.
+  int _newestLoadedId = 0;
 
   @override
   void initState() {
     super.initState();
     _cubit = sl<NotificationsCubit>()..loadFirst();
+    _readCubit.load();
   }
 
   @override
   void dispose() {
+    // On the way out, not on load: the bell dot clears because the user has
+    // been here, while the rows they never opened stay marked unread.
+    if (_newestLoadedId > 0) {
+      sl<NotificationBadgeCubit>().markSeen(_newestLoadedId);
+    }
     _cubit.close();
     super.dispose();
   }
 
-  /// Persists the newest loaded id as last-seen and clears the bell badge.
-  /// One-shot: only the first non-empty load matters (newest id is highest).
-  void _markSeen(List<NotificationItem> items) {
-    if (_markedSeen || items.isEmpty) return;
-    _markedSeen = true;
-    final newest = items.fold<int>(0, (max, n) => n.id > max ? n.id : max);
-    sl<NotificationBadgeCubit>().markSeen(newest);
+  void _rememberNewest(List<NotificationItem> items) {
+    for (final n in items) {
+      if (n.id > _newestLoadedId) _newestLoadedId = n.id;
+    }
   }
 
-  /// Resolve the deep-link; actionable rows pop the intent (handled by
-  /// `openNotifications`), non-actionable rows stay on the inbox.
+  /// Reading one: mark it, then resolve the deep-link. Actionable rows pop the
+  /// intent (handled by `openNotifications`); non-actionable rows stay put —
+  /// they still count as read, since the user opened them.
   void _onTap(NotificationItem n) {
+    _readCubit.markRead(n.id);
     final link = NotificationDeepLinkRouter.resolve(n);
     if (link is NoDeepLink) return;
     Navigator.of(context).pop(link);
@@ -69,24 +84,58 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
-    return BlocProvider<NotificationsCubit>.value(
-      value: _cubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<NotificationsCubit>.value(value: _cubit),
+        // `.value` — the shared singleton must outlive this screen.
+        BlocProvider<NotificationReadCubit>.value(value: _readCubit),
+      ],
       child: Scaffold(
         backgroundColor: QeranColors.creamCanvas,
         appBar: QeranAppBar(
           title: LocaleKeys.notifications_title.t(context),
+          actions: const [_MarkAllReadAction()],
         ),
         body: SafeArea(
           top: false,
           child: BlocListener<NotificationsCubit,
               PaginatedListState<NotificationItem>>(
-            listenWhen: (prev, curr) =>
-                prev.items.isEmpty && curr.items.isNotEmpty,
-            listener: (_, state) => _markSeen(state.items),
+            listenWhen: (prev, curr) => prev.items.length != curr.items.length,
+            listener: (_, state) => _rememberNewest(state.items),
             child: _Body(isArabic: isArabic, onTap: _onTap),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Clears every loaded row's unread mark in one tap.
+///
+/// Rendered ONLY while something is actually unread — an always-present button
+/// that usually does nothing is worse than no button.
+class _MarkAllReadAction extends StatelessWidget {
+  const _MarkAllReadAction();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<NotificationsCubit, PaginatedListState<NotificationItem>>(
+      builder: (context, list) {
+        if (list.items.isEmpty) return const SizedBox.shrink();
+        return BlocBuilder<NotificationReadCubit, NotificationReadState>(
+          builder: (context, read) {
+            final ids = list.items.map((n) => n.id);
+            if (!read.hasUnreadAmong(ids)) return const SizedBox.shrink();
+            return IconButton(
+              icon: const Icon(Icons.done_all_rounded),
+              tooltip: LocaleKeys.notifications_mark_all_read.t(context),
+              onPressed: () => context.read<NotificationReadCubit>().markAllRead(
+                ids.reduce((a, b) => a > b ? a : b),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -145,10 +194,15 @@ class _Body extends StatelessWidget {
                 return const NotificationsLoadMoreFooter();
               }
               final n = state.items[index];
-              return NotificationInboxTile(
-                notification: n,
-                isArabic: isArabic,
-                onTap: () => onTap(n),
+              return BlocBuilder<NotificationReadCubit, NotificationReadState>(
+                buildWhen: (prev, curr) =>
+                    prev.isUnread(n.id) != curr.isUnread(n.id),
+                builder: (context, read) => NotificationInboxTile(
+                  notification: n,
+                  isArabic: isArabic,
+                  isUnread: read.isUnread(n.id),
+                  onTap: () => onTap(n),
+                ),
               );
             },
           ),

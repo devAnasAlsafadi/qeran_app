@@ -32,15 +32,14 @@ class _ActionButtonPalette {
   });
 }
 
-/// Three tiers, sized by how much the action is meant to invite: like is the
-/// largest, skip sits under it, undo — a correction, not a choice — is the
-/// smallest of the three.
-const double _kLikeSize = 72;
-const double _kLikeIconSize = 34;
-const double _kSkipSize = 60;
-const double _kSkipIconSize = 28;
-const double _kUndoSize = 48;
-const double _kUndoIconSize = 22;
+/// ONE diameter for all three buttons — client's call.
+///
+/// 50 is 30% off the 72 the like button used to be, which is how the size was
+/// specified. Kept as a single constant rather than three equal numbers so the
+/// three can never quietly drift apart again; the surfaces (filled wine, paper,
+/// cream) are what separate them now, not the size.
+const double _kActionSize = 50;
+const double _kActionIconSize = 24;
 
 // Skip — paper disc with a wine outline, so it reads as a deliberate branded
 // control rather than the absence of one.
@@ -73,14 +72,12 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
 /// Three-button action cluster under the Discovery card.
 ///
 /// ```
-///   [ ✕ 60 ] [ ↺ 48 ]  …………  [ ♥ 72 ]
+///   [ ✕ 50 ] [ ↺ 50 ]  …………  [ ♥ 50 ]
 /// ```
 ///
-/// Sized by how much each action is meant to invite, not by how permanent it
-/// is: like leads, skip sits under it, and undo — a correction rather than a
-/// choice — is the smallest. The surfaces separate them further: skip is paper
-/// with a wine hairline, undo is cream-lifted with a lighter one, like is the
-/// only filled disc.
+/// All three are one size ([_kActionSize]) — the client's spec. What separates
+/// them is the surface: skip is paper with a wine hairline, undo is
+/// cream-lifted with a lighter one, like is the only filled disc.
 ///
 /// The Row mirrors automatically by locale via natural Directionality (no
 /// manual flip / textDirection override): LTR renders like (leading) … undo ·
@@ -116,9 +113,8 @@ class DiscoveryActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      // Bottom-aligned, not centred: three circles of different diameters
-      // centred on one axis leave the small ones floating high. Sitting them
-      // on a shared baseline is what makes the row read as one cluster.
+      // Equal diameters make this identical to centring today; kept explicit
+      // so the row still reads as one cluster if a size is ever tuned again.
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         _PressableActionButton(
@@ -126,8 +122,8 @@ class DiscoveryActionBar extends StatelessWidget {
           // overlay, the likes tab and the paywall all use, so the button has
           // to match them. Wine circle, gold heart.
           icon: Icons.favorite_rounded,
-          size: _kLikeSize,
-          iconSize: _kLikeIconSize,
+          size: _kActionSize,
+          iconSize: _kActionIconSize,
           tooltip: LocaleKeys.discovery_action_like_label.t(context),
           onPressed: onLike,
           filled: true,
@@ -140,8 +136,8 @@ class DiscoveryActionBar extends StatelessWidget {
         const Spacer(),
         _PressableActionButton(
           icon: Icons.replay_rounded,
-          size: _kUndoSize,
-          iconSize: _kUndoIconSize,
+          size: _kActionSize,
+          iconSize: _kActionIconSize,
           tooltip: LocaleKeys.discovery_action_undo_label.t(context),
           onPressed: onUndo,
           rewindRotate: true,
@@ -150,8 +146,8 @@ class DiscoveryActionBar extends StatelessWidget {
         const SizedBox(width: QeranSpacing.s12),
         _PressableActionButton(
           icon: Icons.close_rounded,
-          size: _kSkipSize,
-          iconSize: _kSkipIconSize,
+          size: _kActionSize,
+          iconSize: _kActionIconSize,
           tooltip: LocaleKeys.discovery_action_pass_label.t(context),
           onPressed: onPass,
           palette: _kSkipPalette,

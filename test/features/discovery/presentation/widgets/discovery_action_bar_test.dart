@@ -149,17 +149,16 @@ void main() {
     expect(find.byIcon(Icons.check_rounded), findsNothing);
   });
 
-  testWidgets('like > skip > undo, and all three are circles', (tester) async {
-    // Sized by how much each action is meant to invite: like leads, skip sits
-    // under it, undo is a correction rather than a choice.
+  testWidgets('all three discs are one size', (tester) async {
+    // Client's spec. Size no longer ranks the actions — the surface does.
     await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
 
     final like = _buttonSize(tester, Icons.favorite_rounded);
     final skip = _buttonSize(tester, Icons.close_rounded);
     final undo = _buttonSize(tester, Icons.replay_rounded);
 
-    expect(like.width, greaterThan(skip.width));
-    expect(skip.width, greaterThan(undo.width));
+    expect(skip, like);
+    expect(undo, like);
     for (final s in [like, skip, undo]) {
       expect(s.width, s.height);
     }

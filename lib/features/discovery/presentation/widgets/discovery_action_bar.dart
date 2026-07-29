@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -33,24 +32,34 @@ class _ActionButtonPalette {
   });
 }
 
-/// Diameter of each DECISION disc.
-///
-/// Skip and like are the same size on purpose: they are the two halves of one
-/// choice, and skip is in fact the more permanent of the two (the server
-/// records it forever, while a like is a request the other person can decline).
-/// Styling skip as the lighter, smaller thing inverted weight against
-/// consequence. The fill carries the difference in meaning instead.
-const double _kDecisionSize = 68;
-const double _kDecisionIconSize = 30;
+/// Three tiers, sized by how much the action is meant to invite: like is the
+/// largest, skip sits under it, undo — a correction, not a choice — is the
+/// smallest of the three.
+const double _kLikeSize = 72;
+const double _kLikeIconSize = 34;
+const double _kSkipSize = 60;
+const double _kSkipIconSize = 28;
+const double _kUndoSize = 48;
+const double _kUndoIconSize = 22;
 
-// Skip — paper disc with a real wine outline, so it reads as a deliberate,
-// branded control rather than the absence of one.
+// Skip — paper disc with a wine outline, so it reads as a deliberate branded
+// control rather than the absence of one.
 const _ActionButtonPalette _kSkipPalette = _ActionButtonPalette(
   background: QeranColors.paper,
   disabledBackground: QeranColors.paper,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
   border: QeranColors.wine20,
+);
+
+// Undo — cream-lifted and the quietest of the three, with a lighter hairline
+// to match. Recovering from a tap should never compete with making one.
+const _ActionButtonPalette _kUndoPalette = _ActionButtonPalette(
+  background: QeranColors.creamSurface,
+  disabledBackground: QeranColors.creamSurface,
+  iconColor: QeranColors.wine,
+  disabledIconColor: QeranColors.wine40,
+  border: QeranColors.wine12,
 );
 
 // Like — wine-filled primary CTA with a gold heart icon. Pure weightless CTA.
@@ -61,31 +70,21 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
   disabledIconColor: QeranColors.gold40,
 );
 
-/// Action cluster under the Discovery card — a two-sided DECISION, with undo
-/// lifted out of it.
+/// Three-button action cluster under the Discovery card.
 ///
 /// ```
-///            [ ↩ تراجع ]        ← only while there is something to undo
-///   [ ✕ ]                [ ♥ ]  ← the decision: peers, opposite ends
+///   [ ✕ 60 ] [ ↺ 48 ]  …………  [ ♥ 72 ]
 /// ```
 ///
-/// Undo used to sit inside the row next to skip, as an identical disc. That
-/// grouping was backwards on three counts:
-/// * it paired skip with undo, when the real pair is skip ↔ like — undo is a
-///   correction ON a decision, a layer above it, not a third option;
-/// * two identical adjacent targets performing OPPOSITE moves invited the one
-///   slip whose only remedy is the very button you just missed;
-/// * it had to render permanently disabled on the first card, and a greyed
-///   paper disc on a light background barely reads as a state at all.
-///
-/// Now it is absent until a decision exists to reverse, and arrives with a
-/// small scale-in that doubles as its own discovery moment. It carries a label
-/// as well as a glyph because a circular arrow is read as "refresh" far more
-/// often than "undo".
+/// Sized by how much each action is meant to invite, not by how permanent it
+/// is: like leads, skip sits under it, and undo — a correction rather than a
+/// choice — is the smallest. The surfaces separate them further: skip is paper
+/// with a wine hairline, undo is cream-lifted with a lighter one, like is the
+/// only filled disc.
 ///
 /// The Row mirrors automatically by locale via natural Directionality (no
-/// manual flip / textDirection override): LTR renders like (leading) … pass
-/// (trailing); RTL mirrors it so pass … like reads right-to-left.
+/// manual flip / textDirection override): LTR renders like (leading) … undo ·
+/// pass (trailing); RTL mirrors it so pass · undo … like reads right-to-left.
 ///
 /// Each button owns its own `AnimationController` for press feedback
 /// and is fully independent — a press on one button never affects the
@@ -116,140 +115,50 @@ class DiscoveryActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
-        _UndoAffordance(onUndo: onUndo),
-        Row(
-          children: [
-            _PressableActionButton(
-              // The heart is the app's own like glyph — it is what the like
-              // overlay, the likes tab and the paywall all use, so the button
-              // has to match them. Wine circle, gold heart.
-              icon: Icons.favorite_rounded,
-              size: _kDecisionSize,
-              iconSize: _kDecisionIconSize,
-              tooltip: LocaleKeys.discovery_action_like_label.t(context),
-              onPressed: onLike,
-              filled: true,
-              overshoot: true,
-              showHalo: true,
-              idlePulse: true,
-              onTapOrigin: onLikeBurst,
-              palette: _kLikePalette,
-            ),
-            const Spacer(),
-            _PressableActionButton(
-              icon: Icons.close_rounded,
-              size: _kDecisionSize,
-              iconSize: _kDecisionIconSize,
-              tooltip: LocaleKeys.discovery_action_pass_label.t(context),
-              onPressed: onPass,
-              palette: _kSkipPalette,
-            ),
-          ],
+        _PressableActionButton(
+          // The heart is the app's own like glyph — it is what the like
+          // overlay, the likes tab and the paywall all use, so the button has
+          // to match them. Wine circle, gold heart.
+          icon: Icons.favorite_rounded,
+          size: _kLikeSize,
+          iconSize: _kLikeIconSize,
+          tooltip: LocaleKeys.discovery_action_like_label.t(context),
+          onPressed: onLike,
+          filled: true,
+          overshoot: true,
+          showHalo: true,
+          idlePulse: true,
+          onTapOrigin: onLikeBurst,
+          palette: _kLikePalette,
+        ),
+        const Spacer(),
+        _PressableActionButton(
+          icon: Icons.replay_rounded,
+          size: _kUndoSize,
+          iconSize: _kUndoIconSize,
+          tooltip: LocaleKeys.discovery_action_undo_label.t(context),
+          onPressed: onUndo,
+          rewindRotate: true,
+          palette: _kUndoPalette,
+        ),
+        const SizedBox(width: QeranSpacing.s12),
+        _PressableActionButton(
+          icon: Icons.close_rounded,
+          size: _kSkipSize,
+          iconSize: _kSkipIconSize,
+          tooltip: LocaleKeys.discovery_action_pass_label.t(context),
+          onPressed: onPass,
+          palette: _kSkipPalette,
         ),
       ],
     );
   }
 }
 
-/// Holds the undo pill — and nothing at all when there is nothing to undo.
-///
-/// Costs zero height while absent, so the decision row never shifts: the
-/// cluster is anchored to the bottom of the screen, so the pill grows upward
-/// into empty space above it.
-class _UndoAffordance extends StatelessWidget {
-  const _UndoAffordance({required this.onUndo});
-
-  final VoidCallback? onUndo;
-
-  @override
-  Widget build(BuildContext context) {
-    final undo = onUndo;
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
-      switchInCurve: Curves.easeOutBack,
-      switchOutCurve: Curves.easeIn,
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: ScaleTransition(scale: animation, child: child),
-      ),
-      child: undo == null
-          ? const SizedBox(key: ValueKey<String>('undo-absent'), height: 0)
-          : Padding(
-              key: const ValueKey<String>('undo-present'),
-              padding: const EdgeInsets.only(bottom: QeranSpacing.s12),
-              child: _UndoPill(onPressed: undo),
-            ),
-    );
-  }
-}
-
-/// The undo affordance: a quiet paper pill, LABELLED.
-///
-/// A bare circular-arrow disc was being read as "reload the deck" — the
-/// circular arrow is the refresh glyph almost everywhere else. The label
-/// removes the guess, and because the pill only appears right after a decision
-/// it reads as an offer to take that decision back.
-class _UndoPill extends StatelessWidget {
-  const _UndoPill({required this.onPressed});
-
-  final VoidCallback onPressed;
-
-  static const StadiumBorder _shape = StadiumBorder(
-    side: BorderSide(color: QeranColors.wine12),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: QeranColors.paper,
-      shape: _shape,
-      elevation: 2,
-      shadowColor: QeranColors.wine.withValues(alpha: 0.16),
-      child: InkWell(
-        customBorder: _shape,
-        onTap: () {
-          HapticFeedback.lightImpact();
-          onPressed();
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: QeranSpacing.s12,
-            vertical: QeranSpacing.s8,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.undo_rounded,
-                size: 16,
-                color: QeranColors.wine60,
-              ),
-              const SizedBox(width: QeranSpacing.s6),
-              // Flexible: the pill sits in a fixed-width cluster, so a long
-              // translation must shrink rather than overflow it.
-              Flexible(
-                child: Text(
-                  LocaleKeys.discovery_action_undo_label.t(context),
-                  style: QeranTypography.label.copyWith(
-                    color: QeranColors.wine,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Internal pressable disc - handles scale press-down / release with an
-/// optional overshoot (Like).
+/// Internal pressable disc — handles scale press-down / release with an
+/// optional overshoot (Like) and a small counter-clockwise rotation (Undo).
 ///
 /// Each instance owns its own `AnimationController`. A press on one
 /// button cannot move or rebuild the others.
@@ -266,6 +175,10 @@ class _PressableActionButton extends StatefulWidget {
   /// Tiny overshoot above 1.0 on release. Used for Like to give the
   /// primary CTA a touch of bounce.
   final bool overshoot;
+
+  /// Adds a small counter-clockwise rotation during press. Used for
+  /// Undo as a subtle "rewind" cue.
+  final bool rewindRotate;
 
   /// When true, an enabled tap fires a one-shot gold halo ring behind
   /// the button. Used for the Like primary CTA only.
@@ -295,6 +208,7 @@ class _PressableActionButton extends StatefulWidget {
     required this.palette,
     this.filled = false,
     this.overshoot = false,
+    this.rewindRotate = false,
     this.showHalo = false,
     this.idlePulse = false,
     this.onTapOrigin,
@@ -308,6 +222,7 @@ class _PressableActionButtonState extends State<_PressableActionButton>
     with TickerProviderStateMixin {
   static const double _pressScale = 0.91;
   static const double _overshootPeak = 1.07;
+  static const double _undoRotation = -0.18; // radians, ~10 degrees
 
   /// Short, transform-only halo feedback aligned with the flying heart.
   static const Duration _haloDuration = Duration(milliseconds: 480);
@@ -319,6 +234,7 @@ class _PressableActionButtonState extends State<_PressableActionButton>
   AnimationController? _haloCtrl;
 
   Animation<double> _scale = const AlwaysStoppedAnimation(1.0);
+  Animation<double> _rotation = const AlwaysStoppedAnimation(0.0);
   Animation<double> _iconScale = const AlwaysStoppedAnimation(1.0);
   Animation<double> _elevationAnim = const AlwaysStoppedAnimation(0.0);
   Animation<double> _internalGlowOpacity = const AlwaysStoppedAnimation(0.0);
@@ -493,6 +409,12 @@ class _PressableActionButtonState extends State<_PressableActionButton>
       begin: _scale.value,
       end: _pressScale,
     ).chain(CurveTween(curve: Curves.easeOut)).animate(_ctrl);
+    if (widget.rewindRotate) {
+      _rotation = Tween<double>(
+        begin: _rotation.value,
+        end: _undoRotation,
+      ).chain(CurveTween(curve: Curves.easeOut)).animate(_ctrl);
+    }
     if (widget.overshoot) {
       _elevationAnim = Tween<double>(
         begin: _elevationAnim.value,
@@ -586,6 +508,12 @@ class _PressableActionButtonState extends State<_PressableActionButton>
       ).chain(CurveTween(curve: Curves.easeOut)).animate(_ctrl);
       _ctrl.duration = const Duration(milliseconds: 140);
     }
+    if (widget.rewindRotate) {
+      _rotation = Tween<double>(
+        begin: _rotation.value,
+        end: 0.0,
+      ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(_ctrl);
+    }
     _ctrl.forward(from: 0);
   }
 
@@ -633,6 +561,7 @@ class _PressableActionButtonState extends State<_PressableActionButton>
           final scaleVal = isTapAnimActive
               ? _scale.value
               : (isIdleAnimActive ? _idleScale.value : 1.0);
+          final rotVal = _rotation.value;
 
           final currentElevation = widget.filled
               ? (isTapAnimActive && widget.overshoot
@@ -701,7 +630,10 @@ class _PressableActionButtonState extends State<_PressableActionButton>
             ),
           );
 
-          final animatedMat = Transform.scale(scale: scaleVal, child: mat);
+          final animatedMat = Transform.scale(
+            scale: scaleVal,
+            child: Transform.rotate(angle: rotVal, child: mat),
+          );
 
           if (widget.idlePulse && isIdleAnimActive) {
             return Stack(
@@ -740,7 +672,8 @@ class _PressableActionButtonState extends State<_PressableActionButton>
             );
           }
 
-          final isIdle = (scaleVal - 1.0).abs() < 0.0005;
+          final isIdle =
+              (scaleVal - 1.0).abs() < 0.0005 && rotVal.abs() < 0.0005;
           if (isIdle) return mat;
 
           return animatedMat;

@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
@@ -134,10 +136,16 @@ class DiscoveryImagePanel extends StatelessWidget {
                   // Row mirrors itself for English.
                   child: Row(
                     children: [
-                      ImageOverlayButton(
-                        icon: Icons.notifications_outlined,
-                        onPressed: () => openNotifications(context),
-                        badge: const OverlayUnreadDot(),
+                      // The dot is a STATE, not decoration: it appears only
+                      // while the badge cubit reports unread. It was pinned on
+                      // unconditionally when the bell moved onto the photo,
+                      // so it read as "you have mail" forever.
+                      BlocBuilder<NotificationBadgeCubit, bool>(
+                        builder: (context, hasUnread) => ImageOverlayButton(
+                          icon: Icons.notifications_outlined,
+                          onPressed: () => openNotifications(context),
+                          badge: hasUnread ? const OverlayUnreadDot() : null,
+                        ),
                       ),
                       const Spacer(),
                       ImageOverlayButton(

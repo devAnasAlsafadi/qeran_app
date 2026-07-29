@@ -53,6 +53,7 @@ import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.da
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
+import 'package:qeran/features/discovery/presentation/widgets/_image_overlay_button.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_action_bar.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card_skeleton.dart';
@@ -191,6 +192,9 @@ class _FakeNotificationBadgeCubit extends NotificationBadgeCubit {
     : super(getNotifications: _FakeGetNotifications(), prefs: _FakePrefs());
   @override
   Future<void> refresh() async {}
+
+  /// Stands in for "the server has something newer than last-seen".
+  void setUnread(bool value) => emit(value);
 }
 
 /// The share CTA at the end of the merged scroll resolves its cubit from
@@ -734,6 +738,38 @@ void main() {
         body.top - intro.bottom,
         closeTo(DiscoveryMergedProfileBody.sheetOverlap, 1),
       );
+    });
+  });
+
+  group('the bell dot follows the unread state', () {
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      await EasyLocalization.ensureInitialized();
+    });
+
+    setUp(() async => sl.reset());
+
+    testWidgets('no dot when there is nothing unread', (tester) async {
+      // Regression: moving the bell onto the photo dropped the BlocBuilder and
+      // pinned the dot on unconditionally, so it claimed unread mail forever.
+      await _pumpView(tester, [_profile('a')]);
+
+      expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
+      expect(find.byType(OverlayUnreadDot), findsNothing);
+    });
+
+    testWidgets('the dot appears when the badge reports unread', (
+      tester,
+    ) async {
+      await _pumpView(tester, [_profile('a')]);
+
+      (sl<NotificationBadgeCubit>() as _FakeNotificationBadgeCubit).setUnread(
+        true,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OverlayUnreadDot), findsOneWidget);
     });
   });
 

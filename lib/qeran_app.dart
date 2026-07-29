@@ -33,8 +33,9 @@ class QeranApp extends StatelessWidget {
     final code = context.locale.languageCode;
     final language = sl<LanguageService>();
     if (language.currentLanguage != code) {
-      language.setLanguage(code);
+      final switched = language.setLanguage(code);
       unawaited(_notifyLanguageChangedWhenReady(code));
+      if (switched) _reloadLocalisedServerState();
     }
 
     return MultiBlocProvider(
@@ -80,6 +81,24 @@ class QeranApp extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Re-pulls the state that lives ABOVE any screen and carries server-localised
+/// text, after the user switches language.
+///
+/// Screens handle themselves: both shells wrap their tabs in
+/// [LocaleRebuildScope], so a switch rebuilds them and their cubits fetch
+/// again. These two are app-scoped singletons that no rebuild would touch —
+/// the subscription (plan names) and the profile gate (status copy) would go on
+/// serving the previous language until something else happened to refresh them.
+///
+/// Deferred to after the frame: this is reached from `build`, and a cubit
+/// emitting mid-build throws.
+void _reloadLocalisedServerState() {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(sl<CurrentSubscriptionCubit>().refresh(force: true));
+    unawaited(sl<ProfileGateCubit>().refresh());
+  });
 }
 
 Future<void> _notifyLanguageChangedWhenReady(String languageCode) async {

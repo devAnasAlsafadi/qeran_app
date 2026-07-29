@@ -6,6 +6,7 @@ import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/keyboard_dismissal.dart';
+import 'package:qeran/core/widgets/locale_rebuild_scope.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
@@ -172,7 +173,12 @@ class _HomeScreenState extends State<HomeScreen>
             enabled: enabled,
             child: IgnorePointer(
               ignoring: !enabled || _tabTransition.isAnimating,
-              child: RepaintBoundary(child: _tabBody(index)),
+              // Tabs stay mounted, so without this a language switch would
+              // leave every already-fetched tab in the old language until the
+              // user pulled to refresh it by hand.
+              child: RepaintBoundary(
+                child: LocaleRebuildScope(child: _tabBody(index)),
+              ),
             ),
           ),
         ),

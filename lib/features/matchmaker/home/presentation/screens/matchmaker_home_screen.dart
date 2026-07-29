@@ -8,6 +8,7 @@ import 'package:qeran/features/auth/presentation/blocs/user_session/user_session
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
+import '../../../../../core/widgets/locale_rebuild_scope.dart';
 import '../../../compatibility_cases/presentation/screens/matchmaker_cases_tab.dart';
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../conversations/presentation/screens/matchmaker_conversations_tab.dart';
@@ -148,8 +149,11 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
 
   /// A tab body once it has been visited, else a zero-size placeholder so the
   /// tab's cubit (and its initial fetch) doesn't spin up until first visit.
-  Widget _lazyTab(int index, Widget child) =>
-      _visited.contains(index) ? child : const SizedBox.shrink();
+  /// Unvisited tabs cost nothing; visited ones stay mounted, so they also need
+  /// to be discarded and refetched when the app language changes.
+  Widget _lazyTab(int index, Widget child) => _visited.contains(index)
+      ? LocaleRebuildScope(child: child)
+      : const SizedBox.shrink();
 
   void _changeUsersSubTab(MatchmakerUsersList sub) {
     if (sub == _usersSubTab) return;

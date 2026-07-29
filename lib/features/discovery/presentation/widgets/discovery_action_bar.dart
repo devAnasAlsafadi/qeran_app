@@ -32,14 +32,15 @@ class _ActionButtonPalette {
   });
 }
 
-/// ONE diameter for all three buttons — client's call.
-///
-/// 50 is 30% off the 72 the like button used to be, which is how the size was
-/// specified. Kept as a single constant rather than three equal numbers so the
-/// three can never quietly drift apart again; the surfaces (filled wine, paper,
-/// cream) are what separate them now, not the size.
+/// Skip and undo share one diameter — they are peers, and nothing about either
+/// should outrank the other.
 const double _kActionSize = 50;
 const double _kActionIconSize = 24;
+
+/// Like is the only one allowed to be bigger. One step up from [_kActionSize],
+/// enough to read as the primary without going back to dominating the row.
+const double _kLikeSize = 60;
+const double _kLikeIconSize = 28;
 
 // Skip — paper disc with a wine outline, so it reads as a deliberate branded
 // control rather than the absence of one.
@@ -72,12 +73,12 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
 /// Three-button action cluster under the Discovery card.
 ///
 /// ```
-///   [ ✕ 50 ] [ ↺ 50 ]  …………  [ ♥ 50 ]
+///   [ ✕ 50 ] [ ↺ 50 ]  …………  [ ♥ 60 ]
 /// ```
 ///
-/// All three are one size ([_kActionSize]) — the client's spec. What separates
-/// them is the surface: skip is paper with a wine hairline, undo is
-/// cream-lifted with a lighter one, like is the only filled disc.
+/// Skip and undo are peers at one diameter; like takes a single step up as the
+/// primary. The surfaces carry the rest: skip is paper with a wine hairline,
+/// undo is cream-lifted with a lighter one, like is the only filled disc.
 ///
 /// The Row mirrors automatically by locale via natural Directionality (no
 /// manual flip / textDirection override): LTR renders like (leading) … undo ·
@@ -122,8 +123,8 @@ class DiscoveryActionBar extends StatelessWidget {
           // overlay, the likes tab and the paywall all use, so the button has
           // to match them. Wine circle, gold heart.
           icon: Icons.favorite_rounded,
-          size: _kActionSize,
-          iconSize: _kActionIconSize,
+          size: _kLikeSize,
+          iconSize: _kLikeIconSize,
           tooltip: LocaleKeys.discovery_action_like_label.t(context),
           onPressed: onLike,
           filled: true,

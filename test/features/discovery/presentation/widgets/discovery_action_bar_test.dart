@@ -149,16 +149,16 @@ void main() {
     expect(find.byIcon(Icons.check_rounded), findsNothing);
   });
 
-  testWidgets('all three discs are one size', (tester) async {
-    // Client's spec. Size no longer ranks the actions — the surface does.
+  testWidgets('skip and undo match; like alone is a step up', (tester) async {
     await _pumpActionBar(tester, onPass: () {}, onUndo: () {}, onLike: () {});
 
     final like = _buttonSize(tester, Icons.favorite_rounded);
     final skip = _buttonSize(tester, Icons.close_rounded);
     final undo = _buttonSize(tester, Icons.replay_rounded);
 
-    expect(skip, like);
-    expect(undo, like);
+    // Peers: neither of the two outranks the other.
+    expect(undo, skip);
+    expect(like.width, greaterThan(skip.width));
     for (final s in [like, skip, undo]) {
       expect(s.width, s.height);
     }

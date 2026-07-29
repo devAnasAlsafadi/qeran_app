@@ -35,12 +35,13 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       Left.new,
       (offering) {
         for (final package in offering.availablePackages) {
-          // Google Play subscription store ids are "<productId>:<basePlanId>"
-          // (one productId can carry several base plans); iOS/others are the
-          // bare productId. Match the productId portion against the backend
-          // googleProductId. (Play product ids never contain ':'.)
           final storeId = package.storeProduct.identifier;
-          if (storeId == productId || storeId.split(':').first == productId) {
+          final packageId = package.identifier;
+          if (storeId == productId ||
+              storeId.split(':').first == productId ||
+              packageId == productId ||
+              storeId.toLowerCase() == productId.toLowerCase() ||
+              packageId.toLowerCase() == productId.toLowerCase()) {
             return Right(package);
           }
         }

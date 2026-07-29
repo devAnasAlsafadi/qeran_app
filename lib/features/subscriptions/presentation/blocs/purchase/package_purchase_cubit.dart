@@ -108,7 +108,9 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
       return;
     }
 
-    final productId = pricing.googleProductId;
+    final productId = pricing.productId(isIOS: Platform.isIOS) ??
+        pricing.googleProductId ??
+        pricing.storeProductId;
     if (productId == null || productId.isEmpty) {
       emit(const PackagePurchaseFailure(
         failure: NotFoundFailure(),

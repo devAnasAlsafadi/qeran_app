@@ -29,6 +29,7 @@ class GetStoreProductsUseCase {
         // instead of silently falling back to the backend price.
         products[product.identifier] = product;
         products[product.identifier.split(':').first] = product;
+        products[package.identifier] = product;
       }
       return products;
     });

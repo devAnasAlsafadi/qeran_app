@@ -60,3 +60,6 @@ skills-lock.json
 
 # Android Kotlin build cache
 android/.kotlin/
+
+# Internal handoff / engineering notes — not for the public repo
+docs/

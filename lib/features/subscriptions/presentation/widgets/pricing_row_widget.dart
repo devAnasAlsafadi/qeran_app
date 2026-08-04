@@ -94,9 +94,20 @@ class PricingRowWidget extends StatelessWidget {
   }
 }
 
+/// Stands in for the price when the store has none. Deliberately a bare mark
+/// rather than the "unavailable" sentence: this cluster is the row's only
+/// non-flex child, so Flutter hands it its full intrinsic width before the
+/// label column's `Expanded` gets anything. A sentence's intrinsic width is the
+/// whole sentence, which squeezed "3 شهور" into a few pixels and wrapped it one
+/// character per line. An em-dash is about as wide as "$34.99", so the label
+/// keeps its room. No locale key: it is punctuation, identical in every
+/// language and direction — the meaning is restored for screen readers by the
+/// `semanticsLabel` below.
+const String _kPriceUnavailableMark = '—';
+
 /// The trailing price block: the store `priceString`, a shimmer while the
-/// catalogue loads, or an "unavailable" note once it has answered without one.
-/// Price text is pinned `TextDirection.ltr` so a Latin store string
+/// catalogue loads, or [_kPriceUnavailableMark] once it has answered without
+/// one. Price text is pinned `TextDirection.ltr` so a Latin store string
 /// ("SAR 50.00") never RTL-reorders.
 class _PriceCluster extends StatelessWidget {
   final StoreProduct? storeProduct;
@@ -112,10 +123,16 @@ class _PriceCluster extends StatelessWidget {
     final store = storeProduct;
     if (store != null) return _priceText(store.priceString);
     if (!storeResolved) return const QeranSkeleton.box(width: 72, height: 18);
+    // Muted, so it reads as an absent value rather than a real price, but on
+    // the price's own type scale so the row keeps its height.
     return Text(
-      LocaleKeys.subscriptions_purchase_package_not_found.t(context),
-      textAlign: TextAlign.end,
-      style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
+      _kPriceUnavailableMark,
+      semanticsLabel:
+          LocaleKeys.subscriptions_purchase_package_not_found.t(context),
+      style: QeranTypography.numeric.copyWith(
+        fontSize: 18,
+        color: QeranColors.inkMuted,
+      ),
     );
   }
 

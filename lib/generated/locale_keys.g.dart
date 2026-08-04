@@ -361,6 +361,7 @@ abstract class  LocaleKeys {
   static const subscriptions_discount_ios_unavailable = 'subscriptions.discount_ios_unavailable';
   static const subscriptions_restore_purchases = 'subscriptions.restore_purchases';
   static const subscriptions_restore_purchases_subtitle = 'subscriptions.restore_purchases_subtitle';
+  static const subscriptions_legal_binding_line = 'subscriptions.legal_binding_line';
   static const subscriptions_restore_success = 'subscriptions.restore_success';
   static const subscriptions_restore_no_purchases = 'subscriptions.restore_no_purchases';
   static const subscriptions_subscription_row_subtitle_with_restore = 'subscriptions.subscription_row_subtitle_with_restore';

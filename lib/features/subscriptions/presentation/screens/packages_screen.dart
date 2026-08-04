@@ -23,6 +23,7 @@ import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
 import '../blocs/current/current_subscription_cubit.dart';
 import '../blocs/current/current_subscription_state.dart';
+import '../widgets/legal_links_row.dart';
 import '../widgets/order_summary_widget.dart';
 import '../widgets/paywall_hero_widget.dart';
 import '../widgets/paywall_purchase_flow.dart';
@@ -208,6 +209,10 @@ class _PackagesViewState extends State<_PackagesView>
             // surface. Self-contained tile (own cubit + restore-specific outcome
             // handling), enabled on both platforms — restore triggers no payment.
             const RestorePurchasesTile(),
+            QeranSpacing.vs12,
+            // Apple 3.1.2(a): the subscription binding + both legal documents
+            // must be reachable from the surface that sells the subscription.
+            const LegalLinksRow(),
           ],
         ),
       ),

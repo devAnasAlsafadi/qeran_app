@@ -374,6 +374,7 @@
     "discount_ios_unavailable": "الخصم غير متاح حالياً على iPhone",
     "restore_purchases": "استعادة المشتريات",
     "restore_purchases_subtitle": "إذا اشتريت اشتراكاً سابقاً على هذا الحساب",
+    "legal_binding_line": "بالاشتراك، أنت توافق على ",
     "restore_success": "تم استعادة مشترياتك بنجاح",
     "restore_no_purchases": "لا توجد مشتريات سابقة للاستعادة",
     "subscription_row_subtitle_with_restore": "عرض اشتراكك أو استعادة المشتريات",

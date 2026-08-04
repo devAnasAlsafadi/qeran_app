@@ -96,13 +96,14 @@ void main() {
     // Third emit: store catalogue merged in.
     final merged = emitted[2] as SubscriptionPlansLoaded;
     expect(merged.storeProducts, {_productId: product});
+    expect(merged.storeResolved, isTrue);
     expect(
       merged.storeProductFor(merged.plans.first.pricings.first, isIOS: false),
       same(product),
     );
   });
 
-  test('degradation: store failure leaves backend prices, no extra emit',
+  test('store failure: a third emit marks storeResolved with no products',
       () async {
     when(() => getPlans()).thenAnswer((_) async => Right([_plan()]));
     when(() => getStoreProducts())
@@ -114,13 +115,17 @@ void main() {
     await Future<void>.delayed(Duration.zero); // flush stream deliveries
     await sub.cancel();
 
-    // Loading → Loaded(backend). No third emit — the store never resolved.
-    expect(emitted, hasLength(2));
-    expect(emitted[1], isA<SubscriptionPlansLoaded>());
-    expect((emitted[1] as SubscriptionPlansLoaded).storeProducts, isEmpty);
+    // Loading → Loaded(unresolved) → Loaded(resolved, still no products). The
+    // third emit is what lets the paywall stop showing a price placeholder and
+    // say the price is unavailable instead of inventing a backend figure.
+    expect(emitted, hasLength(3));
+    expect((emitted[1] as SubscriptionPlansLoaded).storeResolved, isFalse);
+    final resolved = emitted[2] as SubscriptionPlansLoaded;
+    expect(resolved.storeResolved, isTrue);
+    expect(resolved.storeProducts, isEmpty);
   });
 
-  test('empty store catalogue: no augment emit', () async {
+  test('empty store catalogue: still marks storeResolved', () async {
     when(() => getPlans()).thenAnswer((_) async => Right([_plan()]));
     when(() => getStoreProducts())
         .thenAnswer((_) async => const Right({}));
@@ -131,8 +136,10 @@ void main() {
     await Future<void>.delayed(Duration.zero); // flush stream deliveries
     await sub.cancel();
 
-    expect(emitted, hasLength(2));
-    expect((emitted[1] as SubscriptionPlansLoaded).storeProducts, isEmpty);
+    expect(emitted, hasLength(3));
+    final resolved = emitted[2] as SubscriptionPlansLoaded;
+    expect(resolved.storeResolved, isTrue);
+    expect(resolved.storeProducts, isEmpty);
   });
 
   test('plans failure: store products never fetched', () async {

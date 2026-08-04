@@ -5,20 +5,28 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
+import 'package:qeran/core/design_system/widgets/qeran_skeleton.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_pricing.dart';
-import '../../domain/helpers/subscription_format.dart';
 
 /// One tappable pricing option (selected → gold border + cream fill + filled
-/// radio). When [storeProduct] resolves, its localized `priceString` is the
-/// price and the backend-currency extras (per-month, strike-through, discount
-/// badge) are hidden to avoid a mismatch; when null, falls back to backend.
+/// radio). The store's localized `priceString` is the only price ever shown.
+///
+/// There is no backend-price fallback: the backend `price` is administrative
+/// and differs from what the store charges, so it would misstate the amount
+/// being billed. Until the catalogue answers the row shows a placeholder
+/// ([storeResolved] false); afterwards, a product with no store entry reads as
+/// unavailable. The backend-currency extras (per-month subtitle,
+/// strike-through, discount badge) go with it — they are in the same
+/// mismatched units.
 class PricingRowWidget extends StatelessWidget {
   final SubscriptionPricing pricing;
   final StoreProduct? storeProduct;
+
+  /// False while the store catalogue is still in flight.
+  final bool storeResolved;
   final bool selected;
   final VoidCallback onTap;
 
@@ -26,20 +34,18 @@ class PricingRowWidget extends StatelessWidget {
     super.key,
     required this.pricing,
     required this.storeProduct,
+    required this.storeResolved,
     required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final currency = LocaleKeys.subscriptions_currency.t(context);
     final label =
         pricing.label(isArabic: context.locale.languageCode == 'ar') ??
             LocaleKeys.subscriptions_duration_days
                 .t(context)
                 .replaceFirst('{days}', '${pricing.durationDays}');
-    // Store-price mode hides the backend per-month subtitle (coherence rule).
-    final showMonthly = storeProduct == null && pricing.durationDays > 30;
     return Material(
       color: selected ? QeranColors.creamSurface : QeranColors.paper,
       borderRadius: QeranRadii.controlR,
@@ -72,23 +78,13 @@ class PricingRowWidget extends StatelessWidget {
                       style: QeranTypography.subtitle
                           .copyWith(color: QeranColors.wine),
                     ),
-                    if (showMonthly) ...[
-                      QeranSpacing.vs4,
-                      Text(
-                        '${pricing.monthlyEquivalent.toStringAsFixed(2)} '
-                        '$currency${LocaleKeys.subscriptions_per_month.t(context)}',
-                        style: QeranTypography.caption
-                            .copyWith(color: QeranColors.inkMuted),
-                      ),
-                    ],
                   ],
                 ),
               ),
               QeranSpacing.hs12,
               _PriceCluster(
-                pricing: pricing,
                 storeProduct: storeProduct,
-                currency: currency,
+                storeResolved: storeResolved,
               ),
             ],
           ),
@@ -98,60 +94,28 @@ class PricingRowWidget extends StatelessWidget {
   }
 }
 
-/// The trailing price block: store `priceString` in store mode; backend price
-/// + optional strike-through + discount badge in fallback. Price text is pinned
-/// `TextDirection.ltr` so a Latin store string ("SAR 50.00") never RTL-reorders.
+/// The trailing price block: the store `priceString`, a shimmer while the
+/// catalogue loads, or an "unavailable" note once it has answered without one.
+/// Price text is pinned `TextDirection.ltr` so a Latin store string
+/// ("SAR 50.00") never RTL-reorders.
 class _PriceCluster extends StatelessWidget {
-  final SubscriptionPricing pricing;
   final StoreProduct? storeProduct;
-  final String currency;
+  final bool storeResolved;
 
   const _PriceCluster({
-    required this.pricing,
     required this.storeProduct,
-    required this.currency,
+    required this.storeResolved,
   });
 
   @override
   Widget build(BuildContext context) {
     final store = storeProduct;
-    if (store != null) {
-      // Store mode: store price is SOT; backend extras hidden (coherence rule).
-      return _priceText(store.priceString);
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (pricing.hasStrikethroughOriginal) ...[
-              Text(
-                '${pricing.originalPrice!.toStringAsFixed(2)} $currency',
-                textDirection: TextDirection.ltr,
-                style: QeranTypography.bodySm.copyWith(
-                  color: QeranColors.inkMuted,
-                  decoration: TextDecoration.lineThrough,
-                  decorationColor: QeranColors.inkMuted,
-                ),
-              ),
-              QeranSpacing.hs8,
-            ],
-            _priceText(SubscriptionFormat.formatPrice(pricing.price, currency)),
-          ],
-        ),
-        if (pricing.hasDiscountBadge) ...[
-          QeranSpacing.vs4,
-          QeranChip(
-            label: LocaleKeys.subscriptions_discount_badge
-                .t(context)
-                .replaceFirst('{percent}', '${pricing.discountPercent}'),
-            variant: QeranChipVariant.interest,
-            compact: true,
-          ),
-        ],
-      ],
+    if (store != null) return _priceText(store.priceString);
+    if (!storeResolved) return const QeranSkeleton.box(width: 72, height: 18);
+    return Text(
+      LocaleKeys.subscriptions_purchase_package_not_found.t(context),
+      textAlign: TextAlign.end,
+      style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
     );
   }
 

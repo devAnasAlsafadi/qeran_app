@@ -18,6 +18,9 @@ class _PlanCard extends StatelessWidget {
   final bool isArabic;
   final SubscriptionPricing? Function(SubscriptionPlan plan) selectedPricingFor;
   final StoreProduct? Function(SubscriptionPricing pricing) resolveStoreProduct;
+
+  /// False while the store catalogue is still loading — see [PlanSelectionWidget].
+  final bool storeResolved;
   final ValueChanged<int> onPlanChanged;
   final ValueChanged<int> onPricingSelected;
 
@@ -30,29 +33,29 @@ class _PlanCard extends StatelessWidget {
     required this.isArabic,
     required this.selectedPricingFor,
     required this.resolveStoreProduct,
+    required this.storeResolved,
     required this.onPlanChanged,
     required this.onPricingSelected,
   });
 
   /// Plan-card price summary. Zero-price (free) plans read "مجاني"/"Free" with
-  /// no currency at all; paid plans use the localized store price when it
-  /// resolves, otherwise the currency token ("$") + amount. Never "SAR".
-  String _priceLabel(
+  /// no currency at all; paid plans render the localized store price.
+  ///
+  /// Returns null when there is no store price to show — the caller then draws
+  /// a placeholder or the unavailable note. The backend `price` is deliberately
+  /// NOT used as a fallback: it is an administrative figure that differs from
+  /// what the store actually charges, so displaying it would misstate the
+  /// amount the user is about to pay.
+  String? _priceLabel(
     BuildContext context,
     SubscriptionPricing? pricing,
     StoreProduct? storeProduct,
   ) {
-    if (pricing == null) return '';
+    if (pricing == null) return null;
     if (pricing.price == 0) {
       return LocaleKeys.subscriptions_price_free.t(context);
     }
-    if (storeProduct != null) return storeProduct.priceString;
-    final currency = LocaleKeys.subscriptions_currency.t(context);
-    final price = pricing.price;
-    final amount = price == price.roundToDouble()
-        ? price.toStringAsFixed(0)
-        : price.toStringAsFixed(2);
-    return '$currency $amount';
+    return storeProduct?.priceString;
   }
 
   @override
@@ -65,7 +68,7 @@ class _PlanCard extends StatelessWidget {
     // Plan-card price: bound to the SELECTED pricing (the same one the summary,
     // CTA and charge read) — falling back to the first active pricing before a
     // selection exists. Free → "مجاني"/"Free" (no currency); paid → the store
-    // price when resolved, else the currency token — never a hardcoded "SAR".
+    // price, or a placeholder until the store answers.
     final activePricings = plan.activePricings;
     final selectedPricing = selectedPricingFor(plan) ??
         (activePricings.isNotEmpty ? activePricings.first : null);
@@ -141,17 +144,12 @@ class _PlanCard extends StatelessWidget {
                             ],
                           ],
                         ),
-                        if (priceText.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            isFreePlan
-                                ? priceText
-                                : '$priceText ${LocaleKeys.subscriptions_per_month.t(context)}',
-                            style: QeranTypography.bodySm.copyWith(
-                              color: QeranColors.inkBody,
-                            ),
-                          ),
-                        ],
+                        const SizedBox(height: 2),
+                        _PlanCardPrice(
+                          priceText: priceText,
+                          isFreePlan: isFreePlan,
+                          storeResolved: storeResolved,
+                        ),
                       ],
                     ),
                   ),
@@ -185,6 +183,7 @@ class _PlanCard extends StatelessWidget {
                   plan: plan,
                   selectedPricingId: selectedPricing?.id,
                   resolveStoreProduct: resolveStoreProduct,
+                  storeResolved: storeResolved,
                   onPricingSelected: onPricingSelected,
                 ),
               ],

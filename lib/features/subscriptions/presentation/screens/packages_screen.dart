@@ -163,6 +163,7 @@ class _PackagesViewState extends State<_PackagesView>
               ),
               resolveStoreProduct: (pricing) =>
                   state.storeProductFor(pricing, isIOS: _isIOS),
+              storeResolved: state.storeResolved,
               currentSub: currentSub,
               freePlan: state.freePlan,
               freeBusy: freeBusy,
@@ -194,11 +195,20 @@ class _PackagesViewState extends State<_PackagesView>
                     purchaseState is PackagePurchaseCodeValidationSuccess
                         ? purchaseState.response.discountPercent
                         : null;
+                // No store price means no purchase: the amount cannot be
+                // disclosed, and RevenueCat would fail to find the package
+                // anyway. Free plans are exempt — they never touch the store.
+                final selectedStoreProduct = selectedPricing == null
+                    ? null
+                    : state.storeProductFor(selectedPricing, isIOS: _isIOS);
+                final priceUnavailable = selectedPricing != null &&
+                    selectedPricing.price != 0 &&
+                    selectedStoreProduct == null;
                 return StickyCtaWidget(
-                  hasSelection: selectedPricing != null,
+                  hasSelection: selectedPricing != null && !priceUnavailable,
                   freeBusy: freeBusy,
                   discountPercent: discountPercent,
-                  onPressed: selectedPricing == null
+                  onPressed: selectedPricing == null || priceUnavailable
                       ? null
                       : () => handleCta(context, activePlan, selectedPricing),
                 );

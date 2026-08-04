@@ -25,29 +25,40 @@ final class SubscriptionPlansLoading extends SubscriptionPlansState {
 ///
 /// [storeProducts] is the RevenueCat store catalogue keyed by
 /// `storeProduct.identifier`. It arrives *after* the plans (a second,
-/// progressive emit) and is empty until — or if — the store resolves. The
-/// paywall reads the store price as source of truth and falls back to the
-/// backend price whenever [storeProductFor] returns null.
+/// progressive emit) and is empty until — or if — the store resolves. The store
+/// price is the ONLY price ever displayed: the backend `price` is an
+/// administrative figure that does not match what the store charges, so showing
+/// it would misstate the amount the user is about to pay.
+///
+/// [storeResolved] distinguishes the two reasons [storeProductFor] can return
+/// null. False means the catalogue request is still in flight and the price is
+/// merely late (render a placeholder); true means it finished and this product
+/// genuinely has no store entry, which is terminal — the price is unknowable
+/// and the purchase would fail anyway.
 final class SubscriptionPlansLoaded extends SubscriptionPlansState {
   final List<SubscriptionPlan> plans;
   final Map<int, int> selectionByPlan;
   final Map<String, StoreProduct> storeProducts;
+  final bool storeResolved;
 
   const SubscriptionPlansLoaded({
     required this.plans,
     required this.selectionByPlan,
     this.storeProducts = const {},
+    this.storeResolved = false,
   });
 
   SubscriptionPlansLoaded copyWith({
     List<SubscriptionPlan>? plans,
     Map<int, int>? selectionByPlan,
     Map<String, StoreProduct>? storeProducts,
+    bool? storeResolved,
   }) =>
       SubscriptionPlansLoaded(
         plans: plans ?? this.plans,
         selectionByPlan: selectionByPlan ?? this.selectionByPlan,
         storeProducts: storeProducts ?? this.storeProducts,
+        storeResolved: storeResolved ?? this.storeResolved,
       );
 
   /// Purchasable plans only — the free tier is represented by the dedicated
@@ -68,8 +79,9 @@ final class SubscriptionPlansLoaded extends SubscriptionPlansState {
   }
 
   /// The store product backing [pricing] on the current platform, or null when
-  /// the store hasn't resolved it (⇒ backend-price fallback). Keys off the
-  /// pricing's canonical/​platform store id via `productId(isIOS:)`.
+  /// the store has no entry for it — read [storeResolved] to tell "not yet"
+  /// from "never". Keys off the pricing's canonical/​platform store id via
+  /// `productId(isIOS:)`.
   StoreProduct? storeProductFor(
     SubscriptionPricing pricing, {
     required bool isIOS,
@@ -80,7 +92,8 @@ final class SubscriptionPlansLoaded extends SubscriptionPlansState {
   }
 
   @override
-  List<Object?> get props => [plans, selectionByPlan, storeProducts];
+  List<Object?> get props =>
+      [plans, selectionByPlan, storeProducts, storeResolved];
 }
 
 final class SubscriptionPlansFailure extends SubscriptionPlansState {

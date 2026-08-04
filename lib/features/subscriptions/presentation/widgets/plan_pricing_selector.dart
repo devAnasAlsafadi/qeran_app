@@ -18,6 +18,10 @@ class PlanPricingSelector extends StatelessWidget {
   final SubscriptionPlan plan;
   final int? selectedPricingId;
   final StoreProduct? Function(SubscriptionPricing pricing) resolveStoreProduct;
+
+  /// False while the store catalogue is still loading — passed through to each
+  /// row so a late price shows a placeholder rather than the backend figure.
+  final bool storeResolved;
   final ValueChanged<int> onPricingSelected;
 
   const PlanPricingSelector({
@@ -25,6 +29,7 @@ class PlanPricingSelector extends StatelessWidget {
     required this.plan,
     required this.selectedPricingId,
     required this.resolveStoreProduct,
+    required this.storeResolved,
     required this.onPricingSelected,
   });
 
@@ -39,6 +44,7 @@ class PlanPricingSelector extends StatelessWidget {
           PricingRowWidget(
             pricing: pricings[i],
             storeProduct: resolveStoreProduct(pricings[i]),
+            storeResolved: storeResolved,
             selected: pricings[i].id == selectedPricingId,
             onTap: () => onPricingSelected(pricings[i].id),
           ),

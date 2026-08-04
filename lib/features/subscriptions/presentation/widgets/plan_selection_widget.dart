@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_skeleton.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -17,6 +18,7 @@ import 'plan_features_widget.dart';
 import 'plan_pricing_selector.dart';
 
 part 'plan_selection_card.dart';
+part 'plan_card_price.dart';
 part 'plan_selection_free_card.dart';
 
 /// Owned-plan badge text: the plan label alone, or "{plan} · {period}" when the
@@ -53,6 +55,12 @@ class PlanSelectionWidget extends StatelessWidget {
 
   final StoreProduct? Function(SubscriptionPricing pricing) resolveStoreProduct;
 
+  /// False while the store catalogue is still in flight. Distinguishes a price
+  /// that is merely late from one the store will never supply — the cards show
+  /// a placeholder for the former and an "unavailable" note for the latter, and
+  /// never the backend price, which is not what the store charges.
+  final bool storeResolved;
+
   const PlanSelectionWidget({
     super.key,
     required this.plans,
@@ -62,6 +70,7 @@ class PlanSelectionWidget extends StatelessWidget {
     required this.onPlanChanged,
     required this.onPricingSelected,
     required this.resolveStoreProduct,
+    this.storeResolved = false,
     this.currentSub,
     this.freePlan,
     this.freeBusy = false,
@@ -123,6 +132,7 @@ class PlanSelectionWidget extends StatelessWidget {
                 isArabic: isArabic,
                 selectedPricingFor: selectedPricingFor,
                 resolveStoreProduct: resolveStoreProduct,
+                storeResolved: storeResolved,
                 onPlanChanged: onPlanChanged,
                 onPricingSelected: onPricingSelected,
               ),

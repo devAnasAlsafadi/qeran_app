@@ -32,8 +32,8 @@ import '../widgets/sticky_cta_widget.dart';
 
 /// Full-route packages screen — thin coordinator. Provides the plans + purchase
 /// cubits, composes the extracted paywall widgets, and delegates CTA routing to
-/// [PaywallPurchaseFlow] (free → `/subscribe`; paid → RevenueCat, iOS locked
-/// per Q-B; same product → route to اشتراكي).
+/// [PaywallPurchaseFlow] (free → `/subscribe`; paid → RevenueCat; same product
+/// → route to اشتراكي).
 class PackagesScreen extends StatelessWidget {
   const PackagesScreen({super.key});
 
@@ -167,7 +167,7 @@ class _PackagesViewState extends State<_PackagesView>
               freeBusy: freeBusy,
               onActivateFree: () => activateFree(context),
             ),
-            if (!_isIOS && selectedPricing != null) ...[
+            if (selectedPricing != null) ...[
               QeranSpacing.vs16,
               OrderSummaryWidget(
                 planName: activePlan.name(
@@ -177,6 +177,13 @@ class _PackagesViewState extends State<_PackagesView>
                 pricing: selectedPricing,
                 storeProduct:
                     state.storeProductFor(selectedPricing, isIOS: _isIOS),
+                // Android keeps sending the Google id it has always sent; iOS
+                // resolves its own, though the field is hidden there anyway.
+                codeProductId: _isIOS
+                    ? (selectedPricing.appleProductId ??
+                        selectedPricing.storeProductId)
+                    : selectedPricing.googleProductId,
+                allowDiscountCode: !_isIOS,
               ),
             ],
             QeranSpacing.vs24,
@@ -187,7 +194,6 @@ class _PackagesViewState extends State<_PackagesView>
                         ? purchaseState.response.discountPercent
                         : null;
                 return StickyCtaWidget(
-                  isIOS: _isIOS,
                   hasSelection: selectedPricing != null,
                   freeBusy: freeBusy,
                   discountPercent: discountPercent,

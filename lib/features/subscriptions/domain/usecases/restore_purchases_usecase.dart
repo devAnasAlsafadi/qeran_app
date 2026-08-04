@@ -6,7 +6,7 @@ import '../repositories/purchase_repository.dart';
 
 /// Restores prior store purchases (reinstall / new device / client-RC desync)
 /// and returns the resulting [CustomerInfo]. Non-purchase action — allowed on
-/// every platform, including the iOS lockdown (Q-B).
+/// every platform.
 class RestorePurchasesUseCase {
   final PurchaseRepository _repository;
   const RestorePurchasesUseCase(this._repository);

@@ -11,8 +11,6 @@ String purchaseFailureMessage(Failure failure) => switch (failure) {
         LocaleKeys.subscriptions_purchase_store_unavailable,
       InvalidCredentialsFailure() =>
         LocaleKeys.subscriptions_purchase_login_required,
-      PlatformNotSupportedFailure() =>
-        LocaleKeys.subscriptions_purchase_ios_coming_soon,
       NotFoundFailure() =>
         LocaleKeys.subscriptions_purchase_package_not_found,
       _ => LocaleKeys.errors_generic,

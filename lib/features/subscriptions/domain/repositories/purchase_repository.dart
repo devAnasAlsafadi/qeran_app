@@ -21,7 +21,7 @@ abstract interface class PurchaseRepository {
   /// Play subscription offer; [oldProductId] (a different owned product) drives
   /// an upgrade with `WITH_TIME_PRORATION`. The iOS StoreKit promo quartet
   /// ([signature]/[keyId]/[nonce]/[timestampMs]) is accepted for forward-compat
-  /// but iOS purchases are locked (returns `Left(PlatformNotSupportedFailure)`).
+  /// and only takes effect once a JWS signing service supplies it.
   Future<Either<Failure, CustomerInfo>> purchasePackage({
     required Package package,
     String? offerId,

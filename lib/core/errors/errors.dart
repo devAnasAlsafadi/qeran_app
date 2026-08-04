@@ -67,13 +67,6 @@ class OfflineFailure extends Failure {
 // Typed outcomes of a store purchase, mapped from `PurchasesErrorCode` in
 // `purchase_error_mapper.dart`. Kept here alongside the rest of the hierarchy.
 
-/// The current platform can't complete a purchase — iOS is locked until App
-/// Store products + offers are ready (Q-B). Defensive backstop; the primary
-/// gate is the paywall UI.
-class PlatformNotSupportedFailure extends Failure {
-  const PlatformNotSupportedFailure({super.message = LocaleKeys.errors_generic});
-}
-
 /// The user dismissed the store purchase sheet. The UI treats this as a
 /// silent, non-error outcome, so [message] is rarely surfaced.
 class UserCancelledFailure extends Failure {

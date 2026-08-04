@@ -19,9 +19,9 @@ import 'package_purchase_messages.dart';
 import 'package_purchase_state.dart';
 
 /// Screen-scoped orchestrator for the paywall purchase flow: discount-code
-/// validation, the RevenueCat purchase (Android only — iOS is locked per Q-B),
-/// restore, and the post-purchase reconcile (Q-C). It does NOT handle the free
-/// tier — that routes through `SubscribeUseCase` at the CTA (Commit 5).
+/// validation, the RevenueCat purchase, restore, and the post-purchase
+/// reconcile (Q-C). It does NOT handle the free tier — that routes through
+/// `SubscribeUseCase` at the CTA (Commit 5).
 class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<PackagePurchaseState> {
   final ValidateCodeUseCase _validateCode;
   final PurchasePackageUseCase _purchasePackage;
@@ -93,24 +93,17 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
     );
   }
 
-  /// Buys [pricing] (Android only). [validatedCode] carries an applied offer;
-  /// [oldProductId] (a different owned product) drives an upgrade.
+  /// Buys [pricing]. [validatedCode] carries an applied offer; [oldProductId]
+  /// (a different owned product) drives an upgrade.
   Future<void> purchase({
     required SubscriptionPricing pricing,
     ValidateCodeResponse? validatedCode,
     String? oldProductId,
   }) async {
-    if (Platform.isIOS) {
-      emit(const PackagePurchaseFailure(
-        failure: PlatformNotSupportedFailure(),
-        userMessage: LocaleKeys.subscriptions_purchase_ios_coming_soon,
-      ));
-      return;
-    }
-
-    final productId = pricing.productId(isIOS: Platform.isIOS) ??
-        pricing.googleProductId ??
-        pricing.storeProductId;
+    // `productId` already resolves canonical-then-platform; no further fallback
+    // — dropping to the Google id on iOS would look up a product the StoreKit
+    // offering does not contain.
+    final productId = pricing.productId(isIOS: Platform.isIOS);
     if (productId == null || productId.isEmpty) {
       emit(const PackagePurchaseFailure(
         failure: NotFoundFailure(),
@@ -143,8 +136,7 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
     result.fold(_emitFailure, _onPurchased);
   }
 
-  /// Restores prior purchases (allowed on every platform). Reuses the
-  /// post-purchase reconcile.
+  /// Restores prior purchases. Reuses the post-purchase reconcile.
   Future<void> restorePurchases() async {
     emit(const PackagePurchaseInProgress());
     final result = await _restorePurchases();

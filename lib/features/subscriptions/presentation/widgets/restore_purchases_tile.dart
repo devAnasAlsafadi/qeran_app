@@ -17,8 +17,8 @@ import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
 
 /// "Restore purchases" tile for the اشتراكي screen. Enabled on **both**
-/// platforms (restore triggers no payment — it only re-syncs entitlements), so
-/// it stays available even under the iOS purchase lockdown (Q-B). Owns its own
+/// platforms (restore triggers no payment — it only re-syncs entitlements);
+/// Apple requires it to be visible on the purchase surface. Owns its own
 /// [PackagePurchaseCubit] since the details screen isn't in the paywall tree.
 class RestorePurchasesTile extends StatelessWidget {
   const RestorePurchasesTile({super.key});

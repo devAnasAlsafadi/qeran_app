@@ -111,9 +111,10 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
       return;
     }
     // Carry an applied discount into the purchase: an offer id on Android, the
-    // full StoreKit signature on iOS (iOS is locked anyway — defensive).
-    // Captured on the mixin so a Retry from the failure screen re-fires with
-    // the same discount.
+    // full StoreKit signature on iOS. Without that signature the discount is
+    // dropped rather than shown-then-not-charged, which is why the coupon field
+    // is hidden on iOS in the first place. Captured on the mixin so a Retry
+    // from the failure screen re-fires with the same discount.
     final purchaseState = context.read<PackagePurchaseCubit>().state;
     _purchasedValidatedCode =
         purchaseState is PackagePurchaseCodeValidationSuccess &&

@@ -9,6 +9,13 @@ String purchaseFailureMessage(Failure failure) => switch (failure) {
         LocaleKeys.subscriptions_purchase_already_subscribed,
       StoreUnavailableFailure() =>
         LocaleKeys.subscriptions_purchase_store_unavailable,
+      StorePurchaseBlockedFailure() =>
+        LocaleKeys.subscriptions_purchase_country_restricted,
+      PurchaseNotAllowedFailure() =>
+        LocaleKeys.subscriptions_purchase_not_allowed,
+      StoreConfigurationFailure() =>
+        LocaleKeys.subscriptions_purchase_config_error,
+      PaymentPendingFailure() => LocaleKeys.subscriptions_purchase_pending,
       InvalidCredentialsFailure() =>
         LocaleKeys.subscriptions_purchase_login_required,
       NotFoundFailure() =>

@@ -213,7 +213,6 @@ abstract class  LocaleKeys {
   static const discovery_privacy_message = 'discovery.privacy_message';
   static const discovery_empty_title = 'discovery.empty_title';
   static const discovery_empty_subtitle = 'discovery.empty_subtitle';
-  static const discovery_scroll_hint = 'discovery.scroll_hint';
   static const discovery_empty_filtered_title = 'discovery.empty_filtered_title';
   static const discovery_empty_filtered_subtitle = 'discovery.empty_filtered_subtitle';
   static const discovery_empty_edit_filters = 'discovery.empty_edit_filters';
@@ -446,6 +445,8 @@ abstract class  LocaleKeys {
   static const profile_not_available = 'profile.not_available';
   static const profile_retry = 'profile.retry';
   static const profile_status_pending_review = 'profile.status_pending_review';
+  static const profile_status_pending_review_like = 'profile.status_pending_review_like';
+  static const profile_status_pending_review_accept = 'profile.status_pending_review_accept';
   static const profile_status_hidden = 'profile.status_hidden';
   static const profile_status_rejected = 'profile.status_rejected';
   static const profile_status_chip_verified = 'profile.status_chip_verified';

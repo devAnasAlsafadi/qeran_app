@@ -113,7 +113,7 @@ class _LikesView extends StatelessWidget {
       case LikesActionEvent.acceptUnderReview:
         AppSnackBar.show(
           context,
-          message: LocaleKeys.profile_status_pending_review.t(context),
+          message: LocaleKeys.profile_status_pending_review_accept.t(context),
           type: SnackBarType.info,
         );
       case LikesActionEvent.rejectSuccess:

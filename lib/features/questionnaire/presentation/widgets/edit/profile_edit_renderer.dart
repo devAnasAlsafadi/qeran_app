@@ -61,7 +61,6 @@ class ProfileEditRenderer extends StatelessWidget {
             QuestionTextWidget(
               currentAnswer: currentAnswer as String?,
               hintText: LocaleKeys.profile_edit_text_hint.t(context),
-              maxLength: null,
               onChanged: onAnswerChanged,
             ),
             const SizedBox(height: QeranSpacing.s8),

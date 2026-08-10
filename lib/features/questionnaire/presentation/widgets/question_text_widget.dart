@@ -15,9 +15,9 @@ class QuestionTextWidget extends StatefulWidget {
   /// profile-edit form passes its own Figma hint.
   final String? hintText;
 
-  /// Character cap (shows the built-in counter). Defaults to 200 so sign-up
-  /// is unchanged; the profile-edit form passes `null` (the backend enforces
-  /// no length, so no counter there).
+  /// Optional character cap (shows the built-in counter). Defaults to `null`
+  /// — these are free-form bio fields and the backend enforces no length, so
+  /// neither sign-up nor profile-edit caps them.
   final int? maxLength;
 
   const QuestionTextWidget({
@@ -25,7 +25,7 @@ class QuestionTextWidget extends StatefulWidget {
     required this.currentAnswer,
     required this.onChanged,
     this.hintText,
-    this.maxLength = 200,
+    this.maxLength,
   });
 
   @override

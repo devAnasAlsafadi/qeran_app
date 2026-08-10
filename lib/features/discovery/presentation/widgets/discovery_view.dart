@@ -30,7 +30,6 @@ import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_frosted_action_zone.dart';
 import 'discovery_like_burst.dart';
-import 'discovery_scroll_hint.dart';
 import 'discovery_unified_card.dart';
 
 /// Reusable Discovery content. Self-contained — provides its own
@@ -133,10 +132,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   /// scroll repaints only the cluster's backdrop, never the blurred photo.
   final ValueNotifier<double> _scrollOffset = ValueNotifier<double>(0);
 
-  /// Latched once the user has scrolled a card. Owned here, above the deck, so
-  /// the scroll hint teaches once rather than on every profile.
-  final ValueNotifier<bool> _scrollHintDismissed = ValueNotifier<bool>(false);
-
   @override
   void initState() {
     super.initState();
@@ -158,7 +153,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
     WidgetsBinding.instance.removeObserver(this);
     _animController.dispose();
     _scrollOffset.dispose();
-    _scrollHintDismissed.dispose();
     super.dispose();
   }
 
@@ -239,7 +233,9 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
               unawaited(_animController.triggerSnapBack());
               AppSnackBar.show(
                 context,
-                message: LocaleKeys.profile_status_pending_review.t(context),
+                message: LocaleKeys.profile_status_pending_review_like.t(
+                  context,
+                ),
                 type: SnackBarType.info,
               );
             case LikeFailureKind.network:
@@ -268,7 +264,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                   state: state,
                   onLikeBurst: _spawnLikeBurst,
                   scrollOffset: _scrollOffset,
-                  scrollHintDismissed: _scrollHintDismissed,
                 ),
             ],
           );
@@ -476,13 +471,11 @@ class _FloatingActionBar extends StatefulWidget {
   final DiscoveryState state;
   final void Function(Offset origin) onLikeBurst;
   final ValueNotifier<double> scrollOffset;
-  final ValueNotifier<bool> scrollHintDismissed;
 
   const _FloatingActionBar({
     required this.state,
     required this.onLikeBurst,
     required this.scrollOffset,
-    required this.scrollHintDismissed,
   });
 
   @override
@@ -609,13 +602,6 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Sits in the empty paper the fold leaves above the cluster. Grows
-          // upward from the bottom anchor, so the buttons never move.
-          if (hasActive)
-            DiscoveryScrollHint(
-              scrollOffset: widget.scrollOffset,
-              dismissed: widget.scrollHintDismissed,
-            ),
           // At the top the buttons float over the empty paper under نبذة عني,
           // so a backdrop would be pure decoration; it fades in only once
           // profile content is actually passing behind them.

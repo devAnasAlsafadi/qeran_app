@@ -16,28 +16,42 @@ const Locale _en = Locale('en');
 /// full-screen Save-button page). Tapping an option switches the locale
 /// immediately (the whole app flips RTL↔LTR) and closes the sheet — no Save.
 /// Persistence is EasyLocalization's own `setLocale` store; UI only.
-Future<void> showSettingsLanguageSheet(BuildContext context) {
-  return showQeranBottomSheet<void>(
+///
+/// The switch is applied only AFTER the sheet is fully gone, and the sheet is
+/// handed a plain [Locale] rather than the caller's context. Both matter: the
+/// locale it sets is what destroys the screen it was opened from — both shells
+/// mount their tabs inside a `LocaleRebuildScope`, which discards the subtree
+/// on a language change. A sheet holding that context would be reading a
+/// deactivated element the moment it repainted during its own exit animation.
+Future<void> showSettingsLanguageSheet(BuildContext context) async {
+  final current = context.locale;
+  final selected = await showQeranBottomSheet<Locale>(
     context: context,
-    builder: (_) => _LanguageSheet(host: context),
+    builder: (_) => _LanguageSheet(current: current),
   );
+  if (selected == null || selected == current) return;
+  // The host outlives the sheet — it is torn down by the line below, not
+  // before it — but it can still be popped while the sheet is open.
+  if (!context.mounted) return;
+  await context.setLocale(selected);
 }
 
 class _LanguageSheet extends StatelessWidget {
-  const _LanguageSheet({required this.host});
+  const _LanguageSheet({required this.current});
 
-  /// The settings-screen context — used to apply the locale after the sheet
-  /// pops (its own context is torn down by then).
-  final BuildContext host;
+  /// Captured before the sheet opened. A value, not a context: the locale is
+  /// read once up front so nothing here depends on an ancestor that the
+  /// selection is about to destroy.
+  final Locale current;
 
+  /// Returns the choice to the caller, which applies it once the sheet has
+  /// finished closing.
   void _select(BuildContext sheetContext, Locale locale) {
-    Navigator.of(sheetContext).pop();
-    if (locale != host.locale) host.setLocale(locale);
+    Navigator.of(sheetContext).pop(locale);
   }
 
   @override
   Widget build(BuildContext context) {
-    final current = host.locale;
     return QeranBottomSheetScaffold(
       title: LocaleKeys.settings_language_title.t(context),
       body: Padding(

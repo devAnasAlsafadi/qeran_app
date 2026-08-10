@@ -3,21 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>379935865249-brplk9ugdousdbcvs041p5346pjgltu7.apps.googleusercontent.com</string>
+	<string>517112282743-4hsqi75o038c9agq7r1h9uo4stl35p5f.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.379935865249-brplk9ugdousdbcvs041p5346pjgltu7</string>
+	<string>com.googleusercontent.apps.517112282743-4hsqi75o038c9agq7r1h9uo4stl35p5f</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>517112282743-6rrn8emi2fufo6j1iga2qr5l63ui25vr.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyB1AJBQdeZGj_5VDcb5q1XyWQcSewe1z3U</string>
+	<string>AIzaSyC-fcOpjNG-dDosOUPFuLhYodERDQfc54Q</string>
 	<key>GCM_SENDER_ID</key>
-	<string>379935865249</string>
+	<string>517112282743</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.qeran</string>
+	<string>com.qeran.app</string>
 	<key>PROJECT_ID</key>
-	<string>qeran-project</string>
+	<string>qeran-7e6a2</string>
 	<key>STORAGE_BUCKET</key>
-	<string>qeran-project.firebasestorage.app</string>
+	<string>qeran-7e6a2.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:379935865249:ios:83e039797112df220873e0</string>
+	<string>1:517112282743:ios:bfdc82d6c55fd905169072</string>
 </dict>
 </plist>

@@ -67,13 +67,6 @@ class OfflineFailure extends Failure {
 // Typed outcomes of a store purchase, mapped from `PurchasesErrorCode` in
 // `purchase_error_mapper.dart`. Kept here alongside the rest of the hierarchy.
 
-/// The current platform can't complete a purchase — iOS is locked until App
-/// Store products + offers are ready (Q-B). Defensive backstop; the primary
-/// gate is the paywall UI.
-class PlatformNotSupportedFailure extends Failure {
-  const PlatformNotSupportedFailure({super.message = LocaleKeys.errors_generic});
-}
-
 /// The user dismissed the store purchase sheet. The UI treats this as a
 /// silent, non-error outcome, so [message] is rarely surfaced.
 class UserCancelledFailure extends Failure {
@@ -87,10 +80,47 @@ class AlreadyOwnedFailure extends Failure {
   });
 }
 
-/// The store is unavailable, or a store / network problem occurred.
+/// A transient store / network problem — worth retrying. Kept separate from
+/// [StorePurchaseBlockedFailure], which is not transient at all.
 class StoreUnavailableFailure extends Failure {
   const StoreUnavailableFailure({
     super.message = LocaleKeys.subscriptions_purchase_store_unavailable,
+  });
+}
+
+/// The store refused to transact: billing unavailable, or the account's
+/// storefront/country cannot buy this product. Split out of
+/// [StoreUnavailableFailure] because retrying never fixes it, so the copy must
+/// not promise that it will.
+class StorePurchaseBlockedFailure extends Failure {
+  const StorePurchaseBlockedFailure({
+    super.message = LocaleKeys.subscriptions_purchase_country_restricted,
+  });
+}
+
+/// Purchases are disallowed on this device or account — iOS Screen Time /
+/// parental controls, or a restricted profile. The user can fix it themselves,
+/// which is why it gets its own message.
+class PurchaseNotAllowedFailure extends Failure {
+  const PurchaseNotAllowedFailure({
+    super.message = LocaleKeys.subscriptions_purchase_not_allowed,
+  });
+}
+
+/// RevenueCat / store product setup is wrong. This one is OUR fault, so the
+/// copy neither blames the user nor invites an endless retry.
+class StoreConfigurationFailure extends Failure {
+  const StoreConfigurationFailure({
+    super.message = LocaleKeys.subscriptions_purchase_config_error,
+  });
+}
+
+/// The payment was accepted but is awaiting approval (deferred payment, SCA
+/// challenge, Ask-to-Buy). NOT a failed purchase — it may still complete, so it
+/// must never be reported as an error.
+class PaymentPendingFailure extends Failure {
+  const PaymentPendingFailure({
+    super.message = LocaleKeys.subscriptions_purchase_pending,
   });
 }
 

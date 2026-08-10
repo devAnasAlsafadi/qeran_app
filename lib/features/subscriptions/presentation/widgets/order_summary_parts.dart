@@ -174,3 +174,19 @@ class _RejectRow extends StatelessWidget {
     );
   }
 }
+
+/// Hairline between the discount and total rows.
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: QeranSpacing.s12),
+      child: SizedBox(
+        height: 1,
+        child: ColoredBox(color: QeranColors.divider),
+      ),
+    );
+  }
+}

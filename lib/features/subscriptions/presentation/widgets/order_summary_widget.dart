@@ -19,26 +19,38 @@ import '../blocs/purchase/package_purchase_state.dart';
 
 part 'order_summary_parts.dart';
 
-/// The "Order summary" card (Android-only paywall). Always renders the plan +
-/// the real store subtotal + a coupon field. Once a code validates, it adds the
-/// applied-coupon tag, a "% off" badge, the discount percent, and a
-/// "final price at checkout" note.
+/// The "Order summary" card. Always renders the plan + the real store subtotal.
+/// When [allowDiscountCode] is set it also renders the coupon field, and once a
+/// code validates it adds the applied-coupon tag, a "% off" badge, the discount
+/// percent, and a "final price at checkout" note.
 ///
-/// It NEVER computes a final charge: the discounted price is realized by Google
-/// Play at purchase (source of truth). The discount is shown only as a percent
+/// [allowDiscountCode] is false on iOS: App Store discounts run through Offer
+/// Codes redeemed outside the app, and a validated code carries no StoreKit
+/// signature, so accepting one here would show a discount the user is never
+/// actually charged. The summary itself still renders — only the field is gone.
+///
+/// It NEVER computes a final charge: the discounted price is realized by the
+/// store at purchase (source of truth). The discount is shown only as a percent
 /// (backed by validate-code); the subtotal is the store's own `priceString`.
-/// Same cubit calls, reject-message path, and clear/reset as the prior widget.
 class OrderSummaryWidget extends StatefulWidget {
   const OrderSummaryWidget({
     super.key,
     required this.planName,
     required this.pricing,
     required this.storeProduct,
+    required this.codeProductId,
+    this.allowDiscountCode = true,
   });
 
   final String planName;
   final SubscriptionPricing pricing;
   final StoreProduct? storeProduct;
+
+  /// Store product id sent with a discount-code validation. Resolved by the
+  /// screen (which owns the platform) so this widget stays platform-agnostic.
+  final String? codeProductId;
+
+  final bool allowDiscountCode;
 
   @override
   State<OrderSummaryWidget> createState() => _OrderSummaryWidgetState();
@@ -55,8 +67,8 @@ class _OrderSummaryWidgetState extends State<OrderSummaryWidget> {
 
   void _validate() {
     final code = _controller.text.trim().toUpperCase();
-    final productId = widget.pricing.googleProductId;
-    if (code.isEmpty || productId == null) return;
+    final productId = widget.codeProductId;
+    if (code.isEmpty || productId == null || productId.isEmpty) return;
     context
         .read<PackagePurchaseCubit>()
         .validateDiscountCode(code: code, productId: productId);
@@ -80,14 +92,20 @@ class _OrderSummaryWidgetState extends State<OrderSummaryWidget> {
   Widget build(BuildContext context) {
     return BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(
       builder: (context, state) {
-        final applied = state is PackagePurchaseCodeValidationSuccess &&
+        // Every code-driven row is gated on `allowCode`, so a validation state
+        // left over from another surface can never paint a discount here.
+        final allowCode = widget.allowDiscountCode;
+        final applied = allowCode &&
+                state is PackagePurchaseCodeValidationSuccess &&
                 state.response.valid
             ? state.response
             : null;
-        final validating = state is PackagePurchaseValidatingCode;
+        final validating = allowCode && state is PackagePurchaseValidatingCode;
         final locked = validating || state is PackagePurchaseInProgress;
         final rejectMessage =
-            state is PackagePurchaseCodeValidationFailure ? state.message : null;
+            allowCode && state is PackagePurchaseCodeValidationFailure
+                ? state.message
+                : null;
 
         return QeranCard(
           child: Column(
@@ -107,19 +125,21 @@ class _OrderSummaryWidgetState extends State<OrderSummaryWidget> {
                 value: _subtotal(context),
                 valueLtr: true,
               ),
-              QeranSpacing.vs12,
-              if (applied == null)
-                _CouponField(
-                  controller: _controller,
-                  locked: locked,
-                  onValidate: _validate,
-                )
-              else
-                _AppliedCouponRow(
-                  offerId: applied.offerId ?? '',
-                  percent: applied.discountPercent,
-                  onRemove: _remove,
-                ),
+              if (allowCode) ...[
+                QeranSpacing.vs12,
+                if (applied == null)
+                  _CouponField(
+                    controller: _controller,
+                    locked: locked,
+                    onValidate: _validate,
+                  )
+                else
+                  _AppliedCouponRow(
+                    offerId: applied.offerId ?? '',
+                    percent: applied.discountPercent,
+                    onRemove: _remove,
+                  ),
+              ],
               if (validating) ...[QeranSpacing.vs12, const _ValidatingRow()],
               if (rejectMessage != null) ...[
                 QeranSpacing.vs12,
@@ -164,22 +184,6 @@ class _PlanRow extends StatelessWidget {
       style: QeranTypography.body.copyWith(color: QeranColors.wine),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-    );
-  }
-}
-
-/// Hairline between the discount and total rows.
-class _RowDivider extends StatelessWidget {
-  const _RowDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: QeranSpacing.s12),
-      child: SizedBox(
-        height: 1,
-        child: ColoredBox(color: QeranColors.divider),
-      ),
     );
   }
 }

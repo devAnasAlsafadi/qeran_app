@@ -82,7 +82,11 @@ class _EditBody extends StatelessWidget {
       case ProfileEditEvent.saveFailure:
         AppSnackBar.show(
           context,
-          message: state.eventMessage ??
+          // `eventMessage` carries a locale KEY when the datasource classified
+          // the failure (e.g. UNDERAGE_NOT_ALLOWED -> errors.underage), so it
+          // has to be translated. Raw backend text passes through untouched —
+          // easy_localization returns unknown keys unchanged.
+          message: state.eventMessage?.t(context) ??
               LocaleKeys.profile_edit_save_failed.t(context),
           type: SnackBarType.error,
         );

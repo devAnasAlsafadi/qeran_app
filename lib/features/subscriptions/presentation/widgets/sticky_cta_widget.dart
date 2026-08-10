@@ -7,16 +7,14 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
 
-/// Bottom CTA. Label + enabled state are derived from the platform, the
-/// current selection, an optional applied-discount [discountPercent], and the
+/// Bottom CTA. Label + enabled state are derived from the current selection,
+/// an optional applied-discount [discountPercent], and the
 /// [PackagePurchaseCubit]'s transient states.
 ///
-/// * **iOS** — disabled, label = "coming soon" shown inline (Q-B lockdown).
 /// * **Purchasing / validating** (or [freeBusy]) — inline spinner, disabled.
 /// * **Applied discount** — "Subscribe now — {percent}% off".
 /// * **Default** — "Subscribe now".
 class StickyCtaWidget extends StatelessWidget {
-  final bool isIOS;
   final bool hasSelection;
   final bool freeBusy;
   final int? discountPercent;
@@ -24,7 +22,6 @@ class StickyCtaWidget extends StatelessWidget {
 
   const StickyCtaWidget({
     super.key,
-    required this.isIOS,
     required this.hasSelection,
     required this.onPressed,
     this.freeBusy = false,
@@ -33,13 +30,6 @@ class StickyCtaWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isIOS) {
-      return QeranButton(
-        label: LocaleKeys.subscriptions_purchase_ios_coming_soon.t(context),
-        variant: QeranButtonVariant.primary,
-        onPressed: null,
-      );
-    }
     return BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(
       builder: (context, state) {
         final busy = freeBusy ||

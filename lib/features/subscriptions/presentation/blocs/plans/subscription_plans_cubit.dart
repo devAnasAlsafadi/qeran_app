@@ -15,9 +15,11 @@ import 'subscription_plans_state.dart';
 /// [pricingFor] so the screen can route on CTA tap.
 ///
 /// Prices are store-driven: after the backend plans paint, the RevenueCat
-/// store catalogue is fetched and merged in a second emit. The store fetch is
-/// best-effort — a failure leaves `storeProducts` empty and the paywall
-/// degrades to backend prices, never blocking on the store.
+/// store catalogue is fetched and merged in a second emit, so the list never
+/// blocks on the store. There is no backend-price fallback — the backend
+/// `price` is an administrative figure that does not match what the store
+/// charges, so the paywall shows a placeholder until the store answers and
+/// declares the price unavailable if it never does.
 class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> with SafeEmit<SubscriptionPlansState> {
   final GetSubscriptionPlansUseCase _getPlans;
   final GetStoreProductsUseCase _getStoreProducts;
@@ -57,27 +59,46 @@ class SubscriptionPlansCubit extends Cubit<SubscriptionPlansState> with SafeEmit
   }
 
   /// Fetches the RC store catalogue and merges it into the current
-  /// [SubscriptionPlansLoaded]. Best-effort: a store failure (or a state that
-  /// has since moved off Loaded) is a silent no-op so the paywall stays on
-  /// backend-price fallback.
+  /// [SubscriptionPlansLoaded]. Every outcome — success, empty catalogue or
+  /// failure — marks `storeResolved`, because the UI needs to stop showing a
+  /// loading placeholder even when the answer is "no price available". Only a
+  /// state that has since moved off Loaded is a silent no-op.
   Future<void> _augmentWithStoreProducts() async {
     final current = state;
     if (current is! SubscriptionPlansLoaded) return;
     final result = await _getStoreProducts();
     if (isClosed) return;
     result.fold(
-      (failure) => AppLogger.warning(
-        'Store products unavailable (${failure.message}) — '
-        'paywall stays on backend prices',
-        tag: 'PAYMENTS',
-      ),
+      (failure) {
+        AppLogger.warning(
+          'Store products unavailable (${failure.message}) — '
+          'paywall cannot display prices',
+          tag: 'PAYMENTS',
+        );
+        _markStoreResolved();
+      },
       (products) {
-        if (products.isEmpty) return;
+        if (products.isEmpty) {
+          AppLogger.warning(
+            'Store catalogue empty — paywall cannot display prices',
+            tag: 'PAYMENTS',
+          );
+          _markStoreResolved();
+          return;
+        }
         final latest = state;
         if (latest is! SubscriptionPlansLoaded) return;
-        emit(latest.copyWith(storeProducts: products));
+        emit(latest.copyWith(storeProducts: products, storeResolved: true));
       },
     );
+  }
+
+  /// Flags the store lookup as finished without any products, so the paywall
+  /// swaps its price placeholders for the terminal "unavailable" state.
+  void _markStoreResolved() {
+    final latest = state;
+    if (latest is! SubscriptionPlansLoaded) return;
+    emit(latest.copyWith(storeResolved: true));
   }
 
   /// Swaps the active pricing for a plan; no-op if [pricingId] isn't

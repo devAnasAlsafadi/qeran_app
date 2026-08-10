@@ -360,6 +360,7 @@ abstract class  LocaleKeys {
   static const subscriptions_discount_ios_unavailable = 'subscriptions.discount_ios_unavailable';
   static const subscriptions_restore_purchases = 'subscriptions.restore_purchases';
   static const subscriptions_restore_purchases_subtitle = 'subscriptions.restore_purchases_subtitle';
+  static const subscriptions_legal_binding_line = 'subscriptions.legal_binding_line';
   static const subscriptions_restore_success = 'subscriptions.restore_success';
   static const subscriptions_restore_no_purchases = 'subscriptions.restore_no_purchases';
   static const subscriptions_subscription_row_subtitle_with_restore = 'subscriptions.subscription_row_subtitle_with_restore';
@@ -382,8 +383,11 @@ abstract class  LocaleKeys {
   static const subscriptions_purchase_success = 'subscriptions.purchase_success';
   static const subscriptions_purchase_already_subscribed = 'subscriptions.purchase_already_subscribed';
   static const subscriptions_purchase_store_unavailable = 'subscriptions.purchase_store_unavailable';
+  static const subscriptions_purchase_country_restricted = 'subscriptions.purchase_country_restricted';
+  static const subscriptions_purchase_not_allowed = 'subscriptions.purchase_not_allowed';
+  static const subscriptions_purchase_config_error = 'subscriptions.purchase_config_error';
+  static const subscriptions_purchase_pending = 'subscriptions.purchase_pending';
   static const subscriptions_purchase_login_required = 'subscriptions.purchase_login_required';
-  static const subscriptions_purchase_ios_coming_soon = 'subscriptions.purchase_ios_coming_soon';
   static const subscriptions_purchase_package_not_found = 'subscriptions.purchase_package_not_found';
   static const subscriptions_paywall_like_title = 'subscriptions.paywall_like_title';
   static const subscriptions_paywall_like_body = 'subscriptions.paywall_like_body';

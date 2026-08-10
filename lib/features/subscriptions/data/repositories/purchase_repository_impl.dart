@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dartz/dartz.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -65,9 +63,6 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
     int? timestampMs,
     String? oldProductId,
   }) async {
-    // Q-B: iOS purchases are fully locked this cycle. Defensive backstop —
-    // the paywall UI also gates iOS before we get here.
-    if (Platform.isIOS) return const Left(PlatformNotSupportedFailure());
     try {
       final params = _buildParams(
         package: package,
@@ -105,8 +100,9 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
     return Right(_rc.hasPremium(info));
   }
 
-  /// Builds the [PurchaseParams] for the current platform (Android). Upgrades
-  /// from a different owned product prorate with `WITH_TIME_PRORATION`.
+  /// Builds the [PurchaseParams] for the current platform. Upgrades from a
+  /// different owned product prorate with `WITH_TIME_PRORATION` (a Play-only
+  /// setting that StoreKit ignores).
   PurchaseParams _buildParams({
     required Package package,
     String? offerId,
@@ -125,9 +121,10 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
           )
         : null;
 
-    // iOS StoreKit promotional offer. Dormant while iOS is locked (the method
-    // returns early above) and ignored by the Play SDK — built here so the
-    // signature is forward-compatible for the iOS unlock.
+    // iOS StoreKit promotional offer. Ignored by the Play SDK, and only taken
+    // when the backend returns a full StoreKit signature — which needs a JWS
+    // signing service that does not exist yet, so in practice iOS discounts
+    // ride App Store Offer Codes instead and this branch stays unused.
     if (offerId != null &&
         signature != null &&
         keyId != null &&

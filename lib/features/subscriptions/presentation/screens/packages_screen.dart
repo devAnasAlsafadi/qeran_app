@@ -23,6 +23,7 @@ import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
 import '../blocs/current/current_subscription_cubit.dart';
 import '../blocs/current/current_subscription_state.dart';
+import '../widgets/legal_links_row.dart';
 import '../widgets/order_summary_widget.dart';
 import '../widgets/paywall_hero_widget.dart';
 import '../widgets/paywall_purchase_flow.dart';
@@ -32,8 +33,8 @@ import '../widgets/sticky_cta_widget.dart';
 
 /// Full-route packages screen — thin coordinator. Provides the plans + purchase
 /// cubits, composes the extracted paywall widgets, and delegates CTA routing to
-/// [PaywallPurchaseFlow] (free → `/subscribe`; paid → RevenueCat, iOS locked
-/// per Q-B; same product → route to اشتراكي).
+/// [PaywallPurchaseFlow] (free → `/subscribe`; paid → RevenueCat; same product
+/// → route to اشتراكي).
 class PackagesScreen extends StatelessWidget {
   const PackagesScreen({super.key});
 
@@ -162,12 +163,13 @@ class _PackagesViewState extends State<_PackagesView>
               ),
               resolveStoreProduct: (pricing) =>
                   state.storeProductFor(pricing, isIOS: _isIOS),
+              storeResolved: state.storeResolved,
               currentSub: currentSub,
               freePlan: state.freePlan,
               freeBusy: freeBusy,
               onActivateFree: () => activateFree(context),
             ),
-            if (!_isIOS && selectedPricing != null) ...[
+            if (selectedPricing != null) ...[
               QeranSpacing.vs16,
               OrderSummaryWidget(
                 planName: activePlan.name(
@@ -177,6 +179,13 @@ class _PackagesViewState extends State<_PackagesView>
                 pricing: selectedPricing,
                 storeProduct:
                     state.storeProductFor(selectedPricing, isIOS: _isIOS),
+                // Android keeps sending the Google id it has always sent; iOS
+                // resolves its own, though the field is hidden there anyway.
+                codeProductId: _isIOS
+                    ? (selectedPricing.appleProductId ??
+                        selectedPricing.storeProductId)
+                    : selectedPricing.googleProductId,
+                allowDiscountCode: !_isIOS,
               ),
             ],
             QeranSpacing.vs24,
@@ -186,12 +195,20 @@ class _PackagesViewState extends State<_PackagesView>
                     purchaseState is PackagePurchaseCodeValidationSuccess
                         ? purchaseState.response.discountPercent
                         : null;
+                // No store price means no purchase: the amount cannot be
+                // disclosed, and RevenueCat would fail to find the package
+                // anyway. Free plans are exempt — they never touch the store.
+                final selectedStoreProduct = selectedPricing == null
+                    ? null
+                    : state.storeProductFor(selectedPricing, isIOS: _isIOS);
+                final priceUnavailable = selectedPricing != null &&
+                    selectedPricing.price != 0 &&
+                    selectedStoreProduct == null;
                 return StickyCtaWidget(
-                  isIOS: _isIOS,
-                  hasSelection: selectedPricing != null,
+                  hasSelection: selectedPricing != null && !priceUnavailable,
                   freeBusy: freeBusy,
                   discountPercent: discountPercent,
-                  onPressed: selectedPricing == null
+                  onPressed: selectedPricing == null || priceUnavailable
                       ? null
                       : () => handleCta(context, activePlan, selectedPricing),
                 );
@@ -202,6 +219,10 @@ class _PackagesViewState extends State<_PackagesView>
             // surface. Self-contained tile (own cubit + restore-specific outcome
             // handling), enabled on both platforms — restore triggers no payment.
             const RestorePurchasesTile(),
+            QeranSpacing.vs12,
+            // Apple 3.1.2(a): the subscription binding + both legal documents
+            // must be reachable from the surface that sells the subscription.
+            const LegalLinksRow(),
           ],
         ),
       ),

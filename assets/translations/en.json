@@ -725,6 +725,7 @@
     "cases_action_message": "Message",
     "cases_action_message_matchmaker": "Message matchmaker",
     "cases_action_notes": "Notes",
+    "cases_action_details": "Details",
     "chat_open_failed": "Couldn't open the chat, try again later",
     "cases_confirm_title": "Are you sure?",
     "cases_confirm_message": "This will permanently close the case and can't be undone.",

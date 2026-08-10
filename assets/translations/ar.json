@@ -725,6 +725,7 @@
     "cases_action_message": "مراسلة",
     "cases_action_message_matchmaker": "مراسلة الخطّابة",
     "cases_action_notes": "ملاحظات",
+    "cases_action_details": "التفاصيل",
     "chat_open_failed": "تعذّر فتح المحادثة، حاول لاحقًا",
     "cases_confirm_title": "هل أنت متأكد؟",
     "cases_confirm_message": "سيتم إغلاق هذه الحالة نهائيًا ولا يمكن التراجع عن هذا الإجراء.",

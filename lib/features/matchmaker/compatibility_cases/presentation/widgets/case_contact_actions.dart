@@ -19,6 +19,7 @@ class CaseContactActions extends StatelessWidget {
     super.key,
     required this.personLabel,
     this.myUserLabel,
+    this.onDetails,
     this.onMessageMatchmaker,
     this.onMessagePerson,
     this.onMessageMyUser,
@@ -35,6 +36,11 @@ class CaseContactActions extends StatelessWidget {
 
   /// `myUser`'s display name — only meaningful alongside [onMessageMyUser].
   final String? myUserLabel;
+
+  /// Opens the case detail screen. The card is tappable as a whole too — this
+  /// chip exists because that tap was invisible, so matchmakers never found the
+  /// detail screen. Same destination, just an explicit target.
+  final VoidCallback? onDetails;
 
   final VoidCallback? onMessageMatchmaker;
   final VoidCallback? onMessagePerson;
@@ -58,6 +64,14 @@ class CaseContactActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chips = <Widget>[
+      // First, so the card's own destination reads ahead of the contact
+      // actions rather than trailing them.
+      if (onDetails != null)
+        _chip(
+          LocaleKeys.matchmaker_cases_action_details.t(context),
+          Icons.visibility_outlined,
+          onDetails!,
+        ),
       if (onMessageMatchmaker != null)
         _chip(
           LocaleKeys.matchmaker_cases_action_message_matchmaker.t(context),

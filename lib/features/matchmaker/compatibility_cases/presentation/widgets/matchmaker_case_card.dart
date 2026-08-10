@@ -95,6 +95,9 @@ class MatchmakerCaseCard extends StatelessWidget {
           CaseContactActions(
             personLabel: _personLabel(context),
             myUserLabel: caseItem.myUser.firstName,
+            // Same destination as the whole-card tap, which stays live — the
+            // chip is the visible affordance for it (QER-74).
+            onDetails: onTap,
             onMessageMatchmaker: onMessageMatchmaker,
             onMessagePerson: onMessagePerson,
             onMessageMyUser: onMessageMyUser,

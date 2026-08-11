@@ -113,6 +113,10 @@ class _QeranTextFieldState extends State<QeranTextField> {
 
   void _toggleObscure() => setState(() => _obscured = !_obscured);
 
+  /// Mirrors the `maxLines` the [TextFormField] is actually given — obscured
+  /// input is forced single-line regardless of [QeranTextField.maxLines].
+  bool get _isSingleLine => widget.obscureText || widget.maxLines == 1;
+
   /// Pill for single-line; a softer [QeranRadii.controlR] for multiline text
   /// areas (a stadium looks wrong on a tall box). Obscured input is always
   /// single-line, so it stays a pill regardless of [QeranTextField.maxLines].
@@ -153,9 +157,23 @@ class _QeranTextFieldState extends State<QeranTextField> {
         validator: widget.validator,
         obscureText: widget.obscureText && _obscured,
         keyboardType: widget.keyboardType,
-        textInputAction: widget.textInputAction,
+        // QER-10: single-line fields get a "done" key by default, and it
+        // closes the keyboard. Multi-line fields are left alone — forcing
+        // `done` there would replace the newline key and make the field
+        // impossible to break lines in.
+        textInputAction:
+            widget.textInputAction ??
+            (_isSingleLine ? TextInputAction.done : null),
         onChanged: widget.onChanged,
-        onFieldSubmitted: widget.onSubmitted,
+        onFieldSubmitted: (value) {
+          widget.onSubmitted?.call(value);
+          // Only when the caller has not taken over the action: a field that
+          // sets `next` is chaining focus to the following field and must not
+          // have the keyboard pulled out from under it.
+          if (widget.textInputAction == null && _isSingleLine) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          }
+        },
         onTap: widget.onTap,
         enabled: widget.enabled,
         readOnly: widget.readOnly,
@@ -184,8 +202,9 @@ class _QeranTextFieldState extends State<QeranTextField> {
       hintStyle: QeranTypography.bodySm.copyWith(color: QeranColors.inkFaint),
       errorText: widget.errorText,
       errorStyle: QeranTypography.caption.copyWith(color: QeranColors.danger),
-      counterStyle:
-          QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
+      counterStyle: QeranTypography.caption.copyWith(
+        color: QeranColors.inkMuted,
+      ),
       prefixIcon: widget.prefix,
       suffixIcon: _suffix(),
       // Borderless at rest/focus; the wrapper's shadow defines the field.
@@ -193,8 +212,9 @@ class _QeranTextFieldState extends State<QeranTextField> {
       focusedBorder: _border(),
       disabledBorder: _border(),
       errorBorder: _border(const BorderSide(color: QeranColors.danger)),
-      focusedErrorBorder:
-          _border(const BorderSide(color: QeranColors.danger, width: 1.5)),
+      focusedErrorBorder: _border(
+        const BorderSide(color: QeranColors.danger, width: 1.5),
+      ),
     );
   }
 
@@ -203,9 +223,7 @@ class _QeranTextFieldState extends State<QeranTextField> {
       return IconButton(
         onPressed: _toggleObscure,
         icon: Icon(
-          _obscured
-              ? Icons.visibility_off_outlined
-              : Icons.visibility_outlined,
+          _obscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
           color: QeranColors.inkFaint,
         ),
       );
@@ -214,9 +232,6 @@ class _QeranTextFieldState extends State<QeranTextField> {
   }
 
   OutlineInputBorder _border([BorderSide side = BorderSide.none]) {
-    return OutlineInputBorder(
-      borderRadius: _radius,
-      borderSide: side,
-    );
+    return OutlineInputBorder(borderRadius: _radius, borderSide: side);
   }
 }

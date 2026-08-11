@@ -74,8 +74,19 @@ class QeranApp extends StatelessWidget {
               const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
             ],
           );
-          return AppSnackBarHost(
-            child: _ConnectivityBannerHost(child: responsive),
+          // QER-10: tapping anywhere outside a field closes the keyboard.
+          // Done once here, above the Navigator, so it covers every screen in
+          // both roles rather than being re-added screen by screen.
+          //
+          // `translucent` so the tap still reaches whatever is underneath —
+          // buttons and list rows keep working, and a child's own tap
+          // recogniser wins the arena over this one.
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+            child: AppSnackBarHost(
+              child: _ConnectivityBannerHost(child: responsive),
+            ),
           );
         },
       ),

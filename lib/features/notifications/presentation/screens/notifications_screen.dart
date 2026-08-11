@@ -10,6 +10,7 @@ import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
+import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/notification_item.dart';
@@ -22,9 +23,10 @@ import '../widgets/notification_inbox_tile.dart';
 import '../widgets/notifications_paginated_list.dart';
 
 /// The user-app notification inbox. A paginated list backed by
-/// `GET /api/notifications`. A row tap resolves a [NotificationDeepLink] and
-/// pops it back to [openNotifications], which switches the home tab; rows with
-/// no destination ([NoDeepLink]) don't pop.
+/// `GET /api/notifications`. A row tap resolves a [NotificationDeepLink]:
+/// a chat link PUSHES the conversation on top of this screen (QER-26, so back
+/// returns here); Likes / Profile links pop back to [openNotifications], which
+/// switches the home tab; rows with no destination ([NoDeepLink]) don't move.
 ///
 /// Read-state is LOCAL — the backend exposes none. Two separate ideas:
 /// * **seen** ([NotificationBadgeCubit]) clears the bell dot. Marked on the way
@@ -71,14 +73,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  /// Reading one: mark it, then resolve the deep-link. Actionable rows pop the
-  /// intent (handled by `openNotifications`); non-actionable rows stay put —
-  /// they still count as read, since the user opened them.
+  /// Reading one: mark it, then resolve the deep-link. Non-actionable rows stay
+  /// put — they still count as read, since the user opened them.
   void _onTap(NotificationItem n) {
     _readCubit.markRead(n.id);
     final link = NotificationDeepLinkRouter.resolve(n);
-    if (link is NoDeepLink) return;
-    Navigator.of(context).pop(link);
+    switch (link) {
+      case NoDeepLink():
+        return;
+      // QER-26: the chat is PUSHED on top of the inbox rather than popping it.
+      // Popping replaced the stack — the user landed in the conversation with
+      // the inbox gone and nothing to go back to. Pushing leaves
+      // home → inbox → chat, so back returns to the inbox and back again to
+      // where they started. The pushed chat carries its own back affordance
+      // (QER-16); the tab copy does not, because a tab has nothing to pop.
+      case OpenMessagesTab():
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (routeContext) => Scaffold(
+              backgroundColor: QeranColors.creamCanvas,
+              body: SafeArea(
+                child: ChatEntryScreen(
+                  onBack: () => Navigator.of(routeContext).pop(),
+                ),
+              ),
+            ),
+          ),
+        );
+      // Likes and Profile are bottom-nav TABS, not routes — they are still
+      // handed back to `openNotifications` to switch the tab. Pushing a tab
+      // body as a route would detach it from the shell it reads state from.
+      case OpenLikesTab():
+      case OpenProfileTab():
+        Navigator.of(context).pop(link);
+    }
   }
 
   @override
@@ -98,12 +126,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         body: SafeArea(
           top: false,
-          child: BlocListener<NotificationsCubit,
-              PaginatedListState<NotificationItem>>(
-            listenWhen: (prev, curr) => prev.items.length != curr.items.length,
-            listener: (_, state) => _rememberNewest(state.items),
-            child: _Body(isArabic: isArabic, onTap: _onTap),
-          ),
+          child:
+              BlocListener<
+                NotificationsCubit,
+                PaginatedListState<NotificationItem>
+              >(
+                listenWhen: (prev, curr) =>
+                    prev.items.length != curr.items.length,
+                listener: (_, state) => _rememberNewest(state.items),
+                child: _Body(isArabic: isArabic, onTap: _onTap),
+              ),
         ),
       ),
     );
@@ -119,7 +151,10 @@ class _MarkAllReadAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotificationsCubit, PaginatedListState<NotificationItem>>(
+    return BlocBuilder<
+      NotificationsCubit,
+      PaginatedListState<NotificationItem>
+    >(
       builder: (context, list) {
         if (list.items.isEmpty) return const SizedBox.shrink();
         return BlocBuilder<NotificationReadCubit, NotificationReadState>(
@@ -129,9 +164,9 @@ class _MarkAllReadAction extends StatelessWidget {
             return IconButton(
               icon: const Icon(Icons.done_all_rounded),
               tooltip: LocaleKeys.notifications_mark_all_read.t(context),
-              onPressed: () => context.read<NotificationReadCubit>().markAllRead(
-                ids.reduce((a, b) => a > b ? a : b),
-              ),
+              onPressed: () => context
+                  .read<NotificationReadCubit>()
+                  .markAllRead(ids.reduce((a, b) => a > b ? a : b)),
             );
           },
         );
@@ -148,7 +183,10 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<NotificationsCubit, PaginatedListState<NotificationItem>>(
+    return BlocBuilder<
+      NotificationsCubit,
+      PaginatedListState<NotificationItem>
+    >(
       builder: (context, state) {
         final cubit = context.read<NotificationsCubit>();
 
@@ -187,8 +225,8 @@ class _Body extends StatelessWidget {
             separatorBuilder: (context, index) =>
                 // No divider between the last row and the load-more footer.
                 index < count - 1
-                    ? const NotificationInboxDivider()
-                    : const SizedBox.shrink(),
+                ? const NotificationInboxDivider()
+                : const SizedBox.shrink(),
             itemBuilder: (context, index) {
               if (index >= count) {
                 return const NotificationsLoadMoreFooter();

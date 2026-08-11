@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qeran/core/design_system/effects/ring_motif.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/widgets/language_switch_button.dart';
 import 'package:qeran/features/auth/presentation/blocs/login/login_bloc.dart';

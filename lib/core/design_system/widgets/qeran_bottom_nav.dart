@@ -4,6 +4,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../widgets/bottom_chrome_inset.dart';
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_motion.dart';
 import '../tokens/qeran_radii.dart';
@@ -152,6 +153,14 @@ class _QeranBottomNavState extends State<QeranBottomNav>
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
+    // Declares the nav's own footprint so bottom-anchored overlays (the toast
+    // host) sit above it. Wrapped HERE rather than at each shell, so both the
+    // user and matchmaker shells get it from the one component, landscape
+    // branch included.
+    return BottomChromeInset(child: _buildNav(context, media));
+  }
+
+  Widget _buildNav(BuildContext context, MediaQueryData media) {
     if (media.size.width > media.size.height) {
       return _CompactLandscapeNav(
         items: widget.items,

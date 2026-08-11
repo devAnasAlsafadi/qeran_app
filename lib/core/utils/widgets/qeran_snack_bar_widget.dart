@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
+import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import '../../enum/snakebar_tybe.dart';
 
@@ -32,7 +34,10 @@ class QeranSnackBarWidget extends StatelessWidget {
         : const Duration(milliseconds: 180);
 
     return AnimatedSlide(
-      offset: visible ? Offset.zero : const Offset(0, -0.25),
+      // Enters from BELOW now that the host is anchored to the bottom edge —
+      // a downward-origin slide reads as rising into view rather than the old
+      // drop-from-the-top.
+      offset: visible ? Offset.zero : const Offset(0, 0.25),
       duration: duration,
       curve: visible ? Curves.easeOutCubic : Curves.easeInCubic,
       child: AnimatedOpacity(
@@ -40,23 +45,23 @@ class QeranSnackBarWidget extends StatelessWidget {
         duration: duration,
         curve: visible ? Curves.easeOut : Curves.easeIn,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          // QER-32: roomier than the old 16/12 so the card carries weight at
+          // the bottom of the screen instead of reading as a thin strip.
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           decoration: BoxDecoration(
             color: spec.surface,
             borderRadius: QeranRadii.controlR,
             border: spec.border,
-            boxShadow: [
-              BoxShadow(
-                color: spec.surface.withValues(alpha: 0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            // Real elevation off a neutral shadow, not a tinted glow derived
+            // from the surface. The old shadow was the surface colour at 30%,
+            // so on the wine toasts it blended into a wine background instead
+            // of separating from it.
+            boxShadow: QeranShadows.e3,
           ),
           child: Row(
             children: [
               Icon(spec.icon, color: spec.iconColor, size: 28),
-              const SizedBox(width: 12),
+              const SizedBox(width: QeranSpacing.s12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,13 +70,16 @@ class QeranSnackBarWidget extends StatelessWidget {
                     if (title != null)
                       Text(
                         title!,
-                        style: QeranTypography.subtitle.copyWith(
+                        style: QeranTypography.title.copyWith(
                           color: spec.foreground,
                         ),
                       ),
                     Text(
                       message,
-                      style: QeranTypography.caption.copyWith(
+                      // body (15) rather than caption (12) — the message is
+                      // the payload, and at caption size it was the smallest
+                      // text on screen.
+                      style: QeranTypography.body.copyWith(
                         color: spec.foreground.withValues(alpha: 0.75),
                       ),
                     ),
@@ -82,7 +90,7 @@ class QeranSnackBarWidget extends StatelessWidget {
                 icon: Icon(
                   Icons.close_rounded,
                   color: spec.foreground.withValues(alpha: 0.6),
-                  size: 18,
+                  size: 20,
                 ),
                 onPressed: onDismiss,
               ),
@@ -96,12 +104,17 @@ class QeranSnackBarWidget extends StatelessWidget {
   /// Surface + foreground + icon per tone. [error] and [notice] both use a
   /// SOFT surface with a hairline edge and inked-on text — error in the danger
   /// ramp, notice in cream/wine; [success] and [info] sit on dark wine.
+  ///
+  /// A paper surface was tried for all four when the host moved to the bottom
+  /// and it failed: at the bottom the toast lands on the cream canvas, so a
+  /// white card on near-white dissolved into the page. Filled wine reads as a
+  /// floating layer on every background in the app — cream canvas, white
+  /// dome, or the wine hero itself.
   _SnackSpec _spec(SnackBarType type) => switch (type) {
     // Soft danger: a danger-12 fill + danger-40 hairline + danger ink, so a
     // failure reads as clearly ours rather than a full-bleed red banner.
     // The fill is COMPOSITED over paper (like notice's opaque creamSurface)
-    // — a translucent surface would let the page bleed through the toast and
-    // would tint the drop shadow built from it.
+    // — a translucent surface would let the page bleed through the toast.
     SnackBarType.error => _SnackSpec(
       surface: Color.alphaBlend(QeranColors.danger12, QeranColors.paper),
       foreground: QeranColors.danger,
@@ -109,6 +122,7 @@ class QeranSnackBarWidget extends StatelessWidget {
       icon: Icons.error_outline_rounded,
       border: Border.all(color: QeranColors.danger40),
     ),
+    // Gold check on wine: success is gold in this identity, never green.
     SnackBarType.success => const _SnackSpec(
       surface: QeranColors.wine,
       foreground: QeranColors.paper,

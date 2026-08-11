@@ -11,6 +11,7 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/core/widgets/bottom_chrome_inset.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
@@ -437,7 +438,8 @@ class _ProfilePageState extends State<_ProfilePage> {
         final viewportHeight = constraints.maxHeight;
         // Landscape has far less height to spend, so the photo takes a
         // smaller share and the profile starts sooner.
-        final photoHeight = viewportHeight *
+        final photoHeight =
+            viewportHeight *
             (isLandscape
                 ? kDiscoveryPhotoFractionLandscape
                 : kDiscoveryPhotoFraction);
@@ -599,42 +601,50 @@ class _FloatingActionBarState extends State<_FloatingActionBar> {
       left: _kActionBarHPad,
       right: _kActionBarHPad,
       bottom: navClearance + 14.0,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // At the top the buttons float over the empty paper under نبذة عني,
-          // so a backdrop would be pure decoration; it fades in only once
-          // profile content is actually passing behind them.
-          ValueListenableBuilder<double>(
-            valueListenable: widget.scrollOffset,
-            builder: (context, offset, child) => DiscoveryFrostedActionZone(
-              opacity: (offset / _kFrostRampDistance).clamp(0.0, 1.0),
-              child: child!,
+      // The deck stacks a second layer of chrome on top of the nav, so it
+      // declares its own (taller) footprint too. The toast host clears the
+      // largest live declaration, so on the deck it clears the like/skip row
+      // rather than only the nav.
+      child: BottomChromeInset(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // At the top the buttons float over the empty paper under نبذة عني,
+            // so a backdrop would be pure decoration; it fades in only once
+            // profile content is actually passing behind them.
+            ValueListenableBuilder<double>(
+              valueListenable: widget.scrollOffset,
+              builder: (context, offset, child) => DiscoveryFrostedActionZone(
+                opacity: (offset / _kFrostRampDistance).clamp(0.0, 1.0),
+                child: child!,
+              ),
+              child: DiscoveryActionBar(
+                onPass: hasActive
+                    ? () {
+                        if (animController.isAnimating) return;
+                        unawaited(animController.triggerPass());
+                      }
+                    : null,
+                onUndo: hasUndoTarget
+                    ? () {
+                        if (animController.isAnimating) return;
+                        unawaited(
+                          animController.triggerUndo(onUndoCall: cubit.undo),
+                        );
+                      }
+                    : null,
+                onLike: hasActive ? () => _scheduleLike(animController) : null,
+                onLikeBurst: hasActive
+                    ? (origin) {
+                        if (animController.isAnimating) return;
+                        if (_likePending) return;
+                        widget.onLikeBurst(origin);
+                      }
+                    : null,
+              ),
             ),
-            child: DiscoveryActionBar(
-          onPass: hasActive
-              ? () {
-                  if (animController.isAnimating) return;
-                  unawaited(animController.triggerPass());
-                }
-              : null,
-          onUndo: hasUndoTarget
-              ? () {
-                  if (animController.isAnimating) return;
-                  unawaited(animController.triggerUndo(onUndoCall: cubit.undo));
-                }
-              : null,
-          onLike: hasActive ? () => _scheduleLike(animController) : null,
-          onLikeBurst: hasActive
-              ? (origin) {
-                  if (animController.isAnimating) return;
-                  if (_likePending) return;
-                  widget.onLikeBurst(origin);
-                }
-              : null,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

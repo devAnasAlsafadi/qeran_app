@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../enum/snakebar_tybe.dart';
+import '../widgets/bottom_chrome_inset.dart';
 import 'widgets/qeran_snack_bar_widget.dart';
 
 /// Global toast coordinator.
@@ -157,47 +159,78 @@ class AppSnackBarHost extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(child: child),
+        // QER-32: bottom, not top. A toast fires in response to a tap, and at
+        // the moment of the tap the user's eyes are at the button — near the
+        // bottom of the screen — so a top toast lands outside their attention
+        // and gets missed. Sits above the safe area so it clears the home
+        // indicator / gesture bar.
         PositionedDirectional(
-          top: 0,
+          bottom: 0,
           start: 0,
           end: 0,
-          child: SafeArea(
-            bottom: false,
-            minimum: const EdgeInsets.only(top: 20),
-            child: ValueListenableBuilder<List<_SnackMessage>>(
-              valueListenable: AppSnackBar._visible,
-              builder: (context, messages, _) {
-                return AnimatedSize(
-                  duration: AppSnackBar._transitionDuration,
-                  curve: Curves.easeOutCubic,
-                  alignment: Alignment.topCenter,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final message in messages)
-                        Padding(
-                          key: ValueKey<int>(message.id),
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                          child: Semantics(
-                            liveRegion: true,
-                            child: Material(
-                              color: Colors.transparent,
-                              child: QeranSnackBarWidget(
-                                message: message.message,
-                                title: message.title,
-                                type: message.type,
-                                visible: message.visible,
-                                onDismiss: () =>
-                                    AppSnackBar.dismiss(message.id),
+          // No SafeArea: the clearance below is already the full band to keep
+          // clear, device insets included, so a SafeArea on top would
+          // double-count the gesture bar.
+          child: ValueListenableBuilder<double>(
+            valueListenable: BottomChromeInsets.clearance,
+            builder: (context, chrome, _) {
+              final media = MediaQuery.of(context);
+              return Padding(
+                padding: EdgeInsets.only(
+                  // Whichever is tallest wins: registered chrome (bottom nav,
+                  // discovery action bar), the device's own gesture inset, or
+                  // the keyboard. Moving the host to the bottom put it in the
+                  // keyboard's path, and validation toasts on the auth screens
+                  // fire with the keyboard open.
+                  bottom:
+                      math.max(
+                        chrome,
+                        math.max(
+                          media.padding.bottom,
+                          media.viewInsets.bottom,
+                        ),
+                      ) +
+                      20,
+                ),
+                child: ValueListenableBuilder<List<_SnackMessage>>(
+                  valueListenable: AppSnackBar._visible,
+                  builder: (context, messages, _) {
+                    return AnimatedSize(
+                      duration: AppSnackBar._transitionDuration,
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment.bottomCenter,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final message in messages)
+                            Padding(
+                              key: ValueKey<int>(message.id),
+                              // Gap ABOVE each card now, so the stack grows upward
+                              // from the bottom edge instead of downward from the
+                              // top one.
+                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                              child: Semantics(
+                                liveRegion: true,
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: QeranSnackBarWidget(
+                                    message: message.message,
+                                    title: message.title,
+                                    type: message.type,
+                                    visible: message.visible,
+                                    onDismiss: () =>
+                                        AppSnackBar.dismiss(message.id),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
         ),
       ],

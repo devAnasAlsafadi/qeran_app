@@ -34,9 +34,9 @@ class LoginActions extends StatelessWidget {
             );
           },
         ),
-        QeranSpacing.vs16,
+        QeranSpacing.vs12,
         const OrDivider(),
-        QeranSpacing.vs16,
+        QeranSpacing.vs12,
         BlocBuilder<LoginBloc, LoginState>(
           builder: (context, state) {
             final isLoading = state is LoginLoading;
@@ -55,7 +55,7 @@ class LoginActions extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: QeranSpacing.s32),
+        QeranSpacing.vs24,
         AuthFooterLink(
           promptText: LocaleKeys.auth_no_account.t(context),
           actionText: LocaleKeys.auth_register_link.t(context),

@@ -3,6 +3,8 @@ class AppAssets {
   static const String _imagePath = 'assets/images/';
   static const String _iconPath = 'assets/icons/';
   static const String logo = '${_imagePath}logo.png';
+  static const String logoDark = '${_imagePath}splash_logo.png';
+  static const String splashLogo = '${_imagePath}splash_logo.png';
   static const String splashSymbol = '${_imagePath}splash_symbol.png';
   static const String genderMale = '${_imagePath}gender_male.webp';
   static const String genderFemale = '${_imagePath}gender_female.webp';

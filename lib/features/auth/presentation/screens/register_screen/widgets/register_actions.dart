@@ -36,9 +36,9 @@ class RegisterActions extends StatelessWidget {
             );
           },
         ),
-        QeranSpacing.vs16,
+        QeranSpacing.vs12,
         const OrDivider(),
-        QeranSpacing.vs16,
+        QeranSpacing.vs12,
         BlocBuilder<LoginBloc, LoginState>(
           builder: (context, state) {
             final isLoading = state is LoginLoading;

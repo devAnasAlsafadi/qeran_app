@@ -69,8 +69,10 @@ class _SocialButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         opacity: loading ? 0.6 : 1.0,
         child: Container(
-          width: 60,
-          height: 60,
+          // 52 rather than 60 (QER-30): still comfortably above the 48dp
+          // minimum tap target, and saves 8px on every auth screen.
+          width: 52,
+          height: 52,
           decoration: const BoxDecoration(
             color: QeranColors.paper,
             borderRadius: QeranRadii.controlR,

@@ -1,0 +1,32 @@
+# Line endings are normalized to LF in the repository, regardless of the
+# platform a developer works on. Without this, core.autocrlf on Windows can
+# commit CRLF blobs and the next machine sees a phantom whole-file diff.
+* text=auto eol=lf
+
+# Windows-only scripts must keep CRLF to stay executable.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets — never normalized, never diffed.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.jar binary
+*.keystore binary
+*.jks binary
+*.pdf binary
+*.docx binary
+
+# Lockfiles stay text so merges and tooling keep working, but they are
+# generated — suppress the diff noise in review.
+pubspec.lock text eol=lf -diff
+ios/Podfile.lock text eol=lf -diff
+macos/Podfile.lock text eol=lf -diff

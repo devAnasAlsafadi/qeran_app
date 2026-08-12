@@ -43,7 +43,7 @@ class PhotoViewOverlay extends StatelessWidget {
         child: Text(
           LocaleKeys.likes_matches_photo_view_expired.t(context),
           textAlign: TextAlign.center,
-          style: QeranTypography.subtitle.copyWith(color: QeranColors.paper),
+          style: QeranTypography.subtitle.copyWith(color: QeranColors.wine),
         ),
       ),
       PhotoViewPhase.failure => _CenteredPanel(
@@ -66,6 +66,12 @@ class PhotoViewOverlay extends StatelessWidget {
   }
 }
 
+/// Covers the photo grid with the current access state.
+///
+/// The scrim is the LIGHT overlay, not the dark one. This panel lives inside
+/// the paper gallery sheet, where a dark-wine fill painted the whole card
+/// mauve and read as a wine backdrop behind the photos rather than as a state
+/// over them. Cream keeps the sheet white; the copy and glyph carry the wine.
 class _CenteredPanel extends StatelessWidget {
   /// Optional — the reveal panel carries its glyph inside the button instead.
   final IconData? icon;
@@ -77,7 +83,7 @@ class _CenteredPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: ColoredBox(
-        color: QeranColors.overlayTintDark,
+        color: QeranColors.overlayTintLight,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(QeranSpacing.s24),
@@ -85,7 +91,7 @@ class _CenteredPanel extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: 40, color: QeranColors.gold),
+                  Icon(icon, size: 40, color: QeranColors.goldDeep),
                   QeranSpacing.vs16,
                 ],
                 ConstrainedBox(

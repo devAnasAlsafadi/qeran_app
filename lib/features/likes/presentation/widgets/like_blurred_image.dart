@@ -200,15 +200,19 @@ class LikeBlurredImage extends StatelessWidget {
     );
   }
 
+  /// Shown when there is nothing safe to render: no server rendition and the
+  /// original is off limits. A soft tint rather than solid wine — this sits
+  /// inside paper surfaces like the match gallery, where a dark slab read as
+  /// a design element rather than as an absent photo.
   Widget _protectedFallback() {
     final iconSize = (size == null) ? 36.0 : size! * 0.45;
     return Container(
-      color: QeranColors.wine,
+      color: QeranColors.wine06,
       alignment: Alignment.center,
       child: Icon(
         Icons.lock_outline_rounded,
         size: iconSize,
-        color: QeranColors.gold,
+        color: QeranColors.wine,
       ),
     );
   }

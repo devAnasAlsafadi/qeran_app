@@ -6,18 +6,21 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/photo_preview_screen.dart';
 import 'package:qeran/features/report/presentation/widgets/report_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_image.dart';
 import '../blocs/photo_view_cubit.dart';
+import '../blocs/photo_view_state.dart';
 import 'like_blurred_image.dart';
 import 'photo_view_access_host.dart';
 import 'photo_view_overlay.dart';
 
-/// MVP gallery — shown when the user taps the avatar on a stage-1 Match
-/// card. Renders the full server-ordered image list with the per-image
-/// blur flag honored. No tap-to-zoom yet; polish lands in a follow-up.
+/// Gallery shown when the user taps the avatar on a stage-1 Match card.
+/// Renders the full server-ordered image list with the per-image blur flag
+/// honored, and lets the user open any photo they can already see clearly
+/// full-screen (Hero + pinch-zoom).
 ///
 /// [targetUserId] enables a Report action in the header (UGC safety) — the
 /// photos are the sensitive content here. Omit it to hide the action.
@@ -122,18 +125,8 @@ class _MatchGallerySheet extends StatelessWidget {
                               childAspectRatio: 0.85,
                             ),
                         itemCount: images.length,
-                        itemBuilder: (context, index) {
-                          final img = images[index];
-                          return LikeBlurredImage(
-                            url: img.url,
-                            blur: img.isBlurred,
-                            blurredUrl: img.blurredUrl,
-                            blurredThumbnailUrl: img.blurredThumbnailUrl,
-                            size: null,
-                            shape: BoxShape.rectangle,
-                            borderRadius: QeranRadii.cardR,
-                          );
-                        },
+                        itemBuilder: (context, index) =>
+                            _GalleryTile(image: images[index]),
                       ),
                     ),
                     const PhotoViewOverlay(),
@@ -162,6 +155,83 @@ class _DragHandle extends StatelessWidget {
           borderRadius: QeranRadii.pill,
         ),
       ),
+    );
+  }
+}
+
+
+/// One photo in the gallery grid.
+///
+/// Tappable exactly when the photo is already being shown CLEAR — during the
+/// open 60-second window. A blurred tile (locked, or the window spent) ignores
+/// taps entirely rather than offering a zoom of a redacted image.
+class _GalleryTile extends StatelessWidget {
+  const _GalleryTile({required this.image});
+
+  final MatchImage image;
+
+  @override
+  Widget build(BuildContext context) {
+    final access = PhotoViewScope.maybeOf(context);
+    final blurred = access?.effectiveBlur(image.isBlurred) ?? image.isBlurred;
+    final tile = LikeBlurredImage(
+      url: image.url,
+      blur: image.isBlurred,
+      blurredUrl: image.blurredUrl,
+      blurredThumbnailUrl: image.blurredThumbnailUrl,
+      size: null,
+      shape: BoxShape.rectangle,
+      borderRadius: QeranRadii.cardR,
+    );
+    if (blurred || image.url.isEmpty) return tile;
+    return GestureDetector(
+      onTap: () => _openPreview(context),
+      child: Hero(tag: serverPhotoHeroTag(image.id), child: tile),
+    );
+  }
+
+  void _openPreview(BuildContext context) {
+    // The preview is pushed ABOVE this scope, so it cannot inherit the policy.
+    // It gets the cubit by value — to close itself the moment the window ends
+    // — and `memoryOnly` so the clear bytes never reach the disk cache.
+    PhotoViewCubit? cubit;
+    try {
+      cubit = context.read<PhotoViewCubit>();
+    } catch (_) {
+      cubit = null;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) {
+          final preview = PhotoPreviewScreen.network(
+            imageUrl: image.url,
+            imageId: image.id,
+            memoryOnly: cubit != null,
+          );
+          if (cubit == null) return preview;
+          return BlocProvider<PhotoViewCubit>.value(
+            value: cubit,
+            child: _PopWhenWindowCloses(child: preview),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Pops the full-screen preview as soon as the viewing window ends, so an open
+/// zoom cannot outlive the 60 seconds it was granted.
+class _PopWhenWindowCloses extends StatelessWidget {
+  const _PopWhenWindowCloses({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<PhotoViewCubit, PhotoViewState>(
+      listenWhen: (previous, current) => current.phase != PhotoViewPhase.viewing,
+      listener: (context, _) => Navigator.of(context).maybePop(),
+      child: child,
     );
   }
 }

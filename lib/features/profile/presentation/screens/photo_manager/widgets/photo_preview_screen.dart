@@ -28,6 +28,7 @@ class PhotoPreviewScreen extends StatelessWidget {
     required this.heroTag,
     this.file,
     this.imageUrl,
+    this.memoryOnly = false,
   });
 
   /// Preview a locally staged file.
@@ -37,18 +38,26 @@ class PhotoPreviewScreen extends StatelessWidget {
   /// Preview a photo hosted by the API. The bytes need the session bearer
   /// token, so it goes through the same authenticated loader the rest of
   /// the app uses rather than a bare Image.network.
+  ///
+  /// [memoryOnly] must be set for anything under the one-time photo-view
+  /// policy: this route is pushed ABOVE the `PhotoViewScope`, so the inherited
+  /// policy cannot reach it and the disk cache would otherwise let the photo
+  /// outlive the 60-second window.
   factory PhotoPreviewScreen.network({
     Key? key,
     required String imageUrl,
     required String imageId,
+    bool memoryOnly = false,
   }) => PhotoPreviewScreen._(
     heroTag: serverPhotoHeroTag(imageId),
     imageUrl: imageUrl,
+    memoryOnly: memoryOnly,
   );
 
   final String heroTag;
   final File? file;
   final String? imageUrl;
+  final bool memoryOnly;
 
   /// Pushes the preview for a staged file.
   static Future<void> open(BuildContext context, File file) {
@@ -62,11 +71,15 @@ class PhotoPreviewScreen extends StatelessWidget {
     BuildContext context, {
     required String imageUrl,
     required String imageId,
+    bool memoryOnly = false,
   }) {
     return Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            PhotoPreviewScreen.network(imageUrl: imageUrl, imageId: imageId),
+        builder: (_) => PhotoPreviewScreen.network(
+          imageUrl: imageUrl,
+          imageId: imageId,
+          memoryOnly: memoryOnly,
+        ),
       ),
     );
   }
@@ -130,6 +143,7 @@ class PhotoPreviewScreen extends StatelessWidget {
     return LikeBlurredImage(
       url: imageUrl,
       blur: false,
+      memoryOnly: memoryOnly,
       size: null,
       shape: BoxShape.rectangle,
       borderRadius: BorderRadius.zero,

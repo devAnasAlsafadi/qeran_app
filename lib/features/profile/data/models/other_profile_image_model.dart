@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/blurred_image_url.dart';
 
 import '../../domain/entities/profile_image.dart';
 import '../json_parsers.dart';
@@ -8,12 +9,16 @@ class OtherProfileImageModel {
   final String url;
   final bool isProfile;
   final bool isBlurred;
+  final String? blurredUrl;
+  final String? blurredThumbnailUrl;
 
   const OtherProfileImageModel({
     required this.id,
     required this.url,
     required this.isProfile,
     required this.isBlurred,
+    this.blurredUrl,
+    this.blurredThumbnailUrl,
   });
 
   factory OtherProfileImageModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +27,8 @@ class OtherProfileImageModel {
       url: parseString(json['url']),
       isProfile: parseBool(json['isProfile']),
       isBlurred: parseBool(json['isBlurred'], fallback: true),
+      blurredUrl: parseBlurredUrl(json['blurredUrl']),
+      blurredThumbnailUrl: parseBlurredUrl(json['blurredThumbnailUrl']),
     );
   }
 
@@ -30,5 +37,7 @@ class OtherProfileImageModel {
         url: EndPoints.absoluteUrl(url),
         isProfile: isProfile,
         isBlurred: isBlurred,
+        blurredUrl: blurredUrl,
+        blurredThumbnailUrl: blurredThumbnailUrl,
       );
 }

@@ -4,11 +4,10 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/features/likes/presentation/widgets/photo_view_access_host.dart';
-import 'package:qeran/features/likes/presentation/widgets/photo_view_overlay.dart';
 
 import '../../domain/entities/other_profile.dart';
 import '../../domain/entities/placement_code.dart';
+import '../../domain/entities/profile_entry_source.dart';
 import '../../domain/entities/placement_item.dart';
 import '../../domain/entities/placement_value.dart';
 import 'full_profile_image_overlays.dart';
@@ -20,16 +19,27 @@ import 'profile_photo_hero_motion.dart';
 /// pill, aboveImage chips, and the gold privacy lock while the photo is
 /// blurred). Mirrors the Discovery card's image panel and is fully
 /// direction-aware.
+///
+/// On a peer's profile the photos are ALWAYS blurred. There is no reveal here
+/// and no dependence on the exchange status — clear photos exist on exactly
+/// one surface, the compatibility tab's one-time viewing window.
 class FullProfileImageHero extends StatelessWidget {
   final OtherProfile profile;
 
-  const FullProfileImageHero({super.key, required this.profile});
+  /// Where the profile was opened from. Only the self surfaces
+  /// (`mine` / `settings`) show their photos clear.
+  final ProfileEntrySource entry;
+
+  const FullProfileImageHero({
+    super.key,
+    required this.profile,
+    required this.entry,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final access = PhotoViewScope.maybeOf(context);
-    final serverBlurred = profile.primaryImage?.isBlurred ?? false;
-    final blurred = access?.effectiveBlur(serverBlurred) ?? serverBlurred;
+    final peer = isPeerProfileEntry(entry);
+    final blurred = peer || (profile.primaryImage?.isBlurred ?? false);
     return Stack(
       children: [
         Hero(
@@ -38,14 +48,14 @@ class FullProfileImageHero extends StatelessWidget {
           flightShuttleBuilder: profilePhotoFlightShuttle,
           child: Stack(
             children: [
-              ProfileHeaderGallery(images: profile.images),
+              ProfileHeaderGallery(images: profile.images, forceBlur: peer),
               const Positioned.fill(
                 child: IgnorePointer(child: ProfileImageScrim()),
               ),
             ],
           ),
         ),
-        if (blurred && !(access?.controlsAccess ?? false))
+        if (blurred)
           const Positioned.fill(
             child: _ProfileHeroDetailsEntrance(
               child: IgnorePointer(child: Center(child: ProfilePrivacyLock())),
@@ -68,7 +78,6 @@ class FullProfileImageHero extends StatelessWidget {
             ),
           ),
         ),
-        const PhotoViewOverlay(),
       ],
     );
   }

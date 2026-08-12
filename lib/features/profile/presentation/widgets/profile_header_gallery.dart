@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
@@ -8,9 +8,6 @@ import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/features/likes/presentation/blocs/photo_view_cubit.dart';
-import 'package:qeran/features/likes/presentation/widgets/photo_view_access_host.dart';
-import 'package:qeran/features/likes/presentation/widgets/photo_view_overlay.dart';
 
 import '../../domain/entities/profile_image.dart';
 import 'profile_photo_hero_motion.dart';
@@ -24,18 +21,25 @@ import 'profile_photo_hero_motion.dart';
 /// * a `1 / N` numeric pill at the top-trailing corner;
 /// * a bottom-centered dots indicator (cream for unselected, gold for
 ///   selected) when there are multiple images;
-/// * tap-to-expand into a fullscreen `InteractiveViewer` for pinch-zoom
-///   and pan, preserving the source image's blur state when present.
+/// * tap-to-expand into a fullscreen `InteractiveViewer` for pinch-zoom and
+///   pan — offered only for photos already shown clear. A blurred photo is
+///   inert: zooming a redaction has nothing to show, and this surface has no
+///   way to un-redact it.
 class ProfileHeaderGallery extends StatefulWidget {
   final List<ProfileImage> images;
   final ValueChanged<String>? onApproveImage;
   final String? approvingImageId;
+
+  /// Blur every image regardless of its own flag. Set on a peer's profile,
+  /// where photos never render clear whatever the exchange status says.
+  final bool forceBlur;
 
   const ProfileHeaderGallery({
     super.key,
     required this.images,
     this.onApproveImage,
     this.approvingImageId,
+    this.forceBlur = false,
   });
 
   @override
@@ -81,11 +85,14 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
               final blurred = _isBlurred(image);
               return GestureDetector(
                 key: ValueKey<String>('profile-gallery-image-${image.id}'),
-                onTap: () => _openFullscreen(context, image, blurred),
+                // A blurred photo is not interactive on this surface.
+                onTap: blurred ? null : () => _openFullscreen(context, image),
                 child: RepaintBoundary(
                   child: LikeBlurredImage(
                     url: image.url,
                     blur: blurred,
+                    blurredUrl: _blurredUrl(image),
+                    blurredThumbnailUrl: _blurredThumbnailUrl(image),
                     size: null,
                     shape: BoxShape.rectangle,
                     borderRadius: BorderRadius.zero,
@@ -135,25 +142,13 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
     ];
   }
 
-  void _openFullscreen(BuildContext context, ProfileImage image, bool blurred) {
-    PhotoViewCubit? photoViewCubit;
-    try {
-      photoViewCubit = context.read<PhotoViewCubit>();
-    } catch (_) {
-      photoViewCubit = null;
-    }
+  /// Only ever reached for a clear photo, so the viewer needs no blur state.
+  void _openFullscreen(BuildContext context, ProfileImage image) {
     Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
         barrierColor: Colors.black87,
-        pageBuilder: (_, _, _) {
-          final viewer = _FullscreenViewer(image: image, blurred: blurred);
-          if (photoViewCubit == null) return viewer;
-          return BlocProvider<PhotoViewCubit>.value(
-            value: photoViewCubit,
-            child: PhotoViewAccessHost(observeLifecycle: false, child: viewer),
-          );
-        },
+        pageBuilder: (_, _, _) => _FullscreenViewer(image: image),
         transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
@@ -161,11 +156,22 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
   }
 
   bool _isBlurred(ProfileImage image) {
+    if (widget.forceBlur) return true;
     return switch (image) {
       OwnerImage() => false,
       OtherProfileImage(:final isBlurred) => isBlurred,
     };
   }
+
+  String? _blurredUrl(ProfileImage image) => switch (image) {
+    OwnerImage() => null,
+    OtherProfileImage(:final blurredUrl) => blurredUrl,
+  };
+
+  String? _blurredThumbnailUrl(ProfileImage image) => switch (image) {
+    OwnerImage() => null,
+    OtherProfileImage(:final blurredThumbnailUrl) => blurredThumbnailUrl,
+  };
 }
 
 class _PendingApprovalBadge extends StatelessWidget {
@@ -307,8 +313,7 @@ class _DotsIndicator extends StatelessWidget {
 /// top-trailing corner per platform convention.
 class _FullscreenViewer extends StatelessWidget {
   final ProfileImage image;
-  final bool blurred;
-  const _FullscreenViewer({required this.image, required this.blurred});
+  const _FullscreenViewer({required this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +328,7 @@ class _FullscreenViewer extends StatelessWidget {
                 maxScale: 4.0,
                 child: LikeBlurredImage(
                   url: image.url,
-                  blur: blurred,
+                  blur: false,
                   size: null,
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.zero,
@@ -331,7 +336,6 @@ class _FullscreenViewer extends StatelessWidget {
                 ),
               ),
             ),
-            const PhotoViewOverlay(),
             PositionedDirectional(
               top: 16,
               end: 16,

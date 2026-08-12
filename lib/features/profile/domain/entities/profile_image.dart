@@ -43,17 +43,31 @@ final class OtherProfileImage extends ProfileImage {
   @override
   final bool isProfile;
 
-  /// True until both users complete a photo exchange. Blur is enforced
-  /// in the UI; backend ships the cleartext URL regardless.
+  /// True until both users complete a photo exchange.
   final bool isBlurred;
+
+  /// Server-rendered blurred renditions. Preferred over a client filter
+  /// while the photo is shown blurred — the detail is already gone from
+  /// those bytes. Null falls back to the client filter.
+  final String? blurredUrl;
+  final String? blurredThumbnailUrl;
 
   const OtherProfileImage({
     required this.id,
     required this.url,
     required this.isProfile,
     required this.isBlurred,
+    this.blurredUrl,
+    this.blurredThumbnailUrl,
   });
 
   @override
-  List<Object?> get props => [id, url, isProfile, isBlurred];
+  List<Object?> get props => [
+        id,
+        url,
+        isProfile,
+        isBlurred,
+        blurredUrl,
+        blurredThumbnailUrl,
+      ];
 }

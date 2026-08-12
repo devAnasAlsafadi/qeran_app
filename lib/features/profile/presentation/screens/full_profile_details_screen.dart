@@ -10,8 +10,6 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/block/presentation/widgets/safety_menu_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import 'package:qeran/features/likes/presentation/blocs/photo_view_cubit.dart';
-import 'package:qeran/features/likes/presentation/widgets/photo_view_access_host.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 
@@ -39,14 +37,11 @@ class FullProfileDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final view = _ProfileDetailsView(args: args);
-    if (!_needsPhotoPermission(args.entry)) {
-      return BlocProvider<ProfileDetailsCubit>(
-        create: (_) =>
-            sl<ProfileDetailsCubit>()
-              ..init(userId: args.userId, seed: args.initialData),
-        child: view,
-      );
-    }
+    // No PhotoViewCubit here any more. This screen never reveals a photo —
+    // peer photos render blurred whatever the exchange status — so mounting
+    // the one-time viewing permission would be dead wiring, and worse, a
+    // second surface able to spend a window that belongs to the
+    // compatibility tab.
     return MultiBlocProvider(
       providers: [
         BlocProvider<ProfileDetailsCubit>(
@@ -54,23 +49,12 @@ class FullProfileDetailsScreen extends StatelessWidget {
               sl<ProfileDetailsCubit>()
                 ..init(userId: args.userId, seed: args.initialData),
         ),
-        BlocProvider<PhotoViewCubit>(
-          create: (_) => sl<PhotoViewCubit>(param1: args.userId)..load(),
-        ),
         if (args.entry == ProfileEntrySource.chat)
           BlocProvider<ProfileReactionCubit>(create: (_) => sl()),
       ],
-      child: PhotoViewAccessHost(child: view),
+      child: view,
     );
   }
-
-  bool _needsPhotoPermission(ProfileEntrySource entry) => switch (entry) {
-    ProfileEntrySource.discovery ||
-    ProfileEntrySource.chat ||
-    ProfileEntrySource.likes ||
-    ProfileEntrySource.matches => true,
-    ProfileEntrySource.settings || ProfileEntrySource.mine => false,
-  };
 }
 
 class _ProfileDetailsView extends StatelessWidget {

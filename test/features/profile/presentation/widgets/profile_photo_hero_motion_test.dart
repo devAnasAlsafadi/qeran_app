@@ -103,7 +103,13 @@ void main() {
           body: Center(
             child: SizedBox(
               width: 300,
-              child: FullProfileImageHero(profile: profile),
+              // Self entry: the flight config is identical either way, and a
+              // peer entry would additionally build the privacy lock, whose
+              // localization is beside the point of this test.
+              child: FullProfileImageHero(
+                profile: profile,
+                entry: ProfileEntrySource.mine,
+              ),
             ),
           ),
         ),

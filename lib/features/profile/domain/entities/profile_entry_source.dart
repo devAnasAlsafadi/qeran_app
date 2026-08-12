@@ -15,3 +15,17 @@ enum ProfileEntrySource {
   settings,
   mine,
 }
+
+/// Whether this entry shows ANOTHER member's profile.
+///
+/// Peer surfaces render photos blurred unconditionally — the profile screen is
+/// not a reveal surface. Clear photos live in exactly one place, the
+/// compatibility tab's one-time viewing window, so the exchange status does
+/// not vary what the profile shows.
+bool isPeerProfileEntry(ProfileEntrySource entry) => switch (entry) {
+  ProfileEntrySource.discovery ||
+  ProfileEntrySource.chat ||
+  ProfileEntrySource.likes ||
+  ProfileEntrySource.matches => true,
+  ProfileEntrySource.settings || ProfileEntrySource.mine => false,
+};

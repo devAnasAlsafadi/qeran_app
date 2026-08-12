@@ -71,7 +71,7 @@ class FullProfileBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        FullProfileImageHero(profile: profile),
+        FullProfileImageHero(profile: profile, entry: entry),
         Transform.translate(
           offset: const Offset(0, -_sheetOverlap),
           child: isLoading

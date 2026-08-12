@@ -35,7 +35,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginWithEmailRequested event,
     Emitter<LoginState> emit,
   ) async {
-    emit(LoginLoading());
+    emit(LoginLoading(AuthMethod.email));
     final result = await _loginWithEmail(
       email: event.email,
       password: event.password,
@@ -55,7 +55,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginWithGoogleRequested event,
     Emitter<LoginState> emit,
   ) async {
-    emit(LoginLoading());
+    emit(LoginLoading(AuthMethod.google));
     final result = await _loginWithGoogle();
     if (emit.isDone) return;
     result.fold(
@@ -72,7 +72,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginWithAppleRequested event,
     Emitter<LoginState> emit,
   ) async {
-    emit(LoginLoading());
+    emit(LoginLoading(AuthMethod.apple));
     final result = await _loginWithApple();
     if (emit.isDone) return;
     result.fold(

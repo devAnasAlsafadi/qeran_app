@@ -6,20 +6,32 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/utils/app_assets.dart';
 
 class SocialLoginButtons extends StatelessWidget {
   final VoidCallback onGoogleTap;
   final VoidCallback onAppleTap;
 
-  /// When true, replaces button icons with a spinner and disables taps.
-  final bool loading;
+  /// Spinner on the Google button only — set when Google sign-in is the
+  /// action actually running.
+  final bool googleLoading;
+
+  /// Spinner on the Apple button only.
+  final bool appleLoading;
+
+  /// Any auth action is in flight, including email sign-in. Both buttons go
+  /// non-interactive so a second request cannot be fired, but neither shows
+  /// a spinner unless it owns the running action.
+  final bool busy;
 
   const SocialLoginButtons({
     super.key,
     required this.onGoogleTap,
     required this.onAppleTap,
-    this.loading = false,
+    this.googleLoading = false,
+    this.appleLoading = false,
+    this.busy = false,
   });
 
   @override
@@ -28,15 +40,17 @@ class SocialLoginButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _SocialButton(
-          onTap: loading ? null : onGoogleTap,
-          loading: loading,
+          onTap: busy ? null : onGoogleTap,
+          loading: googleLoading,
+          dimmed: busy,
           child: SvgPicture.asset(AppAssets.googleLogo),
         ),
         if (Platform.isIOS) ...[
           QeranSpacing.hs8,
           _SocialButton(
-            onTap: loading ? null : onAppleTap,
-            loading: loading,
+            onTap: busy ? null : onAppleTap,
+            loading: appleLoading,
+            dimmed: busy,
             child: const Icon(
               Icons.apple,
               size: 28,
@@ -54,11 +68,13 @@ class _SocialButton extends StatelessWidget {
   final VoidCallback? onTap;
   final Widget child;
   final bool loading;
+  final bool dimmed;
 
   const _SocialButton({
     required this.onTap,
     required this.child,
     this.loading = false,
+    this.dimmed = false,
   });
 
   @override
@@ -67,7 +83,7 @@ class _SocialButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
-        opacity: loading ? 0.6 : 1.0,
+        opacity: dimmed ? 0.6 : 1.0,
         child: Container(
           // 52 rather than 60 (QER-30): still comfortably above the 48dp
           // minimum tap target, and saves 8px on every auth screen.
@@ -78,21 +94,11 @@ class _SocialButton extends StatelessWidget {
             borderRadius: QeranRadii.controlR,
             boxShadow: QeranShadows.e2,
           ),
-          child: Center(
-            child: loading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: QeranColors.wine,
-                    ),
-                  )
-                : child,
-          ),
+          // The tile is paper, so the loader keeps its full wine-and-gold
+          // dual arc rather than collapsing to one colour.
+          child: Center(child: loading ? const QeranLoader(size: 24) : child),
         ),
       ),
     );
   }
 }
-

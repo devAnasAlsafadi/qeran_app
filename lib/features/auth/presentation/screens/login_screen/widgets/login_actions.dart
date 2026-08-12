@@ -25,12 +25,14 @@ class LoginActions extends StatelessWidget {
       children: [
         BlocBuilder<LoginBloc, LoginState>(
           builder: (context, state) {
-            final isLoading = state is LoginLoading;
+            final busy = state is LoginLoading;
             return QeranButton(
               label: LocaleKeys.auth_login_button.t(context),
               variant: QeranButtonVariant.primaryWine,
-              loading: isLoading,
-              onPressed: isLoading ? null : onLoginPressed,
+              // Only the email path spins this button; a Google sign-in
+              // leaves it idle.
+              loading: state is LoginLoading && state.method == AuthMethod.email,
+              onPressed: busy ? null : onLoginPressed,
             );
           },
         ),
@@ -39,19 +41,17 @@ class LoginActions extends StatelessWidget {
         QeranSpacing.vs12,
         BlocBuilder<LoginBloc, LoginState>(
           builder: (context, state) {
-            final isLoading = state is LoginLoading;
+            final busy = state is LoginLoading;
             return SocialLoginButtons(
-              loading: isLoading,
-              onGoogleTap: isLoading
-                  ? () {}
-                  : () => context.read<LoginBloc>().add(
-                      LoginWithGoogleRequested(),
-                    ),
-              onAppleTap: isLoading
-                  ? () {}
-                  : () => context.read<LoginBloc>().add(
-                      LoginWithAppleRequested(),
-                    ),
+              busy: busy,
+              googleLoading:
+                  state is LoginLoading && state.method == AuthMethod.google,
+              appleLoading:
+                  state is LoginLoading && state.method == AuthMethod.apple,
+              onGoogleTap: () =>
+                  context.read<LoginBloc>().add(LoginWithGoogleRequested()),
+              onAppleTap: () =>
+                  context.read<LoginBloc>().add(LoginWithAppleRequested()),
             );
           },
         ),

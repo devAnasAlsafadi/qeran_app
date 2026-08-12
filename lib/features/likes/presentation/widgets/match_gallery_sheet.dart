@@ -127,6 +127,8 @@ class _MatchGallerySheet extends StatelessWidget {
                           return LikeBlurredImage(
                             url: img.url,
                             blur: img.isBlurred,
+                            blurredUrl: img.blurredUrl,
+                            blurredThumbnailUrl: img.blurredThumbnailUrl,
                             size: null,
                             shape: BoxShape.rectangle,
                             borderRadius: QeranRadii.cardR,

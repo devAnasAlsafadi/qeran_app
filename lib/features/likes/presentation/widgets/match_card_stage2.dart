@@ -36,7 +36,12 @@ class MatchCardStage2 extends StatelessWidget {
         card.formalRequest?.localizedStatusName(context.locale.languageCode) ??
         '';
     return MatchCardScaffold(
-      avatar: MatchCardAvatar(url: image?.url, blur: image?.isBlurred ?? true),
+      avatar: MatchCardAvatar(
+        url: image?.url,
+        blur: image?.isBlurred ?? true,
+        blurredUrl: image?.blurredUrl,
+        blurredThumbnailUrl: image?.blurredThumbnailUrl,
+      ),
       name: card.otherUserName,
       statusIcon: Icons.handshake_rounded,
       statusText:

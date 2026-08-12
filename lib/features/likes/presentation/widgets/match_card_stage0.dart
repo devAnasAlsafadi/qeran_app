@@ -57,6 +57,8 @@ class MatchCardStage0 extends StatelessWidget {
     final avatarWidget = MatchCardAvatar(
       url: image?.url,
       blur: image?.isBlurred ?? true,
+      blurredUrl: image?.blurredUrl,
+      blurredThumbnailUrl: image?.blurredThumbnailUrl,
     );
     final nameText = card.otherUserName;
     final statusIconData = _statusIcon(pending, canRespond);

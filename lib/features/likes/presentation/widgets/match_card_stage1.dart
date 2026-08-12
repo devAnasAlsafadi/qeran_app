@@ -48,10 +48,14 @@ class MatchCardStage1 extends StatelessWidget {
         onTap: canOpenPhotos ? onOpenGallery : null,
         child: MatchCardAvatar(
           url: image?.url,
-          // A stage-1 preview must never fetch/cache the clear bytes. The
-          // permission-controlled gallery owns the only reveal path.
+          // A stage-1 preview must never fetch/cache the CLEAR bytes; the
+          // permission-controlled gallery owns the only reveal path. The
+          // server's blurred rendition is a different resource and carries no
+          // recoverable detail, so it renders here as a real silhouette.
           blur: true,
           blockImageBytes: true,
+          blurredUrl: image?.blurredUrl,
+          blurredThumbnailUrl: image?.blurredThumbnailUrl,
         ),
       ),
       name: card.otherUserName,

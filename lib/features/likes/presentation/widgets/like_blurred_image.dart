@@ -56,6 +56,15 @@ class LikeBlurredImage extends StatelessWidget {
   final bool blockImageBytes;
   final VoidCallback? onAccessForbidden;
 
+  /// Server-rendered blurred renditions of [url], when the backend supplies
+  /// them. Preferred over the client-side filter whenever the image is being
+  /// shown blurred — see [_serverBlurredUrl].
+  final String? blurredUrl;
+  final String? blurredThumbnailUrl;
+
+  /// Compact surfaces (list avatars) prefer the thumbnail rendition.
+  final bool preferThumbnail;
+
   const LikeBlurredImage({
     super.key,
     required this.url,
@@ -70,7 +79,17 @@ class LikeBlurredImage extends StatelessWidget {
     this.memoryOnly = false,
     this.blockImageBytes = false,
     this.onAccessForbidden,
+    this.blurredUrl,
+    this.blurredThumbnailUrl,
+    this.preferThumbnail = false,
   });
+
+  /// The blurred rendition to use, sized to the surface. Either variant is
+  /// acceptable for either size — both are already destroyed detail — so each
+  /// falls back to the other rather than dropping to the client filter.
+  String? get _serverBlurredUrl => preferThumbnail
+      ? (blurredThumbnailUrl ?? blurredUrl)
+      : (blurredUrl ?? blurredThumbnailUrl);
 
   /// Soft blur — strong enough to obscure facial features without
   /// wiping the image into a uniform gray disc. The Figma reference
@@ -92,9 +111,35 @@ class LikeBlurredImage extends StatelessWidget {
 
   Widget _buildImageOrFallback(BuildContext context) {
     final u = url;
-    if (u == null || u.isEmpty) return _fallback();
     final access = PhotoViewScope.maybeOf(context);
+    final effectiveBlur = access?.effectiveBlur(blur) ?? blur;
+
+    // A server-rendered blur is a different resource from the original: the
+    // detail is already gone from those bytes, so fetching them leaks nothing
+    // and the one-time view policy has no reason to block them. This is what
+    // lets a locked photo read as a real silhouette instead of a lock glyph —
+    // and it must be checked BEFORE the byte-blocking gate below, which
+    // exists only to protect the ORIGINAL.
+    if (effectiveBlur) {
+      final serverBlurred = _serverBlurredUrl;
+      if (serverBlurred != null) {
+        return CachedNetworkImage(
+          imageUrl: serverBlurred,
+          httpHeaders: _authHeaders(context),
+          fit: fit,
+          alignment: alignment,
+          placeholder: (_, _) => _placeholder(),
+          // A blurred rendition that fails to load must not fall through to
+          // the clear image; the neutral fallback is the safe outcome.
+          errorWidget: (_, _, _) => _fallback(),
+        );
+      }
+    }
+
+    if (u == null || u.isEmpty) return _fallback();
     final shouldBlock = blockImageBytes || (access?.blockImageBytes ?? false);
+    // No server rendition and the original is off limits — the lock glyph is
+    // the honest last resort, since a client filter would need those bytes.
     if (shouldBlock) return _protectedFallback();
 
     final headers = _authHeaders(context);
@@ -118,7 +163,7 @@ class LikeBlurredImage extends StatelessWidget {
             placeholder: (_, _) => _placeholder(),
             errorWidget: (_, _, _) => _fallback(),
           );
-    final effectiveBlur = access?.effectiveBlur(blur) ?? blur;
+    // Reached only when no server rendition was available.
     if (!effectiveBlur) return img;
     return ImageFiltered(
       imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),

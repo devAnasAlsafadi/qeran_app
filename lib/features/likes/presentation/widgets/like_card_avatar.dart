@@ -1,14 +1,17 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
 import '../../domain/entities/like_profile_image.dart';
+import 'like_blurred_image.dart';
 
-/// Circular avatar with a gold ring. Soft-blurs the photo when the
-/// server marks it [LikeProfileImage.isBlurred]; falls back to a wine
-/// person glyph when there's no image.
+/// Circular avatar with a gold ring for the Likes / Interests rows.
+///
+/// Hidden photos render the server's blurred thumbnail; only when the backend
+/// omits one does the client filter stand in. Delegates to
+/// [LikeBlurredImage] rather than a bare `Image.network` so the request
+/// carries the session Bearer token — `/api/users/profile-images/...` is
+/// authenticated, and an anonymous fetch 401s into the fallback glyph.
 class LikeCardAvatar extends StatelessWidget {
   final LikeProfileImage? image;
   final double size;
@@ -16,7 +19,9 @@ class LikeCardAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = image?.url;
+    final photo = image;
+    final url = photo?.url;
+    final hasImage = url != null && url.isNotEmpty;
     return Container(
       width: size,
       height: size,
@@ -29,43 +34,23 @@ class LikeCardAvatar extends StatelessWidget {
         child: Container(
           color: QeranColors.wine06,
           alignment: Alignment.center,
-          child: url == null || url.isEmpty
+          child: !hasImage
               ? const Icon(
                   Icons.person_rounded,
                   size: 32,
                   color: QeranColors.wine,
                 )
-              : _MaybeBlurredImage(url: url, blur: image?.isBlurred ?? false),
+              : LikeBlurredImage(
+                  url: url,
+                  blur: photo?.isBlurred ?? false,
+                  blurredUrl: photo?.blurredUrl,
+                  blurredThumbnailUrl: photo?.blurredThumbnailUrl,
+                  preferThumbnail: true,
+                  size: null,
+                  shape: BoxShape.circle,
+                ),
         ),
       ),
-    );
-  }
-}
-
-class _MaybeBlurredImage extends StatelessWidget {
-  final String url;
-  final bool blur;
-  const _MaybeBlurredImage({required this.url, required this.blur});
-
-  // Soft blur — strong enough to obscure features without wiping the
-  // image into a uniform disc; matches the Figma "silhouette" reference.
-  static const double _sigma = 6.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final image = Image.network(
-      url,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) => const Icon(
-        Icons.person_rounded,
-        size: 36,
-        color: QeranColors.inkMuted,
-      ),
-    );
-    if (!blur) return image;
-    return ImageFiltered(
-      imageFilter: ImageFilter.blur(sigmaX: _sigma, sigmaY: _sigma),
-      child: image,
     );
   }
 }

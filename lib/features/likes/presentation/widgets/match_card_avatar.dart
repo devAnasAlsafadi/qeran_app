@@ -21,18 +21,32 @@ class MatchCardAvatar extends StatelessWidget {
   final double size;
   final bool blockImageBytes;
 
+  /// Server-rendered blurred renditions. When one exists it replaces both the
+  /// client filter AND the wine frost — the frost was only ever there to mask
+  /// the raw colours bleeding through a client-blurred photo, and a real
+  /// server silhouette is exactly what the redesign asks to show.
+  final String? blurredUrl;
+  final String? blurredThumbnailUrl;
+
   const MatchCardAvatar({
     super.key,
     required this.url,
     required this.blur,
     this.size = 64,
     this.blockImageBytes = false,
+    this.blurredUrl,
+    this.blurredThumbnailUrl,
   });
+
+  bool get _hasServerBlur =>
+      blurredThumbnailUrl != null || blurredUrl != null;
 
   @override
   Widget build(BuildContext context) {
     final u = url;
     final hasImage = u != null && u.isNotEmpty;
+    // Only a client-blurred photo needs the frost treatment.
+    final frosted = hasImage && blur && !_hasServerBlur;
     return Container(
       width: size,
       height: size,
@@ -49,7 +63,7 @@ class MatchCardAvatar extends StatelessWidget {
             // white/green shows through the frost; the empty + clear-photo
             // states keep the soft wine06 tint (matches Sent/Received).
             ColoredBox(
-              color: hasImage && blur ? QeranColors.wine : QeranColors.wine06,
+              color: frosted ? QeranColors.wine : QeranColors.wine06,
             ),
             if (hasImage)
               LikeBlurredImage(
@@ -58,6 +72,9 @@ class MatchCardAvatar extends StatelessWidget {
                 size: null,
                 shape: BoxShape.circle,
                 blockImageBytes: blockImageBytes,
+                blurredUrl: blurredUrl,
+                blurredThumbnailUrl: blurredThumbnailUrl,
+                preferThumbnail: true,
               )
             else
               Center(
@@ -70,7 +87,7 @@ class MatchCardAvatar extends StatelessWidget {
             // Strong wine frost over a hidden real photo — reads as a solid
             // wine-tinted frosted circle, never the photo's raw (green/grey)
             // tint. Sits over the solid base so the result is fully opaque.
-            if (hasImage && blur) const ColoredBox(color: QeranColors.wine80),
+            if (frosted) const ColoredBox(color: QeranColors.wine80),
           ],
         ),
       ),

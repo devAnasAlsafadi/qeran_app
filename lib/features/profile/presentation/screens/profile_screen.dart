@@ -20,6 +20,7 @@ import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
 import 'package:qeran/features/profile/presentation/default_name_banner_session.dart';
 import 'package:qeran/features/profile/presentation/widgets/default_name_banner.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
@@ -187,9 +188,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (context.mounted) {
       context.read<CurrentSubscriptionCubit>().clear();
     }
-    // The banner flag is per-run, not per-account — clear it so the next
-    // sign-in is prompted on its own profile's terms.
+    // Per-run holders, not per-account — clear them so the next sign-in
+    // starts from its own state rather than inheriting this one's.
     sl<DefaultNameBannerSession>().reset();
+    sl<AuthFormMemo>().clear();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(
       context,

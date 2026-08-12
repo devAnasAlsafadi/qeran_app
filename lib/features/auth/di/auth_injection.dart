@@ -23,7 +23,7 @@ import '../domain/usecases/reset_password_usecase.dart';
 import '../domain/usecases/send_whatsapp_otp_usecase.dart';
 import '../domain/usecases/verify_forgot_password_otp_usecase.dart';
 import '../domain/usecases/verify_whatsapp_otp_usecase.dart';
-import '../presentation/auth_email_memo.dart';
+import '../presentation/auth_form_memo.dart';
 import '../presentation/blocs/change_password/change_password_cubit.dart';
 import '../presentation/blocs/login/login_bloc.dart';
 import '../presentation/blocs/oath/oath_cubit.dart';
@@ -36,8 +36,9 @@ void initAuthDependencies() {
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
 
   // Survives the login ↔ register hop so the member does not retype their
-  // email. In-memory only, and email only — see AuthEmailMemo.
-  sl.registerLazySingleton(() => AuthEmailMemo());
+  // username and email. In-memory only, and never the password — see
+  // AuthFormMemo.
+  sl.registerLazySingleton(() => AuthFormMemo());
 
   //! DataSources
   sl.registerLazySingleton<AuthRemoteDataSource>(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../auth_email_memo.dart';
+import '../../auth_form_memo.dart';
 
 class RegisterController {
   final nameController = TextEditingController();
@@ -13,30 +13,35 @@ class RegisterController {
 
   final ValueNotifier<bool> acceptedPolicyNotifier = ValueNotifier<bool>(false);
 
-  final AuthEmailMemo _emailMemo;
+  final AuthFormMemo _memo;
 
-  /// See [LoginController] — the email survives the hop between the two auth
-  /// screens; the password deliberately does not.
-  RegisterController({AuthEmailMemo? emailMemo})
-      : _emailMemo = emailMemo ?? resolveAuthEmailMemo() {
-    emailController.text = _emailMemo.email;
+  /// See [LoginController] — the username and email survive the hop between
+  /// the two auth screens; the password deliberately does not.
+  RegisterController({AuthFormMemo? memo})
+      : _memo = memo ?? resolveAuthFormMemo() {
+    nameController.text = _memo.displayName;
+    emailController.text = _memo.email;
+    nameController.addListener(_rememberName);
     emailController.addListener(_rememberEmail);
   }
 
-  void _rememberEmail() => _emailMemo.remember(emailController.text);
+  void _rememberName() => _memo.rememberDisplayName(nameController.text);
+
+  void _rememberEmail() => _memo.rememberEmail(emailController.text);
 
   bool get acceptedPolicy => acceptedPolicyNotifier.value;
 
   bool validate() => formKey.currentState?.validate() ?? false;
 
   /// Called once registration succeeds — nothing is left to carry over.
-  void forgetEmail() => _emailMemo.clear();
+  void forgetForm() => _memo.clear();
 
   void togglePolicyAcceptance() {
     acceptedPolicyNotifier.value = !acceptedPolicyNotifier.value;
   }
 
   void dispose() {
+    nameController.removeListener(_rememberName);
     emailController.removeListener(_rememberEmail);
     nameController.dispose();
     emailController.dispose();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../auth_email_memo.dart';
+import '../../auth_form_memo.dart';
 
 class LoginController {
   final emailController = TextEditingController();
@@ -9,27 +9,26 @@ class LoginController {
   final emailFocus = FocusNode();
   final passwordFocus = FocusNode();
 
-  final AuthEmailMemo _emailMemo;
+  final AuthFormMemo _memo;
 
-  /// [emailMemo] defaults to the app-scoped instance. A widget test that does
-  /// not boot the container gets an isolated one instead of a crash — and
+  /// [memo] defaults to the app-scoped instance. A widget test that does not
+  /// boot the container gets an isolated one instead of a crash — and
   /// isolation is what a test wants anyway.
-  LoginController({AuthEmailMemo? emailMemo})
-      : _emailMemo = emailMemo ?? resolveAuthEmailMemo() {
+  LoginController({AuthFormMemo? memo}) : _memo = memo ?? resolveAuthFormMemo() {
     // Seed from whatever was typed on the register screen before coming here.
-    emailController.text = _emailMemo.email;
+    emailController.text = _memo.email;
     // Live write-back: the other screen is built fresh on navigation, so the
     // value has to be in the memo BEFORE this one is disposed (a push does not
     // dispose the screen underneath at all).
     emailController.addListener(_rememberEmail);
   }
 
-  void _rememberEmail() => _emailMemo.remember(emailController.text);
+  void _rememberEmail() => _memo.rememberEmail(emailController.text);
 
   bool validate() => formKey.currentState?.validate() ?? false;
 
   /// Called once authentication succeeds — nothing is left to carry over.
-  void forgetEmail() => _emailMemo.clear();
+  void forgetForm() => _memo.clear();
 
   void dispose() {
     emailController.removeListener(_rememberEmail);

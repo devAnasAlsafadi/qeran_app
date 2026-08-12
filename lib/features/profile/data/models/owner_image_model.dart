@@ -27,7 +27,14 @@ class OwnerImageModel {
 
   OwnerImage toEntity() => OwnerImage(
         id: id,
-        url: EndPoints.absoluteUrl(url),
+        // `GET /users/profile-images` currently omits `url` entirely, while
+        // `GET /profile` returns the same ids with a full URL — so the
+        // canonical location is derived from the id when the server leaves
+        // it out. The moment the field is populated the real value wins and
+        // this fallback goes dormant.
+        url: url.isEmpty
+            ? '${EndPoints.baseUrl}${EndPoints.profileImage(id)}'
+            : EndPoints.absoluteUrl(url),
         isProfile: isProfile,
         isApproved: isApproved,
       );

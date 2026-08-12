@@ -32,6 +32,10 @@ final class GetProfileByIdNotFound extends GetProfileByIdResult {
 
 abstract interface class ProfileRemoteDataSource {
   Future<MyProfileModel> getMyProfile();
+
+  /// `PUT /api/profile` with `{displayName}`. Returns the complete updated
+  /// profile the server responded with — the caller must not refetch.
+  Future<MyProfileModel> updateDisplayName(String displayName);
   Future<GetProfileByIdResult> getProfileById(String userId);
   Future<BasicUserModel?> getBasicUser(String id);
   Future<List<OwnerImageModel>> getProfileImages();
@@ -69,6 +73,28 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
     }
     AppLogger.info('My profile fetched', tag: 'PROFILE');
+    return apiResponse.data!;
+  }
+
+  @override
+  Future<MyProfileModel> updateDisplayName(String displayName) async {
+    AppLogger.debug('UPDATE DISPLAY NAME', tag: 'PROFILE');
+    // Only `displayName` is sent. `realName` is collected by the backend at
+    // the formal-agreement stage and must never be written from the app.
+    final response = await _apiConsumer.put(
+      EndPoints.updateProfile,
+      body: {'displayName': displayName},
+    );
+    final apiResponse = ApiResponse<MyProfileModel>.fromJson(
+      response as Map<String, dynamic>,
+      (json) => MyProfileModel.fromJson(json as Map<String, dynamic>),
+    );
+    if (apiResponse.data == null) {
+      throw ServerException(
+        message: apiResponse.message ?? LocaleKeys.errors_generic,
+      );
+    }
+    AppLogger.info('Display name updated', tag: 'PROFILE');
     return apiResponse.data!;
   }
 

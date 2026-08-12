@@ -59,6 +59,13 @@ class EndPoints {
   /// wrapped in `ApiResponse`.
   static const String myProfile = "profile";
 
+  /// `PUT /api/profile` — updates the display name (body `{displayName}`) and
+  /// returns the COMPLETE updated profile, so no refetch is needed. `realName`
+  /// is server-side only and is never sent from here. Rejects an edit inside
+  /// the 7-day cooldown with `errorCode: "DISPLAY_NAME_LOCKED"`. Same resource
+  /// as [myProfile]; aliased for a self-documenting call site.
+  static const String updateProfile = myProfile;
+
   /// `DELETE /api/Profile` — permanent, non-recoverable account soft-delete
   /// (cancels any active subscription with no refund; chats/likes/archive
   /// disappear for everyone). Same resource as [myProfile]; aliased for a

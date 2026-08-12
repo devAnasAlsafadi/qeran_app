@@ -31,6 +31,7 @@ class RouteNames {
   static const String myProfile = '/profile/me';
 
   // Settings sub-screens
+  static const String settingsName = '/settings/name';
   static const String settingsSupport = '/settings/support';
   static const String settingsTerms = '/settings/terms';
   static const String blockedUsers = '/settings/blocked-users';

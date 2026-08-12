@@ -28,6 +28,14 @@ class ProfileRepositoryImpl
   }
 
   @override
+  Future<Either<Failure, MyProfile>> updateDisplayName(String displayName) {
+    return executeApiCall(() async {
+      final model = await _dataSource.updateDisplayName(displayName);
+      return model.toEntity();
+    });
+  }
+
+  @override
   Future<Either<Failure, ProfileFetchOutcome>> getProfileById(String userId) {
     // Datasource returns a typed result so PROFILE_NOT_FOUND lands on
     // the Right branch (a missing profile is an expected business

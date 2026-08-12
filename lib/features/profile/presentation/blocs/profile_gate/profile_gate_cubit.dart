@@ -55,15 +55,26 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
         );
         emit(const ProfileGateUnavailable());
       },
-      (profile) => emit(
-        ProfileGateResolved(
-          profile.profileStatus,
-          name: profile.name,
-          photoUrl: _profilePhotoUrl(profile),
-        ),
-      ),
+      (profile) => emit(_resolved(profile)),
     );
   }
+
+  /// Publishes a profile the caller already holds — used after `PUT /api/profile`
+  /// returns the complete updated profile, so the settings hero and the
+  /// default-name banner refresh without a second `GET /api/profile`.
+  void applyProfile(MyProfile profile) {
+    // Claim the current request slot so an in-flight fetch started before this
+    // write cannot land afterwards and reinstate the stale name.
+    _requestVersion++;
+    emit(_resolved(profile));
+  }
+
+  static ProfileGateResolved _resolved(MyProfile profile) => ProfileGateResolved(
+    profile.profileStatus,
+    name: profile.name,
+    photoUrl: _profilePhotoUrl(profile),
+    isDefaultName: profile.isDefaultName,
+  );
 
   /// The photo to show for "my profile": the dedicated `profileImage`, else the
   /// first image flagged `isProfile`, else the first image — null when there

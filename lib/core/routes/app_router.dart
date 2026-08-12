@@ -26,6 +26,7 @@ import 'package:qeran/features/onboarding/presentation/screens/on_boarding_scree
 import 'package:qeran/features/profile/presentation/blocs/photo_manager/photo_manager_state.dart';
 import 'package:qeran/features/profile/presentation/screens/photo_manager/photo_manager_screen.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
+import 'package:qeran/features/profile/presentation/screens/display_name/display_name_screen.dart';
 import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_hub_screen.dart';
 import 'package:qeran/features/settings/presentation/screens/settings_support_screen.dart';
@@ -320,6 +321,11 @@ class AppRouter {
         return _buildSmoothRoute(
           settings: settings,
           builder: (context) => const ProfileHubScreen(),
+        );
+      case RouteNames.settingsName:
+        return _buildSmoothRoute(
+          settings: settings,
+          builder: (context) => const DisplayNameScreen(),
         );
       case RouteNames.settingsSupport:
         return _buildSmoothRoute(

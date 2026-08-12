@@ -19,6 +19,9 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
+import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/features/profile/presentation/default_name_banner_session.dart';
+import 'package:qeran/features/profile/presentation/widgets/default_name_banner.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
@@ -64,6 +67,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await context.read<CurrentSubscriptionCubit>().refresh(force: true);
   }
 
+  /// Opening the name screen counts as answering the prompt, whether or not a
+  /// new name is saved — so the banner is retired on the way in, not on the
+  /// way back.
+  Future<void> _openNameScreen() async {
+    sl<DefaultNameBannerSession>().hide();
+    setState(() {});
+    await NavigationManager.navigateTo(context, RouteNames.settingsName);
+  }
+
+  void _dismissNameBanner() {
+    sl<DefaultNameBannerSession>().hide();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -96,9 +113,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
               final profileName = (resolved?.name ?? '').trim();
               final sessionName = (user?.name ?? '').trim();
               final name = profileName.isNotEmpty ? profileName : sessionName;
+              // Prompt for a real name while the server-assigned placeholder
+              // is still in place — unless it has already been answered this
+              // run (dismissed, or the name screen was opened).
+              final showNameBanner =
+                  (resolved?.isDefaultName ?? false) &&
+                  !sl<DefaultNameBannerSession>().isHidden;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (showNameBanner)
+                    DefaultNameBanner(
+                      currentName: name,
+                      onEdit: _openNameScreen,
+                      onDismiss: _dismissNameBanner,
+                    ),
                   SettingsProfileHero(
                     avatar: _HeroAvatar(photoUrl: resolved?.photoUrl, name: name),
                     name: name.isNotEmpty
@@ -124,7 +153,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: LocaleKeys.settings_account_management.t(context),
                   ),
                   QeranSpacing.vs12,
-                  const _SettingsCard(),
+                  _SettingsCard(
+                    displayName: name,
+                    onNameTap: _openNameScreen,
+                  ),
                   QeranSpacing.vs24,
                   SettingsLogoutCard(onTap: () => _handleLogout(context)),
                 ],
@@ -155,6 +187,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (context.mounted) {
       context.read<CurrentSubscriptionCubit>().clear();
     }
+    // The banner flag is per-run, not per-account — clear it so the next
+    // sign-in is prompted on its own profile's terms.
+    sl<DefaultNameBannerSession>().reset();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(
       context,
@@ -218,12 +253,17 @@ class _HeroAvatar extends StatelessWidget {
 
 // ── Settings card ──────────────────────────────────────────────────
 
-/// Unified card hosting every settings row. Sequence is locked: the
-/// subscription row is first (the warmest action), followed by the
-/// preference rows, with the destructive `delete account` row last so
+/// Unified card hosting every settings row. Sequence is locked: identity
+/// (name) first, then the subscription row (the warmest action), followed by
+/// the preference rows, with the destructive `delete account` row last so
 /// it doesn't sit next to logout in the visual scan.
 class _SettingsCard extends StatelessWidget {
-  const _SettingsCard();
+  const _SettingsCard({required this.displayName, required this.onNameTap});
+
+  /// Shown as the row's subtitle, so the card answers "what is my name" at a
+  /// glance without opening the screen.
+  final String displayName;
+  final VoidCallback onNameTap;
 
   @override
   Widget build(BuildContext context) {
@@ -231,6 +271,13 @@ class _SettingsCard extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: Column(
         children: [
+          SettingsRow(
+            icon: Icons.badge_outlined,
+            title: LocaleKeys.profile_name_row_title.t(context),
+            subtitle: displayName.isEmpty ? null : displayName,
+            onTap: onNameTap,
+          ),
+          const SettingsRowDivider(),
           const _SubscriptionRow(),
           const SettingsRowDivider(),
           SettingsRow(

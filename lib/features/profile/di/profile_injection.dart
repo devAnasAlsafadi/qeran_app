@@ -15,7 +15,10 @@ import '../domain/usecases/get_my_profile_usecase.dart';
 import '../domain/usecases/get_profile_images_usecase.dart';
 import '../domain/usecases/get_profile_by_id_usecase.dart';
 import '../domain/usecases/set_main_profile_image_usecase.dart';
+import '../domain/usecases/update_display_name_usecase.dart';
+import '../presentation/default_name_banner_session.dart';
 import '../presentation/blocs/delete_account/delete_account_cubit.dart';
+import '../presentation/blocs/display_name/display_name_cubit.dart';
 import '../presentation/blocs/my_profile/my_profile_cubit.dart';
 import '../presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import '../presentation/blocs/photo_manager/photo_manager_cubit.dart';
@@ -41,6 +44,7 @@ void initProfileDependencies() {
 
   //! UseCases
   sl.registerLazySingleton(() => GetMyProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateDisplayNameUseCase(sl()));
   sl.registerLazySingleton(() => GetProfileImagesUseCase(sl()));
   sl.registerLazySingleton(() => AddProfileImagesUseCase(sl()));
   sl.registerLazySingleton(() => DeleteProfileImageUseCase(sl()));
@@ -63,6 +67,19 @@ void initProfileDependencies() {
     ),
   );
   sl.registerFactory(() => MyProfileCubit(getMyProfile: sl()));
+  sl.registerFactory(
+    () => DisplayNameCubit(
+      getMyProfile: sl(),
+      updateDisplayName: sl(),
+      // Writes the updated profile straight back into the app-scoped gate, so
+      // the settings hero and the default-name banner refresh without a
+      // second GET /api/profile.
+      profileGate: sl<ProfileGateCubit>(),
+    ),
+  );
+  // In-memory only, by design — the default-name prompt must return on the
+  // next app run if the name is still the placeholder.
+  sl.registerLazySingleton(() => DefaultNameBannerSession());
   // One instance per mount; the caller passes the mode via param1 so the
   // same cubit serves registration and profile edit.
   sl.registerFactoryParam<PhotoManagerCubit, PhotoManagerMode, void>(

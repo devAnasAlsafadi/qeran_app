@@ -12,6 +12,13 @@ class MyProfileModel {
   /// Legal/full name, collected for formal proceedings. Owner-only —
   /// never present on another user's payload and never rendered publicly.
   final String? realName;
+
+  /// Display-name migration flags. `isDefaultName` means the server assigned
+  /// the placeholder and the member may edit freely; otherwise a 7-day
+  /// cooldown runs from their first real edit.
+  final bool isDefaultName;
+  final bool isDisplayNameLocked;
+  final DateTime? displayNameLockedUntil;
   final String? email;
   final String gender;
   final DateTime? birthDate;
@@ -26,6 +33,9 @@ class MyProfileModel {
     required this.userId,
     required this.name,
     this.realName,
+    this.isDefaultName = false,
+    this.isDisplayNameLocked = false,
+    this.displayNameLockedUntil,
     required this.email,
     required this.gender,
     required this.birthDate,
@@ -59,6 +69,11 @@ class MyProfileModel {
       userId: parseString(json['userId'] ?? json['id']),
       name: parseDisplayName(json),
       realName: parseNullableString(json['realName']),
+      isDefaultName: parseBool(json['isDefaultName']),
+      isDisplayNameLocked: parseBool(json['isDisplayNameLocked']),
+      displayNameLockedUntil: parseNullableDateTime(
+        json['displayNameLockedUntil'],
+      ),
       email: parseNullableString(json['email']),
       gender: parseString(json['gender']),
       birthDate: parseNullableDateTime(json['birthDate']),
@@ -77,6 +92,9 @@ class MyProfileModel {
         id: userId,
         name: name,
         realName: realName,
+        isDefaultName: isDefaultName,
+        isDisplayNameLocked: isDisplayNameLocked,
+        displayNameLockedUntil: displayNameLockedUntil,
         email: email,
         gender: gender,
         birthDate: birthDate,

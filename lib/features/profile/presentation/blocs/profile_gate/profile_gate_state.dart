@@ -30,7 +30,16 @@ final class ProfileGateResolved extends ProfileGateState {
   /// Bearer token to load). Null when no photo is set.
   final String? photoUrl;
 
-  const ProfileGateResolved(this.status, {this.name, this.photoUrl});
+  /// The display name is still the server-assigned placeholder. Carried here
+  /// so the settings screen can prompt for a real one without its own fetch.
+  final bool isDefaultName;
+
+  const ProfileGateResolved(
+    this.status, {
+    this.name,
+    this.photoUrl,
+    this.isDefaultName = false,
+  });
 }
 
 /// Fetch failed or the status was unrecognised — the gate FAILS OPEN

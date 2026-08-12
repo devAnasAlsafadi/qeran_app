@@ -94,11 +94,17 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
   /// memory-only providers via rebuild/dispose, then reconcile silently.
   void markImageAccessConsumed() {
     if (state.phase == PhotoViewPhase.consumed) return;
+    // The visible countdown is gone, so the end of the window has to announce
+    // itself — but only to someone who was actually looking at the photos. A
+    // 403 that arrives before any reveal is not an expiry they witnessed.
+    final wasViewing = state.phase == PhotoViewPhase.viewing;
     _stopWindow();
     emit(
       PhotoViewState(
         phase: PhotoViewPhase.consumed,
         permission: state.permission,
+        justExpired: wasViewing,
+        eventVersion: wasViewing ? state.eventVersion + 1 : state.eventVersion,
       ),
     );
     unawaited(_refreshAfterLock());
@@ -229,6 +235,10 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
           PhotoViewState(
             phase: PhotoViewPhase.consumed,
             permission: permission,
+            // This reconciliation follows an event that has already been
+            // delivered; carrying the counter forward keeps it monotonic so a
+            // later expiry still registers as new.
+            eventVersion: state.eventVersion,
           ),
         );
       }

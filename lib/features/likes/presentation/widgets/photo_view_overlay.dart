@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -22,23 +22,26 @@ class PhotoViewOverlay extends StatelessWidget {
     }
     final state = access.state;
     return switch (state.phase) {
-      PhotoViewPhase.viewing when !state.isConcealed => _Countdown(
-        seconds: state.secondsRemaining,
-      ),
+      // The window is open and nothing is drawn over the photos. The countdown
+      // badge used to live here; it is gone by design — the member watches the
+      // photos, not a clock, and the end of the window announces itself.
+      PhotoViewPhase.viewing when !state.isConcealed => const SizedBox.shrink(),
       PhotoViewPhase.available => _CenteredPanel(
-        icon: Icons.visibility_outlined,
+        // No icon above the panel: the eye now rides inside the button label,
+        // so the reveal action reads as one thing rather than two.
         child: QeranButton(
           label: LocaleKeys.likes_matches_photo_view_show.t(context),
           onPressed: state.isStarting ? null : access.onReveal,
           loading: state.isStarting,
           variant: QeranButtonVariant.primaryWine,
           size: QeranButtonSize.sm,
+          leadingIcon: Icons.visibility_outlined,
         ),
       ),
       PhotoViewPhase.consumed => _CenteredPanel(
         icon: Icons.lock_clock_outlined,
         child: Text(
-          LocaleKeys.likes_matches_photo_view_consumed.t(context),
+          LocaleKeys.likes_matches_photo_view_expired.t(context),
           textAlign: TextAlign.center,
           style: QeranTypography.subtitle.copyWith(color: QeranColors.paper),
         ),
@@ -56,53 +59,19 @@ class PhotoViewOverlay extends StatelessWidget {
       PhotoViewPhase.loading ||
       PhotoViewPhase.viewing => const _CenteredPanel(
         icon: Icons.lock_outline_rounded,
-        child: CircularProgressIndicator(color: QeranColors.gold),
+        child: QeranLoader(),
       ),
       PhotoViewPhase.unavailable => const SizedBox.shrink(),
     };
   }
 }
 
-class _Countdown extends StatelessWidget {
-  final int seconds;
-  const _Countdown({required this.seconds});
-
-  @override
-  Widget build(BuildContext context) {
-    final label = LocaleKeys.likes_matches_photo_view_remaining
-        .t(context)
-        .replaceFirst('{seconds}', '$seconds');
-    return PositionedDirectional(
-      top: QeranSpacing.s16,
-      start: 0,
-      end: 0,
-      child: IgnorePointer(
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: QeranSpacing.s12,
-              vertical: QeranSpacing.s8,
-            ),
-            decoration: const BoxDecoration(
-              color: QeranColors.overlayTintDark,
-              borderRadius: QeranRadii.pill,
-            ),
-            child: Text(
-              label,
-              style: QeranTypography.label.copyWith(color: QeranColors.gold),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _CenteredPanel extends StatelessWidget {
-  final IconData icon;
+  /// Optional — the reveal panel carries its glyph inside the button instead.
+  final IconData? icon;
   final Widget child;
 
-  const _CenteredPanel({required this.icon, required this.child});
+  const _CenteredPanel({this.icon, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -115,8 +84,10 @@ class _CenteredPanel extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 40, color: QeranColors.gold),
-                QeranSpacing.vs16,
+                if (icon != null) ...[
+                  Icon(icon, size: 40, color: QeranColors.gold),
+                  QeranSpacing.vs16,
+                ],
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 240),
                   child: child,

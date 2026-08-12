@@ -311,6 +311,7 @@ abstract class  LocaleKeys {
   static const likes_matches_photo_view_confirm_title = 'likes.matches_photo_view_confirm_title';
   static const likes_matches_photo_view_confirm_message = 'likes.matches_photo_view_confirm_message';
   static const likes_matches_photo_view_remaining = 'likes.matches_photo_view_remaining';
+  static const likes_matches_photo_view_expired = 'likes.matches_photo_view_expired';
   static const likes_matches_photo_view_consumed = 'likes.matches_photo_view_consumed';
   static const likes_matches_photo_view_retry = 'likes.matches_photo_view_retry';
   static const likes_matches_formal_last_updated = 'likes.matches_formal_last_updated';

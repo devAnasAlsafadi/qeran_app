@@ -58,14 +58,8 @@ class _PhotoViewAccessHostState extends State<PhotoViewAccessHost>
     return BlocListener<PhotoViewCubit, PhotoViewState>(
       listenWhen: (previous, current) =>
           previous.eventVersion != current.eventVersion &&
-          current.actionErrorMessage != null,
-      listener: (context, state) => AppSnackBar.show(
-        context,
-        message: (state.actionErrorMessage ?? LocaleKeys.errors_generic).t(
-          context,
-        ),
-        type: SnackBarType.error,
-      ),
+          (current.actionErrorMessage != null || current.justExpired),
+      listener: _onEvent,
       child: BlocBuilder<PhotoViewCubit, PhotoViewState>(
         builder: (context, state) => PhotoViewScope(
           state: state,
@@ -76,6 +70,28 @@ class _PhotoViewAccessHostState extends State<PhotoViewAccessHost>
           child: widget.child,
         ),
       ),
+    );
+  }
+
+  /// The window closing is not an error — it is the expected end of a
+  /// one-time view, and with the countdown badge gone it is the only signal
+  /// the member gets. It is announced calmly; a real action failure keeps the
+  /// error treatment.
+  void _onEvent(BuildContext context, PhotoViewState state) {
+    if (state.justExpired) {
+      AppSnackBar.show(
+        context,
+        message: LocaleKeys.likes_matches_photo_view_expired.t(context),
+        type: SnackBarType.info,
+      );
+      return;
+    }
+    AppSnackBar.show(
+      context,
+      message: (state.actionErrorMessage ?? LocaleKeys.errors_generic).t(
+        context,
+      ),
+      type: SnackBarType.error,
     );
   }
 

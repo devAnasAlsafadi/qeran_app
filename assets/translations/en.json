@@ -321,6 +321,7 @@
     "matches_photo_view_confirm_title": "Show photos now?",
     "matches_photo_view_confirm_message": "You can view these photos for 60 seconds only, and you will not be able to open them again.",
     "matches_photo_view_remaining": "{seconds} seconds remaining",
+    "matches_photo_view_expired": "Photo viewing period has ended",
     "matches_photo_view_consumed": "The viewing period has ended",
     "matches_photo_view_retry": "Check again",
     "matches_formal_last_updated": "Updated {date}",

@@ -321,6 +321,7 @@
     "matches_photo_view_confirm_title": "إظهار الصور الآن؟",
     "matches_photo_view_confirm_message": "ستتمكن من رؤية الصور لمدة 60 ثانية فقط، ولن تتمكن من فتحها مرة أخرى.",
     "matches_photo_view_remaining": "متبقي {seconds} ثانية",
+    "matches_photo_view_expired": "انتهت فترة مشاهدة الصورة",
     "matches_photo_view_consumed": "انتهت مدة العرض",
     "matches_photo_view_retry": "إعادة التحقق",
     "matches_formal_last_updated": "آخر تحديث: {date}",

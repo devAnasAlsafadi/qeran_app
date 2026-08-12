@@ -31,6 +31,14 @@ class PhotoViewState extends Equatable {
   final bool isConcealed;
   final String? errorMessage;
   final String? actionErrorMessage;
+
+  /// The 60-second window just ran out under the member's eyes. Drives the
+  /// one-shot "viewing period has ended" message — the countdown itself is no
+  /// longer shown, so the end of the window has to announce itself.
+  ///
+  /// Only set when the transition came from [PhotoViewPhase.viewing]; arriving
+  /// at `consumed` any other way is not something the member witnessed.
+  final bool justExpired;
   final int eventVersion;
 
   const PhotoViewState({
@@ -41,6 +49,7 @@ class PhotoViewState extends Equatable {
     this.isConcealed = false,
     this.errorMessage,
     this.actionErrorMessage,
+    this.justExpired = false,
     this.eventVersion = 0,
   });
 
@@ -54,9 +63,11 @@ class PhotoViewState extends Equatable {
     bool clearError = false,
     String? actionErrorMessage,
     bool clearActionError = false,
+    bool justExpired = false,
     int? eventVersion,
   }) {
     return PhotoViewState(
+      justExpired: justExpired,
       phase: phase ?? this.phase,
       permission: permission ?? this.permission,
       secondsRemaining: secondsRemaining ?? this.secondsRemaining,
@@ -79,6 +90,7 @@ class PhotoViewState extends Equatable {
     isConcealed,
     errorMessage,
     actionErrorMessage,
+    justExpired,
     eventVersion,
   ];
 }

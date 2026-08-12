@@ -13,7 +13,12 @@ class EndPoints {
       return relativePath;
     }
     final origin = Uri.parse(baseUrl).origin;
-    return '$origin$relativePath';
+    // The origin never ends in a slash. A path that does not begin with one
+    // would otherwise be glued straight onto the host — `...rtempurl.com` +
+    // `users/x` becomes the unresolvable host `rtempurl.comusers`, which
+    // fails as a silent broken image rather than a visible error.
+    final path = relativePath.startsWith('/') ? relativePath : '/$relativePath';
+    return '$origin$path';
   }
 
   // Auth

@@ -4,26 +4,70 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
+import '../../../../../likes/presentation/widgets/like_blurred_image.dart';
+
 /// Hero tag shared between an upload thumbnail and its full-screen preview.
 ///
 /// Keyed on the file path, not the slot index: removing a photo re-indexes the
 /// remaining slots, and an index-based tag would fly the wrong image.
 String uploadPhotoHeroTag(String path) => 'upload_photo_$path';
 
-/// Full-screen check of a photo the user just picked (QER-77).
+/// Hero tag for a photo that already lives on the server, keyed on its
+/// stable id rather than its URL — a re-signed or re-hosted URL must not
+/// break the flight.
+String serverPhotoHeroTag(String imageId) => 'server_photo_$imageId';
+
+/// Full-screen check of one of the user's own photos (QER-77).
 ///
-/// These are the user's OWN photos on their OWN upload screen, so there is no
-/// blur and no consent gate here — that belongs to the mutual photo-exchange
-/// flow, which is a different surface with different rules.
+/// Works for both sources: a file just picked on-device and a photo already
+/// uploaded. These are the user's OWN photos on their OWN screen, so there
+/// is no blur and no consent gate here — that belongs to the mutual
+/// photo-exchange flow, which is a different surface with different rules.
 class PhotoPreviewScreen extends StatelessWidget {
-  const PhotoPreviewScreen({super.key, required this.file});
+  const PhotoPreviewScreen._({
+    required this.heroTag,
+    this.file,
+    this.imageUrl,
+  });
 
-  final File file;
+  /// Preview a locally staged file.
+  factory PhotoPreviewScreen({Key? key, required File file}) =>
+      PhotoPreviewScreen._(heroTag: uploadPhotoHeroTag(file.path), file: file);
 
-  /// Pushes the preview. Opaque black-on-wine page; the Hero does the rest.
+  /// Preview a photo hosted by the API. The bytes need the session bearer
+  /// token, so it goes through the same authenticated loader the rest of
+  /// the app uses rather than a bare Image.network.
+  factory PhotoPreviewScreen.network({
+    Key? key,
+    required String imageUrl,
+    required String imageId,
+  }) => PhotoPreviewScreen._(
+    heroTag: serverPhotoHeroTag(imageId),
+    imageUrl: imageUrl,
+  );
+
+  final String heroTag;
+  final File? file;
+  final String? imageUrl;
+
+  /// Pushes the preview for a staged file.
   static Future<void> open(BuildContext context, File file) {
     return Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => PhotoPreviewScreen(file: file)),
+    );
+  }
+
+  /// Pushes the preview for a photo already on the server.
+  static Future<void> openNetwork(
+    BuildContext context, {
+    required String imageUrl,
+    required String imageId,
+  }) {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            PhotoPreviewScreen.network(imageUrl: imageUrl, imageId: imageId),
+      ),
     );
   }
 
@@ -40,13 +84,13 @@ class PhotoPreviewScreen extends StatelessWidget {
             child: GestureDetector(
               onTap: close,
               child: Hero(
-                tag: uploadPhotoHeroTag(file.path),
+                tag: heroTag,
                 child: InteractiveViewer(
                   minScale: 1,
                   maxScale: 4,
                   // contain, never cover: the point is to check the whole
                   // photo, so nothing may be cropped away.
-                  child: Image.file(file, fit: BoxFit.contain),
+                  child: _content(),
                 ),
               ),
             ),
@@ -77,6 +121,19 @@ class PhotoPreviewScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _content() {
+    final f = file;
+    if (f != null) return Image.file(f, fit: BoxFit.contain);
+    return LikeBlurredImage(
+      url: imageUrl,
+      blur: false,
+      size: null,
+      shape: BoxShape.rectangle,
+      borderRadius: BorderRadius.zero,
+      fit: BoxFit.contain,
     );
   }
 }

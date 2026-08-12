@@ -113,19 +113,30 @@ class FilledPhotoSlot extends StatelessWidget {
       tag: uploadPhotoHeroTag(path),
       child: Image.file(File(path), fit: BoxFit.cover),
     ),
-    ServerPhotoSlot(:final url) => LikeBlurredImage(
-      url: url,
-      blur: false,
-      size: null,
-      shape: BoxShape.rectangle,
-      borderRadius: BorderRadius.zero,
+    // Server photos need the session bearer token, which LikeBlurredImage
+    // attaches; a bare Image.network would 401 and fall back to the grey
+    // person icon.
+    ServerPhotoSlot(:final id, :final url) => Hero(
+      tag: serverPhotoHeroTag(id),
+      child: LikeBlurredImage(
+        url: url,
+        blur: false,
+        size: null,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.zero,
+      ),
     ),
   };
 
+  /// QER-77: the thumbnail opens full-screen, for staged and server photos
+  /// alike. The corner controls sit later in the Stack and win their own
+  /// taps, so delete and set-main never trigger a preview.
   void _preview(BuildContext context) {
-    // Only staged photos have a local file to hand to the preview screen.
-    if (slot case StagedPhotoSlot(:final path)) {
-      PhotoPreviewScreen.open(context, File(path));
+    switch (slot) {
+      case StagedPhotoSlot(:final path):
+        PhotoPreviewScreen.open(context, File(path));
+      case ServerPhotoSlot(:final id, :final url):
+        PhotoPreviewScreen.openNetwork(context, imageUrl: url, imageId: id);
     }
   }
 }

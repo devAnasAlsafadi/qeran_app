@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/profile/domain/entities/photo_slot.dart';
+import 'package:qeran/features/profile/domain/entities/profile_image.dart';
 import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/filled_photo_slot.dart';
 import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/photo_preview_screen.dart';
 
@@ -215,5 +216,109 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(PhotoPreviewScreen), findsNothing);
+  });
+
+  // Issue 2: the unified screen must preview server photos too, not just
+  // freshly staged files. profileEdit shows only server slots, so without
+  // this the QER-77 behaviour is dead on that mode.
+  group('server photos', () {
+    const slot = ServerPhotoSlot(
+      OwnerImage(
+        id: 'img-1',
+        url: 'https://cdn.test/img-1.jpg',
+        isProfile: false,
+        isApproved: true,
+      ),
+    );
+
+    testWidgets('tapping a server thumbnail opens the preview', (tester) async {
+      var removed = false;
+      var madePrimary = false;
+
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: slot,
+            isBusy: false,
+            onRemove: () => removed = true,
+            onSetPrimary: () => madePrimary = true,
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+
+      await tester.tap(find.byType(FilledPhotoSlot));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(PhotoPreviewScreen), findsOneWidget);
+      expect(removed, isFalse);
+      expect(madePrimary, isFalse);
+    });
+
+    testWidgets('the delete x still wins its own tap', (tester) async {
+      var removed = false;
+
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: slot,
+            isBusy: false,
+            onRemove: () => removed = true,
+            onSetPrimary: () {},
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pump();
+
+      expect(removed, isTrue);
+      expect(find.byType(PhotoPreviewScreen), findsNothing);
+    });
+
+    testWidgets('the set-main check still wins its own tap', (tester) async {
+      var madePrimary = false;
+
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: slot,
+            isBusy: false,
+            onRemove: () {},
+            onSetPrimary: () => madePrimary = true,
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.check_rounded));
+      await tester.pump();
+
+      expect(madePrimary, isTrue);
+      expect(find.byType(PhotoPreviewScreen), findsNothing);
+    });
+
+    testWidgets('thumbnail and preview share the id-keyed hero tag', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: slot,
+            isBusy: false,
+            onRemove: () {},
+            onSetPrimary: () {},
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+
+      final hero = tester.widget<Hero>(find.byType(Hero));
+      // Keyed on the stable id, not the URL — a re-signed URL must not
+      // break the flight.
+      expect(hero.tag, serverPhotoHeroTag('img-1'));
+    });
   });
 }

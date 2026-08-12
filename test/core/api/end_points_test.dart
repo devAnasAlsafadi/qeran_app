@@ -26,14 +26,14 @@ void main() {
       expect(EndPoints.absoluteUrl(original), original);
     });
 
-    test('handles a path without a leading slash', () {
+    test('inserts the missing separator on a slash-less path', () {
       final url = EndPoints.absoluteUrl('users/profile-images/x');
-      // Origin has no trailing slash; the path has no leading slash —
-      // joined as-is. The server is unlikely to ship this shape, but
-      // the helper must not corrupt it.
+      // Gluing the path straight onto the origin would produce the host
+      // `rtempurl.comusers`, which resolves to nothing and surfaces only as
+      // a broken image. The separator is added instead.
       expect(
         url,
-        'https://qeranadmin-001-site1.rtempurl.comusers/profile-images/x',
+        'https://qeranadmin-001-site1.rtempurl.com/users/profile-images/x',
       );
     });
   });

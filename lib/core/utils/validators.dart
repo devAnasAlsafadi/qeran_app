@@ -18,6 +18,27 @@ class Validators {
     return null;
   }
 
+  /// Characters the backend rejects outright on the display name. Mirrored
+  /// here so the user is told before a round trip, not after a 400.
+  static final RegExp displayNameForbidden = RegExp(r'[<>%]');
+
+  static const int displayNameMin = 2;
+  static const int displayNameMax = 100;
+
+  /// The name shown to other members. Rules match the backend's contract on
+  /// `POST /Auth/register-new` and `PUT /api/profile`; the server stays the
+  /// real gate, this is only to save the user a failed submit.
+  static String? validateDisplayName(String? val) {
+    final value = val?.trim() ?? '';
+    if (value.isEmpty) return tr('validators.field_required');
+    if (value.length < displayNameMin) return tr('validators.name_too_short');
+    if (value.length > displayNameMax) return tr('validators.name_too_long');
+    if (displayNameForbidden.hasMatch(value)) {
+      return tr('validators.name_invalid_chars');
+    }
+    return null;
+  }
+
   static String? validatePassword(String? val) {
     if (val == null || val.isEmpty) return tr('validators.field_required');
     if (val.length < 8) return tr('validators.password_too_short');

@@ -116,13 +116,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
     String? referralCode,
   }) async {
-    // Step 1 only: register-new with name, email, password (+ optional
+    // Step 1 only: register-new with displayName, email, password (+ optional
     // affiliate referralCode, omitted from the body when empty/null so an
     // empty field is never sent as "").
+    //
+    // `displayName` is the informal name shown across the app. The legal
+    // name (`realName`) is collected later from profile edit — registration
+    // deliberately asks for one name only.
     final response = await _apiConsumer.post(
       EndPoints.register,
       body: {
-        'name': name,
+        'displayName': name,
         'email': email,
         'password': password,
         if (referralCode != null && referralCode.trim().isNotEmpty)

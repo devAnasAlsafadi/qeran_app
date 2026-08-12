@@ -20,6 +20,9 @@ abstract class  LocaleKeys {
   static const validators_phone_required = 'validators.phone_required';
   static const validators_phone_digits_only = 'validators.phone_digits_only';
   static const validators_phone_too_short = 'validators.phone_too_short';
+  static const validators_name_too_short = 'validators.name_too_short';
+  static const validators_name_too_long = 'validators.name_too_long';
+  static const validators_name_invalid_chars = 'validators.name_invalid_chars';
   static const validators = 'validators';
   static const errors_offline = 'errors.offline';
   static const errors_unauthorized = 'errors.unauthorized';

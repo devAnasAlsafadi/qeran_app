@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/utils/validators.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
@@ -30,9 +31,7 @@ class RegisterForm extends StatelessWidget {
             Icons.person_outline_rounded,
             color: QeranColors.inkFaint,
           ),
-          validator: (v) => (v == null || v.trim().isEmpty)
-              ? LocaleKeys.validators_field_required.t(context)
-              : null,
+          validator: Validators.validateDisplayName,
         ),
         QeranSpacing.vs16,
         AuthEmailField(

@@ -12,13 +12,14 @@ import '../../domain/entities/profile_entry_source.dart';
 import '../../domain/entities/profile_status.dart';
 import '../blocs/my_profile/my_profile_cubit.dart';
 import '../blocs/my_profile/my_profile_state.dart';
+import '../blocs/photo_manager/photo_manager_state.dart';
 import '../blocs/profile_gate/profile_gate_cubit.dart';
+import 'photo_manager/photo_manager_screen.dart';
 import '../mappers/my_profile_to_other_profile.dart';
 import '../widgets/full_profile_body.dart';
 import '../widgets/profile_status_chip.dart';
 import '../widgets/states/profile_details_error_view.dart';
 import '../widgets/states/profile_details_skeleton.dart';
-import 'profile_photos_screen.dart';
 
 /// View tab of the profile hub — renders MY OWN profile through the shared
 /// detailed-profile surface ([FullProfileBody]). The
@@ -75,7 +76,10 @@ class _SelfViewBody extends StatelessWidget {
 
   Future<void> _openPhotos(BuildContext context, MyProfileCubit cubit) async {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (_) => const ProfilePhotosScreen()),
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            const PhotoManagerScreen(mode: PhotoManagerMode.profileEdit),
+      ),
     );
     if (!context.mounted) return;
     await Future.wait([cubit.refresh(), sl<ProfileGateCubit>().refresh()]);

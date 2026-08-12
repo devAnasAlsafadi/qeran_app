@@ -4,7 +4,9 @@ import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../models/basic_user_model.dart';
@@ -45,9 +47,13 @@ abstract interface class ProfileRemoteDataSource {
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final ApiConsumer _apiConsumer;
+  final StorageService _secureStorage;
 
-  const ProfileRemoteDataSourceImpl({required ApiConsumer apiConsumer})
-      : _apiConsumer = apiConsumer;
+  const ProfileRemoteDataSourceImpl({
+    required ApiConsumer apiConsumer,
+    required StorageService secureStorage,
+  }) : _apiConsumer = apiConsumer,
+       _secureStorage = secureStorage;
 
   @override
   Future<MyProfileModel> getMyProfile() async {
@@ -131,11 +137,37 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<void> addProfileImages(List<File> images) async {
-    await _apiConsumer.postMultipart(
-      EndPoints.profileImages,
-      files: images,
-      fieldName: 'images',
-    );
+    // Pre-flight token check. Uploads carry megabytes, so a missing or
+    // expired token is caught before the body is ever sent rather than
+    // after the server rejects it.
+    final token = await _secureStorage.get<String>(StorageKeys.token);
+    if (token == null || token.isEmpty) {
+      throw AuthException(message: LocaleKeys.errors_unauthorized_access);
+    }
+
+    try {
+      await _apiConsumer.postMultipart(
+        EndPoints.profileImages,
+        files: images,
+        fieldName: 'images',
+      );
+    } on ServerException catch (e) {
+      // The user just tapped upload, so a server-side failure is more
+      // useful phrased as "couldn't upload your photos" than as a generic
+      // server error. Offline and timeout keep their own specific keys,
+      // which HttpConsumer already assigns.
+      final isServerFault =
+          (e.statusCode != null && e.statusCode! >= 500) ||
+          e.message == LocaleKeys.errors_server;
+      if (isServerFault) {
+        AppLogger.error('Photo upload server fault', tag: 'PROFILE');
+        throw ServerException(
+          message: LocaleKeys.errors_upload_failed,
+          statusCode: e.statusCode,
+        );
+      }
+      rethrow;
+    }
   }
 
   @override

@@ -1,4 +1,6 @@
+import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/services/storage_service.dart';
 
 import '../../auth/presentation/blocs/user_session/user_session_cubit.dart';
 import '../../devices/application/device_bootstrap_service.dart';
@@ -16,7 +18,8 @@ import '../domain/usecases/set_main_profile_image_usecase.dart';
 import '../presentation/blocs/delete_account/delete_account_cubit.dart';
 import '../presentation/blocs/my_profile/my_profile_cubit.dart';
 import '../presentation/blocs/profile_gate/profile_gate_cubit.dart';
-import '../presentation/blocs/profile_photos/profile_photos_cubit.dart';
+import '../presentation/blocs/photo_manager/photo_manager_cubit.dart';
+import '../presentation/blocs/photo_manager/photo_manager_state.dart';
 import '../presentation/blocs/profile_reaction/profile_reaction_cubit.dart';
 import '../presentation/blocs/profile_details/profile_details_cubit.dart';
 import '../../subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
@@ -25,7 +28,10 @@ import '../presentation/blocs/share_with_matchmaker/share_with_matchmaker_cubit.
 void initProfileDependencies() {
   //! DataSource
   sl.registerLazySingleton<ProfileRemoteDataSource>(
-    () => ProfileRemoteDataSourceImpl(apiConsumer: sl()),
+    () => ProfileRemoteDataSourceImpl(
+      apiConsumer: sl(),
+      secureStorage: sl<StorageService>(),
+    ),
   );
 
   //! Repository
@@ -57,12 +63,16 @@ void initProfileDependencies() {
     ),
   );
   sl.registerFactory(() => MyProfileCubit(getMyProfile: sl()));
-  sl.registerFactory(
-    () => ProfilePhotosCubit(
+  // One instance per mount; the caller passes the mode via param1 so the
+  // same cubit serves registration and profile edit.
+  sl.registerFactoryParam<PhotoManagerCubit, PhotoManagerMode, void>(
+    (mode, _) => PhotoManagerCubit(
+      mode: mode,
       getImages: sl(),
       addImages: sl(),
       deleteImage: sl(),
       setMain: sl(),
+      sharedPrefs: sl<SharedPrefService>(),
     ),
   );
   sl.registerFactory(

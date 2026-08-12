@@ -5,7 +5,6 @@ import 'package:qeran/features/auth/presentation/screens/login_screen/login_scre
 import 'package:qeran/features/auth/presentation/screens/oath/oath_screen.dart';
 import 'package:qeran/features/auth/presentation/screens/register_screen/register_screen.dart';
 import 'package:qeran/features/auth/presentation/screens/reset_password/reset_pass_screen.dart';
-import 'package:qeran/features/auth/presentation/screens/upload_image/upload_image_profile_screen.dart';
 import 'package:qeran/features/auth/presentation/screens/whatsapp_input/whatsapp_input_screen.dart';
 import 'package:qeran/features/auth/presentation/screens/whatsapp_verification/whatsapp_verification.dart';
 import 'package:qeran/features/home/presentation/screens/home_screen.dart';
@@ -24,6 +23,8 @@ import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_
 import 'package:qeran/features/matchmaker/users/presentation/matchmaker_user_profile_args.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
+import 'package:qeran/features/profile/presentation/blocs/photo_manager/photo_manager_state.dart';
+import 'package:qeran/features/profile/presentation/screens/photo_manager/photo_manager_screen.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/presentation/screens/full_profile_details_screen.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_hub_screen.dart';
@@ -260,7 +261,8 @@ class AppRouter {
       case RouteNames.photoUploadScreen:
         return _buildSmoothRoute(
           settings: settings,
-          builder: (context) => const UploadImageProfileScreen(),
+          builder: (context) =>
+              const PhotoManagerScreen(mode: PhotoManagerMode.onboarding),
         );
       case RouteNames.notifications:
         return _buildSmoothRoute(

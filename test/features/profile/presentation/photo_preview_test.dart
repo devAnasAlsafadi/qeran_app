@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qeran/features/auth/presentation/screens/upload_image/widgets/filled_photo_slot.dart';
-import 'package:qeran/features/auth/presentation/screens/upload_image/widgets/photo_preview_screen.dart';
+import 'package:qeran/features/profile/domain/entities/photo_slot.dart';
+import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/filled_photo_slot.dart';
+import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/photo_preview_screen.dart';
 
 /// QER-77: a filled thumbnail opens the photo full-screen.
 ///
@@ -62,10 +63,8 @@ void main() {
       await tester.pumpWidget(
         _host(
           FilledPhotoSlot(
-            index: 0,
-            file: _photo,
-            isPrimary: false,
-            isUploading: false,
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isBusy: false,
             onRemove: () => removed = true,
             onSetPrimary: () => madePrimary = true,
           ),
@@ -91,10 +90,8 @@ void main() {
       await tester.pumpWidget(
         _host(
           FilledPhotoSlot(
-            index: 0,
-            file: _photo,
-            isPrimary: false,
-            isUploading: false,
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isBusy: false,
             onRemove: () => removed = true,
             onSetPrimary: () {},
           ),
@@ -117,10 +114,8 @@ void main() {
       await tester.pumpWidget(
         _host(
           FilledPhotoSlot(
-            index: 0,
-            file: _photo,
-            isPrimary: false,
-            isUploading: false,
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isBusy: false,
             onRemove: () {},
             onSetPrimary: () => madePrimary = true,
           ),
@@ -186,10 +181,8 @@ void main() {
     await tester.pumpWidget(
       _host(
         FilledPhotoSlot(
-          index: 0,
-          file: _photo,
-          isPrimary: false,
-          isUploading: false,
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isBusy: false,
           onRemove: () {},
           onSetPrimary: () {},
         ),
@@ -209,10 +202,8 @@ void main() {
     await tester.pumpWidget(
       _host(
         FilledPhotoSlot(
-          index: 0,
-          file: _photo,
-          isPrimary: false,
-          isUploading: true,
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isBusy: true,
           onRemove: () {},
           onSetPrimary: () {},
         ),

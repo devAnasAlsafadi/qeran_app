@@ -6,17 +6,13 @@ import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
-import '../../../../../core/design_system/widgets/qeran_text_field.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../domain/entities/case_stage.dart';
+import '../../domain/entities/compatibility_case_stage.dart';
 import '../../domain/entities/matchmaker_cases_filter.dart';
-import 'case_timeline.dart';
 
-/// The cases filter sheet (08): a name search + a single-select stage list
-/// (`الكل` + the five canonical [CaseStage]s, labelled from the SAME shared
-/// source as the detail timeline). Returns the chosen [MatchmakerCasesFilter]
-/// on apply, an empty filter from "مسح", or `null` if dismissed.
+/// Server-backed cases filter. Stage and active-formal-request are independent
+/// and the backend combines them before pagination.
 Future<MatchmakerCasesFilter?> showMatchmakerCasesFilterSheet(
   BuildContext context, {
   required MatchmakerCasesFilter current,
@@ -37,25 +33,22 @@ class _CasesFilterSheet extends StatefulWidget {
 }
 
 class _CasesFilterSheetState extends State<_CasesFilterSheet> {
-  late CaseStage? _stage;
-  late final TextEditingController _name;
+  late CompatibilityCaseStage? _stage;
+  late bool? _activeFormalRequest;
 
   @override
   void initState() {
     super.initState();
     _stage = widget.current.stage;
-    _name = TextEditingController(text: widget.current.nameQuery);
-  }
-
-  @override
-  void dispose() {
-    _name.dispose();
-    super.dispose();
+    _activeFormalRequest = widget.current.activeFormalRequest;
   }
 
   void _apply() {
     Navigator.of(context).pop(
-      MatchmakerCasesFilter(stage: _stage, nameQuery: _name.text.trim()),
+      MatchmakerCasesFilter(
+        stage: _stage,
+        activeFormalRequest: _activeFormalRequest,
+      ),
     );
   }
 
@@ -76,31 +69,53 @@ class _CasesFilterSheetState extends State<_CasesFilterSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            QeranTextField(
-              controller: _name,
-              hint: LocaleKeys.matchmaker_cases_filter_name.t(context),
-              prefix: const Icon(
-                Icons.search_rounded,
-                size: 20,
-                color: QeranColors.inkMuted,
-              ),
-              onChanged: (_) {},
+            Text(
+              LocaleKeys.matchmaker_cases_filter_status.t(context),
+              style: QeranTypography.subtitle,
             ),
-            QeranSpacing.vs16,
-            // الكل + the canonical stages, single-select.
+            QeranSpacing.vs8,
             _StageOption(
               label: LocaleKeys.matchmaker_cases_filter_all.t(context),
               selected: _stage == null,
               onTap: () => setState(() => _stage = null),
             ),
-            for (final stage in CaseStage.values) ...[
+            for (final stage in CompatibilityCaseStage.values.where(
+              (stage) => stage != CompatibilityCaseStage.unknown,
+            )) ...[
               QeranSpacing.vs8,
               _StageOption(
-                label: caseStageLabelKey(stage).t(context),
+                label: _stageLabelKey(stage).t(context),
                 selected: _stage == stage,
                 onTap: () => setState(() => _stage = stage),
               ),
             ],
+            QeranSpacing.vs24,
+            Text(
+              LocaleKeys.matchmaker_cases_filter_formal_request.t(context),
+              style: QeranTypography.subtitle,
+            ),
+            QeranSpacing.vs8,
+            _StageOption(
+              label: LocaleKeys.matchmaker_cases_filter_formal_any.t(context),
+              selected: _activeFormalRequest == null,
+              onTap: () => setState(() => _activeFormalRequest = null),
+            ),
+            QeranSpacing.vs8,
+            _StageOption(
+              label: LocaleKeys.matchmaker_cases_filter_formal_active.t(
+                context,
+              ),
+              selected: _activeFormalRequest == true,
+              onTap: () => setState(() => _activeFormalRequest = true),
+            ),
+            QeranSpacing.vs8,
+            _StageOption(
+              label: LocaleKeys.matchmaker_cases_filter_formal_inactive.t(
+                context,
+              ),
+              selected: _activeFormalRequest == false,
+              onTap: () => setState(() => _activeFormalRequest = false),
+            ),
           ],
         ),
       ),
@@ -134,6 +149,20 @@ class _CasesFilterSheetState extends State<_CasesFilterSheet> {
     );
   }
 }
+
+String _stageLabelKey(CompatibilityCaseStage stage) => switch (stage) {
+  CompatibilityCaseStage.likeAccepted =>
+    LocaleKeys.matchmaker_cases_stage_like_accepted,
+  CompatibilityCaseStage.photoExchangePending =>
+    LocaleKeys.matchmaker_cases_stage_photo_pending,
+  CompatibilityCaseStage.photoExchangeAccepted =>
+    LocaleKeys.matchmaker_cases_stage_photo_accepted,
+  CompatibilityCaseStage.photoExchangeRejected =>
+    LocaleKeys.matchmaker_cases_stage_photo_rejected,
+  CompatibilityCaseStage.photoExchangeExpired =>
+    LocaleKeys.matchmaker_cases_stage_photo_expired,
+  CompatibilityCaseStage.unknown => LocaleKeys.matchmaker_cases_filter_all,
+};
 
 /// One single-select stage row — gold border + cream-surface + a gold-deep
 /// check when selected; paper + wine-08 border otherwise.

@@ -4,6 +4,7 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/data/error_codes.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/compatibility_cases_page.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/formal_request_status.dart';
+import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/matchmaker_cases_filter.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/usecases/update_formal_request_status_usecase.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/presentation/blocs/matchmaker_case_status_cubit.dart';
@@ -18,6 +19,7 @@ class _RejectingRepository implements CompatibilityCasesRepository {
   Future<Either<Failure, CompatibilityCasesPage>> getCases({
     required int page,
     required int pageSize,
+    required MatchmakerCasesFilter filter,
   }) => throw UnimplementedError();
 
   @override

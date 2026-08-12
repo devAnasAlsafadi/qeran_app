@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
-import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
 
 import '../../../shared/domain/entities/compatibility_case_update.dart';
@@ -12,6 +11,7 @@ import '../../../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../../domain/entities/case_formal_request.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../../domain/entities/formal_request_status.dart';
+import '../../domain/entities/matchmaker_cases_filter.dart';
 import '../../domain/usecases/get_compatibility_cases_usecase.dart';
 
 /// Owns the single paginated compatibility-cases list. Pagination,
@@ -28,15 +28,15 @@ import '../../domain/usecases/get_compatibility_cases_usecase.dart';
 /// connection itself is owned by the shell, never by this cubit.
 class MatchmakerCasesListCubit
     extends Cubit<PaginatedListState<CompatibilityCase>>
-    with
-        SafeEmit<PaginatedListState<CompatibilityCase>>,
-        PaginatedListCubitMixin<CompatibilityCase> {
+    with SafeEmit<PaginatedListState<CompatibilityCase>> {
   final GetCompatibilityCasesUseCase _getCases;
   final MatchmakerRealtimePort _realtimePort;
 
   StreamSubscription<CompatibilityCaseUpdate>? _caseUpdatesSub;
   StreamSubscription<MatchmakerRealtimeStatus>? _statusSub;
   bool _hasBeenConnected;
+  MatchmakerCasesFilter _filter = const MatchmakerCasesFilter();
+  int _requestGeneration = 0;
 
   MatchmakerCasesListCubit({
     required GetCompatibilityCasesUseCase getCases,
@@ -50,24 +50,92 @@ class MatchmakerCasesListCubit
     _statusSub = _realtimePort.statusStream.listen(_onStatus);
   }
 
-  /// Raised toward the 100 max so the CLIENT-SIDE cases filter (F3) sees the
-  /// full set in one page — cases are few per matchmaker. The endpoint exposes
-  /// no `status`/`search`, so filtering is done over loaded items; with this
-  /// page size the first page is effectively the whole list. Scrolling still
-  /// loads further pages, widening what the filter can see.
-  @override
-  int get pageSize => 100;
+  static const int pageSize = 20;
 
-  @override
-  Future<({List<CompatibilityCase> items, bool hasMore})> fetchPage(
-    int page,
-  ) async {
-    final result = await _getCases(page: page, pageSize: pageSize);
-    // Throw-on-failure: the mixin captures the (already-localized) message
-    // into `errorMessage`. `_CasesFetchException.toString()` returns it.
-    return result.fold(
-      (failure) => throw _CasesFetchException(failure.message),
-      (pageData) => (items: pageData.items, hasMore: pageData.hasMore),
+  MatchmakerCasesFilter get filter => _filter;
+
+  /// Replaces the server query, drops every loaded page and fetches page 1.
+  /// The generation guard prevents a late response for the old query from
+  /// repopulating the list after the filter changed.
+  Future<void> applyFilter(MatchmakerCasesFilter filter) async {
+    if (_filter == filter) return;
+    _filter = filter;
+    _requestGeneration++;
+    emit(const PaginatedListState<CompatibilityCase>());
+    await loadFirst();
+  }
+
+  Future<void> loadFirst() async {
+    if (state.isLoading) return;
+    final generation = ++_requestGeneration;
+    final filter = _filter;
+    emit(state.copyWith(isLoading: true, clearError: true));
+    final result = await _getCases(page: 1, pageSize: pageSize, filter: filter);
+    if (isClosed || generation != _requestGeneration) return;
+    result.fold(
+      (failure) =>
+          emit(state.copyWith(isLoading: false, errorMessage: failure.message)),
+      (page) => emit(
+        state.copyWith(
+          items: page.items,
+          page: 1,
+          hasMore: page.hasMore,
+          isLoading: false,
+          clearError: true,
+        ),
+      ),
+    );
+  }
+
+  Future<void> refresh() async {
+    if (state.isLoading || state.isRefreshing) return;
+    final generation = ++_requestGeneration;
+    final filter = _filter;
+    emit(state.copyWith(isRefreshing: true, clearError: true));
+    final result = await _getCases(page: 1, pageSize: pageSize, filter: filter);
+    if (isClosed || generation != _requestGeneration) return;
+    result.fold(
+      (failure) => emit(
+        state.copyWith(isRefreshing: false, errorMessage: failure.message),
+      ),
+      (page) => emit(
+        state.copyWith(
+          items: page.items,
+          page: 1,
+          hasMore: page.hasMore,
+          isRefreshing: false,
+          clearError: true,
+        ),
+      ),
+    );
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoading || state.isRefreshing || state.isLoadingMore) return;
+    if (!state.hasMore) return;
+    final generation = _requestGeneration;
+    final filter = _filter;
+    final nextPage = state.page + 1;
+    emit(state.copyWith(isLoadingMore: true, clearError: true));
+    final result = await _getCases(
+      page: nextPage,
+      pageSize: pageSize,
+      filter: filter,
+    );
+    if (isClosed || generation != _requestGeneration) return;
+    result.fold(
+      (failure) => emit(
+        state.copyWith(isLoadingMore: false, errorMessage: failure.message),
+      ),
+      (page) => emit(
+        state.copyWith(
+          items: [...state.items, ...page.items],
+          page: page.pageNumber,
+          hasMore: page.hasMore,
+          isLoadingMore: false,
+          clearError: true,
+        ),
+      ),
     );
   }
 
@@ -166,11 +234,4 @@ class MatchmakerCasesListCubit
     // subscriptions but never disconnect the port here.
     await super.close();
   }
-}
-
-class _CasesFetchException implements Exception {
-  const _CasesFetchException(this.message);
-  final String message;
-  @override
-  String toString() => message;
 }

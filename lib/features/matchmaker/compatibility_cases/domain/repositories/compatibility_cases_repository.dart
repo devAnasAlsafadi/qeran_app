@@ -3,6 +3,7 @@ import 'package:qeran/core/errors/errors.dart';
 
 import '../entities/compatibility_cases_page.dart';
 import '../entities/formal_request_status.dart';
+import '../entities/matchmaker_cases_filter.dart';
 
 abstract interface class CompatibilityCasesRepository {
   /// Fetches one page of compatibility cases. Left on transport / auth
@@ -10,6 +11,7 @@ abstract interface class CompatibilityCasesRepository {
   Future<Either<Failure, CompatibilityCasesPage>> getCases({
     required int page,
     required int pageSize,
+    required MatchmakerCasesFilter filter,
   });
 
   /// Updates a case's formal-request status (server-validated). Right with

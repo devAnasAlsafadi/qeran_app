@@ -6,11 +6,13 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../shared/data/matchmaker_envelope.dart';
 import '../models/compatibility_cases_page_model.dart';
+import '../../domain/entities/matchmaker_cases_filter.dart';
 
 abstract interface class CompatibilityCasesRemoteDataSource {
   Future<CompatibilityCasesPageModel> getCases({
     required int page,
     required int pageSize,
+    required MatchmakerCasesFilter filter,
   });
 
   /// Updates a case's formal-request status. [newStatus] is the verbatim
@@ -34,21 +36,31 @@ class CompatibilityCasesRemoteDataSourceImpl
   Future<CompatibilityCasesPageModel> getCases({
     required int page,
     required int pageSize,
+    required MatchmakerCasesFilter filter,
   }) async {
     AppLogger.debug(
-      'MATCHMAKER — get compatibility cases page=$page size=$pageSize',
+      'MATCHMAKER — get compatibility page=$page size=$pageSize '
+      'stage=${filter.stage?.apiValue} formal=${filter.activeFormalRequest}',
       tag: 'MATCHMAKER',
     );
+    final query = <String, dynamic>{'page': page, 'pageSize': pageSize};
+    final stage = filter.stage?.apiValue;
+    if (stage != null) query['stage'] = stage;
+    final activeFormalRequest = filter.activeFormalRequest;
+    if (activeFormalRequest != null) {
+      query['activeFormalRequest'] = activeFormalRequest;
+    }
     final response = await _apiConsumer.get(
-      EndPoints.matchmakerCompatibilityCases,
-      queryParameters: {'page': page, 'pageSize': pageSize},
+      EndPoints.matchmakerCompatibility,
+      queryParameters: query,
     );
     // `get()` enforced the OUTER envelope (status == 1). The list is
     // single-wrapped today, but route the payload through
     // unwrapInnerEnvelope so a future double-wrap parses unchanged — a map
     // with no `status` key is returned as-is.
-    final pageJson =
-        unwrapInnerEnvelope((response as Map<String, dynamic>)['data']);
+    final pageJson = unwrapInnerEnvelope(
+      (response as Map<String, dynamic>)['data'],
+    );
     if (pageJson == null) {
       AppLogger.error(
         'MATCHMAKER — compatibility cases ok but data was null',

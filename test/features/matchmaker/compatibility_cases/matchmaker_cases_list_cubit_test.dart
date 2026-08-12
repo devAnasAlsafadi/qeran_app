@@ -10,6 +10,7 @@ import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/co
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/compatibility_case_stage.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/compatibility_cases_page.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/formal_request_status.dart';
+import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/matchmaker_cases_filter.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/repositories/compatibility_cases_repository.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/usecases/get_compatibility_cases_usecase.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/presentation/blocs/matchmaker_cases_list_cubit.dart';
@@ -27,6 +28,7 @@ class _Repository implements CompatibilityCasesRepository {
   Future<Either<Failure, CompatibilityCasesPage>> getCases({
     required int page,
     required int pageSize,
+    required MatchmakerCasesFilter filter,
   }) async => Right(
     CompatibilityCasesPage(items: [item], pageNumber: 1, totalPages: 1),
   );

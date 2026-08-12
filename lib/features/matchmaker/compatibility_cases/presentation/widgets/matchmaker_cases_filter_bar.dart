@@ -6,6 +6,7 @@ import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../blocs/matchmaker_cases_filter_cubit.dart';
+import '../blocs/matchmaker_cases_list_cubit.dart';
 import 'matchmaker_cases_filter_sheet.dart';
 
 /// End-aligned filter affordance for the cases tab — the shared app bar can't
@@ -51,12 +52,14 @@ class MatchmakerCasesFilterBar extends StatelessWidget {
 
   Future<void> _openSheet(BuildContext context) async {
     final filterCubit = context.read<MatchmakerCasesFilterCubit>();
+    final listCubit = context.read<MatchmakerCasesListCubit>();
     final result = await showMatchmakerCasesFilterSheet(
       context,
       current: filterCubit.state,
     );
     if (result == null) return; // dismissed — keep current filter
     filterCubit.apply(result);
+    await listCubit.applyFilter(result);
   }
 }
 

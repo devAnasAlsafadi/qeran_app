@@ -72,10 +72,6 @@ void main() {
     stage: CompatibilityCaseStage.photoExchangeAccepted,
     formal: FormalRequestStatus.successfullyClosed,
   );
-  final all = [like, photo, waiting, closed, completed];
-
-  List<int> ids(List<CompatibilityCase> cs) => cs.map((c) => c.caseId).toList();
-
   group('caseStageOf', () {
     test('maps each case to its canonical stage', () {
       expect(caseStageOf(like), CaseStage.likeAccepted);
@@ -88,39 +84,30 @@ void main() {
   });
 
   group('MatchmakerCasesFilter', () {
-    test('الكل (no stage, no name) passes everything', () {
+    test('default sends no server constraints', () {
       const f = MatchmakerCasesFilter();
       expect(f.isActive, isFalse);
-      expect(ids(f.apply(all)), [1, 2, 3, 4, 5]);
+      expect(f.stage, isNull);
+      expect(f.activeFormalRequest, isNull);
     });
 
-    test('single stage keeps only cases at that stage', () {
-      const f = MatchmakerCasesFilter(stage: CaseStage.likeAccepted);
-      expect(f.isActive, isTrue);
-      expect(ids(f.apply(all)), [1]);
-    });
-
-    test('waitingAppointment includes the closed case anchored there', () {
-      const f = MatchmakerCasesFilter(stage: CaseStage.waitingAppointment);
-      expect(ids(f.apply(all)), [3, 4]);
-    });
-
-    test('completed keeps successfully closed cases visible', () {
-      const f = MatchmakerCasesFilter(stage: CaseStage.completed);
-      expect(ids(f.apply(all)), [5]);
-    });
-
-    test('name query matches either participant, case-insensitive', () {
-      const f = MatchmakerCasesFilter(nameQuery: 'ليان');
-      expect(ids(f.apply(all)), [4]);
-    });
-
-    test('stage + name combine (AND)', () {
+    test('stage and formal-request constraints are independent', () {
       const f = MatchmakerCasesFilter(
-        stage: CaseStage.waitingAppointment,
-        nameQuery: 'خالد',
+        stage: CompatibilityCaseStage.photoExchangeRejected,
+        activeFormalRequest: true,
       );
-      expect(ids(f.apply(all)), [4]);
+      expect(f.isActive, isTrue);
+      expect(f.stage?.apiValue, 3);
+      expect(f.activeFormalRequest, isTrue);
+    });
+
+    test('all five server stage values map exactly to 0..4', () {
+      expect(
+        CompatibilityCaseStage.values
+            .where((stage) => stage != CompatibilityCaseStage.unknown)
+            .map((stage) => stage.apiValue),
+        [0, 1, 2, 3, 4],
+      );
     });
   });
 }

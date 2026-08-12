@@ -7,6 +7,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/compatibility_cases_page.dart';
 import '../../domain/entities/formal_request_status.dart';
+import '../../domain/entities/matchmaker_cases_filter.dart';
 import '../../domain/repositories/compatibility_cases_repository.dart';
 import '../datasources/compatibility_cases_remote_datasource.dart';
 
@@ -21,9 +22,14 @@ class CompatibilityCasesRepositoryImpl
   Future<Either<Failure, CompatibilityCasesPage>> getCases({
     required int page,
     required int pageSize,
+    required MatchmakerCasesFilter filter,
   }) {
     return executeApiCall(() async {
-      final model = await _dataSource.getCases(page: page, pageSize: pageSize);
+      final model = await _dataSource.getCases(
+        page: page,
+        pageSize: pageSize,
+        filter: filter,
+      );
       return model.toEntity();
     });
   }

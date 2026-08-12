@@ -14,6 +14,16 @@ enum CompatibilityCaseStage {
   photoExchangeExpired,
   unknown;
 
+  /// Numeric value accepted by `GET /matchmaker/compatibility?stage=`.
+  int? get apiValue => switch (this) {
+    likeAccepted => 0,
+    photoExchangePending => 1,
+    photoExchangeAccepted => 2,
+    photoExchangeRejected => 3,
+    photoExchangeExpired => 4,
+    unknown => null,
+  };
+
   static CompatibilityCaseStage fromString(String? raw) {
     switch ((raw ?? '').toLowerCase()) {
       case 'likeaccepted':

@@ -17,6 +17,7 @@ import '../../../conversations/presentation/blocs/matchmaker_open_chat_cubit.dar
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/case_user.dart';
 import '../../domain/entities/compatibility_case.dart';
+import '../../domain/entities/matchmaker_cases_filter.dart';
 import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
 import '../screens/matchmaker_case_detail_screen.dart';
@@ -29,9 +30,8 @@ import 'matchmaker_case_card.dart';
 /// per-case when `otherMatchmakerId` is null (no colleague to message).
 const bool _matchmakerButtonEnabled = true;
 
-/// The populated cases list — renders the [visible] (already filtered) items
-/// over the underlying paginated [state]. Pagination still operates on the full
-/// loaded set; the footer shows while more pages exist.
+/// The populated server-filtered cases page. [visible] preserves the exact
+/// order returned by the backend; pagination continues the same query.
 class MatchmakerCasesListView extends StatelessWidget {
   const MatchmakerCasesListView({
     super.key,
@@ -269,7 +269,11 @@ class MatchmakerCasesFilteredEmpty extends StatelessWidget {
           child: QeranButton(
             label: LocaleKeys.matchmaker_cases_filter_clear.t(context),
             variant: QeranButtonVariant.ghost,
-            onPressed: () => context.read<MatchmakerCasesFilterCubit>().clear(),
+            onPressed: () {
+              const cleared = MatchmakerCasesFilter();
+              context.read<MatchmakerCasesFilterCubit>().clear();
+              context.read<MatchmakerCasesListCubit>().applyFilter(cleared);
+            },
           ),
         ),
       ],

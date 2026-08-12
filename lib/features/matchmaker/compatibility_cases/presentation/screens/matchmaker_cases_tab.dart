@@ -20,8 +20,8 @@ import '../widgets/matchmaker_cases_list_skeleton.dart';
 import '../widgets/matchmaker_cases_list_view.dart';
 
 /// Matchmaker compatibility-cases tab (M3a / F3) — a single paginated list of
-/// active cases with a CLIENT-SIDE filter (status multi-select + name search)
-/// over the loaded items. Tapping a card opens the detail + status-update flow.
+/// active cases with server-side stage/formal-request filters. Tapping a card
+/// opens the detail + status-update flow.
 class MatchmakerCasesTab extends StatelessWidget {
   const MatchmakerCasesTab({super.key});
 
@@ -61,8 +61,10 @@ class _CasesListBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MatchmakerCasesListCubit,
-        PaginatedListState<CompatibilityCase>>(
+    return BlocBuilder<
+      MatchmakerCasesListCubit,
+      PaginatedListState<CompatibilityCase>
+    >(
       builder: (context, state) {
         final cubit = context.read<MatchmakerCasesListCubit>();
         final filter = context.watch<MatchmakerCasesFilterCubit>().state;
@@ -78,18 +80,17 @@ class _CasesListBody extends StatelessWidget {
             onRetry: cubit.loadFirst,
           );
         }
-        if (state.items.isEmpty) {
+        if (state.items.isEmpty && !filter.isActive) {
           return _EmptyRefreshable(onRefresh: cubit.refresh);
         }
 
-        final visible = filter.apply(state.items);
         return Column(
           children: [
             MatchmakerCasesFilterBar(isActive: filter.isActive),
             Expanded(
-              child: visible.isEmpty
+              child: state.items.isEmpty
                   ? const MatchmakerCasesFilteredEmpty()
-                  : MatchmakerCasesListView(state: state, visible: visible),
+                  : MatchmakerCasesListView(state: state, visible: state.items),
             ),
           ],
         );

@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
-import 'package:qeran/core/enum/snakebar_tybe.dart';
-import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/utils/app_snackbar.dart';
-import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
-import 'package:qeran/features/home/presentation/home_shell_scope.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/likes_tab.dart';
 import '../blocs/likes_cubit.dart';
@@ -91,9 +85,7 @@ class _LikesSwipeableTabBodyState extends State<LikesSwipeableTabBody> {
     return PageView(
       controller: _pageController,
       onPageChanged: _onPageChanged,
-      children: [
-        for (final tab in _order) _pageFor(tab, state),
-      ],
+      children: [for (final tab in _order) _pageFor(tab, state)],
     );
   }
 
@@ -104,42 +96,7 @@ class _LikesSwipeableTabBodyState extends State<LikesSwipeableTabBody> {
       case LikesTab.received:
         return LikesReceivedSection(state: state);
       case LikesTab.matches:
-        return MatchesSection(
-          state: state,
-          onContactMatchmaker: _onContactMatchmaker,
-        );
+        return MatchesSection(state: state);
     }
-  }
-
-  void _onContactMatchmaker(BuildContext context, String? conversationId) {
-    // The user has exactly one matchmaker conversation, resolved by the
-    // chat screen via `/api/chat/my-matchmaker`. `conversationId` is null
-    // until a formalRequest exists (Stage 0), so we no longer gate on it
-    // — the inquiry / formal-step button opens the matchmaker chat at
-    // every stage. Preferred path: switch the bottom nav to the Messages
-    // tab (preserves navigation state — no extra push).
-    final shell = HomeShellScope.maybeOf(context);
-    if (shell != null) {
-      shell.openMessagesTab();
-      return;
-    }
-    // Non-shell scope (deep link / widget test): push the real chat entry,
-    // which self-resolves the single matchmaker conversation via
-    // `/api/chat/my-matchmaker` (so the id arg isn't needed here).
-    if (conversationId != null && conversationId.isNotEmpty) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (ctx) =>
-              ChatEntryScreen(onBack: () => Navigator.of(ctx).pop()),
-        ),
-      );
-      return;
-    }
-    AppSnackBar.show(
-      context,
-      message:
-          LocaleKeys.likes_matches_stage_matchmaker_will_contact.t(context),
-      type: SnackBarType.info,
-    );
   }
 }

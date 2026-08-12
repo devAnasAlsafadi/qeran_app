@@ -19,12 +19,14 @@ class MatchCardAvatar extends StatelessWidget {
   final String? url;
   final bool blur;
   final double size;
+  final bool blockImageBytes;
 
   const MatchCardAvatar({
     super.key,
     required this.url,
     required this.blur,
     this.size = 64,
+    this.blockImageBytes = false,
   });
 
   @override
@@ -55,6 +57,7 @@ class MatchCardAvatar extends StatelessWidget {
                 blur: blur,
                 size: null,
                 shape: BoxShape.circle,
+                blockImageBytes: blockImageBytes,
               )
             else
               Center(
@@ -67,8 +70,7 @@ class MatchCardAvatar extends StatelessWidget {
             // Strong wine frost over a hidden real photo — reads as a solid
             // wine-tinted frosted circle, never the photo's raw (green/grey)
             // tint. Sits over the solid base so the result is fully opaque.
-            if (hasImage && blur)
-              const ColoredBox(color: QeranColors.wine80),
+            if (hasImage && blur) const ColoredBox(color: QeranColors.wine80),
           ],
         ),
       ),

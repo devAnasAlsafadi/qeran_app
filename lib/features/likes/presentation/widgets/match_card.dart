@@ -36,8 +36,10 @@ class MatchCardWidget extends StatelessWidget {
   /// Stage 1 — avatar tap opens the gallery sheet.
   final VoidCallback? onOpenGallery;
 
-  /// Stage 0 — inquiry CTA (opens the matchmaker chat, no send).
+  /// Stage 0 — inquiry CTA (shares the profile + predefined text).
   final VoidCallback? onContactMatchmaker;
+  final bool isInquirySending;
+  final bool isInquirySent;
 
   /// Stage 1/2 — formal-step CTA: shares the partner card + message into
   /// the matchmaker chat, then opens it (guarded once per session).
@@ -62,6 +64,8 @@ class MatchCardWidget extends StatelessWidget {
     this.onPendingExpiredLocally,
     this.onOpenGallery,
     this.onContactMatchmaker,
+    this.isInquirySending = false,
+    this.isInquirySent = false,
     this.onFormalStep,
     this.isFormalStepSending = false,
     this.isFormalStepSent = false,
@@ -111,6 +115,8 @@ class MatchCardWidget extends StatelessWidget {
           isRejectingPhotoExchange: isRejectingPhotoExchange,
           onPendingExpiredLocally: onPendingExpiredLocally,
           onContactMatchmaker: onContactMatchmaker,
+          isInquirySending: isInquirySending,
+          isInquirySent: isInquirySent,
         );
       case MatchStage.photosExchanged:
         return MatchCardStage1(

@@ -27,6 +27,8 @@ class MatchCardStage0 extends StatelessWidget {
   final bool isRejectingPhotoExchange;
   final VoidCallback? onPendingExpiredLocally;
   final VoidCallback? onContactMatchmaker;
+  final bool isInquirySending;
+  final bool isInquirySent;
 
   const MatchCardStage0({
     super.key,
@@ -39,6 +41,8 @@ class MatchCardStage0 extends StatelessWidget {
     required this.isRejectingPhotoExchange,
     required this.onPendingExpiredLocally,
     required this.onContactMatchmaker,
+    this.isInquirySending = false,
+    this.isInquirySent = false,
   });
 
   @override
@@ -50,8 +54,10 @@ class MatchCardStage0 extends StatelessWidget {
         pending != null && (pending.canAccept || pending.canReject);
 
     // Map header data
-    final avatarWidget =
-        MatchCardAvatar(url: image?.url, blur: image?.isBlurred ?? true);
+    final avatarWidget = MatchCardAvatar(
+      url: image?.url,
+      blur: image?.isBlurred ?? true,
+    );
     final nameText = card.otherUserName;
     final statusIconData = _statusIcon(pending, canRespond);
     final statusTextString = _statusText(context, pending, canRespond);
@@ -72,7 +78,9 @@ class MatchCardStage0 extends StatelessWidget {
 
     if (pending == null) {
       // No request yet -> Request (gold primary) + Inquiry (ghost footer)
-      primaryLabel = LocaleKeys.likes_matches_stage_waiting_photos_cta.t(context);
+      primaryLabel = LocaleKeys.likes_matches_stage_waiting_photos_cta.t(
+        context,
+      );
       onPrimaryPressed = onRequestPhotoExchange;
       primaryLoading = isRequestingPhotoExchange;
       secondaryActions = [_inquiryButton(context)];
@@ -83,8 +91,9 @@ class MatchCardStage0 extends StatelessWidget {
         children: [
           Expanded(
             child: QeranButton(
-              label: LocaleKeys.likes_matches_photo_exchange_action_reject
-                  .t(context),
+              label: LocaleKeys.likes_matches_photo_exchange_action_reject.t(
+                context,
+              ),
               onPressed: pending.canReject ? onRejectPhotoExchange : null,
               variant: QeranButtonVariant.secondary,
               size: QeranButtonSize.xs,
@@ -94,8 +103,9 @@ class MatchCardStage0 extends StatelessWidget {
           const SizedBox(width: QeranSpacing.s8),
           Expanded(
             child: QeranButton(
-              label: LocaleKeys.likes_matches_photo_exchange_action_accept
-                  .t(context),
+              label: LocaleKeys.likes_matches_photo_exchange_action_accept.t(
+                context,
+              ),
               onPressed: pending.canAccept ? onAcceptPhotoExchange : null,
               variant: QeranButtonVariant.primary,
               size: QeranButtonSize.xs,
@@ -123,15 +133,19 @@ class MatchCardStage0 extends StatelessWidget {
     );
   }
 
-  /// Ghost "send your inquiries to the matchmaker" link, shown below the
-  /// primary action(s) in both the no-request and responder states.
+  /// Strong, full-width inquiry action. This must read as a real button in
+  /// the compatibility list, not as a low-emphasis text link.
   Widget _inquiryButton(BuildContext context) {
     return QeranButton(
-      label: LocaleKeys.likes_matches_inquiry_cta.t(context),
-      onPressed: onContactMatchmaker,
-      variant: QeranButtonVariant.ghost,
+      label:
+          (isInquirySent
+                  ? LocaleKeys.likes_matches_inquiry_sent
+                  : LocaleKeys.likes_matches_inquiry_cta)
+              .t(context),
+      onPressed: isInquirySent ? null : onContactMatchmaker,
+      variant: QeranButtonVariant.primaryWine,
       size: QeranButtonSize.xs,
-      fullWidth: false,
+      loading: isInquirySending,
     );
   }
 

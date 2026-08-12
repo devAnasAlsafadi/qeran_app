@@ -21,6 +21,13 @@ import 'package:qeran/features/likes/presentation/blocs/likes_cubit.dart';
 import 'package:qeran/features/likes/presentation/blocs/likes_state.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
+import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
+import 'package:qeran/features/chat/domain/entities/chat_message.dart';
+import 'package:qeran/features/chat/domain/entities/matchmaker_info.dart';
+import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
+import 'package:qeran/features/chat/domain/entities/send_text_outcome.dart';
+import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
+import 'package:qeran/features/likes/domain/entities/match_stage.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 class _MockIncoming extends Mock implements GetIncomingLikesUseCase {}
@@ -39,11 +46,15 @@ class _MockAcceptPx extends Mock implements AcceptPhotoExchangeUseCase {}
 
 class _MockRejectPx extends Mock implements RejectPhotoExchangeUseCase {}
 
+class _MockGetMyMatchmaker extends Mock implements GetMyMatchmakerUseCase {}
+
 class _MockShareProfile extends Mock implements ShareProfileUseCase {}
 
 class _MockSendText extends Mock implements SendTextMessageUseCase {}
 
 class _MockProfileGate extends Mock implements ProfileGateCubit {}
+
+class _MockChatMessage extends Mock implements ChatMessage {}
 
 const _empty = LikeRequestsData(
   pending: [],
@@ -52,6 +63,17 @@ const _empty = LikeRequestsData(
 );
 
 const List<MatchCard> _noMatches = <MatchCard>[];
+
+const _stageZeroMatch = MatchCard(
+  likeRequestId: 42,
+  otherUserId: 'candidate-id',
+  otherUserName: 'Candidate',
+  images: [],
+  stage: MatchStage.waitingForPhotoExchange,
+  pendingPhotoExchange: null,
+  formalRequest: null,
+  conversationId: null,
+);
 
 void main() {
   late _MockIncoming incoming;
@@ -62,6 +84,7 @@ void main() {
   late _MockRequestPx requestPx;
   late _MockAcceptPx acceptPx;
   late _MockRejectPx rejectPx;
+  late _MockGetMyMatchmaker getMyMatchmaker;
   late _MockShareProfile shareProfile;
   late _MockSendText sendText;
   late _MockProfileGate profileGate;
@@ -76,6 +99,7 @@ void main() {
     requestPx = _MockRequestPx();
     acceptPx = _MockAcceptPx();
     rejectPx = _MockRejectPx();
+    getMyMatchmaker = _MockGetMyMatchmaker();
     shareProfile = _MockShareProfile();
     sendText = _MockSendText();
     profileGate = _MockProfileGate();
@@ -89,6 +113,7 @@ void main() {
       requestPhotoExchange: requestPx,
       acceptPhotoExchange: acceptPx,
       rejectPhotoExchange: rejectPx,
+      getMyMatchmaker: getMyMatchmaker,
       shareProfile: shareProfile,
       sendText: sendText,
       profileGate: profileGate,
@@ -98,8 +123,9 @@ void main() {
   tearDown(() => cubit.close());
 
   test('loadOutgoing success → status loaded + data set', () async {
-    when(() => outgoing())
-        .thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
+    when(
+      () => outgoing(),
+    ).thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
 
     await cubit.loadOutgoing();
 
@@ -122,8 +148,9 @@ void main() {
   });
 
   test('switchTab to received triggers loadIncoming exactly once', () async {
-    when(() => incoming())
-        .thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
+    when(
+      () => incoming(),
+    ).thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
 
     cubit.switchTab(LikesTab.received);
     await Future<void>.delayed(Duration.zero);
@@ -135,7 +162,8 @@ void main() {
 
   test('switchTab to matches triggers loadMatches exactly once', () async {
     when(() => getMatches()).thenAnswer(
-        (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+      (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+    );
 
     cubit.switchTab(LikesTab.matches);
     await Future<void>.delayed(Duration.zero);
@@ -145,34 +173,40 @@ void main() {
     verify(() => getMatches()).called(1);
   });
 
-  test('switchTab back-and-forth does not re-fetch a tab that is loaded',
-      () async {
-    when(() => incoming())
-        .thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
-    when(() => outgoing())
-        .thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
-    when(() => getMatches()).thenAnswer(
-        (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+  test(
+    'switchTab back-and-forth does not re-fetch a tab that is loaded',
+    () async {
+      when(
+        () => incoming(),
+      ).thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
+      when(
+        () => outgoing(),
+      ).thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
-    cubit.switchTab(LikesTab.received);
-    await Future<void>.delayed(Duration.zero);
-    cubit.switchTab(LikesTab.matches);
-    await Future<void>.delayed(Duration.zero);
-    cubit.switchTab(LikesTab.sent);
-    await Future<void>.delayed(Duration.zero);
-    cubit.switchTab(LikesTab.received);
-    await Future<void>.delayed(Duration.zero);
-    cubit.switchTab(LikesTab.matches);
-    await Future<void>.delayed(Duration.zero);
+      cubit.switchTab(LikesTab.received);
+      await Future<void>.delayed(Duration.zero);
+      cubit.switchTab(LikesTab.matches);
+      await Future<void>.delayed(Duration.zero);
+      cubit.switchTab(LikesTab.sent);
+      await Future<void>.delayed(Duration.zero);
+      cubit.switchTab(LikesTab.received);
+      await Future<void>.delayed(Duration.zero);
+      cubit.switchTab(LikesTab.matches);
+      await Future<void>.delayed(Duration.zero);
 
-    verify(() => incoming()).called(1);
-    verify(() => outgoing()).called(1);
-    verify(() => getMatches()).called(1);
-  });
+      verify(() => incoming()).called(1);
+      verify(() => outgoing()).called(1);
+      verify(() => getMatches()).called(1);
+    },
+  );
 
   test('refresh on matches tab delegates to loadMatches', () async {
     when(() => getMatches()).thenAnswer(
-        (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+      (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+    );
 
     cubit.switchTab(LikesTab.matches);
     await Future<void>.delayed(Duration.zero);
@@ -195,51 +229,68 @@ void main() {
   });
 
   group('acceptLike', () {
-    test('success → emits acceptSuccess, reloads incoming, invalidates matches',
-        () async {
-      when(() => accept(42)).thenAnswer((_) async =>
-          const Right<Failure, LikeActionOutcome>(
+    test(
+      'success → emits acceptSuccess, reloads incoming, invalidates matches',
+      () async {
+        when(() => accept(42)).thenAnswer(
+          (_) async => const Right<Failure, LikeActionOutcome>(
             LikeActionSuccess(serverMessage: 'تم القبول'),
-          ));
-      when(() => incoming()).thenAnswer(
-          (_) async => const Right<Failure, LikeRequestsData>(_empty));
+          ),
+        );
+        when(() => incoming()).thenAnswer(
+          (_) async => const Right<Failure, LikeRequestsData>(_empty),
+        );
 
-      await cubit.acceptLike(42);
+        await cubit.acceptLike(42);
 
-      expect(cubit.state.actionEvent, LikesActionEvent.acceptSuccess);
-      expect(cubit.state.matchesStatus, LikesAsyncStatus.initial,
-          reason: 'matches slot is invalidated so next visit refetches');
-      verify(() => accept(42)).called(1);
-      verify(() => incoming()).called(1);
-    });
+        expect(cubit.state.actionEvent, LikesActionEvent.acceptSuccess);
+        expect(
+          cubit.state.matchesStatus,
+          LikesAsyncStatus.initial,
+          reason: 'matches slot is invalidated so next visit refetches',
+        );
+        verify(() => accept(42)).called(1);
+        verify(() => incoming()).called(1);
+      },
+    );
 
-    test('requiresSubscription → paywall event, NO refresh, NO invalidation',
-        () async {
-      when(() => accept(7)).thenAnswer((_) async =>
-          const Right<Failure, LikeActionOutcome>(
+    test(
+      'requiresSubscription → paywall event, NO refresh, NO invalidation',
+      () async {
+        when(() => accept(7)).thenAnswer(
+          (_) async => const Right<Failure, LikeActionOutcome>(
             LikeActionRequiresSubscription(
-                serverMessage: 'الاشتراك مطلوب لقبول الإعجابات'),
-          ));
+              serverMessage: 'الاشتراك مطلوب لقبول الإعجابات',
+            ),
+          ),
+        );
 
-      await cubit.acceptLike(7);
+        await cubit.acceptLike(7);
 
-      expect(
-          cubit.state.actionEvent, LikesActionEvent.acceptRequiresSubscription);
-      verifyNever(() => incoming());
-    });
+        expect(
+          cubit.state.actionEvent,
+          LikesActionEvent.acceptRequiresSubscription,
+        );
+        verifyNever(() => incoming());
+      },
+    );
 
     test('rapid duplicate taps while in-flight → ignored', () async {
       final gate = Completer<Either<Failure, LikeActionOutcome>>();
       when(() => accept(5)).thenAnswer((_) => gate.future);
-      when(() => incoming()).thenAnswer(
-          (_) async => const Right<Failure, LikeRequestsData>(_empty));
+      when(
+        () => incoming(),
+      ).thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
 
       final first = cubit.acceptLike(5);
       expect(cubit.state.isAccepting(5), isTrue);
       final second = cubit.acceptLike(5);
       await second;
-      gate.complete(const Right<Failure, LikeActionOutcome>(
-          LikeActionSuccess(serverMessage: 'ok')));
+      gate.complete(
+        const Right<Failure, LikeActionOutcome>(
+          LikeActionSuccess(serverMessage: 'ok'),
+        ),
+      );
       await first;
 
       verify(() => accept(5)).called(1);
@@ -248,12 +299,14 @@ void main() {
 
   group('rejectLike', () {
     test('success → emits rejectSuccess + refresh', () async {
-      when(() => reject(42)).thenAnswer((_) async =>
-          const Right<Failure, LikeActionOutcome>(
-            LikeActionSuccess(serverMessage: 'تم الرفض'),
-          ));
-      when(() => incoming()).thenAnswer(
-          (_) async => const Right<Failure, LikeRequestsData>(_empty));
+      when(() => reject(42)).thenAnswer(
+        (_) async => const Right<Failure, LikeActionOutcome>(
+          LikeActionSuccess(serverMessage: 'تم الرفض'),
+        ),
+      );
+      when(
+        () => incoming(),
+      ).thenAnswer((_) async => const Right<Failure, LikeRequestsData>(_empty));
 
       await cubit.rejectLike(42);
 
@@ -264,67 +317,89 @@ void main() {
 
   group('requestPhotoExchange', () {
     test('success → emits success event + loadMatches refresh', () async {
-      when(() => requestPx(10)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRequestOutcome>(
-              PhotoExchangeRequestSuccess(requestId: 7, serverMessage: '')));
+      when(() => requestPx(10)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRequestOutcome>(
+          PhotoExchangeRequestSuccess(requestId: 7, serverMessage: ''),
+        ),
+      );
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       await cubit.requestPhotoExchange(10);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRequestSuccess);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRequestSuccess,
+      );
       verify(() => requestPx(10)).called(1);
       verify(() => getMatches()).called(1);
     });
 
     test('alreadyPending → event + refresh', () async {
-      when(() => requestPx(11)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRequestOutcome>(
-              PhotoExchangeRequestAlreadyPending(serverMessage: '')));
+      when(() => requestPx(11)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRequestOutcome>(
+          PhotoExchangeRequestAlreadyPending(serverMessage: ''),
+        ),
+      );
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       await cubit.requestPhotoExchange(11);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRequestAlreadyPending);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRequestAlreadyPending,
+      );
       verify(() => getMatches()).called(1);
     });
 
     test('requiresSubscription → paywall event, NO refresh', () async {
-      when(() => requestPx(12)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRequestOutcome>(
-              PhotoExchangeRequestRequiresSubscription(serverMessage: '')));
+      when(() => requestPx(12)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRequestOutcome>(
+          PhotoExchangeRequestRequiresSubscription(serverMessage: ''),
+        ),
+      );
 
       await cubit.requestPhotoExchange(12);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRequestRequiresSubscription);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRequestRequiresSubscription,
+      );
       verifyNever(() => getMatches());
     });
 
     test('limitReached → limit-reached event, NO refresh', () async {
-      when(() => requestPx(14)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRequestOutcome>(
-              PhotoExchangeRequestLimitReached(serverMessage: '')));
+      when(() => requestPx(14)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRequestOutcome>(
+          PhotoExchangeRequestLimitReached(serverMessage: ''),
+        ),
+      );
 
       await cubit.requestPhotoExchange(14);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRequestLimitReached);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRequestLimitReached,
+      );
       verifyNever(() => getMatches());
     });
 
     test('transport failure → failure event, NO refresh', () async {
-      when(() => requestPx(13)).thenAnswer((_) async =>
-          const Left<Failure, PhotoExchangeRequestOutcome>(
-              ServerFailure(message: 'errors.generic')));
+      when(() => requestPx(13)).thenAnswer(
+        (_) async => const Left<Failure, PhotoExchangeRequestOutcome>(
+          ServerFailure(message: 'errors.generic'),
+        ),
+      );
 
       await cubit.requestPhotoExchange(13);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRequestFailure);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRequestFailure,
+      );
       verifyNever(() => getMatches());
     });
 
@@ -332,14 +407,18 @@ void main() {
       final gate = Completer<Either<Failure, PhotoExchangeRequestOutcome>>();
       when(() => requestPx(20)).thenAnswer((_) => gate.future);
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       final first = cubit.requestPhotoExchange(20);
       expect(cubit.state.isPhotoExchangeRequesting(20), isTrue);
       final second = cubit.requestPhotoExchange(20);
       await second;
-      gate.complete(const Right<Failure, PhotoExchangeRequestOutcome>(
-          PhotoExchangeRequestSuccess(requestId: 1, serverMessage: '')));
+      gate.complete(
+        const Right<Failure, PhotoExchangeRequestOutcome>(
+          PhotoExchangeRequestSuccess(requestId: 1, serverMessage: ''),
+        ),
+      );
       await first;
 
       verify(() => requestPx(20)).called(1);
@@ -348,30 +427,40 @@ void main() {
 
   group('acceptPhotoExchange', () {
     test('success → emits acceptSuccess + refresh', () async {
-      when(() => acceptPx(30)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRespondOutcome>(
-              PhotoExchangeRespondSuccess(serverMessage: '')));
+      when(() => acceptPx(30)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRespondOutcome>(
+          PhotoExchangeRespondSuccess(serverMessage: ''),
+        ),
+      );
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       await cubit.acceptPhotoExchange(30);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeAcceptSuccess);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeAcceptSuccess,
+      );
       verify(() => getMatches()).called(1);
     });
 
     test('expired → respondExpired event + refresh', () async {
-      when(() => acceptPx(31)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRespondOutcome>(
-              PhotoExchangeRespondExpired(serverMessage: '')));
+      when(() => acceptPx(31)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRespondOutcome>(
+          PhotoExchangeRespondExpired(serverMessage: ''),
+        ),
+      );
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       await cubit.acceptPhotoExchange(31);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRespondExpired);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRespondExpired,
+      );
       verify(() => getMatches()).called(1);
     });
 
@@ -379,7 +468,8 @@ void main() {
       final gate = Completer<Either<Failure, PhotoExchangeRespondOutcome>>();
       when(() => acceptPx(40)).thenAnswer((_) => gate.future);
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       final first = cubit.acceptPhotoExchange(40);
       expect(cubit.state.isPhotoExchangeAccepting(40), isTrue);
@@ -387,8 +477,11 @@ void main() {
       // combined isPhotoExchangeResponding guard.
       final racing = cubit.rejectPhotoExchange(40);
       await racing;
-      gate.complete(const Right<Failure, PhotoExchangeRespondOutcome>(
-          PhotoExchangeRespondSuccess(serverMessage: '')));
+      gate.complete(
+        const Right<Failure, PhotoExchangeRespondOutcome>(
+          PhotoExchangeRespondSuccess(serverMessage: ''),
+        ),
+      );
       await first;
 
       verify(() => acceptPx(40)).called(1);
@@ -398,42 +491,56 @@ void main() {
 
   group('rejectPhotoExchange', () {
     test('success → emits rejectSuccess + refresh', () async {
-      when(() => rejectPx(50)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRespondOutcome>(
-              PhotoExchangeRespondSuccess(serverMessage: '')));
+      when(() => rejectPx(50)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRespondOutcome>(
+          PhotoExchangeRespondSuccess(serverMessage: ''),
+        ),
+      );
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       await cubit.rejectPhotoExchange(50);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRejectSuccess);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRejectSuccess,
+      );
       verify(() => getMatches()).called(1);
     });
 
     test('notFound → respondNotFound event + refresh', () async {
-      when(() => rejectPx(51)).thenAnswer((_) async =>
-          const Right<Failure, PhotoExchangeRespondOutcome>(
-              PhotoExchangeRespondNotFound(serverMessage: '')));
+      when(() => rejectPx(51)).thenAnswer(
+        (_) async => const Right<Failure, PhotoExchangeRespondOutcome>(
+          PhotoExchangeRespondNotFound(serverMessage: ''),
+        ),
+      );
       when(() => getMatches()).thenAnswer(
-          (_) async => const Right<Failure, List<MatchCard>>(_noMatches));
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
 
       await cubit.rejectPhotoExchange(51);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRespondNotFound);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRespondNotFound,
+      );
       verify(() => getMatches()).called(1);
     });
 
     test('transport failure → respondFailure, NO refresh', () async {
-      when(() => rejectPx(52)).thenAnswer((_) async =>
-          const Left<Failure, PhotoExchangeRespondOutcome>(
-              ServerFailure(message: 'errors.generic')));
+      when(() => rejectPx(52)).thenAnswer(
+        (_) async => const Left<Failure, PhotoExchangeRespondOutcome>(
+          ServerFailure(message: 'errors.generic'),
+        ),
+      );
 
       await cubit.rejectPhotoExchange(52);
 
-      expect(cubit.state.actionEvent,
-          LikesActionEvent.photoExchangeRespondFailure);
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.photoExchangeRespondFailure,
+      );
       verifyNever(() => getMatches());
     });
   });
@@ -444,9 +551,85 @@ void main() {
 
     final pending = cubit.acceptPhotoExchange(99);
     await cubit.close();
-    completer.complete(const Right<Failure, PhotoExchangeRespondOutcome>(
-        PhotoExchangeRespondSuccess(serverMessage: '')));
+    completer.complete(
+      const Right<Failure, PhotoExchangeRespondOutcome>(
+        PhotoExchangeRespondSuccess(serverMessage: ''),
+      ),
+    );
 
     await expectLater(pending, completes);
+  });
+
+  group('matchmaker profile + message flow', () {
+    test(
+      'stage-0 inquiry resolves missing conversation then shares and texts',
+      () async {
+        when(() => getMyMatchmaker()).thenAnswer(
+          (_) async => const Right<Failure, MyMatchmakerOutcome>(
+            MyMatchmakerAssigned(
+              info: MatchmakerInfo(
+                matchmakerId: 'matchmaker-id',
+                name: 'Matchmaker',
+                profileImageUrl: null,
+                conversationId: 17,
+              ),
+            ),
+          ),
+        );
+        when(
+          () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
+        ).thenAnswer(
+          (_) async => Right<Failure, ShareProfileOutcome>(
+            ShareProfileSuccess(message: _MockChatMessage()),
+          ),
+        );
+        when(() => sendText(conversationId: 17, content: 'inquiry')).thenAnswer(
+          (_) async => Right<Failure, SendTextOutcome>(
+            SendTextSuccess(message: _MockChatMessage()),
+          ),
+        );
+
+        await cubit.sendInquiry(_stageZeroMatch, 'inquiry');
+
+        expect(cubit.state.actionEvent, LikesActionEvent.inquirySuccess);
+        expect(cubit.state.isInquirySent(42), isTrue);
+        verify(
+          () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
+        ).called(1);
+        verify(
+          () => sendText(conversationId: 17, content: 'inquiry'),
+        ).called(1);
+      },
+    );
+
+    test('message failure does not mark formal step as sent', () async {
+      const card = MatchCard(
+        likeRequestId: 43,
+        otherUserId: 'candidate-id',
+        otherUserName: 'Candidate',
+        images: [],
+        stage: MatchStage.photosExchanged,
+        pendingPhotoExchange: null,
+        formalRequest: null,
+        conversationId: '17',
+      );
+      when(
+        () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
+      ).thenAnswer(
+        (_) async => Right<Failure, ShareProfileOutcome>(
+          ShareProfileSuccess(message: _MockChatMessage()),
+        ),
+      );
+      when(() => sendText(conversationId: 17, content: 'formal')).thenAnswer(
+        (_) async => const Left<Failure, SendTextOutcome>(
+          ServerFailure(message: 'offline'),
+        ),
+      );
+
+      await cubit.sendFormalStep(card, 'formal');
+
+      expect(cubit.state.actionEvent, LikesActionEvent.formalStepFailure);
+      expect(cubit.state.isFormalStepSent(43), isFalse);
+    });
   });
 }

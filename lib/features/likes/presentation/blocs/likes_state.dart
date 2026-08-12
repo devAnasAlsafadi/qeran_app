@@ -38,6 +38,10 @@ enum LikesActionEvent {
   photoExchangeRespondNotFound,
   photoExchangeRespondExpired,
   photoExchangeRespondFailure,
+  // Stage-0 inquiry — share partner card + predefined message
+  inquirySuccess,
+  inquiryAlreadySent,
+  inquiryFailure,
   // Formal step (stage 1/2) — share partner card + message
   formalStepSuccess,
   formalStepAlreadySent,
@@ -80,6 +84,12 @@ class LikesState extends Equatable {
   final Set<int> photoExchangeAcceptInFlightRequestIds;
   final Set<int> photoExchangeRejectInFlightRequestIds;
 
+  /// LIKE-REQUEST ids whose inquiry share/message is in-flight.
+  final Set<int> inquiryInFlightLikeIds;
+
+  /// LIKE-REQUEST ids whose inquiry was sent this session.
+  final Set<int> inquirySentLikeIds;
+
   /// LIKE-REQUEST ids whose formal-step share is in-flight (stage 1/2).
   final Set<int> formalStepInFlightLikeIds;
 
@@ -108,6 +118,8 @@ class LikesState extends Equatable {
     this.photoExchangeRequestInFlightLikeIds = const <int>{},
     this.photoExchangeAcceptInFlightRequestIds = const <int>{},
     this.photoExchangeRejectInFlightRequestIds = const <int>{},
+    this.inquiryInFlightLikeIds = const <int>{},
+    this.inquirySentLikeIds = const <int>{},
     this.formalStepInFlightLikeIds = const <int>{},
     this.formalStepSentLikeIds = const <int>{},
     this.actionEvent = LikesActionEvent.none,
@@ -134,7 +146,14 @@ class LikesState extends Equatable {
       photoExchangeRejectInFlightRequestIds.contains(requestId);
 
   bool isPhotoExchangeResponding(int requestId) =>
-      isPhotoExchangeAccepting(requestId) || isPhotoExchangeRejecting(requestId);
+      isPhotoExchangeAccepting(requestId) ||
+      isPhotoExchangeRejecting(requestId);
+
+  bool isInquirySending(int likeRequestId) =>
+      inquiryInFlightLikeIds.contains(likeRequestId);
+
+  bool isInquirySent(int likeRequestId) =>
+      inquirySentLikeIds.contains(likeRequestId);
 
   bool isFormalStepSending(int likeRequestId) =>
       formalStepInFlightLikeIds.contains(likeRequestId);
@@ -162,6 +181,8 @@ class LikesState extends Equatable {
     Set<int>? photoExchangeRequestInFlightLikeIds,
     Set<int>? photoExchangeAcceptInFlightRequestIds,
     Set<int>? photoExchangeRejectInFlightRequestIds,
+    Set<int>? inquiryInFlightLikeIds,
+    Set<int>? inquirySentLikeIds,
     Set<int>? formalStepInFlightLikeIds,
     Set<int>? formalStepSentLikeIds,
     LikesActionEvent? actionEvent,
@@ -190,13 +211,16 @@ class LikesState extends Equatable {
       rejectInFlightIds: rejectInFlightIds ?? this.rejectInFlightIds,
       photoExchangeRequestInFlightLikeIds:
           photoExchangeRequestInFlightLikeIds ??
-              this.photoExchangeRequestInFlightLikeIds,
+          this.photoExchangeRequestInFlightLikeIds,
       photoExchangeAcceptInFlightRequestIds:
           photoExchangeAcceptInFlightRequestIds ??
-              this.photoExchangeAcceptInFlightRequestIds,
+          this.photoExchangeAcceptInFlightRequestIds,
       photoExchangeRejectInFlightRequestIds:
           photoExchangeRejectInFlightRequestIds ??
-              this.photoExchangeRejectInFlightRequestIds,
+          this.photoExchangeRejectInFlightRequestIds,
+      inquiryInFlightLikeIds:
+          inquiryInFlightLikeIds ?? this.inquiryInFlightLikeIds,
+      inquirySentLikeIds: inquirySentLikeIds ?? this.inquirySentLikeIds,
       formalStepInFlightLikeIds:
           formalStepInFlightLikeIds ?? this.formalStepInFlightLikeIds,
       formalStepSentLikeIds:
@@ -208,24 +232,26 @@ class LikesState extends Equatable {
 
   @override
   List<Object?> get props => [
-        activeTab,
-        incomingStatus,
-        incoming,
-        incomingErrorKey,
-        outgoingStatus,
-        outgoing,
-        outgoingErrorKey,
-        matchesStatus,
-        matches,
-        matchesErrorKey,
-        acceptInFlightIds,
-        rejectInFlightIds,
-        photoExchangeRequestInFlightLikeIds,
-        photoExchangeAcceptInFlightRequestIds,
-        photoExchangeRejectInFlightRequestIds,
-        formalStepInFlightLikeIds,
-        formalStepSentLikeIds,
-        actionEvent,
-        actionEventVersion,
-      ];
+    activeTab,
+    incomingStatus,
+    incoming,
+    incomingErrorKey,
+    outgoingStatus,
+    outgoing,
+    outgoingErrorKey,
+    matchesStatus,
+    matches,
+    matchesErrorKey,
+    acceptInFlightIds,
+    rejectInFlightIds,
+    photoExchangeRequestInFlightLikeIds,
+    photoExchangeAcceptInFlightRequestIds,
+    photoExchangeRejectInFlightRequestIds,
+    inquiryInFlightLikeIds,
+    inquirySentLikeIds,
+    formalStepInFlightLikeIds,
+    formalStepSentLikeIds,
+    actionEvent,
+    actionEventVersion,
+  ];
 }

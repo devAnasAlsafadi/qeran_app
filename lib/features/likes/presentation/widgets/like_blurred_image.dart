@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
+
+import 'photo_view_access_host.dart';
 
 /// Shared rounded image with optional blur.
 ///
@@ -46,6 +50,12 @@ class LikeBlurredImage extends StatelessWidget {
   /// during a shared-photo transition. Existing compact callers keep 6.
   final double blurSigma;
 
+  /// Explicit policy snapshot for surfaces outside the inherited scope (for
+  /// example a fullscreen route pushed above it).
+  final bool memoryOnly;
+  final bool blockImageBytes;
+  final VoidCallback? onAccessForbidden;
+
   const LikeBlurredImage({
     super.key,
     required this.url,
@@ -57,6 +67,9 @@ class LikeBlurredImage extends StatelessWidget {
     this.alignment = Alignment.center,
     this.fit = BoxFit.cover,
     this.blurSigma = _defaultSigma,
+    this.memoryOnly = false,
+    this.blockImageBytes = false,
+    this.onAccessForbidden,
   });
 
   /// Soft blur — strong enough to obscure facial features without
@@ -80,15 +93,33 @@ class LikeBlurredImage extends StatelessWidget {
   Widget _buildImageOrFallback(BuildContext context) {
     final u = url;
     if (u == null || u.isEmpty) return _fallback();
-    final img = CachedNetworkImage(
-      imageUrl: u,
-      httpHeaders: _authHeaders(context),
-      fit: fit,
-      alignment: alignment,
-      placeholder: (_, _) => _placeholder(),
-      errorWidget: (_, _, _) => _fallback(),
-    );
-    if (!blur) return img;
+    final access = PhotoViewScope.maybeOf(context);
+    final shouldBlock = blockImageBytes || (access?.blockImageBytes ?? false);
+    if (shouldBlock) return _protectedFallback();
+
+    final headers = _authHeaders(context);
+    final useMemoryOnly = memoryOnly || (access?.memoryOnly ?? false);
+    final forbidden = onAccessForbidden ?? access?.onImageForbidden;
+    final img = useMemoryOnly
+        ? _MemoryOnlyNetworkImage(
+            url: u,
+            headers: headers,
+            fit: fit,
+            alignment: alignment,
+            placeholder: _placeholder(),
+            fallback: _fallback(),
+            onAccessForbidden: forbidden,
+          )
+        : CachedNetworkImage(
+            imageUrl: u,
+            httpHeaders: headers,
+            fit: fit,
+            alignment: alignment,
+            placeholder: (_, _) => _placeholder(),
+            errorWidget: (_, _, _) => _fallback(),
+          );
+    final effectiveBlur = access?.effectiveBlur(blur) ?? blur;
+    if (!effectiveBlur) return img;
     return ImageFiltered(
       imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
       child: img,
@@ -121,6 +152,95 @@ class LikeBlurredImage extends StatelessWidget {
       color: QeranColors.wine.withValues(alpha: 0.06),
       alignment: Alignment.center,
       child: Icon(fallbackIcon, size: iconSize, color: QeranColors.inkFaint),
+    );
+  }
+
+  Widget _protectedFallback() {
+    final iconSize = (size == null) ? 36.0 : size! * 0.45;
+    return Container(
+      color: QeranColors.wine,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.lock_outline_rounded,
+        size: iconSize,
+        color: QeranColors.gold,
+      ),
+    );
+  }
+}
+
+/// Authenticated network image backed only by Flutter's in-memory ImageCache.
+/// Disposing the reveal surface evicts the decoded bytes immediately; no disk
+/// cache manager participates in this path.
+class _MemoryOnlyNetworkImage extends StatefulWidget {
+  final String url;
+  final Map<String, String>? headers;
+  final BoxFit fit;
+  final Alignment alignment;
+  final Widget placeholder;
+  final Widget fallback;
+  final VoidCallback? onAccessForbidden;
+
+  const _MemoryOnlyNetworkImage({
+    required this.url,
+    required this.headers,
+    required this.fit,
+    required this.alignment,
+    required this.placeholder,
+    required this.fallback,
+    required this.onAccessForbidden,
+  });
+
+  @override
+  State<_MemoryOnlyNetworkImage> createState() =>
+      _MemoryOnlyNetworkImageState();
+}
+
+class _MemoryOnlyNetworkImageState extends State<_MemoryOnlyNetworkImage> {
+  late NetworkImage _provider = _createProvider();
+  bool _reportedForbidden = false;
+
+  NetworkImage _createProvider() =>
+      NetworkImage(widget.url, headers: widget.headers);
+
+  @override
+  void didUpdateWidget(covariant _MemoryOnlyNetworkImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url ||
+        !mapEquals(oldWidget.headers, widget.headers)) {
+      unawaited(_provider.evict());
+      _provider = _createProvider();
+      _reportedForbidden = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    // includeLive defaults to true, so this removes both pending and live
+    // decoded entries after the Image widget releases its listener.
+    unawaited(_provider.evict());
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Image(
+      image: _provider,
+      fit: widget.fit,
+      alignment: widget.alignment,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) =>
+          wasSynchronouslyLoaded || frame != null ? child : widget.placeholder,
+      errorBuilder: (context, error, stackTrace) {
+        if (!_reportedForbidden &&
+            error is NetworkImageLoadException &&
+            error.statusCode == 403) {
+          _reportedForbidden = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) widget.onAccessForbidden?.call();
+          });
+        }
+        return widget.fallback;
+      },
     );
   }
 }

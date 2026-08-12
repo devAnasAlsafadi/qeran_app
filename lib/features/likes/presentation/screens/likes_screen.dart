@@ -144,22 +144,23 @@ class _LikesView extends StatelessWidget {
       case LikesActionEvent.photoExchangeRequestSuccess:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_request_success.t(context),
+          message: LocaleKeys.likes_matches_action_request_success.t(context),
           type: SnackBarType.success,
         );
       case LikesActionEvent.photoExchangeRequestAlreadyPending:
         AppSnackBar.show(
           context,
-          message: LocaleKeys.likes_matches_action_request_already_pending
-              .t(context),
+          message: LocaleKeys.likes_matches_action_request_already_pending.t(
+            context,
+          ),
           type: SnackBarType.info,
         );
       case LikesActionEvent.photoExchangeRequestLikeNotAccepted:
         AppSnackBar.show(
           context,
-          message: LocaleKeys.likes_matches_action_request_like_not_accepted
-              .t(context),
+          message: LocaleKeys.likes_matches_action_request_like_not_accepted.t(
+            context,
+          ),
           type: SnackBarType.info,
         );
       case LikesActionEvent.photoExchangeRequestRequiresSubscription:
@@ -175,8 +176,7 @@ class _LikesView extends StatelessWidget {
       case LikesActionEvent.photoExchangeRequestFailure:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_request_failed.t(context),
+          message: LocaleKeys.likes_matches_action_request_failed.t(context),
           type: SnackBarType.error,
         );
       case LikesActionEvent.photoExchangeRequestUnderReview:
@@ -189,48 +189,45 @@ class _LikesView extends StatelessWidget {
       case LikesActionEvent.photoExchangeAcceptSuccess:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_accept_success.t(context),
+          message: LocaleKeys.likes_matches_action_accept_success.t(context),
           type: SnackBarType.success,
         );
       case LikesActionEvent.photoExchangeRejectSuccess:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_reject_success.t(context),
+          message: LocaleKeys.likes_matches_action_reject_success.t(context),
           type: SnackBarType.success,
         );
       case LikesActionEvent.photoExchangeRespondNotFound:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_respond_not_found.t(context),
+          message: LocaleKeys.likes_matches_action_respond_not_found.t(context),
           type: SnackBarType.info,
         );
       case LikesActionEvent.photoExchangeRespondExpired:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_respond_expired.t(context),
+          message: LocaleKeys.likes_matches_action_respond_expired.t(context),
           type: SnackBarType.info,
         );
       case LikesActionEvent.photoExchangeRespondFailure:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_respond_failed.t(context),
+          message: LocaleKeys.likes_matches_action_respond_failed.t(context),
           type: SnackBarType.error,
         );
-      // Formal step (stage 1/2) — on send (or already-sent) just open the
-      // matchmaker chat; never re-post the card.
+      // Inquiry / formal step — rebuild the preserved chat tab so the newly
+      // posted profile card and text are visible immediately.
+      case LikesActionEvent.inquirySuccess:
+      case LikesActionEvent.inquiryAlreadySent:
       case LikesActionEvent.formalStepSuccess:
       case LikesActionEvent.formalStepAlreadySent:
         _openMatchmakerMessages(context);
+      case LikesActionEvent.inquiryFailure:
       case LikesActionEvent.formalStepFailure:
         AppSnackBar.show(
           context,
-          message:
-              LocaleKeys.likes_matches_action_request_failed.t(context),
+          message: LocaleKeys.likes_matches_action_request_failed.t(context),
           type: SnackBarType.error,
         );
     }
@@ -239,13 +236,14 @@ class _LikesView extends StatelessWidget {
   void _openMatchmakerMessages(BuildContext context) {
     final shell = HomeShellScope.maybeOf(context);
     if (shell != null) {
-      shell.openMessagesTab();
+      shell.openMessagesTab(refresh: true);
       return;
     }
     AppSnackBar.show(
       context,
-      message:
-          LocaleKeys.likes_matches_stage_matchmaker_will_contact.t(context),
+      message: LocaleKeys.likes_matches_stage_matchmaker_will_contact.t(
+        context,
+      ),
       type: SnackBarType.info,
     );
   }
@@ -265,4 +263,3 @@ class _Header extends StatelessWidget {
     );
   }
 }
-

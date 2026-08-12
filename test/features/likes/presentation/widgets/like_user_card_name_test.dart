@@ -31,6 +31,7 @@ class _StubAssetLoader extends AssetLoader {
           'time_left_days_hours': '{days}ي {hours}س',
           'status_waiting_reply': 'بانتظار الرد',
         },
+        'matchmaker': {'users_age_years': '{age} سنة'},
       };
 }
 
@@ -46,6 +47,21 @@ LikeRequestCard _card(String name) => LikeRequestCard(
   createdAt: null,
   remainingSeconds: 90000,
   actions: const [],
+  isLocked: false,
+);
+
+LikeRequestCard _cardWithFacts() => const LikeRequestCard(
+  likeRequestId: 2,
+  profileId: 'p2',
+  name: 'User',
+  profileImage: null,
+  age: 31,
+  residence: 'Jordan',
+  job: 'Engineer',
+  status: LikeRequestStatus.accepted,
+  createdAt: null,
+  remainingSeconds: null,
+  actions: [],
   isLocked: false,
 );
 
@@ -70,6 +86,26 @@ Future<void> _pump(WidgetTester tester, String name) async {
               ),
             ),
           ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _pumpCard(WidgetTester tester, LikeRequestCard card) async {
+  await tester.pumpWidget(
+    EasyLocalization(
+      supportedLocales: const [Locale('ar')],
+      startLocale: const Locale('ar'),
+      path: 'assets/translations',
+      assetLoader: const _StubAssetLoader(),
+      child: Builder(
+        builder: (ctx) => MaterialApp(
+          locale: ctx.locale,
+          supportedLocales: ctx.supportedLocales,
+          localizationsDelegates: ctx.localizationDelegates,
+          home: Scaffold(body: LikeUserCard(card: card)),
         ),
       ),
     ),
@@ -126,5 +162,15 @@ void main() {
     final name = tester.getRect(find.text(_longName));
     final chip = tester.getRect(find.byType(LikeCountdownChip));
     expect(name.overlaps(chip), isFalse);
+  });
+
+  testWidgets('age, residence, and job are displayed below the name', (
+    tester,
+  ) async {
+    await _pumpCard(tester, _cardWithFacts());
+
+    expect(find.textContaining('31'), findsOneWidget);
+    expect(find.text('Jordan'), findsOneWidget);
+    expect(find.text('Engineer'), findsOneWidget);
   });
 }

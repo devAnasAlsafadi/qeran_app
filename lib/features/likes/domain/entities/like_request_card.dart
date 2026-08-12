@@ -25,6 +25,12 @@ class LikeRequestCard extends Equatable {
 
   final LikeProfileImage? profileImage;
 
+  /// Optional compact facts displayed below the name when supplied by the
+  /// server. Kept nullable for backward compatibility with older payloads.
+  final int? age;
+  final String? residence;
+  final String? job;
+
   final LikeRequestStatus status;
 
   /// When the like was sent. `null` when the server omits it (the
@@ -34,6 +40,11 @@ class LikeRequestCard extends Equatable {
   /// Seconds until the pending like expires. `null` for any non-pending
   /// status (the wire type is `int | null`).
   final int? remainingSeconds;
+
+  /// Stable server expiry for the pending request. The UI builds its live
+  /// countdown from this timestamp and uses [remainingSeconds] once, when the
+  /// response arrives, to calibrate away any device-clock skew.
+  final DateTime? expiresAt;
 
   /// Allowed mutations for this row. Subscribed incoming pending rows
   /// receive `["accept", "reject"]`; outgoing and locked rows receive
@@ -51,9 +62,13 @@ class LikeRequestCard extends Equatable {
     required this.profileId,
     required this.name,
     required this.profileImage,
+    this.age,
+    this.residence,
+    this.job,
     required this.status,
     required this.createdAt,
     required this.remainingSeconds,
+    this.expiresAt,
     required this.actions,
     required this.isLocked,
   });
@@ -63,14 +78,18 @@ class LikeRequestCard extends Equatable {
 
   @override
   List<Object?> get props => [
-        likeRequestId,
-        profileId,
-        name,
-        profileImage,
-        status,
-        createdAt,
-        remainingSeconds,
-        actions,
-        isLocked,
-      ];
+    likeRequestId,
+    profileId,
+    name,
+    profileImage,
+    age,
+    residence,
+    job,
+    status,
+    createdAt,
+    remainingSeconds,
+    expiresAt,
+    actions,
+    isLocked,
+  ];
 }

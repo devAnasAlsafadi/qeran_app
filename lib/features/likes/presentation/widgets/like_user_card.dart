@@ -3,6 +3,8 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/like_request_card.dart';
 import '../../domain/entities/like_request_status.dart';
@@ -107,7 +109,8 @@ class _VisibleContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showTimer = _isPending && card.remainingSeconds != null;
+    final showTimer =
+        _isPending && (card.expiresAt != null || card.remainingSeconds != null);
     final showActions = _isPending && (card.canAccept || card.canReject);
 
     return Column(
@@ -134,8 +137,9 @@ class _VisibleContent extends StatelessWidget {
                         child: Text(
                           card.name,
                           textAlign: TextAlign.start,
-                          style: QeranTypography.subtitle
-                              .copyWith(color: QeranColors.wine),
+                          style: QeranTypography.subtitle.copyWith(
+                            color: QeranColors.wine,
+                          ),
                           // A three-part name next to the countdown chip was
                           // being cut to "Anas Ashraf Al…". Names are the one
                           // thing on this row that must never be abbreviated,
@@ -148,11 +152,18 @@ class _VisibleContent extends StatelessWidget {
                       if (showTimer) ...[
                         QeranSpacing.hs12,
                         LikeCountdownChip(
-                          initialSeconds: card.remainingSeconds!,
+                          initialSeconds: card.remainingSeconds,
+                          expiresAt: card.expiresAt,
                         ),
                       ],
                     ],
                   ),
+                  if (card.age != null ||
+                      card.residence?.isNotEmpty == true ||
+                      card.job?.isNotEmpty == true) ...[
+                    const SizedBox(height: QeranSpacing.s6),
+                    _LikeFacts(card: card),
+                  ],
                   const SizedBox(height: QeranSpacing.s6),
                   LikeCardStatus(card: card),
                 ],
@@ -175,6 +186,50 @@ class _VisibleContent extends StatelessWidget {
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _LikeFacts extends StatelessWidget {
+  const _LikeFacts({required this.card});
+
+  final LikeRequestCard card;
+
+  @override
+  Widget build(BuildContext context) {
+    final facts = <({IconData icon, String text})>[
+      if (card.age != null)
+        (
+          icon: Icons.cake_outlined,
+          text: LocaleKeys.matchmaker_users_age_years.t(
+            context,
+            namedArgs: {'age': '${card.age}'},
+          ),
+        ),
+      if (card.residence?.isNotEmpty == true)
+        (icon: Icons.location_on_outlined, text: card.residence!),
+      if (card.job?.isNotEmpty == true)
+        (icon: Icons.work_outline_rounded, text: card.job!),
+    ];
+    return Wrap(
+      spacing: QeranSpacing.s12,
+      runSpacing: QeranSpacing.s4,
+      children: [
+        for (final fact in facts)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(fact.icon, size: 14, color: QeranColors.inkMuted),
+              QeranSpacing.hs4,
+              Text(
+                fact.text,
+                style: QeranTypography.caption.copyWith(
+                  color: QeranColors.inkBody,
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }

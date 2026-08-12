@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
@@ -8,7 +10,10 @@ import 'package:qeran/features/report/presentation/widgets/report_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_image.dart';
+import '../blocs/photo_view_cubit.dart';
 import 'like_blurred_image.dart';
+import 'photo_view_access_host.dart';
+import 'photo_view_overlay.dart';
 
 /// MVP gallery — shown when the user taps the avatar on a stage-1 Match
 /// card. Renders the full server-ordered image list with the per-image
@@ -27,7 +32,17 @@ Future<void> showMatchGallerySheet(
     backgroundColor: Colors.transparent,
     barrierColor: QeranColors.overlayTintDark,
     useSafeArea: true,
-    builder: (_) => _MatchGallerySheet(images: images, targetUserId: targetUserId),
+    builder: (_) {
+      final sheet = _MatchGallerySheet(
+        images: images,
+        targetUserId: targetUserId,
+      );
+      if (targetUserId == null) return sheet;
+      return BlocProvider<PhotoViewCubit>(
+        create: (_) => sl<PhotoViewCubit>(param1: targetUserId)..load(),
+        child: PhotoViewAccessHost(child: sheet),
+      );
+    },
   );
 }
 
@@ -67,8 +82,9 @@ class _MatchGallerySheet extends StatelessWidget {
                     child: Text(
                       LocaleKeys.likes_matches_gallery_title.t(context),
                       textAlign: TextAlign.center,
-                      style: QeranTypography.title
-                          .copyWith(color: QeranColors.wine),
+                      style: QeranTypography.title.copyWith(
+                        color: QeranColors.wine,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -77,8 +93,11 @@ class _MatchGallerySheet extends StatelessWidget {
                         ? null
                         : IconButton(
                             tooltip: LocaleKeys.report_title.t(context),
-                            icon: const Icon(Icons.flag_outlined,
-                                color: QeranColors.wine, size: 22),
+                            icon: const Icon(
+                              Icons.flag_outlined,
+                              color: QeranColors.wine,
+                              size: 22,
+                            ),
                             onPressed: () => showReportSheet(
                               context,
                               targetUserId: targetUserId,
@@ -89,27 +108,34 @@ class _MatchGallerySheet extends StatelessWidget {
               ),
               const SizedBox(height: QeranSpacing.s12),
               Expanded(
-                child: GridView.builder(
-                  controller: scrollController,
-                  padding: const EdgeInsets.only(top: QeranSpacing.s8),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: QeranSpacing.s12,
-                    crossAxisSpacing: QeranSpacing.s12,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: images.length,
-                  itemBuilder: (context, index) {
-                    final img = images[index];
-                    return LikeBlurredImage(
-                      url: img.url,
-                      blur: img.isBlurred,
-                      size: null,
-                      shape: BoxShape.rectangle,
-                      borderRadius: QeranRadii.cardR,
-                    );
-                  },
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: GridView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.only(top: QeranSpacing.s8),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: QeranSpacing.s12,
+                              crossAxisSpacing: QeranSpacing.s12,
+                              childAspectRatio: 0.85,
+                            ),
+                        itemCount: images.length,
+                        itemBuilder: (context, index) {
+                          final img = images[index];
+                          return LikeBlurredImage(
+                            url: img.url,
+                            blur: img.isBlurred,
+                            size: null,
+                            shape: BoxShape.rectangle,
+                            borderRadius: QeranRadii.cardR,
+                          );
+                        },
+                      ),
+                    ),
+                    const PhotoViewOverlay(),
+                  ],
                 ),
               ),
             ],

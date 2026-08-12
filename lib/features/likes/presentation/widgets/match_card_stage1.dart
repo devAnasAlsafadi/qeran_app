@@ -10,9 +10,9 @@ import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
 import 'match_matchmaker_status_pill.dart';
 
-/// Stage 1 — PhotosExchanged (photo exchange accepted). Photos are
-/// CLEAR (`image.isBlurred == false`) and a formalRequest is active.
-/// Tapping the avatar opens the gallery.
+/// Stage 1 — PhotosExchanged (photo exchange accepted). The preview never
+/// fetches clear bytes; the explicit reveal action opens the permission-
+/// controlled, one-time gallery. A formalRequest may also be active.
 /// Surfaces a single [خطوة رسمية عبر الخطّابة] primaryWine CTA.
 class MatchCardStage1 extends StatelessWidget {
   final MatchCard card;
@@ -33,6 +33,11 @@ class MatchCardStage1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = card.primaryImage;
+    final isConsumed =
+        card.images.isNotEmpty && card.images.every((image) => image.isBlurred);
+    final canOpenPhotos =
+        card.images.any((candidate) => !candidate.isBlurred) &&
+        onOpenGallery != null;
     // The matchmaker's current formal-request status, if the backend supplied
     // one — surfaced as a pill; empty falls back to the static subtitle only.
     final status =
@@ -40,16 +45,22 @@ class MatchCardStage1 extends StatelessWidget {
         '';
     return MatchCardScaffold(
       avatar: GestureDetector(
-        onTap: onOpenGallery,
+        onTap: canOpenPhotos ? onOpenGallery : null,
         child: MatchCardAvatar(
           url: image?.url,
-          blur: image?.isBlurred ?? false,
+          // A stage-1 preview must never fetch/cache the clear bytes. The
+          // permission-controlled gallery owns the only reveal path.
+          blur: true,
+          blockImageBytes: true,
         ),
       ),
       name: card.otherUserName,
       statusIcon: Icons.favorite_rounded,
-      statusText: LocaleKeys.likes_matches_stage_photos_exchanged_subtitle
-          .t(context),
+      statusText:
+          (isConsumed
+                  ? LocaleKeys.likes_matches_photo_view_consumed
+                  : LocaleKeys.likes_matches_stage_photos_exchanged_subtitle)
+              .t(context),
       statusColor: QeranColors.wine,
       primaryLabel: LocaleKeys.likes_matches_formal_step_cta.t(context),
       onPrimaryPressed: onFormalStep,
@@ -60,8 +71,19 @@ class MatchCardStage1 extends StatelessWidget {
       primaryVariant: isFormalStepSent
           ? QeranButtonVariant.neutral
           : QeranButtonVariant.primary,
-      footer:
-          status.isEmpty ? null : MatchMatchmakerStatusPill(status: status),
+      secondaryActions: canOpenPhotos
+          ? [
+              QeranButton(
+                label: LocaleKeys.likes_matches_photo_view_show.t(context),
+                onPressed: onOpenGallery,
+                variant: QeranButtonVariant.ghost,
+                size: QeranButtonSize.xs,
+                leadingIcon: Icons.visibility_outlined,
+                fullWidth: false,
+              ),
+            ]
+          : null,
+      footer: status.isEmpty ? null : MatchMatchmakerStatusPill(status: status),
     );
   }
 }

@@ -2,10 +2,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
+import 'package:qeran/features/chat/domain/entities/send_text_outcome.dart';
 import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
-import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
 import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../../domain/entities/like_action_outcome.dart';
 import '../../domain/entities/likes_tab.dart';
@@ -42,7 +45,8 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   final RequestPhotoExchangeUseCase _requestPhotoExchange;
   final AcceptPhotoExchangeUseCase _acceptPhotoExchange;
   final RejectPhotoExchangeUseCase _rejectPhotoExchange;
-  // Chat use-cases (cross-feature) for the formal-step auto-send.
+  // Chat use-cases (cross-feature) for inquiry / formal-step auto-send.
+  final GetMyMatchmakerUseCase _getMyMatchmaker;
   final ShareProfileUseCase _shareProfile;
   final SendTextMessageUseCase _sendText;
   final ProfileGateCubit _profileGate;
@@ -56,21 +60,23 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required RequestPhotoExchangeUseCase requestPhotoExchange,
     required AcceptPhotoExchangeUseCase acceptPhotoExchange,
     required RejectPhotoExchangeUseCase rejectPhotoExchange,
+    required GetMyMatchmakerUseCase getMyMatchmaker,
     required ShareProfileUseCase shareProfile,
     required SendTextMessageUseCase sendText,
     required ProfileGateCubit profileGate,
-  })  : _getIncoming = getIncoming,
-        _getOutgoing = getOutgoing,
-        _acceptLike = acceptLike,
-        _rejectLike = rejectLike,
-        _getMatches = getMatches,
-        _requestPhotoExchange = requestPhotoExchange,
-        _acceptPhotoExchange = acceptPhotoExchange,
-        _rejectPhotoExchange = rejectPhotoExchange,
-        _shareProfile = shareProfile,
-        _sendText = sendText,
-        _profileGate = profileGate,
-        super(const LikesState());
+  }) : _getIncoming = getIncoming,
+       _getOutgoing = getOutgoing,
+       _acceptLike = acceptLike,
+       _rejectLike = rejectLike,
+       _getMatches = getMatches,
+       _requestPhotoExchange = requestPhotoExchange,
+       _acceptPhotoExchange = acceptPhotoExchange,
+       _rejectPhotoExchange = rejectPhotoExchange,
+       _getMyMatchmaker = getMyMatchmaker,
+       _shareProfile = shareProfile,
+       _sendText = sendText,
+       _profileGate = profileGate,
+       super(const LikesState());
 
   /// Kicks off the active tab if it hasn't loaded yet. Called once
   /// when the screen mounts so the user sees data without an extra tap.
@@ -100,10 +106,12 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   }
 
   Future<void> loadIncoming() async {
-    emit(state.copyWith(
-      incomingStatus: LikesAsyncStatus.loading,
-      clearIncomingError: true,
-    ));
+    emit(
+      state.copyWith(
+        incomingStatus: LikesAsyncStatus.loading,
+        clearIncomingError: true,
+      ),
+    );
     final result = await _getIncoming();
     if (isClosed) return;
     result.fold(
@@ -116,24 +124,30 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
           'Incoming likes failed — raw="${failure.message}"',
           tag: 'LIKES',
         );
-        emit(state.copyWith(
-          incomingStatus: LikesAsyncStatus.failure,
-          incomingErrorKey: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            incomingStatus: LikesAsyncStatus.failure,
+            incomingErrorKey: failure.message,
+          ),
+        );
       },
-      (data) => emit(state.copyWith(
-        incomingStatus: LikesAsyncStatus.loaded,
-        incoming: data,
-        clearIncomingError: true,
-      )),
+      (data) => emit(
+        state.copyWith(
+          incomingStatus: LikesAsyncStatus.loaded,
+          incoming: data,
+          clearIncomingError: true,
+        ),
+      ),
     );
   }
 
   Future<void> loadOutgoing() async {
-    emit(state.copyWith(
-      outgoingStatus: LikesAsyncStatus.loading,
-      clearOutgoingError: true,
-    ));
+    emit(
+      state.copyWith(
+        outgoingStatus: LikesAsyncStatus.loading,
+        clearOutgoingError: true,
+      ),
+    );
     final result = await _getOutgoing();
     if (isClosed) return;
     result.fold(
@@ -142,24 +156,30 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
           'Outgoing likes failed — raw="${failure.message}"',
           tag: 'LIKES',
         );
-        emit(state.copyWith(
-          outgoingStatus: LikesAsyncStatus.failure,
-          outgoingErrorKey: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            outgoingStatus: LikesAsyncStatus.failure,
+            outgoingErrorKey: failure.message,
+          ),
+        );
       },
-      (data) => emit(state.copyWith(
-        outgoingStatus: LikesAsyncStatus.loaded,
-        outgoing: data,
-        clearOutgoingError: true,
-      )),
+      (data) => emit(
+        state.copyWith(
+          outgoingStatus: LikesAsyncStatus.loaded,
+          outgoing: data,
+          clearOutgoingError: true,
+        ),
+      ),
     );
   }
 
   Future<void> loadMatches() async {
-    emit(state.copyWith(
-      matchesStatus: LikesAsyncStatus.loading,
-      clearMatchesError: true,
-    ));
+    emit(
+      state.copyWith(
+        matchesStatus: LikesAsyncStatus.loading,
+        clearMatchesError: true,
+      ),
+    );
     final result = await _getMatches();
     if (isClosed) return;
     result.fold(
@@ -168,16 +188,20 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
           'Matches failed — raw="${failure.message}"',
           tag: 'MATCHES',
         );
-        emit(state.copyWith(
-          matchesStatus: LikesAsyncStatus.failure,
-          matchesErrorKey: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            matchesStatus: LikesAsyncStatus.failure,
+            matchesErrorKey: failure.message,
+          ),
+        );
       },
-      (data) => emit(state.copyWith(
-        matchesStatus: LikesAsyncStatus.loaded,
-        matches: data,
-        clearMatchesError: true,
-      )),
+      (data) => emit(
+        state.copyWith(
+          matchesStatus: LikesAsyncStatus.loaded,
+          matches: data,
+          clearMatchesError: true,
+        ),
+      ),
     );
   }
 
@@ -199,38 +223,41 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     if (state.isActionInFlight(likeRequestId)) return;
     // Approval pre-gate — an unapproved user can't accept likes yet.
     if (_profileGate.isGated) {
-      emit(state.copyWith(
-        actionEvent: LikesActionEvent.acceptUnderReview,
-        actionEventVersion: state.actionEventVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          actionEvent: LikesActionEvent.acceptUnderReview,
+          actionEventVersion: state.actionEventVersion + 1,
+        ),
+      );
       return;
     }
-    emit(state.copyWith(
-      acceptInFlightIds: {...state.acceptInFlightIds, likeRequestId},
-    ));
+    emit(
+      state.copyWith(
+        acceptInFlightIds: {...state.acceptInFlightIds, likeRequestId},
+      ),
+    );
     final result = await _acceptLike(likeRequestId);
     if (isClosed) return;
-    final LikesActionEvent event = result.fold(
-      (failure) {
-        AppLogger.warning(
-          'LIKES — accept transport failure id=$likeRequestId '
-          'raw="${failure.message}"',
-          tag: 'LIKES',
-        );
-        return LikesActionEvent.acceptFailure;
-      },
-      _accept,
-    );
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'LIKES — accept transport failure id=$likeRequestId '
+        'raw="${failure.message}"',
+        tag: 'LIKES',
+      );
+      return LikesActionEvent.acceptFailure;
+    }, _accept);
     final clearedAccept = {...state.acceptInFlightIds}..remove(likeRequestId);
     // On accept success the matches list will get a new Stage-0 row —
     // invalidate the matches slot so the next tab visit refetches.
     final invalidateMatches = event == LikesActionEvent.acceptSuccess;
-    emit(state.copyWith(
-      acceptInFlightIds: clearedAccept,
-      actionEvent: event,
-      actionEventVersion: state.actionEventVersion + 1,
-      resetMatchesToInitial: invalidateMatches,
-    ));
+    emit(
+      state.copyWith(
+        acceptInFlightIds: clearedAccept,
+        actionEvent: event,
+        actionEventVersion: state.actionEventVersion + 1,
+        resetMatchesToInitial: invalidateMatches,
+      ),
+    );
     if (_shouldRefreshIncomingAfterLikeAction(event)) {
       await loadIncoming();
     }
@@ -238,28 +265,29 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
 
   Future<void> rejectLike(int likeRequestId) async {
     if (state.isActionInFlight(likeRequestId)) return;
-    emit(state.copyWith(
-      rejectInFlightIds: {...state.rejectInFlightIds, likeRequestId},
-    ));
+    emit(
+      state.copyWith(
+        rejectInFlightIds: {...state.rejectInFlightIds, likeRequestId},
+      ),
+    );
     final result = await _rejectLike(likeRequestId);
     if (isClosed) return;
-    final LikesActionEvent event = result.fold(
-      (failure) {
-        AppLogger.warning(
-          'LIKES — reject transport failure id=$likeRequestId '
-          'raw="${failure.message}"',
-          tag: 'LIKES',
-        );
-        return LikesActionEvent.rejectFailure;
-      },
-      _reject,
-    );
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'LIKES — reject transport failure id=$likeRequestId '
+        'raw="${failure.message}"',
+        tag: 'LIKES',
+      );
+      return LikesActionEvent.rejectFailure;
+    }, _reject);
     final clearedReject = {...state.rejectInFlightIds}..remove(likeRequestId);
-    emit(state.copyWith(
-      rejectInFlightIds: clearedReject,
-      actionEvent: event,
-      actionEventVersion: state.actionEventVersion + 1,
-    ));
+    emit(
+      state.copyWith(
+        rejectInFlightIds: clearedReject,
+        actionEvent: event,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
     if (_shouldRefreshIncomingAfterLikeAction(event)) {
       await loadIncoming();
     }
@@ -299,8 +327,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
       LikesActionEvent.acceptNotFound ||
       LikesActionEvent.rejectSuccess ||
       LikesActionEvent.rejectExpired ||
-      LikesActionEvent.rejectNotFound =>
-        true,
+      LikesActionEvent.rejectNotFound => true,
       _ => false,
     };
   }
@@ -311,38 +338,41 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     if (state.isPhotoExchangeRequesting(likeRequestId)) return;
     // Approval pre-gate — an unapproved user can't request photo exchange yet.
     if (_profileGate.isGated) {
-      emit(state.copyWith(
-        actionEvent: LikesActionEvent.photoExchangeRequestUnderReview,
-        actionEventVersion: state.actionEventVersion + 1,
-      ));
+      emit(
+        state.copyWith(
+          actionEvent: LikesActionEvent.photoExchangeRequestUnderReview,
+          actionEventVersion: state.actionEventVersion + 1,
+        ),
+      );
       return;
     }
-    emit(state.copyWith(
-      photoExchangeRequestInFlightLikeIds: {
-        ...state.photoExchangeRequestInFlightLikeIds,
-        likeRequestId,
-      },
-    ));
+    emit(
+      state.copyWith(
+        photoExchangeRequestInFlightLikeIds: {
+          ...state.photoExchangeRequestInFlightLikeIds,
+          likeRequestId,
+        },
+      ),
+    );
     final result = await _requestPhotoExchange(likeRequestId);
     if (isClosed) return;
-    final LikesActionEvent event = result.fold(
-      (failure) {
-        AppLogger.warning(
-          'PHOTO-EXCHANGE — request transport failure id=$likeRequestId '
-          'raw="${failure.message}"',
-          tag: 'MATCHES',
-        );
-        return LikesActionEvent.photoExchangeRequestFailure;
-      },
-      _requestEvent,
-    );
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'PHOTO-EXCHANGE — request transport failure id=$likeRequestId '
+        'raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return LikesActionEvent.photoExchangeRequestFailure;
+    }, _requestEvent);
     final cleared = {...state.photoExchangeRequestInFlightLikeIds}
       ..remove(likeRequestId);
-    emit(state.copyWith(
-      photoExchangeRequestInFlightLikeIds: cleared,
-      actionEvent: event,
-      actionEventVersion: state.actionEventVersion + 1,
-    ));
+    emit(
+      state.copyWith(
+        photoExchangeRequestInFlightLikeIds: cleared,
+        actionEvent: event,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
     if (_shouldRefreshMatchesAfterRequest(event)) {
       await loadMatches();
     }
@@ -371,8 +401,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     return switch (event) {
       LikesActionEvent.photoExchangeRequestSuccess ||
       LikesActionEvent.photoExchangeRequestAlreadyPending ||
-      LikesActionEvent.photoExchangeRequestLikeNotAccepted =>
-        true,
+      LikesActionEvent.photoExchangeRequestLikeNotAccepted => true,
       _ => false,
     };
   }
@@ -381,32 +410,33 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
 
   Future<void> acceptPhotoExchange(int requestId) async {
     if (state.isPhotoExchangeResponding(requestId)) return;
-    emit(state.copyWith(
-      photoExchangeAcceptInFlightRequestIds: {
-        ...state.photoExchangeAcceptInFlightRequestIds,
-        requestId,
-      },
-    ));
+    emit(
+      state.copyWith(
+        photoExchangeAcceptInFlightRequestIds: {
+          ...state.photoExchangeAcceptInFlightRequestIds,
+          requestId,
+        },
+      ),
+    );
     final result = await _acceptPhotoExchange(requestId);
     if (isClosed) return;
-    final LikesActionEvent event = result.fold(
-      (failure) {
-        AppLogger.warning(
-          'PHOTO-EXCHANGE — accept transport failure requestId=$requestId '
-          'raw="${failure.message}"',
-          tag: 'MATCHES',
-        );
-        return LikesActionEvent.photoExchangeRespondFailure;
-      },
-      (outcome) => _respondEvent(outcome, isAccept: true),
-    );
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'PHOTO-EXCHANGE — accept transport failure requestId=$requestId '
+        'raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return LikesActionEvent.photoExchangeRespondFailure;
+    }, (outcome) => _respondEvent(outcome, isAccept: true));
     final cleared = {...state.photoExchangeAcceptInFlightRequestIds}
       ..remove(requestId);
-    emit(state.copyWith(
-      photoExchangeAcceptInFlightRequestIds: cleared,
-      actionEvent: event,
-      actionEventVersion: state.actionEventVersion + 1,
-    ));
+    emit(
+      state.copyWith(
+        photoExchangeAcceptInFlightRequestIds: cleared,
+        actionEvent: event,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
     if (_shouldRefreshMatchesAfterRespond(event)) {
       await loadMatches();
     }
@@ -414,32 +444,33 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
 
   Future<void> rejectPhotoExchange(int requestId) async {
     if (state.isPhotoExchangeResponding(requestId)) return;
-    emit(state.copyWith(
-      photoExchangeRejectInFlightRequestIds: {
-        ...state.photoExchangeRejectInFlightRequestIds,
-        requestId,
-      },
-    ));
+    emit(
+      state.copyWith(
+        photoExchangeRejectInFlightRequestIds: {
+          ...state.photoExchangeRejectInFlightRequestIds,
+          requestId,
+        },
+      ),
+    );
     final result = await _rejectPhotoExchange(requestId);
     if (isClosed) return;
-    final LikesActionEvent event = result.fold(
-      (failure) {
-        AppLogger.warning(
-          'PHOTO-EXCHANGE — reject transport failure requestId=$requestId '
-          'raw="${failure.message}"',
-          tag: 'MATCHES',
-        );
-        return LikesActionEvent.photoExchangeRespondFailure;
-      },
-      (outcome) => _respondEvent(outcome, isAccept: false),
-    );
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'PHOTO-EXCHANGE — reject transport failure requestId=$requestId '
+        'raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return LikesActionEvent.photoExchangeRespondFailure;
+    }, (outcome) => _respondEvent(outcome, isAccept: false));
     final cleared = {...state.photoExchangeRejectInFlightRequestIds}
       ..remove(requestId);
-    emit(state.copyWith(
-      photoExchangeRejectInFlightRequestIds: cleared,
-      actionEvent: event,
-      actionEventVersion: state.actionEventVersion + 1,
-    ));
+    emit(
+      state.copyWith(
+        photoExchangeRejectInFlightRequestIds: cleared,
+        actionEvent: event,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
     if (_shouldRefreshMatchesAfterRespond(event)) {
       await loadMatches();
     }
@@ -450,9 +481,10 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required bool isAccept,
   }) {
     return switch (outcome) {
-      PhotoExchangeRespondSuccess() => isAccept
-          ? LikesActionEvent.photoExchangeAcceptSuccess
-          : LikesActionEvent.photoExchangeRejectSuccess,
+      PhotoExchangeRespondSuccess() =>
+        isAccept
+            ? LikesActionEvent.photoExchangeAcceptSuccess
+            : LikesActionEvent.photoExchangeRejectSuccess,
       PhotoExchangeRespondNotFound() =>
         LikesActionEvent.photoExchangeRespondNotFound,
       PhotoExchangeRespondExpired() =>
@@ -462,106 +494,163 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     };
   }
 
-
-
   bool _shouldRefreshMatchesAfterRespond(LikesActionEvent event) {
     return switch (event) {
       LikesActionEvent.photoExchangeAcceptSuccess ||
       LikesActionEvent.photoExchangeRejectSuccess ||
       LikesActionEvent.photoExchangeRespondNotFound ||
-      LikesActionEvent.photoExchangeRespondExpired =>
-        true,
+      LikesActionEvent.photoExchangeRespondExpired => true,
       _ => false,
     };
   }
 
-  // ── Formal step (stage 1/2) — share partner card + accompanying msg ─
+  // ── Matchmaker inquiry / formal step — profile card + text message ──
 
-  /// Shares the partner's profile card into the user's matchmaker
-  /// conversation and posts an accompanying [message], signalling intent
-  /// to proceed formally. Guarded to once per match this session — a
-  /// repeat tap never re-posts; it emits [LikesActionEvent.formalStepAlreadySent]
-  /// so the screen just opens the chat. The localized [message] is passed
-  /// in from the UI (the cubit has no `BuildContext`).
+  /// Stage-0 inquiry. The ticket requires both the viewed profile card and
+  /// the predefined inquiry text to be present before the chat is opened.
+  Future<void> sendInquiry(MatchCard card, String message) async {
+    final id = card.likeRequestId;
+    if (state.isInquirySending(id)) return;
+    if (state.isInquirySent(id)) {
+      _emitAction(LikesActionEvent.inquiryAlreadySent);
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        inquiryInFlightLikeIds: {...state.inquiryInFlightLikeIds, id},
+      ),
+    );
+    final done = await _shareAndSend(card: card, message: message);
+    if (isClosed) return;
+
+    final cleared = {...state.inquiryInFlightLikeIds}..remove(id);
+    emit(
+      state.copyWith(
+        inquiryInFlightLikeIds: cleared,
+        inquirySentLikeIds: done
+            ? {...state.inquirySentLikeIds, id}
+            : state.inquirySentLikeIds,
+        actionEvent: done
+            ? LikesActionEvent.inquirySuccess
+            : LikesActionEvent.inquiryFailure,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
+  }
+
+  /// Stage 1/2 formal intent. Inquiry and formal-step guards are deliberately
+  /// separate because a user may legitimately send both for the same match.
   Future<void> sendFormalStep(MatchCard card, String message) async {
     final id = card.likeRequestId;
     if (state.isFormalStepSending(id)) return;
     if (state.isFormalStepSent(id)) {
-      _emitFormalStep(LikesActionEvent.formalStepAlreadySent);
-      return;
-    }
-    final conversationId = int.tryParse(card.conversationId ?? '');
-    if (conversationId == null) {
-      // No conversation yet (defensive — stage 1/2 should always have
-      // one). Open the chat without sharing rather than no-op.
-      _emitFormalStep(LikesActionEvent.formalStepAlreadySent);
+      _emitAction(LikesActionEvent.formalStepAlreadySent);
       return;
     }
 
-    emit(state.copyWith(
-      formalStepInFlightLikeIds: {...state.formalStepInFlightLikeIds, id},
-    ));
+    emit(
+      state.copyWith(
+        formalStepInFlightLikeIds: {...state.formalStepInFlightLikeIds, id},
+      ),
+    );
+    final done = await _shareAndSend(card: card, message: message);
+    if (isClosed) return;
+
+    final cleared = {...state.formalStepInFlightLikeIds}..remove(id);
+    emit(
+      state.copyWith(
+        formalStepInFlightLikeIds: cleared,
+        formalStepSentLikeIds: done
+            ? {...state.formalStepSentLikeIds, id}
+            : state.formalStepSentLikeIds,
+        actionEvent: done
+            ? LikesActionEvent.formalStepSuccess
+            : LikesActionEvent.formalStepFailure,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
+  }
+
+  Future<bool> _shareAndSend({
+    required MatchCard card,
+    required String message,
+  }) async {
+    final conversationId = await _resolveConversationId(card);
+    if (conversationId == null || isClosed) return false;
 
     final share = await _shareProfile(
       conversationId: conversationId,
       sharedUserId: card.otherUserId,
     );
-    if (isClosed) return;
+    if (isClosed) return false;
 
-    var freshShare = false;
-    var done = false;
-    share.fold(
+    final canSendMessage = share.fold(
       (failure) {
         AppLogger.warning(
-          'FORMAL-STEP — share failed id=$id raw="${failure.message}"',
+          'MATCHMAKER-SEND — share failed id=${card.likeRequestId} '
+          'raw="${failure.message}"',
           tag: 'MATCHES',
         );
+        return false;
       },
-      (outcome) {
-        switch (outcome) {
-          case ShareProfileSuccess():
-            freshShare = true;
-            done = true;
-          // Rate-limited ⇒ the card was already shared recently; treat as
-          // done so we navigate instead of erroring, and never re-post.
-          case ShareProfileRateLimited():
-            done = true;
-          case ShareProfileNotFound() ||
-                ShareProfileValidationError() ||
-                ShareProfileConversationNotFound() ||
-                ShareProfileUnauthorized() ||
-                ShareProfileFailure():
-            AppLogger.warning(
-              'FORMAL-STEP — share rejected id=$id',
-              tag: 'MATCHES',
-            );
-        }
+      (outcome) => switch (outcome) {
+        // A rate limit here means the same profile was shared recently. The
+        // accompanying text is still required and safe to attempt.
+        ShareProfileSuccess() || ShareProfileRateLimited() => true,
+        _ => false,
       },
     );
-
-    // Best-effort accompanying message — only after a fresh share.
-    if (freshShare) {
-      await _sendText(conversationId: conversationId, content: message);
-      if (isClosed) return;
+    if (!canSendMessage) {
+      AppLogger.warning(
+        'MATCHMAKER-SEND — profile share rejected id=${card.likeRequestId}',
+        tag: 'MATCHES',
+      );
+      return false;
     }
 
-    final cleared = {...state.formalStepInFlightLikeIds}..remove(id);
-    emit(state.copyWith(
-      formalStepInFlightLikeIds: cleared,
-      formalStepSentLikeIds: done
-          ? {...state.formalStepSentLikeIds, id}
-          : state.formalStepSentLikeIds,
-      actionEvent: done
-          ? LikesActionEvent.formalStepSuccess
-          : LikesActionEvent.formalStepFailure,
-      actionEventVersion: state.actionEventVersion + 1,
-    ));
+    final send = await _sendText(
+      conversationId: conversationId,
+      content: message,
+    );
+    if (isClosed) return false;
+    return send.fold((failure) {
+      AppLogger.warning(
+        'MATCHMAKER-SEND — text failed id=${card.likeRequestId} '
+        'raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return false;
+    }, (outcome) => outcome is SendTextSuccess);
   }
 
-  void _emitFormalStep(LikesActionEvent event) {
-    emit(state.copyWith(
-      actionEvent: event,
-      actionEventVersion: state.actionEventVersion + 1,
-    ));
+  Future<int?> _resolveConversationId(MatchCard card) async {
+    final embedded = int.tryParse(card.conversationId ?? '');
+    if (embedded != null) return embedded;
+
+    final result = await _getMyMatchmaker();
+    if (isClosed) return null;
+    return result.fold(
+      (failure) {
+        AppLogger.warning(
+          'MATCHMAKER-SEND — resolve failed raw="${failure.message}"',
+          tag: 'MATCHES',
+        );
+        return null;
+      },
+      (outcome) => switch (outcome) {
+        MyMatchmakerAssigned(:final info) => info.conversationId,
+        MyMatchmakerNotAssigned() || MyMatchmakerFailure() => null,
+      },
+    );
+  }
+
+  void _emitAction(LikesActionEvent event) {
+    emit(
+      state.copyWith(
+        actionEvent: event,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
   }
 }

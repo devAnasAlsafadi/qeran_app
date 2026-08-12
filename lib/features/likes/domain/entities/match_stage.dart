@@ -11,8 +11,8 @@ enum MatchStage {
   /// Available action: request photo exchange (initiator path).
   waitingForPhotoExchange,
 
-  /// Stage 1 — photos exchanged, both sides unblurred. The matchmaker
-  /// owns the next move; a formalRequest may be attached.
+  /// Stage 1 — photo exchange accepted. Each side gets one server-enforced
+  /// viewing window; a formalRequest may be attached.
   photosExchanged,
 
   /// Stage 2 — photo exchange was rejected OR the matchmaker engaged

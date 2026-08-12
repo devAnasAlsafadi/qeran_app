@@ -13,8 +13,11 @@ import 'like_countdown_formatter.dart';
 /// `dispose`. Tick cadence is 30 s, precise enough for the d/h/m
 /// bucketing in [LikeCountdownFormatter] and cheap for a full list.
 class LikeCountdownChip extends StatefulWidget {
-  final int initialSeconds;
-  const LikeCountdownChip({super.key, required this.initialSeconds});
+  final int? initialSeconds;
+  final DateTime? expiresAt;
+
+  const LikeCountdownChip({super.key, this.initialSeconds, this.expiresAt})
+    : assert(initialSeconds != null || expiresAt != null);
 
   @override
   State<LikeCountdownChip> createState() => _LikeCountdownChipState();
@@ -24,14 +27,14 @@ class _LikeCountdownChipState extends State<LikeCountdownChip> {
   static const Duration _tick = Duration(seconds: 30);
 
   late int _seconds;
-  late DateTime _anchor;
+  late DateTime _deviceAnchorUtc;
+  late DateTime _serverAnchorUtc;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _seconds = widget.initialSeconds;
-    _anchor = DateTime.now();
+    _calibrate();
     _timer = Timer.periodic(_tick, (_) => _onTick());
   }
 
@@ -40,9 +43,12 @@ class _LikeCountdownChipState extends State<LikeCountdownChip> {
     super.didUpdateWidget(old);
     // Cubit refresh emitted a new remaining value — reset the anchor so
     // the next tick subtracts from the fresh baseline, not the stale one.
-    if (widget.initialSeconds != old.initialSeconds) {
-      _seconds = widget.initialSeconds;
-      _anchor = DateTime.now();
+    if (widget.initialSeconds != old.initialSeconds ||
+        widget.expiresAt != old.expiresAt) {
+      _calibrate();
+      if (_seconds > 0 && !(_timer?.isActive ?? false)) {
+        _timer = Timer.periodic(_tick, (_) => _onTick());
+      }
     }
   }
 
@@ -54,13 +60,49 @@ class _LikeCountdownChipState extends State<LikeCountdownChip> {
 
   void _onTick() {
     if (!mounted) return;
-    final elapsed = DateTime.now().difference(_anchor).inSeconds;
-    final next = (widget.initialSeconds - elapsed).clamp(0, 1 << 31);
+    final next = _remainingAt(DateTime.now().toUtc());
     if (next == _seconds) return;
     setState(() => _seconds = next);
     // Local countdown hit zero — backend owns the final state; the next
     // refresh moves this row to archived/expired.
     if (next == 0) _timer?.cancel();
+  }
+
+  void _calibrate() {
+    _deviceAnchorUtc = DateTime.now().toUtc();
+    final expiry = widget.expiresAt?.toUtc();
+    final snapshot = widget.initialSeconds;
+
+    // `remainingSeconds` is the server's snapshot at response time. Derive
+    // the matching server clock once, then advance it by elapsed real time.
+    // This keeps `expiresAt` authoritative while avoiding a skewed phone clock.
+    if (expiry != null && snapshot != null) {
+      _serverAnchorUtc = expiry.subtract(Duration(seconds: snapshot));
+      _seconds = snapshot.clamp(0, 1 << 31).toInt();
+      return;
+    }
+
+    _serverAnchorUtc = _deviceAnchorUtc;
+    _seconds = expiry == null
+        ? (snapshot ?? 0).clamp(0, 1 << 31).toInt()
+        : _secondsUntil(expiry, _serverAnchorUtc);
+  }
+
+  int _remainingAt(DateTime deviceNowUtc) {
+    final elapsed = deviceNowUtc.difference(_deviceAnchorUtc);
+    final serverNow = _serverAnchorUtc.add(elapsed);
+    final expiry = widget.expiresAt?.toUtc();
+    if (expiry != null) return _secondsUntil(expiry, serverNow);
+    return ((widget.initialSeconds ?? 0) - elapsed.inSeconds)
+        .clamp(0, 1 << 31)
+        .toInt();
+  }
+
+  int _secondsUntil(DateTime expiry, DateTime now) {
+    final milliseconds = expiry.difference(now).inMilliseconds;
+    if (milliseconds <= 0) return 0;
+    // Round up so 1.2 seconds does not display as already expired.
+    return (milliseconds / Duration.millisecondsPerSecond).ceil();
   }
 
   @override

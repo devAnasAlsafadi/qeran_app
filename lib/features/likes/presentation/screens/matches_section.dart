@@ -23,14 +23,8 @@ import '../widgets/match_gallery_sheet.dart';
 /// Matches tab — active matches (post-acceptance) across stages 0/1/2.
 class MatchesSection extends StatelessWidget {
   final LikesState state;
-  final void Function(BuildContext context, String? conversationId)
-      onContactMatchmaker;
 
-  const MatchesSection({
-    super.key,
-    required this.state,
-    required this.onContactMatchmaker,
-  });
+  const MatchesSection({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +48,6 @@ class MatchesSection extends StatelessWidget {
           matches: matches,
           state: state,
           onRefresh: cubit.loadMatches,
-          onContactMatchmaker: onContactMatchmaker,
         );
     }
   }
@@ -64,14 +57,11 @@ class _MatchesList extends StatelessWidget {
   final List<MatchCard> matches;
   final LikesState state;
   final Future<void> Function() onRefresh;
-  final void Function(BuildContext context, String? conversationId)
-      onContactMatchmaker;
 
   const _MatchesList({
     required this.matches,
     required this.state,
     required this.onRefresh,
-    required this.onContactMatchmaker,
   });
 
   @override
@@ -100,8 +90,9 @@ class _MatchesList extends StatelessWidget {
             card: card,
             onRequestPhotoExchange: () =>
                 cubit.requestPhotoExchange(card.likeRequestId),
-            isRequestingPhotoExchange:
-                state.isPhotoExchangeRequesting(card.likeRequestId),
+            isRequestingPhotoExchange: state.isPhotoExchangeRequesting(
+              card.likeRequestId,
+            ),
             onAcceptPhotoExchange: pendingId == null
                 ? null
                 : () => cubit.acceptPhotoExchange(pendingId),
@@ -115,13 +106,13 @@ class _MatchesList extends StatelessWidget {
             onPendingExpiredLocally: cubit.loadMatches,
             onOpenGallery: card.images.isEmpty
                 ? null
-                : () => showMatchGallerySheet(
-                      context,
-                      images: card.images,
-                      targetUserId: card.otherUserId,
-                    ),
-            onContactMatchmaker: () =>
-                onContactMatchmaker(context, card.conversationId),
+                : () => _openGallery(context, card, cubit),
+            onContactMatchmaker: () => cubit.sendInquiry(
+              card,
+              LocaleKeys.likes_matches_inquiry_message.t(context),
+            ),
+            isInquirySending: state.isInquirySending(card.likeRequestId),
+            isInquirySent: state.isInquirySent(card.likeRequestId),
             onFormalStep: () => cubit.sendFormalStep(
               card,
               LocaleKeys.likes_matches_formal_step_message.t(context),
@@ -145,5 +136,20 @@ class _MatchesList extends StatelessWidget {
         entry: ProfileEntrySource.matches,
       ),
     );
+  }
+
+  Future<void> _openGallery(
+    BuildContext context,
+    MatchCard card,
+    LikesCubit cubit,
+  ) async {
+    await showMatchGallerySheet(
+      context,
+      images: card.images,
+      targetUserId: card.otherUserId,
+    );
+    // isBlurred becomes true after consumption; refresh so the card removes
+    // the reveal action and never offers a second opening.
+    await cubit.loadMatches();
   }
 }

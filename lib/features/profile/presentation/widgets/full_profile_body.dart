@@ -56,6 +56,7 @@ class FullProfileBody extends StatelessWidget {
   static const double _sheetOverlap = QeranSpacing.s24;
 
   bool get _showShare => showShareForEntry(entry);
+  bool get _showPinnedCta => _showShare || entry == ProfileEntrySource.chat;
 
   Placement? _find(PlacementCode code) {
     for (final p in profile.placements) {
@@ -111,7 +112,7 @@ class FullProfileBody extends StatelessWidget {
           // Trailing clearance so the last section scrolls clear of the
           // pinned share CTA (pinned by the screen, not part of this scroll).
           SizedBox(
-            height: _showShare
+            height: _showPinnedCta
                 ? MediaQuery.of(context).padding.bottom + _kShareCtaClearance
                 : QeranSpacing.s32,
           ),

@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/likes/presentation/blocs/photo_view_cubit.dart';
+import 'package:qeran/features/likes/presentation/widgets/photo_view_access_host.dart';
+import 'package:qeran/features/likes/presentation/widgets/photo_view_overlay.dart';
 
 import '../../domain/entities/profile_image.dart';
 import 'profile_photo_hero_motion.dart';
@@ -23,8 +28,15 @@ import 'profile_photo_hero_motion.dart';
 ///   and pan, preserving the source image's blur state when present.
 class ProfileHeaderGallery extends StatefulWidget {
   final List<ProfileImage> images;
+  final ValueChanged<String>? onApproveImage;
+  final String? approvingImageId;
 
-  const ProfileHeaderGallery({super.key, required this.images});
+  const ProfileHeaderGallery({
+    super.key,
+    required this.images,
+    this.onApproveImage,
+    this.approvingImageId,
+  });
 
   @override
   State<ProfileHeaderGallery> createState() => _ProfileHeaderGalleryState();
@@ -46,6 +58,10 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
     if (images.isEmpty) {
       return const _EmptyState();
     }
+    final currentIndex = _index.clamp(0, images.length - 1).toInt();
+    final currentImage = images[currentIndex];
+    final pendingApproval =
+        currentImage is OwnerImage && !currentImage.isApproved;
     final isLandscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
     return AspectRatio(
@@ -93,6 +109,17 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
               child: _DotsIndicator(count: images.length, current: _index),
             ),
           ],
+          if (pendingApproval)
+            PositionedDirectional(
+              top: QeranSpacing.s12,
+              start: QeranSpacing.s12,
+              child: _PendingApprovalBadge(
+                loading: widget.approvingImageId == currentImage.id,
+                onApprove: widget.onApproveImage == null
+                    ? null
+                    : () => widget.onApproveImage!(currentImage.id),
+              ),
+            ),
         ],
       ),
     );
@@ -109,12 +136,24 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
   }
 
   void _openFullscreen(BuildContext context, ProfileImage image, bool blurred) {
+    PhotoViewCubit? photoViewCubit;
+    try {
+      photoViewCubit = context.read<PhotoViewCubit>();
+    } catch (_) {
+      photoViewCubit = null;
+    }
     Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
         barrierColor: Colors.black87,
-        pageBuilder: (_, _, _) =>
-            _FullscreenViewer(image: image, blurred: blurred),
+        pageBuilder: (_, _, _) {
+          final viewer = _FullscreenViewer(image: image, blurred: blurred);
+          if (photoViewCubit == null) return viewer;
+          return BlocProvider<PhotoViewCubit>.value(
+            value: photoViewCubit,
+            child: PhotoViewAccessHost(observeLifecycle: false, child: viewer),
+          );
+        },
         transitionsBuilder: (_, animation, _, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
@@ -126,6 +165,56 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
       OwnerImage() => false,
       OtherProfileImage(:final isBlurred) => isBlurred,
     };
+  }
+}
+
+class _PendingApprovalBadge extends StatelessWidget {
+  const _PendingApprovalBadge({required this.loading, this.onApprove});
+
+  final bool loading;
+  final VoidCallback? onApprove;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: loading
+          ? const QeranLoader.inline(color: QeranColors.paper)
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  onApprove == null
+                      ? Icons.schedule_rounded
+                      : Icons.verified_outlined,
+                  size: 15,
+                  color: QeranColors.paper,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  (onApprove == null
+                          ? LocaleKeys.profile_photos_pending
+                          : LocaleKeys.matchmaker_profile_approve_image)
+                      .t(context),
+                  style: QeranTypography.caption.copyWith(
+                    color: QeranColors.paper,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+    );
+    return Material(
+      color: QeranColors.goldDeep,
+      borderRadius: QeranRadii.pill,
+      child: onApprove == null
+          ? content
+          : InkWell(
+              borderRadius: QeranRadii.pill,
+              onTap: loading ? null : onApprove,
+              child: content,
+            ),
+    );
   }
 }
 
@@ -242,6 +331,7 @@ class _FullscreenViewer extends StatelessWidget {
                 ),
               ),
             ),
+            const PhotoViewOverlay(),
             PositionedDirectional(
               top: 16,
               end: 16,

@@ -4,6 +4,8 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/likes/presentation/widgets/photo_view_access_host.dart';
+import 'package:qeran/features/likes/presentation/widgets/photo_view_overlay.dart';
 
 import '../../domain/entities/other_profile.dart';
 import '../../domain/entities/placement_code.dart';
@@ -25,7 +27,9 @@ class FullProfileImageHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final blurred = profile.primaryImage?.isBlurred ?? false;
+    final access = PhotoViewScope.maybeOf(context);
+    final serverBlurred = profile.primaryImage?.isBlurred ?? false;
+    final blurred = access?.effectiveBlur(serverBlurred) ?? serverBlurred;
     return Stack(
       children: [
         Hero(
@@ -41,7 +45,7 @@ class FullProfileImageHero extends StatelessWidget {
             ],
           ),
         ),
-        if (blurred)
+        if (blurred && !(access?.controlsAccess ?? false))
           const Positioned.fill(
             child: _ProfileHeroDetailsEntrance(
               child: IgnorePointer(child: Center(child: ProfilePrivacyLock())),
@@ -64,6 +68,7 @@ class FullProfileImageHero extends StatelessWidget {
             ),
           ),
         ),
+        const PhotoViewOverlay(),
       ],
     );
   }

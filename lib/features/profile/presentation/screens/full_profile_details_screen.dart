@@ -4,16 +4,23 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/block/presentation/widgets/safety_menu_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/likes/presentation/blocs/photo_view_cubit.dart';
+import 'package:qeran/features/likes/presentation/widgets/photo_view_access_host.dart';
+import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
+import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 
 import '../../domain/entities/other_profile.dart';
 import '../../domain/entities/profile_entry_source.dart';
 import '../blocs/profile_details/profile_details_cubit.dart';
 import '../blocs/profile_details/profile_details_state.dart';
+import '../blocs/profile_reaction/profile_reaction_cubit.dart';
+import '../blocs/profile_reaction/profile_reaction_state.dart';
 import '../full_profile_details_args.dart';
 import '../widgets/full_profile_body.dart';
 import '../widgets/share_with_matchmaker_button.dart';
@@ -31,12 +38,39 @@ class FullProfileDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ProfileDetailsCubit>(
-      create: (_) => sl<ProfileDetailsCubit>()
-        ..init(userId: args.userId, seed: args.initialData),
-      child: _ProfileDetailsView(args: args),
+    final view = _ProfileDetailsView(args: args);
+    if (!_needsPhotoPermission(args.entry)) {
+      return BlocProvider<ProfileDetailsCubit>(
+        create: (_) =>
+            sl<ProfileDetailsCubit>()
+              ..init(userId: args.userId, seed: args.initialData),
+        child: view,
+      );
+    }
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ProfileDetailsCubit>(
+          create: (_) =>
+              sl<ProfileDetailsCubit>()
+                ..init(userId: args.userId, seed: args.initialData),
+        ),
+        BlocProvider<PhotoViewCubit>(
+          create: (_) => sl<PhotoViewCubit>(param1: args.userId)..load(),
+        ),
+        if (args.entry == ProfileEntrySource.chat)
+          BlocProvider<ProfileReactionCubit>(create: (_) => sl()),
+      ],
+      child: PhotoViewAccessHost(child: view),
     );
   }
+
+  bool _needsPhotoPermission(ProfileEntrySource entry) => switch (entry) {
+    ProfileEntrySource.discovery ||
+    ProfileEntrySource.chat ||
+    ProfileEntrySource.likes ||
+    ProfileEntrySource.matches => true,
+    ProfileEntrySource.settings || ProfileEntrySource.mine => false,
+  };
 }
 
 class _ProfileDetailsView extends StatelessWidget {
@@ -45,7 +79,7 @@ class _ProfileDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final scaffold = Scaffold(
       body: SafeArea(
         bottom: false,
         child: BlocConsumer<ProfileDetailsCubit, ProfileDetailsState>(
@@ -58,6 +92,13 @@ class _ProfileDetailsView extends StatelessWidget {
         ),
       ),
     );
+    if (args.entry != ProfileEntrySource.chat) return scaffold;
+    return BlocListener<ProfileReactionCubit, ProfileReactionState>(
+      listenWhen: (previous, current) =>
+          previous.eventVersion != current.eventVersion,
+      listener: _onReaction,
+      child: scaffold,
+    );
   }
 
   void _onState(BuildContext context, ProfileDetailsState state) {
@@ -67,6 +108,62 @@ class _ProfileDetailsView extends StatelessWidget {
       message: LocaleKeys.profile_not_available.t(context),
       type: SnackBarType.info,
     );
+  }
+
+  void _onReaction(BuildContext context, ProfileReactionState state) {
+    switch (state.event) {
+      case ProfileReactionEvent.none:
+        break;
+      case ProfileReactionEvent.likeSuccess:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.profile_reaction_like_success.t(context),
+          type: SnackBarType.success,
+        );
+        NavigationManager.pop(context, args.userId);
+      case ProfileReactionEvent.passSuccess:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.profile_reaction_pass_success.t(context),
+          type: SnackBarType.success,
+        );
+        NavigationManager.pop(context, args.userId);
+      case ProfileReactionEvent.paywall:
+        showPaywall(context, intent: PaywallIntent.like);
+      case ProfileReactionEvent.alreadyPending:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.discovery_like_already_pending.t(context),
+          type: SnackBarType.info,
+        );
+        NavigationManager.pop(context, args.userId);
+      case ProfileReactionEvent.genderMismatch:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.discovery_like_gender_mismatch.t(context),
+          type: SnackBarType.error,
+        );
+        NavigationManager.pop(context, args.userId);
+      case ProfileReactionEvent.userUnavailable:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.discovery_like_user_unavailable.t(context),
+          type: SnackBarType.info,
+        );
+        NavigationManager.pop(context, args.userId);
+      case ProfileReactionEvent.underReview:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.profile_status_pending_review_like.t(context),
+          type: SnackBarType.info,
+        );
+      case ProfileReactionEvent.failure:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.errors_generic.t(context),
+          type: SnackBarType.error,
+        );
+    }
   }
 }
 
@@ -83,37 +180,34 @@ class _Body extends StatelessWidget {
         Positioned.fill(
           child: switch (state) {
             ProfileDetailsInitial() ||
-            ProfileDetailsLoading(seed: null) =>
-              const ProfileDetailsSkeleton(),
-            ProfileDetailsSeeded(:final seed) =>
-              _Scrollable(
-                profile: seed,
-                entry: args.entry,
-                isLoading: true,
-                onRefresh: () => cubit.refresh(args.userId),
-              ),
+            ProfileDetailsLoading(seed: null) => const ProfileDetailsSkeleton(),
+            ProfileDetailsSeeded(:final seed) => _Scrollable(
+              profile: seed,
+              entry: args.entry,
+              isLoading: true,
+              onRefresh: () => cubit.refresh(args.userId),
+            ),
             ProfileDetailsLoading(:final seed?) => _Scrollable(
-                profile: seed,
-                entry: args.entry,
-                isLoading: true,
-                onRefresh: () => cubit.refresh(args.userId),
-              ),
+              profile: seed,
+              entry: args.entry,
+              isLoading: true,
+              onRefresh: () => cubit.refresh(args.userId),
+            ),
             ProfileDetailsLoaded(:final profile) => _Scrollable(
-                profile: profile,
-                entry: args.entry,
-                onRefresh: () => cubit.refresh(args.userId),
-              ),
+              profile: profile,
+              entry: args.entry,
+              onRefresh: () => cubit.refresh(args.userId),
+            ),
             ProfileDetailsFailure(:final seed?) => _Scrollable(
-                profile: seed,
-                entry: args.entry,
-                onRefresh: () => cubit.refresh(args.userId),
-              ),
+              profile: seed,
+              entry: args.entry,
+              onRefresh: () => cubit.refresh(args.userId),
+            ),
             ProfileDetailsFailure(:final message) => ProfileDetailsErrorView(
-                message: message,
-                onRetry: () => cubit.refresh(args.userId),
-              ),
-            ProfileDetailsNotFound() =>
-              const ProfileDetailsNotAvailableView(),
+              message: message,
+              onRetry: () => cubit.refresh(args.userId),
+            ),
+            ProfileDetailsNotFound() => const ProfileDetailsNotAvailableView(),
           },
         ),
         const PositionedDirectional(
@@ -137,6 +231,13 @@ class _Body extends StatelessWidget {
             end: 0,
             bottom: 0,
             child: _PinnedShareCta(userId: args.userId),
+          ),
+        if (args.entry == ProfileEntrySource.chat && _hasProfile(state))
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: 0,
+            child: _PinnedReactionCta(userId: args.userId),
           ),
       ],
     );
@@ -166,16 +267,72 @@ class _PinnedShareCta extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            QeranColors.paper.withValues(alpha: 0.0),
-            QeranColors.paper,
-          ],
+          colors: [QeranColors.paper.withValues(alpha: 0.0), QeranColors.paper],
           stops: const [0.0, 0.55],
         ),
       ),
       child: SafeArea(
         top: false,
         child: ShareWithMatchmakerButton(userId: userId),
+      ),
+    );
+  }
+}
+
+class _PinnedReactionCta extends StatelessWidget {
+  final String userId;
+  const _PinnedReactionCta({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [QeranColors.paper.withValues(alpha: 0), QeranColors.paper],
+          stops: const [0, 0.45],
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(
+          QeranSpacing.s20,
+          QeranSpacing.s20,
+          QeranSpacing.s20,
+          QeranSpacing.s12,
+        ),
+        child: BlocBuilder<ProfileReactionCubit, ProfileReactionState>(
+          builder: (context, state) => Row(
+            children: [
+              Expanded(
+                child: QeranButton(
+                  label: LocaleKeys.discovery_action_like_label.t(context),
+                  leadingIcon: Icons.favorite_rounded,
+                  variant: QeranButtonVariant.primaryWine,
+                  size: QeranButtonSize.md,
+                  loading: state.isLiking,
+                  onPressed: state.isBusy
+                      ? null
+                      : () => context.read<ProfileReactionCubit>().like(userId),
+                ),
+              ),
+              QeranSpacing.hs12,
+              Expanded(
+                child: QeranButton(
+                  label: LocaleKeys.discovery_action_pass_label.t(context),
+                  leadingIcon: Icons.close_rounded,
+                  variant: QeranButtonVariant.secondary,
+                  size: QeranButtonSize.md,
+                  loading: state.isPassing,
+                  onPressed: state.isBusy
+                      ? null
+                      : () => context.read<ProfileReactionCubit>().pass(userId),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -219,9 +376,7 @@ class _BackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: QeranColors.paper,
-      shape: const CircleBorder(
-        side: BorderSide(color: QeranColors.wine08),
-      ),
+      shape: const CircleBorder(side: BorderSide(color: QeranColors.wine08)),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: () => NavigationManager.pop(context),

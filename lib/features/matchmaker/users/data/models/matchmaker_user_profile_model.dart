@@ -1,4 +1,5 @@
 import 'package:qeran/features/profile/data/models/owner_image_model.dart';
+import 'package:qeran/core/data/display_name.dart';
 import 'package:qeran/features/profile/data/models/placement_model.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 
@@ -67,7 +68,7 @@ class MatchmakerUserProfileModel {
     final rawProfileImage = json['profileImage'];
     return MatchmakerUserProfileModel(
       userId: parseString(json['userId']),
-      name: parseString(json['name']),
+      name: parseDisplayName(json),
       email: parseString(json['email']),
       gender: parseString(json['gender']),
       birthDate: parseNullableDateTime(json['birthDate']),

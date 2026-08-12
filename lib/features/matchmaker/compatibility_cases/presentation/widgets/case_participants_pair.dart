@@ -105,11 +105,11 @@ class _ParticipantColumn extends StatelessWidget {
         MatchmakerUserAvatar(
           url: user.profileImageUrl,
           size: avatarSize,
-          monogramName: user.firstName,
+          monogramName: user.name,
         ),
         QeranSpacing.vs8,
         Text(
-          user.firstName,
+          user.name,
           style: QeranTypography.subtitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

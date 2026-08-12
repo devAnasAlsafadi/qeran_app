@@ -14,7 +14,7 @@ CompatibilityCase _case({
 }) {
   const user = CaseUser(
     userId: 'u',
-    firstName: 'A',
+    name: 'A',
     profileImageUrl: null,
     age: null,
     gender: null,

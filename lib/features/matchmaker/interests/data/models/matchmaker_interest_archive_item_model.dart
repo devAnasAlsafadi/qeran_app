@@ -1,4 +1,5 @@
 import '../../../shared/data/json_parsers.dart';
+import 'package:qeran/core/data/display_name.dart';
 import '../../../users/domain/entities/matchmaker_card_answer.dart';
 import '../../domain/entities/matchmaker_interest_archive_item.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
@@ -41,7 +42,7 @@ class MatchmakerInterestArchiveItemModel {
         otherUserId: parseString(
           json['otherUserId'] ?? json['profileId'] ?? json['userId'],
         ),
-        name: parseString(json['otherUserName'] ?? json['name']),
+        name: parseDisplayName(json, prefer: const ['otherUserName']),
         image: parseInterestImage(json['profileImage'] ?? json['image']),
         status: parseString(json['status']),
         statusNameAr: parseString(json['statusNameAr']),

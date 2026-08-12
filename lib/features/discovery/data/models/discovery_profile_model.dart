@@ -1,4 +1,5 @@
 import '../../domain/entities/discovery_profile.dart';
+import 'package:qeran/core/data/display_name.dart';
 import 'placement_model.dart';
 import 'profile_image_model.dart';
 
@@ -22,7 +23,7 @@ class DiscoveryProfileModel {
   factory DiscoveryProfileModel.fromJson(Map<String, dynamic> json) {
     return DiscoveryProfileModel(
       id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
+      name: parseDisplayName(json),
       age: json['age'] as int? ?? 0,
       images: (json['images'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()

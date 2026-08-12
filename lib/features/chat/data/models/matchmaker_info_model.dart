@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/display_name.dart';
 
 import '../../domain/entities/matchmaker_info.dart';
 import '../json_parsers.dart';
@@ -19,7 +20,7 @@ class MatchmakerInfoModel {
   factory MatchmakerInfoModel.fromJson(Map<String, dynamic> json) {
     return MatchmakerInfoModel(
       matchmakerId: parseString(json['matchmakerId']),
-      name: parseString(json['name']),
+      name: parseDisplayName(json),
       profileImageUrl: parseNullableString(json['profileImageUrl']),
       conversationId: parseInt(json['conversationId']),
     );

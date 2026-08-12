@@ -72,8 +72,8 @@ class MatchmakerCaseCard extends StatelessWidget {
               CasePairedAvatars(
                 firstUrl: caseItem.myUser.profileImageUrl,
                 secondUrl: caseItem.otherUser.profileImageUrl,
-                firstName: caseItem.myUser.firstName,
-                secondName: caseItem.otherUser.firstName,
+                firstName: caseItem.myUser.name,
+                secondName: caseItem.otherUser.name,
               ),
               QeranSpacing.hs16,
               Expanded(
@@ -82,8 +82,8 @@ class MatchmakerCaseCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _PairNames(
-                      first: caseItem.myUser.firstName.trim(),
-                      second: caseItem.otherUser.firstName.trim(),
+                      first: caseItem.myUser.name.trim(),
+                      second: caseItem.otherUser.name.trim(),
                     ),
                     if (statusChip != null) ...[QeranSpacing.vs8, statusChip],
                     if (dateLine != null) ...[QeranSpacing.vs8, dateLine],
@@ -94,7 +94,7 @@ class MatchmakerCaseCard extends StatelessWidget {
           ),
           CaseContactActions(
             personLabel: _personLabel(context),
-            myUserLabel: caseItem.myUser.firstName,
+            myUserLabel: caseItem.myUser.name,
             // Same destination as the whole-card tap, which stays live — the
             // chip is the visible affordance for it (QER-74).
             onDetails: onTap,
@@ -115,7 +115,7 @@ class MatchmakerCaseCard extends StatelessWidget {
   /// The other person's name for their message chip — falls back to a generic
   /// "message" label when the server omitted the name.
   String _personLabel(BuildContext context) {
-    final name = caseItem.otherUser.firstName.trim();
+    final name = caseItem.otherUser.name.trim();
     if (name.isNotEmpty) return name;
     return LocaleKeys.matchmaker_cases_action_message.t(context);
   }

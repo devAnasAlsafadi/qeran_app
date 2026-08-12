@@ -1,4 +1,5 @@
 import '../../domain/entities/my_profile.dart';
+import 'package:qeran/core/data/display_name.dart';
 import '../../domain/entities/profile_status.dart';
 import '../json_parsers.dart';
 import 'owner_image_model.dart';
@@ -7,6 +8,10 @@ import 'placement_model.dart';
 class MyProfileModel {
   final String userId;
   final String name;
+
+  /// Legal/full name, collected for formal proceedings. Owner-only —
+  /// never present on another user's payload and never rendered publicly.
+  final String? realName;
   final String? email;
   final String gender;
   final DateTime? birthDate;
@@ -20,6 +25,7 @@ class MyProfileModel {
   const MyProfileModel({
     required this.userId,
     required this.name,
+    this.realName,
     required this.email,
     required this.gender,
     required this.birthDate,
@@ -51,7 +57,8 @@ class MyProfileModel {
       // Backend ships `userId` here; accept `id` as a forward-compat
       // alias if the field ever renames.
       userId: parseString(json['userId'] ?? json['id']),
-      name: parseString(json['name']),
+      name: parseDisplayName(json),
+      realName: parseNullableString(json['realName']),
       email: parseNullableString(json['email']),
       gender: parseString(json['gender']),
       birthDate: parseNullableDateTime(json['birthDate']),
@@ -69,6 +76,7 @@ class MyProfileModel {
   MyProfile toEntity() => MyProfile(
         id: userId,
         name: name,
+        realName: realName,
         email: email,
         gender: gender,
         birthDate: birthDate,

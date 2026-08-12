@@ -19,7 +19,7 @@ const _chat = CaseChat(
 
 CaseUser _user(String name) => CaseUser(
   userId: name,
-  firstName: name,
+  name: name,
   profileImageUrl: null,
   age: null,
   gender: null,

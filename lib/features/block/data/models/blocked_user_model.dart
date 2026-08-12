@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/display_name.dart';
 import 'package:qeran/core/utils/server_datetime.dart';
 
 import '../../domain/entities/blocked_user.dart';
@@ -23,7 +24,7 @@ class BlockedUserModel {
     final rawImage = (json['imageUrl'] ?? json['image']) as String?;
     return BlockedUserModel(
       userId: (json['userId'] ?? json['id'] ?? '').toString(),
-      name: (json['name'] ?? json['fullName'] ?? '').toString(),
+      name: parseDisplayName(json),
       imageUrl: (rawImage == null || rawImage.isEmpty)
           ? null
           : EndPoints.absoluteUrl(rawImage),

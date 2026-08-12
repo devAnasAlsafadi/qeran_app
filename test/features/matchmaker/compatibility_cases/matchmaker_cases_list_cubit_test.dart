@@ -70,7 +70,7 @@ class _RealtimePort implements MatchmakerRealtimePort {
 
 CaseUser _user(String id) => CaseUser(
   userId: id,
-  firstName: id,
+  name: id,
   profileImageUrl: null,
   age: null,
   gender: null,

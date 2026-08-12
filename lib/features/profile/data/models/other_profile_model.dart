@@ -1,4 +1,5 @@
 import '../../domain/entities/other_profile.dart';
+import 'package:qeran/core/data/display_name.dart';
 import '../json_parsers.dart';
 import 'other_profile_image_model.dart';
 import 'placement_model.dart';
@@ -37,7 +38,7 @@ class OtherProfileModel {
         : const <PlacementModel>[];
     return OtherProfileModel(
       id: parseString(json['id']),
-      name: parseString(json['name']),
+      name: parseDisplayName(json),
       age: parseNullableInt(json['age']),
       matchingScore: parseDouble(json['matchingScore']),
       images: images,

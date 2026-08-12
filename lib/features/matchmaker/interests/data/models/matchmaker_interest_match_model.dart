@@ -1,4 +1,5 @@
 import '../../../shared/data/json_parsers.dart';
+import 'package:qeran/core/data/display_name.dart';
 import '../../../users/domain/entities/matchmaker_card_answer.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
 import '../../domain/entities/matchmaker_interest_formal_request.dart';
@@ -34,7 +35,7 @@ class MatchmakerInterestMatchModel {
   factory MatchmakerInterestMatchModel.fromJson(Map<String, dynamic> json) =>
       MatchmakerInterestMatchModel(
         otherUserId: parseString(json['otherUserId'] ?? json['userId']),
-        name: parseString(json['otherUserName'] ?? json['name']),
+        name: parseDisplayName(json, prefer: const ['otherUserName']),
         images: parseInterestImages(json['images']),
         stage: matchmakerMatchStageFromWire(json['stage']),
         isLocked: parseBool(json['isLocked']),

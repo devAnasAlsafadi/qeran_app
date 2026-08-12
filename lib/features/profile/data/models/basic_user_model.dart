@@ -1,4 +1,5 @@
 import '../../domain/entities/basic_user.dart';
+import 'package:qeran/core/data/display_name.dart';
 import '../json_parsers.dart';
 
 class BasicUserModel {
@@ -23,7 +24,7 @@ class BasicUserModel {
   factory BasicUserModel.fromJson(Map<String, dynamic> json) {
     return BasicUserModel(
       id: parseString(json['id']),
-      name: parseString(json['name']),
+      name: parseDisplayName(json),
       email: parseNullableString(json['email']),
       gender: parseNullableString(json['gender']),
       age: parseNullableInt(json['age']),

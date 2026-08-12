@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/display_name.dart';
 import 'package:qeran/core/enum/gender.dart';
 
 import '../../../shared/data/json_parsers.dart';
@@ -41,7 +42,7 @@ class MatchmakerExploreUserModel {
   factory MatchmakerExploreUserModel.fromJson(Map<String, dynamic> json) =>
       MatchmakerExploreUserModel(
         userId: parseString(json['userId']),
-        fullName: parseString(json['fullName']),
+        fullName: parseDisplayName(json),
         profileImageUrl: parseNullableString(json['profileImageUrl']),
         gender: parseNullableString(json['gender']),
         assignedMatchmakerId:

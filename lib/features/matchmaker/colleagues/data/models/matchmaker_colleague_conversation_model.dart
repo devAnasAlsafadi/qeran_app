@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/display_name.dart';
 
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../shared/data/json_parsers.dart';
@@ -35,7 +36,7 @@ class MatchmakerColleagueConversationModel {
   ) =>
       MatchmakerColleagueConversationModel(
         otherUserId: parseString(json['matchmakerId'] ?? json['userId']),
-        name: parseString(json['name'] ?? json['fullName']),
+        name: parseDisplayName(json),
         profileImageUrl: parseNullableString(json['profileImageUrl']),
         conversationId: parseInt(json['conversationId']),
         lastMessageAt: parseNullableDateTime(json['lastMessageAt']),

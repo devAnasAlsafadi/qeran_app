@@ -10,6 +10,10 @@ import 'profile_status.dart';
 class MyProfile extends Equatable {
   final String id;
   final String name;
+
+  /// Legal/full name for formal proceedings. Owner-only; never shown to
+  /// another user. Null until the member fills it in from profile edit.
+  final String? realName;
   final String? email;
   final String gender;
   final DateTime? birthDate;
@@ -23,6 +27,7 @@ class MyProfile extends Equatable {
   const MyProfile({
     required this.id,
     required this.name,
+    this.realName,
     required this.email,
     required this.gender,
     required this.birthDate,
@@ -38,6 +43,7 @@ class MyProfile extends Equatable {
   List<Object?> get props => [
         id,
         name,
+        realName,
         email,
         gender,
         birthDate,

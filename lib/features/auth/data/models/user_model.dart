@@ -1,4 +1,5 @@
 import '../../domain/entities/user_entity.dart';
+import 'package:qeran/core/data/display_name.dart';
 
 class UserModel {
   final String id;
@@ -28,7 +29,7 @@ class UserModel {
     // with `userId` as a JSON number, which a hard `as String` cast would crash
     // on. `.toString()` handles String / int / anything, defaulting to "".
     id: (json['userId'] ?? json['id'] ?? '').toString(),
-    name: (json['name'] ?? '') as String,
+    name: parseDisplayName(json),
     email: (json['email'] ?? '') as String,
     phoneNumber: json['phoneNumber'] as String?,
     photoUrl: json['photo_url'] as String?,

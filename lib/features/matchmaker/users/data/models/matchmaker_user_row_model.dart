@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/display_name.dart';
 
 import '../../../shared/data/json_parsers.dart';
 import '../../domain/entities/image_request_status.dart';
@@ -50,7 +51,7 @@ class MatchmakerUserRowModel {
     final subscription = parseNullableMap(json['subscription']);
     return MatchmakerUserRowModel(
       userId: parseString(json['userId']),
-      fullName: parseString(json['fullName']),
+      fullName: parseDisplayName(json),
       profileImageUrl: parseNullableString(json['profileImageUrl']),
       assignedAt: parseNullableDateTime(json['assignedAt']),
       // `null` when the user has no Date answer (backend-confirmed).

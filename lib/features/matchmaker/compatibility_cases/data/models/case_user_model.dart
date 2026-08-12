@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/display_name.dart';
 import 'package:qeran/core/enum/gender.dart';
 
 import '../../../shared/data/json_parsers.dart';
@@ -11,7 +12,7 @@ import '../../domain/entities/case_user.dart';
 /// MatchmakerUserAvatar only ever sees a ready URL.
 class CaseUserModel {
   final String userId;
-  final String firstName;
+  final String name;
   final String? profileImageUrl;
   final int? age;
   final String? gender;
@@ -19,7 +20,7 @@ class CaseUserModel {
 
   const CaseUserModel({
     required this.userId,
-    required this.firstName,
+    required this.name,
     required this.profileImageUrl,
     required this.age,
     required this.gender,
@@ -28,7 +29,7 @@ class CaseUserModel {
 
   factory CaseUserModel.fromJson(Map<String, dynamic> json) => CaseUserModel(
         userId: parseString(json['userId']),
-        firstName: parseString(json['firstName']),
+        name: parseDisplayName(json),
         profileImageUrl: parseNullableString(json['profileImageUrl']),
         age: parseNullableInt(json['age']),
         gender: parseNullableString(json['gender']),
@@ -39,7 +40,7 @@ class CaseUserModel {
     final raw = profileImageUrl;
     return CaseUser(
       userId: userId,
-      firstName: firstName,
+      name: name,
       profileImageUrl:
           (raw == null || raw.isEmpty) ? null : EndPoints.absoluteUrl(raw),
       age: age,

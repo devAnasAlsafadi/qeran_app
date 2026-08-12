@@ -1,4 +1,5 @@
 import 'package:qeran/core/utils/server_datetime.dart';
+import 'package:qeran/core/data/display_name.dart';
 
 import '../../domain/entities/like_request_card.dart';
 import '../../domain/entities/like_request_status.dart';
@@ -43,7 +44,7 @@ class LikeRequestCardModel {
       // (string id, missing field) doesn't crash parsing.
       likeRequestId: (json['likeRequestId'] as num?)?.toInt() ?? 0,
       profileId: json['profileId'] as String? ?? '',
-      name: json['name'] as String? ?? '',
+      name: parseDisplayName(json),
       profileImage: image is Map<String, dynamic>
           ? LikeProfileImageModel.fromJson(image)
           : null,

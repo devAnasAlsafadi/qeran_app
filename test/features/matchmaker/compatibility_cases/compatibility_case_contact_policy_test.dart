@@ -6,7 +6,7 @@ import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/co
 
 CaseUser _user(String id, {required bool assigned}) => CaseUser(
   userId: id,
-  firstName: id,
+  name: id,
   profileImageUrl: null,
   age: null,
   gender: null,

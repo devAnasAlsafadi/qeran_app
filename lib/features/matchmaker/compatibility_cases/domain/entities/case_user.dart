@@ -10,7 +10,7 @@ import 'package:qeran/core/enum/gender.dart';
 /// only when present.
 class CaseUser extends Equatable {
   final String userId;
-  final String firstName;
+  final String name;
   final String? profileImageUrl;
   final int? age;
   final Gender? gender;
@@ -18,7 +18,7 @@ class CaseUser extends Equatable {
 
   const CaseUser({
     required this.userId,
-    required this.firstName,
+    required this.name,
     required this.profileImageUrl,
     required this.age,
     required this.gender,
@@ -27,5 +27,5 @@ class CaseUser extends Equatable {
 
   @override
   List<Object?> get props =>
-      [userId, firstName, profileImageUrl, age, gender, isAssignedToMe];
+      [userId, name, profileImageUrl, age, gender, isAssignedToMe];
 }

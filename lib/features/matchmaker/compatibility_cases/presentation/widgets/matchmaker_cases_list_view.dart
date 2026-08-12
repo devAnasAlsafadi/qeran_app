@@ -173,14 +173,14 @@ class MatchmakerCasesListView extends StatelessWidget {
         context,
         conversationId: existingConversationId,
         peerId: user.userId,
-        name: user.firstName,
+        name: user.name,
         imageUrl: user.profileImageUrl,
       );
       return;
     }
     context.read<MatchmakerOpenChatCubit>().open(
       userId: user.userId,
-      fullName: user.firstName,
+      fullName: user.name,
       profileImageUrl: user.profileImageUrl,
     );
   }

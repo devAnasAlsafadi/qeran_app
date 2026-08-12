@@ -1,4 +1,5 @@
 import 'package:qeran/core/api/end_points.dart';
+import 'package:qeran/core/data/display_name.dart';
 
 import '../../../shared/data/json_parsers.dart';
 import '../../domain/entities/matchmaker_interest_user.dart';
@@ -21,7 +22,7 @@ class MatchmakerInterestUserModel {
   factory MatchmakerInterestUserModel.fromJson(Map<String, dynamic> json) =>
       MatchmakerInterestUserModel(
         userId: parseString(json['userId']),
-        fullName: parseString(json['fullName']),
+        fullName: parseDisplayName(json),
         profileImageUrl: parseNullableString(json['profileImageUrl']),
         age: parseNullableInt(json['age']),
       );

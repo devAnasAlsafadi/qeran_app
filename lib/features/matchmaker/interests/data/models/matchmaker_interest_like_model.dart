@@ -1,4 +1,5 @@
 import '../../../shared/data/json_parsers.dart';
+import 'package:qeran/core/data/display_name.dart';
 import '../../../../../core/utils/server_datetime.dart';
 import '../../../users/domain/entities/matchmaker_card_answer.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
@@ -38,7 +39,7 @@ class MatchmakerInterestLikeModel {
         otherUserId: parseString(
           json['profileId'] ?? json['otherUserId'] ?? json['userId'],
         ),
-        name: parseString(json['name'] ?? json['fullName']),
+        name: parseDisplayName(json),
         image: parseInterestImage(json['profileImage'] ?? json['image']),
         status: matchmakerLikeStatusFromWire(json['status']),
         isLocked: parseBool(json['isLocked']),

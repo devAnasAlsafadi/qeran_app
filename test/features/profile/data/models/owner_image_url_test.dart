@@ -1,11 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/features/profile/data/models/owner_image_model.dart';
 
-/// `GET /users/profile-images` ships the images without a `url`, while
-/// `GET /profile` returns the same ids WITH one. Until the backend fills the
-/// gap the location is derived from the id — and the derived value must stop
-/// being used the moment a real one arrives.
+/// Both profile endpoints now return the image url, so the model simply
+/// resolves what it is given. The id-derived fallback that covered the gap is
+/// gone; what remains is that a relative path still becomes absolute, and that
+/// a missing url degrades to empty rather than to the bare origin.
 void main() {
   Map<String, dynamic> json({Object? url, bool includeUrl = true}) => {
     'id': 'abc-123',
@@ -31,29 +30,29 @@ void main() {
     );
   });
 
-  test('a missing url falls back to the id-derived location', () {
-    final entity = OwnerImageModel.fromJson(json(includeUrl: false)).toEntity();
-    expect(entity.url, '${EndPoints.baseUrl}${EndPoints.profileImage('abc-123')}');
+  test('a relative url missing its leading slash still resolves cleanly', () {
+    final entity = OwnerImageModel.fromJson(
+      json(url: 'api/users/profile-images/abc-123'),
+    ).toEntity();
     expect(
       entity.url,
       'https://qeranadmin-001-site1.rtempurl.com/api/users/profile-images/abc-123',
-      reason: 'must match the shape GET /profile returns for the same id',
+      reason: 'gluing the path straight onto the host would break the domain',
     );
   });
 
-  test('an explicitly null url falls back too', () {
-    final entity = OwnerImageModel.fromJson(json(url: null)).toEntity();
-    expect(entity.url, contains('/api/users/profile-images/abc-123'));
-  });
-
-  test('an empty-string url falls back rather than resolving to the origin', () {
-    final entity = OwnerImageModel.fromJson(json(url: '')).toEntity();
-    expect(entity.url, isNot('https://qeranadmin-001-site1.rtempurl.com/'));
-    expect(entity.url, contains('/api/users/profile-images/abc-123'));
+  test('a missing url yields empty, not the bare origin', () {
+    // Empty reads as "no photo" everywhere downstream; the origin alone would
+    // read as a real url and fail as a silently broken image.
+    for (final payload in [json(includeUrl: false), json(url: null)]) {
+      expect(OwnerImageModel.fromJson(payload).toEntity().url, isEmpty);
+    }
   });
 
   test('the other fields still parse', () {
-    final entity = OwnerImageModel.fromJson(json(includeUrl: false)).toEntity();
+    final entity = OwnerImageModel.fromJson(
+      json(url: '/api/users/profile-images/abc-123'),
+    ).toEntity();
     expect(entity.id, 'abc-123');
     expect(entity.isProfile, isTrue);
     expect(entity.isApproved, isTrue);

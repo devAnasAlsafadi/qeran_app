@@ -27,14 +27,12 @@ class OwnerImageModel {
 
   OwnerImage toEntity() => OwnerImage(
         id: id,
-        // `GET /users/profile-images` currently omits `url` entirely, while
-        // `GET /profile` returns the same ids with a full URL — so the
-        // canonical location is derived from the id when the server leaves
-        // it out. The moment the field is populated the real value wins and
-        // this fallback goes dormant.
-        url: url.isEmpty
-            ? '${EndPoints.baseUrl}${EndPoints.profileImage(id)}'
-            : EndPoints.absoluteUrl(url),
+        // Both `GET /profile` and `GET /users/profile-images` now return the
+        // url, so it is used as given — resolved against the origin when the
+        // server sends a relative path. An absent url stays empty rather than
+        // resolving to the bare origin: callers already treat empty as "no
+        // photo" and fall back to the monogram.
+        url: url.isEmpty ? '' : EndPoints.absoluteUrl(url),
         isProfile: isProfile,
         isApproved: isApproved,
       );

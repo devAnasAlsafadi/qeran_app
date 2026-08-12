@@ -159,8 +159,7 @@ class _VisibleContent extends StatelessWidget {
                     ],
                   ),
                   if (card.age != null ||
-                      card.residence?.isNotEmpty == true ||
-                      card.job?.isNotEmpty == true) ...[
+                      card.residence?.isNotEmpty == true) ...[
                     const SizedBox(height: QeranSpacing.s6),
                     _LikeFacts(card: card),
                   ],
@@ -209,8 +208,9 @@ class _LikeFacts extends StatelessWidget {
         ),
       if (card.residence?.isNotEmpty == true)
         (icon: Icons.location_on_outlined, text: card.residence!),
-      if (card.job?.isNotEmpty == true)
-        (icon: Icons.work_outline_rounded, text: card.job!),
+      // Job is deliberately absent: the row carries identity and location
+      // only. `LikeRequestCard.job` is still parsed — the field stays on the
+      // wire contract — it simply has no place on this card.
     ];
     return Wrap(
       spacing: QeranSpacing.s12,

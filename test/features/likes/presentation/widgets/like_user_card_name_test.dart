@@ -164,13 +164,21 @@ void main() {
     expect(name.overlaps(chip), isFalse);
   });
 
-  testWidgets('age, residence, and job are displayed below the name', (
+  testWidgets('age and residence are displayed below the name', (
     tester,
   ) async {
     await _pumpCard(tester, _cardWithFacts());
 
     expect(find.textContaining('31'), findsOneWidget);
     expect(find.text('Jordan'), findsOneWidget);
-    expect(find.text('Engineer'), findsOneWidget);
+  });
+
+  testWidgets('the job is never rendered on this row', (tester) async {
+    // The card carries identity and location only. `job` is still parsed off
+    // the wire, so this guards the render tree rather than the payload.
+    await _pumpCard(tester, _cardWithFacts());
+
+    expect(find.text('Engineer'), findsNothing);
+    expect(find.byIcon(Icons.work_outline_rounded), findsNothing);
   });
 }

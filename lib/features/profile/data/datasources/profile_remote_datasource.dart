@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
@@ -8,6 +10,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../models/basic_user_model.dart';
 import '../models/my_profile_model.dart';
 import '../models/other_profile_model.dart';
+import '../models/owner_image_model.dart';
 
 /// Typed outcomes for `getProfileById` so the repository can branch on
 /// `PROFILE_NOT_FOUND` without losing the rest of `ServerException`.
@@ -29,6 +32,10 @@ abstract interface class ProfileRemoteDataSource {
   Future<MyProfileModel> getMyProfile();
   Future<GetProfileByIdResult> getProfileById(String userId);
   Future<BasicUserModel?> getBasicUser(String id);
+  Future<List<OwnerImageModel>> getProfileImages();
+  Future<void> addProfileImages(List<File> images);
+  Future<void> deleteProfileImage(String imageId);
+  Future<void> setMainProfileImage(String imageId);
 
   /// `DELETE /api/Profile` — permanent, non-recoverable account deletion
   /// (no body). `delete()` enforces the status envelope, so a failure throws
@@ -107,6 +114,38 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       }
       rethrow;
     }
+  }
+
+  @override
+  Future<List<OwnerImageModel>> getProfileImages() async {
+    final response = await _apiConsumer.get(EndPoints.profileImages);
+    final apiResponse = ApiResponse<List<OwnerImageModel>>.fromJson(
+      response as Map<String, dynamic>,
+      (json) => (json as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(OwnerImageModel.fromJson)
+          .toList(growable: false),
+    );
+    return apiResponse.data ?? const <OwnerImageModel>[];
+  }
+
+  @override
+  Future<void> addProfileImages(List<File> images) async {
+    await _apiConsumer.postMultipart(
+      EndPoints.profileImages,
+      files: images,
+      fieldName: 'images',
+    );
+  }
+
+  @override
+  Future<void> deleteProfileImage(String imageId) async {
+    await _apiConsumer.delete(EndPoints.profileImage(imageId));
+  }
+
+  @override
+  Future<void> setMainProfileImage(String imageId) async {
+    await _apiConsumer.put(EndPoints.setMainProfileImage(imageId));
   }
 
   @override

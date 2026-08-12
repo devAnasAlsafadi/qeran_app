@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../entities/basic_user.dart';
 import '../entities/my_profile.dart';
 import '../entities/profile_fetch_outcome.dart';
+import '../entities/profile_image.dart';
 
 abstract interface class ProfileRepository {
   /// `GET /api/profile`. Owner-shape, full details including
@@ -21,6 +24,11 @@ abstract interface class ProfileRepository {
   /// `GET /api/users/{id}`. Lightweight tuple — no images, no
   /// placements. `null` on documented USER_NOT_FOUND.
   Future<Either<Failure, BasicUser?>> getBasicUser(String id);
+
+  Future<Either<Failure, List<OwnerImage>>> getProfileImages();
+  Future<Either<Failure, Unit>> addProfileImages(List<File> images);
+  Future<Either<Failure, Unit>> deleteProfileImage(String imageId);
+  Future<Either<Failure, Unit>> setMainProfileImage(String imageId);
 
   /// `DELETE /api/Profile`. Permanent, non-recoverable account deletion.
   /// `Right(unit)` on success; `Left(Failure)` on any error.

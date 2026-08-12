@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 
 import 'package:qeran/core/data/repositories/base_repository.dart';
@@ -6,6 +8,7 @@ import 'package:qeran/core/errors/errors.dart';
 import '../../domain/entities/basic_user.dart';
 import '../../domain/entities/my_profile.dart';
 import '../../domain/entities/profile_fetch_outcome.dart';
+import '../../domain/entities/profile_image.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_remote_datasource.dart';
 
@@ -46,6 +49,38 @@ class ProfileRepositoryImpl
     return executeApiCall(() async {
       final model = await _dataSource.getBasicUser(id);
       return model?.toEntity();
+    });
+  }
+
+  @override
+  Future<Either<Failure, List<OwnerImage>>> getProfileImages() {
+    return executeApiCall(() async {
+      final models = await _dataSource.getProfileImages();
+      return models.map((model) => model.toEntity()).toList(growable: false);
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addProfileImages(List<File> images) {
+    return executeApiCall(() async {
+      await _dataSource.addProfileImages(images);
+      return unit;
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deleteProfileImage(String imageId) {
+    return executeApiCall(() async {
+      await _dataSource.deleteProfileImage(imageId);
+      return unit;
+    });
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setMainProfileImage(String imageId) {
+    return executeApiCall(() async {
+      await _dataSource.setMainProfileImage(imageId);
+      return unit;
     });
   }
 

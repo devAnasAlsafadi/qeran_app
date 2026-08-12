@@ -120,6 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _onRegisterStateChanged(BuildContext context, RegisterState state) {
     if (state is RegisterSuccess) {
+      _controller.forgetEmail();
       AppSnackBar.show(
         context,
         message: LocaleKeys.auth_register_success.t(context),
@@ -137,6 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _onSocialLoginStateChanged(BuildContext context, LoginState state) {
     if (state is LoginSuccess) {
+      _controller.forgetEmail();
       // Mirror the login screen's onboarding gates so a social sign-in
       // from the register screen doesn't skip phone-verify / questions.
       if (state.user.role?.toLowerCase() == 'moderator') {

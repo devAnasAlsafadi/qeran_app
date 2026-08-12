@@ -100,6 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _onStateChanged(BuildContext context, LoginState state) {
     if (state is LoginSuccess) {
+      // Signed in — there is no longer an auth attempt to carry an email for.
+      _controller.forgetEmail();
       AppSnackBar.show(
         context,
         message: LocaleKeys.auth_login_success.t(context),

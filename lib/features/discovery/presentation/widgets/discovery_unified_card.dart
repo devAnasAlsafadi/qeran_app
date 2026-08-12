@@ -28,14 +28,18 @@ const double _kFoldCollapseRate = 2.0;
 /// useful, so that is when it arrives.
 const double _kMatchPillRevealDistance = 90.0;
 
+/// Leaves a deliberate hint of the next profile section visible when the
+/// intro is short, without truncating the complete About Me text.
+const double _kNextSectionPeek = 64.0;
+
 /// The merged discovery surface for ONE profile: a single full-bleed scroll
-/// whose first screenful is the photo plus نبذة عني, and whose continuation is
-/// the rest of the profile, inline.
+/// whose first screenful is the photo plus نبذة عني, followed by a small teaser
+/// of the next section so the continuation is discoverable without hiding any
+/// of the intro.
 ///
-/// At rest the first screenful measures exactly one viewport, so
-/// نبذة عن شريك الحياة and everything after it start just BELOW the fold —
-/// the user has to scroll to reach them, and the action buttons sit over empty
-/// paper rather than over text. That surplus then collapses as the user
+/// At rest the intro area reserves one viewport minus [_kNextSectionPeek], so
+/// نبذة عن شريك الحياة starts inside the bottom edge as an intentional scroll
+/// cue. The remaining surplus then collapses as the user
 /// scrolls, so the sections arrive flush under the chips instead of behind a
 /// screen-tall blank.
 ///
@@ -56,8 +60,8 @@ class DiscoveryUnifiedCard extends StatefulWidget {
   final DiscoveryProfile profile;
 
   /// Height of the visible area (already excluding the status bar). The first
-  /// screenful measures exactly this at rest, which is what puts the fold
-  /// between نبذة عني and نبذة عن شريك الحياة.
+  /// screenful reserves slightly less than this at rest so the next section
+  /// peeks above the fold.
   final double viewportHeight;
 
   /// Height of the photo block.
@@ -150,14 +154,14 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
     );
   }
 
-  /// Photo + نبذة عني, held to a full viewport at rest and giving that surplus
-  /// back as the user scrolls.
+  /// Photo + نبذة عني, held just short of a full viewport at rest and giving
+  /// that surplus back as the user scrolls.
   ///
   /// `minHeight` on a `mainAxisSize.min` Column makes the column at least a
   /// screen tall while its children still lay out from the top, so the leftover
   /// becomes empty paper under نبذة عني — that is what keeps the action buttons
-  /// off the text and puts نبذة عن شريك الحياة below the fold. A long نبذة
-  /// simply grows past it instead of overflowing.
+  /// off the text while leaving a visible hint of نبذة عن شريك الحياة at the
+  /// fold. A long نبذة simply grows past it instead of overflowing.
   ///
   /// The surplus is NOT a fixed spacer: it shrinks with the scroll (at
   /// [_kFoldCollapseRate]× the scroll distance), so the empty paper closes up
@@ -176,7 +180,9 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
           constraints: BoxConstraints(
             minHeight: math.max(
               0,
-              widget.viewportHeight - offset * _kFoldCollapseRate,
+              widget.viewportHeight -
+                  _kNextSectionPeek -
+                  offset * _kFoldCollapseRate,
             ),
           ),
           child: child,

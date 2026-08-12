@@ -400,6 +400,15 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
     emit(current.copyWith(currentIndex: newIndex, resetActionError: true));
   }
 
+  /// Replays the profiles already loaded in this deck after the user reaches
+  /// its end. This is intentionally local: re-fetching would keep server-side
+  /// skips excluded and leave the terminal screen unchanged.
+  void replayLoadedProfiles() {
+    final current = state;
+    if (current is! DiscoveryLoaded || current.profiles.isEmpty) return;
+    emit(current.copyWith(currentIndex: 0, resetActionError: true));
+  }
+
   /// Public hook for the UI's "retry" affordance on a failed prefetch.
   Future<void> retryPrefetch() async {
     final current = state;

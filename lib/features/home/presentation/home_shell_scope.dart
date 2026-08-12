@@ -15,7 +15,7 @@ class HomeShellScope extends InheritedWidget {
   final VoidCallback openLikesTab;
 
   /// Switch the bottom navigation to the Messages tab.
-  final VoidCallback openMessagesTab;
+  final void Function({bool refresh}) openMessagesTab;
 
   /// Switch the bottom navigation to the Profile tab.
   final VoidCallback openProfileTab;

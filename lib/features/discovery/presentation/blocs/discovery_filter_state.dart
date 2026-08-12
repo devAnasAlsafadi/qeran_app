@@ -32,22 +32,26 @@ final class DiscoveryFilterFailure extends DiscoveryFilterState {
 final class DiscoveryFilterLoaded extends DiscoveryFilterState {
   final List<DiscoveryFilterQuestion> questions;
   final Map<int, DiscoveryFilterSelection> selections;
+  final int resetVersion;
 
   const DiscoveryFilterLoaded({
     required this.questions,
     required this.selections,
+    this.resetVersion = 0,
   });
 
   DiscoveryFilterLoaded copyWith({
     List<DiscoveryFilterQuestion>? questions,
     Map<int, DiscoveryFilterSelection>? selections,
+    int? resetVersion,
   }) {
     return DiscoveryFilterLoaded(
       questions: questions ?? this.questions,
       selections: selections ?? this.selections,
+      resetVersion: resetVersion ?? this.resetVersion,
     );
   }
 
   @override
-  List<Object?> get props => [questions, selections];
+  List<Object?> get props => [questions, selections, resetVersion];
 }

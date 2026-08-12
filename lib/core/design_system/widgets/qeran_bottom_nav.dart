@@ -16,12 +16,16 @@ class QeranNavItem {
   final IconData filledIcon;
   final String label;
   final int? badgeCount;
+  final bool badgeIsDot;
+  final Color badgeColor;
 
   const QeranNavItem({
     required this.outlineIcon,
     required this.filledIcon,
     required this.label,
     this.badgeCount,
+    this.badgeIsDot = false,
+    this.badgeColor = QeranColors.gold,
   });
 }
 
@@ -48,9 +52,11 @@ class QeranBottomNav extends StatefulWidget {
 
   static const double totalHeight = 104;
   static const double barHeight = 70;
-  static const double discDiameter = 44;
+  static const double discDiameter = 52.8;
   static const double discRadius = discDiameter / 2;
-  static const double discLift = -7;
+  // The active item sits on the same visual baseline as the other nav icons;
+  // the notch now reads as a ring around it instead of lifting it above them.
+  static const double discLift = -24;
   static const double notchRadius = discRadius + 10;
   static const double hMargin = 16;
   static const double bMargin = 16;
@@ -249,6 +255,12 @@ class _QeranBottomNavState extends State<QeranBottomNav>
                           fromIcon: widget.items[_iconFrom].filledIcon,
                           toIcon: widget.items[_iconTo].filledIcon,
                           fade: _iconFade,
+                          badgeCount:
+                              widget.items[widget.currentIndex].badgeCount,
+                          badgeIsDot:
+                              widget.items[widget.currentIndex].badgeIsDot,
+                          badgeColor:
+                              widget.items[widget.currentIndex].badgeColor,
                         ),
                       ),
                     ],
@@ -337,6 +349,8 @@ class _CompactLandscapeNav extends StatelessWidget {
                                     ? item.filledIcon
                                     : item.outlineIcon,
                                 badgeCount: item.badgeCount,
+                                badgeIsDot: item.badgeIsDot,
+                                badgeColor: item.badgeColor,
                               ),
                               const SizedBox(width: 6),
                               Flexible(
@@ -457,11 +471,17 @@ class _FloatingDisc extends StatelessWidget {
   final IconData fromIcon;
   final IconData toIcon;
   final Animation<double> fade;
+  final int? badgeCount;
+  final bool badgeIsDot;
+  final Color badgeColor;
 
   const _FloatingDisc({
     required this.fromIcon,
     required this.toIcon,
     required this.fade,
+    required this.badgeCount,
+    required this.badgeIsDot,
+    required this.badgeColor,
   });
 
   @override
@@ -484,20 +504,29 @@ class _FloatingDisc extends StatelessWidget {
           ),
         ],
       ),
-      child: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            FadeTransition(
-              opacity: ReverseAnimation(fade),
-              child: Icon(fromIcon, color: QeranColors.wine, size: 22),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          FadeTransition(
+            opacity: ReverseAnimation(fade),
+            child: Icon(fromIcon, color: QeranColors.wine, size: 29),
+          ),
+          FadeTransition(
+            opacity: fade,
+            child: Icon(toIcon, color: QeranColors.wine, size: 29),
+          ),
+          if (badgeCount != null && badgeCount! > 0)
+            PositionedDirectional(
+              top: -1,
+              end: -1,
+              child: _Badge(
+                count: badgeCount!,
+                isDot: badgeIsDot,
+                color: badgeColor,
+              ),
             ),
-            FadeTransition(
-              opacity: fade,
-              child: Icon(toIcon, color: QeranColors.wine, size: 22),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -524,7 +553,7 @@ class _TabCell extends StatelessWidget {
       label: item.label,
       child: InkResponse(
         onTap: onTap,
-        radius: 36,
+        radius: 43,
         child: SizedBox(
           height: double.infinity,
           child: Column(
@@ -535,12 +564,14 @@ class _TabCell extends StatelessWidget {
               // so the active tab's content fades synchronously with
               // the disc's slide instead of popping in/out.
               SizedBox(
-                height: 24,
+                height: 30,
                 child: FadeTransition(
                   opacity: outlineOpacity,
                   child: _IconWithBadge(
                     icon: item.outlineIcon,
                     badgeCount: item.badgeCount,
+                    badgeIsDot: item.badgeIsDot,
+                    badgeColor: item.badgeColor,
                   ),
                 ),
               ),
@@ -569,7 +600,14 @@ class _TabCell extends StatelessWidget {
 class _IconWithBadge extends StatelessWidget {
   final IconData icon;
   final int? badgeCount;
-  const _IconWithBadge({required this.icon, required this.badgeCount});
+  final bool badgeIsDot;
+  final Color badgeColor;
+  const _IconWithBadge({
+    required this.icon,
+    required this.badgeCount,
+    required this.badgeIsDot,
+    required this.badgeColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -577,30 +615,55 @@ class _IconWithBadge extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Icon(icon, color: QeranColors.inkMuted, size: 24),
+        Icon(icon, color: QeranColors.inkMuted, size: 29),
         if (showBadge)
           PositionedDirectional(
             top: -2,
             end: -4,
-            child: Container(
-              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              decoration: const BoxDecoration(
-                color: QeranColors.gold,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                badgeCount! > 9 ? '9+' : '$badgeCount',
-                style: QeranTypography.caption.copyWith(
-                  color: QeranColors.wine,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                ),
-              ),
+            child: _Badge(
+              count: badgeCount!,
+              isDot: badgeIsDot,
+              color: badgeColor,
             ),
           ),
       ],
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({required this.count, required this.isDot, required this.color});
+
+  final int count;
+  final bool isDot;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isDot) {
+      return Container(
+        width: 11,
+        height: 11,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(color: QeranColors.paper, width: 1.5),
+        ),
+      );
+    }
+    return Container(
+      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: Text(
+        count > 9 ? '9+' : '$count',
+        style: QeranTypography.caption.copyWith(
+          color: QeranColors.wine,
+          fontWeight: FontWeight.w700,
+          fontSize: 10,
+        ),
+      ),
     );
   }
 }

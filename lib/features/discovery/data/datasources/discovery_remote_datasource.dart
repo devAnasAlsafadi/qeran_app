@@ -66,7 +66,7 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
     final qp = <String, dynamic>{
       'Page': page,
       'PageSize': pageSize,
-      if (filterParams != null) ...filterParams,
+      ...?filterParams,
     };
 
     // Uses `getRaw` (not `get`) so a coded failure envelope is returned rather

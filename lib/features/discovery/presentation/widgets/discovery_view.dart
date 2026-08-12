@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
+import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/errors/errors.dart';
@@ -13,6 +14,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/bottom_chrome_inset.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -30,6 +32,7 @@ import 'discovery_deck_animation_controller.dart';
 import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_frosted_action_zone.dart';
+import 'discovery_filter_hint_dialog.dart';
 import 'discovery_like_burst.dart';
 import 'discovery_unified_card.dart';
 
@@ -124,6 +127,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   /// can spawn again. Independent from `_animController.isAnimating`
   /// because hearts can outlive the controller's busy window.
   bool _likeBurstInFlight = false;
+  bool _filterHintCheckStarted = false;
 
   /// Current card's scroll offset, published by [DiscoveryUnifiedCard].
   ///
@@ -188,6 +192,11 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
       notifier: _animController,
       child: BlocConsumer<DiscoveryCubit, DiscoveryState>(
         listenWhen: (prev, curr) {
+          final firstSuggestion =
+              curr is DiscoveryLoaded &&
+              curr.current != null &&
+              (prev is! DiscoveryLoaded || prev.current == null);
+          if (firstSuggestion) return true;
           if (curr is! DiscoveryLoaded || curr.actionFailureKind == null) {
             return false;
           }
@@ -196,6 +205,9 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
         },
         listener: (context, state) {
           if (state is! DiscoveryLoaded) return;
+          if (state.current != null) {
+            unawaited(_maybeShowFilterHint());
+          }
           final kind = state.actionFailureKind;
           if (kind == null) return;
           // Typed dispatch — the cubit has already classified the
@@ -280,6 +292,24 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
     bottom: false,
     child: _ScrollableProfile(state: state, scrollOffset: _scrollOffset),
   );
+
+  Future<void> _maybeShowFilterHint() async {
+    if (_filterHintCheckStarted) return;
+    _filterHintCheckStarted = true;
+    if (!sl.isRegistered<UserSessionCubit>() ||
+        !sl.isRegistered<SharedPrefService>()) {
+      return;
+    }
+    final userId = sl<UserSessionCubit>().currentUser?.id.trim() ?? '';
+    if (userId.isEmpty) return;
+    final key = 'discovery_filter_hint_seen_v1_$userId';
+    final prefs = sl<SharedPrefService>();
+    final seen = await prefs.get<bool>(key) ?? false;
+    if (seen || !mounted) return;
+    await prefs.save<bool>(key, true);
+    if (!mounted) return;
+    await showDiscoveryFilterHintDialog(context);
+  }
 }
 
 /// Owns the pull-to-refresh + the state switch below the top bar. Loading /
@@ -346,6 +376,8 @@ class _ScrollableProfile extends StatelessWidget {
             hasFilters: cubit.hasActiveFilters,
             onEditFilters: () => _openFilters(context),
             onClearFilters: () => cubit.applyFilters(null),
+            canReplay: !cubit.hasActiveFilters && s.profiles.isNotEmpty,
+            onReplay: cubit.replayLoadedProfiles,
           ),
         );
       }

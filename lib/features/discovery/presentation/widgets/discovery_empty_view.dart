@@ -22,6 +22,8 @@ class DiscoveryEmptyView extends StatelessWidget {
     this.hasFilters = false,
     this.onEditFilters,
     this.onClearFilters,
+    this.canReplay = false,
+    this.onReplay,
   });
 
   /// Whether a filter is currently constraining the deck.
@@ -32,6 +34,11 @@ class DiscoveryEmptyView extends StatelessWidget {
 
   /// Drops every filter and reloads the unconstrained deck.
   final VoidCallback? onClearFilters;
+
+  /// A non-filtered deck can be exhausted while still retaining the profiles
+  /// it showed in memory. Offer a local replay instead of a dead end.
+  final bool canReplay;
+  final VoidCallback? onReplay;
 
   bool get _showActions =>
       hasFilters && onEditFilters != null && onClearFilters != null;
@@ -83,6 +90,14 @@ class DiscoveryEmptyView extends StatelessWidget {
                 onPressed: onClearFilters,
                 variant: QeranButtonVariant.ghost,
                 size: QeranButtonSize.md,
+                fullWidth: false,
+              ),
+            ] else if (canReplay && onReplay != null) ...[
+              const SizedBox(height: QeranSpacing.s24),
+              QeranButton(
+                label: LocaleKeys.discovery_empty_replay.t(context),
+                leadingIcon: Icons.replay_rounded,
+                onPressed: onReplay,
                 fullWidth: false,
               ),
             ],

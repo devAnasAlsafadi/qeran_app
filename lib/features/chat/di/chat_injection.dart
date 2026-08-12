@@ -8,11 +8,13 @@ import '../data/repositories/chat_repository_impl.dart';
 import '../domain/ports/chat_realtime_port.dart';
 import '../domain/repositories/chat_repository.dart';
 import '../domain/usecases/get_conversation_messages_usecase.dart';
+import '../domain/usecases/get_conversations_usecase.dart';
 import '../domain/usecases/get_my_matchmaker_usecase.dart';
 import '../domain/usecases/mark_conversation_as_read_usecase.dart';
 import '../domain/usecases/send_text_message_usecase.dart';
 import '../domain/usecases/share_profile_usecase.dart';
 import '../presentation/blocs/chat_entry_cubit.dart';
+import '../presentation/blocs/chat_unread_cubit.dart';
 import '../presentation/blocs/conversation_cubit.dart';
 
 /// Wire the chat feature into the global DI container. The realtime
@@ -32,12 +34,11 @@ void initChatDependencies() {
   );
 
   //! Repository
-  sl.registerLazySingleton<ChatRepository>(
-    () => ChatRepositoryImpl(sl()),
-  );
+  sl.registerLazySingleton<ChatRepository>(() => ChatRepositoryImpl(sl()));
 
   //! UseCases
   sl.registerLazySingleton(() => GetMyMatchmakerUseCase(sl()));
+  sl.registerLazySingleton(() => GetConversationsUseCase(sl()));
   sl.registerLazySingleton(() => GetConversationMessagesUseCase(sl()));
   sl.registerLazySingleton(() => SendTextMessageUseCase(sl()));
   sl.registerLazySingleton(() => ShareProfileUseCase(sl()));
@@ -45,6 +46,9 @@ void initChatDependencies() {
 
   //! Cubits (screen-scoped)
   sl.registerFactory(() => ChatEntryCubit(getMyMatchmaker: sl()));
+
+  //! App-scoped unread badge used by the home navigation.
+  sl.registerLazySingleton(() => ChatUnreadCubit(getConversations: sl()));
 
   //! Parametrised — caller provides `(conversationId, myUserId)` per
   //  screen mount. `myUserId` is the current user's id (read from

@@ -19,12 +19,14 @@ class FilterSearchableFacet extends StatefulWidget {
     required this.options,
     required this.isSelected,
     required this.onTap,
+    this.resetVersion = 0,
   });
 
   final String label;
   final List<DiscoveryFilterOption> options;
   final bool Function(String value) isSelected;
   final void Function(String value) onTap;
+  final int resetVersion;
 
   @override
   State<FilterSearchableFacet> createState() => _FilterSearchableFacetState();
@@ -36,6 +38,15 @@ class _FilterSearchableFacetState extends State<FilterSearchableFacet> {
   bool _isExpanded = false;
 
   @override
+  void didUpdateWidget(covariant FilterSearchableFacet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.resetVersion == widget.resetVersion) return;
+    _searchController.clear();
+    _query = '';
+    _isExpanded = false;
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -45,19 +56,23 @@ class _FilterSearchableFacetState extends State<FilterSearchableFacet> {
   Widget build(BuildContext context) {
     if (widget.options.isEmpty) return const SizedBox.shrink();
 
-    final selectedList =
-        widget.options.where((o) => widget.isSelected(o.value)).toList();
+    final selectedList = widget.options
+        .where((o) => widget.isSelected(o.value))
+        .toList();
     final selectedText = selectedList.isEmpty
         ? null
         : selectedList.map((e) => e.display).join('، ');
 
     final q = _query.trim().toLowerCase();
-    final selected =
-        widget.options.where((o) => widget.isSelected(o.value)).toList();
+    final selected = widget.options
+        .where((o) => widget.isSelected(o.value))
+        .toList();
     final matches = widget.options
-        .where((o) =>
-            !widget.isSelected(o.value) &&
-            (q.isEmpty || o.display.toLowerCase().contains(q)))
+        .where(
+          (o) =>
+              !widget.isSelected(o.value) &&
+              (q.isEmpty || o.display.toLowerCase().contains(q)),
+        )
         .toList();
     final rows = [...selected, ...matches];
 
@@ -154,11 +169,13 @@ class _FilterSearchableFacetState extends State<FilterSearchableFacet> {
                   child: rows.isEmpty
                       ? Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: QeranSpacing.s12),
+                            vertical: QeranSpacing.s12,
+                          ),
                           child: Text(
                             LocaleKeys.discovery_filter_search_empty.t(context),
-                            style: QeranTypography.caption
-                                .copyWith(color: QeranColors.inkMuted),
+                            style: QeranTypography.caption.copyWith(
+                              color: QeranColors.inkMuted,
+                            ),
                           ),
                         )
                       : ListView.builder(
@@ -209,9 +226,7 @@ class _OptionRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              selected
-                  ? Icons.check_circle_rounded
-                  : Icons.circle_outlined,
+              selected ? Icons.check_circle_rounded : Icons.circle_outlined,
               color: selected ? QeranColors.wine : QeranColors.inkFaint,
               size: 22,
             ),

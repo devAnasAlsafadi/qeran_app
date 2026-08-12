@@ -7,7 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 
-/// Renders the candidate's photo with a heavy blur, a 30 % black overlay,
+/// Renders the candidate's actual photo with a privacy-preserving soft blur,
 /// and the one-and-only design-system-approved bottom gradient.
 ///
 /// Attaches the session's Bearer token to the image request via
@@ -20,13 +20,13 @@ class DiscoveryBlurredImage extends StatelessWidget {
 
   /// Visible only to the test layer, where the blur sigma matters
   /// (some test environments choke on `ImageFilter.blur`). Production
-  /// always uses 24.0.
+  /// always uses 12.0.
   final double sigma;
 
   const DiscoveryBlurredImage({
     super.key,
     required this.url,
-    this.sigma = 24.0,
+    this.sigma = 12.0,
     this.alignment = Alignment.center,
   });
 
@@ -55,7 +55,7 @@ class DiscoveryBlurredImage extends StatelessWidget {
             ),
           ),
         ),
-        Container(color: QeranColors.wine.withValues(alpha: 0.35)),
+        Container(color: QeranColors.wine.withValues(alpha: 0.18)),
         const Align(
           alignment: Alignment.bottomCenter,
           child: _BottomGradient(),
@@ -110,7 +110,7 @@ class _BottomGradient extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: [
               QeranColors.wine.withValues(alpha: 0),
-              QeranColors.wine.withValues(alpha: 0.65),
+              QeranColors.wine.withValues(alpha: 0.45),
             ],
           ),
         ),

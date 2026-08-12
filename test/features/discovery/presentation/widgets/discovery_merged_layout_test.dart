@@ -224,7 +224,10 @@ class _FakeChatRepository extends Fake implements ChatRepository {
 /// Serves the by-id hydration behind the below-the-fold sections. [failing]
 /// models the degrade path — the card must still render from the deck payload.
 class _FakeProfileRepository extends Fake implements ProfileRepository {
-  _FakeProfileRepository({this.failing = false, this.aboutMe = kFullAboutMeBody});
+  _FakeProfileRepository({
+    this.failing = false,
+    this.aboutMe = kFullAboutMeBody,
+  });
 
   final bool failing;
 
@@ -576,7 +579,7 @@ void main() {
       expect(repo.requested, ['a']);
     });
 
-    testWidgets('scrolling down reveals a hydrated Q&A section', (
+    testWidgets('scrolling down brings the hydrated Q&A fully on screen', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
@@ -584,8 +587,10 @@ void main() {
 
       await _pumpView(tester, [_profile('a')]);
 
-      // Nothing of the Q&A is on screen before scrolling.
-      expect(find.byType(QaDefaultSection), findsNothing);
+      // The section starts as a small continuation cue at the fold.
+      final before = tester.getRect(find.byType(QaDefaultSection));
+      expect(before.top, lessThan(800));
+      expect(before.bottom, greaterThan(800));
 
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
       await tester.pumpAndSettle();
@@ -703,16 +708,20 @@ void main() {
       expect(find.text(kShortAboutMeBody), findsOneWidget);
     });
 
-    testWidgets('the partner sections start below the fold', (tester) async {
+    testWidgets('the next profile section peeks above the fold', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await pumpShort(tester);
 
-      // Nothing from نبذة عن شريك الحياة onward is on screen — the sections
-      // sit past the fold and are not even laid out until the user scrolls.
-      expect(find.byType(QaDefaultSection), findsNothing);
-      expect(find.byType(DiscoveryMergedProfileBody), findsNothing);
+      // A deliberate teaser of the continuation is visible without clipping
+      // the complete نبذة عني content above it.
+      final body = tester.getRect(find.byType(DiscoveryMergedProfileBody));
+      expect(find.byType(QaDefaultSection), findsOneWidget);
+      expect(body.top, lessThan(800));
+      expect(body.bottom, greaterThan(800));
 
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
       await tester.pumpAndSettle();
@@ -899,7 +908,9 @@ void main() {
       expect(chips.top - name.bottom, lessThan(QeranSpacing.s16));
     });
 
-    testWidgets('grows in as the user scrolls into the profile', (tester) async {
+    testWidgets('grows in as the user scrolls into the profile', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(400, 800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 

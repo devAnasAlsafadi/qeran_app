@@ -34,22 +34,22 @@ class _ActionButtonPalette {
 
 /// Skip and undo share one diameter — they are peers, and nothing about either
 /// should outrank the other.
-const double _kActionSize = 50;
-const double _kActionIconSize = 24;
+const double _kActionSize = 60;
+const double _kActionIconSize = 29;
 
 /// Like is the only one allowed to be bigger. One step up from [_kActionSize],
 /// enough to read as the primary without going back to dominating the row.
-const double _kLikeSize = 60;
-const double _kLikeIconSize = 28;
+const double _kLikeSize = 72;
+const double _kLikeIconSize = 34;
 
 // Skip — paper disc with a wine outline, so it reads as a deliberate branded
 // control rather than the absence of one.
 const _ActionButtonPalette _kSkipPalette = _ActionButtonPalette(
-  background: QeranColors.paper,
-  disabledBackground: QeranColors.paper,
+  background: QeranColors.wine12,
+  disabledBackground: QeranColors.wine06,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
-  border: QeranColors.wine20,
+  border: QeranColors.wine40,
 );
 
 // Undo — cream-lifted and the quietest of the three, with a lighter hairline
@@ -114,6 +114,9 @@ class DiscoveryActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      // Keep the physical actions aligned with their gestures in both
+      // languages: Like/right swipe on the right, Pass/left swipe on the left.
+      textDirection: TextDirection.rtl,
       // Equal diameters make this identical to centring today; kept explicit
       // so the row still reads as one cluster if a size is ever tuned again.
       crossAxisAlignment: CrossAxisAlignment.end,

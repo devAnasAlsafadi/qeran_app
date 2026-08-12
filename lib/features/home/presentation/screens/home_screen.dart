@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -9,6 +12,7 @@ import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/core/widgets/locale_rebuild_scope.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
+import 'package:qeran/features/chat/presentation/blocs/chat_unread_cubit.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
@@ -38,6 +42,8 @@ class _HomeScreenState extends State<HomeScreen>
   int? _previousTab;
   int _tabDirection = 1;
   bool _tabTransitionPending = false;
+  int _messagesRefreshEpoch = 0;
+  bool _showBottomNav = true;
 
   late final AnimationController _tabTransition = AnimationController(
     vsync: this,
@@ -69,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen>
     // instead of reusing another account's resolved status. Fetch failures
     // remain fail-open; the backend stays the real action gate.
     unawaited(sl<ProfileGateCubit>().refresh());
+    sl<ChatUnreadCubit>().clear();
+    unawaited(sl<ChatUnreadCubit>().refresh());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {
@@ -77,6 +85,11 @@ class _HomeScreenState extends State<HomeScreen>
     // Foreground push → refresh the unread bell dot (no auto-navigation).
     _notifForegroundSub = FirebaseMessaging.onMessage.listen((_) {
       unawaited(sl<NotificationBadgeCubit>().refresh());
+      if (_currentTab == _messagesTabIndex) {
+        sl<ChatUnreadCubit>().clear();
+      } else {
+        unawaited(sl<ChatUnreadCubit>().refresh());
+      }
     });
   }
 
@@ -94,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(sl<NotificationBadgeCubit>().refresh());
+      unawaited(sl<ChatUnreadCubit>().refresh());
       unawaited(sl<CurrentSubscriptionCubit>().refresh(force: true));
     }
   }
@@ -118,6 +132,9 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _selectTab(int index) async {
+    if (index == _messagesTabIndex) {
+      sl<ChatUnreadCubit>().clear();
+    }
     if (index == _currentTab || _tabTransitionPending) return;
     // Visited tabs stay mounted offstage. Clear a composer/form focus before
     // hiding its tab so Android cannot restore that invisible field (and its
@@ -138,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen>
       _previousTab = previous;
       _tabDirection = index > previous ? 1 : -1;
       _currentTab = index;
+      if (index != _discoveryTabIndex) _showBottomNav = true;
     });
     try {
       await _tabTransition.forward(from: 0);
@@ -152,7 +170,9 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _tabBody(int index) => switch (index) {
     _discoveryTabIndex => const DiscoveryView(),
     _likesTabIndex => const LikesScreen(),
-    _messagesTabIndex => const ChatEntryScreen(),
+    _messagesTabIndex => ChatEntryScreen(
+      key: ValueKey<String>('chat-entry-$_messagesRefreshEpoch'),
+    ),
     _profileTabIndex => const ProfileScreen(),
     _ => const SizedBox.shrink(),
   };
@@ -227,45 +247,82 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _openLikesTab() => _selectTab(_likesTabIndex);
-  void _openMessagesTab() => _selectTab(_messagesTabIndex);
+  void _openMessagesTab({bool refresh = false}) {
+    if (refresh && mounted) {
+      setState(() => _messagesRefreshEpoch++);
+    }
+    _selectTab(_messagesTabIndex);
+  }
+
   void _openProfileTab() => _selectTab(_profileTabIndex);
+
+  bool _handleDiscoveryScroll(UserScrollNotification notification) {
+    if (_currentTab != _discoveryTabIndex ||
+        notification.metrics.axis != Axis.vertical ||
+        notification.direction == ScrollDirection.idle) {
+      return false;
+    }
+    final shouldShow = notification.direction == ScrollDirection.forward;
+    if (_showBottomNav != shouldShow) {
+      setState(() => _showBottomNav = shouldShow);
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final items = <QeranNavItem>[
-      QeranNavItem(
-        outlineIcon: Icons.diamond_outlined,
-        filledIcon: Icons.diamond_rounded,
-        label: LocaleKeys.home_nav_marriage.t(context),
-      ),
-      QeranNavItem(
-        outlineIcon: Icons.favorite_border_rounded,
-        filledIcon: Icons.favorite_rounded,
-        label: LocaleKeys.home_nav_likes.t(context),
-      ),
-      QeranNavItem(
-        outlineIcon: Icons.chat_bubble_outline_rounded,
-        filledIcon: Icons.chat_bubble_rounded,
-        label: LocaleKeys.home_nav_messages.t(context),
-      ),
-      QeranNavItem(
-        outlineIcon: Icons.person_outline_rounded,
-        filledIcon: Icons.person_rounded,
-        label: LocaleKeys.home_nav_profile.t(context),
-      ),
-    ];
     return HomeShellScope(
       openLikesTab: _openLikesTab,
       openMessagesTab: _openMessagesTab,
       openProfileTab: _openProfileTab,
-      child: Scaffold(
-        extendBody: true,
-        body: _buildTabStage(),
-        bottomNavigationBar: QeranBottomNav(
-          items: items,
-          currentIndex: _currentTab,
-          onTap: _selectTab,
-        ),
+      child: BlocBuilder<ChatUnreadCubit, int>(
+        bloc: sl<ChatUnreadCubit>(),
+        builder: (context, unreadMessages) {
+          final items = <QeranNavItem>[
+            QeranNavItem(
+              outlineIcon: Icons.diamond_outlined,
+              filledIcon: Icons.diamond_rounded,
+              label: LocaleKeys.home_nav_marriage.t(context),
+            ),
+            QeranNavItem(
+              outlineIcon: Icons.favorite_border_rounded,
+              filledIcon: Icons.favorite_rounded,
+              label: LocaleKeys.home_nav_likes.t(context),
+            ),
+            QeranNavItem(
+              outlineIcon: Icons.chat_bubble_outline_rounded,
+              filledIcon: Icons.chat_bubble_rounded,
+              label: LocaleKeys.home_nav_messages.t(context),
+              badgeCount: unreadMessages,
+              badgeIsDot: true,
+              badgeColor: QeranColors.danger,
+            ),
+            QeranNavItem(
+              outlineIcon: Icons.person_outline_rounded,
+              filledIcon: Icons.person_rounded,
+              label: LocaleKeys.home_nav_profile.t(context),
+            ),
+          ];
+          return Scaffold(
+            extendBody: false,
+            body: NotificationListener<UserScrollNotification>(
+              onNotification: _handleDiscoveryScroll,
+              child: _buildTabStage(),
+            ),
+            bottomNavigationBar: AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.bottomCenter,
+              child: _showBottomNav
+                  ? QeranBottomNav(
+                      items: items,
+                      currentIndex: _currentTab,
+                      onTap: _selectTab,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          );
+        },
       ),
     );
   }

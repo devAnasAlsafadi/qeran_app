@@ -79,6 +79,7 @@ class _Content extends StatelessWidget {
           DiscoveryFilterLoaded(
             questions: final qs,
             selections: final sel,
+            resetVersion: final resetVersion,
           ) =>
             ListView.separated(
               padding: const EdgeInsets.fromLTRB(
@@ -93,6 +94,7 @@ class _Content extends StatelessWidget {
               itemBuilder: (_, i) => FilterQuestionRenderer(
                 question: qs[i],
                 selection: sel[qs[i].id],
+                resetVersion: resetVersion,
               ),
             ),
         };
@@ -141,7 +143,7 @@ class _Footer extends StatelessWidget {
               QeranSpacing.hs12,
               Expanded(
                 child: QeranButton(
-                  label: LocaleKeys.discovery_filter_save_cta.t(context),
+                  label: LocaleKeys.discovery_filter_show_results.t(context),
                   variant: QeranButtonVariant.primaryWine,
                   onPressed: enabled ? () => _apply(context) : null,
                 ),

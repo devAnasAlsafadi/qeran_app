@@ -31,11 +31,13 @@ const int _kSearchableThreshold = 10;
 class FilterQuestionRenderer extends StatelessWidget {
   final DiscoveryFilterQuestion question;
   final DiscoveryFilterSelection? selection;
+  final int resetVersion;
 
   const FilterQuestionRenderer({
     super.key,
     required this.question,
     required this.selection,
+    this.resetVersion = 0,
   });
 
   @override
@@ -76,14 +78,16 @@ class FilterQuestionRenderer extends StatelessWidget {
       case FilterQuestionType.select:
       case FilterQuestionType.radio:
       case FilterQuestionType.unknown:
-        final value = selection is SingleValueSelection
-            ? (selection as SingleValueSelection).value
-            : null;
+        final selected = switch (selection) {
+          MultiValueSelection(:final values) => values,
+          SingleValueSelection(:final value) => <String>[value],
+          _ => const <String>[],
+        };
         return _optionsFacet(
           label: question.label,
           options: options,
-          isSelected: (v) => v == value,
-          onTap: (v) => cubit.setSingleValue(question.id, v),
+          isSelected: selected.contains,
+          onTap: (v) => cubit.toggleMultiValue(question.id, v),
         );
       case FilterQuestionType.text:
         return _TextFacet(
@@ -116,6 +120,7 @@ class FilterQuestionRenderer extends StatelessWidget {
         options: options,
         isSelected: isSelected,
         onTap: onTap,
+        resetVersion: resetVersion,
       );
     }
     return FilterChipFacet(

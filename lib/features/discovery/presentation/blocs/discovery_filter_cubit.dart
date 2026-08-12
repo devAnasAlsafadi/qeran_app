@@ -16,7 +16,8 @@ import 'discovery_filter_state.dart';
 /// * Range types  → `RangeFrom[id]`, `RangeTo[id]`
 /// * Single types → `QuestionFilters[id]`
 /// * Multi types  → `QuestionFilters[id]` with comma-joined values
-class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState> with SafeEmit<DiscoveryFilterState> {
+class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState>
+    with SafeEmit<DiscoveryFilterState> {
   final GetDiscoveryFiltersUseCase _getFilters;
 
   final Map<int, DiscoveryFilterSelection> _initialSelections;
@@ -24,23 +25,24 @@ class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState> with SafeEmit<Dis
   DiscoveryFilterCubit({
     required GetDiscoveryFiltersUseCase getFilters,
     Map<int, DiscoveryFilterSelection> initialSelections = const {},
-  })  : _getFilters = getFilters,
-        _initialSelections = Map.unmodifiable(initialSelections),
-        super(const DiscoveryFilterInitial());
+  }) : _getFilters = getFilters,
+       _initialSelections = Map.unmodifiable(initialSelections),
+       super(const DiscoveryFilterInitial());
 
   Future<void> loadFilters() async {
     emit(const DiscoveryFilterLoading());
     final result = await _getFilters();
-    result.fold(
-      (failure) => emit(DiscoveryFilterFailure(failure.message)),
-      (questions) {
-        final visible = _filterOutUnusable(questions);
-        emit(DiscoveryFilterLoaded(
+    result.fold((failure) => emit(DiscoveryFilterFailure(failure.message)), (
+      questions,
+    ) {
+      final visible = _filterOutUnusable(questions);
+      emit(
+        DiscoveryFilterLoaded(
           questions: visible,
           selections: Map.of(_initialSelections),
-        ));
-      },
-    );
+        ),
+      );
+    });
   }
 
   /// Drops questions the renderer has no safe way to display.
@@ -141,7 +143,12 @@ class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState> with SafeEmit<Dis
   void clearAll() {
     final loaded = _requireLoaded();
     if (loaded == null) return;
-    emit(loaded.copyWith(selections: const {}));
+    emit(
+      loaded.copyWith(
+        selections: const {},
+        resetVersion: loaded.resetVersion + 1,
+      ),
+    );
   }
 
   /// Flat query map keyed to the backend's confirmed contract:

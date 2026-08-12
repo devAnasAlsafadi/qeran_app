@@ -26,6 +26,8 @@ Future<void> _pump(
   VoidCallback? onEdit,
   VoidCallback? onClear,
   bool withHandlers = true,
+  bool canReplay = false,
+  VoidCallback? onReplay,
 }) async {
   await tester.pumpWidget(
     EasyLocalization(
@@ -43,6 +45,8 @@ Future<void> _pump(
               hasFilters: hasFilters,
               onEditFilters: withHandlers ? (onEdit ?? () {}) : null,
               onClearFilters: withHandlers ? (onClear ?? () {}) : null,
+              canReplay: canReplay,
+              onReplay: onReplay,
             ),
           ),
         ),
@@ -74,8 +78,27 @@ void main() {
     await _pump(tester, hasFilters: true);
 
     // Different copy: "nobody matched YOUR FILTER", not "nobody exists".
-    expect(find.text(LocaleKeys.discovery_empty_filtered_title), findsOneWidget);
+    expect(
+      find.text(LocaleKeys.discovery_empty_filtered_title),
+      findsOneWidget,
+    );
     expect(find.byType(QeranButton), findsNWidgets(2));
+  });
+
+  testWidgets('exhausted local deck offers replay and invokes it', (
+    tester,
+  ) async {
+    var replays = 0;
+    await _pump(
+      tester,
+      hasFilters: false,
+      canReplay: true,
+      onReplay: () => replays++,
+    );
+
+    expect(find.text(LocaleKeys.discovery_empty_replay), findsOneWidget);
+    await tester.tap(find.text(LocaleKeys.discovery_empty_replay));
+    expect(replays, 1);
   });
 
   testWidgets('editing reopens the sheet', (tester) async {

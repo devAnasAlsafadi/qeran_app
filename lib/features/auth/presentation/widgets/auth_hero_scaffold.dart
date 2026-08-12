@@ -24,7 +24,6 @@ const double _kChromeHeight = 48;
 
 /// Lockup is sized FIRST at 160px wide so all three parts (monogram, «قِران», «QERAN») read clearly.
 const double _kLockupWidthMin = 100;
-const double _kLockupWidthMax = 160;
 
 /// Shared auth shell: a compact wine band (the gold full logo lockup,
 /// flanked by the back / language chrome) over a soft-white dome that

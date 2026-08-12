@@ -31,7 +31,14 @@ class ReferralShareCard extends StatelessWidget {
     );
   }
 
-  void _share() => SharePlus.instance.share(ShareParams(text: code));
+  void _share(BuildContext context) => SharePlus.instance.share(
+    ShareParams(
+      text: LocaleKeys.matchmaker_referral_share_message.t(
+        context,
+        namedArgs: {'code': code},
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +48,9 @@ class ReferralShareCard extends StatelessWidget {
         children: [
           Text(
             LocaleKeys.matchmaker_referral_card_title.t(context),
-            style:
-                QeranTypography.subtitle.copyWith(color: QeranColors.inkStrong),
+            style: QeranTypography.subtitle.copyWith(
+              color: QeranColors.inkStrong,
+            ),
           ),
           QeranSpacing.vs12,
           _CodeBox(code: code, onCopy: () => _copy(context)),
@@ -56,7 +64,7 @@ class ReferralShareCard extends StatelessWidget {
             label: LocaleKeys.matchmaker_referral_share_cta.t(context),
             variant: QeranButtonVariant.primaryGold,
             leadingIcon: Icons.ios_share_rounded,
-            onPressed: _share,
+            onPressed: () => _share(context),
           ),
         ],
       ),

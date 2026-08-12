@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 final RegExp _kLooksLikeKey = RegExp(r'^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$');
 
 extension LocalizationExtension on String {
-  String t(BuildContext context) => context.tr(this);
+  String t(BuildContext context, {Map<String, String>? namedArgs}) =>
+      context.tr(this, namedArgs: namedArgs);
 
   /// Translates only when this string is a locale KEY; otherwise returns it
   /// verbatim.

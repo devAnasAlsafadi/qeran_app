@@ -1,5 +1,6 @@
 class EndPoints {
-  static const String baseUrl = "https://qeranadmin-001-site1.rtempurl.com/api/";
+  static const String baseUrl =
+      "https://qeranadmin-001-site1.rtempurl.com/api/";
 
   /// Resolves a server-supplied relative path (e.g.
   /// `/api/users/profile-images/{id}`) to an absolute URL by joining it
@@ -43,6 +44,9 @@ class EndPoints {
 
   // Profile
   static const String profileImages = "users/profile-images";
+  static String profileImage(String imageId) => "$profileImages/$imageId";
+  static String setMainProfileImage(String imageId) =>
+      "$profileImages/set-main/$imageId";
 
   /// `GET /api/profile` — my full profile. Returns the owner-shape
   /// `{userId, name, email, gender, birthDate, age, profileStatus,
@@ -60,8 +64,7 @@ class EndPoints {
   /// profile (other-shape: id, name, age, matchingScore,
   /// images[isBlurred], placements). On failure backend returns
   /// `errorCode: "PROFILE_NOT_FOUND"`.
-  static String profileById(String userId) =>
-      "discovery/profiles/$userId";
+  static String profileById(String userId) => "discovery/profiles/$userId";
 
   /// `GET /api/users/{id}` — lightweight user info (id, name, email,
   /// gender, age, latitude, longitude). No images, no placements. Use
@@ -123,15 +126,13 @@ class EndPoints {
   /// caller is not subscribed. Backend success moves the row from
   /// Pending → Accepted and pushes a notification to the sender.
   /// Photos remain blurred until the future photo-exchange API runs.
-  static String likesAccept(int likeRequestId) =>
-      "likes/$likeRequestId/accept";
+  static String likesAccept(int likeRequestId) => "likes/$likeRequestId/accept";
 
   /// `POST /api/likes/{likeRequestId}/reject` — Bearer JWT, no body.
   /// No subscription gate, no push notification to the other user.
   /// Pending → Rejected; the row shows up in the archived list after
   /// the next refresh.
-  static String likesReject(int likeRequestId) =>
-      "likes/$likeRequestId/reject";
+  static String likesReject(int likeRequestId) => "likes/$likeRequestId/reject";
 
   /// `GET /api/matches` — Bearer JWT. Active matches (post-like-
   /// acceptance) regardless of stage 0/1/2. Archived matches live at
@@ -153,6 +154,16 @@ class EndPoints {
   /// archive.
   static String photoExchangeReject(int requestId) =>
       "photo-exchange/$requestId/reject";
+
+  /// `GET /api/photo-exchange/permission/{targetUserId}` â€” authoritative
+  /// one-time photo-view state for the current user and target.
+  static String photoExchangePermission(String targetUserId) =>
+      "photo-exchange/permission/$targetUserId";
+
+  /// `POST /api/photo-exchange/{photoExchangeId}/view` â€” starts the
+  /// irreversible 60-second viewing window. Idempotent on the backend.
+  static String photoExchangeView(int photoExchangeId) =>
+      "photo-exchange/$photoExchangeId/view";
 
   // Subscriptions
   static const String subscriptionPlans = "subscriptions/plans";
@@ -200,8 +211,7 @@ class EndPoints {
   /// at `/hubs/chat` on the SAME host as the REST API, with NO
   /// `/api` prefix. We derive the origin from [baseUrl] so any host
   /// change in one place lands everywhere.
-  static String get chatHubUrl =>
-      '${Uri.parse(baseUrl).origin}/hubs/chat';
+  static String get chatHubUrl => '${Uri.parse(baseUrl).origin}/hubs/chat';
 
   // ─── Matchmaker (role=Moderator) ─────────────────────
   // Source: docs/MOBILE_MATCHMAKER_FLOW.md.
@@ -245,6 +255,10 @@ class EndPoints {
   static String matchmakerUserRequestImage(String userId) =>
       "matchmaker/users/$userId/request-image";
 
+  /// Approves one newly uploaded user image. Idempotent on the backend.
+  static String matchmakerApproveUserImage(String userId, String imageId) =>
+      "matchmaker/users/$userId/images/$imageId/approve";
+
   /// `POST /api/matchmaker/users/{id}/text-answer` — body `{questionId, textAnswer}`.
   static String matchmakerUserTextAnswer(String userId) =>
       "matchmaker/users/$userId/text-answer";
@@ -276,7 +290,11 @@ class EndPoints {
   static String matchmakerUserMatchesArchived(String userId) =>
       "matchmaker/users/$userId/matches/archived";
 
-  /// `GET /api/matchmaker/compatibility-cases?page=N&pageSize=M`
+  /// `GET /api/matchmaker/compatibility?page=N&pageSize=M&stage=0..4`
+  /// — paginated list with server-side stage/formal-request filtering.
+  static const String matchmakerCompatibility = "matchmaker/compatibility";
+
+  /// Mutation/note resource retained under `/compatibility-cases`.
   static const String matchmakerCompatibilityCases =
       "matchmaker/compatibility-cases";
 

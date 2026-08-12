@@ -19,6 +19,18 @@ mixin BaseRepository {
     } on OfflineException {
       AppLogger.warning('Offline request', tag: 'REPO');
       return const Left(OfflineFailure());
+    } on CodedServerException catch (e) {
+      // The backend commonly reports business failures inside an HTTP 200
+      // envelope. Preserve its machine-readable code so feature cubits can
+      // distinguish e.g. UNAUTHORIZED from a generic server failure.
+      AppLogger.error('Coded server error', error: e, tag: 'REPO');
+      return Left(
+        CodedServerFailure(
+          message: e.message,
+          errorCode: e.errorCode,
+          statusCode: e.statusCode,
+        ),
+      );
     } on ServerException catch (e) {
       AppLogger.error('Server error', error: e, tag: 'REPO');
       return Left(ServerFailure(message: e.message));

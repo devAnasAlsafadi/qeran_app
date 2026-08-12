@@ -17,12 +17,26 @@ class ProfileSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: QeranColors.wine),
-        QeranSpacing.hs8,
-        Flexible(
-          child: Text(title, style: QeranTypography.label),
+        Row(
+          children: [
+            Icon(icon, size: 18, color: QeranColors.wine),
+            QeranSpacing.hs8,
+            Flexible(
+              child: Text(
+                title,
+                style: QeranTypography.label.copyWith(color: QeranColors.wine),
+              ),
+            ),
+          ],
+        ),
+        QeranSpacing.vs8,
+        const SizedBox(
+          height: 1,
+          child: ColoredBox(color: QeranColors.divider),
         ),
       ],
     );
@@ -36,10 +50,7 @@ class ProfileSectionDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: QeranSpacing.s20),
-      child: SizedBox(
-        height: 1,
-        child: ColoredBox(color: QeranColors.divider),
-      ),
+      child: SizedBox(height: 1, child: ColoredBox(color: QeranColors.divider)),
     );
   }
 }

@@ -29,10 +29,14 @@ class PlacementItemRenderer extends StatelessWidget {
     final content = Padding(
       padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s8),
       child: switch (item.display) {
-        PlacementSingle(value: final s) =>
-          _SingleRow(question: item.question, answer: s),
-        PlacementMulti(values: final vs) =>
-          _MultiRow(question: item.question, values: vs),
+        PlacementSingle(value: final s) => _SingleRow(
+          question: item.question,
+          answer: s,
+        ),
+        PlacementMulti(values: final vs) => _MultiRow(
+          question: item.question,
+          values: vs,
+        ),
       },
     );
 
@@ -86,11 +90,12 @@ class _SingleRow extends StatelessWidget {
     );
   }
 
-  static final TextStyle _questionStyle =
-      QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted);
+  static final TextStyle _questionStyle = QeranTypography.bodySm.copyWith(
+    color: QeranColors.inkBody,
+  );
 
   static final TextStyle _answerStyle = QeranTypography.bodySm.copyWith(
-    color: QeranColors.inkStrong,
+    color: QeranColors.wine,
     fontWeight: FontWeight.w600,
   );
 }
@@ -105,7 +110,11 @@ class _MultiRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(question, textAlign: TextAlign.start, style: QeranTypography.caption),
+        Text(
+          question,
+          textAlign: TextAlign.start,
+          style: QeranTypography.bodySm.copyWith(color: QeranColors.inkBody),
+        ),
         const SizedBox(height: QeranSpacing.s6),
         Wrap(
           spacing: QeranSpacing.s8,

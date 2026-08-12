@@ -37,7 +37,16 @@ class ChatConversationScreen extends StatelessWidget {
   /// tab (no route to pop), so that tab renders exactly as before.
   final VoidCallback? onBack;
 
-  const ChatConversationScreen({super.key, required this.info, this.onBack});
+  /// Optional peer-profile action. Matchmaker conversations provide this so
+  /// tapping the user's avatar/name opens their full profile.
+  final VoidCallback? onHeaderTap;
+
+  const ChatConversationScreen({
+    super.key,
+    required this.info,
+    this.onBack,
+    this.onHeaderTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +61,11 @@ class ChatConversationScreen extends StatelessWidget {
       child: Builder(
         builder: (ctx) => ChatLifecycleWrapper(
           cubit: ctx.read<ConversationCubit>(),
-          child: _ConversationView(info: info, onBack: onBack),
+          child: _ConversationView(
+            info: info,
+            onBack: onBack,
+            onHeaderTap: onHeaderTap,
+          ),
         ),
       ),
     );
@@ -74,7 +87,8 @@ class ChatConversationScreen extends StatelessWidget {
 class _ConversationView extends StatelessWidget {
   final MatchmakerInfo info;
   final VoidCallback? onBack;
-  const _ConversationView({required this.info, this.onBack});
+  final VoidCallback? onHeaderTap;
+  const _ConversationView({required this.info, this.onBack, this.onHeaderTap});
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +102,8 @@ class _ConversationView extends StatelessWidget {
       listener: _onEvent,
       builder: (context, state) {
         final cubit = context.read<ConversationCubit>();
-        final cooldown = state.sendCooldownUntil != null &&
+        final cooldown =
+            state.sendCooldownUntil != null &&
             DateTime.now().isBefore(state.sendCooldownUntil!);
         return ColoredBox(
           color: QeranColors.creamCanvas,
@@ -97,9 +112,12 @@ class _ConversationView extends StatelessWidget {
               _Header(
                 info: info,
                 onBack: onBack,
+                onTap: onHeaderTap,
                 isActive: state.realtimeStatus == RealtimeStatus.connected,
               ),
-              Expanded(child: _Body(state: state, cubit: cubit, info: info)),
+              Expanded(
+                child: _Body(state: state, cubit: cubit, info: info),
+              ),
               ChatInputBar(
                 onSend: cubit.sendText,
                 sendDisabledByCooldown: cooldown,
@@ -263,21 +281,25 @@ class _HeaderBackButton extends StatelessWidget {
 class _Header extends StatelessWidget {
   final MatchmakerInfo info;
   final VoidCallback? onBack;
+  final VoidCallback? onTap;
 
   /// Whether our realtime socket is connected — drives the neutral "active
   /// now" status. Bound to OUR connection (not fabricated peer presence).
   final bool isActive;
 
-  const _Header({required this.info, this.onBack, this.isActive = false});
+  const _Header({
+    required this.info,
+    this.onBack,
+    this.onTap,
+    this.isActive = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
         color: QeranColors.paper,
-        border: Border(
-          bottom: BorderSide(color: QeranColors.wine08),
-        ),
+        border: Border(bottom: BorderSide(color: QeranColors.wine08)),
         boxShadow: QeranShadows.e1,
       ),
       padding: const EdgeInsets.fromLTRB(
@@ -288,54 +310,59 @@ class _Header extends StatelessWidget {
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          children: [
-            if (onBack != null) ...[
-              _HeaderBackButton(onBack: onBack!),
-              QeranSpacing.hs4,
-            ],
-            _HeaderAvatar(url: info.profileImageUrl, name: info.name),
-            QeranSpacing.hs12,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    info.name,
-                    style: QeranTypography.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // Neutral, role-agnostic status — shown only while our
-                  // realtime link is up (the reconnecting strip covers the
-                  // rest), so it never claims presence we can't back.
-                  if (isActive) ...[
-                    QeranSpacing.vs4,
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: QeranColors.goldDeep,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        QeranSpacing.hs4,
-                        Text(
-                          LocaleKeys.chat_header_status_active.t(context),
-                          style: QeranTypography.caption
-                              .copyWith(color: QeranColors.goldDeep),
-                        ),
-                      ],
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              if (onBack != null) ...[
+                _HeaderBackButton(onBack: onBack!),
+                QeranSpacing.hs4,
+              ],
+              _HeaderAvatar(url: info.profileImageUrl, name: info.name),
+              QeranSpacing.hs12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      info.name,
+                      style: QeranTypography.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    // Neutral, role-agnostic status — shown only while our
+                    // realtime link is up (the reconnecting strip covers the
+                    // rest), so it never claims presence we can't back.
+                    if (isActive) ...[
+                      QeranSpacing.vs4,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: QeranColors.goldDeep,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          QeranSpacing.hs4,
+                          Text(
+                            LocaleKeys.chat_header_status_active.t(context),
+                            style: QeranTypography.caption.copyWith(
+                              color: QeranColors.goldDeep,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -62,7 +62,10 @@ void main() {
   });
 
   group('profile payload', () {
-    Map<String, dynamic> profileJson({Object? imageRequestStatus = 'none'}) => {
+    Map<String, dynamic> profileJson({
+      Object? imageRequestStatus = 'none',
+      Object? isAssignedToMe = true,
+    }) => {
       'userId': 'u1',
       'name': 'أنس',
       'email': 'a@b.c',
@@ -70,6 +73,7 @@ void main() {
       'age': 30,
       'profileStatus': 'Visible',
       'hasAnsweredQuestions': true,
+      'isAssignedToMe': ?isAssignedToMe,
       'images': const [],
       'placements': const [],
       'imageRequestStatus': ?imageRequestStatus,
@@ -93,6 +97,28 @@ void main() {
         profileJson(imageRequestStatus: null),
       ).toEntity();
       expect(entity.imageRequestStatus, MatchmakerImageRequestStatus.none);
+    });
+
+    test('parses the authoritative assignment flag', () {
+      expect(
+        MatchmakerUserProfileModel.fromJson(
+          profileJson(isAssignedToMe: true),
+        ).toEntity().isAssignedToMe,
+        isTrue,
+      );
+      expect(
+        MatchmakerUserProfileModel.fromJson(
+          profileJson(isAssignedToMe: false),
+        ).toEntity().isAssignedToMe,
+        isFalse,
+      );
+    });
+
+    test('an absent assignment flag fails closed to view-only', () {
+      final entity = MatchmakerUserProfileModel.fromJson(
+        profileJson(isAssignedToMe: null),
+      ).toEntity();
+      expect(entity.isAssignedToMe, isFalse);
     });
   });
 

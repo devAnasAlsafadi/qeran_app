@@ -80,7 +80,10 @@ class _StubAnswersRepository implements MatchmakerEditableAnswersRepository {
   }) async => const Right('ok');
 }
 
-MatchmakerUserProfile _profile(ProfileStatus status) => MatchmakerUserProfile(
+MatchmakerUserProfile _profile(
+  ProfileStatus status, {
+  bool isAssignedToMe = true,
+}) => MatchmakerUserProfile(
   userId: 'u1',
   name: 'أنس',
   email: 'a@b.c',
@@ -89,6 +92,7 @@ MatchmakerUserProfile _profile(ProfileStatus status) => MatchmakerUserProfile(
   age: 30,
   profileStatus: status,
   hasAnsweredQuestions: true,
+  isAssignedToMe: isAssignedToMe,
   profileImage: null,
   images: const [],
   placements: [
@@ -98,8 +102,8 @@ MatchmakerUserProfile _profile(ProfileStatus status) => MatchmakerUserProfile(
 );
 
 /// The real host, so the STATUS gate is what is under test.
-Widget _hosted(ProfileStatus status) {
-  final profile = _profile(status);
+Widget _hosted(ProfileStatus status, {bool isAssignedToMe = true}) {
+  final profile = _profile(status, isAssignedToMe: isAssignedToMe);
   return MaterialApp(
     home: Directionality(
       textDirection: TextDirection.rtl,
@@ -107,9 +111,7 @@ Widget _hosted(ProfileStatus status) {
         body: BlocProvider<MatchmakerAnswerSaveCubit>(
           create: (_) => MatchmakerAnswerSaveCubit(
             userId: 'u1',
-            updateTextAnswer: UpdateTextAnswerUseCase(
-              _StubAnswersRepository(),
-            ),
+            updateTextAnswer: UpdateTextAnswerUseCase(_StubAnswersRepository()),
           ),
           child: MatchmakerProfileEditHost(
             profile: profile,
@@ -161,7 +163,9 @@ void main() {
     testWidgets('no pencil when the backend sent no body', (tester) async {
       await tester.pumpWidget(
         _scoped([
-          AboutMeSection(placement: _narrative(PlacementCode.aboutMe, body: '')),
+          AboutMeSection(
+            placement: _narrative(PlacementCode.aboutMe, body: ''),
+          ),
           AboutPartnerSection(
             placement: _narrative(PlacementCode.aboutPartner, body: ''),
           ),
@@ -214,7 +218,10 @@ void main() {
       // The wrapper must be a pure pass-through: the only Row on screen is the
       // section header's own, so the paragraph is not re-flowed.
       expect(
-        find.descendant(of: find.byType(AboutMeSection), matching: find.byType(Row)),
+        find.descendant(
+          of: find.byType(AboutMeSection),
+          matching: find.byType(Row),
+        ),
         findsOneWidget,
       );
       expect(find.text('نبذة'), findsOneWidget);
@@ -243,6 +250,15 @@ void main() {
       // The one status still out: a withdrawn profile isn't in circulation,
       // so there is nothing to polish. Also proves the gate still gates.
       await tester.pumpWidget(_hosted(ProfileStatus.hidden));
+      expect(_pencil, findsNothing);
+    });
+
+    testWidgets('unassigned profile is view-only regardless of status', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _hosted(ProfileStatus.visible, isAssignedToMe: false),
+      );
       expect(_pencil, findsNothing);
     });
   });

@@ -16,6 +16,8 @@ class MatchmakerInterestLike extends Equatable {
   final MatchmakerInterestLikeStatus status;
   final bool isLocked;
   final int? age;
+  final int? remainingSeconds;
+  final DateTime? expiresAt;
   final List<MatchmakerCardAnswer> answers;
 
   const MatchmakerInterestLike({
@@ -25,10 +27,21 @@ class MatchmakerInterestLike extends Equatable {
     required this.status,
     required this.isLocked,
     this.age,
+    this.remainingSeconds,
+    this.expiresAt,
     this.answers = const [],
   });
 
   @override
-  List<Object?> get props =>
-      [otherUserId, name, image, status, isLocked, age, answers];
+  List<Object?> get props => [
+    otherUserId,
+    name,
+    image,
+    status,
+    isLocked,
+    age,
+    remainingSeconds,
+    expiresAt,
+    answers,
+  ];
 }

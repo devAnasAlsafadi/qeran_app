@@ -24,6 +24,7 @@ class MatchmakerUserProfileModel {
   final int? age;
   final String profileStatus;
   final bool hasAnsweredQuestions;
+  final bool isAssignedToMe;
   final OwnerImageModel? profileImage;
   final List<OwnerImageModel> images;
   final List<PlacementModel> placements;
@@ -41,6 +42,7 @@ class MatchmakerUserProfileModel {
     required this.age,
     required this.profileStatus,
     required this.hasAnsweredQuestions,
+    required this.isAssignedToMe,
     required this.profileImage,
     required this.images,
     required this.placements,
@@ -51,16 +53,16 @@ class MatchmakerUserProfileModel {
     final rawImages = json['images'];
     final images = rawImages is List
         ? rawImages
-            .whereType<Map<String, dynamic>>()
-            .map(OwnerImageModel.fromJson)
-            .toList(growable: false)
+              .whereType<Map<String, dynamic>>()
+              .map(OwnerImageModel.fromJson)
+              .toList(growable: false)
         : const <OwnerImageModel>[];
     final rawPlacements = json['placements'];
     final placements = rawPlacements is List
         ? rawPlacements
-            .whereType<Map<String, dynamic>>()
-            .map(PlacementModel.fromJson)
-            .toList(growable: false)
+              .whereType<Map<String, dynamic>>()
+              .map(PlacementModel.fromJson)
+              .toList(growable: false)
         : const <PlacementModel>[];
     final rawProfileImage = json['profileImage'];
     return MatchmakerUserProfileModel(
@@ -72,6 +74,9 @@ class MatchmakerUserProfileModel {
       age: parseNullableInt(json['age']),
       profileStatus: parseString(json['profileStatus']),
       hasAnsweredQuestions: parseBool(json['hasAnsweredQuestions']),
+      // Fail closed for old/malformed payloads: without an explicit true the
+      // profile is view-only and no mutation affordance is installed.
+      isAssignedToMe: parseBool(json['isAssignedToMe']),
       profileImage: rawProfileImage is Map<String, dynamic>
           ? OwnerImageModel.fromJson(rawProfileImage)
           : null,
@@ -82,18 +87,20 @@ class MatchmakerUserProfileModel {
   }
 
   MatchmakerUserProfile toEntity() => MatchmakerUserProfile(
-        userId: userId,
-        name: name,
-        email: email,
-        gender: gender,
-        birthDate: birthDate,
-        age: age,
-        profileStatus: ProfileStatus.fromString(profileStatus),
-        hasAnsweredQuestions: hasAnsweredQuestions,
-        profileImage: profileImage?.toEntity(),
-        images: images.map((i) => i.toEntity()).toList(growable: false),
-        placements: placements.map((p) => p.toEntity()).toList(growable: false),
-        imageRequestStatus:
-            MatchmakerImageRequestStatus.fromString(imageRequestStatus),
-      );
+    userId: userId,
+    name: name,
+    email: email,
+    gender: gender,
+    birthDate: birthDate,
+    age: age,
+    profileStatus: ProfileStatus.fromString(profileStatus),
+    hasAnsweredQuestions: hasAnsweredQuestions,
+    isAssignedToMe: isAssignedToMe,
+    profileImage: profileImage?.toEntity(),
+    images: images.map((i) => i.toEntity()).toList(growable: false),
+    placements: placements.map((p) => p.toEntity()).toList(growable: false),
+    imageRequestStatus: MatchmakerImageRequestStatus.fromString(
+      imageRequestStatus,
+    ),
+  );
 }

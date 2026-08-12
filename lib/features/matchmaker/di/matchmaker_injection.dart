@@ -95,6 +95,7 @@ import '../users/domain/repositories/matchmaker_user_notes_repository.dart';
 import '../users/domain/repositories/matchmaker_user_profile_repository.dart';
 import '../users/domain/repositories/matchmaker_users_repository.dart';
 import '../users/domain/usecases/approve_user_usecase.dart';
+import '../users/domain/usecases/approve_user_image_usecase.dart';
 import '../users/domain/usecases/delete_user_note_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_user_profile_usecase.dart';
 import '../users/domain/usecases/fetch_matchmaker_users_usecase.dart';
@@ -133,9 +134,7 @@ Future<void> initMatchmakerDependencies() async {
     () => MatchmakerDashboardRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetMatchmakerDashboardUseCase(sl()));
-  sl.registerFactory(
-    () => MatchmakerDashboardCubit(getDashboard: sl()),
-  );
+  sl.registerFactory(() => MatchmakerDashboardCubit(getDashboard: sl()));
 
   //! ── M2b · Users management ───────────────────────────────────────
   sl.registerLazySingleton<MatchmakerUsersRemoteDataSource>(
@@ -178,6 +177,7 @@ Future<void> initMatchmakerDependencies() async {
     () => MatchmakerUserActionsRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => ApproveUserUseCase(sl()));
+  sl.registerLazySingleton(() => ApproveUserImageUseCase(sl()));
   sl.registerLazySingleton(() => RejectUserUseCase(sl()));
   sl.registerLazySingleton(() => RequestImageUserUseCase(sl()));
   // One cubit per opened profile — the caller passes the userId via param1.
@@ -187,6 +187,7 @@ Future<void> initMatchmakerDependencies() async {
       approve: sl(),
       reject: sl(),
       requestImage: sl(),
+      approveImage: sl(),
     ),
   );
 

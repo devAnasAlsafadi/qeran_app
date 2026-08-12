@@ -91,6 +91,9 @@ class MatchmakerInterestCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              if (!locked && facts != null) ...[QeranSpacing.vs8, facts!],
+              // Status/timer belong beneath the person's facts, matching the
+              // original information hierarchy used by matchmakers.
               if (!locked && chips.isNotEmpty) ...[
                 QeranSpacing.vs8,
                 Wrap(
@@ -100,7 +103,6 @@ class MatchmakerInterestCard extends StatelessWidget {
                   children: chips,
                 ),
               ],
-              if (!locked && facts != null) ...[QeranSpacing.vs8, facts!],
             ],
           ),
         ),

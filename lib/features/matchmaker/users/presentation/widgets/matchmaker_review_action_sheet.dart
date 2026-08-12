@@ -119,8 +119,9 @@ class _ReviewActionSheet extends StatelessWidget {
         Navigator.of(context).pop(true);
       case MatchmakerActionOutcome.requestImageSuccess:
         AppSnackBar.showOnRoot(
-          message:
-              LocaleKeys.matchmaker_profile_request_image_success.t(context),
+          message: LocaleKeys.matchmaker_profile_request_image_success.t(
+            context,
+          ),
           type: SnackBarType.success,
         );
         // Pop `true` so the host refetches the row: the refreshed payload
@@ -128,12 +129,26 @@ class _ReviewActionSheet extends StatelessWidget {
         // state. Deliberately NOT a local flag — that would not survive a
         // relaunch and would then lie about whether a request is outstanding.
         Navigator.of(context).pop(true);
+      case MatchmakerActionOutcome.approveImageSuccess:
+        // Image approval is handled on the profile screen, never in this
+        // profile-review sheet.
+        break;
       case MatchmakerActionOutcome.failure:
-        AppSnackBar.show(
-          context,
-          message: (state.errorMessage ?? LocaleKeys.errors_generic).t(context),
-          type: SnackBarType.error,
-        );
+        if (state.errorKind == MatchmakerActionErrorKind.unauthorized) {
+          AppSnackBar.showOnRoot(
+            message: LocaleKeys.matchmaker_user_not_assigned.t(context),
+            type: SnackBarType.error,
+          );
+          Navigator.of(context).pop(false);
+        } else {
+          AppSnackBar.show(
+            context,
+            message: (state.errorMessage ?? LocaleKeys.errors_generic).t(
+              context,
+            ),
+            type: SnackBarType.error,
+          );
+        }
       case MatchmakerActionOutcome.none:
         break;
     }
@@ -189,7 +204,8 @@ class _ReviewButtons extends StatelessWidget {
                     (imageRequestStatus.isAwaitingUpload
                             ? LocaleKeys
                                   .matchmaker_profile_request_image_awaiting
-                            : LocaleKeys.matchmaker_profile_action_request_image)
+                            : LocaleKeys
+                                  .matchmaker_profile_action_request_image)
                         .t(context),
                 variant: QeranButtonVariant.ghost,
                 leadingIcon: imageRequestStatus.isAwaitingUpload

@@ -1,4 +1,5 @@
 import '../../../shared/data/json_parsers.dart';
+import '../../../../../core/utils/server_datetime.dart';
 import '../../../users/domain/entities/matchmaker_card_answer.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
 import '../../domain/entities/matchmaker_interest_image.dart';
@@ -16,6 +17,8 @@ class MatchmakerInterestLikeModel {
   final MatchmakerInterestLikeStatus status;
   final bool isLocked;
   final int? age;
+  final int? remainingSeconds;
+  final DateTime? expiresAt;
   final List<MatchmakerCardAnswer> answers;
 
   const MatchmakerInterestLikeModel({
@@ -25,6 +28,8 @@ class MatchmakerInterestLikeModel {
     required this.status,
     required this.isLocked,
     required this.age,
+    this.remainingSeconds,
+    this.expiresAt,
     required this.answers,
   });
 
@@ -38,16 +43,20 @@ class MatchmakerInterestLikeModel {
         status: matchmakerLikeStatusFromWire(json['status']),
         isLocked: parseBool(json['isLocked']),
         age: parseNullableInt(json['age']),
+        remainingSeconds: parseNullableInt(json['remainingSeconds']),
+        expiresAt: parseServerDateTime(json['expiresAt']),
         answers: parseInterestAnswers(json['answers']),
       );
 
   MatchmakerInterestLike toEntity() => MatchmakerInterestLike(
-        otherUserId: otherUserId,
-        name: name,
-        image: image,
-        status: status,
-        isLocked: isLocked,
-        age: age,
-        answers: answers,
-      );
+    otherUserId: otherUserId,
+    name: name,
+    image: image,
+    status: status,
+    isLocked: isLocked,
+    age: age,
+    remainingSeconds: remainingSeconds,
+    expiresAt: expiresAt,
+    answers: answers,
+  );
 }

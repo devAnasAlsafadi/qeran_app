@@ -7,6 +7,7 @@ import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../users/presentation/widgets/matchmaker_card_answers_block.dart';
+import '../../../../likes/presentation/widgets/like_card_countdown_chip.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
 import '../../domain/entities/matchmaker_interest_like.dart';
 import 'matchmaker_interest_card.dart';
@@ -30,11 +31,17 @@ class MatchmakerInterestLikeCard extends StatelessWidget {
       onTap: locked
           ? null
           : () => NavigationManager.navigateTo(
-                context,
-                RouteNames.matchmakerUserProfile,
-                arguments: like.otherUserId,
-              ),
+              context,
+              RouteNames.matchmakerUserProfile,
+              arguments: like.otherUserId,
+            ),
       chips: [
+        if (like.status == MatchmakerInterestLikeStatus.pending &&
+            (like.expiresAt != null || like.remainingSeconds != null))
+          LikeCountdownChip(
+            expiresAt: like.expiresAt,
+            initialSeconds: like.remainingSeconds,
+          ),
         if (spec != null)
           QeranChip(
             label: spec.labelKey.t(context),
@@ -43,8 +50,8 @@ class MatchmakerInterestLikeCard extends StatelessWidget {
             compact: true,
           ),
       ],
-      facts: like.answers.isNotEmpty
-          ? MatchmakerCardAnswersBlock(answers: like.answers)
+      facts: like.answers.isNotEmpty || like.age != null
+          ? MatchmakerCardAnswersBlock(answers: like.answers, age: like.age)
           : null,
     );
   }
@@ -55,21 +62,21 @@ class MatchmakerInterestLikeCard extends StatelessWidget {
 ) {
   return switch (status) {
     MatchmakerInterestLikeStatus.pending => (
-        labelKey: LocaleKeys.matchmaker_interests_like_status_pending,
-        color: QeranColors.wine,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_like_status_pending,
+      color: QeranColors.wine,
+    ),
     MatchmakerInterestLikeStatus.accepted => (
-        labelKey: LocaleKeys.matchmaker_interests_like_status_accepted,
-        color: QeranColors.gold,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_like_status_accepted,
+      color: QeranColors.gold,
+    ),
     MatchmakerInterestLikeStatus.rejected => (
-        labelKey: LocaleKeys.matchmaker_interests_like_status_rejected,
-        color: QeranColors.danger,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_like_status_rejected,
+      color: QeranColors.danger,
+    ),
     MatchmakerInterestLikeStatus.expired => (
-        labelKey: LocaleKeys.matchmaker_interests_like_status_expired,
-        color: QeranColors.inkMuted,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_like_status_expired,
+      color: QeranColors.inkMuted,
+    ),
     MatchmakerInterestLikeStatus.unknown => null,
   };
 }

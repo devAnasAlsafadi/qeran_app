@@ -39,9 +39,10 @@ class MatchmakerProfileEditHost extends StatelessWidget {
   /// `hidden` stays out: a hidden profile is withdrawn from circulation, so
   /// there is nothing for the matchmaker to be polishing.
   bool get _editable =>
-      profile.profileStatus == ProfileStatus.pendingReview ||
-      profile.profileStatus == ProfileStatus.rejected ||
-      profile.profileStatus == ProfileStatus.visible;
+      profile.isAssignedToMe &&
+      (profile.profileStatus == ProfileStatus.pendingReview ||
+          profile.profileStatus == ProfileStatus.rejected ||
+          profile.profileStatus == ProfileStatus.visible);
 
   @override
   Widget build(BuildContext context) {
@@ -76,11 +77,21 @@ class MatchmakerProfileEditHost extends StatelessWidget {
       );
       context.read<MatchmakerProfileDetailCubit>().refresh();
     } else if (state.outcome == AnswerSaveOutcome.failure) {
-      AppSnackBar.show(
-        context,
-        message: (state.errorMessage ?? LocaleKeys.errors_generic).t(context),
-        type: SnackBarType.error,
-      );
+      if (state.errorKind == AnswerSaveErrorKind.unauthorized) {
+        AppSnackBar.showOnRoot(
+          message: LocaleKeys.matchmaker_user_not_assigned.t(context),
+          type: SnackBarType.error,
+        );
+        // The assignment may have changed while the editor was open. Refresh
+        // so the authoritative profile response removes every edit pencil.
+        context.read<MatchmakerProfileDetailCubit>().refresh();
+      } else {
+        AppSnackBar.show(
+          context,
+          message: (state.errorMessage ?? LocaleKeys.errors_generic).t(context),
+          type: SnackBarType.error,
+        );
+      }
     }
   }
 }

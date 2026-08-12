@@ -33,10 +33,10 @@ class MatchmakerInterestMatchCard extends StatelessWidget {
       onTap: locked
           ? null
           : () => NavigationManager.navigateTo(
-                context,
-                RouteNames.matchmakerUserProfile,
-                arguments: match.otherUserId,
-              ),
+              context,
+              RouteNames.matchmakerUserProfile,
+              arguments: match.otherUserId,
+            ),
       chips: [
         QeranChip(
           label: spec.labelKey.t(context),
@@ -53,8 +53,8 @@ class MatchmakerInterestMatchCard extends StatelessWidget {
             compact: true,
           ),
       ],
-      facts: match.answers.isNotEmpty
-          ? MatchmakerCardAnswersBlock(answers: match.answers)
+      facts: match.answers.isNotEmpty || match.age != null
+          ? MatchmakerCardAnswersBlock(answers: match.answers, age: match.age)
           : null,
     );
   }
@@ -80,24 +80,24 @@ String? _formalLabel(
 ) {
   return switch (stage) {
     MatchmakerInterestMatchStage.waitingForPhotoExchange => (
-        labelKey: LocaleKeys.matchmaker_interests_match_stage_waiting,
-        icon: Icons.photo_camera_outlined,
-        color: QeranColors.wine,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_match_stage_waiting,
+      icon: Icons.photo_camera_outlined,
+      color: QeranColors.wine,
+    ),
     MatchmakerInterestMatchStage.photosExchanged => (
-        labelKey: LocaleKeys.matchmaker_interests_match_stage_exchanged,
-        icon: Icons.photo_library_outlined,
-        color: QeranColors.gold,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_match_stage_exchanged,
+      icon: Icons.photo_library_outlined,
+      color: QeranColors.gold,
+    ),
     MatchmakerInterestMatchStage.matchmakerEngaged => (
-        labelKey: LocaleKeys.matchmaker_interests_match_stage_engaged,
-        icon: Icons.handshake_outlined,
-        color: QeranColors.gold,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_match_stage_engaged,
+      icon: Icons.handshake_outlined,
+      color: QeranColors.gold,
+    ),
     MatchmakerInterestMatchStage.unknown => (
-        labelKey: LocaleKeys.matchmaker_interests_match_stage_waiting,
-        icon: Icons.favorite_border_rounded,
-        color: QeranColors.inkMuted,
-      ),
+      labelKey: LocaleKeys.matchmaker_interests_match_stage_waiting,
+      icon: Icons.favorite_border_rounded,
+      color: QeranColors.inkMuted,
+    ),
   };
 }

@@ -27,6 +27,10 @@ class MatchmakerUserProfile extends Equatable {
   final ProfileStatus profileStatus;
   final bool hasAnsweredQuestions;
 
+  /// Whether this profile belongs to the signed-in matchmaker. A profile can
+  /// also be opened from discovery/interests, where it must stay read-only.
+  final bool isAssignedToMe;
+
   /// Primary photo; `null` when the user hasn't uploaded one.
   final ProfileImage? profileImage;
 
@@ -47,6 +51,7 @@ class MatchmakerUserProfile extends Equatable {
     required this.age,
     required this.profileStatus,
     required this.hasAnsweredQuestions,
+    required this.isAssignedToMe,
     required this.profileImage,
     required this.images,
     required this.placements,
@@ -55,17 +60,18 @@ class MatchmakerUserProfile extends Equatable {
 
   @override
   List<Object?> get props => [
-        userId,
-        name,
-        email,
-        gender,
-        birthDate,
-        age,
-        profileStatus,
-        hasAnsweredQuestions,
-        profileImage,
-        images,
-        placements,
-        imageRequestStatus,
-      ];
+    userId,
+    name,
+    email,
+    gender,
+    birthDate,
+    age,
+    profileStatus,
+    hasAnsweredQuestions,
+    isAssignedToMe,
+    profileImage,
+    images,
+    placements,
+    imageRequestStatus,
+  ];
 }

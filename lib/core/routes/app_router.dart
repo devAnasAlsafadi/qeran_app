@@ -21,6 +21,7 @@ import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_h
 import 'package:qeran/features/matchmaker/interests/presentation/screens/matchmaker_interests_screen.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/matchmaker/users/presentation/screens/matchmaker_user_profile_screen.dart';
+import 'package:qeran/features/matchmaker/users/presentation/matchmaker_user_profile_args.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:qeran/features/onboarding/presentation/screens/on_boarding_screen.dart';
 import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
@@ -199,16 +200,21 @@ class AppRouter {
           builder: (context) => const MatchmakerAffiliateScreen(),
         );
       case RouteNames.matchmakerUserProfile:
-        final userId = settings.arguments as String?;
+        final rawArgs = settings.arguments;
+        final args = switch (rawArgs) {
+          MatchmakerUserProfileArgs value => value,
+          String userId => MatchmakerUserProfileArgs(userId: userId),
+          _ => null,
+        };
         return _buildSmoothRoute(
           settings: settings,
-          builder: (context) => userId == null
+          builder: (context) => args == null
               ? Scaffold(
                   body: Center(
                     child: Text('Missing args for ${settings.name}'),
                   ),
                 )
-              : MatchmakerUserProfileScreen(userId: userId),
+              : MatchmakerUserProfileScreen(args: args),
         );
       case RouteNames.matchmakerCaseDetail:
         final caseArg = settings.arguments as CompatibilityCase?;

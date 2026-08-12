@@ -8,6 +8,10 @@ abstract interface class MatchmakerUserActionsRemoteDataSource {
   Future<String> approve(String userId);
   Future<String> reject({required String userId, required String reason});
   Future<String> requestImage(String userId);
+  Future<String> approveImage({
+    required String userId,
+    required String imageId,
+  });
 }
 
 class MatchmakerUserActionsRemoteDataSourceImpl
@@ -32,9 +36,18 @@ class MatchmakerUserActionsRemoteDataSourceImpl
 
   @override
   Future<String> requestImage(String userId) => _mutate(
-        EndPoints.matchmakerUserRequestImage(userId),
-        action: 'request-image',
-      );
+    EndPoints.matchmakerUserRequestImage(userId),
+    action: 'request-image',
+  );
+
+  @override
+  Future<String> approveImage({
+    required String userId,
+    required String imageId,
+  }) => _mutate(
+    EndPoints.matchmakerApproveUserImage(userId, imageId),
+    action: 'approve-image',
+  );
 
   /// These endpoints carry the result text in `data` (a String) with an
   /// empty `message`, so we go through `postRaw` and classify via

@@ -12,4 +12,9 @@ abstract interface class MatchmakerUserActionsRepository {
   });
 
   Future<Either<Failure, String>> requestImage(String userId);
+
+  Future<Either<Failure, String>> approveImage({
+    required String userId,
+    required String imageId,
+  });
 }

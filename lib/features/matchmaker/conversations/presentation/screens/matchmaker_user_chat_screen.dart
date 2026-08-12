@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
+import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/features/chat/domain/entities/matchmaker_info.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_conversation_screen.dart';
 
 import '../../domain/entities/matchmaker_conversation.dart';
+import '../../../users/presentation/matchmaker_user_profile_args.dart';
 
 /// Hosts the shared [ChatConversationScreen] as a PUSHED route for the
 /// matchmaker, building the peer [MatchmakerInfo] from the tapped 4a
@@ -31,6 +33,11 @@ class MatchmakerUserChatScreen extends StatelessWidget {
             matchmakerId: conversation.userId,
           ),
           onBack: () => NavigationManager.pop(context),
+          onHeaderTap: () => NavigationManager.navigateTo(
+            context,
+            RouteNames.matchmakerUserProfile,
+            arguments: MatchmakerUserProfileArgs(userId: conversation.userId),
+          ),
         ),
       ),
     );

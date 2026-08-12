@@ -41,13 +41,14 @@ class _TextAnswerSheet extends StatefulWidget {
 }
 
 class _TextAnswerSheetState extends State<_TextAnswerSheet> {
-  late final TextEditingController _controller =
-      TextEditingController(text: _current);
+  late final TextEditingController _controller = TextEditingController(
+    text: _current,
+  );
 
   String get _current => switch (widget.item.display) {
-        PlacementSingle(value: final v) => v,
-        PlacementMulti(values: final vs) => vs.join('\n'),
-      };
+    PlacementSingle(value: final v) => v,
+    PlacementMulti(values: final vs) => vs.join('\n'),
+  };
 
   @override
   void dispose() {
@@ -69,8 +70,13 @@ class _TextAnswerSheetState extends State<_TextAnswerSheet> {
   void _onOutcome(BuildContext context, MatchmakerAnswerSaveState state) {
     // The host owns the toast + profile refresh; the sheet just closes once
     // its own save succeeds.
-    if (state.outcome == AnswerSaveOutcome.success &&
-        state.lastQuestionId == widget.item.questionId) {
+    final belongsToThisQuestion =
+        state.lastQuestionId == widget.item.questionId;
+    final shouldClose =
+        state.outcome == AnswerSaveOutcome.success ||
+        (state.outcome == AnswerSaveOutcome.failure &&
+            state.errorKind == AnswerSaveErrorKind.unauthorized);
+    if (belongsToThisQuestion && shouldClose) {
       Navigator.of(context).pop();
     }
   }

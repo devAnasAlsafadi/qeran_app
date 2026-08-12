@@ -16,6 +16,7 @@ import 'core/services/connectivity_service.dart';
 import 'core/services/firebase_initialization_service.dart';
 import 'core/services/language_service.dart';
 import 'core/utils/app_snackbar.dart';
+import 'core/widgets/app_lifecycle_privacy_shield.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'features/devices/application/device_bootstrap_service.dart';
@@ -84,8 +85,10 @@ class QeranApp extends StatelessWidget {
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            child: AppSnackBarHost(
-              child: _ConnectivityBannerHost(child: responsive),
+            child: AppLifecyclePrivacyShield(
+              child: AppSnackBarHost(
+                child: _ConnectivityBannerHost(child: responsive),
+              ),
             ),
           );
         },

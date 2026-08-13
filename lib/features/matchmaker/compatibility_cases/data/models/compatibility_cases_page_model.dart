@@ -10,10 +10,17 @@ class CompatibilityCasesPageModel {
   final int pageNumber;
   final int totalPages;
 
+  /// `totalCount` from the wire — the size of the whole filtered result set,
+  /// NOT of this page. Parsed via [parseNullableInt] so an absent field stays
+  /// null instead of collapsing to 0: a missing total is unknown, and callers
+  /// must not render an invented number.
+  final int? totalCount;
+
   const CompatibilityCasesPageModel({
     required this.items,
     required this.pageNumber,
     required this.totalPages,
+    this.totalCount,
   });
 
   factory CompatibilityCasesPageModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +31,7 @@ class CompatibilityCasesPageModel {
       items: cases,
       pageNumber: parseInt(json['pageNumber'], fallback: 1),
       totalPages: parseInt(json['totalPages'], fallback: 1),
+      totalCount: parseNullableInt(json['totalCount']),
     );
   }
 
@@ -31,5 +39,6 @@ class CompatibilityCasesPageModel {
         items: items.map((m) => m.toEntity()).toList(growable: false),
         pageNumber: pageNumber,
         totalPages: totalPages,
+        totalCount: totalCount,
       );
 }

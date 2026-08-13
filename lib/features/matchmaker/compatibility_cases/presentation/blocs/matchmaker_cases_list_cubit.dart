@@ -82,6 +82,8 @@ class MatchmakerCasesListCubit
           hasMore: page.hasMore,
           isLoading: false,
           clearError: true,
+          totalCount: page.totalCount,
+          clearTotalCount: page.totalCount == null,
         ),
       ),
     );
@@ -105,6 +107,8 @@ class MatchmakerCasesListCubit
           hasMore: page.hasMore,
           isRefreshing: false,
           clearError: true,
+          totalCount: page.totalCount,
+          clearTotalCount: page.totalCount == null,
         ),
       ),
     );
@@ -134,6 +138,11 @@ class MatchmakerCasesListCubit
           hasMore: page.hasMore,
           isLoadingMore: false,
           clearError: true,
+          // The total belongs to the query, not the page — re-read it on every
+          // page so a set that grew or shrank mid-scroll stays truthful. Items
+          // accumulate here; totalCount does NOT.
+          totalCount: page.totalCount,
+          clearTotalCount: page.totalCount == null,
         ),
       ),
     );

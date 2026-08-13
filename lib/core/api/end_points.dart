@@ -302,11 +302,17 @@ class EndPoints {
   static String matchmakerUserMatchesArchived(String userId) =>
       "matchmaker/users/$userId/matches/archived";
 
-  /// `GET /api/matchmaker/compatibility?page=N&pageSize=M&stage=0..4`
-  /// — paginated list with server-side stage/formal-request filtering.
-  static const String matchmakerCompatibility = "matchmaker/compatibility";
+  /// `GET /api/matchmaker/compatibility-cases?page=N&pageSize=M`
+  /// — paginated case list. `c2b2071` repointed this to
+  /// `matchmaker/compatibility`, which the backend does not serve (404),
+  /// breaking the whole tab; reverted to the path that is actually mounted.
+  /// ⚠️ The `stage` / `activeFormalRequest` query params added by `15bc213`
+  /// are still sent, but this route MAY ignore them and return the
+  /// unfiltered page — pending confirmation from the backend dev.
+  static const String matchmakerCompatibility =
+      "matchmaker/compatibility-cases";
 
-  /// Mutation/note resource retained under `/compatibility-cases`.
+  /// Mutation/note resource, same `/compatibility-cases` root.
   static const String matchmakerCompatibilityCases =
       "matchmaker/compatibility-cases";
 

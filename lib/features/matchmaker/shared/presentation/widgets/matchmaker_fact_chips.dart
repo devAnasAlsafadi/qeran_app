@@ -6,11 +6,17 @@ import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_chip.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
-/// A person's admin-flagged facts as compact cream meta-chips (≤3), followed
-/// by the age line "عندي {age} سنة". Each chip ellipsizes at ~60% of the row
-/// width so a long fact never overflows or dominates. Shared by the matchmaker
-/// user cards (and later Cases / Explore). The parent should only mount this
-/// when at least one fact or the age is present.
+/// A person's admin-flagged facts as compact WHITE chips (≤3), followed by the
+/// age line "عندي {age} سنة". Each chip ellipsizes at ~60% of the row width so
+/// a long fact never overflows or dominates. Mounted by the matchmaker Users
+/// and Explore cards only. The parent should only mount this when at least one
+/// fact or the age is present.
+///
+/// The chips use [QeranChipVariant.inside] (paper + wine hairline) rather than
+/// [QeranChipVariant.meta] (cream fill): on a white card the cream read as a
+/// beige wash across the row. Same call as `cd9c363` made for the interests
+/// chips — reuse an existing variant instead of editing `meta`, which three
+/// other surfaces still rely on.
 class MatchmakerFactChips extends StatelessWidget {
   const MatchmakerFactChips({
     super.key,
@@ -44,7 +50,7 @@ class MatchmakerFactChips extends StatelessWidget {
                   for (final f in shown)
                     QeranChip(
                       label: f,
-                      variant: QeranChipVariant.meta,
+                      variant: QeranChipVariant.inside,
                       compact: true,
                       maxWidth: chipMaxWidth,
                     ),

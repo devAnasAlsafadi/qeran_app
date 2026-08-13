@@ -623,7 +623,7 @@
     "dashboard_pending": "Pending review",
     "dashboard_approved_subscribed": "Subscribed",
     "dashboard_approved_unsubscribed": "Not subscribed",
-    "dashboard_active_cases": "My active cases",
+    "dashboard_active_cases": "Active formal requests",
     "dashboard_unread_messages": "Unread messages",
     "dashboard_total_assigned": "Total assigned",
     "dashboard_error_title": "Couldn't load your dashboard",

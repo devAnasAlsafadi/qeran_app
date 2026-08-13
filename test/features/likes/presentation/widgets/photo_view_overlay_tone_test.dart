@@ -10,9 +10,11 @@ import 'package:qeran/features/likes/presentation/widgets/photo_view_access_host
 import 'package:qeran/features/likes/presentation/widgets/photo_view_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// The overlay sits inside the paper gallery sheet. A dark-wine scrim there
-/// painted the whole card mauve, which read as a wine backdrop behind the
-/// photos rather than as a state drawn over them.
+// The overlay sits inside the paper gallery sheet, and paints no background
+// of its own in any phase. A full-bleed scrim tinted the whole card — wine
+// washed it mauve, cream washed it beige — and either way the sheet stopped
+// reading as white paper holding photo tiles.
+
 /// Loads the real translations synchronously — an awaited file read does not
 /// complete inside pumpAndSettle, so the tree would still be EasyLocalization's
 /// placeholder when the assertion runs and nothing would be found at all.
@@ -90,15 +92,15 @@ void main() {
     PhotoViewPhase.failure,
     PhotoViewPhase.loading,
   ]) {
-    testWidgets('$phase paints no dark wine over the sheet', (tester) async {
+    testWidgets('$phase tints nothing over the sheet', (tester) async {
       await pump(tester, phase);
 
       expect(
         fills(tester),
-        isNot(contains(QeranColors.overlayTintDark)),
-        reason: 'the sheet is paper; a dark scrim reads as a wine backdrop',
+        isEmpty,
+        reason: 'the card stays white; the state is carried by the control '
+            'itself, not by a wash over the photo tiles',
       );
-      expect(fills(tester), contains(QeranColors.overlayTintLight));
     });
   }
 

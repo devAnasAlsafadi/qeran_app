@@ -66,12 +66,13 @@ class PhotoViewOverlay extends StatelessWidget {
   }
 }
 
-/// Covers the photo grid with the current access state.
+/// Centres the current access state over the photo grid.
 ///
-/// The scrim is the LIGHT overlay, not the dark one. This panel lives inside
-/// the paper gallery sheet, where a dark-wine fill painted the whole card
-/// mauve and read as a wine backdrop behind the photos rather than as a state
-/// over them. Cream keeps the sheet white; the copy and glyph carry the wine.
+/// Paints NO background of its own. A full-bleed scrim here tinted the whole
+/// gallery card — dark wine washed it mauve, cream washed it beige — and
+/// either way the sheet stopped reading as white paper holding photo tiles.
+/// The card stays white; the state is carried by the control itself (a solid
+/// wine button) or by wine copy beside a gold glyph.
 class _CenteredPanel extends StatelessWidget {
   /// Optional — the reveal panel carries its glyph inside the button instead.
   final IconData? icon;
@@ -82,24 +83,21 @@ class _CenteredPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
-      child: ColoredBox(
-        color: QeranColors.overlayTintLight,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(QeranSpacing.s24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 40, color: QeranColors.goldDeep),
-                  QeranSpacing.vs16,
-                ],
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 240),
-                  child: child,
-                ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(QeranSpacing.s24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 40, color: QeranColors.goldDeep),
+                QeranSpacing.vs16,
               ],
-            ),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 240),
+                child: child,
+              ),
+            ],
           ),
         ),
       ),

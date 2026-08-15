@@ -152,7 +152,13 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// Reopens the inbox and applies whatever the user taps there next — a fresh
   /// notification wins over the one that brought them here.
+  ///
+  /// Both the back arrow and the Android back button land here, so there is one
+  /// behaviour rather than two. Clearing the flag is part of it: the trail is
+  /// spent once it has been followed, and popping the inbox without tapping
+  /// anything leaves the tab as an ordinary tab.
   Future<void> _returnToNotifications() async {
+    if (_fromNotification) setState(() => _fromNotification = false);
     final result = await Navigator.of(
       context,
     ).pushNamed(RouteNames.notifications);
@@ -298,51 +304,60 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return HomeShellScope(
-      openLikesTab: _openLikesTab,
-      openMessagesTab: _openMessagesTab,
-      openProfileTab: _openProfileTab,
-      openFromNotification: _openFromNotification,
-      fromNotification: _fromNotification,
-      returnToNotifications: _returnToNotifications,
-      child: BlocBuilder<ChatUnreadCubit, int>(
-        bloc: sl<ChatUnreadCubit>(),
-        builder: (context, unreadMessages) {
-          final items = <QeranNavItem>[
-            QeranNavItem(
-              outlineIcon: Icons.diamond_outlined,
-              filledIcon: Icons.diamond_rounded,
-              label: LocaleKeys.home_nav_marriage.t(context),
-            ),
-            QeranNavItem(
-              outlineIcon: Icons.favorite_border_rounded,
-              filledIcon: Icons.favorite_rounded,
-              label: LocaleKeys.home_nav_likes.t(context),
-            ),
-            QeranNavItem(
-              outlineIcon: Icons.chat_bubble_outline_rounded,
-              filledIcon: Icons.chat_bubble_rounded,
-              label: LocaleKeys.home_nav_messages.t(context),
-              badgeCount: unreadMessages,
-              badgeIsDot: true,
-              badgeColor: QeranColors.danger,
-            ),
-            QeranNavItem(
-              outlineIcon: Icons.person_outline_rounded,
-              filledIcon: Icons.person_rounded,
-              label: LocaleKeys.home_nav_profile.t(context),
-            ),
-          ];
-          return ScrollHidingNavScaffold(
-            currentIndex: _currentTab,
-            body: _buildTabStage(),
-            navBuilder: (context) => QeranBottomNav(
-              items: items,
+    return PopScope(
+      // Only while the trail is live. Otherwise the system back keeps its
+      // default meaning — pop the shell, or leave the app from the root.
+      canPop: !_fromNotification,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _returnToNotifications();
+      },
+      child: HomeShellScope(
+        openLikesTab: _openLikesTab,
+        openMessagesTab: _openMessagesTab,
+        openProfileTab: _openProfileTab,
+        openFromNotification: _openFromNotification,
+        fromNotification: _fromNotification,
+        returnToNotifications: _returnToNotifications,
+        child: BlocBuilder<ChatUnreadCubit, int>(
+          bloc: sl<ChatUnreadCubit>(),
+          builder: (context, unreadMessages) {
+            final items = <QeranNavItem>[
+              QeranNavItem(
+                outlineIcon: Icons.diamond_outlined,
+                filledIcon: Icons.diamond_rounded,
+                label: LocaleKeys.home_nav_marriage.t(context),
+              ),
+              QeranNavItem(
+                outlineIcon: Icons.favorite_border_rounded,
+                filledIcon: Icons.favorite_rounded,
+                label: LocaleKeys.home_nav_likes.t(context),
+              ),
+              QeranNavItem(
+                outlineIcon: Icons.chat_bubble_outline_rounded,
+                filledIcon: Icons.chat_bubble_rounded,
+                label: LocaleKeys.home_nav_messages.t(context),
+                badgeCount: unreadMessages,
+                badgeIsDot: true,
+                badgeColor: QeranColors.danger,
+              ),
+              QeranNavItem(
+                outlineIcon: Icons.person_outline_rounded,
+                filledIcon: Icons.person_rounded,
+                label: LocaleKeys.home_nav_profile.t(context),
+              ),
+            ];
+            return ScrollHidingNavScaffold(
               currentIndex: _currentTab,
-              onTap: _onNavTap,
-            ),
-          );
-        },
+              body: _buildTabStage(),
+              navBuilder: (context) => QeranBottomNav(
+                items: items,
+                currentIndex: _currentTab,
+                onTap: _onNavTap,
+              ),
+            );
+          },
+        ),
       ),
     );
   }

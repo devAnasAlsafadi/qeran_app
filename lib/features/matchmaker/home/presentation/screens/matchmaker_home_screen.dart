@@ -113,7 +113,9 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     if (mounted) setState(() => _fromNotification = true);
     switch (link) {
       case OpenCases():
-        _selectTab(2); // Cases tab — the shell owns selection (no route change).
+        _selectTab(
+          2,
+        ); // Cases tab — the shell owns selection (no route change).
       case OpenUserChat(:final conversationId, :final senderName):
         // Thin conversation: chat loads messages by id; senderName fills the
         // header. No route-arg change — satisfies the existing arg type.
@@ -176,7 +178,13 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
 
   /// Reopens the inbox and applies whatever the user taps there next — a fresh
   /// notification wins over the one that brought them here.
+  ///
+  /// Both the back arrow and the Android back button land here, so there is one
+  /// behaviour rather than two. Clearing the flag is part of it: the trail is
+  /// spent once it has been followed, and popping the inbox without tapping
+  /// anything leaves the tab as an ordinary tab.
   Future<void> _returnToNotifications() async {
+    if (_fromNotification) setState(() => _fromNotification = false);
     final result = await Navigator.of(
       context,
     ).pushNamed(RouteNames.matchmakerNotifications);
@@ -199,34 +207,43 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<MatchmakerDashboardCubit>(
-      create: (_) => sl<MatchmakerDashboardCubit>()..load(),
-      child: MatchmakerHomeShellScope(
-        openTab: _selectTab,
-        openFromNotification: _openFromNotification,
-        fromNotification: _fromNotification,
-        returnToNotifications: _returnToNotifications,
-        child: ScrollHidingNavScaffold(
-          currentIndex: _currentTab,
-          body: IndexedStack(
-            index: _currentTab,
-            children: [
-              _lazyTab(0, const MatchmakerDashboardTab()),
-              _lazyTab(
-                1,
-                MatchmakerUsersTab(
-                  subTab: _usersSubTab,
-                  onSubTabChanged: _changeUsersSubTab,
-                ),
-              ),
-              _lazyTab(2, const MatchmakerCasesTab()),
-              _lazyTab(3, const MatchmakerConversationsTab()),
-              _lazyTab(4, const MatchmakerExploreTab()),
-            ],
-          ),
-          navBuilder: (context) => MatchmakerBottomNav(
+    return PopScope(
+      // Only while the trail is live. Otherwise the system back keeps its
+      // default meaning — pop the shell, or leave the app from the root.
+      canPop: !_fromNotification,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _returnToNotifications();
+      },
+      child: BlocProvider<MatchmakerDashboardCubit>(
+        create: (_) => sl<MatchmakerDashboardCubit>()..load(),
+        child: MatchmakerHomeShellScope(
+          openTab: _selectTab,
+          openFromNotification: _openFromNotification,
+          fromNotification: _fromNotification,
+          returnToNotifications: _returnToNotifications,
+          child: ScrollHidingNavScaffold(
             currentIndex: _currentTab,
-            onTap: _onNavTap,
+            body: IndexedStack(
+              index: _currentTab,
+              children: [
+                _lazyTab(0, const MatchmakerDashboardTab()),
+                _lazyTab(
+                  1,
+                  MatchmakerUsersTab(
+                    subTab: _usersSubTab,
+                    onSubTabChanged: _changeUsersSubTab,
+                  ),
+                ),
+                _lazyTab(2, const MatchmakerCasesTab()),
+                _lazyTab(3, const MatchmakerConversationsTab()),
+                _lazyTab(4, const MatchmakerExploreTab()),
+              ],
+            ),
+            navBuilder: (context) => MatchmakerBottomNav(
+              currentIndex: _currentTab,
+              onTap: _onNavTap,
+            ),
           ),
         ),
       ),

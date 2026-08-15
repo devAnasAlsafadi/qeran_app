@@ -42,14 +42,16 @@ const double _kActionIconSize = 29;
 const double _kLikeSize = 72;
 const double _kLikeIconSize = 34;
 
-// Skip — paper disc with a wine outline, so it reads as a deliberate branded
-// control rather than the absence of one.
+// Skip — wine-tinted disc with a deeper wine outline, so it reads as a
+// deliberate branded control rather than the absence of one. The border is two
+// steps darker than the fill: at wine40 on wine12 the two sat too close and the
+// outline dissolved into its own background.
 const _ActionButtonPalette _kSkipPalette = _ActionButtonPalette(
   background: QeranColors.wine12,
   disabledBackground: QeranColors.wine06,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
-  border: QeranColors.wine40,
+  border: QeranColors.wine60,
 );
 
 // Undo — cream-lifted and the quietest of the three, with a lighter hairline
@@ -77,8 +79,9 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
 /// ```
 ///
 /// Skip and undo are peers at one diameter; like takes a single step up as the
-/// primary. The surfaces carry the rest: skip is paper with a wine hairline,
-/// undo is cream-lifted with a lighter one, like is the only filled disc.
+/// primary. The surfaces carry the rest: skip is wine-tinted with a deep wine
+/// outline, undo is cream-lifted with a lighter hairline, like is the only
+/// filled disc.
 ///
 /// The Row mirrors automatically by locale via natural Directionality (no
 /// manual flip / textDirection override): LTR renders like (leading) … undo ·

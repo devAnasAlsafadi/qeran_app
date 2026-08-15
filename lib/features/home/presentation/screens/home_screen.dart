@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/core/widgets/locale_rebuild_scope.dart';
 import 'package:qeran/core/widgets/scroll_hiding_nav_scaffold.dart';
@@ -43,6 +44,10 @@ class _HomeScreenState extends State<HomeScreen>
   int _tabDirection = 1;
   bool _tabTransitionPending = false;
   int _messagesRefreshEpoch = 0;
+
+  /// True while the visible tab was reached from a notification — see
+  /// [_openFromNotification]. Drives the destination's back control.
+  bool _fromNotification = false;
 
   late final AnimationController _tabTransition = AnimationController(
     vsync: this,
@@ -118,7 +123,22 @@ class _HomeScreenState extends State<HomeScreen>
     if (!mounted) return;
     final role = sl<UserSessionCubit>().currentUser?.role;
     if ((role ?? '').toLowerCase() == 'moderator') return;
-    switch (NotificationDeepLinkRouter.resolveData(message.data)) {
+    _openFromNotification(NotificationDeepLinkRouter.resolveData(message.data));
+  }
+
+  /// The single entry point for BOTH notification paths — a row tapped in the
+  /// inbox (handed back by `openNotifications`) and a system push tapped
+  /// outside the app. Switches the tab and raises [_fromNotification], which is
+  /// what puts a back control on the destination.
+  ///
+  /// The flag is raised OUTSIDE the tab switch on purpose: `_selectTab` returns
+  /// early when the target is already showing, and that is exactly the case
+  /// where the control matters most — nothing else on screen changes, so it is
+  /// the only sign the tap did anything.
+  void _openFromNotification(NotificationDeepLink link) {
+    if (link is NoDeepLink) return;
+    if (mounted) setState(() => _fromNotification = true);
+    switch (link) {
       case OpenLikesTab():
         _openLikesTab();
       case OpenMessagesTab():
@@ -128,6 +148,24 @@ class _HomeScreenState extends State<HomeScreen>
       case NoDeepLink():
         break;
     }
+  }
+
+  /// Reopens the inbox and applies whatever the user taps there next — a fresh
+  /// notification wins over the one that brought them here.
+  Future<void> _returnToNotifications() async {
+    final result = await Navigator.of(
+      context,
+    ).pushNamed(RouteNames.notifications);
+    if (!mounted || result is! NotificationDeepLink) return;
+    _openFromNotification(result);
+  }
+
+  /// A manual bottom-nav tap ends the notification trail — otherwise the back
+  /// control would sit there forever, pointing at an inbox the user has since
+  /// navigated away from by hand.
+  void _onNavTap(int index) {
+    if (_fromNotification) setState(() => _fromNotification = false);
+    _selectTab(index);
   }
 
   Future<void> _selectTab(int index) async {
@@ -260,6 +298,9 @@ class _HomeScreenState extends State<HomeScreen>
       openLikesTab: _openLikesTab,
       openMessagesTab: _openMessagesTab,
       openProfileTab: _openProfileTab,
+      openFromNotification: _openFromNotification,
+      fromNotification: _fromNotification,
+      returnToNotifications: _returnToNotifications,
       child: BlocBuilder<ChatUnreadCubit, int>(
         bloc: sl<ChatUnreadCubit>(),
         builder: (context, unreadMessages) {
@@ -294,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen>
             navBuilder: (context) => QeranBottomNav(
               items: items,
               currentIndex: _currentTab,
-              onTap: _selectTab,
+              onTap: _onNavTap,
             ),
           );
         },

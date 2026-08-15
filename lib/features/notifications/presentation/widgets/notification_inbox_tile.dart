@@ -128,17 +128,25 @@ class NotificationInboxTile extends StatelessWidget {
 /// The unread marker: a small gold disc, matching `MatchmakerCountBadge`'s
 /// "gold, never Material red" convention. Sized to sit on the title line
 /// without pushing it around.
+///
+/// [QeranColors.goldDeep], not [QeranColors.gold] — the token exists for
+/// exactly this case ("needs stronger contrast than gold on light surfaces").
+/// Plain gold on paper is about 1.7:1, barely a tint; goldDeep is 3.3:1. It
+/// mattered less while the unread row also carried a cream wash, but that wash
+/// is gone and the dot now has to hold the state on its own.
 class NotificationUnreadDot extends StatelessWidget {
   const NotificationUnreadDot({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const SizedBox(
-      width: 8,
-      height: 8,
+      // 10, up from 8: the largest that still clears the caption-height
+      // timestamp beside it without shifting the title line.
+      width: 10,
+      height: 10,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: QeranColors.gold,
+          color: QeranColors.goldDeep,
           shape: BoxShape.circle,
         ),
       ),

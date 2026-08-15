@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
@@ -112,6 +113,18 @@ bool _isUnread(WidgetTester tester, int id) => tester
     .firstWhere((t) => t.notification.id == id)
     .isUnread;
 
+/// The row's own surface — the Material the tile paints itself on.
+Material _surfaceOf(WidgetTester tester, int id) => tester.widget<Material>(
+  find
+      .descendant(
+        of: find.byWidgetPredicate(
+          (w) => w is NotificationInboxTile && w.notification.id == id,
+        ),
+        matching: find.byType(Material),
+      )
+      .first,
+);
+
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -129,6 +142,27 @@ void main() {
       expect(_isUnread(tester, id), isTrue);
     }
     expect(find.byType(NotificationUnreadDot), findsNWidgets(3));
+  });
+
+  // The row TREATMENT, pinned. Both states are paper: unread is separated by
+  // lift + the gold dot, never by a tint. An earlier version washed unread rows
+  // in cream, which against the cream canvas behind the feed read as two shades
+  // of the same beige rather than as a state.
+  testWidgets('both states are paper — unread is lifted, not tinted', (
+    tester,
+  ) async {
+    await _pumpInbox(tester);
+
+    expect(_surfaceOf(tester, 2).color, QeranColors.paper);
+    expect(_surfaceOf(tester, 2).elevation, 2);
+
+    await tester.tap(find.text('Title 2'));
+    await tester.pumpAndSettle();
+
+    // Same surface once read — only the lift and the dot go away.
+    expect(_surfaceOf(tester, 2).color, QeranColors.paper);
+    expect(_surfaceOf(tester, 2).elevation, 0);
+    expect(_surfaceOf(tester, 2).shadowColor, isNot(Colors.black));
   });
 
   testWidgets('opening one row reads that row only', (tester) async {

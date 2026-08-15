@@ -62,9 +62,11 @@ class ScrollHidingNavScaffold extends StatefulWidget {
   /// the toast host's clearance honest as the island slides.
   final WidgetBuilder navBuilder;
 
-  /// Matches the nav's own motion so the island and any chrome stepping aside
-  /// for it travel together.
-  static const Duration duration = Duration(milliseconds: 220);
+  /// Shared by the island and by any chrome stepping aside for it, so the two
+  /// always travel together. 220 ms read as a snap rather than a glide on a
+  /// surface this large — the island is the full width of the screen, and a
+  /// short duration on a big travel distance is what makes motion feel abrupt.
+  static const Duration duration = Duration(milliseconds: 300);
   static const Curve curve = Curves.easeOutCubic;
 
   @override

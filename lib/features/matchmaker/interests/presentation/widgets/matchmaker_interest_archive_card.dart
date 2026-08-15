@@ -7,7 +7,7 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../users/presentation/widgets/matchmaker_card_answers_block.dart';
+import '../../../shared/presentation/widgets/matchmaker_fact_chips.dart';
 import '../../domain/entities/matchmaker_interest_archive_item.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
 import 'matchmaker_interest_card.dart';
@@ -59,7 +59,11 @@ class MatchmakerInterestArchiveCard extends StatelessWidget {
           ),
       ],
       facts: item.answers.isNotEmpty
-          ? MatchmakerCardAnswersBlock(answers: item.answers)
+          // No age on an archived row — the DTO carries none.
+          ? MatchmakerFactChips(
+              facts: [for (final a in item.answers) a.answer],
+              ageAsChip: true,
+            )
           : null,
     );
   }

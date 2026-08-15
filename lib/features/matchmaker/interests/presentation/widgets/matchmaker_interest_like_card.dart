@@ -6,7 +6,7 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../users/presentation/widgets/matchmaker_card_answers_block.dart';
+import '../../../shared/presentation/widgets/matchmaker_fact_chips.dart';
 import '../../../../likes/presentation/widgets/like_card_countdown_chip.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
 import '../../domain/entities/matchmaker_interest_like.dart';
@@ -51,7 +51,11 @@ class MatchmakerInterestLikeCard extends StatelessWidget {
           ),
       ],
       facts: like.answers.isNotEmpty || like.age != null
-          ? MatchmakerCardAnswersBlock(answers: like.answers, age: like.age)
+          ? MatchmakerFactChips(
+              facts: [for (final a in like.answers) a.answer],
+              age: like.age,
+              ageAsChip: true,
+            )
           : null,
     );
   }

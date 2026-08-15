@@ -44,7 +44,7 @@ void main() {
       );
     }
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     expect(find.byType(QeranSnackBarWidget), findsOneWidget);
     expect(find.text('Profile is under review'), findsOneWidget);
@@ -67,7 +67,7 @@ void main() {
       type: SnackBarType.error,
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     final snackBars = find.byType(QeranSnackBarWidget);
     expect(snackBars, findsNWidgets(2));
@@ -91,15 +91,17 @@ void main() {
       );
     }
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     expect(find.byType(QeranSnackBarWidget), findsNWidgets(3));
     expect(find.text('Message 4'), findsNothing);
 
     await tester.tap(find.byIcon(Icons.close_rounded).first);
-    await tester.pump(const Duration(milliseconds: 180));
+    // Exactly the card's exit duration — the coordinator waits for it before
+    // removing the card and promoting the queued one.
+    await tester.pump(QeranSnackBarWidget.exitDuration);
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     expect(find.byType(QeranSnackBarWidget), findsNWidgets(3));
     expect(find.text('Message 4'), findsOneWidget);
@@ -119,7 +121,7 @@ void main() {
       type: SnackBarType.error,
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     final decoration =
         tester
@@ -168,7 +170,7 @@ void main() {
       type: SnackBarType.success,
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     final decoration =
         tester
@@ -210,7 +212,7 @@ void main() {
       type: SnackBarType.success,
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     final card = tester.getRect(find.byType(QeranSnackBarWidget));
     // Well below the middle — this is the assertion that fails if anyone
@@ -270,7 +272,7 @@ void main() {
       type: SnackBarType.success,
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     expect(BottomChromeInsets.clearance.value, 200);
     final card = tester.getRect(find.byType(QeranSnackBarWidget));
@@ -300,7 +302,7 @@ void main() {
       type: SnackBarType.success,
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pump(QeranSnackBarWidget.enterDuration);
 
     expect(BottomChromeInsets.clearance.value, 0);
     final card = tester.getRect(find.byType(QeranSnackBarWidget));

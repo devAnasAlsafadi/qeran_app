@@ -25,13 +25,26 @@ class QeranSnackBarWidget extends StatelessWidget {
     this.visible = true,
   });
 
+  /// Arrival is the half the user is meant to notice — it is what tells them
+  /// something happened — so it is the slower of the two.
+  static const Duration enterDuration = Duration(milliseconds: 250);
+
+  /// Departure is faster: the message has been read by then, and a slow exit
+  /// only delays whatever is queued behind it. The coordinator holds the card
+  /// alive for exactly this long before removing it, so the two must not drift.
+  static const Duration exitDuration = Duration(milliseconds: 200);
+
   @override
   Widget build(BuildContext context) {
     final spec = _spec(type);
 
+    // Honour the platform's reduce-motion setting. Worth knowing when a toast
+    // looks like it has no transition at all: an emulator with its animator
+    // scale turned off lands here, and no duration change in this file will
+    // make any difference on that device.
     final duration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
-        : const Duration(milliseconds: 180);
+        : (visible ? enterDuration : exitDuration);
 
     return AnimatedSlide(
       // Enters from BELOW now that the host is anchored to the bottom edge —

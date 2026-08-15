@@ -17,7 +17,11 @@ import 'widgets/qeran_snack_bar_widget.dart';
 ///   away from the visual state.
 class AppSnackBar {
   static const Duration _holdDuration = Duration(seconds: 3);
-  static const Duration _transitionDuration = Duration(milliseconds: 180);
+
+  /// How long a dismissed card is kept mounted so its exit can play out. Reads
+  /// the card's own exit duration rather than repeating a number: a card
+  /// removed before its animation finishes vanishes instead of leaving.
+  static const Duration _removalDelay = QeranSnackBarWidget.exitDuration;
   static const int _maxVisible = 3;
   static const int _maxPending = 6;
 
@@ -105,7 +109,7 @@ class AppSnackBar {
     _holdTimers.remove(id)?.cancel();
     _removalTimers.remove(id)?.cancel();
     _setVisibility(id, false);
-    _removalTimers[id] = Timer(_transitionDuration, () => _remove(id));
+    _removalTimers[id] = Timer(_removalDelay, () => _remove(id));
   }
 
   static void _remove(int id) {
@@ -196,7 +200,9 @@ class AppSnackBarHost extends StatelessWidget {
                   valueListenable: AppSnackBar._visible,
                   builder: (context, messages, _) {
                     return AnimatedSize(
-                      duration: AppSnackBar._transitionDuration,
+                      // The stack's height change rides the arrival, which is
+                      // the longer of the two and the one that is watched.
+                      duration: QeranSnackBarWidget.enterDuration,
                       curve: Curves.easeOutCubic,
                       alignment: Alignment.bottomCenter,
                       child: Column(

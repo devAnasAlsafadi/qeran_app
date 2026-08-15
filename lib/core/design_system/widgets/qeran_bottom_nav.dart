@@ -59,7 +59,13 @@ class QeranBottomNav extends StatefulWidget {
   static const double discLift = -24;
   static const double notchRadius = discRadius + 10;
   static const double hMargin = 16;
-  static const double bMargin = 16;
+
+  /// Gap between the island and the safe-area edge. Deliberately smaller than
+  /// [hMargin]: the side margins have the whole screen width to breathe into,
+  /// while this one stacks on top of the device's own bottom inset, so 16 here
+  /// read as a hole under the bar rather than as float. Not 0 — the island has
+  /// to keep reading as an island, not as a docked bar.
+  static const double bMargin = 8;
   static const double compactLandscapeHeight = 64;
   static const double compactLandscapeMargin = 8;
 

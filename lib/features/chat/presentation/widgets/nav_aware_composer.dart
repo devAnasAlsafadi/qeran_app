@@ -25,19 +25,26 @@ class NavAwareComposer extends StatelessWidget {
 
   final Widget child;
 
-  /// Breathing room between the composer's bottom edge and the island's top.
-  /// Small on purpose — the two should read as a stack, not as two separate
-  /// bars with a corridor between them.
-  static const double _gap = 8;
+  /// Breathing room between the composer's bottom edge and the island's
+  /// topmost painted pixel. Small on purpose — the two should read as a stack,
+  /// not as two bars with a corridor between them.
+  static const double _gap = 6;
 
   @override
   Widget build(BuildContext context) {
-    final navVisible = BottomNavVisibility.maybeOf(context) ?? false;
-    // Height of the island above the device inset. NOT contentClearance —
-    // that figure deliberately excludes bMargin so scrolled content passes
-    // UNDER the island, which is the opposite of what a pinned composer needs.
-    const island = QeranBottomNav.bMargin + QeranBottomNav.barHeight + _gap;
-    final inset = MediaQuery.viewPaddingOf(context).bottom;
+    final nav = BottomNavGeometry.maybeOf(context);
+    final navVisible = nav?.visible ?? false;
+    // The inset comes from the shell, NOT from MediaQuery: Scaffold strips the
+    // bottom padding from its body when a bottomNavigationBar is present, and
+    // removePadding takes it out of viewPadding too, so both read 0 down here.
+    // Reading them was the regression — the composer lost the whole inset and
+    // sank into the island by exactly that much.
+    final inset = nav?.insetBottom ?? MediaQuery.viewPaddingOf(context).bottom;
+    // Measured to the island's PAINT (the gold disc crests above the bar), not
+    // to its layout box and not via contentClearance, which omits bMargin so
+    // that scrolled content passes underneath — the opposite of what a pinned
+    // composer needs.
+    final island = QeranBottomNav.islandPaintedHeight(context) + _gap;
     return AnimatedPadding(
       // Travels with the island so the two never cross mid-flight.
       duration: ScrollHidingNavScaffold.duration,

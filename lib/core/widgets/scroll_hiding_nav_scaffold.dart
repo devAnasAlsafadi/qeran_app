@@ -1,27 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-/// Whether the shell's bottom nav is currently on screen.
+/// What bottom-anchored chrome INSIDE a tab needs to know about the shell's
+/// nav: whether the island is currently on screen, and how tall the device's
+/// own bottom inset is.
 ///
-/// Published above the tab bodies so bottom-anchored chrome INSIDE a tab (the
-/// chat composer) can step aside while the island is up and take the full
-/// screen once it slides away. Absent — [maybeOf] returns null — on any route
-/// pushed above the shell, which has no nav to avoid.
-class BottomNavVisibility extends InheritedWidget {
-  const BottomNavVisibility({
+/// [insetBottom] is carried rather than looked up because a descendant CANNOT
+/// look it up. Scaffold strips the bottom padding from its body when a
+/// `bottomNavigationBar` is present, and `MediaQuery.removePadding` subtracts
+/// `padding` from `viewPadding` as well — so both read 0 inside the body, and
+/// chrome that reconstructs the island's position from them silently loses the
+/// whole inset and sinks into the nav. The shell reads it from its own context,
+/// which sits ABOVE the Scaffold and still sees the real value.
+///
+/// Absent — [maybeOf] returns null — on any route pushed above the shell,
+/// which has no nav to avoid.
+class BottomNavGeometry extends InheritedWidget {
+  const BottomNavGeometry({
     super.key,
     required this.visible,
+    required this.insetBottom,
     required super.child,
   });
 
   final bool visible;
 
-  static bool? maybeOf(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<BottomNavVisibility>()
-      ?.visible;
+  /// The device's bottom safe-area inset, in logical pixels.
+  final double insetBottom;
+
+  static BottomNavGeometry? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<BottomNavGeometry>();
 
   @override
-  bool updateShouldNotify(BottomNavVisibility old) => old.visible != visible;
+  bool updateShouldNotify(BottomNavGeometry old) =>
+      old.visible != visible || old.insetBottom != insetBottom;
 }
 
 /// Shell scaffold whose bottom nav slides out of the way while the reader
@@ -126,7 +138,12 @@ class _ScrollHidingNavScaffoldState extends State<ScrollHidingNavScaffold> {
       extendBody: true,
       body: NotificationListener<UserScrollNotification>(
         onNotification: _onUserScroll,
-        child: BottomNavVisibility(visible: _visible, child: widget.body),
+        child: BottomNavGeometry(
+          visible: _visible,
+          // Read HERE, above the Scaffold — inside its body this is 0.
+          insetBottom: MediaQuery.viewPaddingOf(context).bottom,
+          child: widget.body,
+        ),
       ),
       bottomNavigationBar: AnimatedSlide(
         // A full-height translation down — the island leaves the screen without

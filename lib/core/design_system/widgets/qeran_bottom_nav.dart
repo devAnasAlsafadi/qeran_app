@@ -69,6 +69,29 @@ class QeranBottomNav extends StatefulWidget {
   static const double compactLandscapeHeight = 64;
   static const double compactLandscapeMargin = 8;
 
+  /// How far the gold disc crests ABOVE the bar's own top edge. The disc is
+  /// lifted out of the bar, so the island's topmost painted pixel is the disc,
+  /// never [barHeight].
+  static const double discCrest = barHeight + discLift + discRadius;
+
+  /// Distance from the SAFE-AREA edge to the island's topmost painted pixel.
+  ///
+  /// For chrome that must sit ABOVE the island rather than scroll under it —
+  /// the chat composer. Deliberately different from [contentClearance], which
+  /// omits [bMargin] so scrolled content passes beneath the island, and which
+  /// measures to the layout box rather than to the paint.
+  ///
+  /// Excludes the device inset: a caller inside a Scaffold body CANNOT read
+  /// that inset (Scaffold strips the bottom padding, and `removePadding` takes
+  /// it out of `viewPadding` too), so the shell passes it down instead.
+  static double islandPaintedHeight(BuildContext context) {
+    final media = MediaQuery.of(context);
+    final isLandscape = media.size.width > media.size.height;
+    return isLandscape
+        ? compactLandscapeMargin + compactLandscapeHeight
+        : bMargin + discCrest;
+  }
+
   /// Bottom inset a tab scrollable needs so its LAST item clears the floating
   /// island + the device gesture area, while items above still scroll under it.
   /// [totalHeight] ≈ bar + bottom margin + breathing; [viewPadding].bottom

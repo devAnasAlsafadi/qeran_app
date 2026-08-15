@@ -10,6 +10,7 @@ import '../../../../../core/state/paginated_list_state.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../colleagues/presentation/widgets/matchmaker_colleague_open_chat_host.dart';
 import '../../../conversations/presentation/widgets/matchmaker_open_chat_host.dart';
+import '../../../home/presentation/home_shell_scope.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/compatibility_case.dart';
@@ -27,10 +28,15 @@ class MatchmakerCasesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Reached from a notification, this tab carries a way back to the inbox.
+    // A tab has nothing to pop, so the shell reopens the inbox instead.
+    final shell = MatchmakerHomeShellScope.maybeOf(context);
+    final fromNotification = shell?.fromNotification ?? false;
     return Scaffold(
       backgroundColor: QeranColors.creamCanvas,
       appBar: MatchmakerAppBar(
         title: LocaleKeys.matchmaker_nav_cases.t(context),
+        onBack: fromNotification ? shell!.returnToNotifications : null,
       ),
       body: SafeArea(
         top: false,

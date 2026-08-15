@@ -9,6 +9,7 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
+import 'package:qeran/features/notifications/presentation/widgets/notification_back_row.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
@@ -56,8 +57,14 @@ class _LikesView extends StatelessWidget {
               curr.actionEvent != LikesActionEvent.none,
           listener: _onActionEvent,
           builder: (context, state) {
+            // Reached from a notification, the tab carries a way back to the
+            // inbox. A tab has nothing to pop, so the shell reopens it.
+            final shell = HomeShellScope.maybeOf(context);
+            final fromNotification = shell?.fromNotification ?? false;
             return Column(
               children: [
+                if (fromNotification)
+                  NotificationBackRow(onBack: shell!.returnToNotifications),
                 _Header(),
                 const ProfileGateBanner(),
                 LikesSegmentedTabs(

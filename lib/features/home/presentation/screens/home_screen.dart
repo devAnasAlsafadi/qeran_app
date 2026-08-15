@@ -206,8 +206,12 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _tabBody(int index) => switch (index) {
     _discoveryTabIndex => const DiscoveryView(),
     _likesTabIndex => const LikesScreen(),
+    // The Messages tab already takes an onBack for its pushed copy; reached
+    // from a notification it needs the same control. (Only the system-push path
+    // lands here — a chat row tapped in the inbox pushes over it instead.)
     _messagesTabIndex => ChatEntryScreen(
       key: ValueKey<String>('chat-entry-$_messagesRefreshEpoch'),
+      onBack: _fromNotification ? _returnToNotifications : null,
     ),
     _profileTabIndex => const ProfileScreen(),
     _ => const SizedBox.shrink(),

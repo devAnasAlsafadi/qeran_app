@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
@@ -10,6 +9,7 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/core/widgets/locale_rebuild_scope.dart';
+import 'package:qeran/core/widgets/scroll_hiding_nav_scaffold.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/chat/presentation/blocs/chat_unread_cubit.dart';
@@ -43,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen>
   int _tabDirection = 1;
   bool _tabTransitionPending = false;
   int _messagesRefreshEpoch = 0;
-  bool _showBottomNav = true;
 
   late final AnimationController _tabTransition = AnimationController(
     vsync: this,
@@ -155,7 +154,6 @@ class _HomeScreenState extends State<HomeScreen>
       _previousTab = previous;
       _tabDirection = index > previous ? 1 : -1;
       _currentTab = index;
-      if (index != _discoveryTabIndex) _showBottomNav = true;
     });
     try {
       await _tabTransition.forward(from: 0);
@@ -256,19 +254,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _openProfileTab() => _selectTab(_profileTabIndex);
 
-  bool _handleDiscoveryScroll(UserScrollNotification notification) {
-    if (_currentTab != _discoveryTabIndex ||
-        notification.metrics.axis != Axis.vertical ||
-        notification.direction == ScrollDirection.idle) {
-      return false;
-    }
-    final shouldShow = notification.direction == ScrollDirection.forward;
-    if (_showBottomNav != shouldShow) {
-      setState(() => _showBottomNav = shouldShow);
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     return HomeShellScope(
@@ -303,23 +288,13 @@ class _HomeScreenState extends State<HomeScreen>
               label: LocaleKeys.home_nav_profile.t(context),
             ),
           ];
-          return Scaffold(
-            extendBody: false,
-            body: NotificationListener<UserScrollNotification>(
-              onNotification: _handleDiscoveryScroll,
-              child: _buildTabStage(),
-            ),
-            bottomNavigationBar: AnimatedSize(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.bottomCenter,
-              child: _showBottomNav
-                  ? QeranBottomNav(
-                      items: items,
-                      currentIndex: _currentTab,
-                      onTap: _selectTab,
-                    )
-                  : const SizedBox.shrink(),
+          return ScrollHidingNavScaffold(
+            currentIndex: _currentTab,
+            body: _buildTabStage(),
+            navBuilder: (context) => QeranBottomNav(
+              items: items,
+              currentIndex: _currentTab,
+              onTap: _selectTab,
             ),
           );
         },

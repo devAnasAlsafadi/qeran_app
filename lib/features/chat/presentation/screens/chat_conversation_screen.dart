@@ -23,6 +23,7 @@ import '../widgets/chat_input_bar.dart';
 import '../widgets/chat_lifecycle_wrapper.dart';
 import '../widgets/chat_message_list.dart';
 import '../widgets/chat_message_skeleton.dart';
+import '../widgets/nav_aware_composer.dart';
 
 /// One open conversation. Phase 6 adds optimistic outgoing: the
 /// composer immediately renders a temp bubble while REST runs in
@@ -118,9 +119,11 @@ class _ConversationView extends StatelessWidget {
               Expanded(
                 child: _Body(state: state, cubit: cubit, info: info),
               ),
-              ChatInputBar(
-                onSend: cubit.sendText,
-                sendDisabledByCooldown: cooldown,
+              NavAwareComposer(
+                child: ChatInputBar(
+                  onSend: cubit.sendText,
+                  sendDisabledByCooldown: cooldown,
+                ),
               ),
             ],
           ),

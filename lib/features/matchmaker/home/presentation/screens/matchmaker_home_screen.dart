@@ -9,6 +9,7 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/widgets/locale_rebuild_scope.dart';
+import '../../../../../core/widgets/scroll_hiding_nav_scaffold.dart';
 import '../../../compatibility_cases/presentation/screens/matchmaker_cases_tab.dart';
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../conversations/presentation/screens/matchmaker_conversations_tab.dart';
@@ -24,9 +25,9 @@ import '../../../users/presentation/screens/matchmaker_users_tab.dart';
 import '../home_shell_scope.dart';
 import '../widgets/matchmaker_bottom_nav.dart';
 
-/// Matchmaker (role=Moderator) shell. Identity-cloned from the user
-/// `HomeScreen`: same `extendBody: true`, same `QeranBottomNav`, same
-/// scaffold rhythm. Only the items + bodies differ.
+/// Matchmaker (role=Moderator) shell. Shares the user `HomeScreen`'s shell
+/// geometry through [ScrollHidingNavScaffold] — floating island, scroll-away
+/// nav, same `QeranBottomNav`. Only the items + bodies differ.
 ///
 /// `IndexedStack` keeps each tab's state alive across switches. The
 /// dashboard cubit is provided here (above the stack) so both the
@@ -166,8 +167,8 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
       create: (_) => sl<MatchmakerDashboardCubit>()..load(),
       child: MatchmakerHomeShellScope(
         openTab: _selectTab,
-        child: Scaffold(
-          extendBody: true,
+        child: ScrollHidingNavScaffold(
+          currentIndex: _currentTab,
           body: IndexedStack(
             index: _currentTab,
             children: [
@@ -184,7 +185,7 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
               _lazyTab(4, const MatchmakerExploreTab()),
             ],
           ),
-          bottomNavigationBar: MatchmakerBottomNav(
+          navBuilder: (context) => MatchmakerBottomNav(
             currentIndex: _currentTab,
             onTap: (i) => _selectTab(i),
           ),

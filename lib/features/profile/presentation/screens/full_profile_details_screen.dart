@@ -8,6 +8,7 @@ import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/block/presentation/widgets/safety_menu_button.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
@@ -36,7 +37,15 @@ class FullProfileDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final view = _ProfileDetailsView(args: args);
+    // Resolved once, here: this is the only place where both inputs to the
+    // policy are in hand — the entry source off the route args, and who is
+    // looking off the session. Everything below reads the one boolean, so the
+    // three gates cannot drift apart.
+    final canReact = canReactFromEntry(
+      args.entry,
+      isMatchmaker: sl<UserSessionCubit>().currentUser?.isMatchmaker ?? false,
+    );
+    final view = _ProfileDetailsView(args: args, canReact: canReact);
     // No PhotoViewCubit here any more. This screen never reveals a photo —
     // peer photos render blurred whatever the exchange status — so mounting
     // the one-time viewing permission would be dead wiring, and worse, a
@@ -49,8 +58,9 @@ class FullProfileDetailsScreen extends StatelessWidget {
               sl<ProfileDetailsCubit>()
                 ..init(userId: args.userId, seed: args.initialData),
         ),
-        if (args.entry == ProfileEntrySource.chat)
-          BlocProvider<ProfileReactionCubit>(create: (_) => sl()),
+        // Not mounted when the viewer may not react: the matchmaker was
+        // carrying a live like/pass cubit on a profile she only reviews.
+        if (canReact) BlocProvider<ProfileReactionCubit>(create: (_) => sl()),
       ],
       child: view,
     );
@@ -59,7 +69,8 @@ class FullProfileDetailsScreen extends StatelessWidget {
 
 class _ProfileDetailsView extends StatelessWidget {
   final FullProfileDetailsArgs args;
-  const _ProfileDetailsView({required this.args});
+  final bool canReact;
+  const _ProfileDetailsView({required this.args, required this.canReact});
 
   @override
   Widget build(BuildContext context) {
@@ -72,11 +83,12 @@ class _ProfileDetailsView extends StatelessWidget {
               (prev is! ProfileDetailsNotFound ||
                   prev.eventVersion != curr.eventVersion),
           listener: _onState,
-          builder: (context, state) => _Body(state: state, args: args),
+          builder: (context, state) =>
+              _Body(state: state, args: args, canReact: canReact),
         ),
       ),
     );
-    if (args.entry != ProfileEntrySource.chat) return scaffold;
+    if (!canReact) return scaffold;
     return BlocListener<ProfileReactionCubit, ProfileReactionState>(
       listenWhen: (previous, current) =>
           previous.eventVersion != current.eventVersion,
@@ -154,7 +166,12 @@ class _ProfileDetailsView extends StatelessWidget {
 class _Body extends StatelessWidget {
   final ProfileDetailsState state;
   final FullProfileDetailsArgs args;
-  const _Body({required this.state, required this.args});
+  final bool canReact;
+  const _Body({
+    required this.state,
+    required this.args,
+    required this.canReact,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +233,7 @@ class _Body extends StatelessWidget {
             bottom: 0,
             child: _PinnedShareCta(userId: args.userId),
           ),
-        if (args.entry == ProfileEntrySource.chat && _hasProfile(state))
+        if (canReact && _hasProfile(state))
           PositionedDirectional(
             start: 0,
             end: 0,

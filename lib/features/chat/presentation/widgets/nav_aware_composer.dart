@@ -25,21 +25,36 @@ class NavAwareComposer extends StatelessWidget {
 
   final Widget child;
 
+  /// Breathing room between the composer's bottom edge and the island's top.
+  /// Small on purpose — the two should read as a stack, not as two separate
+  /// bars with a corridor between them.
+  static const double _gap = 8;
+
   @override
   Widget build(BuildContext context) {
     final navVisible = BottomNavVisibility.maybeOf(context) ?? false;
-    // contentClearance bundles the island's footprint WITH the device inset.
-    // The composer's own SafeArea already covers that inset, so it is taken
-    // back out here rather than paid for twice.
-    final islandFootprint =
-        QeranBottomNav.contentClearance(context) -
-        MediaQuery.viewPaddingOf(context).bottom;
+    // Height of the island above the device inset. NOT contentClearance —
+    // that figure deliberately excludes bMargin so scrolled content passes
+    // UNDER the island, which is the opposite of what a pinned composer needs.
+    const island = QeranBottomNav.bMargin + QeranBottomNav.barHeight + _gap;
+    final inset = MediaQuery.viewPaddingOf(context).bottom;
     return AnimatedPadding(
       // Travels with the island so the two never cross mid-flight.
       duration: ScrollHidingNavScaffold.duration,
       curve: ScrollHidingNavScaffold.curve,
-      padding: EdgeInsets.only(bottom: navVisible ? islandFootprint : 0),
-      child: child,
+      padding: EdgeInsets.only(bottom: inset + (navVisible ? island : 0)),
+      // This widget owns the device inset now, so the composer's own SafeArea
+      // must stop claiming it. That double payment WAS the dead band under the
+      // text field: once the composer is lifted off the screen edge, its
+      // SafeArea keeps reserving the home-indicator strip inside the bar, where
+      // nothing needs protecting. Removed unconditionally rather than only
+      // while the island is up — flipping it per state would collapse the bar
+      // by the inset in one frame while the padding was still animating.
+      child: MediaQuery.removePadding(
+        context: context,
+        removeBottom: true,
+        child: child,
+      ),
     );
   }
 }

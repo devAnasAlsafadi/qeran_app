@@ -366,7 +366,7 @@ Future<void> initMatchmakerDependencies() async {
   // Shared bell-badge source — SINGLETON so every MatchmakerAppBar + the inbox
   // observe the same unread count. `prefs` resolves the SharedPrefService.
   sl.registerLazySingleton(
-    () => MatchmakerNotificationBadgeCubit(getCount: sl(), prefs: sl()),
+    () => MatchmakerNotificationBadgeCubit(getNotifications: sl(), prefs: sl()),
   );
   // FACTORY, unlike the badge: the watermark it exposes is frozen at mount, so
   // a fresh instance per visit is what makes the next visit start clean.

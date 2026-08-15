@@ -13,7 +13,6 @@ import 'package:qeran/features/matchmaker/home/presentation/home_shell_scope.dar
 import 'package:qeran/features/matchmaker/notifications/domain/entities/matchmaker_notification.dart';
 import 'package:qeran/features/matchmaker/notifications/domain/entities/matchmaker_notifications_page.dart';
 import 'package:qeran/features/matchmaker/notifications/domain/repositories/matchmaker_notifications_repository.dart';
-import 'package:qeran/features/matchmaker/notifications/domain/usecases/get_notification_count_usecase.dart';
 import 'package:qeran/features/matchmaker/notifications/domain/usecases/get_notifications_usecase.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/blocs/matchmaker_notification_read_cubit.dart';
@@ -205,7 +204,7 @@ void main() {
     sl.registerFactory(() => MatchmakerNotificationReadCubit(prefs: prefs));
     sl.registerLazySingleton(
       () => MatchmakerNotificationBadgeCubit(
-        getCount: GetNotificationCountUseCase(repo),
+        getNotifications: GetNotificationsUseCase(repo),
         prefs: prefs,
       ),
     );

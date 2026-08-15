@@ -190,7 +190,11 @@ class UserSessionCubit extends Cubit<UserSessionState>
     StorageKeys.notifLastSeenId,
     StorageKeys.notifReadWatermark,
     StorageKeys.notifReadIds,
-    StorageKeys.matchmakerNotifLastSeenCount,
+    StorageKeys.matchmakerNotifLastSeenId,
+    // Was missed when the matchmaker read watermark was added: without it the
+    // next matchmaker to sign in on this device inherits the previous one's
+    // read rows.
+    StorageKeys.matchmakerNotifReadWatermark,
     // Account-LINK marker only — the device REGISTRATION markers are preserved
     // so the next login re-links cleanly without a redundant re-register.
     StorageKeys.lastLinkedFcm,

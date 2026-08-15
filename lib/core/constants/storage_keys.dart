@@ -29,14 +29,17 @@ class StorageKeys {
   static const String lastLinkedFcm = 'last_linked_fcm';
   static const String notifPermissionAsked = 'notif_permission_asked';
 
-  /// Local "last seen" total notification count for the matchmaker inbox.
-  /// Unread = max(0, currentTotal − this) — the backend exposes no read-state.
-  static const String matchmakerNotifLastSeenCount =
-      'matchmaker_notif_last_seen_count';
+  /// Local "last seen" highest notification id for the MATCHMAKER inbox — the
+  /// same heuristic as [notifLastSeenId], under its own key.
+  ///
+  /// Replaced a stored TOTAL COUNT. A total cannot distinguish "new" from
+  /// "different": delete one notification server-side and the next arrival
+  /// restores the old total, so the badge stays dark. Ids only ever go up.
+  static const String matchmakerNotifLastSeenId =
+      'matchmaker_notif_last_seen_id';
 
   /// Local "last seen" highest notification id for the USER-app inbox. Unread =
-  /// newest server id > this — the backend exposes no read-state. Distinct from
-  /// the matchmaker count heuristic above (the user app keys off the id).
+  /// newest server id > this — the backend exposes no read-state.
   static const String notifLastSeenId = 'notif_last_seen_id';
 
   /// Local READ watermark for the USER-app inbox — everything with an id at or
@@ -60,8 +63,8 @@ class StorageKeys {
   /// whole story.
   ///
   /// Kept SEPARATE from the user-app key the same way
-  /// [matchmakerNotifLastSeenCount] is separate from [notifLastSeenId] — the
-  /// two roles read the same endpoint but never share local state.
+  /// [matchmakerNotifLastSeenId] is separate from [notifLastSeenId] — the two
+  /// roles read the same endpoint but never share local state.
   static const String matchmakerNotifReadWatermark =
       'matchmaker_notif_read_watermark';
 }

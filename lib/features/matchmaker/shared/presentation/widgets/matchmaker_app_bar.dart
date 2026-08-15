@@ -63,10 +63,10 @@ class _BellAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MatchmakerNotificationBadgeCubit, int>(
+    return BlocBuilder<MatchmakerNotificationBadgeCubit, bool>(
       bloc: sl<MatchmakerNotificationBadgeCubit>(),
-      builder: (context, unread) {
-        final dot = showDot || unread > 0;
+      builder: (context, hasUnread) {
+        final dot = showDot || hasUnread;
         return IconButton(
           icon: Stack(
             clipBehavior: Clip.none,

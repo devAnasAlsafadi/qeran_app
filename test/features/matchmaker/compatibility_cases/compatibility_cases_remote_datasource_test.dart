@@ -53,9 +53,46 @@ void main() {
     expect(captured.last, {
       'page': 3,
       'pageSize': 20,
-      'stage': 3,
+      'stage': 'PhotoExchangeRejected',
       'activeFormalRequest': true,
     });
+  });
+
+  // The assertion that would have caught the original bug: this went out as an
+  // ordinal, which the server accepts and binds by position — so a reordered
+  // server enum returns 200 with cases from the wrong stage and nothing
+  // anywhere reports a problem. Every stage is covered, not just one, because
+  // an off-by-one is invisible in a single-value check.
+  test('every stage goes out as the server name, never an ordinal', () async {
+    const expected = {
+      CompatibilityCaseStage.likeAccepted: 'LikeAccepted',
+      CompatibilityCaseStage.photoExchangePending: 'PhotoExchangePending',
+      CompatibilityCaseStage.photoExchangeAccepted: 'PhotoExchangeAccepted',
+      CompatibilityCaseStage.photoExchangeRejected: 'PhotoExchangeRejected',
+      CompatibilityCaseStage.photoExchangeExpired: 'PhotoExchangeExpired',
+    };
+
+    for (final entry in expected.entries) {
+      await dataSource.getCases(
+        page: 1,
+        pageSize: 20,
+        filter: MatchmakerCasesFilter(stage: entry.key),
+      );
+
+      final query = verify(
+        () => api.get(
+          EndPoints.matchmakerCompatibility,
+          queryParameters: captureAny(named: 'queryParameters'),
+        ),
+      ).captured.last;
+
+      expect(
+        query['stage'],
+        entry.value,
+        reason: '${entry.key.name} must be sent as ${entry.value}',
+      );
+      expect(query['stage'], isA<String>());
+    }
   });
 
   test('omits optional query parameters when no filter is selected', () async {

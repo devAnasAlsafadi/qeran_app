@@ -97,17 +97,30 @@ void main() {
         activeFormalRequest: true,
       );
       expect(f.isActive, isTrue);
-      expect(f.stage?.apiValue, 3);
+      expect(f.stage?.apiValue, 'PhotoExchangeRejected');
       expect(f.activeFormalRequest, isTrue);
     });
 
-    test('all five server stage values map exactly to 0..4', () {
+    // The server's own CompatibilityCaseStage schema, in order. Ordinals were
+    // sent here once; a name cannot silently mean a different stage the way an
+    // index can when the server's enum shifts.
+    test('all five server stage values map to their PascalCase names', () {
       expect(
         CompatibilityCaseStage.values
             .where((stage) => stage != CompatibilityCaseStage.unknown)
             .map((stage) => stage.apiValue),
-        [0, 1, 2, 3, 4],
+        [
+          'LikeAccepted',
+          'PhotoExchangePending',
+          'PhotoExchangeAccepted',
+          'PhotoExchangeRejected',
+          'PhotoExchangeExpired',
+        ],
       );
+    });
+
+    test('the unknown fallback is never sent as a filter', () {
+      expect(CompatibilityCaseStage.unknown.apiValue, isNull);
     });
   });
 }

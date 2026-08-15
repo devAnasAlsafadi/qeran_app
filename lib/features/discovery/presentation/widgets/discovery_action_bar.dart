@@ -42,16 +42,22 @@ const double _kActionIconSize = 29;
 const double _kLikeSize = 72;
 const double _kLikeIconSize = 34;
 
-// Skip — wine-tinted disc with a deeper wine outline, so it reads as a
-// deliberate branded control rather than the absence of one. The border is two
-// steps darker than the fill: at wine40 on wine12 the two sat too close and the
-// outline dissolved into its own background.
+// Skip — white disc with a quiet neutral hairline. Deliberately the least
+// branded of the three: any wine in the fill or the outline made it read as a
+// second wine control competing with the Like CTA, which is the only one
+// allowed to carry the identity here.
+//
+// `inkFaint` rather than a true grey — the palette has no cold greys by design
+// ("wine-tinted neutrals, never cold grey"), and this is its lightest neutral,
+// the same one used for placeholders and soft icons.
 const _ActionButtonPalette _kSkipPalette = _ActionButtonPalette(
-  background: QeranColors.wine12,
-  disabledBackground: QeranColors.wine06,
+  background: QeranColors.paper,
+  // De-warmed inset surface, so a disabled skip dims without picking up a tint
+  // the enabled state does not have.
+  disabledBackground: QeranColors.neutralSurface,
   iconColor: QeranColors.wine,
   disabledIconColor: QeranColors.wine40,
-  border: QeranColors.wine60,
+  border: QeranColors.inkFaint,
 );
 
 // Undo — cream-lifted and the quietest of the three, with a lighter hairline
@@ -79,9 +85,10 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
 /// ```
 ///
 /// Skip and undo are peers at one diameter; like takes a single step up as the
-/// primary. The surfaces carry the rest: skip is wine-tinted with a deep wine
-/// outline, undo is cream-lifted with a lighter hairline, like is the only
-/// filled disc.
+/// primary. The surfaces carry the rest: skip is white with a neutral hairline,
+/// undo is cream-lifted with a wine one, like is the only filled disc — so the
+/// three read as secondary, secondary-warm, and primary without relying on size
+/// alone.
 ///
 /// The Row mirrors automatically by locale via natural Directionality (no
 /// manual flip / textDirection override): LTR renders like (leading) … undo ·

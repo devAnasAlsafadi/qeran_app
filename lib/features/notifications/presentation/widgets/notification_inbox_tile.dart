@@ -12,10 +12,13 @@ import 'notification_tile_visuals.dart';
 /// whose TONE signals meaning (not a rainbow), a title + relative-time top
 /// line, and a 2-line body preview.
 ///
-/// An [isUnread] row lifts onto the cream surface, bolds its title and carries
-/// a gold dot — the house unread marker (see `MatchmakerCountBadge`), never
-/// Material red. Read-state is LOCAL: the backend exposes none, so it comes
-/// from [NotificationReadCubit], not from the payload.
+/// Every row is paper. An [isUnread] one is LIFTED off it — a soft wine
+/// elevation — and bolds its title and carries a gold dot, the house unread
+/// marker (see `MatchmakerCountBadge`), never Material red. Unread used to be
+/// a cream wash instead; against the cream canvas behind the feed that read as
+/// two tones of the same beige rather than as a state. Read-state is LOCAL:
+/// the backend exposes none, so it comes from [NotificationReadCubit], not
+/// from the payload.
 ///
 /// Tone families:
 /// * **Match** — solid gold chip (the hero; most prominent).
@@ -47,9 +50,13 @@ class NotificationInboxTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final time = QeranRelativeTime.format(notification.createdAt, context);
     return Material(
-      // The wash lives on the Material, not on a box inside the InkWell, so
-      // the press ripple still paints ABOVE it.
-      color: isUnread ? QeranColors.creamSurface : QeranColors.creamCanvas,
+      // Surface and lift live on the Material, not on a box inside the InkWell,
+      // so the press ripple still paints ABOVE them.
+      color: QeranColors.paper,
+      elevation: isUnread ? 2 : 0,
+      // Never the Material default black — overlays and shadows are dark wine
+      // throughout the app.
+      shadowColor: QeranColors.wine.withValues(alpha: 0.18),
       child: InkWell(
         onTap: onTap,
         splashColor: QeranColors.creamSurface,

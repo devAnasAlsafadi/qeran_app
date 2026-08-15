@@ -58,7 +58,14 @@ class MatchmakerNotificationBadgeCubit extends Cubit<int> with SafeEmit<int> {
 
   /// Marks everything seen — stores the current total as the new baseline and
   /// clears the badge. Called when the inbox is opened.
+  ///
+  /// Clears the badge FIRST, before the count round-trip that establishes the
+  /// new baseline. The user has just opened the inbox; making the badge survive
+  /// a network call to acknowledge that — and reappear on a slow or failed
+  /// request — is the wrong order for a counter that is a local heuristic to
+  /// begin with.
   Future<void> markAllSeen() async {
+    if (!isClosed) emit(0);
     final result = await _fetchCount();
     final total = result.fold((_) => _total, (c) => c);
     _total = total;

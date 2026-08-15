@@ -21,12 +21,23 @@ import '../../../shared/data/matchmaker_notification_router.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/matchmaker_notification.dart';
 import '../blocs/matchmaker_notification_badge_cubit.dart';
+import '../blocs/matchmaker_notification_read_cubit.dart';
 import '../blocs/matchmaker_notifications_cubit.dart';
 import '../widgets/matchmaker_notification_tile.dart';
 
 /// The matchmaker notification inbox (F5). Paginated list backed by
 /// `GET /notifications`. On open it marks everything "seen" (clears the bell
 /// badge); a row tap deep-links via [MatchmakerNotificationRouter].
+///
+/// Read-state is LOCAL — the backend exposes none. Two separate ideas, the
+/// same split the user app makes:
+/// * **seen** ([MatchmakerNotificationBadgeCubit]) clears the bell badge, on
+///   open.
+/// * **read** ([MatchmakerNotificationReadCubit]) lifts a row. Coarser than
+///   the user app's: with no per-id endpoint there is no "mark this one read",
+///   so a row is unread when it arrived since the last visit. The watermark
+///   the rows render against is frozen at mount and advanced on the way OUT,
+///   so arriving at the inbox doesn't erase the very thing the user came for.
 class MatchmakerNotificationsScreen extends StatefulWidget {
   const MatchmakerNotificationsScreen({super.key});
 
@@ -38,19 +49,35 @@ class MatchmakerNotificationsScreen extends StatefulWidget {
 class _MatchmakerNotificationsScreenState
     extends State<MatchmakerNotificationsScreen> {
   late final MatchmakerNotificationsCubit _cubit;
+  late final MatchmakerNotificationReadCubit _readCubit;
+
+  /// Highest id the screen has loaded — the read watermark written on exit.
+  int _newestLoadedId = 0;
 
   @override
   void initState() {
     super.initState();
     _cubit = sl<MatchmakerNotificationsCubit>()..loadFirst();
+    _readCubit = sl<MatchmakerNotificationReadCubit>()..load();
     // Opening the inbox = everything seen → clears the app-bar bell badge.
     sl<MatchmakerNotificationBadgeCubit>().markAllSeen();
   }
 
   @override
   void dispose() {
+    // On the way out, not on load: the rows stay lifted for the whole visit,
+    // and the NEXT visit starts clean. Fire-and-forget — it only writes a
+    // preference, and never emits, so the close below is safe.
+    if (_newestLoadedId > 0) _readCubit.markAllRead(_newestLoadedId);
+    _readCubit.close();
     _cubit.close();
     super.dispose();
+  }
+
+  void _rememberNewest(List<MatchmakerNotification> items) {
+    for (final n in items) {
+      if (n.id > _newestLoadedId) _newestLoadedId = n.id;
+    }
   }
 
   /// Deep-link a tapped row. Chat → push the shared chat screen; cases / ignore
@@ -81,8 +108,11 @@ class _MatchmakerNotificationsScreenState
   @override
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
-    return BlocProvider<MatchmakerNotificationsCubit>.value(
-      value: _cubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<MatchmakerNotificationsCubit>.value(value: _cubit),
+        BlocProvider<MatchmakerNotificationReadCubit>.value(value: _readCubit),
+      ],
       child: Scaffold(
         backgroundColor: QeranColors.creamCanvas,
         appBar: QeranAppBar(
@@ -90,7 +120,16 @@ class _MatchmakerNotificationsScreenState
         ),
         body: SafeArea(
           top: false,
-          child: _Body(isArabic: isArabic, onTap: _onTap),
+          child:
+              BlocListener<
+                MatchmakerNotificationsCubit,
+                PaginatedListState<MatchmakerNotification>
+              >(
+                listenWhen: (prev, curr) =>
+                    prev.items.length != curr.items.length,
+                listener: (_, state) => _rememberNewest(state.items),
+                child: _Body(isArabic: isArabic, onTap: _onTap),
+              ),
         ),
       ),
     );
@@ -130,9 +169,9 @@ class _Body extends StatelessWidget {
           hasMore: state.hasMore,
           onRefresh: cubit.refresh,
           onLoadMore: cubit.loadMore,
-          // Flat divided feed matching the user inbox (screen 13): rows sit on
-          // the cream canvas, separated by wine-08 hairlines (no per-row cards).
-          // The tile owns its horizontal gutter so dividers align under the text.
+          // Flat divided feed matching the user inbox (screen 13): paper rows
+          // separated by wine-08 hairlines (no per-row cards). The tile owns
+          // its horizontal gutter so dividers align under the text.
           child: ListView.separated(
             padding: const EdgeInsets.only(
               top: QeranSpacing.s4,
@@ -152,10 +191,16 @@ class _Body extends StatelessWidget {
                 return const MatchmakerLoadMoreFooter();
               }
               final n = state.items[index];
-              return MatchmakerNotificationTile(
-                notification: n,
-                isArabic: isArabic,
-                onTap: () => onTap(n),
+              // Rebuilds once, when the stored watermark arrives from prefs.
+              // It is frozen for the rest of the visit by design.
+              return BlocBuilder<MatchmakerNotificationReadCubit, int>(
+                buildWhen: (prev, curr) => (n.id > prev) != (n.id > curr),
+                builder: (context, watermark) => MatchmakerNotificationTile(
+                  notification: n,
+                  isArabic: isArabic,
+                  isUnread: n.id > watermark,
+                  onTap: () => onTap(n),
+                ),
               );
             },
           ),

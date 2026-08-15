@@ -8,7 +8,11 @@ import '../../domain/entities/matchmaker_notification.dart';
 /// tolerates a null/blank/malformed value by yielding an empty map, so a bad
 /// payload never collapses the row.
 class MatchmakerNotificationModel {
-  final String id;
+  /// INT, matching the user app's `NotificationModel` — same endpoint, same
+  /// field. It was parsed as a String here, which made the shared inbox carry
+  /// two id types depending on which role read it, and left the id unorderable
+  /// (so no read watermark could be built on it).
+  final int id;
   final String titleAr;
   final String titleEn;
   final String bodyAr;
@@ -30,7 +34,7 @@ class MatchmakerNotificationModel {
 
   factory MatchmakerNotificationModel.fromJson(Map<String, dynamic> json) =>
       MatchmakerNotificationModel(
-        id: parseString(json['id']),
+        id: parseInt(json['id']),
         titleAr: parseString(json['titleAr']),
         titleEn: parseString(json['titleEn']),
         bodyAr: parseString(json['bodyAr']),

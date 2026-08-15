@@ -36,7 +36,9 @@ enum MatchmakerNotificationType {
 /// [data] deep-link payload (the wire `data` is a JSON STRING, decoded in the
 /// model), and [createdAt]. No read-state — the backend exposes none.
 class MatchmakerNotification extends Equatable {
-  final String id;
+  /// Int, like the user app's `NotificationItem` — the read watermark orders
+  /// on it.
+  final int id;
   final String titleAr;
   final String titleEn;
   final String bodyAr;

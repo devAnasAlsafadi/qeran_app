@@ -75,6 +75,7 @@ import '../notifications/domain/repositories/matchmaker_notifications_repository
 import '../notifications/domain/usecases/get_notification_count_usecase.dart';
 import '../notifications/domain/usecases/get_notifications_usecase.dart';
 import '../notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
+import '../notifications/presentation/blocs/matchmaker_notification_read_cubit.dart';
 import '../notifications/presentation/blocs/matchmaker_notifications_cubit.dart';
 import '../shared/data/datasources/matchmaker_realtime_signalr_service.dart';
 import '../shared/domain/ports/matchmaker_realtime_port.dart';
@@ -367,6 +368,9 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerLazySingleton(
     () => MatchmakerNotificationBadgeCubit(getCount: sl(), prefs: sl()),
   );
+  // FACTORY, unlike the badge: the watermark it exposes is frozen at mount, so
+  // a fresh instance per visit is what makes the next visit start clean.
+  sl.registerFactory(() => MatchmakerNotificationReadCubit(prefs: sl()));
 
   //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────
   // A SEPARATE SignalR connection from the user-side chat realtime port:

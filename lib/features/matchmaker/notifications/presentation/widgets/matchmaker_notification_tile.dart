@@ -5,16 +5,24 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/relative_time.dart';
 import 'package:qeran/features/notifications/domain/entities/notification_action.dart';
 import 'package:qeran/features/notifications/domain/entities/notification_type.dart';
+import 'package:qeran/features/notifications/presentation/widgets/notification_inbox_tile.dart'
+    show NotificationUnreadDot;
 import 'package:qeran/features/notifications/presentation/widgets/notification_tile_visuals.dart';
 
 import '../../domain/entities/matchmaker_notification.dart';
 
 /// One inbox row — a flat pressable feed row matching the user-app
-/// `NotificationInboxTile` exactly (rows sit on the cream canvas, separated by
-/// the shared [NotificationInboxDivider]; no per-row card). Same tone families
-/// + per-action icons (via the shared [NotificationTileVisuals]) + relative
-/// time + layout as the user tile. No per-row unread dot: the backend exposes
-/// no read-state, so the only unread signal is the bell badge.
+/// `NotificationInboxTile` exactly (paper rows separated by the shared
+/// [NotificationInboxDivider]; no per-row card). Same tone families +
+/// per-action icons (via the shared [NotificationTileVisuals]) + relative time
+/// + layout as the user tile, and now the same unread treatment: an [isUnread]
+/// row is LIFTED off the paper, bolds its title and carries the shared
+/// [NotificationUnreadDot].
+///
+/// Unread is LOCAL and coarser than the user app's: the backend exposes no
+/// read-state, and with no per-id endpoint the matchmaker inbox has no "mark
+/// this one read" — a row is unread when it arrived since the last visit
+/// (`MatchmakerNotificationReadCubit`).
 ///
 /// The row body is intentionally mirrored (not extracted) from the user tile —
 /// extracting a shared `NotificationRow` would edit the user tile, out of this
@@ -24,18 +32,30 @@ class MatchmakerNotificationTile extends StatelessWidget {
     super.key,
     required this.notification,
     required this.isArabic,
+    this.isUnread = false,
     this.onTap,
   });
 
   final MatchmakerNotification notification;
   final bool isArabic;
+
+  /// Drives the unread treatment. Local state — see the class doc.
+  final bool isUnread;
+
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final time = QeranRelativeTime.format(notification.createdAt, context);
     return Material(
-      type: MaterialType.transparency,
+      // Surface and lift live on the Material, not on a box inside the InkWell,
+      // so the press ripple still paints ABOVE them. Rows were transparent on
+      // the cream canvas before; paper + lift is the user-app treatment.
+      color: QeranColors.paper,
+      elevation: isUnread ? 2 : 0,
+      // Never the Material default black — overlays and shadows are dark wine
+      // throughout the app.
+      shadowColor: QeranColors.wine.withValues(alpha: 0.18),
       child: InkWell(
         onTap: onTap,
         splashColor: QeranColors.creamSurface,
@@ -62,8 +82,10 @@ class MatchmakerNotificationTile extends StatelessWidget {
                           child: Text(
                             notification.title(isArabic: isArabic),
                             textAlign: TextAlign.start,
-                            style: QeranTypography.subtitle
-                                .copyWith(color: QeranColors.wine),
+                            style: QeranTypography.subtitle.copyWith(
+                              color: QeranColors.wine,
+                              fontWeight: isUnread ? FontWeight.w700 : null,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -75,6 +97,10 @@ class MatchmakerNotificationTile extends StatelessWidget {
                             style: QeranTypography.caption
                                 .copyWith(color: QeranColors.inkMuted),
                           ),
+                        ],
+                        if (isUnread) ...[
+                          QeranSpacing.hs8,
+                          const NotificationUnreadDot(),
                         ],
                       ],
                     ),

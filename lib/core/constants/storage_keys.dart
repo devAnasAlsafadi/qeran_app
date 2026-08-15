@@ -52,4 +52,16 @@ class StorageKeys {
   /// SharedPreferences has no int list. Emptied whenever the watermark
   /// advances past them, so it stays small.
   static const String notifReadIds = 'notif_read_ids';
+
+  /// Local READ watermark for the MATCHMAKER inbox — same idea as
+  /// [notifReadWatermark], advanced to the newest loaded id on the way out of
+  /// the inbox. There is no per-id list beside it: the matchmaker inbox has no
+  /// "mark this one read" (no backend endpoint for it), so the watermark is the
+  /// whole story.
+  ///
+  /// Kept SEPARATE from the user-app key the same way
+  /// [matchmakerNotifLastSeenCount] is separate from [notifLastSeenId] — the
+  /// two roles read the same endpoint but never share local state.
+  static const String matchmakerNotifReadWatermark =
+      'matchmaker_notif_read_watermark';
 }

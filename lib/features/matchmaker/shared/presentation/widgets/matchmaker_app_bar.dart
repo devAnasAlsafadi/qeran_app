@@ -15,15 +15,21 @@ import '../../../notifications/presentation/blocs/matchmaker_notification_badge_
 ///   • account / settings    → `RouteNames.matchmakerAccount`
 ///
 /// The bell shows a small gold dot when [hasUnreadNotifications] is true.
+///
+/// [onBack] is forwarded to [QeranAppBar]. A tab has nothing to pop, so it is
+/// normally null and no leading is drawn; a tab reached FROM the notification
+/// inbox passes one so the user can get back there.
 class MatchmakerAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MatchmakerAppBar({
     super.key,
     required this.title,
     this.hasUnreadNotifications = false,
+    this.onBack,
   });
 
   final String title;
   final bool hasUnreadNotifications;
+  final VoidCallback? onBack;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -32,6 +38,7 @@ class MatchmakerAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return QeranAppBar(
       title: title,
+      onBack: onBack,
       actions: [
         _BellAction(showDot: hasUnreadNotifications),
         IconButton(

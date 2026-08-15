@@ -35,7 +35,7 @@ class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
       iconTheme: const IconThemeData(color: QeranColors.wine),
       actionsIconTheme: const IconThemeData(color: QeranColors.wine),
       leading: canPop
-          ? _QeranBackButton(
+          ? QeranBackButton(
               onTap: onBack ?? () => Navigator.of(context).maybePop(),
             )
           : null,
@@ -52,8 +52,13 @@ class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-class _QeranBackButton extends StatelessWidget {
-  const _QeranBackButton({required this.onTap});
+/// The house back affordance — a wine chevron that mirrors with the locale.
+///
+/// Public because screens without an app bar need the same glyph: the user-app
+/// bottom-nav tabs carry their own in-body header, so a back control there
+/// cannot come through [QeranAppBar].
+class QeranBackButton extends StatelessWidget {
+  const QeranBackButton({super.key, required this.onTap});
 
   final VoidCallback onTap;
 

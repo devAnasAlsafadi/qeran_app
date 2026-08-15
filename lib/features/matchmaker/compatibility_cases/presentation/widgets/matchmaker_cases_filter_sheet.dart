@@ -11,8 +11,11 @@ import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/compatibility_case_stage.dart';
 import '../../domain/entities/matchmaker_cases_filter.dart';
 
-/// Server-backed cases filter. Stage and active-formal-request are independent
-/// and the backend combines them before pagination.
+/// Server-backed cases filter, as a single flat single-select list.
+///
+/// Stage and active-formal-request remain independent parameters that the
+/// backend combines before pagination; this sheet just never sends both, since
+/// every row is presented as an alternative to every other.
 Future<MatchmakerCasesFilter?> showMatchmakerCasesFilterSheet(
   BuildContext context, {
   required MatchmakerCasesFilter current,
@@ -33,24 +36,15 @@ class _CasesFilterSheet extends StatefulWidget {
 }
 
 class _CasesFilterSheetState extends State<_CasesFilterSheet> {
-  late CompatibilityCaseStage? _stage;
-  late bool? _activeFormalRequest;
+  late _CasesFilterChoice _choice;
 
   @override
   void initState() {
     super.initState();
-    _stage = widget.current.stage;
-    _activeFormalRequest = widget.current.activeFormalRequest;
+    _choice = _CasesFilterChoice.from(widget.current);
   }
 
-  void _apply() {
-    Navigator.of(context).pop(
-      MatchmakerCasesFilter(
-        stage: _stage,
-        activeFormalRequest: _activeFormalRequest,
-      ),
-    );
-  }
+  void _apply() => Navigator.of(context).pop(_choice.filter);
 
   void _clear() => Navigator.of(context).pop(const MatchmakerCasesFilter());
 
@@ -65,57 +59,21 @@ class _CasesFilterSheetState extends State<_CasesFilterSheet> {
           QeranSpacing.s20,
           QeranSpacing.s16,
         ),
+        // One flat list, no section headings: every row is an alternative to
+        // every other, so picking one clears whatever was picked before.
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              LocaleKeys.matchmaker_cases_filter_status.t(context),
-              style: QeranTypography.subtitle,
-            ),
-            QeranSpacing.vs8,
-            _StageOption(
-              label: LocaleKeys.matchmaker_cases_filter_all.t(context),
-              selected: _stage == null,
-              onTap: () => setState(() => _stage = null),
-            ),
-            for (final stage in CompatibilityCaseStage.values.where(
-              (stage) => stage != CompatibilityCaseStage.unknown,
-            )) ...[
-              QeranSpacing.vs8,
+            for (var i = 0; i < _CasesFilterChoice.values.length; i++) ...[
+              if (i > 0) QeranSpacing.vs8,
               _StageOption(
-                label: _stageLabelKey(stage).t(context),
-                selected: _stage == stage,
-                onTap: () => setState(() => _stage = stage),
+                label: _CasesFilterChoice.values[i].labelKey.t(context),
+                selected: _choice == _CasesFilterChoice.values[i],
+                onTap: () =>
+                    setState(() => _choice = _CasesFilterChoice.values[i]),
               ),
             ],
-            QeranSpacing.vs24,
-            Text(
-              LocaleKeys.matchmaker_cases_filter_formal_request.t(context),
-              style: QeranTypography.subtitle,
-            ),
-            QeranSpacing.vs8,
-            _StageOption(
-              label: LocaleKeys.matchmaker_cases_filter_formal_any.t(context),
-              selected: _activeFormalRequest == null,
-              onTap: () => setState(() => _activeFormalRequest = null),
-            ),
-            QeranSpacing.vs8,
-            _StageOption(
-              label: LocaleKeys.matchmaker_cases_filter_formal_active.t(
-                context,
-              ),
-              selected: _activeFormalRequest == true,
-              onTap: () => setState(() => _activeFormalRequest = true),
-            ),
-            QeranSpacing.vs8,
-            _StageOption(
-              label: LocaleKeys.matchmaker_cases_filter_formal_inactive.t(
-                context,
-              ),
-              selected: _activeFormalRequest == false,
-              onTap: () => setState(() => _activeFormalRequest = false),
-            ),
           ],
         ),
       ),
@@ -150,19 +108,81 @@ class _CasesFilterSheetState extends State<_CasesFilterSheet> {
   }
 }
 
-String _stageLabelKey(CompatibilityCaseStage stage) => switch (stage) {
-  CompatibilityCaseStage.likeAccepted =>
-    LocaleKeys.matchmaker_cases_stage_like_accepted,
-  CompatibilityCaseStage.photoExchangePending =>
-    LocaleKeys.matchmaker_cases_stage_photo_pending,
-  CompatibilityCaseStage.photoExchangeAccepted =>
-    LocaleKeys.matchmaker_cases_stage_photo_accepted,
-  CompatibilityCaseStage.photoExchangeRejected =>
-    LocaleKeys.matchmaker_cases_stage_photo_rejected,
-  CompatibilityCaseStage.photoExchangeExpired =>
-    LocaleKeys.matchmaker_cases_stage_photo_expired,
-  CompatibilityCaseStage.unknown => LocaleKeys.matchmaker_cases_filter_all,
-};
+/// One row of the flattened filter list, in display order.
+///
+/// The sheet is single-select, so the two server parameters can never both be
+/// set from here: choosing a formal-request row clears any stage and vice
+/// versa. The endpoint still accepts them together and combines them before
+/// pagination — this UI simply stopped offering that.
+enum _CasesFilterChoice {
+  all,
+  likeAccepted,
+  photoPending,
+  photoAccepted,
+  photoRejected,
+  photoExpired,
+  formalActive,
+  formalInactive;
+
+  /// The query this row stands for. Exactly one parameter, or neither.
+  MatchmakerCasesFilter get filter => switch (this) {
+    all => const MatchmakerCasesFilter(),
+    likeAccepted => const MatchmakerCasesFilter(
+      stage: CompatibilityCaseStage.likeAccepted,
+    ),
+    photoPending => const MatchmakerCasesFilter(
+      stage: CompatibilityCaseStage.photoExchangePending,
+    ),
+    photoAccepted => const MatchmakerCasesFilter(
+      stage: CompatibilityCaseStage.photoExchangeAccepted,
+    ),
+    photoRejected => const MatchmakerCasesFilter(
+      stage: CompatibilityCaseStage.photoExchangeRejected,
+    ),
+    photoExpired => const MatchmakerCasesFilter(
+      stage: CompatibilityCaseStage.photoExchangeExpired,
+    ),
+    formalActive => const MatchmakerCasesFilter(activeFormalRequest: true),
+    formalInactive => const MatchmakerCasesFilter(activeFormalRequest: false),
+  };
+
+  String get labelKey => switch (this) {
+    all => LocaleKeys.matchmaker_cases_filter_all,
+    likeAccepted => LocaleKeys.matchmaker_cases_stage_like_accepted,
+    photoPending => LocaleKeys.matchmaker_cases_stage_photo_pending,
+    photoAccepted => LocaleKeys.matchmaker_cases_stage_photo_accepted,
+    photoRejected => LocaleKeys.matchmaker_cases_stage_photo_rejected,
+    photoExpired => LocaleKeys.matchmaker_cases_stage_photo_expired,
+    formalActive => LocaleKeys.matchmaker_cases_filter_formal_active,
+    formalInactive => LocaleKeys.matchmaker_cases_filter_formal_inactive,
+  };
+
+  /// The row standing for an existing filter, so reopening the sheet shows
+  /// what is applied.
+  ///
+  /// A filter carrying BOTH parameters has no row — it can only have come from
+  /// the two-section sheet this replaced. The stage wins, and applying drops
+  /// the formal-request half; that is the single-select contract, not a loss
+  /// of state, since the user must press Apply for anything to change.
+  static _CasesFilterChoice from(MatchmakerCasesFilter filter) {
+    final stage = filter.stage;
+    if (stage != null) {
+      return switch (stage) {
+        CompatibilityCaseStage.likeAccepted => likeAccepted,
+        CompatibilityCaseStage.photoExchangePending => photoPending,
+        CompatibilityCaseStage.photoExchangeAccepted => photoAccepted,
+        CompatibilityCaseStage.photoExchangeRejected => photoRejected,
+        CompatibilityCaseStage.photoExchangeExpired => photoExpired,
+        CompatibilityCaseStage.unknown => all,
+      };
+    }
+    return switch (filter.activeFormalRequest) {
+      true => formalActive,
+      false => formalInactive,
+      null => all,
+    };
+  }
+}
 
 /// One single-select stage row — gold border + cream-surface + a gold-deep
 /// check when selected; paper + wine-08 border otherwise.

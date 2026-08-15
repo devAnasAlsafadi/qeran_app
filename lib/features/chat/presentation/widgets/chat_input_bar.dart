@@ -136,9 +136,11 @@ class _SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The paper-plane glyph is drawn pointing right; mirror it in RTL so it
-    // always points toward the sending (end) edge.
-    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    // No manual mirror here: `Icons.send_rounded` carries
+    // `matchTextDirection: true`, so Flutter already flips the paper plane to
+    // point at the end edge in RTL. Mirroring it again by hand is the
+    // double-flip the design rules forbid — it left the glyph pointing
+    // backwards in English while looking correct in Arabic.
     return Material(
       color: enabled
           ? QeranColors.gold
@@ -150,14 +152,11 @@ class _SendButton extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Center(
-            child: Transform.scale(
-              scaleX: isRtl ? 1 : -1,
-              child: const Icon(
-                Icons.send_rounded,
-                size: 20,
-                color: QeranColors.wine,
-              ),
+          child: const Center(
+            child: Icon(
+              Icons.send_rounded,
+              size: 20,
+              color: QeranColors.wine,
             ),
           ),
         ),

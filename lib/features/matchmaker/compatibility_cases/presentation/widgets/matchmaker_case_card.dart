@@ -4,6 +4,7 @@ import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
+import '../../../../../core/design_system/widgets/qeran_button.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
@@ -29,6 +30,7 @@ class MatchmakerCaseCard extends StatelessWidget {
     this.onMessagePerson,
     this.onMessageMyUser,
     this.onNotes,
+    this.onUpdateStatus,
     this.personLoading = false,
     this.myUserLoading = false,
     this.matchmakerLoading = false,
@@ -36,6 +38,11 @@ class MatchmakerCaseCard extends StatelessWidget {
 
   final CompatibilityCase caseItem;
   final VoidCallback? onTap;
+
+  /// Opens the status-update sheet. Unlike the contact chips this does NOT
+  /// gate on the case being actionable — the sheet itself explains a case that
+  /// cannot move. Null only where no list cubit is in scope to update.
+  final VoidCallback? onUpdateStatus;
 
   /// Contact actions on the card — each chip renders only when its callback is
   /// non-null, so ownership decides the set (see the list view's gating).
@@ -107,6 +114,22 @@ class MatchmakerCaseCard extends StatelessWidget {
             onNotes: onNotes,
             hasNote: caseItem.hasMyNote,
           ),
+          // Its own full-width row, never hidden. A control that disappears on
+          // terminal cases reads as a bug; one that opens and explains why the
+          // case cannot move reads as an answer. Quiet variant so it does not
+          // compete with the details chip above it.
+          if (onUpdateStatus != null) ...[
+            QeranSpacing.vs8,
+            QeranButton(
+              label: LocaleKeys.matchmaker_cases_action_update_status.t(
+                context,
+              ),
+              variant: QeranButtonVariant.secondary,
+              size: QeranButtonSize.md,
+              leadingIcon: Icons.update_rounded,
+              onPressed: onUpdateStatus,
+            ),
+          ],
         ],
       ),
     );

@@ -151,8 +151,9 @@ class _NoActionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tone = _currentTone(caseItem);
-    final (:messageKey, :icon, :accent, :bg) = _style(tone);
+    final tone = currentCaseTone(caseItem);
+    final (:icon, :accent, :bg) = _style(tone);
+    final messageKey = noActionsMessageKey(tone);
 
     return Container(
       padding: const EdgeInsets.all(QeranSpacing.s16),
@@ -185,31 +186,21 @@ class _NoActionsCard extends StatelessWidget {
     );
   }
 
-  CaseStepTone _currentTone(CompatibilityCase c) {
-    for (final step in buildCaseTimeline(c)) {
-      if (step.state == CaseStepState.current) return step.tone;
-    }
-    return CaseStepTone.normal;
-  }
-
-  ({String messageKey, IconData icon, Color accent, Color bg}) _style(
-    CaseStepTone tone,
-  ) =>
+  // The message itself comes from `noActionsMessageKey`, shared with the list
+  // card's update sheet; only the styling stays local to this card.
+  ({IconData icon, Color accent, Color bg}) _style(CaseStepTone tone) =>
       switch (tone) {
         CaseStepTone.success => (
-            messageKey: LocaleKeys.matchmaker_cases_no_actions_complete,
             icon: Icons.verified_rounded,
             accent: QeranColors.goldDeep,
             bg: QeranColors.creamSurface,
           ),
         CaseStepTone.ended => (
-            messageKey: LocaleKeys.matchmaker_cases_no_actions_ended,
             icon: Icons.flag_rounded,
             accent: QeranColors.wine,
             bg: QeranColors.creamSurface,
           ),
         CaseStepTone.normal => (
-            messageKey: LocaleKeys.matchmaker_cases_no_actions_waiting,
             icon: Icons.hourglass_top_rounded,
             accent: QeranColors.goldDeep,
             bg: QeranColors.creamSurface,

@@ -775,6 +775,9 @@ abstract class  LocaleKeys {
   static const matchmaker_cases_action_message_matchmaker = 'matchmaker.cases_action_message_matchmaker';
   static const matchmaker_cases_action_notes = 'matchmaker.cases_action_notes';
   static const matchmaker_cases_action_details = 'matchmaker.cases_action_details';
+  static const matchmaker_cases_action_update_status = 'matchmaker.cases_action_update_status';
+  static const matchmaker_cases_update_sheet_unavailable = 'matchmaker.cases_update_sheet_unavailable';
+  static const matchmaker_cases_update_sheet_not_started = 'matchmaker.cases_update_sheet_not_started';
   static const matchmaker_chat_open_failed = 'matchmaker.chat_open_failed';
   static const matchmaker_cases_confirm_title = 'matchmaker.cases_confirm_title';
   static const matchmaker_cases_confirm_message = 'matchmaker.cases_confirm_message';

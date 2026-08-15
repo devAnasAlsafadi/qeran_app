@@ -6,6 +6,7 @@ import '../../domain/entities/case_photo_exchange_status.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../../domain/entities/compatibility_case_stage.dart';
 import '../../domain/entities/formal_request_status.dart';
+import 'case_timeline.dart';
 
 /// Presentation glue mapping the case enums to their localized label keys
 /// and a small status icon. Kept out of the card so the card stays lean.
@@ -93,6 +94,31 @@ String actionLabelKey(FormalRequestStatus target) => switch (target) {
       FormalRequestStatus.unknown =>
         LocaleKeys.matchmaker_cases_action_close_case,
     };
+
+/// Every status a case can be moved TO, in the order they are offered. These
+/// are the only members that ever appear in an `allowedNext`; the rest are
+/// either the starting state or display-only.
+const List<FormalRequestStatus> statusUpdateTargets = [
+  FormalRequestStatus.parentsVisited,
+  FormalRequestStatus.successfullyClosed,
+  FormalRequestStatus.compatibilityCancelled,
+];
+
+/// The timeline step the case is standing on. Drives the informative "why is
+/// there nothing to do here" message in both the detail screen's no-actions
+/// card and the list card's update sheet, so the two cannot drift.
+CaseStepTone currentCaseTone(CompatibilityCase c) {
+  for (final step in buildCaseTimeline(c)) {
+    if (step.state == CaseStepState.current) return step.tone;
+  }
+  return CaseStepTone.normal;
+}
+
+String noActionsMessageKey(CaseStepTone tone) => switch (tone) {
+  CaseStepTone.success => LocaleKeys.matchmaker_cases_no_actions_complete,
+  CaseStepTone.ended => LocaleKeys.matchmaker_cases_no_actions_ended,
+  CaseStepTone.normal => LocaleKeys.matchmaker_cases_no_actions_waiting,
+};
 
 /// Terminal closures that must be confirmed before submitting.
 bool isDestructiveTarget(FormalRequestStatus target) =>

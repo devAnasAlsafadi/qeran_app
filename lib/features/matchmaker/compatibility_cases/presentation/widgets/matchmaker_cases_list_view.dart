@@ -22,6 +22,7 @@ import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
 import '../screens/matchmaker_case_detail_screen.dart';
 import 'case_note_sheet.dart';
+import 'case_status_update_sheet.dart';
 import 'matchmaker_case_card.dart';
 
 /// Gates the "message the matchmaker" button. Re-enabled now that the backend
@@ -126,6 +127,10 @@ class MatchmakerCasesListView extends StatelessWidget {
                 caseItem.canMessageMyUser &&
                 openingUserId == caseItem.myUser.userId,
             onNotes: () => _openNotes(context, caseItem),
+            // Always wired — the sheet decides what is offerable and explains
+            // the rest, rather than the button vanishing on terminal cases.
+            onUpdateStatus: () =>
+                showCaseStatusUpdateSheet(context, caseItem: caseItem),
           );
         },
       ),

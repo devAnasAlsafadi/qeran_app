@@ -113,6 +113,7 @@ class MatchmakerUserRowCard extends StatelessWidget {
                       MatchmakerFactChips(
                         facts: [for (final a in row.answers) a.answer],
                         age: row.age,
+                        ageAsChip: true,
                       ),
                     ],
                     if (hasPlanChip) ...[

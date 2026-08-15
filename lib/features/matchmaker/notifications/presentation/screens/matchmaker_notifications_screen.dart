@@ -80,11 +80,21 @@ class _MatchmakerNotificationsScreenState
     }
   }
 
-  /// Deep-link a tapped row. Chat → push the shared chat screen; cases / ignore
-  /// are a no-op from this pushed inbox (the shell's FCM-tap path owns
-  /// tab-selection deep-links).
+  /// Deep-link a tapped row.
+  ///
+  /// Chat is PUSHED on top of this inbox, so back returns here. A Cases row
+  /// cannot be: the tab lives in the shell BELOW this route, so the inbox pops
+  /// and hands the intent up — the same shape the user app uses. It used to
+  /// fall through to a bare `break`, which meant tapping a case row in the
+  /// matchmaker inbox did nothing at all.
   void _onTap(MatchmakerNotification n) {
-    switch (MatchmakerNotificationRouter.parse(n.data)) {
+    final link = MatchmakerNotificationRouter.parse(n.data);
+    switch (link) {
+      case OpenCases():
+        Navigator.of(context).pop(link);
+        return;
+      case IgnoreDeepLink():
+        return;
       case OpenUserChat(:final conversationId, :final senderName):
         NavigationManager.navigateTo(
           context,
@@ -99,9 +109,6 @@ class _MatchmakerNotificationsScreenState
             unreadCount: 0,
           ),
         );
-      case OpenCases():
-      case IgnoreDeepLink():
-        break;
     }
   }
 

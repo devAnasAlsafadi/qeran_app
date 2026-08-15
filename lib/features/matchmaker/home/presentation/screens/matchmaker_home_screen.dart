@@ -46,6 +46,10 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
   int _currentTab = 0;
   MatchmakerUsersList _usersSubTab = MatchmakerUsersList.pending;
 
+  /// True while the visible tab was reached from a notification — see
+  /// [_openFromNotification]. Drives the destination's back control.
+  bool _fromNotification = false;
+
   // Tabs mount lazily: an index enters this set the first time it is shown and
   // stays (IndexedStack keeps it alive after), so each tab fetches on first
   // visit and never re-fetches on later switches. Seeded with the Dashboard
@@ -93,7 +97,21 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     if (!mounted) return;
     final role = sl<UserSessionCubit>().currentUser?.role;
     if ((role ?? '').toLowerCase() != 'moderator') return;
-    switch (MatchmakerNotificationRouter.parse(message.data)) {
+    _openFromNotification(MatchmakerNotificationRouter.parse(message.data));
+  }
+
+  /// The single entry point for BOTH notification paths — a row tapped in the
+  /// inbox (handed back when it pops) and a system push tapped outside the app.
+  /// Raises [_fromNotification], which is what puts a back control on the
+  /// destination tab.
+  ///
+  /// Raised OUTSIDE the tab switch on purpose: `_selectTab` returns early when
+  /// the target tab is already showing, and that is exactly when the control
+  /// matters most — nothing else on screen changes.
+  void _openFromNotification(MatchmakerDeepLink link) {
+    if (link is IgnoreDeepLink) return;
+    if (mounted) setState(() => _fromNotification = true);
+    switch (link) {
       case OpenCases():
         _selectTab(2); // Cases tab — the shell owns selection (no route change).
       case OpenUserChat(:final conversationId, :final senderName):
@@ -156,6 +174,24 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
       ? LocaleRebuildScope(child: child)
       : const SizedBox.shrink();
 
+  /// Reopens the inbox and applies whatever the user taps there next — a fresh
+  /// notification wins over the one that brought them here.
+  Future<void> _returnToNotifications() async {
+    final result = await Navigator.of(
+      context,
+    ).pushNamed(RouteNames.matchmakerNotifications);
+    if (!mounted || result is! MatchmakerDeepLink) return;
+    _openFromNotification(result);
+  }
+
+  /// A manual bottom-nav tap ends the notification trail — otherwise the back
+  /// control would sit there forever, pointing at an inbox the user has since
+  /// left by hand.
+  void _onNavTap(int index) {
+    if (_fromNotification) setState(() => _fromNotification = false);
+    _selectTab(index);
+  }
+
   void _changeUsersSubTab(MatchmakerUsersList sub) {
     if (sub == _usersSubTab) return;
     setState(() => _usersSubTab = sub);
@@ -167,6 +203,9 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
       create: (_) => sl<MatchmakerDashboardCubit>()..load(),
       child: MatchmakerHomeShellScope(
         openTab: _selectTab,
+        openFromNotification: _openFromNotification,
+        fromNotification: _fromNotification,
+        returnToNotifications: _returnToNotifications,
         child: ScrollHidingNavScaffold(
           currentIndex: _currentTab,
           body: IndexedStack(
@@ -187,7 +226,7 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
           ),
           navBuilder: (context) => MatchmakerBottomNav(
             currentIndex: _currentTab,
-            onTap: (i) => _selectTab(i),
+            onTap: _onNavTap,
           ),
         ),
       ),

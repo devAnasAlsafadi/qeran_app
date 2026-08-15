@@ -5,7 +5,9 @@ import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/routes/route_name.dart';
+import '../../../home/presentation/home_shell_scope.dart';
 import '../../../notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
+import '../../data/matchmaker_notification_router.dart';
 
 /// App bar for every Matchmaker shell screen.
 ///
@@ -82,11 +84,26 @@ class _BellAction extends StatelessWidget {
                 ),
             ],
           ),
-          onPressed: () => Navigator.of(context)
-              .pushNamed(RouteNames.matchmakerNotifications),
+          onPressed: () => _openInbox(context),
         );
       },
     );
+  }
+
+  /// Opens the inbox and applies whatever the user taps there.
+  ///
+  /// A Cases row can't navigate on its own — the tab lives in the shell BELOW
+  /// this route — so the inbox pops the intent and it is applied here, from a
+  /// caller that IS inside the shell. Mirrors the user app's
+  /// `openNotifications`.
+  Future<void> _openInbox(BuildContext context) async {
+    // Captured BEFORE the await — no BuildContext use across the gap.
+    final shell = MatchmakerHomeShellScope.maybeOf(context);
+    final result = await Navigator.of(
+      context,
+    ).pushNamed(RouteNames.matchmakerNotifications);
+    if (shell == null || result is! MatchmakerDeepLink) return;
+    shell.openFromNotification(result);
   }
 }
 

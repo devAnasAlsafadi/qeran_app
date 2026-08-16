@@ -7,6 +7,7 @@ import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../features/likes/presentation/widgets/like_card_countdown_chip.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/compatibility_case.dart';
 import 'case_contact_actions.dart';
@@ -64,6 +65,7 @@ class MatchmakerCaseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusChip = _statusChip(context);
+    final countdown = _countdown();
     final dateLine = _dateLine(context);
     return QeranCard(
       onTap: onTap,
@@ -92,7 +94,14 @@ class MatchmakerCaseCard extends StatelessWidget {
                       first: caseItem.myUser.name.trim(),
                       second: caseItem.otherUser.name.trim(),
                     ),
-                    if (statusChip != null) ...[QeranSpacing.vs8, statusChip],
+                    if (statusChip != null || countdown != null) ...[
+                      QeranSpacing.vs8,
+                      Wrap(
+                        spacing: QeranSpacing.s8,
+                        runSpacing: QeranSpacing.s8,
+                        children: [?statusChip, ?countdown],
+                      ),
+                    ],
                     if (dateLine != null) ...[QeranSpacing.vs8, dateLine],
                   ],
                 ),
@@ -116,16 +125,25 @@ class MatchmakerCaseCard extends StatelessWidget {
           ),
           // Its own full-width row, never hidden. A control that disappears on
           // terminal cases reads as a bug; one that opens and explains why the
-          // case cannot move reads as an answer. Quiet variant so it does not
-          // compete with the details chip above it.
+          // case cannot move reads as an answer.
+          //
+          // Gold [primary], not an outline: the card's ONE primary action, and
+          // the house pattern for it — `MatchmakerCardActionBar` ("a dominant
+          // gold primary") already paints the Users card this way, and the
+          // detail screen paints this same status action gold too. Outlined, it
+          // read as a fourth contact chip stacked under the other three.
+          //
+          // [xs], the same size that bar gives its card primary: a full-width
+          // gold block repeats on every row of a scrolling list, so it earns
+          // emphasis from colour, not from height.
           if (onUpdateStatus != null) ...[
-            QeranSpacing.vs8,
+            QeranSpacing.vs12,
             QeranButton(
               label: LocaleKeys.matchmaker_cases_action_update_status.t(
                 context,
               ),
-              variant: QeranButtonVariant.secondary,
-              size: QeranButtonSize.md,
+              variant: QeranButtonVariant.primary,
+              size: QeranButtonSize.xs,
               leadingIcon: Icons.update_rounded,
               onPressed: onUpdateStatus,
             ),
@@ -154,23 +172,38 @@ class MatchmakerCaseCard extends StatelessWidget {
     );
   }
 
+  /// The photo-exchange deadline, live-ticking — shown ONLY while the request
+  /// is genuinely open. Null when there is no exchange, when the payload
+  /// predates `expiresAt`, or when the deadline has passed: `isAwaitingResponse`
+  /// answers all three, so a lapsed request never wears a running clock.
+  ///
+  /// Reuses the member app's [LikeCountdownChip], which the matchmaker's own
+  /// interests cards already use. It receives no `remainingSeconds` — this
+  /// payload carries none — so its countdown rides on [ServerClock]'s offset
+  /// rather than a self-calibrating pair.
+  Widget? _countdown() {
+    final exchange = caseItem.photoExchange;
+    if (exchange == null || !exchange.isAwaitingResponse) return null;
+    final expiry = exchange.expiresAt;
+    if (expiry == null) return null;
+    return LikeCountdownChip(expiresAt: expiry);
+  }
+
   Widget? _dateLine(BuildContext context) {
     final d = caseItem.likeAcceptedAt;
     if (d == null) return null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(
-          Icons.event_rounded,
-          size: 14,
-          color: QeranColors.inkFaint,
-        ),
+        const Icon(Icons.event_rounded, size: 14, color: QeranColors.inkFaint),
         QeranSpacing.hs4,
         Flexible(
           child: Text(
             '${LocaleKeys.matchmaker_cases_like_accepted_at.t(context)} '
             '${_formatDate(d)}',
-            style: QeranTypography.caption.copyWith(color: QeranColors.inkFaint),
+            style: QeranTypography.caption.copyWith(
+              color: QeranColors.inkFaint,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -211,7 +244,11 @@ class _PairNames extends StatelessWidget {
         Flexible(child: _name(first)),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: QeranSpacing.s8),
-          child: Icon(Icons.favorite_rounded, size: 14, color: QeranColors.gold),
+          child: Icon(
+            Icons.favorite_rounded,
+            size: 14,
+            color: QeranColors.gold,
+          ),
         ),
         Flexible(child: _name(second)),
       ],
@@ -219,11 +256,11 @@ class _PairNames extends StatelessWidget {
   }
 
   Widget _name(String value) => Text(
-        value,
-        style: QeranTypography.subtitle,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      );
+    value,
+    style: QeranTypography.subtitle,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  );
 }
 
 /// The list card's color-differentiated status pill: a leading dot + label,

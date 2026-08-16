@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/utils/server_clock.dart';
 
 import '../../domain/entities/like_action_outcome.dart';
 import '../../domain/entities/like_requests_data.dart';
@@ -17,7 +18,7 @@ class LikesRepositoryImpl with BaseRepository implements LikesRepository {
   Future<Either<Failure, LikeRequestsData>> getIncoming() {
     return executeApiCall(() async {
       final model = await _dataSource.getIncomingLikes();
-      return model.toEntity();
+      return _calibrated(model.toEntity());
     });
   }
 
@@ -25,8 +26,19 @@ class LikesRepositoryImpl with BaseRepository implements LikesRepository {
   Future<Either<Failure, LikeRequestsData>> getOutgoing() {
     return executeApiCall(() async {
       final model = await _dataSource.getOutgoingLikes();
-      return model.toEntity();
+      return _calibrated(model.toEntity());
     });
+  }
+
+  /// These rows carry BOTH `expiresAt` and the server's own `remainingSeconds`
+  /// snapshot, which together pin the server's clock — see [ServerClock]. Both
+  /// apps hit these endpoints, so this is the main place the offset is learned.
+  LikeRequestsData _calibrated(LikeRequestsData data) {
+    ServerClock.instance.calibrateFromAny([
+      for (final card in data.pending)
+        (expiresAt: card.expiresAt, remainingSeconds: card.remainingSeconds),
+    ]);
+    return data;
   }
 
   @override

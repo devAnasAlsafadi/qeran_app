@@ -103,7 +103,6 @@ class _MatchesList extends StatelessWidget {
                 pendingId != null && state.isPhotoExchangeAccepting(pendingId),
             isRejectingPhotoExchange:
                 pendingId != null && state.isPhotoExchangeRejecting(pendingId),
-            onPendingExpiredLocally: cubit.loadMatches,
             onOpenGallery: card.images.isEmpty
                 ? null
                 : () => _openGallery(context, card, cubit),

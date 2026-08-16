@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/server_clock.dart';
 import 'like_profile_image.dart';
 import 'like_request_status.dart';
 
@@ -75,6 +76,18 @@ class LikeRequestCard extends Equatable {
 
   bool get canAccept => actions.contains('accept');
   bool get canReject => actions.contains('reject');
+
+  /// Still genuinely open — the ONE question the UI should ask before showing
+  /// a live countdown or accept/reject controls.
+  ///
+  /// `status == pending` alone is not enough any more. The backend used to
+  /// null [expiresAt] once a request lapsed, so "pending with a deadline"
+  /// implied "still running"; it now returns the real timestamp whatever the
+  /// outcome, and a lapsed row keeps its Pending status until the server
+  /// sweeps it. Presence of the field therefore proves nothing — only the
+  /// comparison does.
+  bool get isAwaitingResponse =>
+      status == LikeRequestStatus.pending && !hasServerExpired(expiresAt);
 
   @override
   List<Object?> get props => [

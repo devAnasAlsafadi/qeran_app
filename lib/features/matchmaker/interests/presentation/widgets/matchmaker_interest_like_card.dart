@@ -36,7 +36,9 @@ class MatchmakerInterestLikeCard extends StatelessWidget {
               arguments: like.otherUserId,
             ),
       chips: [
-        if (like.status == MatchmakerInterestLikeStatus.pending &&
+        // Same rule as the member app's like row — a Pending status alone no
+        // longer means the request is still running.
+        if (like.isAwaitingResponse &&
             (like.expiresAt != null || like.remainingSeconds != null))
           LikeCountdownChip(
             expiresAt: like.expiresAt,

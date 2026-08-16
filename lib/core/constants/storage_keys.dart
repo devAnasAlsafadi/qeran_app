@@ -67,4 +67,11 @@ class StorageKeys {
   /// roles read the same endpoint but never share local state.
   static const String matchmakerNotifReadWatermark =
       'matchmaker_notif_read_watermark';
+
+  /// Last known offset between the server's clock and this device's, in
+  /// milliseconds. Read at bootstrap so the first countdown of a cold start
+  /// is not judged by a device clock that may have drifted; overwritten by
+  /// the first response that can recalibrate. Survives logout deliberately —
+  /// it describes the DEVICE, not the account.
+  static const String serverClockSkewMs = 'server_clock_skew_ms';
 }

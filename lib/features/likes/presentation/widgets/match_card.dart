@@ -30,9 +30,6 @@ class MatchCardWidget extends StatelessWidget {
   final bool isAcceptingPhotoExchange;
   final bool isRejectingPhotoExchange;
 
-  /// Stage 0/1/2 — countdown reached zero locally.
-  final VoidCallback? onPendingExpiredLocally;
-
   /// Stage 1 — avatar tap opens the gallery sheet.
   final VoidCallback? onOpenGallery;
 
@@ -61,7 +58,6 @@ class MatchCardWidget extends StatelessWidget {
     this.onRejectPhotoExchange,
     this.isAcceptingPhotoExchange = false,
     this.isRejectingPhotoExchange = false,
-    this.onPendingExpiredLocally,
     this.onOpenGallery,
     this.onContactMatchmaker,
     this.isInquirySending = false,
@@ -113,7 +109,6 @@ class MatchCardWidget extends StatelessWidget {
           onRejectPhotoExchange: onRejectPhotoExchange,
           isAcceptingPhotoExchange: isAcceptingPhotoExchange,
           isRejectingPhotoExchange: isRejectingPhotoExchange,
-          onPendingExpiredLocally: onPendingExpiredLocally,
           onContactMatchmaker: onContactMatchmaker,
           isInquirySending: isInquirySending,
           isInquirySent: isInquirySent,

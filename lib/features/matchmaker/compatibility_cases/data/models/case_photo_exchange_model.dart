@@ -9,6 +9,7 @@ class CasePhotoExchangeModel {
   final int requestId;
   final String status;
   final DateTime? respondedAt;
+  final DateTime? expiresAt;
   final String? initiatorId;
   final String? responderId;
 
@@ -18,6 +19,7 @@ class CasePhotoExchangeModel {
     required this.respondedAt,
     required this.initiatorId,
     required this.responderId,
+    this.expiresAt,
   });
 
   factory CasePhotoExchangeModel.fromJson(Map<String, dynamic> json) =>
@@ -25,15 +27,19 @@ class CasePhotoExchangeModel {
         requestId: parseInt(json['requestId']),
         status: parseString(json['status']),
         respondedAt: parseNullableDateTime(json['respondedAt']),
+        // Absent on payloads predating the field — parses to null, which the
+        // entity reads as "no deadline", not as "expired".
+        expiresAt: parseNullableDateTime(json['expiresAt']),
         initiatorId: parseNullableString(json['initiatorId']),
         responderId: parseNullableString(json['responderId']),
       );
 
   CasePhotoExchange toEntity() => CasePhotoExchange(
-        requestId: requestId,
-        status: CasePhotoExchangeStatus.fromString(status),
-        respondedAt: respondedAt,
-        initiatorId: initiatorId,
-        responderId: responderId,
-      );
+    requestId: requestId,
+    status: CasePhotoExchangeStatus.fromString(status),
+    respondedAt: respondedAt,
+    expiresAt: expiresAt,
+    initiatorId: initiatorId,
+    responderId: responderId,
+  );
 }

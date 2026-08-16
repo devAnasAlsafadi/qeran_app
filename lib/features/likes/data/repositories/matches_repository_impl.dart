@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/utils/server_clock.dart';
 
 import '../../domain/entities/match_card.dart';
 import '../../domain/entities/photo_exchange_outcome.dart';
@@ -17,7 +18,13 @@ class MatchesRepositoryImpl with BaseRepository implements MatchesRepository {
   Future<Either<Failure, List<MatchCard>>> getMatches() {
     return executeApiCall(() async {
       final models = await _dataSource.getMatches();
-      return models.map((m) => m.toEntity()).toList(growable: false);
+      final cards = models.map((m) => m.toEntity()).toList(growable: false);
+      ServerClock.instance.calibrateFromAny([
+        for (final c in cards)
+          if (c.pendingPhotoExchange case final p?)
+            (expiresAt: p.expiresAt, remainingSeconds: p.remainingSeconds),
+      ]);
+      return cards;
     });
   }
 

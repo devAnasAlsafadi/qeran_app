@@ -7,7 +7,6 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/like_request_card.dart';
-import '../../domain/entities/like_request_status.dart';
 import 'like_card_actions.dart';
 import 'like_card_avatar.dart';
 import 'like_card_countdown_chip.dart';
@@ -105,13 +104,14 @@ class _VisibleContent extends StatelessWidget {
     required this.isRejecting,
   });
 
-  bool get _isPending => card.status == LikeRequestStatus.pending;
-
   @override
   Widget build(BuildContext context) {
+    // `isAwaitingResponse`, not `status == pending`: the deadline now comes
+    // back on lapsed rows too, so a Pending row is not necessarily live.
+    final live = card.isAwaitingResponse;
     final showTimer =
-        _isPending && (card.expiresAt != null || card.remainingSeconds != null);
-    final showActions = _isPending && (card.canAccept || card.canReject);
+        live && (card.expiresAt != null || card.remainingSeconds != null);
+    final showActions = live && (card.canAccept || card.canReject);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

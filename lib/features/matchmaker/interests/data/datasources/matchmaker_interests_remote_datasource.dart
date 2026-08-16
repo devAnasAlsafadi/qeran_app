@@ -2,6 +2,7 @@ import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/utils/server_clock.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../shared/data/json_parsers.dart';
@@ -25,7 +26,7 @@ abstract interface class MatchmakerInterestsRemoteDataSource {
     String userId,
   );
   Future<MatchmakerInterestPage<List<MatchmakerInterestArchiveItem>>>
-      getArchivedMatches(String userId);
+  getArchivedMatches(String userId);
 }
 
 class MatchmakerInterestsRemoteDataSourceImpl
@@ -44,13 +45,20 @@ class MatchmakerInterestsRemoteDataSourceImpl
     final path = direction == MatchmakerLikeDirection.outgoing
         ? EndPoints.matchmakerUserLikesOutgoing(userId)
         : EndPoints.matchmakerUserLikesIncoming(userId);
-    return _page(
-      path,
-      'likes-${direction.name}',
-      (data) => MatchmakerLikeActivityModel.fromJson(
+    return _page(path, 'likes-${direction.name}', (data) {
+      final activity = MatchmakerLikeActivityModel.fromJson(
         parseNullableMap(data) ?? const {},
-      ).toEntity(),
-    );
+      ).toEntity();
+      // The one matchmaker endpoint carrying both `expiresAt` and the
+      // server's `remainingSeconds` snapshot — so it is where this app learns
+      // the clock offset that the compatibility-case countdowns then ride on
+      // (that payload has no snapshot of its own). See [ServerClock].
+      ServerClock.instance.calibrateFromAny([
+        for (final like in activity.pending)
+          (expiresAt: like.expiresAt, remainingSeconds: like.remainingSeconds),
+      ]);
+      return activity;
+    });
   }
 
   @override
@@ -68,7 +76,7 @@ class MatchmakerInterestsRemoteDataSourceImpl
 
   @override
   Future<MatchmakerInterestPage<List<MatchmakerInterestArchiveItem>>>
-      getArchivedMatches(String userId) {
+  getArchivedMatches(String userId) {
     return _page(
       EndPoints.matchmakerUserMatchesArchived(userId),
       'matches-archived',
@@ -89,8 +97,9 @@ class MatchmakerInterestsRemoteDataSourceImpl
   ) async {
     AppLogger.debug('MATCHMAKER — interests $tag', tag: 'MATCHMAKER');
     final response = await _apiConsumer.get(path);
-    final pageJson =
-        unwrapInnerEnvelope((response as Map<String, dynamic>)['data']);
+    final pageJson = unwrapInnerEnvelope(
+      (response as Map<String, dynamic>)['data'],
+    );
     if (pageJson == null) {
       AppLogger.error(
         'MATCHMAKER — interests $tag ok but data was null',
@@ -101,6 +110,9 @@ class MatchmakerInterestsRemoteDataSourceImpl
     final user = MatchmakerInterestUserModel.fromJson(
       parseNullableMap(pageJson['user']) ?? const {},
     ).toEntity();
-    return MatchmakerInterestPage(user: user, data: parseData(pageJson['data']));
+    return MatchmakerInterestPage(
+      user: user,
+      data: parseData(pageJson['data']),
+    );
   }
 }

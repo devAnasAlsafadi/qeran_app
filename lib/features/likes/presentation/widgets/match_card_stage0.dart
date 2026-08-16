@@ -25,7 +25,6 @@ class MatchCardStage0 extends StatelessWidget {
   final VoidCallback? onRejectPhotoExchange;
   final bool isAcceptingPhotoExchange;
   final bool isRejectingPhotoExchange;
-  final VoidCallback? onPendingExpiredLocally;
   final VoidCallback? onContactMatchmaker;
   final bool isInquirySending;
   final bool isInquirySent;
@@ -39,7 +38,6 @@ class MatchCardStage0 extends StatelessWidget {
     required this.onRejectPhotoExchange,
     required this.isAcceptingPhotoExchange,
     required this.isRejectingPhotoExchange,
-    required this.onPendingExpiredLocally,
     required this.onContactMatchmaker,
     this.isInquirySending = false,
     this.isInquirySent = false,
@@ -49,9 +47,14 @@ class MatchCardStage0 extends StatelessWidget {
   Widget build(BuildContext context) {
     final image = card.primaryImage;
     final pending = card.pendingPhotoExchange;
-    final secs = pending?.remainingSeconds;
-    final canRespond =
-        pending != null && (pending.canAccept || pending.canReject);
+    // Presence of the block — and of its expiresAt — proves nothing here:
+    // /api/matches keeps returning `pendingPhotoExchange` with a real
+    // timestamp after the deadline has passed (confirmed with Tariq). The
+    // state comes from `status` plus the comparison, never from the field
+    // being non-null.
+    final live = pending?.isAwaitingResponse ?? false;
+    final secs = live ? pending?.remainingSeconds : null;
+    final canRespond = live && (pending!.canAccept || pending.canReject);
 
     // Map header data
     final avatarWidget = MatchCardAvatar(
@@ -61,15 +64,16 @@ class MatchCardStage0 extends StatelessWidget {
       blurredThumbnailUrl: image?.blurredThumbnailUrl,
     );
     final nameText = card.otherUserName;
-    final statusIconData = _statusIcon(pending, canRespond);
-    final statusTextString = _statusText(context, pending, canRespond);
+    final statusIconData = _statusIcon(pending, canRespond, live);
+    final statusTextString = _statusText(context, pending, canRespond, live);
     final statusColor = QeranColors.goldDeep;
+    // No onExpired: hitting zero swaps the chip to "expired" and stops. It
+    // deliberately does NOT refetch the list — a row rearranging itself under
+    // a thumb that is mid-scroll is worse than a stale row the user can
+    // pull-to-refresh.
     final topChipWidget = secs == null
         ? null
-        : PhotoExchangeCountdownChip(
-            initialSeconds: secs,
-            onExpired: onPendingExpiredLocally,
-          );
+        : PhotoExchangeCountdownChip(initialSeconds: secs);
 
     // Map footer actions
     String? primaryLabel;
@@ -151,16 +155,29 @@ class MatchCardStage0 extends StatelessWidget {
     );
   }
 
-  IconData _statusIcon(PhotoExchangePending? pending, bool canRespond) {
+  IconData _statusIcon(
+    PhotoExchangePending? pending,
+    bool canRespond,
+    bool live,
+  ) {
+    if (pending != null && !live) return Icons.timer_off_rounded;
     if (pending != null && !canRespond) return Icons.access_time_rounded;
     return Icons.lock_outline_rounded;
   }
 
+  /// [live] is checked FIRST. A lapsed request still arrives as a Pending
+  /// block, and reading it as "awaiting a reply" told the member to keep
+  /// waiting for an answer that can no longer come — the countdown vanished
+  /// but the copy still said pending. It now says the window closed.
   String _statusText(
     BuildContext context,
     PhotoExchangePending? pending,
     bool canRespond,
+    bool live,
   ) {
+    if (pending != null && !live) {
+      return LocaleKeys.likes_status_expired.t(context);
+    }
     if (pending != null && !canRespond) {
       return LocaleKeys.likes_matches_stage_waiting_photos_pending.t(context);
     }

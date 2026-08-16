@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/utils/server_clock.dart';
 import 'photo_exchange_direction.dart';
 import 'photo_exchange_status.dart';
 
@@ -40,20 +41,35 @@ class PhotoExchangePending extends Equatable {
     required this.canReject,
   });
 
+  /// Still genuinely open.
+  ///
+  /// ⚠️ Read [status] — never the presence of [expiresAt]. `/api/matches` is
+  /// the endpoint where that distinction bites hardest: Tariq confirmed it
+  /// returns a non-null `pendingPhotoExchange.expiresAt` even for requests
+  /// that have already lapsed, so the block being present, and its deadline
+  /// being non-null, say nothing about whether anyone can still act. The
+  /// status plus the comparison are the whole answer.
+  ///
+  /// [canAccept] / [canReject] remain the authority for the BUTTONS — the
+  /// server also weighs whose turn it is. This getter governs what the row
+  /// claims about itself.
+  bool get isAwaitingResponse =>
+      status == PhotoExchangeStatus.pending && !hasServerExpired(expiresAt);
+
   @override
   List<Object?> get props => [
-        id,
-        likeRequestId,
-        initiatorId,
-        responderId,
-        status,
-        statusCode,
-        remainingSeconds,
-        createdAt,
-        expiresAt,
-        direction,
-        requestedByMe,
-        canAccept,
-        canReject,
-      ];
+    id,
+    likeRequestId,
+    initiatorId,
+    responderId,
+    status,
+    statusCode,
+    remainingSeconds,
+    createdAt,
+    expiresAt,
+    direction,
+    requestedByMe,
+    canAccept,
+    canReject,
+  ];
 }

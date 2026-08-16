@@ -34,6 +34,7 @@ import '../services/language_service.dart';
 import '../services/notification_service.dart';
 import '../services/revenuecat_service.dart';
 import '../services/storage_service.dart';
+import '../utils/server_clock.dart';
 
 final sl = GetIt.instance;
 
@@ -82,6 +83,11 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<SharedPrefService>(() => SharedPrefService(sl()));
   sl.registerLazySingleton<StorageService>(() => sl<SecureStorageService>());
+
+  // Awaited here, not lazily later: the offset has to be in place before the
+  // first screen can paint a countdown, or a cold start judges server
+  // deadlines against a device clock that may have drifted.
+  await ServerClock.instance.restore(sl<SharedPrefService>());
 
   //! Network
   // Connectivity signal — registered before ApiConsumer, which will consume it

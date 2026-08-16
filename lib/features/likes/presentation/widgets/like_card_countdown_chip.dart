@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
+import 'package:qeran/core/utils/server_clock.dart';
 
 import 'like_countdown_formatter.dart';
 
@@ -82,7 +83,12 @@ class _LikeCountdownChipState extends State<LikeCountdownChip> {
       return;
     }
 
-    _serverAnchorUtc = _deviceAnchorUtc;
+    // No snapshot to solve against — the compatibility-case payload sends a
+    // deadline alone. Fall back to the process-wide offset learned from the
+    // endpoints that DO send both, rather than to the bare device clock: this
+    // branch used to be the one place a travelled or drifted clock could put a
+    // wrong number on screen.
+    _serverAnchorUtc = ServerClock.instance.now();
     _seconds = expiry == null
         ? (snapshot ?? 0).clamp(0, 1 << 31).toInt()
         : _secondsUntil(expiry, _serverAnchorUtc);

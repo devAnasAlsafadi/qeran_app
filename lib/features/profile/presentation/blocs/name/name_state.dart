@@ -2,30 +2,30 @@ import 'package:equatable/equatable.dart';
 
 import '../../../domain/entities/my_profile.dart';
 
-enum DisplayNameStatus { initial, loading, loaded, failure }
+enum NameStatus { initial, loading, loaded, failure }
 
 /// One-shot outcomes the screen reacts to (toast / pop), consumed via
 /// `eventVersion` so a rebuild never replays them.
-enum DisplayNameEvent { none, saved, saveFailed }
+enum NameEvent { none, saved, saveFailed }
 
-class DisplayNameState extends Equatable {
-  const DisplayNameState({
-    this.status = DisplayNameStatus.initial,
+class NameState extends Equatable {
+  const NameState({
+    this.status = NameStatus.initial,
     this.profile,
     this.saving = false,
-    this.event = DisplayNameEvent.none,
+    this.event = NameEvent.none,
     this.eventVersion = 0,
     this.errorMessage,
   });
 
-  final DisplayNameStatus status;
+  final NameStatus status;
 
   /// The profile the screen renders from, and the BASELINE both fields are
   /// diffed against when deciding what to send. Retained across a save so a
   /// failed write never blanks the form.
   final MyProfile? profile;
   final bool saving;
-  final DisplayNameEvent event;
+  final NameEvent event;
   final int eventVersion;
 
   /// Load failure, or the server's verbatim message on a rejected save.
@@ -43,16 +43,16 @@ class DisplayNameState extends Equatable {
     return (value == null || value.isEmpty) ? null : value;
   }
 
-  DisplayNameState copyWith({
-    DisplayNameStatus? status,
+  NameState copyWith({
+    NameStatus? status,
     MyProfile? profile,
     bool? saving,
-    DisplayNameEvent? event,
+    NameEvent? event,
     int? eventVersion,
     String? errorMessage,
     bool clearError = false,
   }) {
-    return DisplayNameState(
+    return NameState(
       status: status ?? this.status,
       profile: profile ?? this.profile,
       saving: saving ?? this.saving,

@@ -7,39 +7,39 @@ import '../../../domain/entities/my_profile.dart';
 import '../../../domain/usecases/get_my_profile_usecase.dart';
 import '../../../domain/usecases/update_profile_usecase.dart';
 import '../profile_gate/profile_gate_cubit.dart';
-import 'display_name_state.dart';
+import 'name_state.dart';
 
 /// Drives the name screen. Reads the profile fresh on mount, then writes both
 /// names through `PUT /api/profile` in a single call. Neither name is locked —
 /// the backend has no cooldown.
-class DisplayNameCubit extends Cubit<DisplayNameState>
-    with SafeEmit<DisplayNameState> {
+class NameCubit extends Cubit<NameState>
+    with SafeEmit<NameState> {
   final GetMyProfileUseCase _getMyProfile;
   final UpdateProfileUseCase _updateProfile;
   final ProfileGateCubit _profileGate;
 
-  DisplayNameCubit({
+  NameCubit({
     required GetMyProfileUseCase getMyProfile,
     required UpdateProfileUseCase updateProfile,
     required ProfileGateCubit profileGate,
   }) : _getMyProfile = getMyProfile,
        _updateProfile = updateProfile,
        _profileGate = profileGate,
-       super(const DisplayNameState());
+       super(const NameState());
 
   Future<void> load() async {
-    emit(state.copyWith(status: DisplayNameStatus.loading, clearError: true));
+    emit(state.copyWith(status: NameStatus.loading, clearError: true));
     final result = await _getMyProfile();
     if (isClosed) return;
     result.fold(
       (failure) => emit(
         state.copyWith(
-          status: DisplayNameStatus.failure,
+          status: NameStatus.failure,
           errorMessage: failure.message,
         ),
       ),
       (profile) => emit(
-        state.copyWith(status: DisplayNameStatus.loaded, profile: profile),
+        state.copyWith(status: NameStatus.loaded, profile: profile),
       ),
     );
   }
@@ -92,9 +92,9 @@ class DisplayNameCubit extends Cubit<DisplayNameState>
     emit(
       state.copyWith(
         profile: profile,
-        status: DisplayNameStatus.loaded,
+        status: NameStatus.loaded,
         saving: false,
-        event: DisplayNameEvent.saved,
+        event: NameEvent.saved,
         eventVersion: state.eventVersion + 1,
         clearError: true,
       ),
@@ -109,7 +109,7 @@ class DisplayNameCubit extends Cubit<DisplayNameState>
     emit(
       state.copyWith(
         saving: false,
-        event: DisplayNameEvent.saveFailed,
+        event: NameEvent.saveFailed,
         eventVersion: state.eventVersion + 1,
         // The backend's copy is already Arabic and specific; showing it
         // verbatim beats a generic client string.

@@ -11,26 +11,26 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import '../../blocs/display_name/display_name_cubit.dart';
-import '../../blocs/display_name/display_name_state.dart';
+import '../../blocs/name/name_cubit.dart';
+import '../../blocs/name/name_state.dart';
 import 'widgets/name_form.dart';
 
 /// Account-management screen for the member's names. Both the display name and
 /// the real name are plain, always-editable inputs saved by one action.
-class DisplayNameScreen extends StatelessWidget {
-  const DisplayNameScreen({super.key});
+class NameScreen extends StatelessWidget {
+  const NameScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DisplayNameCubit>(
-      create: (_) => sl<DisplayNameCubit>()..load(),
-      child: const _DisplayNameView(),
+    return BlocProvider<NameCubit>(
+      create: (_) => sl<NameCubit>()..load(),
+      child: const _NameView(),
     );
   }
 }
 
-class _DisplayNameView extends StatelessWidget {
-  const _DisplayNameView();
+class _NameView extends StatelessWidget {
+  const _NameView();
 
   @override
   Widget build(BuildContext context) {
@@ -40,35 +40,35 @@ class _DisplayNameView extends StatelessWidget {
         title: LocaleKeys.profile_name_screen_title.t(context),
       ),
       body: SafeArea(
-        child: BlocConsumer<DisplayNameCubit, DisplayNameState>(
+        child: BlocConsumer<NameCubit, NameState>(
           listenWhen: (previous, current) =>
               previous.eventVersion != current.eventVersion,
           listener: _onEvent,
           builder: (context, state) => switch (state.status) {
-            DisplayNameStatus.initial ||
-            DisplayNameStatus.loading => const Center(child: QeranLoader()),
-            DisplayNameStatus.failure => QeranErrorState(
+            NameStatus.initial ||
+            NameStatus.loading => const Center(child: QeranLoader()),
+            NameStatus.failure => QeranErrorState(
               title: LocaleKeys.profile_name_load_failed.t(context),
               message: state.errorMessage?.t(context),
               retryLabel: LocaleKeys.profile_retry.t(context),
-              onRetry: () => context.read<DisplayNameCubit>().load(),
+              onRetry: () => context.read<NameCubit>().load(),
             ),
-            DisplayNameStatus.loaded => _Body(state: state),
+            NameStatus.loaded => _Body(state: state),
           },
         ),
       ),
     );
   }
 
-  void _onEvent(BuildContext context, DisplayNameState state) {
+  void _onEvent(BuildContext context, NameState state) {
     switch (state.event) {
-      case DisplayNameEvent.saved:
+      case NameEvent.saved:
         AppSnackBar.show(
           context,
           message: LocaleKeys.profile_name_save_success.t(context),
           type: SnackBarType.success,
         );
-      case DisplayNameEvent.saveFailed:
+      case NameEvent.saveFailed:
         AppSnackBar.show(
           context,
           message:
@@ -76,7 +76,7 @@ class _DisplayNameView extends StatelessWidget {
               LocaleKeys.profile_name_save_failed.t(context),
           type: SnackBarType.error,
         );
-      case DisplayNameEvent.none:
+      case NameEvent.none:
         break;
     }
   }
@@ -85,7 +85,7 @@ class _DisplayNameView extends StatelessWidget {
 class _Body extends StatelessWidget {
   const _Body({required this.state});
 
-  final DisplayNameState state;
+  final NameState state;
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +100,7 @@ class _Body extends StatelessWidget {
         isDefaultName: state.profile?.isDefaultName ?? false,
         saving: state.saving,
         onSave: ({required displayName, realName}) =>
-            context.read<DisplayNameCubit>().save(
+            context.read<NameCubit>().save(
               displayName: displayName,
               realName: realName,
             ),

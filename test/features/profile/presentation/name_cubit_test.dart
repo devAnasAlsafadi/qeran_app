@@ -6,8 +6,8 @@ import 'package:qeran/features/profile/domain/entities/my_profile.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 import 'package:qeran/features/profile/domain/usecases/get_my_profile_usecase.dart';
 import 'package:qeran/features/profile/domain/usecases/update_profile_usecase.dart';
-import 'package:qeran/features/profile/presentation/blocs/display_name/display_name_cubit.dart';
-import 'package:qeran/features/profile/presentation/blocs/display_name/display_name_state.dart';
+import 'package:qeran/features/profile/presentation/blocs/name/name_cubit.dart';
+import 'package:qeran/features/profile/presentation/blocs/name/name_state.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_state.dart';
 
@@ -50,7 +50,7 @@ void main() {
 
   tearDown(() => gate.close());
 
-  DisplayNameCubit build() => DisplayNameCubit(
+  NameCubit build() => NameCubit(
     getMyProfile: getMyProfile,
     updateProfile: updateProfile,
     profileGate: gate,
@@ -98,7 +98,7 @@ void main() {
 
       await cubit.load();
 
-      expect(cubit.state.status, DisplayNameStatus.loaded);
+      expect(cubit.state.status, NameStatus.loaded);
       expect(cubit.state.displayName, 'سارة');
       expect(cubit.state.realName, 'سارة السالم');
       await cubit.close();
@@ -124,7 +124,7 @@ void main() {
 
       await cubit.load();
 
-      expect(cubit.state.status, DisplayNameStatus.failure);
+      expect(cubit.state.status, NameStatus.failure);
       expect(cubit.state.errorMessage, 'errors.server');
       await cubit.close();
     });
@@ -265,7 +265,7 @@ void main() {
 
       expect(cubit.state.displayName, 'سارة');
       expect(cubit.state.realName, 'سارة السالم');
-      expect(cubit.state.event, DisplayNameEvent.saved);
+      expect(cubit.state.event, NameEvent.saved);
       expect(cubit.state.saving, isFalse);
       // No refetch — the gate is fed from the PUT response.
       verify(() => getMyProfile()).called(1);
@@ -290,7 +290,7 @@ void main() {
 
       await cubit.save(displayName: 'اسم جديد');
 
-      expect(cubit.state.event, DisplayNameEvent.saveFailed);
+      expect(cubit.state.event, NameEvent.saveFailed);
       expect(cubit.state.errorMessage, 'رسالة من الخادم');
       expect(cubit.state.saving, isFalse);
       // Keeps the previous name on screen — a failed write must not blank it.

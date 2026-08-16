@@ -33,9 +33,15 @@ final class GetProfileByIdNotFound extends GetProfileByIdResult {
 abstract interface class ProfileRemoteDataSource {
   Future<MyProfileModel> getMyProfile();
 
-  /// `PUT /api/profile` with `{displayName}`. Returns the complete updated
-  /// profile the server responded with — the caller must not refetch.
-  Future<MyProfileModel> updateDisplayName(String displayName);
+  /// `PUT /api/profile` with `{displayName, realName?}`. Returns the complete
+  /// updated profile the server responded with — the caller must not refetch.
+  ///
+  /// [realName] null omits the key entirely (leave unchanged); `''` clears the
+  /// stored value. The caller decides which of the two it means.
+  Future<MyProfileModel> updateProfile({
+    required String displayName,
+    String? realName,
+  });
   Future<GetProfileByIdResult> getProfileById(String userId);
   Future<BasicUserModel?> getBasicUser(String id);
   Future<List<OwnerImageModel>> getProfileImages();
@@ -77,13 +83,24 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<MyProfileModel> updateDisplayName(String displayName) async {
-    AppLogger.debug('UPDATE DISPLAY NAME', tag: 'PROFILE');
-    // Only `displayName` is sent. `realName` is collected by the backend at
-    // the formal-agreement stage and must never be written from the app.
+  Future<MyProfileModel> updateProfile({
+    required String displayName,
+    String? realName,
+  }) async {
+    // The three realName intents are worth telling apart in a log: an omitted
+    // key, an explicit clear, and a new value are three different writes.
+    final intent = switch (realName) {
+      null => 'unchanged',
+      '' => 'cleared',
+      _ => 'set',
+    };
+    AppLogger.debug('UPDATE PROFILE realName=$intent', tag: 'PROFILE');
+    // `displayName` is required on every call. `realName` is omitted entirely
+    // when null — the server reads a missing key as "leave unchanged", which
+    // an explicit null would NOT mean.
     final response = await _apiConsumer.put(
       EndPoints.updateProfile,
-      body: {'displayName': displayName},
+      body: {'displayName': displayName, 'realName': ?realName},
     );
     final apiResponse = ApiResponse<MyProfileModel>.fromJson(
       response as Map<String, dynamic>,
@@ -94,7 +111,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         message: apiResponse.message ?? LocaleKeys.errors_generic,
       );
     }
-    AppLogger.info('Display name updated', tag: 'PROFILE');
+    AppLogger.info('Profile names updated', tag: 'PROFILE');
     return apiResponse.data!;
   }
 

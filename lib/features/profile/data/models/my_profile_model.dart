@@ -13,12 +13,9 @@ class MyProfileModel {
   /// never present on another user's payload and never rendered publicly.
   final String? realName;
 
-  /// Display-name migration flags. `isDefaultName` means the server assigned
-  /// the placeholder and the member may edit freely; otherwise a 7-day
-  /// cooldown runs from their first real edit.
+  /// The server assigned the placeholder name and the member has never chosen
+  /// one. Prompts them to set a real one; it does not restrict editing.
   final bool isDefaultName;
-  final bool isDisplayNameLocked;
-  final DateTime? displayNameLockedUntil;
   final String? email;
   final String gender;
   final DateTime? birthDate;
@@ -34,8 +31,6 @@ class MyProfileModel {
     required this.name,
     this.realName,
     this.isDefaultName = false,
-    this.isDisplayNameLocked = false,
-    this.displayNameLockedUntil,
     required this.email,
     required this.gender,
     required this.birthDate,
@@ -70,10 +65,6 @@ class MyProfileModel {
       name: parseDisplayName(json),
       realName: parseNullableString(json['realName']),
       isDefaultName: parseBool(json['isDefaultName']),
-      isDisplayNameLocked: parseBool(json['isDisplayNameLocked']),
-      displayNameLockedUntil: parseNullableDateTime(
-        json['displayNameLockedUntil'],
-      ),
       email: parseNullableString(json['email']),
       gender: parseString(json['gender']),
       birthDate: parseNullableDateTime(json['birthDate']),
@@ -93,8 +84,6 @@ class MyProfileModel {
         name: name,
         realName: realName,
         isDefaultName: isDefaultName,
-        isDisplayNameLocked: isDisplayNameLocked,
-        displayNameLockedUntil: displayNameLockedUntil,
         email: email,
         gender: gender,
         birthDate: birthDate,

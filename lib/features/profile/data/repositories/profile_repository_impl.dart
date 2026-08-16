@@ -28,9 +28,15 @@ class ProfileRepositoryImpl
   }
 
   @override
-  Future<Either<Failure, MyProfile>> updateDisplayName(String displayName) {
+  Future<Either<Failure, MyProfile>> updateProfile({
+    required String displayName,
+    String? realName,
+  }) {
     return executeApiCall(() async {
-      final model = await _dataSource.updateDisplayName(displayName);
+      final model = await _dataSource.updateProfile(
+        displayName: displayName,
+        realName: realName,
+      );
       return model.toEntity();
     });
   }

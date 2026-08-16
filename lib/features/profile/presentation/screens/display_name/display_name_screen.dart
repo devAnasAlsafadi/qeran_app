@@ -11,16 +11,12 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import '../../../domain/entities/display_name_lock.dart';
 import '../../blocs/display_name/display_name_cubit.dart';
 import '../../blocs/display_name/display_name_state.dart';
-import 'widgets/display_name_form.dart';
-import 'widgets/display_name_notice.dart';
-import 'widgets/display_name_readonly_card.dart';
+import 'widgets/name_form.dart';
 
-/// Account-management screen for the member's names. The display name is
-/// editable (subject to the backend's 7-day cooldown); the real name is shown
-/// but never editable here.
+/// Account-management screen for the member's names. Both the display name and
+/// the real name are plain, always-editable inputs saved by one action.
 class DisplayNameScreen extends StatelessWidget {
   const DisplayNameScreen({super.key});
 
@@ -93,48 +89,22 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Resolved once per build: the countdown is rendered in whole days or
-    // hours, so it does not need to tick.
-    final now = DateTime.now();
     return SingleChildScrollView(
       padding: const EdgeInsets.all(QeranSpacing.s16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DisplayNameReadOnlyCard(
-            displayName: state.displayName,
-            realName: state.realName,
-          ),
-          QeranSpacing.vs24,
-          if (state.canEdit(now))
-            DisplayNameForm(
-              currentName: state.displayName,
-              isDefaultName: state.isDefaultName,
-              saving: state.saving,
-              onSave: (name) => context.read<DisplayNameCubit>().save(name),
-            )
-          else
-            DisplayNameNotice(
-              icon: Icons.lock_clock_rounded,
-              message: _lockMessage(context, state.lockRemaining(now)),
+      child: NameForm(
+        // Keyed on the saved pair so a successful write re-seeds the fields
+        // from the server's response instead of leaving stale text behind.
+        key: ValueKey('${state.displayName}|${state.realName ?? ''}'),
+        currentDisplayName: state.displayName,
+        currentRealName: state.realName,
+        isDefaultName: state.profile?.isDefaultName ?? false,
+        saving: state.saving,
+        onSave: ({required displayName, realName}) =>
+            context.read<DisplayNameCubit>().save(
+              displayName: displayName,
+              realName: realName,
             ),
-        ],
       ),
     );
-  }
-
-  /// The cooldown in the unit the UI counts it. A lock with no usable
-  /// timestamp still blocks editing — it just says so without a number rather
-  /// than inventing one.
-  String _lockMessage(BuildContext context, NameLockRemaining? remaining) {
-    return switch (remaining) {
-      NameLockDays(:final days) => LocaleKeys.profile_name_locked_days
-          .t(context)
-          .replaceFirst('{days}', '$days'),
-      NameLockHours(:final hours) => LocaleKeys.profile_name_locked_hours
-          .t(context)
-          .replaceFirst('{hours}', '$hours'),
-      _ => LocaleKeys.profile_name_locked_generic.t(context),
-    };
   }
 }

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../domain/entities/display_name_lock.dart';
 import '../../../domain/entities/my_profile.dart';
 
 enum DisplayNameStatus { initial, loading, loaded, failure }
@@ -21,43 +20,27 @@ class DisplayNameState extends Equatable {
 
   final DisplayNameStatus status;
 
-  /// The profile the screen renders from. Retained across a save so a failed
-  /// write never blanks the form.
+  /// The profile the screen renders from, and the BASELINE both fields are
+  /// diffed against when deciding what to send. Retained across a save so a
+  /// failed write never blanks the form.
   final MyProfile? profile;
   final bool saving;
   final DisplayNameEvent event;
   final int eventVersion;
 
   /// Load failure, or the server's verbatim message on a rejected save.
+  /// The backend attributes a rejection to the call, not to a field, so this
+  /// one envelope message carries every failure.
   final String? errorMessage;
 
+  /// The saved display name — the baseline the form's field is diffed against.
   String get displayName => profile?.name ?? '';
 
+  /// The saved real name, or null when the member has none on file. Blank is
+  /// normalised to null so "absent" and "empty string" are one state here.
   String? get realName {
     final value = profile?.realName?.trim();
     return (value == null || value.isEmpty) ? null : value;
-  }
-
-  bool get isDefaultName => profile?.isDefaultName ?? false;
-
-  /// The cooldown as the UI counts it, or null when nothing is counting down.
-  /// Computed against [now] so the caller controls the clock (and tests can).
-  NameLockRemaining? lockRemaining(DateTime now) {
-    final until = profile?.displayNameLockedUntil;
-    if (until == null) return null;
-    return nameLockRemaining(until, now);
-  }
-
-  /// Whether the name may be edited right now.
-  ///
-  /// A member still on the server-assigned placeholder always may — the
-  /// cooldown does not apply to them. Otherwise the backend's lock flag holds,
-  /// except once its own timestamp has passed: an expired window is treated as
-  /// open rather than showing a countdown that reads zero.
-  bool canEdit(DateTime now) {
-    if (isDefaultName) return true;
-    if (!(profile?.isDisplayNameLocked ?? false)) return true;
-    return lockRemaining(now) is NameLockElapsed;
   }
 
   DisplayNameState copyWith({
@@ -75,6 +58,7 @@ class DisplayNameState extends Equatable {
       saving: saving ?? this.saving,
       event: event ?? this.event,
       eventVersion: eventVersion ?? this.eventVersion,
+      // A new attempt clears what the previous one reported.
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }

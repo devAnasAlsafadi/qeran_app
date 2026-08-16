@@ -1,9 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/profile/data/models/my_profile_model.dart';
 
-/// The DisplayName/RealName migration on `GET /api/profile`. Two things must
-/// hold: `realName` never leaks into the public-facing name, and the lock
-/// fields survive the wire.
+/// The DisplayName/RealName split on `GET /api/profile`: `realName` never
+/// leaks into the public-facing name, and `isDefaultName` survives the wire.
 void main() {
   Map<String, dynamic> json(Map<String, dynamic> overrides) => {
     'userId': 'u-1',
@@ -31,30 +30,16 @@ void main() {
     expect(profile.realName, 'محمد عبدالله السالم');
   });
 
-  test('the lock fields parse', () {
-    final profile = MyProfileModel.fromJson(
-      json({
-        'displayName': 'سارة',
-        'isDefaultName': false,
-        'isDisplayNameLocked': true,
-        'displayNameLockedUntil': '2026-08-19T12:00:00Z',
-      }),
+  test('realName parses when present and is null when absent', () {
+    final withName = MyProfileModel.fromJson(
+      json({'displayName': 'سارة', 'realName': 'سارة السالم'}),
     ).toEntity();
-    expect(profile.isDefaultName, isFalse);
-    expect(profile.isDisplayNameLocked, isTrue);
-    expect(
-      profile.displayNameLockedUntil?.toUtc(),
-      DateTime.utc(2026, 8, 19, 12),
-    );
-  });
+    expect(withName.realName, 'سارة السالم');
 
-  test('a payload that predates the migration is treated as unlocked', () {
-    // An older server (or a cached response) omits all three. Defaulting to
-    // "locked" would strand the user with no way to set a name at all.
-    final profile = MyProfileModel.fromJson(json({'name': 'مستخدم'})).toEntity();
-    expect(profile.isDefaultName, isFalse);
-    expect(profile.isDisplayNameLocked, isFalse);
-    expect(profile.displayNameLockedUntil, isNull);
+    final without = MyProfileModel.fromJson(
+      json({'displayName': 'سارة'}),
+    ).toEntity();
+    expect(without.realName, isNull);
   });
 
   test('the default-name flag survives as sent', () {
@@ -62,5 +47,28 @@ void main() {
       json({'displayName': 'مستخدم', 'isDefaultName': true}),
     ).toEntity();
     expect(profile.isDefaultName, isTrue);
+  });
+
+  test('an omitted default-name flag reads as false', () {
+    // Defaulting to true would show the "set a real name" banner to everyone
+    // on a payload that simply predates the field.
+    final profile = MyProfileModel.fromJson(
+      json({'name': 'مستخدم'}),
+    ).toEntity();
+    expect(profile.isDefaultName, isFalse);
+  });
+
+  test('retired lock keys on the wire are ignored, not parsed', () {
+    // The backend never had a cooldown; if a stale payload still carries the
+    // fields the client must simply not care.
+    final profile = MyProfileModel.fromJson(
+      json({
+        'displayName': 'سارة',
+        'isDisplayNameLocked': true,
+        'displayNameLockedUntil': '2026-08-19T12:00:00Z',
+      }),
+    ).toEntity();
+    expect(profile.name, 'سارة');
+    expect(profile.isDefaultName, isFalse);
   });
 }

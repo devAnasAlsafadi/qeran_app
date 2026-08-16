@@ -5,29 +5,25 @@ import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../../domain/entities/my_profile.dart';
 import '../../../domain/usecases/get_my_profile_usecase.dart';
-import '../../../domain/usecases/update_display_name_usecase.dart';
+import '../../../domain/usecases/update_profile_usecase.dart';
 import '../profile_gate/profile_gate_cubit.dart';
 import 'display_name_state.dart';
 
-/// The backend's machine-readable rejection when an edit lands inside the
-/// 7-day cooldown. Preferred over matching the Arabic message.
-const String kDisplayNameLockedCode = 'DISPLAY_NAME_LOCKED';
-
-/// Drives the name screen. Reads the profile fresh on mount — the lock window
-/// must be current at the moment the editor opens, not whenever the app-scoped
-/// gate last refreshed — and writes through `PUT /api/profile`.
+/// Drives the name screen. Reads the profile fresh on mount, then writes both
+/// names through `PUT /api/profile` in a single call. Neither name is locked —
+/// the backend has no cooldown.
 class DisplayNameCubit extends Cubit<DisplayNameState>
     with SafeEmit<DisplayNameState> {
   final GetMyProfileUseCase _getMyProfile;
-  final UpdateDisplayNameUseCase _updateDisplayName;
+  final UpdateProfileUseCase _updateProfile;
   final ProfileGateCubit _profileGate;
 
   DisplayNameCubit({
     required GetMyProfileUseCase getMyProfile,
-    required UpdateDisplayNameUseCase updateDisplayName,
+    required UpdateProfileUseCase updateProfile,
     required ProfileGateCubit profileGate,
   }) : _getMyProfile = getMyProfile,
-       _updateDisplayName = updateDisplayName,
+       _updateProfile = updateProfile,
        _profileGate = profileGate,
        super(const DisplayNameState());
 
@@ -48,20 +44,47 @@ class DisplayNameCubit extends Cubit<DisplayNameState>
     );
   }
 
-  /// Writes [name] and re-seeds from the profile the server returns. The
+  /// Writes both names and re-seeds from the profile the server returns. The
   /// app-scoped gate is updated from the same payload so the settings hero and
   /// the default-name banner change without a second read.
-  Future<void> save(String name) async {
-    final trimmed = name.trim();
-    if (state.saving || trimmed.isEmpty || trimmed == state.displayName) return;
+  ///
+  /// [displayName] is required by the backend on every call. [realName] is
+  /// resolved against the loaded baseline by [_realNamePayload].
+  Future<void> save({required String displayName, String? realName}) async {
+    final trimmedDisplayName = displayName.trim();
+    if (state.saving || trimmedDisplayName.isEmpty) return;
+
+    final realNamePayload = _realNamePayload(realName);
+    // The pair decides, not the display name alone: a null payload means
+    // realName is unchanged, so only when the display name ALSO matches the
+    // baseline is there nothing to write.
+    if (trimmedDisplayName == state.displayName && realNamePayload == null) {
+      return;
+    }
 
     emit(state.copyWith(saving: true, clearError: true));
-    final result = await _updateDisplayName(trimmed);
-    if (isClosed) return;
-    await result.fold(
-      (failure) => _onSaveFailure(failure),
-      (profile) async => _onSaveSuccess(profile),
+    final result = await _updateProfile(
+      displayName: trimmedDisplayName,
+      realName: realNamePayload,
     );
+    if (isClosed) return;
+    result.fold(_onSaveFailure, _onSaveSuccess);
+  }
+
+  /// What to send for `realName`, per the backend's three-way contract:
+  /// null omits the key (leave unchanged), `''` clears the stored value, and
+  /// anything else sets it.
+  ///
+  /// Diffing against the loaded profile is what lets "the member never touched
+  /// this field" and "the member emptied it" resolve differently without the
+  /// form having to track whether it was focused.
+  String? _realNamePayload(String? input) {
+    final current = input?.trim() ?? '';
+    // `state.realName` already trims and normalises blank to null, so an
+    // absent name and an empty one compare equal here.
+    final baseline = state.realName ?? '';
+    if (current == baseline) return null;
+    return current;
   }
 
   void _onSaveSuccess(MyProfile profile) {
@@ -78,9 +101,9 @@ class DisplayNameCubit extends Cubit<DisplayNameState>
     );
   }
 
-  Future<void> _onSaveFailure(Failure failure) async {
+  void _onSaveFailure(Failure failure) {
     AppLogger.warning(
-      'Display name save failed message="${failure.message}"',
+      'Profile names save failed message="${failure.message}"',
       tag: 'PROFILE',
     );
     emit(
@@ -88,28 +111,9 @@ class DisplayNameCubit extends Cubit<DisplayNameState>
         saving: false,
         event: DisplayNameEvent.saveFailed,
         eventVersion: state.eventVersion + 1,
-        // The backend's cooldown copy is already Arabic and specific; showing
-        // it verbatim beats a generic client string.
+        // The backend's copy is already Arabic and specific; showing it
+        // verbatim beats a generic client string.
         errorMessage: failure.message,
-      ),
-    );
-    // A cooldown rejection means our view of the lock is stale — the window we
-    // were rendering as open is not. Re-read so the form locks itself.
-    if (failure is CodedServerFailure &&
-        failure.errorCode == kDisplayNameLockedCode) {
-      await _refreshQuietly();
-    }
-  }
-
-  /// Re-reads the profile without a loading flash — used after a rejection,
-  /// where the form is already on screen and must not blank.
-  Future<void> _refreshQuietly() async {
-    final result = await _getMyProfile();
-    if (isClosed) return;
-    result.fold(
-      (_) {},
-      (profile) => emit(
-        state.copyWith(status: DisplayNameStatus.loaded, profile: profile),
       ),
     );
   }

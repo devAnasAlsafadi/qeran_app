@@ -5,7 +5,7 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/profile/domain/entities/my_profile.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 import 'package:qeran/features/profile/domain/usecases/get_my_profile_usecase.dart';
-import 'package:qeran/features/profile/domain/usecases/update_display_name_usecase.dart';
+import 'package:qeran/features/profile/domain/usecases/update_profile_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/display_name/display_name_cubit.dart';
 import 'package:qeran/features/profile/presentation/blocs/display_name/display_name_state.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
@@ -13,21 +13,17 @@ import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_g
 
 class _MockGetMyProfile extends Mock implements GetMyProfileUseCase {}
 
-class _MockUpdateDisplayName extends Mock implements UpdateDisplayNameUseCase {}
+class _MockUpdateProfile extends Mock implements UpdateProfileUseCase {}
 
 MyProfile _profile({
   String name = 'سارة',
   String? realName,
   bool isDefaultName = false,
-  bool isLocked = false,
-  DateTime? lockedUntil,
 }) => MyProfile(
   id: 'u-1',
   name: name,
   realName: realName,
   isDefaultName: isDefaultName,
-  isDisplayNameLocked: isLocked,
-  displayNameLockedUntil: lockedUntil,
   email: 'a@b.c',
   gender: 'Female',
   birthDate: null,
@@ -41,14 +37,12 @@ MyProfile _profile({
 
 void main() {
   late _MockGetMyProfile getMyProfile;
-  late _MockUpdateDisplayName updateDisplayName;
+  late _MockUpdateProfile updateProfile;
   late ProfileGateCubit gate;
-
-  final now = DateTime.utc(2026, 8, 12, 12);
 
   setUp(() {
     getMyProfile = _MockGetMyProfile();
-    updateDisplayName = _MockUpdateDisplayName();
+    updateProfile = _MockUpdateProfile();
     // A real gate over a mock use case — the write-back path is what's under
     // test, so a stub would prove nothing.
     gate = ProfileGateCubit(getMyProfile: getMyProfile);
@@ -58,8 +52,41 @@ void main() {
 
   DisplayNameCubit build() => DisplayNameCubit(
     getMyProfile: getMyProfile,
-    updateDisplayName: updateDisplayName,
+    updateProfile: updateProfile,
     profileGate: gate,
+  );
+
+  /// Stubs the write with a fixed result and captures what was actually sent.
+  void stubWrite(MyProfile returned) {
+    when(
+      () => updateProfile(
+        displayName: any(named: 'displayName'),
+        realName: any(named: 'realName'),
+      ),
+    ).thenAnswer((_) async => Right(returned));
+  }
+
+  /// Both arguments of the single write that happened. Captured in ONE
+  /// `verify` — mocktail marks a call verified, so a second `verify` on the
+  /// same call would find nothing.
+  ({String displayName, String? realName}) capturedWrite() {
+    final captured = verify(
+      () => updateProfile(
+        displayName: captureAny(named: 'displayName'),
+        realName: captureAny(named: 'realName'),
+      ),
+    ).captured;
+    return (
+      displayName: captured[0] as String,
+      realName: captured[1] as String?,
+    );
+  }
+
+  void verifyNoWrite() => verifyNever(
+    () => updateProfile(
+      displayName: any(named: 'displayName'),
+      realName: any(named: 'realName'),
+    ),
   );
 
   group('load', () {
@@ -103,69 +130,141 @@ void main() {
     });
   });
 
-  group('canEdit', () {
-    test('the placeholder name is always editable, lock flag or not', () {
-      // The backend exempts default-name users from the cooldown; honouring
-      // the lock here would strand them on "مستخدم" forever.
-      final state = DisplayNameState(
-        profile: _profile(
-          name: 'مستخدم',
-          isDefaultName: true,
-          isLocked: true,
-          lockedUntil: now.add(const Duration(days: 5)),
-        ),
-      );
-      expect(state.canEdit(now), isTrue);
+  group('save — what reaches the wire', () {
+    test('both names change in one call', () async {
+      when(
+        () => getMyProfile(),
+      ).thenAnswer((_) async => Right(_profile(realName: 'سارة السالم')));
+      stubWrite(_profile(name: 'دينا', realName: 'دينا الأحمد'));
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: 'دينا', realName: 'دينا الأحمد');
+
+      final sent = capturedWrite();
+      expect(sent.displayName, 'دينا');
+      expect(sent.realName, 'دينا الأحمد');
+      await cubit.close();
     });
 
-    test('a live cooldown blocks editing', () {
-      final state = DisplayNameState(
-        profile: _profile(
-          isLocked: true,
-          lockedUntil: now.add(const Duration(days: 5)),
-        ),
-      );
-      expect(state.canEdit(now), isFalse);
+    test('displayName only — realName is omitted, not blanked', () async {
+      // The bug this guards: sending '' here would silently CLEAR a real name
+      // the member never touched.
+      when(
+        () => getMyProfile(),
+      ).thenAnswer((_) async => Right(_profile(realName: 'سارة السالم')));
+      stubWrite(_profile(name: 'دينا', realName: 'سارة السالم'));
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: 'دينا', realName: 'سارة السالم');
+
+      final sent = capturedWrite();
+      expect(sent.displayName, 'دينا');
+      expect(sent.realName, isNull);
+      await cubit.close();
     });
 
-    test('a lock whose window has passed is treated as open', () {
-      // Showing "you can edit in 0 days" to someone whose cooldown expired
-      // would be a bug the server would not agree with.
-      final state = DisplayNameState(
-        profile: _profile(
-          isLocked: true,
-          lockedUntil: now.subtract(const Duration(hours: 1)),
-        ),
-      );
-      expect(state.canEdit(now), isTrue);
+    test('realName only — the write still happens', () async {
+      // The old early-return compared the display name alone and swallowed
+      // this case entirely.
+      when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
+      stubWrite(_profile(realName: 'سارة السالم'));
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: 'سارة', realName: 'سارة السالم');
+
+      final sent = capturedWrite();
+      expect(sent.displayName, 'سارة');
+      expect(sent.realName, 'سارة السالم');
+      await cubit.close();
     });
 
-    test('a lock with no timestamp is still respected', () {
-      final state = DisplayNameState(profile: _profile(isLocked: true));
-      expect(state.canEdit(now), isFalse);
+    test('clearing a set realName sends an empty string', () async {
+      when(
+        () => getMyProfile(),
+      ).thenAnswer((_) async => Right(_profile(realName: 'سارة السالم')));
+      stubWrite(_profile());
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: 'سارة', realName: '');
+
+      expect(capturedWrite().realName, '');
+      await cubit.close();
+    });
+
+    test('an already-absent realName left empty is omitted', () async {
+      // Nothing to clear, so there is nothing to send — but the display name
+      // did change, so the call itself must still go out.
+      when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
+      stubWrite(_profile(name: 'دينا'));
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: 'دينا', realName: '   ');
+
+      expect(capturedWrite().realName, isNull);
+      await cubit.close();
+    });
+
+    test('both names are trimmed before comparison and sending', () async {
+      when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
+      stubWrite(_profile(name: 'دينا', realName: 'سارة السالم'));
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: '  دينا  ', realName: '  سارة السالم  ');
+
+      final sent = capturedWrite();
+      expect(sent.displayName, 'دينا');
+      expect(sent.realName, 'سارة السالم');
+      await cubit.close();
     });
   });
 
-  group('save', () {
+  group('save — guards', () {
+    test('an unchanged pair is not written', () async {
+      when(
+        () => getMyProfile(),
+      ).thenAnswer((_) async => Right(_profile(realName: 'سارة السالم')));
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: '  سارة  ', realName: '  سارة السالم  ');
+
+      verifyNoWrite();
+      await cubit.close();
+    });
+
+    test('an empty displayName is not written, even with a new realName',
+        () async {
+      // displayName is required on every call, so there is no payload to send.
+      when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.save(displayName: '   ', realName: 'سارة السالم');
+
+      verifyNoWrite();
+      await cubit.close();
+    });
+  });
+
+  group('save — outcomes', () {
     test('re-seeds from the returned profile and updates the gate', () async {
       when(() => getMyProfile()).thenAnswer(
         (_) async => Right(_profile(name: 'مستخدم', isDefaultName: true)),
       );
-      when(() => updateDisplayName('سارة')).thenAnswer(
-        (_) async => Right(
-          _profile(
-            name: 'سارة',
-            isLocked: true,
-            lockedUntil: now.add(const Duration(days: 7)),
-          ),
-        ),
-      );
+      stubWrite(_profile(name: 'سارة', realName: 'سارة السالم'));
       final cubit = build();
       await cubit.load();
 
-      await cubit.save('  سارة  ');
+      await cubit.save(displayName: 'سارة', realName: 'سارة السالم');
 
       expect(cubit.state.displayName, 'سارة');
+      expect(cubit.state.realName, 'سارة السالم');
       expect(cubit.state.event, DisplayNameEvent.saved);
       expect(cubit.state.saving, isFalse);
       // No refetch — the gate is fed from the PUT response.
@@ -176,38 +275,20 @@ void main() {
       await cubit.close();
     });
 
-    test('an unchanged name is not written', () async {
-      // A no-op write would still burn the member's 7-day cooldown.
-      when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
-      final cubit = build();
-      await cubit.load();
-
-      await cubit.save('  سارة  ');
-
-      verifyNever(() => updateDisplayName(any()));
-      await cubit.close();
-    });
-
-    test('an empty name is not written', () async {
-      when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
-      final cubit = build();
-      await cubit.load();
-
-      await cubit.save('   ');
-
-      verifyNever(() => updateDisplayName(any()));
-      await cubit.close();
-    });
-
     test('a rejection surfaces the server message verbatim', () async {
       when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
-      when(() => updateDisplayName(any())).thenAnswer(
+      when(
+        () => updateProfile(
+          displayName: any(named: 'displayName'),
+          realName: any(named: 'realName'),
+        ),
+      ).thenAnswer(
         (_) async => const Left(ServerFailure(message: 'رسالة من الخادم')),
       );
       final cubit = build();
       await cubit.load();
 
-      await cubit.save('اسم جديد');
+      await cubit.save(displayName: 'اسم جديد');
 
       expect(cubit.state.event, DisplayNameEvent.saveFailed);
       expect(cubit.state.errorMessage, 'رسالة من الخادم');
@@ -217,40 +298,14 @@ void main() {
       await cubit.close();
     });
 
-    test('a cooldown rejection re-reads so the form locks itself', () async {
-      final locked = _profile(
-        isLocked: true,
-        lockedUntil: now.add(const Duration(days: 4)),
-      );
-      // First read: our stale view, showing an editable form. Second read (the
-      // quiet refresh after the rejection): the real, locked state.
-      var reads = 0;
-      when(() => getMyProfile()).thenAnswer((_) async {
-        reads++;
-        return Right(reads == 1 ? _profile() : locked);
-      });
-      when(() => updateDisplayName(any())).thenAnswer(
-        (_) async => const Left(
-          CodedServerFailure(
-            message: 'الاسم مقفل',
-            errorCode: kDisplayNameLockedCode,
-          ),
-        ),
-      );
-      final cubit = build();
-      await cubit.load();
-      expect(cubit.state.canEdit(now), isTrue);
-
-      await cubit.save('اسم جديد');
-
-      expect(reads, 2);
-      expect(cubit.state.canEdit(now), isFalse);
-      await cubit.close();
-    });
-
-    test('an ordinary rejection does not trigger a re-read', () async {
+    test('no rejection triggers a re-read — the lock retry path is gone', () async {
       when(() => getMyProfile()).thenAnswer((_) async => Right(_profile()));
-      when(() => updateDisplayName(any())).thenAnswer(
+      when(
+        () => updateProfile(
+          displayName: any(named: 'displayName'),
+          realName: any(named: 'realName'),
+        ),
+      ).thenAnswer(
         (_) async => const Left(
           CodedServerFailure(message: 'خطأ', errorCode: 'SOMETHING_ELSE'),
         ),
@@ -258,7 +313,7 @@ void main() {
       final cubit = build();
       await cubit.load();
 
-      await cubit.save('اسم جديد');
+      await cubit.save(displayName: 'اسم جديد');
 
       verify(() => getMyProfile()).called(1);
       await cubit.close();

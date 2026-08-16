@@ -14,11 +14,15 @@ abstract interface class ProfileRepository {
   /// `images[isApproved]`.
   Future<Either<Failure, MyProfile>> getMyProfile();
 
-  /// `PUT /api/profile`. Sets the DISPLAY name and returns the complete
-  /// updated profile, so callers refresh from the result rather than
-  /// re-reading. A rejected edit inside the 7-day cooldown arrives as a
-  /// `CodedServerFailure` with `errorCode == 'DISPLAY_NAME_LOCKED'`.
-  Future<Either<Failure, MyProfile>> updateDisplayName(String displayName);
+  /// `PUT /api/profile`. Sets both names and returns the complete updated
+  /// profile, so callers refresh from the result rather than re-reading.
+  ///
+  /// [displayName] is required. [realName] null leaves the stored value
+  /// untouched; `''` clears it.
+  Future<Either<Failure, MyProfile>> updateProfile({
+    required String displayName,
+    String? realName,
+  });
 
   /// `GET /api/discovery/profiles/{userId}`. Other-user shape with
   /// `matchingScore` and `images[isBlurred]`. On the documented

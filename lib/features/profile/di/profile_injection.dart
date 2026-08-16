@@ -15,7 +15,7 @@ import '../domain/usecases/get_my_profile_usecase.dart';
 import '../domain/usecases/get_profile_images_usecase.dart';
 import '../domain/usecases/get_profile_by_id_usecase.dart';
 import '../domain/usecases/set_main_profile_image_usecase.dart';
-import '../domain/usecases/update_display_name_usecase.dart';
+import '../domain/usecases/update_profile_usecase.dart';
 import '../presentation/default_name_banner_session.dart';
 import '../presentation/blocs/delete_account/delete_account_cubit.dart';
 import '../presentation/blocs/display_name/display_name_cubit.dart';
@@ -44,7 +44,7 @@ void initProfileDependencies() {
 
   //! UseCases
   sl.registerLazySingleton(() => GetMyProfileUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateDisplayNameUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
   sl.registerLazySingleton(() => GetProfileImagesUseCase(sl()));
   sl.registerLazySingleton(() => AddProfileImagesUseCase(sl()));
   sl.registerLazySingleton(() => DeleteProfileImageUseCase(sl()));
@@ -70,7 +70,7 @@ void initProfileDependencies() {
   sl.registerFactory(
     () => DisplayNameCubit(
       getMyProfile: sl(),
-      updateDisplayName: sl(),
+      updateProfile: sl(),
       // Writes the updated profile straight back into the app-scoped gate, so
       // the settings hero and the default-name banner refresh without a
       // second GET /api/profile.

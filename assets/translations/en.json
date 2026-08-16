@@ -19,7 +19,7 @@
     "phone_digits_only": "Phone number must contain digits only",
     "phone_too_short": "Phone number is too short",
     "name_too_short": "Name is too short — at least 2 characters",
-    "name_too_long": "Name is too long — 100 characters maximum",
+    "name_too_long": "Name is too long — {max} characters maximum",
     "name_invalid_chars": "Name contains characters that are not allowed"
   },
   "errors": {

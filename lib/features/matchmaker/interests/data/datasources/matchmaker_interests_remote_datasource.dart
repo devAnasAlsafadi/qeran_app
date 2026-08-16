@@ -65,13 +65,19 @@ class MatchmakerInterestsRemoteDataSourceImpl
   Future<MatchmakerInterestPage<List<MatchmakerInterestMatch>>> getMatches(
     String userId,
   ) {
-    return _page(
-      EndPoints.matchmakerUserMatches(userId),
-      'matches',
-      (data) => parseMapList(data)
+    return _page(EndPoints.matchmakerUserMatches(userId), 'matches', (data) {
+      final matches = parseMapList(data)
           .map((m) => MatchmakerInterestMatchModel.fromJson(m).toEntity())
-          .toList(growable: false),
-    );
+          .toList(growable: false);
+      // A photo-exchange block that sends both halves calibrates the clock the
+      // same way the likes rows do — this tab can be the first one opened.
+      ServerClock.instance.calibrateFromAny([
+        for (final m in matches)
+          if (m.pendingPhotoExchange case final p?)
+            (expiresAt: p.expiresAt, remainingSeconds: p.remainingSeconds),
+      ]);
+      return matches;
+    });
   }
 
   @override

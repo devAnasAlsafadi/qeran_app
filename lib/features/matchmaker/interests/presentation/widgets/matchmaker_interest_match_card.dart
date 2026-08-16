@@ -6,6 +6,7 @@ import '../../../../../core/design_system/widgets/qeran_chip.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
+import '../../../../../features/likes/presentation/widgets/like_card_countdown_chip.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_fact_chips.dart';
 import '../../domain/entities/matchmaker_interest_enums.dart';
@@ -25,6 +26,7 @@ class MatchmakerInterestMatchCard extends StatelessWidget {
     final locked = match.isLocked;
     final spec = _stageSpec(match.stage);
     final formalLabel = _formalLabel(context, match.formalRequest);
+    final countdown = _countdown();
 
     return MatchmakerInterestCard(
       imageUrl: match.primaryImage?.url,
@@ -38,6 +40,12 @@ class MatchmakerInterestMatchCard extends StatelessWidget {
               arguments: match.otherUserId,
             ),
       chips: [
+        // Leads the row while it is running — a deadline is the most
+        // perishable thing on the card. Shown ONLY for a photo exchange that
+        // is still open; an accepted, rejected or lapsed one keeps its stage
+        // chip and no clock. Same chip the like cards on the other two tabs
+        // use, so one screen speaks with one voice.
+        ?countdown,
         QeranChip(
           label: spec.labelKey.t(context),
           variant: QeranChipVariant.status,
@@ -60,6 +68,20 @@ class MatchmakerInterestMatchCard extends StatelessWidget {
               ageAsChip: true,
             )
           : null,
+    );
+  }
+
+  /// The live photo-exchange countdown, or null when there is nothing running
+  /// to count. `isAwaitingResponse` covers all three ways that happens: no
+  /// exchange, a resolved one, and a lapsed one whose block the server still
+  /// returns.
+  Widget? _countdown() {
+    final exchange = match.pendingPhotoExchange;
+    if (exchange == null || !exchange.isAwaitingResponse) return null;
+    if (exchange.expiresAt == null) return null;
+    return LikeCountdownChip(
+      expiresAt: exchange.expiresAt,
+      initialSeconds: exchange.remainingSeconds,
     );
   }
 }

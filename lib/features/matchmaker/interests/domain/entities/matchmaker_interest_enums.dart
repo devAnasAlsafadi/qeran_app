@@ -34,6 +34,40 @@ MatchmakerInterestLikeStatus matchmakerLikeStatusFromWire(Object? raw) {
   };
 }
 
+/// The lifecycle of a photo-exchange request hanging off an active match.
+///
+/// Kept separate from [MatchmakerInterestLikeStatus] even though the members
+/// coincide today: they are different server enums on different DTOs, and
+/// collapsing them would silently couple two things that are free to diverge.
+enum MatchmakerInterestPhotoExchangeStatus {
+  pending,
+  accepted,
+  rejected,
+  expired,
+  unknown,
+}
+
+MatchmakerInterestPhotoExchangeStatus matchmakerPhotoExchangeStatusFromWire(
+  Object? raw,
+) {
+  if (raw is num) {
+    return switch (raw.toInt()) {
+      0 => MatchmakerInterestPhotoExchangeStatus.pending,
+      1 => MatchmakerInterestPhotoExchangeStatus.accepted,
+      2 => MatchmakerInterestPhotoExchangeStatus.rejected,
+      3 => MatchmakerInterestPhotoExchangeStatus.expired,
+      _ => MatchmakerInterestPhotoExchangeStatus.unknown,
+    };
+  }
+  return switch (raw?.toString().toLowerCase().trim()) {
+    'pending' => MatchmakerInterestPhotoExchangeStatus.pending,
+    'accepted' => MatchmakerInterestPhotoExchangeStatus.accepted,
+    'rejected' => MatchmakerInterestPhotoExchangeStatus.rejected,
+    'expired' => MatchmakerInterestPhotoExchangeStatus.expired,
+    _ => MatchmakerInterestPhotoExchangeStatus.unknown,
+  };
+}
+
 /// The stage of an active match, mirrored read-only.
 enum MatchmakerInterestMatchStage {
   waitingForPhotoExchange,

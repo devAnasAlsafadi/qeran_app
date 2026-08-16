@@ -4,6 +4,7 @@ import '../../../users/domain/entities/matchmaker_card_answer.dart';
 import 'matchmaker_interest_enums.dart';
 import 'matchmaker_interest_formal_request.dart';
 import 'matchmaker_interest_image.dart';
+import 'matchmaker_interest_photo_exchange.dart';
 
 /// One active match in the read-only matchmaker mirror — the OTHER party, their
 /// images (blur per [MatchmakerInterestImage.isBlurred]), the [stage], and the
@@ -21,6 +22,10 @@ class MatchmakerInterestMatch extends Equatable {
   /// Backend-provided formal-request progress; `null` before any formal step.
   final MatchmakerInterestFormalRequest? formalRequest;
 
+  /// The in-flight photo-exchange window, when one exists. Read-only here —
+  /// it drives the countdown chip, never an action.
+  final MatchmakerInterestPhotoExchange? pendingPhotoExchange;
+
   const MatchmakerInterestMatch({
     required this.otherUserId,
     required this.name,
@@ -30,6 +35,7 @@ class MatchmakerInterestMatch extends Equatable {
     this.age,
     this.answers = const [],
     this.formalRequest,
+    this.pendingPhotoExchange,
   });
 
   /// Profile image first, else the first image, else null.
@@ -41,6 +47,15 @@ class MatchmakerInterestMatch extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [otherUserId, name, images, stage, isLocked, age, answers, formalRequest];
+  List<Object?> get props => [
+    otherUserId,
+    name,
+    images,
+    stage,
+    isLocked,
+    age,
+    answers,
+    formalRequest,
+    pendingPhotoExchange,
+  ];
 }

@@ -28,7 +28,6 @@ import '../colleagues/domain/usecases/get_colleagues_usecase.dart';
 import '../colleagues/domain/usecases/open_colleague_chat_usecase.dart';
 import '../colleagues/presentation/blocs/matchmaker_colleague_conversations_cubit.dart';
 import '../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cubit.dart';
-import '../colleagues/presentation/blocs/matchmaker_colleagues_directory_cubit.dart';
 import '../compatibility_cases/data/datasources/case_note_remote_datasource.dart';
 import '../compatibility_cases/data/datasources/compatibility_cases_remote_datasource.dart';
 import '../compatibility_cases/data/repositories/case_note_repository_impl.dart';
@@ -314,10 +313,6 @@ Future<void> initMatchmakerDependencies() async {
       realtimePort: sl(),
       myUserId: myUserId,
     ),
-  );
-  // S2b · colleague directory list (paginated roster).
-  sl.registerFactory(
-    () => MatchmakerColleaguesDirectoryCubit(getColleagues: sl()),
   );
   // S2b · resolves a colleague's conversation before navigating to chat.
   sl.registerFactory(

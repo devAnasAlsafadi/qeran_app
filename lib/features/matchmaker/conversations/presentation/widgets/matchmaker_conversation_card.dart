@@ -142,9 +142,13 @@ class MatchmakerConversationCard extends StatelessWidget {
         ],
       );
     }
-    final preview = conversation.lastMessagePreview ?? '';
+    // Resolved HERE so `context.locale` registers the dependency: switching
+    // language repaints the row, same as the thread's bubbles. A REST-loaded
+    // row carries no localization tuple and falls through to the
+    // server-rendered preview.
+    final isArabic = context.locale.languageCode == 'ar';
     return Text(
-      preview,
+      conversation.previewText(isArabic: isArabic),
       style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,

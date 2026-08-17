@@ -74,10 +74,15 @@ class MatchmakerColleagueConversationsCubit
     }
     final existing = state.items[index];
     final inbound = msg.senderId != _myUserId;
-    final updated = existing.copyWith(
-      lastMessagePreview: msg.contentPreview,
-      lastMessageAt: msg.sentAt ?? existing.lastMessageAt,
+    // The localization signal travels through untouched — the card resolves
+    // it at build so a language switch repaints the row.
+    final updated = existing.withLastMessage(
+      preview: msg.contentPreview,
+      at: msg.sentAt ?? existing.lastMessageAt,
       unreadCount: inbound ? existing.unreadCount + 1 : existing.unreadCount,
+      type: msg.type,
+      contentAr: msg.contentAr,
+      contentEn: msg.contentEn,
     );
     final items = [...state.items]..[index] = updated;
     _sortNewestFirst(items);

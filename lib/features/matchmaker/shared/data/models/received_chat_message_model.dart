@@ -1,3 +1,5 @@
+import 'package:qeran/core/enum/message_type.dart';
+
 import '../../domain/entities/received_chat_message.dart';
 import '../json_parsers.dart';
 
@@ -16,6 +18,10 @@ class ReceivedChatMessageModel {
       senderId: parseString(json['senderId']),
       contentPreview: parseString(json['content']),
       sentAt: parseNullableDateTime(json['sentAt']),
+      // Carried, not resolved — the card localizes at build time.
+      type: MessageType.fromWire(parseNullableString(json['type'])),
+      contentAr: parseNullableString(json['contentAr']),
+      contentEn: parseNullableString(json['contentEn']),
     );
   }
 }

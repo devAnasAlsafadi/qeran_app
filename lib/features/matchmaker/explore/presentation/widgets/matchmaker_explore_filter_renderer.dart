@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
-import '../../../../../core/design_system/widgets/qeran_chip.dart';
+import '../../../../../core/design_system/widgets/qeran_filter_chip_facet.dart';
+import '../../../../../core/design_system/widgets/qeran_filter_searchable_facet.dart';
+import '../../../../../core/design_system/widgets/qeran_filter_text_facet.dart';
 import '../../../../../core/design_system/widgets/qeran_range_slider.dart';
-import '../../../../../core/design_system/widgets/qeran_text_field.dart';
+import '../../../../../core/design_system/widgets/qeran_selectable_option.dart';
 import '../../../../discovery/domain/entities/discovery_filter_option.dart';
 import '../../../../discovery/domain/entities/discovery_filter_question.dart';
 import '../../../../discovery/domain/entities/discovery_filter_selection.dart';
@@ -14,20 +14,29 @@ import '../blocs/matchmaker_explore_filter_cubit.dart';
 
 /// Renders ONE backend-driven facet in the branded explore filter sheet:
 ///   • `isRange`  → the brand [QeranRangeSlider] (gold-active track).
-///   • checkbox / interests → a multi-select chip-group.
-///   • select / radio / unknown(with options) → a single-select chip-group.
+///   • any option-bearing type → a chip / searchable facet, single or multi
+///     per [DiscoveryFilterQuestion.effectiveIsMultiSelect].
 ///   • text → a branded text field.
-/// All wired to [MatchmakerExploreFilterCubit] (the data/query layer is
-/// untouched); the facets themselves come from `/filters`, never hardcoded.
+/// Option facets render as chips or as a searchable checklist per
+/// [DiscoveryFilterQuestion.effectiveIsSearchable] — the dashboard's flag when
+/// it sent one, otherwise the shared [kQeranSearchableFacetThreshold] count. The
+/// same widgets and the same rule the user app uses, so a nationality list
+/// behaves identically on both sides. All wired to
+/// [MatchmakerExploreFilterCubit]; the facets themselves come from `/filters`,
+/// never hardcoded.
 class MatchmakerExploreFilterRenderer extends StatelessWidget {
   const MatchmakerExploreFilterRenderer({
     super.key,
     required this.question,
     required this.selection,
+    this.resetVersion = 0,
   });
 
   final DiscoveryFilterQuestion question;
   final DiscoveryFilterSelection? selection;
+
+  /// Forwarded to the searchable facet so a "clear all" collapses it.
+  final int resetVersion;
 
   @override
   Widget build(BuildContext context) {
@@ -53,29 +62,28 @@ class MatchmakerExploreFilterRenderer extends StatelessWidget {
     switch (question.type) {
       case FilterQuestionType.checkbox:
       case FilterQuestionType.interests:
-        final selected = selection is MultiValueSelection
-            ? (selection as MultiValueSelection).values
-            : const <String>[];
-        return _ChipFacet(
-          label: question.label,
-          options: options,
-          isSelected: selected.contains,
-          onTap: (v) => cubit.toggleMultiValue(question.id, v),
-        );
       case FilterQuestionType.select:
       case FilterQuestionType.radio:
       case FilterQuestionType.unknown:
-        final value = selection is SingleValueSelection
-            ? (selection as SingleValueSelection).value
-            : null;
-        return _ChipFacet(
+        // One branch for every option-bearing type — the dashboard's
+        // `isMultiSelect` decides, not the type. IDENTICAL to the user app's
+        // renderer by construction: both read the same entity getter, so the
+        // fallback can't drift between the two apps.
+        final isMulti = question.effectiveIsMultiSelect;
+        final selected = _selectedValues(isMulti: isMulti);
+        return _optionsFacet(
           label: question.label,
           options: options,
-          isSelected: (v) => v == value,
-          onTap: (v) => cubit.setSingleValue(question.id, v),
+          isSearchable: question.effectiveIsSearchable(
+            optionCountThreshold: kQeranSearchableFacetThreshold,
+          ),
+          isSelected: selected.contains,
+          onTap: isMulti
+              ? (v) => cubit.toggleMultiValue(question.id, v)
+              : (v) => cubit.setSingleValue(question.id, v),
         );
       case FilterQuestionType.text:
-        return _TextFacet(
+        return QeranFilterTextFacet(
           label: question.label,
           initial: selection is SingleValueSelection
               ? (selection as SingleValueSelection).value
@@ -90,97 +98,51 @@ class MatchmakerExploreFilterRenderer extends StatelessWidget {
         return const SizedBox.shrink();
     }
   }
-}
 
-/// A labelled facet section whose options are selectable chips — selected =
-/// solid wine (`score`), unselected = paper + wine-12 border (`inside`).
-class _ChipFacet extends StatelessWidget {
-  const _ChipFacet({
-    required this.label,
-    required this.options,
-    required this.isSelected,
-    required this.onTap,
-  });
+  /// The seeded selection normalized to a flat value list — a sheet reopened
+  /// after an earlier single-select apply carries a SingleValueSelection, and
+  /// dropping it would silently clear a filter the matchmaker can still see
+  /// applied. A single-select facet takes only the FIRST value of a multi (the
+  /// cubit collapses seeded multis on load, but the dashboard can flip
+  /// `isMultiSelect` while the sheet is open).
+  List<String> _selectedValues({required bool isMulti}) => switch (selection) {
+    MultiValueSelection(:final values) => isMulti
+        ? values
+        : values.take(1).toList(growable: false),
+    SingleValueSelection(:final value) => <String>[value],
+    _ => const <String>[],
+  };
 
-  final String label;
-  final List<DiscoveryFilterOption> options;
-  final bool Function(String value) isSelected;
-  final void Function(String value) onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    if (options.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label, style: QeranTypography.subtitle),
-        QeranSpacing.vs8,
-        Wrap(
-          spacing: QeranSpacing.s8,
-          runSpacing: QeranSpacing.s8,
-          children: [
-            for (final o in options)
-              QeranChip(
-                label: o.display,
-                variant: isSelected(o.value)
-                    ? QeranChipVariant.score
-                    : QeranChipVariant.inside,
-                onTap: () => onTap(o.value),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// A labelled free-text facet (rare) — a branded field feeding the same
-/// single-value selection path.
-class _TextFacet extends StatefulWidget {
-  const _TextFacet({
-    required this.label,
-    required this.initial,
-    required this.onChanged,
-  });
-
-  final String label;
-  final String initial;
-  final void Function(String value) onChanged;
-
-  @override
-  State<_TextFacet> createState() => _TextFacetState();
-}
-
-class _TextFacetState extends State<_TextFacet> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initial);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(widget.label, style: QeranTypography.subtitle),
-        QeranSpacing.vs8,
-        QeranTextField(
-          controller: _controller,
-          hint: widget.label,
-          onChanged: widget.onChanged,
-        ),
-      ],
+  /// Chips or a searchable checklist — the same `isSelected` / `onTap` contract
+  /// either way, so the cubit's selection semantics are unchanged.
+  /// [isSearchable] is the dashboard's answer when it gave one and the
+  /// option-count fallback otherwise; this method does not second-guess it. The
+  /// feature entity is adapted to the design-system option type here; the
+  /// facets must not know a feature type.
+  Widget _optionsFacet({
+    required String label,
+    required List<DiscoveryFilterOption> options,
+    required bool isSearchable,
+    required bool Function(String value) isSelected,
+    required void Function(String value) onTap,
+  }) {
+    final dsOptions = options
+        .map((o) => QeranSelectableOption(value: o.value, display: o.display))
+        .toList(growable: false);
+    if (isSearchable) {
+      return QeranFilterSearchableFacet(
+        label: label,
+        options: dsOptions,
+        isSelected: isSelected,
+        onTap: onTap,
+        resetVersion: resetVersion,
+      );
+    }
+    return QeranFilterChipFacet(
+      label: label,
+      options: dsOptions,
+      isSelected: isSelected,
+      onTap: onTap,
     );
   }
 }

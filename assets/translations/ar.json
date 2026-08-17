@@ -248,8 +248,6 @@
     "filter_save_cta": "حفظ التغييرات",
     "filter_show_results": "عرض النتائج",
     "filter_clear_all": "مسح الكل",
-    "filter_search_hint": "ابحث في الخيارات",
-    "filter_search_empty": "لا توجد نتائج مطابقة",
     "filter_load_failed": "تعذّر تحميل الفلاتر",
     "filter_range_format": "{label}: {min} - {max} {unit}",
     "details_interests_title": "الاهتمامات",
@@ -271,6 +269,12 @@
     "daily_limit_minute_plural": "دقائق",
     "upgrade_banner_message": "ترقية واحدة تفتح تعارفاً أوسع وميزات بلا حدود",
     "upgrade_banner_cta": "الخطط"
+  },
+  "filters": {
+    "search_hint": "ابحث في الخيارات",
+    "results_count": "تم العثور على {count} نتيجة",
+    "none_available": "لا توجد عوامل تصفية متاحة.",
+    "search_empty": "لا توجد نتائج مطابقة"
   },
   "likes": {
     "title": "الاهتمامات",
@@ -833,7 +837,6 @@
     "explore_filter_clear": "مسح",
     "explore_filter_error": "تعذّر تحميل عوامل التصفية",
     "explore_filter_retry": "إعادة المحاولة",
-    "explore_filter_empty": "لا توجد عوامل تصفية متاحة.",
     "explore_search_hint": "ابحثي بالاسم",
     "explore_gender_all": "الكل",
     "explore_gender_male": "ذكر",
@@ -843,6 +846,10 @@
     "explore_retry": "إعادة المحاولة",
     "explore_no_results_title": "لا توجد بروفايلات",
     "explore_no_results_message": "جرّبي بحثًا مختلفًا أو عدّلي عوامل التصفية.",
+    "explore_no_results_filtered_title": "لا نتائج تطابق عوامل التصفية",
+    "explore_no_results_filtered_message": "جرّبي توسيع عوامل التصفية أو إزالتها لرؤية بروفايلات أكثر.",
+    "explore_edit_filters": "تعديل عوامل التصفية",
+    "explore_clear_filters": "إزالة عوامل التصفية",
     "explore_action_share": "مشاركة",
     "explore_share_title": "مشاركة مع مستخدماتي",
     "explore_share_send": "إرسال إلى {count}",

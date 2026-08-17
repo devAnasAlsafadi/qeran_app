@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 
-import '../../domain/entities/discovery_filter_option.dart';
+import '../tokens/qeran_spacing.dart';
+import '../tokens/qeran_typography.dart';
+import 'qeran_chip.dart';
+import 'qeran_selectable_option.dart';
+
+/// Option-count cut-off shared by every facet host: at or below this many
+/// options a facet renders as a chip-group; above it, a
+/// [QeranFilterSearchableFacet] so a long list (e.g. nationality) never becomes
+/// an unmanageable chip wall.
+///
+/// The decision is purely count-based — no per-question hardcoding — and lives
+/// here so both apps cut over at the same number. Should the backend ever ship
+/// an `isSearchable` flag, this is the single place that stops being consulted.
+const int kQeranSearchableFacetThreshold = 10;
 
 /// A labelled facet whose options are selectable chips — selected = solid wine
-/// (`score`), unselected = paper + wine border (`inside`). Used for small
-/// option sets; large sets render as a [FilterSearchableFacet] instead.
-class FilterChipFacet extends StatelessWidget {
-  const FilterChipFacet({
+/// (`score`), unselected = paper + wine border (`inside`).
+///
+/// For small option sets only; large sets belong in
+/// [QeranFilterSearchableFacet]. The `isSelected` / `onTap` contract is
+/// identical across both so a host can swap on
+/// [kQeranSearchableFacetThreshold] without changing its selection semantics.
+class QeranFilterChipFacet extends StatelessWidget {
+  const QeranFilterChipFacet({
     super.key,
     required this.label,
     required this.options,
@@ -18,7 +32,7 @@ class FilterChipFacet extends StatelessWidget {
   });
 
   final String label;
-  final List<DiscoveryFilterOption> options;
+  final List<QeranSelectableOption> options;
   final bool Function(String value) isSelected;
   final void Function(String value) onTap;
 

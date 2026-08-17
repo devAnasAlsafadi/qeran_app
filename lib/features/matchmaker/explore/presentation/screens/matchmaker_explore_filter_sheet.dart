@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
+import '../../../../../core/design_system/widgets/qeran_filter_facets_empty.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -82,19 +81,10 @@ class _Content extends StatelessWidget {
           MatchmakerExploreFilterLoaded(
             questions: final qs,
             selections: final sel,
+            resetVersion: final resetVersion,
           ) =>
             qs.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(QeranSpacing.s32),
-                    child: Center(
-                      child: Text(
-                        LocaleKeys.matchmaker_explore_filter_empty.t(context),
-                        textAlign: TextAlign.center,
-                        style: QeranTypography.body
-                            .copyWith(color: QeranColors.inkMuted),
-                      ),
-                    ),
-                  )
+                ? const QeranFilterFacetsEmpty()
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(
                       QeranSpacing.s20,
@@ -108,6 +98,7 @@ class _Content extends StatelessWidget {
                     itemBuilder: (_, i) => MatchmakerExploreFilterRenderer(
                       question: qs[i],
                       selection: sel[qs[i].id],
+                      resetVersion: resetVersion,
                     ),
                   ),
         };

@@ -248,8 +248,6 @@
     "filter_save_cta": "Save Changes",
     "filter_show_results": "Show Results",
     "filter_clear_all": "Clear All",
-    "filter_search_hint": "Search options",
-    "filter_search_empty": "No matching options",
     "filter_load_failed": "Couldn't load filters",
     "filter_range_format": "{label}: {min} - {max} {unit}",
     "details_interests_title": "Interests",
@@ -271,6 +269,12 @@
     "daily_limit_minute_plural": "m",
     "upgrade_banner_message": "One upgrade opens up more introductions",
     "upgrade_banner_cta": "Plans"
+  },
+  "filters": {
+    "search_hint": "Search options",
+    "results_count": "{count} results found",
+    "none_available": "No filters available.",
+    "search_empty": "No matching options"
   },
   "likes": {
     "title": "Interests",
@@ -833,7 +837,6 @@
     "explore_filter_clear": "Clear",
     "explore_filter_error": "Couldn't load filters",
     "explore_filter_retry": "Retry",
-    "explore_filter_empty": "No filters available.",
     "explore_search_hint": "Search by name",
     "explore_gender_all": "All",
     "explore_gender_male": "Male",
@@ -843,6 +846,10 @@
     "explore_retry": "Retry",
     "explore_no_results_title": "No profiles found",
     "explore_no_results_message": "Try a different search or adjust your filters.",
+    "explore_no_results_filtered_title": "No matches for your filters",
+    "explore_no_results_filtered_message": "Try widening or clearing them to see more profiles.",
+    "explore_edit_filters": "Edit filters",
+    "explore_clear_filters": "Clear filters",
     "explore_action_share": "Share",
     "explore_share_title": "Share with my users",
     "explore_share_send": "Send to {count}",

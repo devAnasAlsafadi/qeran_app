@@ -239,8 +239,6 @@ abstract class  LocaleKeys {
   static const discovery_filter_save_cta = 'discovery.filter_save_cta';
   static const discovery_filter_show_results = 'discovery.filter_show_results';
   static const discovery_filter_clear_all = 'discovery.filter_clear_all';
-  static const discovery_filter_search_hint = 'discovery.filter_search_hint';
-  static const discovery_filter_search_empty = 'discovery.filter_search_empty';
   static const discovery_filter_load_failed = 'discovery.filter_load_failed';
   static const discovery_filter_range_format = 'discovery.filter_range_format';
   static const discovery_details_interests_title = 'discovery.details_interests_title';
@@ -263,6 +261,11 @@ abstract class  LocaleKeys {
   static const discovery_upgrade_banner_message = 'discovery.upgrade_banner_message';
   static const discovery_upgrade_banner_cta = 'discovery.upgrade_banner_cta';
   static const discovery = 'discovery';
+  static const filters_search_hint = 'filters.search_hint';
+  static const filters_results_count = 'filters.results_count';
+  static const filters_none_available = 'filters.none_available';
+  static const filters_search_empty = 'filters.search_empty';
+  static const filters = 'filters';
   static const likes_title = 'likes.title';
   static const likes_tab_sent = 'likes.tab_sent';
   static const likes_tab_received = 'likes.tab_received';
@@ -818,7 +821,6 @@ abstract class  LocaleKeys {
   static const matchmaker_explore_filter_clear = 'matchmaker.explore_filter_clear';
   static const matchmaker_explore_filter_error = 'matchmaker.explore_filter_error';
   static const matchmaker_explore_filter_retry = 'matchmaker.explore_filter_retry';
-  static const matchmaker_explore_filter_empty = 'matchmaker.explore_filter_empty';
   static const matchmaker_explore_search_hint = 'matchmaker.explore_search_hint';
   static const matchmaker_explore_gender_all = 'matchmaker.explore_gender_all';
   static const matchmaker_explore_gender_male = 'matchmaker.explore_gender_male';
@@ -828,6 +830,10 @@ abstract class  LocaleKeys {
   static const matchmaker_explore_retry = 'matchmaker.explore_retry';
   static const matchmaker_explore_no_results_title = 'matchmaker.explore_no_results_title';
   static const matchmaker_explore_no_results_message = 'matchmaker.explore_no_results_message';
+  static const matchmaker_explore_no_results_filtered_title = 'matchmaker.explore_no_results_filtered_title';
+  static const matchmaker_explore_no_results_filtered_message = 'matchmaker.explore_no_results_filtered_message';
+  static const matchmaker_explore_edit_filters = 'matchmaker.explore_edit_filters';
+  static const matchmaker_explore_clear_filters = 'matchmaker.explore_clear_filters';
   static const matchmaker_explore_action_share = 'matchmaker.explore_action_share';
   static const matchmaker_explore_share_title = 'matchmaker.explore_share_title';
   static const matchmaker_explore_share_send = 'matchmaker.explore_share_send';

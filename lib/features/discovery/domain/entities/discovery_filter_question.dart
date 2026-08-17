@@ -37,6 +37,18 @@ class DiscoveryFilterQuestion extends Equatable {
   /// / checkbox / interests.
   final List<DiscoveryFilterOption>? options;
 
+  /// Dashboard-controlled ordering weight for the question itself, ascending.
+  /// Null → sorts last, preserving the server's original order among peers.
+  final int? displayPriority;
+
+  /// Dashboard override for the search-inside-a-facet affordance. Null → the
+  /// client keeps inferring it from the option count.
+  final bool? isSearchable;
+
+  /// Dashboard override for single-vs-multi selection. Null → the client keeps
+  /// inferring it from [type].
+  final bool? isMultiSelect;
+
   const DiscoveryFilterQuestion({
     required this.id,
     required this.label,
@@ -46,7 +58,39 @@ class DiscoveryFilterQuestion extends Equatable {
     this.maxValue,
     this.unit,
     this.options,
+    this.displayPriority,
+    this.isSearchable,
+    this.isMultiSelect,
   });
+
+  /// Field-wise copy. Nullable fields cannot be cleared through it (a null
+  /// argument means "keep") — nothing needs to null one out, and the sort
+  /// helper only ever REPLACES [options] with a reordered list.
+  DiscoveryFilterQuestion copyWith({
+    int? id,
+    String? label,
+    FilterQuestionType? type,
+    bool? isRange,
+    int? minValue,
+    int? maxValue,
+    String? unit,
+    List<DiscoveryFilterOption>? options,
+    int? displayPriority,
+    bool? isSearchable,
+    bool? isMultiSelect,
+  }) => DiscoveryFilterQuestion(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    type: type ?? this.type,
+    isRange: isRange ?? this.isRange,
+    minValue: minValue ?? this.minValue,
+    maxValue: maxValue ?? this.maxValue,
+    unit: unit ?? this.unit,
+    options: options ?? this.options,
+    displayPriority: displayPriority ?? this.displayPriority,
+    isSearchable: isSearchable ?? this.isSearchable,
+    isMultiSelect: isMultiSelect ?? this.isMultiSelect,
+  );
 
   /// Prefer backend [minValue] → type-based defaults → generic.
   int get effectiveMin {
@@ -58,6 +102,61 @@ class DiscoveryFilterQuestion extends Equatable {
       _ => 0,
     };
   }
+
+  /// Dashboard flag when set, else the client's type-based inference.
+  ///
+  /// Lives on the entity for the same reason [effectiveMin] does: both
+  /// renderers AND both cubits have to agree, and a getter makes that
+  /// structural instead of a convention two duplicated files must uphold.
+  ///
+  /// The inference is "every option-bearing type is multi": the wire format
+  /// has always carried comma-joined values, so single-choice was a client
+  /// limitation, never a contract one. [text] never is, and range types never
+  /// reach an option facet.
+  bool get effectiveIsMultiSelect {
+    if (isMultiSelect != null) return isMultiSelect!;
+    return switch (type) {
+      FilterQuestionType.select ||
+      FilterQuestionType.radio ||
+      FilterQuestionType.checkbox ||
+      FilterQuestionType.interests ||
+      FilterQuestionType.unknown => true,
+      FilterQuestionType.text ||
+      FilterQuestionType.date ||
+      FilterQuestionType.height ||
+      FilterQuestionType.weight => false,
+    };
+  }
+
+  /// [displayPriority], with absent treated as "after everything" — see
+  /// [kUnprioritizedOrderKey]. Mirrors [DiscoveryFilterOption.effectiveOrderKey]
+  /// so questions and their options sort by the same rule.
+  int get effectiveOrderKey => displayPriority ?? kUnprioritizedOrderKey;
+
+  /// Dashboard flag when set, else "does this list need a search box?" decided
+  /// by option count.
+  ///
+  /// The dashboard wins ABSOLUTELY: `isSearchable: false` on a 300-option
+  /// question renders 300 chips. The threshold is passed IN rather than read
+  /// here because it is a design-system number (how many chips read
+  /// comfortably) and no domain or data file in this codebase imports the
+  /// design system — see [nonSearchableLongLists] for the visibility warning
+  /// that covers the disagreement.
+  bool effectiveIsSearchable({required int optionCountThreshold}) =>
+      isSearchable ?? (options?.length ?? 0) > optionCountThreshold;
+
+  /// True when the dashboard explicitly forbids the search affordance on a list
+  /// long enough that the client would have chosen it.
+  bool exceedsSearchThresholdWithoutSearch({
+    required int optionCountThreshold,
+  }) =>
+      isSearchable == false &&
+      (options?.length ?? 0) > optionCountThreshold;
+
+  /// True when the dashboard explicitly forbids multi-select. Distinct from
+  /// `!effectiveIsMultiSelect` — only an EXPLICIT false collapses a seeded
+  /// multi-value selection on load.
+  bool get forbidsMultiSelect => isMultiSelect == false;
 
   /// Prefer backend [maxValue] → type-based defaults → generic.
   int get effectiveMax {
@@ -80,5 +179,8 @@ class DiscoveryFilterQuestion extends Equatable {
         maxValue,
         unit,
         options,
+        displayPriority,
+        isSearchable,
+        isMultiSelect,
       ];
 }

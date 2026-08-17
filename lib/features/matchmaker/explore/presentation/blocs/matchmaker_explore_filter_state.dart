@@ -35,21 +35,30 @@ final class MatchmakerExploreFilterLoaded extends MatchmakerExploreFilterState {
   final List<DiscoveryFilterQuestion> questions;
   final Map<int, DiscoveryFilterSelection> selections;
 
+  /// Bumped by `clearAll` so the searchable facets collapse and drop their
+  /// queries. Selections alone are not enough of a signal: a facet the user
+  /// opened but never picked from has nothing in [selections] to change, so it
+  /// would sit open over an emptied sheet. Mirrors `DiscoveryFilterLoaded`.
+  final int resetVersion;
+
   const MatchmakerExploreFilterLoaded({
     required this.questions,
     required this.selections,
+    this.resetVersion = 0,
   });
 
   MatchmakerExploreFilterLoaded copyWith({
     List<DiscoveryFilterQuestion>? questions,
     Map<int, DiscoveryFilterSelection>? selections,
+    int? resetVersion,
   }) {
     return MatchmakerExploreFilterLoaded(
       questions: questions ?? this.questions,
       selections: selections ?? this.selections,
+      resetVersion: resetVersion ?? this.resetVersion,
     );
   }
 
   @override
-  List<Object?> get props => [questions, selections];
+  List<Object?> get props => [questions, selections, resetVersion];
 }

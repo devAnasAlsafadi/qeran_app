@@ -4,6 +4,7 @@ import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_sheet.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
+import 'package:qeran/core/design_system/widgets/qeran_filter_facets_empty.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -81,22 +82,27 @@ class _Content extends StatelessWidget {
             selections: final sel,
             resetVersion: final resetVersion,
           ) =>
-            ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                QeranSpacing.s20,
-                QeranSpacing.s8,
-                QeranSpacing.s20,
-                QeranSpacing.s24,
-              ),
-              itemCount: qs.length,
-              separatorBuilder: (_, _) =>
-                  const SizedBox(height: QeranSpacing.s20),
-              itemBuilder: (_, i) => FilterQuestionRenderer(
-                question: qs[i],
-                selection: sel[qs[i].id],
-                resetVersion: resetVersion,
-              ),
-            ),
+            // A successful load with nothing to filter on used to render a bare
+            // empty ListView — a blank sheet with two buttons and no
+            // explanation. Says so now, same as the matchmaker's sheet.
+            qs.isEmpty
+                ? const QeranFilterFacetsEmpty()
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(
+                      QeranSpacing.s20,
+                      QeranSpacing.s8,
+                      QeranSpacing.s20,
+                      QeranSpacing.s24,
+                    ),
+                    itemCount: qs.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: QeranSpacing.s20),
+                    itemBuilder: (_, i) => FilterQuestionRenderer(
+                      question: qs[i],
+                      selection: sel[qs[i].id],
+                      resetVersion: resetVersion,
+                    ),
+                  ),
         };
       },
     );

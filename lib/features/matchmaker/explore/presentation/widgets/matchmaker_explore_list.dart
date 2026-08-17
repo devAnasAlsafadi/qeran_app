@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_nav.dart';
-import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -18,13 +17,34 @@ import '../../../users/presentation/matchmaker_user_profile_args.dart';
 import '../../domain/entities/matchmaker_explore_user.dart';
 import '../blocs/matchmaker_explore_cubit.dart';
 import 'matchmaker_explore_card.dart';
+import 'matchmaker_explore_empty_results.dart';
 import 'matchmaker_share_sheet.dart';
 
 /// The explore results body: loader / error / no-results / paginated list of
 /// [MatchmakerExploreCard]s. Reads the [MatchmakerExploreCubit] from context;
 /// a card tap opens the existing full profile (works for any user).
 class MatchmakerExploreList extends StatefulWidget {
-  const MatchmakerExploreList({super.key});
+  const MatchmakerExploreList({
+    super.key,
+    this.hasActiveFilters = false,
+    this.onEditFilters,
+    this.onClearFilters,
+  });
+
+  /// Whether ANY narrowing is applied — sheet filters, search text, or a
+  /// non-"all" gender segment. Drives the no-results copy and the two exits.
+  ///
+  /// Wider than the filter sheet on purpose: an empty list caused by a stale
+  /// search term is the same dead end as one caused by a facet, and the
+  /// matchmaker should not have to diagnose which.
+  final bool hasActiveFilters;
+
+  /// Reopens the filter sheet, seeded with what is applied. Still the sheet
+  /// specifically — it is the narrowing that is hardest to reach otherwise.
+  final VoidCallback? onEditFilters;
+
+  /// Drops EVERY narrowing (filters + search + gender) and reloads once.
+  final VoidCallback? onClearFilters;
 
   @override
   State<MatchmakerExploreList> createState() => _MatchmakerExploreListState();
@@ -65,7 +85,12 @@ class _MatchmakerExploreListState extends State<MatchmakerExploreList> {
           );
         }
         if (state.items.isEmpty) {
-          return _EmptyResults(onRefresh: cubit.refresh);
+          return MatchmakerExploreEmptyResults(
+            onRefresh: cubit.refresh,
+            hasActiveFilters: widget.hasActiveFilters,
+            onEditFilters: widget.onEditFilters,
+            onClearFilters: widget.onClearFilters,
+          );
         }
         return MatchmakerPaginatedList(
           hasMore: state.hasMore,
@@ -147,39 +172,6 @@ class _MatchmakerExploreListState extends State<MatchmakerExploreList> {
       colleagueId: user.assignedMatchmakerId ?? '',
       fullName: user.assignedMatchmakerName ?? '',
       profileImageUrl: user.assignedMatchmakerImageUrl,
-    );
-  }
-}
-
-/// No-results empty state that still scrolls, so pull-to-refresh works.
-class _EmptyResults extends StatelessWidget {
-  const _EmptyResults({required this.onRefresh});
-
-  final Future<void> Function() onRefresh;
-
-  @override
-  Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
-      hasMore: false,
-      onRefresh: onRefresh,
-      onLoadMore: () async {},
-      child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: QeranEmptyState(
-              icon: Icons.person_search_outlined,
-              title: LocaleKeys.matchmaker_explore_no_results_title.t(context),
-              message: LocaleKeys.matchmaker_explore_no_results_message.t(
-                context,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

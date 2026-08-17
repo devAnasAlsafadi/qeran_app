@@ -5,7 +5,10 @@ class DiscoveryPageModel {
   final List<DiscoveryProfileModel> profiles;
   final int pageNumber;
   final int pageSize;
-  final int totalCount;
+  /// Nullable for symmetry with the matchmaker's explore page (D9): absent and
+  /// zero are different answers. `?? 0` used to conflate them, so a payload
+  /// that omitted the field looked like a genuine "no matches".
+  final int? totalCount;
   final int totalPages;
 
   const DiscoveryPageModel({
@@ -28,7 +31,7 @@ class DiscoveryPageModel {
           .toList(),
       pageNumber: json['pageNumber'] as int? ?? 1,
       pageSize: json['pageSize'] as int? ?? 0,
-      totalCount: json['totalCount'] as int? ?? 0,
+      totalCount: json['totalCount'] as int?,
       totalPages: json['totalPages'] as int? ?? 0,
     );
   }

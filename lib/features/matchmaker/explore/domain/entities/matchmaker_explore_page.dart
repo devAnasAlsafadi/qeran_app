@@ -10,14 +10,19 @@ class MatchmakerExplorePage extends Equatable {
   final int pageNumber;
   final int totalPages;
 
+  /// Users matching the whole query server-side. Null when the backend did not
+  /// report a total — the UI renders nothing rather than guessing a number.
+  final int? totalCount;
+
   const MatchmakerExplorePage({
     required this.items,
     required this.pageNumber,
     required this.totalPages,
+    this.totalCount,
   });
 
   bool get hasMore => pageNumber < totalPages;
 
   @override
-  List<Object?> get props => [items, pageNumber, totalPages];
+  List<Object?> get props => [items, pageNumber, totalPages, totalCount];
 }

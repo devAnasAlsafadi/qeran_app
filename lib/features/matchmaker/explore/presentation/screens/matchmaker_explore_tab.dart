@@ -9,11 +9,12 @@ import '../../../../../core/enum/gender.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../../discovery/domain/entities/discovery_filter_selection.dart';
+import '../../../../discovery/domain/filter_payload_builders.dart';
 import '../../../colleagues/presentation/widgets/matchmaker_colleague_open_chat_host.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../blocs/matchmaker_explore_cubit.dart';
-import '../blocs/matchmaker_explore_filter_cubit.dart';
 import '../widgets/matchmaker_explore_controls.dart';
+import '../widgets/matchmaker_explore_results_count.dart';
 import '../widgets/matchmaker_explore_list.dart';
 import 'matchmaker_explore_filter_sheet.dart';
 
@@ -88,6 +89,37 @@ class _MatchmakerExploreTabState extends State<MatchmakerExploreTab> {
     );
   }
 
+  /// Whether ANY narrowing is currently applied — sheet filters, search text,
+  /// or a non-"all" gender segment.
+  ///
+  /// Deliberately wider than the filter sheet: an empty result caused by a
+  /// stale search term is just as much a dead end as one caused by a facet, and
+  /// the matchmaker should not have to work out which of the three did it. Named
+  /// to match the user app's `DiscoveryCubit.hasActiveFilters`, which plays the
+  /// same role there (that app has no search or gender, so the two definitions
+  /// coincide on everything it can express).
+  bool get _hasActiveFilters =>
+      _filtersActive ||
+      _searchController.text.trim().isNotEmpty ||
+      _genders[_genderIndex] != null;
+
+  /// Drops every narrowing — sheet filters, search text and gender — and
+  /// reloads once via [MatchmakerExploreCubit.clearQuery].
+  void _clearAll() {
+    // A debounce already in flight would otherwise re-apply the search term
+    // we are about to clear, ~400ms after the list came back unfiltered.
+    _debounce?.cancel();
+    setState(() {
+      _selections = const {};
+      _filtersActive = false;
+      _genderIndex = 0;
+      // Programmatic edits do NOT fire TextField.onChanged, so this clears the
+      // field without scheduling another debounced setSearch.
+      _searchController.clear();
+    });
+    _cubit.clearQuery();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider<MatchmakerExploreCubit>.value(
@@ -113,7 +145,14 @@ class _MatchmakerExploreTabState extends State<MatchmakerExploreTab> {
                   onGenderChanged: _onGenderChanged,
                   onFilterTap: _onFilterTap,
                 ),
-                const Expanded(child: MatchmakerExploreList()),
+                const MatchmakerExploreResultsCount(),
+                Expanded(
+                  child: MatchmakerExploreList(
+                    hasActiveFilters: _hasActiveFilters,
+                    onEditFilters: _onFilterTap,
+                    onClearFilters: _clearAll,
+                  ),
+                ),
               ],
             ),
           ),

@@ -16,6 +16,17 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
   /// captures the message into `errorMessage`.
   Future<({List<T> items, bool hasMore})> fetchPage(int page);
 
+  /// The server's total for the query [fetchPage] just ran, or null when the
+  /// endpoint does not report one.
+  ///
+  /// A hook rather than a third field on the [fetchPage] record: Dart records
+  /// have no optional members, so widening that signature would force all
+  /// eight implementers to pass `totalCount: null` for a value only one of
+  /// them has. Cubits whose endpoint returns a total override this and set the
+  /// backing field inside [fetchPage]; everyone else inherits null and
+  /// `PaginatedListState.totalCount` stays "unknown" exactly as before.
+  int? get lastTotalCount => null;
+
   /// First load. Safe to call repeatedly — does nothing while another
   /// load is in flight.
   Future<void> loadFirst() async {
@@ -29,6 +40,8 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
         page: 1,
         hasMore: result.hasMore,
         isLoading: false,
+        totalCount: lastTotalCount,
+        clearTotalCount: lastTotalCount == null,
       ));
     } catch (e) {
       if (isClosed) return;
@@ -52,6 +65,8 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
         page: 1,
         hasMore: result.hasMore,
         isRefreshing: false,
+        totalCount: lastTotalCount,
+        clearTotalCount: lastTotalCount == null,
       ));
     } catch (e) {
       if (isClosed) return;
@@ -73,10 +88,14 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
       final result = await fetchPage(nextPage);
       if (isClosed) return;
       emit(state.copyWith(
+        // Items accumulate across pages; totalCount does NOT — it is the
+        // size of the whole result set, not of what is loaded.
         items: [...state.items, ...result.items],
         page: nextPage,
         hasMore: result.hasMore,
         isLoadingMore: false,
+        totalCount: lastTotalCount,
+        clearTotalCount: lastTotalCount == null,
       ));
     } catch (e) {
       if (isClosed) return;

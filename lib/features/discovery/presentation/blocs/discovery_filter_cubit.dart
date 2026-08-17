@@ -1,10 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/widgets/qeran_filter_chip_facet.dart';
 import 'package:qeran/core/state/safe_emit.dart';
-import 'package:qeran/core/app_logger.dart';
 
-import '../../domain/entities/discovery_filter_question.dart';
 import '../../domain/entities/discovery_filter_selection.dart';
-import '../../domain/entities/filter_question_type.dart';
+import '../../domain/filter_display_order.dart';
+import '../../domain/filter_payload_builders.dart';
+import '../../domain/filter_question_screening.dart';
+import '../../domain/filter_selection_rules.dart';
 import '../../domain/usecases/get_discovery_filters_usecase.dart';
 import 'discovery_filter_state.dart';
 
@@ -35,58 +37,27 @@ class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState>
     result.fold((failure) => emit(DiscoveryFilterFailure(failure.message)), (
       questions,
     ) {
-      final visible = _filterOutUnusable(questions);
+      final screened = screenFilterQuestions(
+        all: questions,
+        logTag: 'DISCOVERY_FILTERS',
+      );
+      final visible = sortedFilterQuestions(screened.kept);
+      nonSearchableLongLists(
+        questions: visible,
+        optionCountThreshold: kQeranSearchableFacetThreshold,
+        logTag: 'DISCOVERY_FILTERS',
+      );
       emit(
         DiscoveryFilterLoaded(
           questions: visible,
-          selections: Map.of(_initialSelections),
+          selections: collapseForbiddenMultiSelections(
+            questions: visible,
+            seeded: _initialSelections,
+            logTag: 'DISCOVERY_FILTERS',
+          ),
         ),
       );
     });
-  }
-
-  /// Drops questions the renderer has no safe way to display.
-  ///
-  /// * `unknown` + no options → no way to render a control.
-  /// * `height` / `weight` / `date` with `isRange == false` → these
-  ///   types are expected to be ranges per backend contract; if the
-  ///   flag is missing we can't fall back to a single-value control.
-  List<DiscoveryFilterQuestion> _filterOutUnusable(
-    List<DiscoveryFilterQuestion> all,
-  ) {
-    final kept = <DiscoveryFilterQuestion>[];
-    for (final q in all) {
-      if (q.isRange) {
-        kept.add(q);
-        continue;
-      }
-      switch (q.type) {
-        case FilterQuestionType.select:
-        case FilterQuestionType.radio:
-        case FilterQuestionType.checkbox:
-        case FilterQuestionType.interests:
-        case FilterQuestionType.text:
-          kept.add(q);
-        case FilterQuestionType.unknown:
-          if (q.options != null && q.options!.isNotEmpty) {
-            kept.add(q);
-          } else {
-            AppLogger.warning(
-              'skip filter id=${q.id} — unknown type, no options',
-              tag: 'DISCOVERY_FILTERS',
-            );
-          }
-        case FilterQuestionType.height:
-        case FilterQuestionType.weight:
-        case FilterQuestionType.date:
-          AppLogger.warning(
-            'skip filter id=${q.id} — ${q.type.name} sent with '
-            'isRange=false (expected true)',
-            tag: 'DISCOVERY_FILTERS',
-          );
-      }
-    }
-    return kept;
   }
 
   void setRange(int questionId, int min, int max) {
@@ -124,9 +95,15 @@ class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState>
     if (loaded == null) return;
     final next = Map<int, DiscoveryFilterSelection>.from(loaded.selections);
     final current = next[questionId];
-    final existing = current is MultiValueSelection
-        ? List<String>.from(current.values)
-        : <String>[];
+    // A SingleValueSelection has to seed the list, not be discarded. A sheet
+    // reopened after an earlier single-select apply carries one, and starting
+    // from empty made the first tap RE-ADD the value the user was trying to
+    // clear — it looked selected, tapped, and stayed selected.
+    final existing = switch (current) {
+      MultiValueSelection(:final values) => List<String>.from(values),
+      SingleValueSelection(:final value) => <String>[value],
+      _ => <String>[],
+    };
     if (existing.contains(value)) {
       existing.remove(value);
     } else {
@@ -151,35 +128,17 @@ class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState>
     );
   }
 
-  /// Flat query map keyed to the backend's confirmed contract:
-  ///
-  /// ```
-  /// RangeFrom[<id>] = "<min>"
-  /// RangeTo[<id>]   = "<max>"
-  /// QuestionFilters[<id>] = "<value>"
-  /// QuestionFilters[<id>] = "<v1>,<v2>,<v3>"
-  /// ```
-  ///
-  /// Empty selections produce an empty map — the caller treats that as
-  /// "clear all filters" and calls `DiscoveryCubit.applyFilters(null)`.
+  /// Flat query map for the request — see [buildDiscoveryFilterPayload] for the
+  /// contract. Empty selections produce an empty map, which the caller treats
+  /// as "clear all filters".
   Map<String, String> buildPayload() {
     final loaded = _requireLoaded();
     if (loaded == null) return const {};
-    final payload = <String, String>{};
-    loaded.selections.forEach((id, selection) {
-      switch (selection) {
-        case RangeSelection(min: final lo, max: final hi):
-          payload['RangeFrom[$id]'] = lo.toString();
-          payload['RangeTo[$id]'] = hi.toString();
-        case SingleValueSelection(value: final v):
-          if (v.isNotEmpty) payload['QuestionFilters[$id]'] = v;
-        case MultiValueSelection(values: final vs):
-          if (vs.isNotEmpty) {
-            payload['QuestionFilters[$id]'] = vs.join(',');
-          }
-      }
-    });
-    return payload;
+    return buildDiscoveryFilterPayload(
+      questions: loaded.questions,
+      selections: loaded.selections,
+      logTag: 'DISCOVERY_FILTERS',
+    );
   }
 
   /// Snapshot of the current raw selections, so the opener can persist them and

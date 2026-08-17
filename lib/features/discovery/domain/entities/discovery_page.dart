@@ -6,7 +6,10 @@ class DiscoveryPage extends Equatable {
   final List<DiscoveryProfile> profiles;
   final int pageNumber;
   final int pageSize;
-  final int totalCount;
+  /// Profiles matching the whole query server-side. Null when the backend did
+  /// not report a total — never substitute `profiles.length`, which only
+  /// counts what this page loaded.
+  final int? totalCount;
   final int totalPages;
 
   const DiscoveryPage({

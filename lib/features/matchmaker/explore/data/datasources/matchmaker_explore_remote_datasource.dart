@@ -90,7 +90,14 @@ class MatchmakerExploreRemoteDataSourceImpl
         // Explore returns `data` as an OBJECT { gender, questions } — DIFFERENT
         // from discovery's flat List. Gender is a screen-level hardcoded
         // segment, so the gender facet is intentionally ignored here.
-        final rawQuestions = (json as Map<String, dynamic>?)?['questions'];
+        //
+        // Type-TESTED rather than cast: a hard `as Map` throws a raw TypeError
+        // straight past the repository's exception mapping if the shape ever
+        // changes (e.g. the two endpoints get unified on discovery's list). A
+        // null here degrades to "no filters available", which the sheet already
+        // renders properly — the same tolerance the rest of this layer has.
+        final data = json is Map<String, dynamic> ? json : null;
+        final rawQuestions = data?['questions'];
         return (rawQuestions as List<dynamic>? ?? const [])
             .whereType<Map<String, dynamic>>()
             // Explore sends the question text as `label`; the shared model

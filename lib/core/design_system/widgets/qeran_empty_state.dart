@@ -5,7 +5,8 @@ import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 import 'qeran_button.dart';
 
-/// Brand-aligned empty state. Centered column, cream-disc icon, optional CTA.
+/// Brand-aligned empty state. Centered column, cream-disc icon, optional CTA
+/// plus an optional secondary (ghost) CTA beneath it.
 class QeranEmptyState extends StatelessWidget {
   const QeranEmptyState({
     super.key,
@@ -14,6 +15,9 @@ class QeranEmptyState extends StatelessWidget {
     this.icon = Icons.favorite_border_rounded,
     this.actionLabel,
     this.onAction,
+    this.actionIcon,
+    this.secondaryActionLabel,
+    this.onSecondaryAction,
   });
 
   final String title;
@@ -21,6 +25,17 @@ class QeranEmptyState extends StatelessWidget {
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+
+  /// Optional leading icon on the primary CTA.
+  final IconData? actionIcon;
+
+  /// A second, lower-emphasis way out — rendered as a ghost button under the
+  /// primary CTA. Added because a filtered empty list needs two exits ("edit
+  /// the filter" AND "drop it"), and offering only one turns the other into a
+  /// dead end. Both null on every pre-existing call site, so nothing changes
+  /// for them.
+  final String? secondaryActionLabel;
+  final VoidCallback? onSecondaryAction;
 
   @override
   Widget build(BuildContext context) {
@@ -51,8 +66,20 @@ class QeranEmptyState extends StatelessWidget {
                 QeranSpacing.vs24,
                 QeranButton(
                   label: actionLabel!,
+                  leadingIcon: actionIcon,
                   onPressed: onAction,
                   variant: QeranButtonVariant.primary,
+                  fullWidth: false,
+                ),
+              ],
+              if (secondaryActionLabel != null &&
+                  onSecondaryAction != null) ...[
+                QeranSpacing.vs8,
+                QeranButton(
+                  label: secondaryActionLabel!,
+                  onPressed: onSecondaryAction,
+                  variant: QeranButtonVariant.ghost,
+                  size: QeranButtonSize.md,
                   fullWidth: false,
                 ),
               ],

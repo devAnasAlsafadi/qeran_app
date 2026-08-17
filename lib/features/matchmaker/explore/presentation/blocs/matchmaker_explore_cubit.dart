@@ -23,6 +23,13 @@ class MatchmakerExploreCubit
   Map<int, double> _rangeFrom = const {};
   Map<int, double> _rangeTo = const {};
 
+  /// Set by [fetchPage], read by the mixin when it emits — see
+  /// [PaginatedListCubitMixin.lastTotalCount].
+  int? _totalCount;
+
+  @override
+  int? get lastTotalCount => _totalCount;
+
   MatchmakerExploreCubit({required GetExploreUseCase getExplore})
       : _getExplore = getExplore,
         super(const PaginatedListState());
@@ -42,7 +49,13 @@ class MatchmakerExploreCubit
     );
     return result.fold(
       (failure) => throw _ExploreFetchException(failure.message),
-      (pageData) => (items: pageData.items, hasMore: pageData.hasMore),
+      (pageData) {
+        // Recorded before returning so the mixin's emit sees this page's total.
+        // A failure leaves the previous value untouched — the throw above means
+        // no emit happens, so there is nothing to keep in sync.
+        _totalCount = pageData.totalCount;
+        return (items: pageData.items, hasMore: pageData.hasMore);
+      },
     );
   }
 
@@ -72,6 +85,21 @@ class MatchmakerExploreCubit
     _reload();
   }
 
+  /// Clears every narrowing at once — search, gender AND sheet filters — and
+  /// reloads a single time.
+  ///
+  /// Not three setter calls: each of those reloads on its own, so clearing all
+  /// three would fire up to three overlapping fetches and the UI would flicker
+  /// through intermediate result sets.
+  void clearQuery() {
+    _search = '';
+    _gender = null;
+    _questionFilters = const {};
+    _rangeFrom = const {};
+    _rangeTo = const {};
+    _reload();
+  }
+
   /// Re-fetches page 1 under the current query. Drops the in-flight guard so a
   /// rapid query change (gender tap right after a search) is never swallowed.
   void _reload() {
@@ -83,6 +111,12 @@ class MatchmakerExploreCubit
         page: 1,
         hasMore: result.hasMore,
         isLoading: false,
+        // Threaded here too: this reload is hand-rolled rather than going
+        // through the mixin's loaders, so without these two the results-count
+        // header would keep showing the PREVIOUS query's total after every
+        // search / gender / filter change.
+        totalCount: lastTotalCount,
+        clearTotalCount: lastTotalCount == null,
       ));
     }).catchError((Object e) {
       if (isClosed) return;

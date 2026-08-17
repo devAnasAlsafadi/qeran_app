@@ -1,43 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/discovery_profile.dart';
+import 'like_failure_kind.dart';
 
-/// Typed projection of the last failed Like attempt.
-///
-/// The cubit stores this on the loaded state so the UI listener can
-/// dispatch the right surface — paywall sheet vs transient toast vs
-/// generic error — without re-classifying the raw server message at
-/// the widget level. `null` means no current failure (the action either
-/// succeeded or none has been attempted since the last clear).
-enum LikeFailureKind {
-  /// Subscription required or like quota exhausted.
-  paywall,
-
-  /// `يوجد طلب قائم بالفعل بينكما` — like already exists between the
-  /// two users.
-  alreadyPending,
-
-  /// `لا يمكن إرسال إعجاب لشخص من نفس الجنس` — backend's matchmaking
-  /// rule rejected the like.
-  genderMismatch,
-
-  /// `المستخدم غير موجود أو غير مرئي` — target user was removed or
-  /// hid their profile.
-  userUnavailable,
-
-  /// `PROFILE_NOT_APPROVED` — the caller's OWN profile is still under
-  /// matchmaker review, so liking is gated. UI keeps the card in place and
-  /// shows a localized "under review" toast (never a paywall).
-  underReview,
-
-  /// Transport-level failure (timeout, parse) OR an unrecognised server
-  /// message. UI shows a generic error toast.
-  network,
-
-  /// Device reported no connectivity (`OfflineFailure`). UI shows the
-  /// dedicated offline toast instead of the generic one.
-  offline,
-}
+export 'like_failure_kind.dart';
 
 sealed class DiscoveryState extends Equatable {
   const DiscoveryState();
@@ -74,6 +40,15 @@ final class DiscoveryLoaded extends DiscoveryState {
   final int totalPages;
   final bool isPrefetching;
 
+  /// Profiles matching the active query server-side, as the backend reported
+  /// it. Null when the backend sent no total.
+  ///
+  /// Threaded for parity with the matchmaker's explore list, but the deck
+  /// renders no count header — a full-bleed one-card-at-a-time surface has no
+  /// header region, and the count is only meaningful here to tell "the filter
+  /// matched nothing" apart from "you have swiped through all the matches".
+  final int? totalCount;
+
   /// Raw server / localized message for the most recent like/pass
   /// failure. UI consumes it as a one-shot snackbar via `BlocListener`.
   /// Cleared when the next action succeeds or `undo` rewinds.
@@ -103,6 +78,7 @@ final class DiscoveryLoaded extends DiscoveryState {
     required this.currentIndex,
     required this.currentPage,
     required this.totalPages,
+    this.totalCount,
     this.isPrefetching = false,
     this.actionError,
     this.actionFailureKind,
@@ -129,6 +105,7 @@ final class DiscoveryLoaded extends DiscoveryState {
     int? currentIndex,
     int? currentPage,
     int? totalPages,
+    int? totalCount,
     bool? isPrefetching,
     String? actionError,
     LikeFailureKind? actionFailureKind,
@@ -142,6 +119,7 @@ final class DiscoveryLoaded extends DiscoveryState {
       currentIndex: currentIndex ?? this.currentIndex,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
+      totalCount: totalCount ?? this.totalCount,
       isPrefetching: isPrefetching ?? this.isPrefetching,
       actionError:
           resetActionError ? null : (actionError ?? this.actionError),
@@ -160,6 +138,7 @@ final class DiscoveryLoaded extends DiscoveryState {
         currentIndex,
         currentPage,
         totalPages,
+        totalCount,
         isPrefetching,
         actionError,
         actionFailureKind,

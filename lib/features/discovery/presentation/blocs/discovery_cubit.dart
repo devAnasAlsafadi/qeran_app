@@ -175,6 +175,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
           currentIndex: 0,
           currentPage: page.pageNumber,
           totalPages: page.totalPages,
+          totalCount: page.totalCount,
         ),
       ),
     );

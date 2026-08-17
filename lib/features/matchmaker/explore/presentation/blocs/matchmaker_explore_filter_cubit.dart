@@ -1,35 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/widgets/qeran_filter_chip_facet.dart';
 import 'package:qeran/core/state/safe_emit.dart';
-import 'package:qeran/core/app_logger.dart';
 
-import '../../../../discovery/domain/entities/discovery_filter_question.dart';
 import '../../../../discovery/domain/entities/discovery_filter_selection.dart';
-import '../../../../discovery/domain/entities/filter_question_type.dart';
+import '../../../../discovery/domain/filter_display_order.dart';
+import '../../../../discovery/domain/filter_payload_builders.dart';
+import '../../../../discovery/domain/filter_question_screening.dart';
+import '../../../../discovery/domain/filter_selection_rules.dart';
 import '../../domain/usecases/get_explore_filters_usecase.dart';
 import 'matchmaker_explore_filter_state.dart';
-
-/// Converts the sheet's selections into the `{questionId: [values]}` map the
-/// explore datasource turns into `QuestionFilters[id]=comma-joined`. Pure +
-/// top-level so the screen (S4c) can convert a returned selection map without
-/// holding the cubit. RANGE selections are intentionally ignored — ranges are
-/// out of scope for explore (the sheet never surfaces them).
-Map<int, List<String>> exploreQuestionFiltersFromSelections(
-  Map<int, DiscoveryFilterSelection> selections,
-) {
-  final out = <int, List<String>>{};
-  selections.forEach((id, selection) {
-    switch (selection) {
-      case SingleValueSelection(value: final v):
-        if (v.isNotEmpty) out[id] = [v];
-      case MultiValueSelection(values: final vs):
-        final nonEmpty = vs.where((v) => v.isNotEmpty).toList();
-        if (nonEmpty.isNotEmpty) out[id] = nonEmpty;
-      case RangeSelection():
-        break; // out of scope for explore
-    }
-  });
-  return out;
-}
 
 /// Screen-scoped controller for the explore filter sheet. PARALLEL to
 /// `DiscoveryFilterCubit` (mirrored, not reused — discovery is untouched).
@@ -53,48 +32,27 @@ class MatchmakerExploreFilterCubit
     final result = await _getFilters();
     result.fold(
       (failure) => emit(MatchmakerExploreFilterFailure(failure.message)),
-      (questions) => emit(MatchmakerExploreFilterLoaded(
-        questions: _usableQuestions(questions),
-        selections: Map.of(_initialSelections),
-      )),
+      (questions) {
+        final screened = screenFilterQuestions(
+          all: questions,
+          logTag: 'MM-EXPLORE-FILTERS',
+        );
+        final usable = sortedFilterQuestions(screened.kept);
+        nonSearchableLongLists(
+          questions: usable,
+          optionCountThreshold: kQeranSearchableFacetThreshold,
+          logTag: 'MM-EXPLORE-FILTERS',
+        );
+        emit(MatchmakerExploreFilterLoaded(
+          questions: usable,
+          selections: collapseForbiddenMultiSelections(
+            questions: usable,
+            seeded: _initialSelections,
+            logTag: 'MM-EXPLORE-FILTERS',
+          ),
+        ));
+      },
     );
-  }
-
-  /// Keeps the question types the matchmaker sheet renders: any `isRange`
-  /// question (age/height/weight → a range slider) PLUS select / radio /
-  /// checkbox / interests / text. `unknown` is kept only when it has options
-  /// (single-choice fallback). A `date`/`height`/`weight` arriving WITHOUT
-  /// `isRange` is dropped — there's no single-value leaf for it (mirrors
-  /// discovery; explore `/filters` now always flags these as ranges).
-  List<DiscoveryFilterQuestion> _usableQuestions(
-    List<DiscoveryFilterQuestion> all,
-  ) {
-    final kept = <DiscoveryFilterQuestion>[];
-    for (final q in all) {
-      if (q.isRange) {
-        kept.add(q);
-        continue;
-      }
-      switch (q.type) {
-        case FilterQuestionType.select:
-        case FilterQuestionType.radio:
-        case FilterQuestionType.checkbox:
-        case FilterQuestionType.interests:
-        case FilterQuestionType.text:
-          kept.add(q);
-        case FilterQuestionType.unknown:
-          if (q.options != null && q.options!.isNotEmpty) kept.add(q);
-        case FilterQuestionType.date:
-        case FilterQuestionType.height:
-        case FilterQuestionType.weight:
-          AppLogger.warning(
-            'skip explore filter id=${q.id} — ${q.type.name} sent with '
-            'isRange=false (expected true)',
-            tag: 'MM-EXPLORE-FILTERS',
-          );
-      }
-    }
-    return kept;
   }
 
   /// Sets a numeric range (age/height/weight) — mirrors discovery's slider.
@@ -130,9 +88,15 @@ class MatchmakerExploreFilterCubit
     if (loaded == null) return;
     final next = Map<int, DiscoveryFilterSelection>.from(loaded.selections);
     final current = next[questionId];
-    final existing = current is MultiValueSelection
-        ? List<String>.from(current.values)
-        : <String>[];
+    // A SingleValueSelection has to seed the list, not be discarded. A sheet
+    // reopened after an earlier single-select apply carries one, and starting
+    // from empty made the first tap RE-ADD the value the matchmaker was trying
+    // to clear — it looked selected, tapped, and stayed selected.
+    final existing = switch (current) {
+      MultiValueSelection(:final values) => List<String>.from(values),
+      SingleValueSelection(:final value) => <String>[value],
+      _ => <String>[],
+    };
     existing.contains(value) ? existing.remove(value) : existing.add(value);
     if (existing.isEmpty) {
       next.remove(questionId);
@@ -145,19 +109,28 @@ class MatchmakerExploreFilterCubit
   void clearAll() {
     final loaded = _loaded();
     if (loaded == null) return;
-    emit(loaded.copyWith(selections: const {}));
+    emit(
+      loaded.copyWith(
+        selections: const {},
+        resetVersion: loaded.resetVersion + 1,
+      ),
+    );
   }
 
   /// Current selections as `{questionId: [values]}` for the datasource.
   Map<int, List<String>> buildQuestionFilters() {
     final loaded = _loaded();
     if (loaded == null) return const {};
-    return exploreQuestionFiltersFromSelections(loaded.selections);
+    return exploreQuestionFilters(
+      questions: loaded.questions,
+      selections: loaded.selections,
+      logTag: 'MM-EXPLORE-FILTERS',
+    );
   }
 
-  /// The trimmed numeric range maps for the request — an edge is emitted only
-  /// when the user moved it off the question's bound, so a full-range selection
-  /// sends nothing and a one-sided range sends just one edge.
+  /// The trimmed numeric range maps for the request — see [trimmedRangeEdges]
+  /// for the trimming and guard rules, which are shared verbatim with the user
+  /// app's payload builder.
   ({Map<int, double> from, Map<int, double> to}) buildRangeFilters() {
     final loaded = _loaded();
     if (loaded == null) return (from: const {}, to: const {});
@@ -165,11 +138,15 @@ class MatchmakerExploreFilterCubit
     final to = <int, double>{};
     final byId = {for (final q in loaded.questions) q.id: q};
     loaded.selections.forEach((id, sel) {
-      if (sel is! RangeSelection) return;
-      final q = byId[id];
-      if (q == null) return;
-      if (sel.min > q.effectiveMin) from[id] = sel.min.toDouble();
-      if (sel.max < q.effectiveMax) to[id] = sel.max.toDouble();
+      final question = byId[id];
+      if (sel is! RangeSelection || question == null) return;
+      final edges = trimmedRangeEdges(
+        question: question,
+        selection: sel,
+        logTag: 'MM-EXPLORE-FILTERS',
+      );
+      if (edges.from != null) from[id] = edges.from!.toDouble();
+      if (edges.to != null) to[id] = edges.to!.toDouble();
     });
     return (from: from, to: to);
   }

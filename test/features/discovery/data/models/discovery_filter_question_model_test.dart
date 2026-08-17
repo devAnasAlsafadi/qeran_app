@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/discovery/data/models/discovery_filter_question_model.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_filter_option.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_filter_question.dart';
 import 'package:qeran/features/discovery/domain/entities/filter_question_type.dart';
 
 void main() {
@@ -196,6 +198,135 @@ void main() {
         'type': 'CHECKBOX',
       }).toEntity();
       expect(e.type, FilterQuestionType.checkbox);
+    });
+  });
+
+  // Tariq's dashboard control fields. Parsed and carried to the entity here;
+  // nothing READS them yet (steps 9-11 consume them). Absence is the expected
+  // state until the backend rollout lands, so it must stay silent and null —
+  // null is what lets the renderer keep its current inference.
+  group('DiscoveryFilterQuestionModel — dashboard control fields', () {
+    test('a full payload round-trips all four fields to the entity', () {
+      final e = DiscoveryFilterQuestionModel.fromJson(const {
+        'questionId': 11,
+        'question': 'الجنسية',
+        'type': 'select',
+        'isRange': false,
+        'displayPriority': 2,
+        'isSearchable': true,
+        'isMultiSelect': false,
+        'options': [
+          {'value': 'Saudi', 'display': 'سعودي', 'displayPriority': 1},
+          {'value': 'Other', 'display': 'أخرى', 'displayPriority': 9},
+        ],
+      }).toEntity();
+
+      expect(e.displayPriority, 2);
+      expect(e.isSearchable, isTrue);
+      expect(e.isMultiSelect, isFalse);
+      expect(e.options!.map((o) => o.displayPriority), [1, 9]);
+    });
+
+    test('absent fields land as null on both entities, not as defaults', () {
+      // The pre-rollout payload. `isMultiSelect: null` must NOT read as false —
+      // false is an explicit dashboard choice, null means "keep inferring".
+      final e = DiscoveryFilterQuestionModel.fromJson(const {
+        'questionId': 18,
+        'question': 'الحالة الاجتماعية',
+        'type': 'radio',
+        'isRange': false,
+        'options': [
+          {'value': 'Single', 'display': 'عازب'},
+        ],
+      }).toEntity();
+
+      expect(e.displayPriority, isNull);
+      expect(e.isSearchable, isNull);
+      expect(e.isMultiSelect, isNull);
+      expect(e.options!.single.displayPriority, isNull);
+    });
+
+    test('displayPriority tolerates numeric strings and doubles', () {
+      final e = DiscoveryFilterQuestionModel.fromJson(const {
+        'questionId': 11,
+        'displayPriority': '3',
+        'options': [
+          {'value': 'a', 'display': 'A', 'displayPriority': 4.0},
+        ],
+      }).toEntity();
+
+      expect(e.displayPriority, 3);
+      expect(e.options!.single.displayPriority, 4);
+    });
+
+    test('an unparseable displayPriority degrades to null, never throws', () {
+      // Was a hard `as num?` cast on the sibling fields; these would have been
+      // raw TypeErrors past the repository's exception mapping.
+      for (final raw in <Object>['high', true, <int>[1], <String, int>{}]) {
+        final e = DiscoveryFilterQuestionModel.fromJson({
+          'questionId': 11,
+          'displayPriority': raw,
+        }).toEntity();
+        expect(e.displayPriority, isNull, reason: 'raw=$raw');
+      }
+    });
+
+    test('bool flags coerce strings and 0/1, and reject garbage as null', () {
+      DiscoveryFilterQuestion parse(Object? searchable, Object? multi) =>
+          DiscoveryFilterQuestionModel.fromJson({
+            'questionId': 11,
+            'isSearchable': searchable,
+            'isMultiSelect': multi,
+          }).toEntity();
+
+      expect(parse('true', 'false').isSearchable, isTrue);
+      expect(parse('true', 'false').isMultiSelect, isFalse);
+      expect(parse('TRUE', 'False').isSearchable, isTrue);
+      expect(parse('TRUE', 'False').isMultiSelect, isFalse);
+      expect(parse(1, 0).isSearchable, isTrue);
+      expect(parse(1, 0).isMultiSelect, isFalse);
+      // Garbage stays null rather than collapsing to false — the difference
+      // decides whether the client infers or obeys.
+      expect(parse('yes', 'maybe').isSearchable, isNull);
+      expect(parse('yes', 'maybe').isMultiSelect, isNull);
+      expect(parse(<int>[], null).isSearchable, isNull);
+    });
+
+    test('copyWith keeps the new fields and can replace the options list', () {
+      // Step 11's sort helper relies on exactly this: swap options for a
+      // reordered list, carry everything else through untouched.
+      final e = DiscoveryFilterQuestionModel.fromJson(const {
+        'questionId': 11,
+        'question': 'الجنسية',
+        'type': 'select',
+        'displayPriority': 2,
+        'isSearchable': true,
+        'isMultiSelect': true,
+        'options': [
+          {'value': 'b', 'display': 'B', 'displayPriority': 2},
+          {'value': 'a', 'display': 'A', 'displayPriority': 1},
+        ],
+      }).toEntity();
+
+      final sorted = e.copyWith(options: e.options!.reversed.toList());
+
+      expect(sorted.options!.map((o) => o.value), ['a', 'b']);
+      expect(sorted.displayPriority, 2);
+      expect(sorted.isSearchable, isTrue);
+      expect(sorted.isMultiSelect, isTrue);
+      expect(sorted.id, 11);
+      expect(sorted.label, 'الجنسية');
+      expect(sorted.type, FilterQuestionType.select);
+      expect(e.options!.map((o) => o.value), ['b', 'a'], reason: 'no mutation');
+
+      expect(
+        e.options!.first.copyWith(display: 'B2'),
+        const DiscoveryFilterOption(
+          value: 'b',
+          display: 'B2',
+          displayPriority: 2,
+        ),
+      );
     });
   });
 }

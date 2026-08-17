@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/enum/message_type.dart';
 import 'package:qeran/features/chat/data/models/chat_message_model.dart';
 import 'package:qeran/features/chat/domain/entities/message_send_status.dart';
 
@@ -135,6 +136,93 @@ void main() {
         'isRead': false,
       }).toEntity();
       expect(entity.sentAt.millisecondsSinceEpoch, 0);
+    });
+  });
+
+  group('ChatMessageModel — the bilingual contract', () {
+    Map<String, dynamic> base(Map<String, dynamic> extra) => {
+          'id': 105,
+          'conversationId': 42,
+          'senderId': 'mm-guid',
+          'senderName': 'سلمى',
+          'content': 'مرحباً، أنا الخطّابة',
+          'sharedProfile': null,
+          'isRead': false,
+          'sentAt': '2026-08-16T10:00:00Z',
+          ...extra,
+        };
+
+    test('a system payload survives the trip to the entity intact', () {
+      final entity = ChatMessageModel.fromJson(base({
+        'type': 'System',
+        'contentAr': 'مرحباً، أنا الخطّابة',
+        'contentEn': 'Hello, I am your matchmaker',
+      })).toEntity();
+
+      expect(entity.type, MessageType.system);
+      expect(entity.contentAr, 'مرحباً، أنا الخطّابة');
+      expect(entity.contentEn, 'Hello, I am your matchmaker');
+      // `content` is preserved untouched — the model resolves nothing.
+      expect(entity.content, 'مرحباً، أنا الخطّابة');
+      expect(entity.displayText(isArabic: false),
+          'Hello, I am your matchmaker');
+    });
+
+    test('a user payload carries no pair', () {
+      final entity = ChatMessageModel.fromJson(base({
+        'type': 'User',
+        'content': 'كيف الأحوال؟',
+      })).toEntity();
+
+      expect(entity.type, MessageType.user);
+      expect(entity.contentAr, isNull);
+      expect(entity.contentEn, isNull);
+    });
+
+    test('a pre-contract payload is unknown, and renders as plain text', () {
+      // The 72 backfilled rows aside, any payload predating the contract has
+      // no `type` at all. The model mirrors that rather than guessing.
+      final entity = ChatMessageModel.fromJson(base({})).toEntity();
+
+      expect(entity.type, MessageType.unknown);
+      expect(entity.displayText(isArabic: false), 'مرحباً، أنا الخطّابة');
+    });
+
+    test('the kind is never inferred from a missing rendition', () {
+      // A system message may legitimately ship one language. Reading the kind
+      // off `contentEn` would demote it to a user message and lose the AR
+      // rendition too.
+      final entity = ChatMessageModel.fromJson(base({
+        'type': 'System',
+        'contentAr': 'النص العربي',
+      })).toEntity();
+
+      expect(entity.type, MessageType.system);
+      expect(entity.displayText(isArabic: true), 'النص العربي');
+    });
+
+    test('a blank rendition reaches the entity as "", not null', () {
+      // Deliberate: the model stays a faithful mirror of the wire and the
+      // empty-vs-null equivalence is settled in `displayText`.
+      final entity = ChatMessageModel.fromJson(base({
+        'type': 'System',
+        'contentAr': 'النص العربي',
+        'contentEn': '',
+      })).toEntity();
+
+      expect(entity.contentEn, '');
+      expect(entity.contentEn, isNotNull);
+      expect(entity.displayText(isArabic: false), 'مرحباً، أنا الخطّابة');
+    });
+
+    test('an unrecognised future kind degrades instead of throwing', () {
+      final entity = ChatMessageModel.fromJson(base({
+        'type': 'Announcement',
+        'contentEn': 'must not be used',
+      })).toEntity();
+
+      expect(entity.type, MessageType.unknown);
+      expect(entity.displayText(isArabic: false), 'مرحباً، أنا الخطّابة');
     });
   });
 }

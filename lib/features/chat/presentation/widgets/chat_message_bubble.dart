@@ -101,6 +101,12 @@ class _Bubble extends StatelessWidget {
       bottomEnd: Radius.circular(isMine ? 5 : 16),
     );
     final isFailed = message.status == MessageSendStatus.failed;
+    // Resolved HERE, inside build, so reading `context.locale` registers the
+    // dependency on easy_localization's inherited widget: switching language
+    // with the thread open repaints every system bubble immediately, with no
+    // refetch. Caching this in a field or resolving it in the cubit would
+    // freeze the text until the next load.
+    final isArabic = context.locale.languageCode == 'ar';
     final bg = isMine ? QeranColors.wine : QeranColors.paper;
     final textColor =
         isMine ? QeranColors.paper.withValues(alpha: 0.95) : QeranColors.inkStrong;
@@ -124,7 +130,7 @@ class _Bubble extends StatelessWidget {
           border: border,
         ),
         child: Text(
-          message.content,
+          message.displayText(isArabic: isArabic),
           style: QeranTypography.body.copyWith(color: textColor, height: 1.4),
         ),
       ),

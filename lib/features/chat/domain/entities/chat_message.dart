@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:qeran/core/enum/message_type.dart';
 
 import 'message_send_status.dart';
 import 'shared_profile.dart';
@@ -25,7 +26,21 @@ class ChatMessage extends Equatable {
   final int conversationId;
   final String senderId;
   final String senderName;
+
+  /// The message as the backend always sends it — Arabic for a system
+  /// message. Every path that cannot use the localized pair lands here, so
+  /// it is never empty in practice.
   final String content;
+
+  /// Who authored the message. Defaults to [MessageType.user] because the
+  /// only entity built by hand is the optimistic outgoing temp, which the
+  /// user did author; server rows carry the wire value.
+  final MessageType type;
+
+  /// Localized renditions, present only on a system message.
+  final String? contentAr;
+  final String? contentEn;
+
   final SharedProfile? sharedProfile;
   final bool isRead;
   final DateTime sentAt;
@@ -40,6 +55,9 @@ class ChatMessage extends Equatable {
     required this.senderId,
     required this.senderName,
     required this.content,
+    this.type = MessageType.user,
+    this.contentAr,
+    this.contentEn,
     required this.sharedProfile,
     required this.isRead,
     required this.sentAt,
@@ -47,6 +65,26 @@ class ChatMessage extends Equatable {
   });
 
   bool get isSharedProfile => sharedProfile != null;
+
+  /// The text to render, for the locale the caller is currently in.
+  ///
+  /// Only an explicit system message consults the localized pair; anything
+  /// else — a user message, or a payload with no `type` at all — uses
+  /// [content]. A localized field that is missing OR blank falls back to
+  /// [content] too: `parseNullableString` keeps `""` as an empty string
+  /// rather than nulling it, so both have to read as "not usable here".
+  ///
+  /// There is deliberately no attempt at the opposite language. [content]
+  /// is always populated, which makes it the one honest fallback.
+  ///
+  /// Callers must resolve this inside `build` (from `context.locale`) so a
+  /// language switch re-renders the text without a refetch.
+  String displayText({required bool isArabic}) {
+    if (!type.usesLocalizedContent) return content;
+    final localized = isArabic ? contentAr : contentEn;
+    if (localized == null || localized.isEmpty) return content;
+    return localized;
+  }
 
   ChatMessage copyWith({
     int? serverId,
@@ -62,6 +100,12 @@ class ChatMessage extends Equatable {
       senderId: senderId,
       senderName: senderName,
       content: content,
+      // Carried explicitly: this constructor names every field, so an
+      // omission here would silently reset a system message to its
+      // defaults on the first optimistic-temp reconciliation.
+      type: type,
+      contentAr: contentAr,
+      contentEn: contentEn,
       sharedProfile: sharedProfile,
       isRead: isRead ?? this.isRead,
       sentAt: sentAt ?? this.sentAt,
@@ -77,6 +121,9 @@ class ChatMessage extends Equatable {
         senderId,
         senderName,
         content,
+        type,
+        contentAr,
+        contentEn,
         sharedProfile,
         isRead,
         sentAt,

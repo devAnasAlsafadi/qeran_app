@@ -48,6 +48,7 @@ void main() {
     WidgetTester tester, {
     int optionCount = 12,
     Set<String> initiallySelected = const {},
+    bool allowsMultiple = false,
   }) async {
     final selected = <String>{...initiallySelected};
     final options = _options(optionCount);
@@ -73,6 +74,7 @@ void main() {
                     options: options,
                     isSelected: selected.contains,
                     onTap: selected.add,
+                    allowsMultiple: allowsMultiple,
                     resetVersion: resetVersion,
                   );
                 },
@@ -103,6 +105,16 @@ void main() {
     of: find.byType(ListView),
     matching: find.text(label),
   );
+
+  /// Indicators live in the checklist; the trigger's chevron and the search
+  /// field's magnifier are icons too, so scope the same way `row` does.
+  Finder indicator(IconData icon) => find.descendant(
+    of: find.byType(ListView),
+    matching: find.byIcon(icon),
+  );
+
+  Color? indicatorColor(WidgetTester tester, IconData icon) =>
+      tester.widget<Icon>(indicator(icon).first).color;
 
   testWidgets('starts collapsed, showing the label as placeholder', (
     tester,
@@ -198,5 +210,103 @@ void main() {
         .map((t) => t.data)
         .toList();
     expect(labels, ['Option 0', 'Option 1', 'Option 2']);
+  });
+
+  group('the indicator distinguishes single from multi select', () {
+    testWidgets('multi renders checkboxes — empty box when unselected', (
+      tester,
+    ) async {
+      await pumpFacet(tester, optionCount: 3, allowsMultiple: true);
+      await expand(tester);
+
+      expect(indicator(Icons.check_box_outline_blank_rounded), findsNWidgets(3));
+      expect(indicator(Icons.circle_outlined), findsNothing);
+      expect(indicator(Icons.check_circle_rounded), findsNothing);
+    });
+
+    testWidgets('multi renders a FILLED box for the selected row', (
+      tester,
+    ) async {
+      await pumpFacet(
+        tester,
+        optionCount: 3,
+        allowsMultiple: true,
+        initiallySelected: const {'value-0'},
+      );
+      await expand(tester);
+
+      expect(indicator(Icons.check_box_rounded), findsOneWidget);
+      expect(indicator(Icons.check_box_outline_blank_rounded), findsNWidgets(2));
+      expect(indicator(Icons.check_circle_rounded), findsNothing);
+    });
+
+    testWidgets('single keeps the circle it renders today, unselected', (
+      tester,
+    ) async {
+      // Default (false) is deliberately what every pre-existing host renders.
+      await pumpFacet(tester, optionCount: 3);
+      await expand(tester);
+
+      expect(indicator(Icons.circle_outlined), findsNWidgets(3));
+      expect(indicator(Icons.check_box_outline_blank_rounded), findsNothing);
+      expect(indicator(Icons.check_box_rounded), findsNothing);
+    });
+
+    testWidgets('single keeps the circle it renders today, selected', (
+      tester,
+    ) async {
+      await pumpFacet(
+        tester,
+        optionCount: 3,
+        initiallySelected: const {'value-0'},
+      );
+      await expand(tester);
+
+      expect(indicator(Icons.check_circle_rounded), findsOneWidget);
+      expect(indicator(Icons.circle_outlined), findsNWidgets(2));
+      expect(indicator(Icons.check_box_rounded), findsNothing);
+    });
+
+    testWidgets('both modes paint the indicator from the same colours', (
+      tester,
+    ) async {
+      // The real guarantee is structural: `_OptionRow` has ONE colour
+      // expression, shared by both shapes, so there is no second place for the
+      // multi indicator's fill to drift from the single one. This pins the
+      // observable half of that — a future split into per-branch colours would
+      // fail here.
+      await pumpFacet(
+        tester,
+        optionCount: 3,
+        allowsMultiple: true,
+        initiallySelected: const {'value-0'},
+      );
+      await expand(tester);
+      final multiSelected = indicatorColor(tester, Icons.check_box_rounded);
+      final multiUnselected =
+          indicatorColor(tester, Icons.check_box_outline_blank_rounded);
+
+      // Tear the tree down first. Re-pumping the same widget type at the same
+      // position REUSES the State, so the facet would still be expanded and the
+      // collapsed chevron `expand` taps for would not exist.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+
+      await pumpFacet(
+        tester,
+        optionCount: 3,
+        initiallySelected: const {'value-0'},
+      );
+      await expand(tester);
+      final singleSelected = indicatorColor(tester, Icons.check_circle_rounded);
+      final singleUnselected = indicatorColor(tester, Icons.circle_outlined);
+
+      expect(multiSelected, singleSelected);
+      expect(multiUnselected, singleUnselected);
+      // And selected stays legible against unselected by MORE than shape, in
+      // both modes — the shapes already differ, the colours must too.
+      expect(multiSelected, isNot(multiUnselected));
+      expect(singleSelected, isNot(singleUnselected));
+    });
   });
 }

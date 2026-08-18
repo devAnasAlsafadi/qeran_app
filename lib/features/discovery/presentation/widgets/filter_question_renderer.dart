@@ -74,6 +74,7 @@ class FilterQuestionRenderer extends StatelessWidget {
           isSearchable: question.effectiveIsSearchable(
             optionCountThreshold: kQeranSearchableFacetThreshold,
           ),
+          allowsMultiple: isMulti,
           isSelected: selected.contains,
           onTap: isMulti
               ? (v) => cubit.toggleMultiValue(question.id, v)
@@ -118,6 +119,7 @@ class FilterQuestionRenderer extends StatelessWidget {
     required String label,
     required List<DiscoveryFilterOption> options,
     required bool isSearchable,
+    required bool allowsMultiple,
     required bool Function(String value) isSelected,
     required void Function(String value) onTap,
   }) {
@@ -130,6 +132,7 @@ class FilterQuestionRenderer extends StatelessWidget {
         options: dsOptions,
         isSelected: isSelected,
         onTap: onTap,
+        allowsMultiple: allowsMultiple,
         resetVersion: resetVersion,
       );
     }

@@ -10,18 +10,25 @@ import 'qeran_selectable_option.dart';
 /// [QeranFilterSearchableFacet] so a long list (e.g. nationality) never becomes
 /// an unmanageable chip wall.
 ///
-/// The decision is purely count-based — no per-question hardcoding — and lives
-/// here so both apps cut over at the same number. Should the backend ever ship
-/// an `isSearchable` flag, this is the single place that stops being consulted.
+/// The FALLBACK, not the rule. The backend's `isSearchable` has since shipped
+/// and wins outright when present, so this count is consulted only for a
+/// question the dashboard has not decided — see
+/// `DiscoveryFilterQuestion.effectiveIsSearchable`. Lives here so that, when it
+/// is consulted, both apps cut over at the same number.
 const int kQeranSearchableFacetThreshold = 10;
 
 /// A labelled facet whose options are selectable chips — selected = solid wine
 /// (`score`), unselected = paper + wine border (`inside`).
 ///
+/// Selection state is the chip's own fill, so unlike
+/// [QeranFilterSearchableFacet] there is no per-option indicator and nothing
+/// distinguishes a single- from a multi-select group: two filled chips already
+/// say "more than one allowed".
+///
 /// For small option sets only; large sets belong in
 /// [QeranFilterSearchableFacet]. The `isSelected` / `onTap` contract is
-/// identical across both so a host can swap on
-/// [kQeranSearchableFacetThreshold] without changing its selection semantics.
+/// identical across both so a host can swap between them without changing its
+/// selection semantics.
 class QeranFilterChipFacet extends StatelessWidget {
   const QeranFilterChipFacet({
     super.key,

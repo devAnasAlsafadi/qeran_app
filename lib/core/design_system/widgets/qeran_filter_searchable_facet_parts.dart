@@ -9,6 +9,7 @@ class _Panel extends StatelessWidget {
     required this.rows,
     required this.isSelected,
     required this.onTap,
+    required this.allowsMultiple,
   });
 
   final TextEditingController controller;
@@ -17,6 +18,7 @@ class _Panel extends StatelessWidget {
   final List<QeranSelectableOption> rows;
   final bool Function(String value) isSelected;
   final void Function(String value) onTap;
+  final bool allowsMultiple;
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +74,7 @@ class _Panel extends StatelessWidget {
                         label: o.display,
                         selected: isSelected(o.value),
                         onTap: () => onTap(o.value),
+                        allowsMultiple: allowsMultiple,
                       );
                     },
                   ),
@@ -82,45 +85,61 @@ class _Panel extends StatelessWidget {
   }
 }
 
-/// One tappable checklist row — wine check + wine label when selected, faint
-/// outline + neutral label otherwise.
-class _OptionRow extends StatelessWidget {
-  const _OptionRow({
+/// The collapsed dropdown header: summarizes the selection, or falls back to
+/// the facet label as a placeholder. Wine border + wine bold text once
+/// anything is chosen.
+class _Trigger extends StatelessWidget {
+  const _Trigger({
     required this.label,
-    required this.selected,
+    required this.selectedText,
+    required this.isExpanded,
     required this.onTap,
   });
 
   final String label;
-  final bool selected;
+  final String? selectedText;
+  final bool isExpanded;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final active = selectedText != null;
     return InkWell(
       onTap: onTap,
       borderRadius: QeranRadii.controlR,
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.symmetric(
+          horizontal: QeranSpacing.s16,
           vertical: QeranSpacing.s12,
-          horizontal: QeranSpacing.s8,
+        ),
+        decoration: BoxDecoration(
+          color: QeranColors.paper,
+          borderRadius: QeranRadii.controlR,
+          border: Border.all(
+            color: active
+                ? QeranColors.wine
+                : QeranColors.inkFaint.withValues(alpha: 0.3),
+            width: active ? 1.5 : 1.0,
+          ),
         ),
         child: Row(
           children: [
-            Icon(
-              selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-              color: selected ? QeranColors.wine : QeranColors.inkFaint,
-              size: 22,
-            ),
-            QeranSpacing.hs12,
             Expanded(
               child: Text(
-                label,
+                selectedText ?? label,
                 style: QeranTypography.body.copyWith(
-                  color: selected ? QeranColors.wine : QeranColors.inkStrong,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  color: active ? QeranColors.wine : QeranColors.inkMuted,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
+            ),
+            Icon(
+              isExpanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              color: active ? QeranColors.wine : QeranColors.inkFaint,
             ),
           ],
         ),

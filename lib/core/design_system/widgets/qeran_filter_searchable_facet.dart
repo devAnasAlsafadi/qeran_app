@@ -10,6 +10,7 @@ import 'qeran_selectable_option.dart';
 import 'qeran_text_field.dart';
 
 part 'qeran_filter_searchable_facet_parts.dart';
+part 'qeran_filter_searchable_facet_row.dart';
 
 /// An expandable dropdown / accordion facet for LARGE option sets (e.g.
 /// nationality). Shows a trigger field summarizing current selections when
@@ -24,6 +25,7 @@ class QeranFilterSearchableFacet extends StatefulWidget {
     required this.options,
     required this.isSelected,
     required this.onTap,
+    this.allowsMultiple = false,
     this.resetVersion = 0,
   });
 
@@ -31,6 +33,15 @@ class QeranFilterSearchableFacet extends StatefulWidget {
   final List<QeranSelectableOption> options;
   final bool Function(String value) isSelected;
   final void Function(String value) onTap;
+
+  /// Switches each row's indicator between a checkbox (many-of) and a radio
+  /// (one-of). Cosmetic only — the host still decides what a tap DOES.
+  ///
+  /// Has to be told rather than inferred: [isSelected] alone cannot distinguish
+  /// a multi facet with nothing chosen from a single one, and that is exactly
+  /// the state where the cue matters most. Defaults to false so existing hosts
+  /// keep the radio they render today.
+  final bool allowsMultiple;
 
   /// Bumped by the host when a "clear all" happens, so the panel collapses and
   /// forgets its query instead of sitting open over a now-empty selection.
@@ -123,72 +134,10 @@ class _QeranFilterSearchableFacetState
             rows: rows,
             isSelected: widget.isSelected,
             onTap: widget.onTap,
+            allowsMultiple: widget.allowsMultiple,
           ),
         ],
       ],
-    );
-  }
-}
-
-/// The collapsed dropdown header: summarizes the selection, or falls back to
-/// the facet label as a placeholder. Wine border + wine bold text once
-/// anything is chosen.
-class _Trigger extends StatelessWidget {
-  const _Trigger({
-    required this.label,
-    required this.selectedText,
-    required this.isExpanded,
-    required this.onTap,
-  });
-
-  final String label;
-  final String? selectedText;
-  final bool isExpanded;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final active = selectedText != null;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: QeranRadii.controlR,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: QeranSpacing.s16,
-          vertical: QeranSpacing.s12,
-        ),
-        decoration: BoxDecoration(
-          color: QeranColors.paper,
-          borderRadius: QeranRadii.controlR,
-          border: Border.all(
-            color: active
-                ? QeranColors.wine
-                : QeranColors.inkFaint.withValues(alpha: 0.3),
-            width: active ? 1.5 : 1.0,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                selectedText ?? label,
-                style: QeranTypography.body.copyWith(
-                  color: active ? QeranColors.wine : QeranColors.inkMuted,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Icon(
-              isExpanded
-                  ? Icons.keyboard_arrow_up_rounded
-                  : Icons.keyboard_arrow_down_rounded,
-              color: active ? QeranColors.wine : QeranColors.inkFaint,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

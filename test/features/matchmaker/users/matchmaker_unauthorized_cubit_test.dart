@@ -4,7 +4,6 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/matchmaker/users/domain/repositories/matchmaker_editable_answers_repository.dart';
 import 'package:qeran/features/matchmaker/users/domain/repositories/matchmaker_user_actions_repository.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/approve_user_usecase.dart';
-import 'package:qeran/features/matchmaker/users/domain/usecases/approve_user_image_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/reject_user_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/request_image_user_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/update_text_answer_usecase.dart';
@@ -28,12 +27,6 @@ class _FailingAnswersRepository implements MatchmakerEditableAnswersRepository {
 }
 
 class _FailingActionsRepository implements MatchmakerUserActionsRepository {
-  @override
-  Future<Either<Failure, String>> approveImage({
-    required String userId,
-    required String imageId,
-  }) async => const Left(_unauthorized);
-
   @override
   Future<Either<Failure, String>> approve(String userId) async =>
       const Left(_unauthorized);
@@ -71,7 +64,6 @@ void main() {
       approve: ApproveUserUseCase(repository),
       reject: RejectUserUseCase(repository),
       requestImage: RequestImageUserUseCase(repository),
-      approveImage: ApproveUserImageUseCase(repository),
     );
 
     await cubit.requestImage();
@@ -81,26 +73,4 @@ void main() {
     expect(cubit.state.inFlight, isNull);
     await cubit.close();
   });
-
-  test(
-    'approve-image classifies UNAUTHORIZED and clears image progress',
-    () async {
-      final repository = _FailingActionsRepository();
-      final cubit = MatchmakerUserActionsCubit(
-        userId: 'u1',
-        approve: ApproveUserUseCase(repository),
-        reject: RejectUserUseCase(repository),
-        requestImage: RequestImageUserUseCase(repository),
-        approveImage: ApproveUserImageUseCase(repository),
-      );
-
-      await cubit.approveImage('image-7');
-
-      expect(cubit.state.outcome, MatchmakerActionOutcome.failure);
-      expect(cubit.state.errorKind, MatchmakerActionErrorKind.unauthorized);
-      expect(cubit.state.inFlight, isNull);
-      expect(cubit.state.inFlightImageId, isNull);
-      await cubit.close();
-    },
-  );
 }

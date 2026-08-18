@@ -13,9 +13,8 @@ import '../../domain/entities/matchmaker_user_profile.dart';
 /// `images` and `placements` reuse the profile feature's parsers so the
 /// shape stays in lock-step with the user-side profile.
 ///
-/// Images parse as [OwnerImageModel] — the wire carries `isApproved` (the
-/// owner shape) — yielding [OwnerImage], which the gallery renders
-/// unblurred.
+/// Images parse as [OwnerImageModel], yielding [OwnerImage], which the gallery
+/// renders unblurred.
 class MatchmakerUserProfileModel {
   final String userId;
   final String name;

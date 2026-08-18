@@ -227,7 +227,6 @@ void main() {
         id: 'img-1',
         url: 'https://cdn.test/img-1.jpg',
         isProfile: false,
-        isApproved: true,
       ),
     );
 

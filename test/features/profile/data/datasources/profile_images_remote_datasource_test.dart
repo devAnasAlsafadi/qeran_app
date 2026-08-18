@@ -33,30 +33,25 @@ void main() {
     );
   });
 
-  test('reads isApproved for every profile image', () async {
+  test('parses the image list, ignoring the retired isApproved field', () async {
+    // Per-image review is gone, but the server still sends the key — as null
+    // now, and historically as a bool. None of those shapes may leak into the
+    // entity or fail the parse.
     when(() => api.get(EndPoints.profileImages)).thenAnswer(
       (_) async => {
         'status': 1,
         'data': [
-          {
-            'id': 'approved',
-            'url': '/a.jpg',
-            'isProfile': true,
-            'isApproved': true,
-          },
-          {
-            'id': 'pending',
-            'url': '/b.jpg',
-            'isProfile': false,
-            'isApproved': false,
-          },
+          {'id': 'a', 'url': '/a.jpg', 'isProfile': true, 'isApproved': null},
+          {'id': 'b', 'url': '/b.jpg', 'isProfile': false, 'isApproved': false},
+          {'id': 'c', 'url': '/c.jpg', 'isProfile': false},
         ],
       },
     );
 
     final images = await dataSource.getProfileImages();
 
-    expect(images.map((image) => image.isApproved), [true, false]);
+    expect(images.map((image) => image.id), ['a', 'b', 'c']);
+    expect(images.map((image) => image.isProfile), [true, false, false]);
   });
 
   test('uses the documented add, delete, and set-main endpoints', () async {

@@ -5,8 +5,8 @@ import 'profile_image.dart';
 import 'profile_status.dart';
 
 /// My own profile as returned by `GET /api/profile`. Owner-only
-/// fields (email, birthDate, status, isApproved on images) live here;
-/// peer-facing screens use [OtherProfile] instead.
+/// fields (email, birthDate, status) live here; peer-facing screens
+/// use [OtherProfile] instead.
 class MyProfile extends Equatable {
   final String id;
 

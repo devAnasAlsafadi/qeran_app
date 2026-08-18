@@ -1,9 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-/// Sealed image payload — owner shape carries `isApproved` (matchmaker
-/// review gate on my own photos), other shape carries `isBlurred`
-/// (peer-visibility gate). `url` is always absolute (resolved against
-/// the API origin at the data layer).
+/// Sealed image payload — the owner shape is my own photo, the other shape
+/// carries `isBlurred` (peer-visibility gate). `url` is always absolute
+/// (resolved against the API origin at the data layer).
 sealed class ProfileImage extends Equatable {
   String get id;
   String get url;
@@ -20,19 +19,14 @@ final class OwnerImage extends ProfileImage {
   @override
   final bool isProfile;
 
-  /// True when the matchmaker has approved the image. False images are
-  /// shown to the owner (their gallery) but hidden from peers.
-  final bool isApproved;
-
   const OwnerImage({
     required this.id,
     required this.url,
     required this.isProfile,
-    required this.isApproved,
   });
 
   @override
-  List<Object?> get props => [id, url, isProfile, isApproved];
+  List<Object?> get props => [id, url, isProfile];
 }
 
 final class OtherProfileImage extends ProfileImage {

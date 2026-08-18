@@ -22,7 +22,6 @@ void main() {
     id: 'o1',
     url: 'https://cdn.test/o1.jpg',
     isProfile: true,
-    isApproved: true,
   );
 
   Future<void> pump(WidgetTester tester, Widget child) => tester.pumpWidget(

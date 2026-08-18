@@ -98,7 +98,7 @@ class _PhotoManagerView extends StatelessWidget {
     }
     final (message, type) = switch (state.event) {
       PhotoManagerEvent.uploaded => (
-        LocaleKeys.profile_photos_uploaded_pending.t(context),
+        LocaleKeys.profile_photos_uploaded.t(context),
         SnackBarType.success,
       ),
       PhotoManagerEvent.deleted => (

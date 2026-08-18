@@ -26,12 +26,4 @@ class MatchmakerUserActionsRepositoryImpl
   @override
   Future<Either<Failure, String>> requestImage(String userId) =>
       executeApiCall(() => _dataSource.requestImage(userId));
-
-  @override
-  Future<Either<Failure, String>> approveImage({
-    required String userId,
-    required String imageId,
-  }) => executeApiCall(
-    () => _dataSource.approveImage(userId: userId, imageId: imageId),
-  );
 }

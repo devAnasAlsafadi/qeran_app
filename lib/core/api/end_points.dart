@@ -55,7 +55,7 @@ class EndPoints {
 
   /// `GET /api/profile` — my full profile. Returns the owner-shape
   /// `{userId, name, email, gender, birthDate, age, profileStatus,
-  /// hasAnsweredQuestions, profileImage, images[isApproved], placements}`
+  /// hasAnsweredQuestions, profileImage, images, placements}`
   /// wrapped in `ApiResponse`.
   static const String myProfile = "profile";
 
@@ -267,10 +267,6 @@ class EndPoints {
   /// `POST /api/matchmaker/users/{id}/request-image` — body empty.
   static String matchmakerUserRequestImage(String userId) =>
       "matchmaker/users/$userId/request-image";
-
-  /// Approves one newly uploaded user image. Idempotent on the backend.
-  static String matchmakerApproveUserImage(String userId, String imageId) =>
-      "matchmaker/users/$userId/images/$imageId/approve";
 
   /// `POST /api/matchmaker/users/{id}/text-answer` — body `{questionId, textAnswer}`.
   static String matchmakerUserTextAnswer(String userId) =>

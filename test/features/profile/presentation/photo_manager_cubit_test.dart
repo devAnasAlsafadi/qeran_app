@@ -25,13 +25,8 @@ class _MockSetMain extends Mock implements SetMainProfileImageUseCase {}
 
 class _MockPrefs extends Mock implements SharedPrefService {}
 
-OwnerImage _img(String id, {bool main = false, bool approved = true}) =>
-    OwnerImage(
-      id: id,
-      url: 'https://cdn.test/$id.jpg',
-      isProfile: main,
-      isApproved: approved,
-    );
+OwnerImage _img(String id, {bool main = false}) =>
+    OwnerImage(id: id, url: 'https://cdn.test/$id.jpg', isProfile: main);
 
 void main() {
   late _MockGet getImages;

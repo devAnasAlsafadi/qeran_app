@@ -7,23 +7,23 @@ class OwnerImageModel {
   final String id;
   final String url;
   final bool isProfile;
-  final bool isApproved;
 
   const OwnerImageModel({
     required this.id,
     required this.url,
     required this.isProfile,
-    required this.isApproved,
   });
 
-  factory OwnerImageModel.fromJson(Map<String, dynamic> json) {
-    return OwnerImageModel(
-      id: parseString(json['id']),
-      url: parseString(json['url']),
-      isProfile: parseBool(json['isProfile']),
-      isApproved: parseBool(json['isApproved']),
-    );
-  }
+  /// The wire still carries `isApproved`, but per-image review is retired
+  /// server-side and it now arrives as null. Nothing reads it — deliberately
+  /// not modelled, so no consumer can revive a review state that no longer
+  /// exists.
+  factory OwnerImageModel.fromJson(Map<String, dynamic> json) =>
+      OwnerImageModel(
+        id: parseString(json['id']),
+        url: parseString(json['url']),
+        isProfile: parseBool(json['isProfile']),
+      );
 
   OwnerImage toEntity() => OwnerImage(
         id: id,
@@ -34,6 +34,5 @@ class OwnerImageModel {
         // photo" and fall back to the monogram.
         url: url.isEmpty ? '' : EndPoints.absoluteUrl(url),
         isProfile: isProfile,
-        isApproved: isApproved,
       );
 }

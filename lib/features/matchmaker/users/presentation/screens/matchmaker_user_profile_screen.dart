@@ -66,7 +66,7 @@ class _ProfileDetailView extends StatelessWidget {
     return BlocListener<MatchmakerUserActionsCubit, MatchmakerUserActionsState>(
       listenWhen: (previous, current) =>
           previous.eventVersion != current.eventVersion,
-      listener: _onImageApproval,
+      listener: _onActionFailure,
       child: Scaffold(
         backgroundColor: QeranColors.creamCanvas,
         body: SafeArea(
@@ -129,19 +129,15 @@ class _ProfileDetailView extends StatelessWidget {
     );
   }
 
-  void _onImageApproval(
+  /// Failure surface for the actions cubit. Approve / reject / request-image
+  /// are all driven from the review sheet on the LIST, which hosts its own
+  /// cubit and reports its own errors — so nothing on this screen currently
+  /// dispatches an action and this never fires. Kept as the screen's error
+  /// path for whenever one is wired back here.
+  void _onActionFailure(
     BuildContext context,
     MatchmakerUserActionsState state,
   ) {
-    if (state.outcome == MatchmakerActionOutcome.approveImageSuccess) {
-      AppSnackBar.show(
-        context,
-        message: LocaleKeys.matchmaker_profile_image_approved.t(context),
-        type: SnackBarType.success,
-      );
-      context.read<MatchmakerProfileDetailCubit>().refresh();
-      return;
-    }
     if (state.outcome != MatchmakerActionOutcome.failure ||
         state.inFlight != null) {
       return;

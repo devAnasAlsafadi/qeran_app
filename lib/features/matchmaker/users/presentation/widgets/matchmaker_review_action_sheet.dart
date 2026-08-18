@@ -129,10 +129,6 @@ class _ReviewActionSheet extends StatelessWidget {
         // state. Deliberately NOT a local flag — that would not survive a
         // relaunch and would then lie about whether a request is outstanding.
         Navigator.of(context).pop(true);
-      case MatchmakerActionOutcome.approveImageSuccess:
-        // Image approval is handled on the profile screen, never in this
-        // profile-review sheet.
-        break;
       case MatchmakerActionOutcome.failure:
         if (state.errorKind == MatchmakerActionErrorKind.unauthorized) {
           AppSnackBar.showOnRoot(

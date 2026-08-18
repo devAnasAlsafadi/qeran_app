@@ -8,7 +8,6 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/matchmaker/users/domain/entities/image_request_status.dart';
 import 'package:qeran/features/matchmaker/users/domain/repositories/matchmaker_user_actions_repository.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/approve_user_usecase.dart';
-import 'package:qeran/features/matchmaker/users/domain/usecases/approve_user_image_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/reject_user_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/request_image_user_usecase.dart';
 import 'package:qeran/features/matchmaker/users/presentation/blocs/matchmaker_user_actions_cubit.dart';
@@ -23,12 +22,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// to ask for, the button drops out.
 
 class _StubActionsRepository implements MatchmakerUserActionsRepository {
-  @override
-  Future<Either<Failure, String>> approveImage({
-    required String userId,
-    required String imageId,
-  }) async => const Right('ok');
-
   @override
   Future<Either<Failure, String>> approve(String userId) async =>
       const Right('ok');
@@ -109,7 +102,6 @@ void main() {
         approve: ApproveUserUseCase(repo),
         reject: RejectUserUseCase(repo),
         requestImage: RequestImageUserUseCase(repo),
-        approveImage: ApproveUserImageUseCase(repo),
       ),
     );
   });

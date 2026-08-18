@@ -21,7 +21,6 @@ import 'package:qeran/features/matchmaker/users/domain/repositories/matchmaker_u
 import 'package:qeran/features/matchmaker/users/domain/repositories/matchmaker_users_repository.dart';
 import 'package:qeran/features/matchmaker/users/domain/entities/subscription_plan.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/approve_user_usecase.dart';
-import 'package:qeran/features/matchmaker/users/domain/usecases/approve_user_image_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/fetch_matchmaker_users_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/reject_user_usecase.dart';
 import 'package:qeran/features/matchmaker/users/domain/usecases/request_image_user_usecase.dart';
@@ -106,12 +105,6 @@ class _FakeDashboardRepository implements MatchmakerDashboardRepository {
 
 class _StubActionsRepository implements MatchmakerUserActionsRepository {
   @override
-  Future<Either<Failure, String>> approveImage({
-    required String userId,
-    required String imageId,
-  }) async => const Right('ok');
-
-  @override
   Future<Either<Failure, String>> approve(String userId) async =>
       const Right('ok');
 
@@ -150,7 +143,6 @@ Future<void> _pumpPendingList(WidgetTester tester) async {
       approve: ApproveUserUseCase(actionsRepo),
       reject: RejectUserUseCase(actionsRepo),
       requestImage: RequestImageUserUseCase(actionsRepo),
-      approveImage: ApproveUserImageUseCase(actionsRepo),
     ),
   );
   sl.registerFactory<MatchmakerOpenChatCubit>(

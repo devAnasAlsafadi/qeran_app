@@ -10,8 +10,7 @@ import '../entities/profile_image.dart';
 
 abstract interface class ProfileRepository {
   /// `GET /api/profile`. Owner-shape, full details including
-  /// `email`, `profileStatus`, `hasAnsweredQuestions`,
-  /// `images[isApproved]`.
+  /// `email`, `profileStatus`, `hasAnsweredQuestions`, `images`.
   Future<Either<Failure, MyProfile>> getMyProfile();
 
   /// `PUT /api/profile`. Sets both names and returns the complete updated

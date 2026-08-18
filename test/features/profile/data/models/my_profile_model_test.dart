@@ -18,20 +18,17 @@ void main() {
           'id': 'guid',
           'url': '/api/users/profile-images/guid',
           'isProfile': true,
-          'isApproved': true,
         },
         'images': [
           {
             'id': 'guid1',
             'url': '/api/users/profile-images/guid1',
             'isProfile': true,
-            'isApproved': true,
           },
           {
             'id': 'guid2',
             'url': '/api/users/profile-images/guid2',
             'isProfile': false,
-            'isApproved': false,
           },
         ],
         'placements': const [],
@@ -44,9 +41,7 @@ void main() {
       expect(entity.profileStatus, ProfileStatus.visible);
       expect(entity.hasAnsweredQuestions, isTrue);
       expect(entity.profileImage, isNotNull);
-      expect(entity.profileImage!.isApproved, isTrue);
       expect(entity.images, hasLength(2));
-      expect(entity.images[1].isApproved, isFalse);
       expect(entity.images.first.url, startsWith('http'));
     });
 

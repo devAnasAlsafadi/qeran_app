@@ -26,10 +26,6 @@ final class ServerPhotoSlot extends PhotoSlot {
   String get id => image.id;
   String get url => image.url;
 
-  /// False while the matchmaker has yet to review it — the owner sees it,
-  /// peers do not.
-  bool get isApproved => image.isApproved;
-
   @override
   bool get isMain => image.isProfile;
 

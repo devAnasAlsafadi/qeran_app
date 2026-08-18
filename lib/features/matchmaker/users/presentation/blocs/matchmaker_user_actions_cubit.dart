@@ -6,7 +6,6 @@ import 'package:qeran/core/errors/errors.dart';
 
 import '../../data/matchmaker_user_error_codes.dart';
 import '../../domain/usecases/approve_user_usecase.dart';
-import '../../domain/usecases/approve_user_image_usecase.dart';
 import '../../domain/usecases/reject_user_usecase.dart';
 import '../../domain/usecases/request_image_user_usecase.dart';
 import 'matchmaker_user_actions_state.dart';
@@ -21,7 +20,6 @@ class MatchmakerUserActionsCubit extends Cubit<MatchmakerUserActionsState>
   final ApproveUserUseCase _approve;
   final RejectUserUseCase _reject;
   final RequestImageUserUseCase _requestImage;
-  final ApproveUserImageUseCase _approveImage;
   final String userId;
 
   MatchmakerUserActionsCubit({
@@ -29,11 +27,9 @@ class MatchmakerUserActionsCubit extends Cubit<MatchmakerUserActionsState>
     required ApproveUserUseCase approve,
     required RejectUserUseCase reject,
     required RequestImageUserUseCase requestImage,
-    required ApproveUserImageUseCase approveImage,
   }) : _approve = approve,
        _reject = reject,
        _requestImage = requestImage,
-       _approveImage = approveImage,
        super(const MatchmakerUserActionsState());
 
   Future<void> approve() => _run(
@@ -54,24 +50,15 @@ class MatchmakerUserActionsCubit extends Cubit<MatchmakerUserActionsState>
     MatchmakerActionOutcome.requestImageSuccess,
   );
 
-  Future<void> approveImage(String imageId) => _run(
-    MatchmakerUserAction.approveImage,
-    () => _approveImage(userId: userId, imageId: imageId),
-    MatchmakerActionOutcome.approveImageSuccess,
-    inFlightImageId: imageId,
-  );
-
   Future<void> _run(
     MatchmakerUserAction action,
     Future<Either<Failure, String>> Function() call,
-    MatchmakerActionOutcome onSuccess, {
-    String? inFlightImageId,
-  }) async {
+    MatchmakerActionOutcome onSuccess,
+  ) async {
     if (state.isBusy) return; // guard double-submit
     emit(
       state.copyWith(
         inFlight: action,
-        inFlightImageId: inFlightImageId,
         clearError: true,
         errorKind: MatchmakerActionErrorKind.none,
       ),

@@ -10,7 +10,6 @@ void main() {
     'id': 'abc-123',
     if (includeUrl) 'url': url,
     'isProfile': true,
-    'isApproved': true,
   };
 
   test('a server-supplied absolute url is used as-is', () {
@@ -55,6 +54,5 @@ void main() {
     ).toEntity();
     expect(entity.id, 'abc-123');
     expect(entity.isProfile, isTrue);
-    expect(entity.isApproved, isTrue);
   });
 }

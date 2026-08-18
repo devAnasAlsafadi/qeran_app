@@ -505,10 +505,9 @@ abstract class  LocaleKeys {
   static const profile_photos_manage = 'profile.photos_manage';
   static const profile_photos_title = 'profile.photos_title';
   static const profile_photos_add = 'profile.photos_add';
-  static const profile_photos_pending = 'profile.photos_pending';
   static const profile_photos_main = 'profile.photos_main';
   static const profile_photos_make_main = 'profile.photos_make_main';
-  static const profile_photos_uploaded_pending = 'profile.photos_uploaded_pending';
+  static const profile_photos_uploaded = 'profile.photos_uploaded';
   static const profile_photos_deleted = 'profile.photos_deleted';
   static const profile_photos_main_changed = 'profile.photos_main_changed';
   static const profile_photos_max_reached = 'profile.photos_max_reached';
@@ -661,8 +660,6 @@ abstract class  LocaleKeys {
   static const matchmaker_profile_reject_success = 'matchmaker.profile_reject_success';
   static const matchmaker_profile_request_image_success = 'matchmaker.profile_request_image_success';
   static const matchmaker_profile_request_image_awaiting = 'matchmaker.profile_request_image_awaiting';
-  static const matchmaker_profile_approve_image = 'matchmaker.profile_approve_image';
-  static const matchmaker_profile_image_approved = 'matchmaker.profile_image_approved';
   static const matchmaker_profile_contact_responsible_matchmaker = 'matchmaker.profile_contact_responsible_matchmaker';
   static const matchmaker_answers_save = 'matchmaker.answers_save';
   static const matchmaker_answers_hint = 'matchmaker.answers_hint';

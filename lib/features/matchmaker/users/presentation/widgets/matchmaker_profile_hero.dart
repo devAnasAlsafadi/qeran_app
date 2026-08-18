@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/profile/domain/entities/placement_code.dart';
 import 'package:qeran/features/profile/domain/entities/placement_item.dart';
 import 'package:qeran/features/profile/domain/entities/placement_value.dart';
@@ -12,8 +11,6 @@ import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/matchmaker_user_profile.dart';
-import '../blocs/matchmaker_user_actions_cubit.dart';
-import '../blocs/matchmaker_user_actions_state.dart';
 
 /// Matchmaker profile hero — the SAME photo-overlay presentation as the
 /// user-side `FullProfileImageHero`, recomposed from the shared LEAF widgets
@@ -33,19 +30,9 @@ class MatchmakerProfileHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final actionState = context.watch<MatchmakerUserActionsCubit>().state;
     return Stack(
       children: [
-        ProfileHeaderGallery(
-          images: profile.images,
-          onApproveImage: profile.isAssignedToMe
-              ? context.read<MatchmakerUserActionsCubit>().approveImage
-              : null,
-          approvingImageId:
-              actionState.inFlight == MatchmakerUserAction.approveImage
-              ? actionState.inFlightImageId
-              : null,
-        ),
+        ProfileHeaderGallery(images: profile.images),
         const Positioned.fill(child: IgnorePointer(child: ProfileImageScrim())),
         PositionedDirectional(
           start: QeranSpacing.s16,

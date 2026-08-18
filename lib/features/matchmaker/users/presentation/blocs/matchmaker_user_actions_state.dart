@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Which review action is currently running.
-enum MatchmakerUserAction { approve, reject, requestImage, approveImage }
+enum MatchmakerUserAction { approve, reject, requestImage }
 
 /// One-shot outcome the screen listens to for snackbar + navigation side
 /// effects. The screen reacts on every [MatchmakerUserActionsState.eventVersion]
@@ -11,7 +11,6 @@ enum MatchmakerActionOutcome {
   approveSuccess,
   rejectSuccess,
   requestImageSuccess,
-  approveImageSuccess,
   failure,
 }
 
@@ -20,7 +19,6 @@ enum MatchmakerActionErrorKind { none, unauthorized, generic }
 class MatchmakerUserActionsState extends Equatable {
   /// The action currently in flight, or `null` when idle.
   final MatchmakerUserAction? inFlight;
-  final String? inFlightImageId;
 
   final MatchmakerActionOutcome outcome;
   final int eventVersion;
@@ -32,7 +30,6 @@ class MatchmakerUserActionsState extends Equatable {
 
   const MatchmakerUserActionsState({
     this.inFlight,
-    this.inFlightImageId,
     this.outcome = MatchmakerActionOutcome.none,
     this.eventVersion = 0,
     this.errorMessage,
@@ -43,7 +40,6 @@ class MatchmakerUserActionsState extends Equatable {
 
   MatchmakerUserActionsState copyWith({
     MatchmakerUserAction? inFlight,
-    String? inFlightImageId,
     bool clearInFlight = false,
     MatchmakerActionOutcome? outcome,
     int? eventVersion,
@@ -53,9 +49,6 @@ class MatchmakerUserActionsState extends Equatable {
   }) {
     return MatchmakerUserActionsState(
       inFlight: clearInFlight ? null : (inFlight ?? this.inFlight),
-      inFlightImageId: clearInFlight
-          ? null
-          : (inFlightImageId ?? this.inFlightImageId),
       outcome: outcome ?? this.outcome,
       eventVersion: eventVersion ?? this.eventVersion,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -66,7 +59,6 @@ class MatchmakerUserActionsState extends Equatable {
   @override
   List<Object?> get props => [
     inFlight,
-    inFlightImageId,
     outcome,
     eventVersion,
     errorMessage,

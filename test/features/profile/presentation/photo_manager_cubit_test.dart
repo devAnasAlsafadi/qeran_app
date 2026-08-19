@@ -63,21 +63,35 @@ void main() {
     if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
   });
 
-  /// Creates a real, valid-looking jpg inside this test's own directory.
-  String makePhoto(String name) {
-    final file = File('${tempDir.path}${Platform.pathSeparator}$name.jpg')
+  /// Writes [bytes] to [fileName] inside this test's own directory. The name
+  /// carries its own extension — validation reads CONTENT, so the two can be
+  /// made to disagree on purpose.
+  String makeFile(String fileName, List<int> bytes) {
+    final file = File('${tempDir.path}${Platform.pathSeparator}$fileName')
       ..createSync(recursive: true)
-      ..writeAsBytesSync(List<int>.filled(64, 7));
+      ..writeAsBytesSync(bytes);
     return file.path;
   }
 
-  /// Same, at an exact byte length — for the size gate's boundary.
-  String makeSizedPhoto(String name, int bytes) {
-    final file = File('${tempDir.path}${Platform.pathSeparator}$name.jpg')
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(List<int>.filled(bytes, 7));
-    return file.path;
-  }
+  /// Leading bytes of each format the sniffer knows, plus two it must refuse.
+  const jpeg = [0xFF, 0xD8, 0xFF, 0xE0];
+  const png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+  const pdf = [0x25, 0x50, 0x44, 0x46]; // '%PDF'
+  // Box length, then 'ftypheic' — a genuine HEIC, not a renamed JPEG.
+  const heic = [
+    0x00, 0x00, 0x00, 0x18,
+    0x66, 0x74, 0x79, 0x70,
+    0x68, 0x65, 0x69, 0x63,
+  ];
+
+  /// A real, valid-looking jpg — correct signature, then filler.
+  String makePhoto(String name) =>
+      makeFile('$name.jpg', [...jpeg, ...List<int>.filled(60, 7)]);
+
+  /// Same, at an exact byte length — for the size gate's boundary. Keeps the
+  /// JPEG signature so only SIZE can be what fails.
+  String makeSizedPhoto(String name, int bytes) =>
+      makeFile('$name.jpg', [...jpeg, ...List<int>.filled(bytes - jpeg.length, 7)]);
 
   PhotoManagerCubit build({
     PhotoManagerMode mode = PhotoManagerMode.profileEdit,
@@ -133,6 +147,93 @@ void main() {
 
       expect(cubit.state.stagedPaths, isEmpty);
       expect(cubit.state.event, PhotoManagerEvent.validationFailure);
+      await cubit.close();
+    });
+  });
+
+  // Type is decided by the file's leading bytes, never by its name. See
+  // `_hasSupportedSignature` for why the extension is not evidence.
+  group('type validation reads content, not the filename', () {
+    Future<PhotoManagerCubit> loaded() async {
+      stubServerImages([]);
+      final cubit = build();
+      await cubit.load();
+      return cubit;
+    }
+
+    void expectRejectedAsType(PhotoManagerCubit cubit) {
+      expect(cubit.state.stagedPaths, isEmpty);
+      expect(cubit.state.event, PhotoManagerEvent.validationFailure);
+      expect(
+        cubit.state.errorMessage,
+        LocaleKeys.profile_photos_validation_type,
+      );
+    }
+
+    test('a real JPEG is accepted', () async {
+      final cubit = await loaded();
+
+      cubit.addImage(makeFile('a.jpg', jpeg));
+
+      expect(cubit.state.stagedPaths, hasLength(1));
+      await cubit.close();
+    });
+
+    test('a real PNG is accepted', () async {
+      final cubit = await loaded();
+
+      cubit.addImage(makeFile('a.png', png));
+
+      expect(cubit.state.stagedPaths, hasLength(1));
+      await cubit.close();
+    });
+
+    test('a PDF renamed .jpg is rejected', () async {
+      final cubit = await loaded();
+
+      cubit.addImage(makeFile('sneaky.jpg', pdf));
+
+      expectRejectedAsType(cubit);
+      await cubit.close();
+    });
+
+    test('a genuine HEIC is rejected whatever it is called', () async {
+      final cubit = await loaded();
+
+      cubit.addImage(makeFile('photo.heic', heic));
+
+      expectRejectedAsType(cubit);
+      await cubit.close();
+    });
+
+    // The payoff for sniffing over blocklisting: Android's picker re-encodes
+    // to JPEG but keeps the original name, so this file is a valid photo the
+    // backend accepts. An extension check would have refused it.
+    test('JPEG bytes under a .heic name are accepted', () async {
+      final cubit = await loaded();
+
+      cubit.addImage(makeFile('scaled_x.heic', jpeg));
+
+      expect(cubit.state.stagedPaths, hasLength(1));
+      await cubit.close();
+    });
+
+    test('an empty file is rejected — too short to match any signature',
+        () async {
+      final cubit = await loaded();
+
+      cubit.addImage(makeFile('empty.jpg', const []));
+
+      expectRejectedAsType(cubit);
+      await cubit.close();
+    });
+
+    test('a file truncated mid-signature is rejected', () async {
+      final cubit = await loaded();
+
+      cubit.addImage(makeFile('cut.jpg', const [0xFF, 0xD8]));
+
+      expectRejectedAsType(cubit);
       await cubit.close();
     });
 

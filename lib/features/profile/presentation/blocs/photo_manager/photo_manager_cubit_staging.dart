@@ -4,8 +4,59 @@ part of 'photo_manager_cubit.dart';
 /// dropping them, and the validation that decides whether a file may be
 /// staged at all. None of it touches the network.
 
-/// The only formats the backend accepts (Tariq: jpg / jpeg / png).
-const Set<String> _allowedExtensions = {'.jpg', '.jpeg', '.png'};
+/// How many leading bytes identify a format. Four covers the longest
+/// signature we check (PNG); JPEG needs only three.
+const int _signatureLength = 4;
+
+/// The only formats the backend accepts (Tariq: jpg / jpeg / png), matched on
+/// CONTENT rather than filename.
+///
+/// A name is not evidence. Android's image_picker re-encodes every pick to
+/// JPEG (we pass `imageQuality: 85`, which forces it) but writes the result
+/// under the ORIGINAL filename — so a photo picked from an iPhone-synced
+/// gallery arrives as `scaled_x.heic` holding perfectly good JPEG bytes.
+/// Judging that by its extension refuses a photo the backend would have
+/// taken. The reverse is just as wrong: anything can be renamed `.jpg`.
+///
+/// Matching the bytes is what the server does, so client and server agree on
+/// one rule instead of two that drift.
+const List<int> _jpegSignature = [0xFF, 0xD8, 0xFF];
+const List<int> _pngSignature = [0x89, 0x50, 0x4E, 0x47];
+
+/// The file's first [_signatureLength] bytes, or null when it cannot be read.
+///
+/// Opened by hand and closed in a `finally` so exactly the signature comes off
+/// disk — the file may be megabytes, and none of the rest is needed to know
+/// what it is. Synchronous on purpose: every other check in [_validate] is,
+/// and the picker calls it from a plain `void` method.
+List<int>? _readSignature(File file) {
+  RandomAccessFile? handle;
+  try {
+    handle = file.openSync();
+    return handle.readSync(_signatureLength);
+  } catch (_) {
+    return null;
+  } finally {
+    try {
+      handle?.closeSync();
+    } catch (_) {
+      // Closing a handle we already failed to read is not worth reporting.
+    }
+  }
+}
+
+bool _hasSupportedSignature(List<int> bytes) =>
+    _startsWith(bytes, _jpegSignature) || _startsWith(bytes, _pngSignature);
+
+/// Short-circuits on the first mismatch. A file shorter than the signature
+/// (an empty pick, a truncated download) can never match one.
+bool _startsWith(List<int> bytes, List<int> signature) {
+  if (bytes.length < signature.length) return false;
+  for (var i = 0; i < signature.length; i++) {
+    if (bytes[i] != signature[i]) return false;
+  }
+  return true;
+}
 
 /// Client-side size ceiling, matched to the server's own limit (Tariq: 5 MB
 /// per file). Kept as a pre-check rather than left to the backend so an
@@ -59,21 +110,26 @@ extension PhotoManagerStaging on PhotoManagerCubit {
   bool get _serverHasMain => state.serverImages.any((i) => i.isProfile);
 
   /// Returns a locale key when the file is unusable, or null when it passes.
+  ///
+  /// Ordered cheapest-first, and size before content: an oversized file is
+  /// rejected without ever being opened.
   String? _validate(String path) {
     final file = File(path);
     if (!file.existsSync()) return LocaleKeys.auth_photo_validation_not_found;
-    final extension = path.contains('.')
-        ? path.substring(path.lastIndexOf('.')).toLowerCase()
-        : '';
-    if (!_allowedExtensions.contains(extension)) {
-      return LocaleKeys.auth_photo_validation_type;
-    }
+    final int length;
     try {
-      if (file.lengthSync() > _maxBytes) {
-        return LocaleKeys.auth_photo_validation_size;
-      }
+      length = file.lengthSync();
     } catch (_) {
       return LocaleKeys.auth_photo_validation_read_error;
+    }
+    if (length > _maxBytes) return LocaleKeys.auth_photo_validation_size;
+    final signature = _readSignature(file);
+    // Unreadable is not the same as unsupported — a file we could stat but
+    // not open is a device problem, and telling the user to pick a JPG would
+    // send them off to fix the wrong thing.
+    if (signature == null) return LocaleKeys.auth_photo_validation_read_error;
+    if (!_hasSupportedSignature(signature)) {
+      return LocaleKeys.profile_photos_validation_type;
     }
     return null;
   }

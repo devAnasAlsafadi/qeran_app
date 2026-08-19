@@ -526,6 +526,7 @@
     "photos_main_changed": "Main photo changed",
     "photos_max_reached": "You can keep up to five photos",
     "photos_load_failed": "Couldn't load your photos",
+    "photos_validation_type": "Please choose a JPG or PNG image.",
     "photos_delete_title": "Delete photo?",
     "photos_delete_message": "This photo will be removed from your profile.",
     "share_with_matchmaker_cta": "Ask my matchmaker about this profile",

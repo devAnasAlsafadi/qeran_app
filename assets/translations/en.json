@@ -125,7 +125,7 @@
     "photo_validation_not_found": "File not found",
     "photo_validation_type": "Only jpg or png images are allowed",
     "photo_validation_read_error": "Could not read file size",
-    "photo_validation_size": "Image size exceeds 2 MB"
+    "photo_validation_size": "Image size exceeds 5 MB"
   },
   "onboarding": {
     "get_started": "Get Started",
@@ -730,6 +730,7 @@
     "account_save": "Save",
     "account_name_saved": "Name updated",
     "account_photo_updated": "Photo updated",
+    "account_photo_validation_size": "Image size exceeds 2 MB",
     "account_deactivate_confirm_title": "Deactivate account?",
     "account_deactivate_confirm_message": "Your account will be deactivated. Contact the admin to restore it.",
     "account_deactivate_success": "Your account has been deactivated. Contact the admin to restore it.",

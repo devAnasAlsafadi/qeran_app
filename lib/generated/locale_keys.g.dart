@@ -714,6 +714,7 @@ abstract class  LocaleKeys {
   static const matchmaker_account_save = 'matchmaker.account_save';
   static const matchmaker_account_name_saved = 'matchmaker.account_name_saved';
   static const matchmaker_account_photo_updated = 'matchmaker.account_photo_updated';
+  static const matchmaker_account_photo_validation_size = 'matchmaker.account_photo_validation_size';
   static const matchmaker_account_deactivate_confirm_title = 'matchmaker.account_deactivate_confirm_title';
   static const matchmaker_account_deactivate_confirm_message = 'matchmaker.account_deactivate_confirm_message';
   static const matchmaker_account_deactivate_success = 'matchmaker.account_deactivate_success';

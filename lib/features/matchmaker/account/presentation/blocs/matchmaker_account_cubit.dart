@@ -202,8 +202,11 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit
     } catch (_) {
       return LocaleKeys.auth_photo_validation_read_error;
     }
+    // Its OWN key, not the profile one: the profile photo manager now allows
+    // 5 MB (matching the server), while this endpoint has not been confirmed
+    // past 2 MB. Sharing a string would make one of the two messages a lie.
     if (bytes > 2 * 1024 * 1024) {
-      return LocaleKeys.auth_photo_validation_size;
+      return LocaleKeys.matchmaker_account_photo_validation_size;
     }
     return null;
   }

@@ -14,6 +14,7 @@ import 'package:qeran/features/profile/domain/usecases/get_profile_images_usecas
 import 'package:qeran/features/profile/domain/usecases/set_main_profile_image_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/photo_manager/photo_manager_cubit.dart';
 import 'package:qeran/features/profile/presentation/blocs/photo_manager/photo_manager_state.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 class _MockGet extends Mock implements GetProfileImagesUseCase {}
 
@@ -67,6 +68,14 @@ void main() {
     final file = File('${tempDir.path}${Platform.pathSeparator}$name.jpg')
       ..createSync(recursive: true)
       ..writeAsBytesSync(List<int>.filled(64, 7));
+    return file.path;
+  }
+
+  /// Same, at an exact byte length — for the size gate's boundary.
+  String makeSizedPhoto(String name, int bytes) {
+    final file = File('${tempDir.path}${Platform.pathSeparator}$name.jpg')
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(List<int>.filled(bytes, 7));
     return file.path;
   }
 
@@ -124,6 +133,36 @@ void main() {
 
       expect(cubit.state.stagedPaths, isEmpty);
       expect(cubit.state.event, PhotoManagerEvent.validationFailure);
+      await cubit.close();
+    });
+
+    // The gate is 5 MB — the server's own limit (Tariq). It used to be 2 MB,
+    // which rejected photos the backend would have taken.
+    test('rejects a file over the 5 MB ceiling', () async {
+      stubServerImages([]);
+      final cubit = build();
+      await cubit.load();
+
+      cubit.addImage(makeSizedPhoto('huge', 5 * 1024 * 1024 + 1));
+
+      expect(cubit.state.stagedPaths, isEmpty);
+      expect(cubit.state.event, PhotoManagerEvent.validationFailure);
+      expect(
+        cubit.state.errorMessage,
+        LocaleKeys.auth_photo_validation_size,
+      );
+      await cubit.close();
+    });
+
+    test('accepts a file sitting exactly on the 5 MB ceiling', () async {
+      stubServerImages([]);
+      final cubit = build();
+      await cubit.load();
+
+      cubit.addImage(makeSizedPhoto('exact', 5 * 1024 * 1024));
+
+      expect(cubit.state.stagedPaths, hasLength(1));
+      expect(cubit.state.event, isNot(PhotoManagerEvent.validationFailure));
       await cubit.close();
     });
   });

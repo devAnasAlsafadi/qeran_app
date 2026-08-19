@@ -125,7 +125,7 @@
     "photo_validation_not_found": "الملف غير موجود",
     "photo_validation_type": "يُسمح فقط بصور jpg أو png",
     "photo_validation_read_error": "تعذّر قراءة حجم الملف",
-    "photo_validation_size": "حجم الصورة يتجاوز 2 ميغابايت"
+    "photo_validation_size": "حجم الصورة يتجاوز 5 ميغابايت"
   },
   "onboarding": {
     "get_started": "ابدأ الآن",
@@ -730,6 +730,7 @@
     "account_save": "حفظ",
     "account_name_saved": "تم تحديث الاسم",
     "account_photo_updated": "تم تحديث الصورة",
+    "account_photo_validation_size": "حجم الصورة يتجاوز 2 ميغابايت",
     "account_deactivate_confirm_title": "تعطيل الحساب؟",
     "account_deactivate_confirm_message": "سيتم تعطيل حسابك. للعودة تواصل مع الإدارة.",
     "account_deactivate_success": "تم تعطيل حسابك. للعودة تواصل مع الإدارة.",

@@ -7,10 +7,11 @@ part of 'photo_manager_cubit.dart';
 /// The only formats the backend accepts (Tariq: jpg / jpeg / png).
 const Set<String> _allowedExtensions = {'.jpg', '.jpeg', '.png'};
 
-/// Client-side size ceiling. NOTE: the server's limit is 5 MB — this 2 MB
-/// gate is stricter than it needs to be and rejects photos the backend would
-/// take. Tracked separately; not changed here.
-const int _maxBytes = 2 * 1024 * 1024;
+/// Client-side size ceiling, matched to the server's own limit (Tariq: 5 MB
+/// per file). Kept as a pre-check rather than left to the backend so an
+/// oversized pick is refused before megabytes go up the wire — the server
+/// still has the last word via `IMAGE_TOO_LARGE`.
+const int _maxBytes = 5 * 1024 * 1024;
 
 extension PhotoManagerStaging on PhotoManagerCubit {
   /// Stages a picked file locally. Nothing is sent until [upload] runs.

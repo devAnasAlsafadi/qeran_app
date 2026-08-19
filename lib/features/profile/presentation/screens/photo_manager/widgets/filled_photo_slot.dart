@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../../../likes/presentation/widgets/like_blurred_image.dart';
 import '../../../../domain/entities/photo_slot.dart';
@@ -13,14 +16,23 @@ import 'photo_primary_badge.dart';
 /// server already holds; the controls are identical, only the source differs.
 class FilledPhotoSlot extends StatelessWidget {
   final PhotoSlot slot;
-  final bool isBusy;
+
+  /// THIS photo is mid-mutation — it alone wears the scrim.
+  final bool isLoading;
+
+  /// A mutation owns the screen, though not necessarily this photo. Its
+  /// controls hide so a tap cannot silently vanish into the cubit's
+  /// single-mutation guard, but the tile stays bright and previewable.
+  final bool isLocked;
+
   final VoidCallback onRemove;
   final VoidCallback onSetPrimary;
 
   const FilledPhotoSlot({
     super.key,
     required this.slot,
-    required this.isBusy,
+    required this.isLoading,
+    required this.isLocked,
     required this.onRemove,
     required this.onSetPrimary,
   });
@@ -35,7 +47,9 @@ class FilledPhotoSlot extends StatelessWidget {
         // win their own taps — the preview only fires on the area around them.
         Positioned.fill(
           child: GestureDetector(
-            onTap: isBusy ? null : () => _preview(context),
+            // Previewing another photo while one mutates is harmless, so
+            // only the mutating tile itself refuses the tap.
+            onTap: isLoading ? null : () => _preview(context),
             child: ClipRRect(
               borderRadius: QeranRadii.controlR,
               child: _image(),
@@ -48,7 +62,7 @@ class FilledPhotoSlot extends StatelessWidget {
             start: 0,
             child: PhotoPrimaryBadge(),
           ),
-        if (!isBusy)
+        if (!isLoading && !isLocked)
           PositionedDirectional(
             top: QeranSpacing.s4,
             end: QeranSpacing.s4,
@@ -63,7 +77,7 @@ class FilledPhotoSlot extends StatelessWidget {
         // lose. Rather than drop a working feature, it becomes an explicit
         // corner control mirroring the delete x, so both gestures coexist:
         // small targets act, the photo previews.
-        if (!isPrimary && !isBusy)
+        if (!isPrimary && !isLoading && !isLocked)
           PositionedDirectional(
             top: QeranSpacing.s4,
             start: QeranSpacing.s4,
@@ -72,11 +86,34 @@ class FilledPhotoSlot extends StatelessWidget {
               onTap: onSetPrimary,
             ),
           ),
-        if (isBusy)
+        if (isLoading)
           Positioned.fill(
             child: ClipRRect(
               borderRadius: QeranRadii.controlR,
               child: const ColoredBox(color: QeranColors.overlayTintDark),
+            ),
+          ),
+        // A staged tile can only ever be loading because it is being sent,
+        // so the label needs no extra flag to know what is happening. Server
+        // tiles mutate in place and stay wordless — a set-main is a moment,
+        // an upload is not, and only the second one owes the user an
+        // explanation for the wait.
+        if (isLoading && slot is StagedPhotoSlot)
+          Positioned.fill(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: QeranSpacing.s8,
+                ),
+                child: Text(
+                  LocaleKeys.profile_photos_uploading.t(context),
+                  textAlign: TextAlign.center,
+                  style: QeranTypography.caption.copyWith(
+                    color: QeranColors.paper,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ),
           ),
       ],

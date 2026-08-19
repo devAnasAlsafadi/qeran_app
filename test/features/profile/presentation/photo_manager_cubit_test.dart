@@ -218,10 +218,13 @@ void main() {
 
   group('set main across mixed slots', () {
     test(
-      'three server photos, two staged, staged one set as main: reorders '
-      'locally, issues no PUT, then becomes server-main after upload',
+      'with server photos present, promoting a staged one uploads it and '
+      'sets it main in a single action',
       () async {
-        final before = [_img('s1', main: true), _img('s2'), _img('s3')];
+        // BUG 4: this used to record a local-only flag, leaving the server's
+        // main badge standing alongside the staged one — two photos claiming
+        // to be main, one of which did not exist yet.
+        final before = [_img('s1', main: true), _img('s2')];
         stubServerImages(before);
         final cubit = build();
         await cubit.load();
@@ -230,41 +233,64 @@ void main() {
         final b = makePhoto('b');
         cubit.addImage(a);
         cubit.addImage(b);
-        expect(cubit.state.totalCount, 5);
 
-        // Promote the SECOND staged photo — not the first, so a correct
-        // implementation cannot pass by accident.
-        final stagedB = cubit.state.slots.last;
-        expect(stagedB, isA<StagedPhotoSlot>());
-        await cubit.setMain(stagedB);
-
-        // Local only: no PUT yet, and the server's main is untouched.
-        verifyNever(() => setMain(any()));
-        expect(cubit.state.stagedMainPath, b);
-        expect(cubit.state.event, PhotoManagerEvent.mainChanged);
-
-        // The upload must send the chosen photo FIRST.
         late List<File> sent;
         when(() => addImages(any())).thenAnswer((invocation) async {
           sent = invocation.positionalArguments.first as List<File>;
-          return const Right(<OwnerImage>[]);
+          return Right(<OwnerImage>[_img('new1')]);
         });
-        // After upload the server reports the two new photos; 'n1' is the
-        // one that went up at index 0.
-        final after = [...before, _img('n1'), _img('n2')];
-        stubServerImages(after);
-        when(() => setMain('n1')).thenAnswer((_) async => const Right(unit));
+        when(() => setMain('new1')).thenAnswer((_) async => const Right(unit));
+        stubServerImages([_img('new1', main: true), _img('s1'), _img('s2')]);
 
-        await cubit.upload();
+        final stagedB = cubit.state.slots.last as StagedPhotoSlot;
+        expect(stagedB.path, b);
+        await cubit.setMain(stagedB);
 
         expect(
           sent.map((f) => f.path).toList(),
-          [b, a],
-          reason: 'the chosen main photo must be uploaded first',
+          [b],
+          reason: 'only the tapped photo goes up, not the whole staging area',
         );
-        verify(() => setMain('n1')).called(1);
-        expect(cubit.state.stagedPaths, isEmpty);
-        expect(cubit.state.stagedMainPath, isNull);
+        // The id comes from the POST response, so no diffing and no second
+        // set-main from the batch path.
+        verify(() => setMain('new1')).called(1);
+        verifyNever(() => setMain('s1'));
+
+        final mains = cubit.state.slots
+            .whereType<ServerPhotoSlot>()
+            .where((s) => s.isMain)
+            .map((s) => s.id);
+        expect(mains, ['new1'], reason: 'exactly one main, and it is the new one');
+        expect(
+          cubit.state.stagedPaths,
+          [a],
+          reason: 'the other staged photo is untouched and still awaits upload',
+        );
+        expect(cubit.state.event, PhotoManagerEvent.mainChanged);
+        await cubit.close();
+      },
+    );
+
+    test(
+      'with an empty profile, promoting a staged photo stays local until '
+      'the batch upload',
+      () async {
+        // Registration: nothing is on the server, so there is no rival main
+        // to diverge from and `_mainFirst` still carries the choice.
+        stubServerImages([]);
+        final cubit = build();
+        await cubit.load();
+        final a = makePhoto('a');
+        final b = makePhoto('b');
+        cubit.addImage(a);
+        cubit.addImage(b);
+
+        await cubit.setMain(cubit.state.slots.last);
+
+        verifyNever(() => addImages(any()));
+        verifyNever(() => setMain(any()));
+        expect(cubit.state.stagedMainPath, b);
+        expect(cubit.state.stagedPaths, [a, b]);
         await cubit.close();
       },
     );
@@ -315,11 +341,12 @@ void main() {
       );
       await cubit.close();
     });
+
     test('an empty profile needs no promotion call after upload', () async {
       stubServerImages([]);
-      when(
-        () => addImages(any()),
-      ).thenAnswer((_) async => const Right(<OwnerImage>[]));
+      when(() => addImages(any())).thenAnswer(
+        (_) async => const Right(<OwnerImage>[]),
+      );
       final cubit = build();
       await cubit.load();
       cubit.addImage(makePhoto('a'));
@@ -331,6 +358,224 @@ void main() {
       // spending an extra request would be wrong.
       verifyNever(() => setMain(any()));
       await cubit.close();
+    });
+  });
+
+  group('atomic promote: upload one staged photo and make it main', () {
+    /// Puts the cubit in the only state that routes a staged tap to the
+    /// atomic path: server photos already exist, so a local-only main flag
+    /// would leave two photos wearing the badge.
+    Future<(PhotoManagerCubit, String)> withStagedPhoto() async {
+      stubServerImages([_img('s1', main: true), _img('s2')]);
+      final cubit = build();
+      await cubit.load();
+      final path = makePhoto('picked');
+      cubit.addImage(path);
+      return (cubit, path);
+    }
+
+    test('success: the new photo lands as the one and only main', () async {
+      final (cubit, _) = await withStagedPhoto();
+      when(
+        () => addImages(any()),
+      ).thenAnswer((_) async => Right(<OwnerImage>[_img('fresh')]));
+      when(() => setMain('fresh')).thenAnswer((_) async => const Right(unit));
+      stubServerImages([_img('fresh', main: true), _img('s1'), _img('s2')]);
+
+      await cubit.setMain(cubit.state.slots.last);
+
+      verify(() => setMain('fresh')).called(1);
+      final mains = cubit.state.serverImages
+          .where((i) => i.isProfile)
+          .map((i) => i.id);
+      expect(mains, ['fresh']);
+      expect(
+        cubit.state.stagedPaths,
+        isEmpty,
+        reason: 'it lives on the server now',
+      );
+      expect(cubit.state.inFlightPhotoIds, isEmpty);
+      expect(cubit.state.isBusy, isFalse);
+      expect(cubit.state.event, PhotoManagerEvent.mainChanged);
+      await cubit.close();
+    });
+
+    test('upload fails: nothing reaches the server, the file stays staged', () async {
+      final (cubit, path) = await withStagedPhoto();
+      when(() => addImages(any())).thenAnswer(
+        (_) async => const Left(ServerFailure(message: 'boom')),
+      );
+
+      await cubit.setMain(cubit.state.slots.last);
+
+      verifyNever(() => setMain(any()));
+      expect(
+        cubit.state.stagedPaths,
+        [path],
+        reason: 'the file never left the device, so a retry costs nothing',
+      );
+      expect(
+        cubit.state.serverImages.map((i) => i.id),
+        ['s1', 's2'],
+        reason: 'server state untouched',
+      );
+      expect(cubit.state.inFlightPhotoIds, isEmpty);
+      expect(cubit.state.event, PhotoManagerEvent.actionFailure);
+      expect(cubit.state.errorMessage, 'boom');
+      await cubit.close();
+    });
+
+    test('set-main fails after upload: photo is server-side but not main', () async {
+      final (cubit, _) = await withStagedPhoto();
+      when(
+        () => addImages(any()),
+      ).thenAnswer((_) async => Right(<OwnerImage>[_img('fresh')]));
+      when(() => setMain('fresh')).thenAnswer(
+        (_) async => const Left(ServerFailure(message: 'not main')),
+      );
+      // The upload DID land, so the refreshed list carries it — unpromoted.
+      stubServerImages([_img('s1', main: true), _img('s2'), _img('fresh')]);
+
+      await cubit.setMain(cubit.state.slots.last);
+
+      expect(
+        cubit.state.serverImages.map((i) => i.id),
+        contains('fresh'),
+        reason: 'no rollback — the photo genuinely exists now',
+      );
+      expect(
+        cubit.state.serverImages.where((i) => i.isProfile).map((i) => i.id),
+        ['s1'],
+        reason: 'the old main keeps the badge; the promotion is what failed',
+      );
+      expect(cubit.state.stagedPaths, isEmpty);
+      expect(cubit.state.inFlightPhotoIds, isEmpty);
+      expect(cubit.state.event, PhotoManagerEvent.actionFailure);
+      expect(cubit.state.errorMessage, 'not main');
+      await cubit.close();
+    });
+  });
+
+  group('in-flight tracking', () {
+    test('set-main claims and releases the photo id', () async {
+      stubServerImages([_img('s1', main: true), _img('s2')]);
+      final cubit = build();
+      await cubit.load();
+      final seen = <Set<String>>[];
+      final sub = cubit.stream.listen((s) => seen.add(s.inFlightPhotoIds));
+      when(() => setMain('s2')).thenAnswer((_) async => const Right(unit));
+
+      await cubit.setMain(ServerPhotoSlot(_img('s2')));
+      await sub.cancel();
+
+      expect(
+        seen.any((ids) => ids.contains('s2')),
+        isTrue,
+        reason: 'the tile has to light up while the request runs',
+      );
+      expect(cubit.state.inFlightPhotoIds, isEmpty);
+      await cubit.close();
+    });
+
+    test('delete claims and releases, even when the request fails', () async {
+      stubServerImages([_img('s1', main: true), _img('s2')]);
+      final cubit = build();
+      await cubit.load();
+      final seen = <Set<String>>[];
+      final sub = cubit.stream.listen((s) => seen.add(s.inFlightPhotoIds));
+      when(() => deleteImage('s2')).thenAnswer(
+        (_) async => const Left(ServerFailure(message: 'nope')),
+      );
+
+      await cubit.deleteServerImage('s2');
+      await sub.cancel();
+
+      expect(seen.any((ids) => ids.contains('s2')), isTrue);
+      expect(
+        cubit.state.inFlightPhotoIds,
+        isEmpty,
+        reason: 'released in a finally, so a failure cannot strand the tile',
+      );
+      await cubit.close();
+    });
+
+    test('the batch upload claims no ids — it lights every staged tile', () async {
+      stubServerImages([]);
+      final cubit = build();
+      await cubit.load();
+      cubit.addImage(makePhoto('a'));
+      cubit.addImage(makePhoto('b'));
+      final seen = <Set<String>>[];
+      final actions = <PhotoManagerAction?>[];
+      final sub = cubit.stream.listen((s) {
+        seen.add(s.inFlightPhotoIds);
+        actions.add(s.inFlight);
+      });
+      when(
+        () => addImages(any()),
+      ).thenAnswer((_) async => const Right(<OwnerImage>[]));
+
+      await cubit.upload();
+      await sub.cancel();
+
+      expect(
+        seen.every((ids) => ids.isEmpty),
+        isTrue,
+        reason: 'the batch owns the whole staging area, not one photo',
+      );
+      expect(actions, contains(PhotoManagerAction.upload));
+      await cubit.close();
+    });
+  });
+
+  group('isSlotLoading', () {
+    final server = ServerPhotoSlot(_img('s1'));
+    const staged = StagedPhotoSlot(path: '/tmp/a.jpg', isMain: false);
+    const idle = PhotoManagerState(mode: PhotoManagerMode.profileEdit);
+
+    test('a server slot lights up only for its own id', () {
+      final other = idle.copyWith(
+        inFlight: PhotoManagerAction.setMain,
+        inFlightPhotoIds: const {'other'},
+      );
+      expect(other.isSlotLoading(server), isFalse);
+      expect(
+        other.copyWith(inFlightPhotoIds: const {'s1'}).isSlotLoading(server),
+        isTrue,
+      );
+    });
+
+    test('a staged slot lights up for the batch, or for its own path', () {
+      // Two ways in: the batch takes every staged file, and the atomic
+      // promotion takes exactly one, tracked by path.
+      expect(
+        idle.copyWith(inFlight: PhotoManagerAction.upload).isSlotLoading(staged),
+        isTrue,
+      );
+      expect(
+        idle
+            .copyWith(
+              inFlight: PhotoManagerAction.promoteStaged,
+              inFlightPhotoIds: const {'/tmp/a.jpg'},
+            )
+            .isSlotLoading(staged),
+        isTrue,
+      );
+      expect(
+        idle
+            .copyWith(
+              inFlight: PhotoManagerAction.promoteStaged,
+              inFlightPhotoIds: const {'/tmp/other.jpg'},
+            )
+            .isSlotLoading(staged),
+        isFalse,
+        reason: 'a sibling being promoted must not dim this one',
+      );
+    });
+
+    test('nothing loads while idle', () {
+      expect(idle.isSlotLoading(server), isFalse);
+      expect(idle.isSlotLoading(staged), isFalse);
     });
   });
 
@@ -388,9 +633,9 @@ void main() {
 
     test('upload marks the onboarding step as finished', () async {
       stubServerImages([]);
-      when(
-        () => addImages(any()),
-      ).thenAnswer((_) async => const Right(<OwnerImage>[]));
+      when(() => addImages(any())).thenAnswer(
+        (_) async => const Right(<OwnerImage>[]),
+      );
       final cubit = build(mode: PhotoManagerMode.onboarding);
       await cubit.load();
       cubit.addImage(makePhoto('a'));

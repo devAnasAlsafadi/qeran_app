@@ -1,11 +1,18 @@
 import 'dart:io';
 
+// `hide TextDirection`: easy_localization re-exports intl, whose
+// TextDirection shadows the dart:ui one these RTL/LTR tests drive.
+import 'package:easy_localization/easy_localization.dart'
+    hide TextDirection;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/profile/domain/entities/photo_slot.dart';
 import 'package:qeran/features/profile/domain/entities/profile_image.dart';
 import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/filled_photo_slot.dart';
 import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/photo_preview_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// QER-77: a filled thumbnail opens the photo full-screen.
 ///
@@ -24,20 +31,54 @@ late File _photo;
 /// locale key, and standing up EasyLocalization would add nothing here — the
 /// badge is unchanged by QER-77 and both corner controls render regardless.
 
+/// The tile localizes its uploading label, so the host has to carry a live
+/// locale now — a bare MaterialApp throws LocalizationNotFoundException.
+class _StubAssetLoader extends AssetLoader {
+  const _StubAssetLoader();
+
+  @override
+  Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
+      const {
+        'profile': {'photos_uploading': 'Uploading...'},
+      };
+}
+
 Widget _host(Widget child, {required TextDirection direction}) {
-  return MaterialApp(
-    home: Directionality(
-      textDirection: direction,
-      child: Scaffold(
-        body: Center(
-          child: SizedBox(width: 160, height: 200, child: child),
+  return EasyLocalization(
+    supportedLocales: const [Locale('en')],
+    path: 'assets/translations',
+    assetLoader: const _StubAssetLoader(),
+    child: Builder(
+      builder: (context) => MaterialApp(
+        locale: context.locale,
+        supportedLocales: context.supportedLocales,
+        localizationsDelegates: context.localizationDelegates,
+        home: Directionality(
+          textDirection: direction,
+          child: Scaffold(
+            body: Center(
+              child: SizedBox(width: 160, height: 200, child: child),
+            ),
+          ),
         ),
       ),
     ),
   );
 }
 
+/// The busy scrim, pinned by its token colour — a bare `ColoredBox` finder
+/// also matches the transparent one the image stack renders.
+final Finder _scrim = find.byWidgetPredicate(
+  (w) => w is ColoredBox && w.color == QeranColors.overlayTintDark,
+);
+
 void main() {
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    await EasyLocalization.ensureInitialized();
+  });
+
   setUpAll(() {
     _tempDir = Directory.systemTemp.createTempSync('qeran_photo_test');
     _photo = File('${_tempDir.path}/photo.png')
@@ -65,13 +106,15 @@ void main() {
         _host(
           FilledPhotoSlot(
             slot: StagedPhotoSlot(path: _photo.path, isMain: false),
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
             onRemove: () => removed = true,
             onSetPrimary: () => madePrimary = true,
           ),
           direction: direction,
         ),
       );
+      await tester.pumpAndSettle();
 
       // Centre of the thumbnail — clear of both corner controls.
       await tester.tap(find.byType(FilledPhotoSlot));
@@ -92,13 +135,15 @@ void main() {
         _host(
           FilledPhotoSlot(
             slot: StagedPhotoSlot(path: _photo.path, isMain: false),
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
             onRemove: () => removed = true,
             onSetPrimary: () {},
           ),
           direction: direction,
         ),
       );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.close_rounded));
       await tester.pumpAndSettle();
@@ -116,13 +161,15 @@ void main() {
         _host(
           FilledPhotoSlot(
             slot: StagedPhotoSlot(path: _photo.path, isMain: false),
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
             onRemove: () {},
             onSetPrimary: () => madePrimary = true,
           ),
           direction: direction,
         ),
       );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.check_rounded));
       await tester.pumpAndSettle();
@@ -136,6 +183,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(home: PhotoPreviewScreen(file: _photo)),
     );
+    await tester.pumpAndSettle();
     await tester.pumpAndSettle();
 
     // contain, never cover — a cropped check is not a check.
@@ -164,6 +212,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
       expect(find.byType(PhotoPreviewScreen), findsOneWidget);
@@ -183,13 +232,15 @@ void main() {
       _host(
         FilledPhotoSlot(
             slot: StagedPhotoSlot(path: _photo.path, isMain: false),
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
           onRemove: () {},
           onSetPrimary: () {},
         ),
         direction: TextDirection.ltr,
       ),
     );
+    await tester.pumpAndSettle();
 
     final hero = tester.widget<Hero>(find.byType(Hero));
     // Keyed on the path, not the index — removing a photo re-indexes the
@@ -203,19 +254,142 @@ void main() {
     await tester.pumpWidget(
       _host(
         FilledPhotoSlot(
-            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
-            isBusy: true,
+          slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+          isLoading: true,
+          isLocked: true,
           onRemove: () {},
           onSetPrimary: () {},
         ),
         direction: TextDirection.ltr,
       ),
     );
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byType(FilledPhotoSlot));
     await tester.pumpAndSettle();
 
     expect(find.byType(PhotoPreviewScreen), findsNothing);
+  });
+
+  testWidgets('a tile someone else is mutating stays bright and previewable', (
+    tester,
+  ) async {
+    // BUGS 3 + 5: a set-main or delete on ONE photo used to scrim every tile,
+    // telling the user their whole library was busy. Locked means "your taps
+    // would be dropped, so the controls are away" — not "this photo is
+    // loading".
+    await tester.pumpWidget(
+      _host(
+        FilledPhotoSlot(
+          slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+          isLoading: false,
+          isLocked: true,
+          onRemove: () {},
+          onSetPrimary: () {},
+        ),
+        direction: TextDirection.ltr,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _scrim,
+      findsNothing,
+      reason: 'no scrim on a photo that is not the one mutating',
+    );
+    expect(
+      find.byIcon(Icons.close_rounded),
+      findsNothing,
+      reason: 'controls hide so a tap cannot silently vanish',
+    );
+
+    await tester.tap(find.byType(FilledPhotoSlot));
+    await tester.pumpAndSettle();
+    expect(find.byType(PhotoPreviewScreen), findsOneWidget);
+  });
+
+  group('the uploading label', () {
+    // A staged tile can only ever be loading because it is being SENT, so the
+    // label needs no extra flag. A server tile mutating in place stays
+    // wordless — a set-main is a moment, an upload is not.
+    testWidgets('a loading staged tile explains the wait', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isLoading: true,
+            isLocked: true,
+            onRemove: () {},
+            onSetPrimary: () {},
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Uploading...'), findsOneWidget);
+    });
+
+    testWidgets('a loading SERVER tile stays wordless', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: ServerPhotoSlot(
+              const OwnerImage(
+                id: 'img-9',
+                url: 'https://cdn.test/img-9.jpg',
+                isProfile: false,
+              ),
+            ),
+            isLoading: true,
+            isLocked: true,
+            onRemove: () {},
+            onSetPrimary: () {},
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_scrim, findsOneWidget);
+      expect(find.text('Uploading...'), findsNothing);
+    });
+
+    testWidgets('an idle staged tile says nothing', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isLoading: false,
+            isLocked: false,
+            onRemove: () {},
+            onSetPrimary: () {},
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Uploading...'), findsNothing);
+    });
+  });
+
+  testWidgets('only the mutating tile wears the scrim', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        FilledPhotoSlot(
+          slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+          isLoading: true,
+          isLocked: true,
+          onRemove: () {},
+          onSetPrimary: () {},
+        ),
+        direction: TextDirection.ltr,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_scrim, findsOneWidget);
   });
 
   // Issue 2: the unified screen must preview server photos too, not just
@@ -238,13 +412,15 @@ void main() {
         _host(
           FilledPhotoSlot(
             slot: slot,
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
             onRemove: () => removed = true,
             onSetPrimary: () => madePrimary = true,
           ),
           direction: TextDirection.ltr,
         ),
       );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byType(FilledPhotoSlot));
       await tester.pump();
@@ -262,13 +438,15 @@ void main() {
         _host(
           FilledPhotoSlot(
             slot: slot,
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
             onRemove: () => removed = true,
             onSetPrimary: () {},
           ),
           direction: TextDirection.ltr,
         ),
       );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.close_rounded));
       await tester.pump();
@@ -284,13 +462,15 @@ void main() {
         _host(
           FilledPhotoSlot(
             slot: slot,
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
             onRemove: () {},
             onSetPrimary: () => madePrimary = true,
           ),
           direction: TextDirection.ltr,
         ),
       );
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.check_rounded));
       await tester.pump();
@@ -306,13 +486,15 @@ void main() {
         _host(
           FilledPhotoSlot(
             slot: slot,
-            isBusy: false,
+            isLoading: false,
+            isLocked: false,
             onRemove: () {},
             onSetPrimary: () {},
           ),
           direction: TextDirection.ltr,
         ),
       );
+      await tester.pumpAndSettle();
 
       final hero = tester.widget<Hero>(find.byType(Hero));
       // Keyed on the stable id, not the URL — a re-signed URL must not

@@ -286,7 +286,9 @@ class _PhotoGrid extends StatelessWidget {
         itemBuilder: (context, index) {
           if (index >= slots.length) {
             return EmptyPhotoSlot(
-              isUploading: state.isBusy,
+              // Only a real upload occupies the add tile; a set-main or
+              // delete elsewhere has nothing to do with it.
+              isUploading: state.inFlight == PhotoManagerAction.upload,
               index: index,
               onAddTap: () => PhotoPickerBottomSheet.show(
                 context,
@@ -298,7 +300,8 @@ class _PhotoGrid extends StatelessWidget {
           return FilledPhotoSlot(
             key: ValueKey(_slotKey(slot)),
             slot: slot,
-            isBusy: _isSlotBusy(state, slot),
+            isLoading: state.isSlotLoading(slot),
+            isLocked: state.isBusy,
             onRemove: () => _remove(context, cubit, slot),
             onSetPrimary: () => cubit.setMain(slot),
           );
@@ -311,13 +314,6 @@ class _PhotoGrid extends StatelessWidget {
     ServerPhotoSlot(:final id) => 'server-$id',
     StagedPhotoSlot(:final path) => 'staged-$path',
   };
-
-  static bool _isSlotBusy(PhotoManagerState state, PhotoSlot slot) =>
-      switch (slot) {
-        ServerPhotoSlot(:final id) =>
-          state.inFlightImageId == id || state.isBusy,
-        StagedPhotoSlot() => state.isBusy,
-      };
 
   Future<void> _remove(
     BuildContext context,

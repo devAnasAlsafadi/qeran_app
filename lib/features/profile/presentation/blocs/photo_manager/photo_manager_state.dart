@@ -15,7 +15,16 @@ enum PhotoManagerMode {
 
 enum PhotoManagerStatus { initial, loading, loaded, failure }
 
-enum PhotoManagerAction { upload, delete, setMain }
+enum PhotoManagerAction {
+  upload,
+  delete,
+  setMain,
+
+  /// Uploading ONE staged photo and promoting it in a single user action.
+  /// Distinct from [upload] so the batch lights every staged tile while this
+  /// lights only the photo the user tapped.
+  promoteStaged,
+}
 
 enum PhotoManagerEvent {
   none,
@@ -41,7 +50,7 @@ class PhotoManagerState extends Equatable {
     this.stagedPaths = const [],
     this.stagedMainPath,
     this.inFlight,
-    this.inFlightImageId,
+    this.inFlightPhotoIds = const {},
     this.event = PhotoManagerEvent.none,
     this.eventVersion = 0,
     this.errorMessage,
@@ -61,14 +70,42 @@ class PhotoManagerState extends Equatable {
   /// user's main choice has not reached the server yet.
   final String? stagedMainPath;
 
+  /// The screen-wide lock. Non-null means a mutation owns the screen, which
+  /// is what stops a second one interleaving — NOT what decides which tile
+  /// shows a loader. See [inFlightPhotoIds] for that.
   final PhotoManagerAction? inFlight;
-  final String? inFlightImageId;
+
+  /// Ids of the photos currently mutating, so a loader can be scoped to the
+  /// tiles actually affected instead of dimming the whole grid.
+  ///
+  /// Holds at most one id while [inFlight] serialises mutations; it is a set
+  /// so per-photo work can fan out later without reshaping the state.
+  final Set<String> inFlightPhotoIds;
+
   final PhotoManagerEvent event;
   final int eventVersion;
   final String? errorMessage;
   final String? successMessage;
 
   bool get isBusy => inFlight != null;
+
+  /// True only for a photo this mutation actually touches.
+  bool isPhotoInFlight(String id) => inFlightPhotoIds.contains(id);
+
+  /// Whether THIS tile should render a loader.
+  ///
+  /// Scoped on purpose: a set-main or delete owns one photo, so dimming the
+  /// rest of the grid told the user their whole library was busy when a
+  /// single tile was. Staged tiles have no server id yet and never mutate
+  /// alone — the batch upload takes all of them at once, so that is the only
+  /// action that lights them up.
+  bool isSlotLoading(PhotoSlot slot) => switch (slot) {
+    ServerPhotoSlot(:final id) => isPhotoInFlight(id),
+    // A batch upload takes every staged file, so all of them light up. The
+    // atomic promotion takes one, tracked by its path.
+    StagedPhotoSlot(:final path) =>
+      inFlight == PhotoManagerAction.upload || isPhotoInFlight(path),
+  };
 
   bool get hasStaged => stagedPaths.isNotEmpty;
 
@@ -109,7 +146,7 @@ class PhotoManagerState extends Equatable {
     bool clearStagedMain = false,
     PhotoManagerAction? inFlight,
     bool clearInFlight = false,
-    String? inFlightImageId,
+    Set<String>? inFlightPhotoIds,
     PhotoManagerEvent? event,
     int? eventVersion,
     String? errorMessage,
@@ -125,9 +162,10 @@ class PhotoManagerState extends Equatable {
           ? null
           : (stagedMainPath ?? this.stagedMainPath),
       inFlight: clearInFlight ? null : (inFlight ?? this.inFlight),
-      inFlightImageId: clearInFlight
-          ? null
-          : (inFlightImageId ?? this.inFlightImageId),
+      // Deliberately NOT tied to clearInFlight: the id set is released in the
+      // `finally` of the mutation that claimed it, so a throw between the two
+      // can never strand a tile mid-spinner.
+      inFlightPhotoIds: inFlightPhotoIds ?? this.inFlightPhotoIds,
       event: event ?? this.event,
       eventVersion: eventVersion ?? this.eventVersion,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -143,7 +181,7 @@ class PhotoManagerState extends Equatable {
     stagedPaths,
     stagedMainPath,
     inFlight,
-    inFlightImageId,
+    inFlightPhotoIds,
     event,
     eventVersion,
     errorMessage,

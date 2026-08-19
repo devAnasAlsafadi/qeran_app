@@ -119,7 +119,6 @@ abstract class  LocaleKeys {
   static const auth_oath_button = 'auth.oath_button';
   static const auth_photo_upload_title = 'auth.photo_upload_title';
   static const auth_photo_upload_subtitle = 'auth.photo_upload_subtitle';
-  static const auth_photo_uploading = 'auth.photo_uploading';
   static const auth_photo_upload_button = 'auth.photo_upload_button';
   static const auth_photo_upload_success = 'auth.photo_upload_success';
   static const auth_photo_validation_not_found = 'auth.photo_validation_not_found';
@@ -505,6 +504,7 @@ abstract class  LocaleKeys {
   static const profile_photos_manage = 'profile.photos_manage';
   static const profile_photos_title = 'profile.photos_title';
   static const profile_photos_add = 'profile.photos_add';
+  static const profile_photos_uploading = 'profile.photos_uploading';
   static const profile_photos_main = 'profile.photos_main';
   static const profile_photos_make_main = 'profile.photos_make_main';
   static const profile_photos_uploaded = 'profile.photos_uploaded';

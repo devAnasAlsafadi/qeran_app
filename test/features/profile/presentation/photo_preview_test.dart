@@ -179,6 +179,61 @@ void main() {
     });
   }
 
+  // The delete control is not merely disabled when it has nothing valid to
+  // do — it is absent. Same idiom the tile already uses for `isLoading` and
+  // `isLocked`: the missing control IS the message.
+  group('the delete control hides when deleting is impossible', () {
+    Future<void> pumpSlot(
+      WidgetTester tester, {
+      required bool canRemove,
+      bool isLoading = false,
+      bool isLocked = false,
+    }) async {
+      await tester.pumpWidget(
+        _host(
+          FilledPhotoSlot(
+            slot: StagedPhotoSlot(path: _photo.path, isMain: false),
+            isLoading: isLoading,
+            isLocked: isLocked,
+            canRemove: canRemove,
+            onRemove: () {},
+            onSetPrimary: () {},
+          ),
+          direction: TextDirection.ltr,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('shown when the photo may be removed', (tester) async {
+      await pumpSlot(tester, canRemove: true);
+
+      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    });
+
+    testWidgets('hidden when it may not', (tester) async {
+      await pumpSlot(tester, canRemove: false);
+
+      expect(find.byIcon(Icons.close_rounded), findsNothing);
+    });
+
+    testWidgets('hidden while THIS photo is mid-mutation', (tester) async {
+      await pumpSlot(tester, canRemove: true, isLoading: true);
+
+      expect(find.byIcon(Icons.close_rounded), findsNothing);
+    });
+
+    // Deliberate, and pre-dating this change: the cubit serialises mutations,
+    // so while ANY photo is mutating a tap on another tile would be swallowed
+    // by its `if (state.isBusy) return` guard. Hiding every control beats
+    // offering one that silently does nothing.
+    testWidgets('hidden while ANOTHER photo is mid-mutation', (tester) async {
+      await pumpSlot(tester, canRemove: true, isLocked: true);
+
+      expect(find.byIcon(Icons.close_rounded), findsNothing);
+    });
+  });
+
   testWidgets('preview shows the whole photo and can zoom', (tester) async {
     await tester.pumpWidget(
       MaterialApp(home: PhotoPreviewScreen(file: _photo)),

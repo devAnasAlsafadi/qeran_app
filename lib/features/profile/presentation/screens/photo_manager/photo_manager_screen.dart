@@ -109,10 +109,6 @@ class _PhotoManagerView extends StatelessWidget {
         LocaleKeys.profile_photos_main_changed.t(context),
         SnackBarType.success,
       ),
-      PhotoManagerEvent.maxReached => (
-        LocaleKeys.profile_photos_max_reached.t(context),
-        SnackBarType.info,
-      ),
       PhotoManagerEvent.validationFailure ||
       PhotoManagerEvent.actionFailure => (
         (state.errorMessage ?? LocaleKeys.errors_generic).t(context),
@@ -302,6 +298,7 @@ class _PhotoGrid extends StatelessWidget {
             slot: slot,
             isLoading: state.isSlotLoading(slot),
             isLocked: state.isBusy,
+            canRemove: state.canRemove(slot),
             onRemove: () => _remove(context, cubit, slot),
             onSetPrimary: () => cubit.setMain(slot),
           );

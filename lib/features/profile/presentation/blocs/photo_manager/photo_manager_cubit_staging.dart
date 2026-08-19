@@ -68,10 +68,11 @@ extension PhotoManagerStaging on PhotoManagerCubit {
   /// Stages a picked file locally. Nothing is sent until [upload] runs.
   void addImage(String path) {
     if (state.isBusy) return;
-    if (!state.canAddMore) {
-      _event(PhotoManagerEvent.maxReached);
-      return;
-    }
+    // Unreachable from the screen: the grid stops rendering an add tile once
+    // the five slots are full, so there is nothing left to tap. Kept as a
+    // guard anyway, so no future caller can stage a sixth photo — it just has
+    // no message to deliver, because the missing tile already said it.
+    if (!state.canAddMore) return;
     final validation = _validate(path);
     if (validation != null) {
       _event(PhotoManagerEvent.validationFailure, errorMessage: validation);

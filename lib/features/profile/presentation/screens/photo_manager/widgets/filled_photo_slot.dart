@@ -25,6 +25,14 @@ class FilledPhotoSlot extends StatelessWidget {
   /// single-mutation guard, but the tile stays bright and previewable.
   final bool isLocked;
 
+  /// Whether deleting this photo is possible at all. False for the last
+  /// photo on the server, which the backend refuses to remove — the control
+  /// disappears rather than offering an action that can only fail.
+  ///
+  /// Defaults to true so the many call sites holding a staged slot (which is
+  /// always removable) need not say so.
+  final bool canRemove;
+
   final VoidCallback onRemove;
   final VoidCallback onSetPrimary;
 
@@ -33,6 +41,7 @@ class FilledPhotoSlot extends StatelessWidget {
     required this.slot,
     required this.isLoading,
     required this.isLocked,
+    this.canRemove = true,
     required this.onRemove,
     required this.onSetPrimary,
   });
@@ -62,7 +71,7 @@ class FilledPhotoSlot extends StatelessWidget {
             start: 0,
             child: PhotoPrimaryBadge(),
           ),
-        if (!isLoading && !isLocked)
+        if (canRemove && !isLoading && !isLocked)
           PositionedDirectional(
             top: QeranSpacing.s4,
             end: QeranSpacing.s4,

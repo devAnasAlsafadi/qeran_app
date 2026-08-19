@@ -283,7 +283,6 @@ void main() {
 
       expect(cubit.state.totalCount, 5, reason: 'sixth must be refused');
       expect(cubit.state.stagedPaths, hasLength(2));
-      expect(cubit.state.event, PhotoManagerEvent.maxReached);
       await cubit.close();
     });
 
@@ -300,7 +299,6 @@ void main() {
       cubit.addImage(makePhoto('f'));
 
       expect(cubit.state.stagedPaths, hasLength(5));
-      expect(cubit.state.event, PhotoManagerEvent.maxReached);
       await cubit.close();
     });
 
@@ -318,7 +316,6 @@ void main() {
       cubit.addImage(makePhoto('a'));
 
       expect(cubit.state.stagedPaths, isEmpty);
-      expect(cubit.state.event, PhotoManagerEvent.maxReached);
       await cubit.close();
     });
   });
@@ -716,6 +713,53 @@ void main() {
     test('nothing loads while idle', () {
       expect(idle.isSlotLoading(server), isFalse);
       expect(idle.isSlotLoading(staged), isFalse);
+    });
+  });
+
+  // The backend refuses to delete a profile's only photo (`IMAGE_LAST_ONE`),
+  // so the control is withheld rather than left to produce a guaranteed error.
+  group('canRemove', () {
+    PhotoManagerState stateWith(List<OwnerImage> images) => PhotoManagerState(
+      mode: PhotoManagerMode.profileEdit,
+      serverImages: images,
+    );
+
+    test('the only server photo may not be removed', () {
+      final state = stateWith([_img('s1')]);
+
+      expect(state.canRemove(ServerPhotoSlot(_img('s1'))), isFalse);
+    });
+
+    test('either of two server photos may be removed', () {
+      final state = stateWith([_img('s1'), _img('s2')]);
+
+      expect(state.canRemove(ServerPhotoSlot(_img('s1'))), isTrue);
+      expect(state.canRemove(ServerPhotoSlot(_img('s2'))), isTrue);
+    });
+
+    // Staged files never reached the server, so dropping one cannot leave the
+    // profile photoless — the lone SERVER photo is still there either way.
+    test('a staged file is always removable, even beside a lone server photo',
+        () {
+      final state = stateWith([_img('s1')]);
+
+      expect(
+        state.canRemove(
+          const StagedPhotoSlot(path: '/tmp/a.jpg', isMain: false),
+        ),
+        isTrue,
+      );
+    });
+
+    // Corollary of the above: staging does NOT unlock the last server photo.
+    test('staged photos do not count towards the one that must remain', () {
+      final state = PhotoManagerState(
+        mode: PhotoManagerMode.profileEdit,
+        serverImages: [_img('s1')],
+        stagedPaths: const ['/tmp/a.jpg', '/tmp/b.jpg'],
+      );
+
+      expect(state.canRemove(ServerPhotoSlot(_img('s1'))), isFalse);
     });
   });
 

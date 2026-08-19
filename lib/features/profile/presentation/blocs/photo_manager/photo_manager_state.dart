@@ -31,7 +31,6 @@ enum PhotoManagerEvent {
   uploaded,
   deleted,
   mainChanged,
-  maxReached,
   validationFailure,
   actionFailure,
 
@@ -105,6 +104,20 @@ class PhotoManagerState extends Equatable {
     // atomic promotion takes one, tracked by its path.
     StagedPhotoSlot(:final path) =>
       inFlight == PhotoManagerAction.upload || isPhotoInFlight(path),
+  };
+
+  /// Whether THIS tile's delete control has anything valid to do.
+  ///
+  /// A staged file was never uploaded, so dropping it is local and always
+  /// allowed. The last SERVER photo is different: the backend refuses to
+  /// delete it (`IMAGE_LAST_ONE`), so showing the control would offer an
+  /// action whose only possible outcome is an error message. Staged photos
+  /// deliberately do NOT count towards the one that must remain — they are
+  /// not on the server, so deleting the last server photo would still leave
+  /// the profile with none.
+  bool canRemove(PhotoSlot slot) => switch (slot) {
+    StagedPhotoSlot() => true,
+    ServerPhotoSlot() => serverImages.length > 1,
   };
 
   bool get hasStaged => stagedPaths.isNotEmpty;

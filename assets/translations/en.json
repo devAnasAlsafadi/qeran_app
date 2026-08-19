@@ -524,7 +524,6 @@
     "photos_uploaded": "Upload complete",
     "photos_deleted": "Photo deleted",
     "photos_main_changed": "Main photo changed",
-    "photos_max_reached": "You can keep up to five photos",
     "photos_load_failed": "Couldn't load your photos",
     "photos_validation_type": "Please choose a JPG or PNG image.",
     "photos_delete_title": "Delete photo?",

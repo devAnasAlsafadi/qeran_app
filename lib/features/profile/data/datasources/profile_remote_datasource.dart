@@ -9,6 +9,7 @@ import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../error_codes.dart';
 import '../models/basic_user_model.dart';
 import '../models/my_profile_model.dart';
 import '../models/other_profile_model.dart';
@@ -165,9 +166,36 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     }
   }
 
+  /// Runs an image request, turning any `errorCode` we know into a locale key
+  /// before it leaves the data layer. Unknown codes rethrow untouched.
+  ///
+  /// Wrapped around EVERY image endpoint rather than only the ones documented
+  /// to return a given code: if a code starts appearing somewhere new, it
+  /// should surface as a translated message rather than as Arabic prose.
+  /// The code itself is preserved so the cubit can still act on it —
+  /// `IMAGE_NOT_FOUND` drives a resync, not just a message.
+  Future<T> _imageRequest<T>(Future<T> Function() send) async {
+    try {
+      return await send();
+    } on CodedServerException catch (e) {
+      final key = ProfileImageErrorCodes.localeKeyFor(e.errorCode);
+      if (key == null) rethrow;
+      AppLogger.warning(
+        'Image request rejected — errorCode=${e.errorCode}',
+        tag: 'PROFILE',
+      );
+      throw CodedServerException(
+        message: key,
+        errorCode: e.errorCode,
+        statusCode: e.statusCode,
+      );
+    }
+  }
+
   @override
-  Future<List<OwnerImageModel>> getProfileImages() async =>
-      _imageList(await _apiConsumer.get(EndPoints.profileImages));
+  Future<List<OwnerImageModel>> getProfileImages() async => _imageRequest(
+    () async => _imageList(await _apiConsumer.get(EndPoints.profileImages)),
+  );
 
   /// Shared by the list GET and the upload POST — both wrap an image array in
   /// the standard envelope. Tolerates a non-map body rather than casting, so
@@ -199,13 +227,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       // The response carries ONLY the images this request created, in
       // multipart submission order — not the full library. A caller that
       // needs the whole list still has to GET it afterwards.
-      return _imageList(
-        await _apiConsumer.postMultipart(
-          EndPoints.profileImages,
-          files: images,
-          fieldName: 'images',
+      //
+      // `_imageRequest` sits INSIDE the ServerException catch below: a coded
+      // envelope is a business rejection (too large, wrong type, at the cap),
+      // not the server fault that catch rephrases, so it must be translated
+      // and rethrown before the generic "couldn't upload" wording lands on it.
+      return await _imageRequest(
+        () async => _imageList(
+          await _apiConsumer.postMultipart(
+            EndPoints.profileImages,
+            files: images,
+            fieldName: 'images',
+          ),
         ),
       );
+    } on CodedServerException {
+      rethrow;
     } on ServerException catch (e) {
       // The user just tapped upload, so a server-side failure is more
       // useful phrased as "couldn't upload your photos" than as a generic
@@ -226,14 +263,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<void> deleteProfileImage(String imageId) async {
-    await _apiConsumer.delete(EndPoints.profileImage(imageId));
-  }
+  Future<void> deleteProfileImage(String imageId) => _imageRequest(
+    () async => _apiConsumer.delete(EndPoints.profileImage(imageId)),
+  );
 
   @override
-  Future<void> setMainProfileImage(String imageId) async {
-    await _apiConsumer.put(EndPoints.setMainProfileImage(imageId));
-  }
+  Future<void> setMainProfileImage(String imageId) => _imageRequest(
+    () async => _apiConsumer.put(EndPoints.setMainProfileImage(imageId)),
+  );
 
   @override
   Future<void> deleteAccount() async {

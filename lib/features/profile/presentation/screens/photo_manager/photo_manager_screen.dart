@@ -109,9 +109,12 @@ class _PhotoManagerView extends StatelessWidget {
         LocaleKeys.profile_photos_main_changed.t(context),
         SnackBarType.success,
       ),
+      // `tOrRaw`, not `t`: every code the backend documents is translated in
+      // the data layer, but an UNDOCUMENTED one still arrives as the server's
+      // own prose. Passing that to `t` would look up a key that cannot exist.
       PhotoManagerEvent.validationFailure ||
       PhotoManagerEvent.actionFailure => (
-        (state.errorMessage ?? LocaleKeys.errors_generic).t(context),
+        (state.errorMessage ?? LocaleKeys.errors_generic).tOrRaw(context),
         SnackBarType.error,
       ),
       PhotoManagerEvent.none || PhotoManagerEvent.finished => (

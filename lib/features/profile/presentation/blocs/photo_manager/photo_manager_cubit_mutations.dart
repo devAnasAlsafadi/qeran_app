@@ -98,19 +98,31 @@ extension PhotoManagerMutations on PhotoManagerCubit {
     PhotoManagerEvent success,
   ) async {
     if (isClosed) return;
-    String? failure;
-    result.fold<void>((f) => failure = f.message, (_) {});
-    if (failure != null) {
+    Failure? failure;
+    result.fold<void>((f) => failure = f, (_) {});
+    final failed = failure;
+    if (failed != null) {
       emit(
         state.copyWith(
           clearInFlight: true,
           event: PhotoManagerEvent.actionFailure,
           eventVersion: state.eventVersion + 1,
-          errorMessage: failure,
+          errorMessage: failed.message,
         ),
       );
+      // The message goes out FIRST, then the grid catches up: the listener
+      // fires on the event, so the user is told what happened before the tile
+      // disappears under them.
+      if (_isMissingImage(failed)) await load();
       return;
     }
     await _reloadAfterMutation(success);
   }
+
+  /// The server has no such image. Whatever else this grid believes about it
+  /// is suspect too, so the tile is not left sitting there inviting a second
+  /// tap that can only fail the same way.
+  bool _isMissingImage(Failure failure) =>
+      failure is CodedServerFailure &&
+      failure.errorCode == ProfileImageErrorCodes.notFound;
 }

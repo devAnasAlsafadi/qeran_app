@@ -9,6 +9,7 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../../../data/error_codes.dart';
 import '../../../domain/entities/photo_slot.dart';
 import '../../../domain/entities/profile_image.dart';
 import '../../../domain/usecases/add_profile_images_usecase.dart';

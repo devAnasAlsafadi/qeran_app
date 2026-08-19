@@ -8,6 +8,7 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/features/profile/data/datasources/profile_remote_datasource.dart';
+import 'package:qeran/features/profile/data/error_codes.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
@@ -215,6 +216,126 @@ void main() {
             (e) => e.message,
             'message',
             'الصورة كبيرة جداً',
+          ),
+        ),
+      );
+    });
+
+    // The upload codes specifically: these arrive through the SAME catch that
+    // rephrases 5xx faults, so they have to be translated and rethrown before
+    // the generic "couldn't upload" wording can claim them.
+    for (final (code, key) in [
+      (ProfileImageErrorCodes.limitReached,
+          LocaleKeys.profile_photos_max_reached),
+      (ProfileImageErrorCodes.tooLarge, LocaleKeys.auth_photo_validation_size),
+      (ProfileImageErrorCodes.invalidType,
+          LocaleKeys.profile_photos_validation_type),
+      (ProfileImageErrorCodes.imageRequired, LocaleKeys.errors_generic),
+    ]) {
+      test('$code on upload becomes $key, not the upload-failed wording',
+          () async {
+        stubUploadThrows(
+          CodedServerException(message: 'رسالة عربية', errorCode: code),
+        );
+
+        await expectLater(
+          () => dataSource.addProfileImages([tmpFile]),
+          throwsA(
+            isA<CodedServerException>()
+                .having((e) => e.message, 'message', key)
+                .having((e) => e.errorCode, 'errorCode', code),
+          ),
+        );
+      });
+    }
+  });
+
+  // Classification happens on the code; the backend's Arabic prose never
+  // reaches the UI, and the code itself survives so the cubit can act on it.
+  group('image error codes translate to locale keys', () {
+    test('IMAGE_LAST_ONE on delete', () async {
+      when(() => api.delete(EndPoints.profileImage('img-1'))).thenThrow(
+        CodedServerException(
+          message: 'لا يمكن حذف الصورة الوحيدة',
+          errorCode: ProfileImageErrorCodes.lastOne,
+        ),
+      );
+
+      await expectLater(
+        () => dataSource.deleteProfileImage('img-1'),
+        throwsA(
+          isA<CodedServerException>()
+              .having(
+                (e) => e.message,
+                'message',
+                LocaleKeys.profile_photos_last_one,
+              )
+              .having(
+                (e) => e.errorCode,
+                'errorCode',
+                ProfileImageErrorCodes.lastOne,
+              ),
+        ),
+      );
+    });
+
+    test('IMAGE_NOT_FOUND on set-main', () async {
+      when(() => api.put(EndPoints.setMainProfileImage('img-9'))).thenThrow(
+        CodedServerException(
+          message: 'الصورة غير موجودة',
+          errorCode: ProfileImageErrorCodes.notFound,
+        ),
+      );
+
+      await expectLater(
+        () => dataSource.setMainProfileImage('img-9'),
+        throwsA(
+          isA<CodedServerException>().having(
+            (e) => e.message,
+            'message',
+            LocaleKeys.profile_photos_not_found,
+          ),
+        ),
+      );
+    });
+
+    // The list endpoint is not documented to return these, but it goes
+    // through the same wrapper so a code appearing there is still translated.
+    test('the list endpoint is wrapped too', () async {
+      when(() => api.get(EndPoints.profileImages)).thenThrow(
+        CodedServerException(
+          message: 'الصورة غير موجودة',
+          errorCode: ProfileImageErrorCodes.notFound,
+        ),
+      );
+
+      await expectLater(
+        () => dataSource.getProfileImages(),
+        throwsA(
+          isA<CodedServerException>().having(
+            (e) => e.message,
+            'message',
+            LocaleKeys.profile_photos_not_found,
+          ),
+        ),
+      );
+    });
+
+    test('an unknown code is rethrown untouched', () async {
+      when(() => api.delete(EndPoints.profileImage('img-1'))).thenThrow(
+        CodedServerException(
+          message: 'شيء آخر تماماً',
+          errorCode: 'SOMETHING_ELSE',
+        ),
+      );
+
+      await expectLater(
+        () => dataSource.deleteProfileImage('img-1'),
+        throwsA(
+          isA<CodedServerException>().having(
+            (e) => e.message,
+            'message',
+            'شيء آخر تماماً',
           ),
         ),
       );

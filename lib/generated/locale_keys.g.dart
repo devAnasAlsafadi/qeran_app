@@ -510,7 +510,10 @@ abstract class  LocaleKeys {
   static const profile_photos_uploaded = 'profile.photos_uploaded';
   static const profile_photos_deleted = 'profile.photos_deleted';
   static const profile_photos_main_changed = 'profile.photos_main_changed';
+  static const profile_photos_max_reached = 'profile.photos_max_reached';
   static const profile_photos_load_failed = 'profile.photos_load_failed';
+  static const profile_photos_last_one = 'profile.photos_last_one';
+  static const profile_photos_not_found = 'profile.photos_not_found';
   static const profile_photos_validation_type = 'profile.photos_validation_type';
   static const profile_photos_delete_title = 'profile.photos_delete_title';
   static const profile_photos_delete_message = 'profile.photos_delete_message';

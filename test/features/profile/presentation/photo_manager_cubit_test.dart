@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/profile/data/error_codes.dart';
 import 'package:qeran/features/profile/domain/entities/photo_slot.dart';
 import 'package:qeran/features/profile/domain/entities/profile_image.dart';
 import 'package:qeran/features/profile/domain/usecases/add_profile_images_usecase.dart';
@@ -349,6 +350,59 @@ void main() {
       verifyNever(() => deleteImage(any()));
       // 'a' was main; with no server main, 'b' inherits it.
       expect(cubit.state.stagedMainPath, b);
+      await cubit.close();
+    });
+  });
+
+  // A failed mutation normally leaves the grid alone — the photos are still
+  // there, the action just did not take. IMAGE_NOT_FOUND is the exception:
+  // the id we acted on does not exist server-side, so the tile is an orphan.
+  group('IMAGE_NOT_FOUND resyncs the grid', () {
+    test('a missing image refetches the list after reporting', () async {
+      when(() => getImages()).thenAnswer((_) async => Right([_img('s1')]));
+      when(() => deleteImage('gone')).thenAnswer(
+        (_) async => const Left(
+          CodedServerFailure(
+            message: LocaleKeys.profile_photos_not_found,
+            errorCode: ProfileImageErrorCodes.notFound,
+          ),
+        ),
+      );
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.deleteServerImage('gone');
+
+      expect(cubit.state.event, PhotoManagerEvent.actionFailure);
+      // Once for load(), once for the resync.
+      verify(() => getImages()).called(2);
+      await cubit.close();
+    });
+
+    test('any OTHER coded failure leaves the grid untouched', () async {
+      when(() => getImages()).thenAnswer(
+        (_) async => Right([_img('s1'), _img('s2')]),
+      );
+      when(() => deleteImage('s2')).thenAnswer(
+        (_) async => const Left(
+          CodedServerFailure(
+            message: LocaleKeys.profile_photos_last_one,
+            errorCode: ProfileImageErrorCodes.lastOne,
+          ),
+        ),
+      );
+      final cubit = build();
+      await cubit.load();
+
+      await cubit.deleteServerImage('s2');
+
+      expect(cubit.state.event, PhotoManagerEvent.actionFailure);
+      expect(
+        cubit.state.errorMessage,
+        LocaleKeys.profile_photos_last_one,
+      );
+      // load() only — no resync.
+      verify(() => getImages()).called(1);
       await cubit.close();
     });
   });

@@ -69,7 +69,7 @@ class GenderCard extends StatelessWidget {
                       ),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          // The two source PNGs have different aspects (female
+                          // The two sources have different aspects (female
                           // 440×567 ≈ 0.776, male 388×642 ≈ 0.604). Render BOTH
                           // at the SAME height so the cards look balanced: cap
                           // the height so the WIDER (female) illustration still
@@ -83,10 +83,12 @@ class GenderCard extends StatelessWidget {
                               : maxByWidth;
                           return Align(
                             alignment: Alignment.bottomCenter,
-                            child: Image.asset(
-                              imageAsset,
-                              height: targetHeight,
-                              fit: BoxFit.contain,
+                            child: _MirroredForLtr(
+                              child: Image.asset(
+                                imageAsset,
+                                height: targetHeight,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           );
                         },
@@ -109,6 +111,39 @@ class GenderCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Flips [child] horizontally when the ambient direction is LTR.
+///
+/// The illustrations are drawn for ARABIC: the man faces left, the woman faces
+/// right. With the man on the Row's start edge — the RIGHT in RTL — the two
+/// look at each other. In LTR the start edge moves to the left, the cards swap
+/// sides, and that same artwork points them both outward: backs turned. Mirror
+/// the pixels and the composition survives the flip, with no second set of
+/// assets to draw and keep in sync.
+///
+/// Deliberately NOT `Image.matchTextDirection`: that flag assumes assets are
+/// authored for LTR and flips them for RTL, which is exactly inverted here. It
+/// would break Arabic — the case that is correct today — and leave English
+/// wrong. Using it would first require re-authoring both files mirrored.
+///
+/// RTL returns [child] untouched, so the primary locale renders exactly the
+/// tree it always has.
+class _MirroredForLtr extends StatelessWidget {
+  const _MirroredForLtr({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (Directionality.of(context) == TextDirection.rtl) return child;
+    // The card tweens its background colour on selection, and that animation
+    // repaints this subtree. Isolating the illustration keeps the transformed
+    // layer off the tween's repaint path.
+    return RepaintBoundary(
+      child: Transform.scale(scaleX: -1, child: child),
     );
   }
 }

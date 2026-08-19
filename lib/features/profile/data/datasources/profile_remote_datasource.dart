@@ -45,7 +45,7 @@ abstract interface class ProfileRemoteDataSource {
   Future<GetProfileByIdResult> getProfileById(String userId);
   Future<BasicUserModel?> getBasicUser(String id);
   Future<List<OwnerImageModel>> getProfileImages();
-  Future<void> addProfileImages(List<File> images);
+  Future<List<OwnerImageModel>> addProfileImages(List<File> images);
   Future<void> deleteProfileImage(String imageId);
   Future<void> setMainProfileImage(String imageId);
 
@@ -166,10 +166,17 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<List<OwnerImageModel>> getProfileImages() async {
-    final response = await _apiConsumer.get(EndPoints.profileImages);
+  Future<List<OwnerImageModel>> getProfileImages() async =>
+      _imageList(await _apiConsumer.get(EndPoints.profileImages));
+
+  /// Shared by the list GET and the upload POST — both wrap an image array in
+  /// the standard envelope. Tolerates a non-map body rather than casting, so
+  /// one malformed response degrades to "no photos" instead of a TypeError
+  /// escaping past the repository's exception mapping.
+  List<OwnerImageModel> _imageList(Object? response) {
+    if (response is! Map<String, dynamic>) return const <OwnerImageModel>[];
     final apiResponse = ApiResponse<List<OwnerImageModel>>.fromJson(
-      response as Map<String, dynamic>,
+      response,
       (json) => (json as List<dynamic>? ?? const [])
           .whereType<Map<String, dynamic>>()
           .map(OwnerImageModel.fromJson)
@@ -179,7 +186,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<void> addProfileImages(List<File> images) async {
+  Future<List<OwnerImageModel>> addProfileImages(List<File> images) async {
     // Pre-flight token check. Uploads carry megabytes, so a missing or
     // expired token is caught before the body is ever sent rather than
     // after the server rejects it.
@@ -189,10 +196,15 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     }
 
     try {
-      await _apiConsumer.postMultipart(
-        EndPoints.profileImages,
-        files: images,
-        fieldName: 'images',
+      // The response carries ONLY the images this request created, in
+      // multipart submission order — not the full library. A caller that
+      // needs the whole list still has to GET it afterwards.
+      return _imageList(
+        await _apiConsumer.postMultipart(
+          EndPoints.profileImages,
+          files: images,
+          fieldName: 'images',
+        ),
       );
     } on ServerException catch (e) {
       // The user just tapped upload, so a server-side failure is more

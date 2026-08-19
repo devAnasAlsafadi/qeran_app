@@ -35,7 +35,9 @@ abstract interface class ProfileRepository {
   Future<Either<Failure, BasicUser?>> getBasicUser(String id);
 
   Future<Either<Failure, List<OwnerImage>>> getProfileImages();
-  Future<Either<Failure, Unit>> addProfileImages(List<File> images);
+  /// Returns the images CREATED by this request (not the full library), so a
+  /// caller can act on a new photo's server id without diffing the list.
+  Future<Either<Failure, List<OwnerImage>>> addProfileImages(List<File> images);
   Future<Either<Failure, Unit>> deleteProfileImage(String imageId);
   Future<Either<Failure, Unit>> setMainProfileImage(String imageId);
 

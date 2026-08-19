@@ -75,10 +75,12 @@ class ProfileRepositoryImpl
   }
 
   @override
-  Future<Either<Failure, Unit>> addProfileImages(List<File> images) {
+  Future<Either<Failure, List<OwnerImage>>> addProfileImages(
+    List<File> images,
+  ) {
     return executeApiCall(() async {
-      await _dataSource.addProfileImages(images);
-      return unit;
+      final models = await _dataSource.addProfileImages(images);
+      return models.map((model) => model.toEntity()).toList(growable: false);
     });
   }
 

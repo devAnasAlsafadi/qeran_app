@@ -247,7 +247,7 @@ void main() {
         late List<File> sent;
         when(() => addImages(any())).thenAnswer((invocation) async {
           sent = invocation.positionalArguments.first as List<File>;
-          return const Right(unit);
+          return const Right(<OwnerImage>[]);
         });
         // After upload the server reports the two new photos; 'n1' is the
         // one that went up at index 0.
@@ -317,7 +317,9 @@ void main() {
     });
     test('an empty profile needs no promotion call after upload', () async {
       stubServerImages([]);
-      when(() => addImages(any())).thenAnswer((_) async => const Right(unit));
+      when(
+        () => addImages(any()),
+      ).thenAnswer((_) async => const Right(<OwnerImage>[]));
       final cubit = build();
       await cubit.load();
       cubit.addImage(makePhoto('a'));
@@ -345,7 +347,7 @@ void main() {
       late List<File> sent;
       when(() => addImages(any())).thenAnswer((invocation) async {
         sent = invocation.positionalArguments.first as List<File>;
-        return const Right(unit);
+        return const Right(<OwnerImage>[]);
       });
       stubServerImages([_img('n1', main: true), _img('n2')]);
 
@@ -386,7 +388,9 @@ void main() {
 
     test('upload marks the onboarding step as finished', () async {
       stubServerImages([]);
-      when(() => addImages(any())).thenAnswer((_) async => const Right(unit));
+      when(
+        () => addImages(any()),
+      ).thenAnswer((_) async => const Right(<OwnerImage>[]));
       final cubit = build(mode: PhotoManagerMode.onboarding);
       await cubit.load();
       cubit.addImage(makePhoto('a'));

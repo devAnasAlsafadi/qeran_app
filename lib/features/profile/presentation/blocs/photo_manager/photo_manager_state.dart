@@ -73,8 +73,22 @@ class PhotoManagerState extends Equatable {
   bool get hasStaged => stagedPaths.isNotEmpty;
 
   /// Server photos first, then staged ones — the order the grid renders.
+  ///
+  /// Server photos are ordered by **id**, deliberately NOT by payload order.
+  /// The server sorts `IsProfile DESC, CreatedAt DESC, Id`, so the main photo
+  /// always leads — which means a successful set-main returns the whole list
+  /// reshuffled: the tile the user just tapped teleports to slot 0 and the
+  /// badge reads as having landed on some other photo. Sorting on a key no
+  /// mutation can change keeps every tile where it is, so only the badge
+  /// moves. Per Tariq: `isProfile` says WHICH photo is main; payload order
+  /// says nothing about where it sits.
+  ///
+  /// `id` is a GUID, so the resulting order is arbitrary — but arbitrary and
+  /// STABLE beats meaningful and shifting for a five-tile grid the user
+  /// reaches into. Ids are unique, so `sort`'s instability cannot bite.
   List<PhotoSlot> get slots => [
-    ...serverImages.map(ServerPhotoSlot.new),
+    ...(<OwnerImage>[...serverImages]..sort((a, b) => a.id.compareTo(b.id)))
+        .map(ServerPhotoSlot.new),
     ...stagedPaths.map(
       (path) =>
           StagedPhotoSlot(path: path, isMain: path == stagedMainPath),

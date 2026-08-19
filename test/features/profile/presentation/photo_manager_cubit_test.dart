@@ -282,6 +282,39 @@ void main() {
       await cubit.close();
     });
 
+    test('set-main moves the badge without reshuffling the grid', () async {
+      // The server sorts IsProfile DESC, CreatedAt DESC, Id — so the refetch
+      // that follows a successful set-main comes back with the PROMOTED photo
+      // first. Rendering that order would teleport the tapped tile to slot 0,
+      // which is what made the badge look like it never moved. Positions are
+      // pinned to id; only isMain is allowed to travel.
+      stubServerImages([_img('a1', main: true), _img('b2')]);
+      final cubit = build();
+      await cubit.load();
+      expect(
+        cubit.state.slots.cast<ServerPhotoSlot>().map((s) => s.id),
+        ['a1', 'b2'],
+      );
+
+      when(() => setMain('b2')).thenAnswer((_) async => const Right(unit));
+      // The refetch payload exactly as the server orders it: new main leads.
+      stubServerImages([_img('b2', main: true), _img('a1')]);
+
+      await cubit.setMain(ServerPhotoSlot(_img('b2')));
+
+      final slots = cubit.state.slots.cast<ServerPhotoSlot>();
+      expect(
+        slots.map((s) => s.id),
+        ['a1', 'b2'],
+        reason: 'tiles must hold position across a mutation',
+      );
+      expect(
+        slots.where((s) => s.isMain).map((s) => s.id),
+        ['b2'],
+        reason: 'exactly one main, and it is the tapped photo',
+      );
+      await cubit.close();
+    });
     test('an empty profile needs no promotion call after upload', () async {
       stubServerImages([]);
       when(() => addImages(any())).thenAnswer((_) async => const Right(unit));

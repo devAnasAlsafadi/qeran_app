@@ -1083,37 +1083,6 @@ void main() {
   // ──────────────────────────────────────────────────────────────────
   // lifecycle — regression for "Cannot emit new states after close"
   // ──────────────────────────────────────────────────────────────────
-  test(
-    'replayLoadedProfiles returns an exhausted deck to its first card',
-    () async {
-      when(
-        () => fetch(
-          page: any(named: 'page'),
-          pageSize: any(named: 'pageSize'),
-          filterParams: any(named: 'filterParams'),
-        ),
-      ).thenAnswer(
-        (_) async => Right(
-          _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
-        ),
-      );
-      when(
-        () => pass(any()),
-      ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
-      await cubit.loadInitial();
-      await cubit.pass();
-      await Future<void>.delayed(const Duration(milliseconds: 260));
-      await cubit.pass();
-      expect((cubit.state as DiscoveryLoaded).isExhausted, isTrue);
-
-      cubit.replayLoadedProfiles();
-
-      final replayed = cubit.state as DiscoveryLoaded;
-      expect(replayed.currentIndex, 0);
-      expect(replayed.current?.id, 'a');
-    },
-  );
-
   group('lifecycle (closed-before-emit guards)', () {
     test('loadInitial: close before fetch completes does not throw', () async {
       final completer = Completer<Either<Failure, DiscoveryPage>>();

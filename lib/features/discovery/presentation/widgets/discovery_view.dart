@@ -373,11 +373,20 @@ class _ScrollableProfile extends StatelessWidget {
         final cubit = context.read<DiscoveryCubit>();
         return _ScrollableCenter(
           child: DiscoveryEmptyView(
-            hasFilters: cubit.hasActiveFilters,
-            onEditFilters: () => _openFilters(context),
-            onClearFilters: () => cubit.applyFilters(null),
-            canReplay: !cubit.hasActiveFilters && s.profiles.isNotEmpty,
-            onReplay: cubit.replayLoadedProfiles,
+            seenEveryone: s.hasSeenEveryone,
+            // Server reason OR the client's own knowledge that a filter is
+            // constraining the deck. Falling back to the local flag keeps the
+            // filter escape hatch alive on a backend that sends no reason at
+            // all — without it, an unreported filtered-empty deck would render
+            // the generic copy and no way out, the exact dead end this view
+            // exists to prevent.
+            filtersMatchedNobody:
+                s.filtersMatchedNobody || cubit.hasActiveFilters,
+            onRefresh: cubit.refresh,
+            onEditFilters: cubit.hasActiveFilters
+                ? () => _openFilters(context)
+                : null,
+            // onStartOver stays unwired — see DiscoveryEmptyView.onStartOver.
           ),
         );
       }

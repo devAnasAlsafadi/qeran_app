@@ -6,13 +6,14 @@ import 'package:qeran/features/discovery/presentation/widgets/discovery_empty_vi
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// A filtered deck that comes back empty is a DEAD END without these actions:
-/// the filter button lives on the card photo, and there is no card. The only
-/// way out was force-quitting the app.
+/// The terminal deck state has two INDEPENDENT causes — the server saying a
+/// query matched nobody, and the user having swiped through everything — and
+/// each carries a different remedy. These pin that all four combinations render
+/// their own copy, that no branch paints a button it cannot service, and that a
+/// filtered dead end always keeps a way back to the filter sheet.
 ///
-/// The unfiltered empty state must NOT grow the same buttons — there is no
-/// filter to edit, and offering one would be a lie about why the deck is empty.
-
+/// The stub loader resolves nothing, so translation returns the key itself and
+/// the assertions read as key identity rather than as copy.
 class _StubAssetLoader extends AssetLoader {
   const _StubAssetLoader();
   @override
@@ -22,12 +23,16 @@ class _StubAssetLoader extends AssetLoader {
 
 Future<void> _pump(
   WidgetTester tester, {
-  required bool hasFilters,
-  VoidCallback? onEdit,
-  VoidCallback? onClear,
+  bool seenEveryone = false,
+  bool filtersMatchedNobody = false,
+  VoidCallback? onRefresh,
+  VoidCallback? onEditFilters,
+  VoidCallback? onStartOver,
+  bool startingOver = false,
   bool withHandlers = true,
-  bool canReplay = false,
-  VoidCallback? onReplay,
+  // A button in its loading state runs a never-ending spinner, so settling
+  // would spin until the timeout. That case pumps a single frame instead.
+  bool settle = true,
 }) async {
   await tester.pumpWidget(
     EasyLocalization(
@@ -42,19 +47,31 @@ Future<void> _pump(
           localizationsDelegates: ctx.localizationDelegates,
           home: Scaffold(
             body: DiscoveryEmptyView(
-              hasFilters: hasFilters,
-              onEditFilters: withHandlers ? (onEdit ?? () {}) : null,
-              onClearFilters: withHandlers ? (onClear ?? () {}) : null,
-              canReplay: canReplay,
-              onReplay: onReplay,
+              seenEveryone: seenEveryone,
+              filtersMatchedNobody: filtersMatchedNobody,
+              onRefresh: withHandlers ? (onRefresh ?? () {}) : null,
+              onEditFilters: withHandlers ? (onEditFilters ?? () {}) : null,
+              onStartOver: onStartOver,
+              startingOver: startingOver,
             ),
           ),
         ),
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
 }
+
+/// Matched on the widget's own `label` rather than on rendered text: a button
+/// in its loading state swaps the label out for a spinner, and finding by text
+/// would fail on exactly the case worth asserting.
+QeranButton _buttonWith(WidgetTester tester, String labelKey) => tester
+    .widgetList<QeranButton>(find.byType(QeranButton))
+    .firstWhere((b) => b.label == labelKey);
 
 void main() {
   setUpAll(() async {
@@ -63,71 +80,187 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
-  testWidgets('no filters — no actions, and the copy says nobody is left', (
-    tester,
-  ) async {
-    await _pump(tester, hasFilters: false);
-
-    expect(find.byType(QeranButton), findsNothing);
-    expect(find.text(LocaleKeys.discovery_empty_title), findsOneWidget);
-  });
-
-  testWidgets('filtered — offers a way back to the filter sheet', (
-    tester,
-  ) async {
-    await _pump(tester, hasFilters: true);
-
-    // Different copy: "nobody matched YOUR FILTER", not "nobody exists".
-    expect(
-      find.text(LocaleKeys.discovery_empty_filtered_title),
-      findsOneWidget,
-    );
-    expect(find.byType(QeranButton), findsNWidgets(2));
-  });
-
-  testWidgets('exhausted local deck offers replay and invokes it', (
-    tester,
-  ) async {
-    var replays = 0;
-    await _pump(
+  group('branch (a) — seen everyone, no filter problem', () {
+    testWidgets('shows the completion copy and a single refresh action', (
       tester,
-      hasFilters: false,
-      canReplay: true,
-      onReplay: () => replays++,
-    );
+    ) async {
+      await _pump(tester, seenEveryone: true);
 
-    expect(find.text(LocaleKeys.discovery_empty_replay), findsOneWidget);
-    await tester.tap(find.text(LocaleKeys.discovery_empty_replay));
-    expect(replays, 1);
+      expect(
+        find.text(LocaleKeys.discovery_empty_seen_all_title),
+        findsOneWidget,
+      );
+      expect(
+        find.text(LocaleKeys.discovery_empty_seen_all_message),
+        findsOneWidget,
+      );
+      expect(find.byType(QeranButton), findsOneWidget);
+      expect(
+        find.text(LocaleKeys.discovery_empty_seen_all_cta_refresh),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('refreshing invokes the handler', (tester) async {
+      var refreshes = 0;
+      await _pump(tester, seenEveryone: true, onRefresh: () => refreshes++);
+
+      await tester.tap(
+        find.text(LocaleKeys.discovery_empty_seen_all_cta_refresh),
+      );
+      await tester.pumpAndSettle();
+
+      expect(refreshes, 1);
+    });
   });
 
-  testWidgets('editing reopens the sheet', (tester) async {
-    var edits = 0;
-    await _pump(tester, hasFilters: true, onEdit: () => edits++);
+  group('branch (b) — the filter matched nobody', () {
+    testWidgets('keeps the existing filtered copy and offers the sheet', (
+      tester,
+    ) async {
+      await _pump(tester, filtersMatchedNobody: true);
 
-    await tester.tap(find.text(LocaleKeys.discovery_empty_edit_filters));
-    await tester.pumpAndSettle();
+      expect(
+        find.text(LocaleKeys.discovery_empty_filtered_title),
+        findsOneWidget,
+      );
+      expect(
+        find.text(LocaleKeys.discovery_empty_filtered_subtitle),
+        findsOneWidget,
+      );
+      expect(find.byType(QeranButton), findsOneWidget);
+      expect(find.text(LocaleKeys.discovery_empty_edit_filters), findsOneWidget);
+    });
 
-    expect(edits, 1);
+    testWidgets('editing reopens the sheet', (tester) async {
+      var edits = 0;
+      await _pump(
+        tester,
+        filtersMatchedNobody: true,
+        onEditFilters: () => edits++,
+      );
+
+      await tester.tap(find.text(LocaleKeys.discovery_empty_edit_filters));
+      await tester.pumpAndSettle();
+
+      expect(edits, 1);
+    });
   });
 
-  testWidgets('clearing drops the filters', (tester) async {
-    var clears = 0;
-    await _pump(tester, hasFilters: true, onClear: () => clears++);
+  group('branch (c) — both at once', () {
+    testWidgets('leads with the filter headline but merges both concerns', (
+      tester,
+    ) async {
+      await _pump(tester, seenEveryone: true, filtersMatchedNobody: true);
 
-    await tester.tap(find.text(LocaleKeys.discovery_empty_clear_filters));
-    await tester.pumpAndSettle();
+      expect(
+        find.text(LocaleKeys.discovery_empty_filtered_title),
+        findsOneWidget,
+      );
+      expect(
+        find.text(LocaleKeys.discovery_empty_filtered_seen_all_message),
+        findsOneWidget,
+      );
+      // NOT the single-cause message — that would drop half the explanation.
+      expect(
+        find.text(LocaleKeys.discovery_empty_filtered_subtitle),
+        findsNothing,
+      );
+    });
 
-    expect(clears, 1);
+    testWidgets('offers both remedies, start-over primary and filters ghost', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        seenEveryone: true,
+        filtersMatchedNobody: true,
+        onStartOver: () {},
+      );
+
+      expect(find.byType(QeranButton), findsNWidgets(2));
+      expect(
+        _buttonWith(tester, LocaleKeys.discovery_empty_start_over).variant,
+        QeranButtonVariant.primaryGold,
+      );
+      expect(
+        _buttonWith(tester, LocaleKeys.discovery_empty_edit_filters).variant,
+        QeranButtonVariant.ghost,
+      );
+    });
+
+    testWidgets('start over invokes its handler', (tester) async {
+      var resets = 0;
+      await _pump(
+        tester,
+        seenEveryone: true,
+        filtersMatchedNobody: true,
+        onStartOver: () => resets++,
+      );
+
+      await tester.tap(find.text(LocaleKeys.discovery_empty_start_over));
+      await tester.pumpAndSettle();
+
+      expect(resets, 1);
+    });
+
+    // The deliberate exception to the no-dead-buttons rule, and the reason it
+    // is safe: with no handler QeranButton paints the action disabled, so the
+    // blocked reset cannot fire while the endpoint still clears likes.
+    testWidgets('start over renders disabled while the endpoint is blocked', (
+      tester,
+    ) async {
+      await _pump(tester, seenEveryone: true, filtersMatchedNobody: true);
+
+      expect(find.text(LocaleKeys.discovery_empty_start_over), findsOneWidget);
+      expect(
+        _buttonWith(tester, LocaleKeys.discovery_empty_start_over).onPressed,
+        isNull,
+      );
+    });
+
+    testWidgets('start over takes the loading treatment while in flight', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        seenEveryone: true,
+        filtersMatchedNobody: true,
+        onStartOver: () {},
+        startingOver: true,
+        settle: false,
+      );
+
+      expect(
+        _buttonWith(tester, LocaleKeys.discovery_empty_start_over).loading,
+        isTrue,
+      );
+    });
   });
 
-  testWidgets('no actions without handlers, even when filtered', (
-    tester,
-  ) async {
-    // Belt and braces: a caller that cannot service the buttons must not be
-    // able to render dead ones.
-    await _pump(tester, hasFilters: true, withHandlers: false);
+  group('branch (d) — nothing known', () {
+    testWidgets('falls back to the generic copy with no actions', (
+      tester,
+    ) async {
+      await _pump(tester);
 
-    expect(find.byType(QeranButton), findsNothing);
+      expect(find.text(LocaleKeys.discovery_empty_title), findsOneWidget);
+      expect(find.text(LocaleKeys.discovery_empty_subtitle), findsOneWidget);
+      expect(find.byType(QeranButton), findsNothing);
+    });
+  });
+
+  group('no branch paints a button it cannot service', () {
+    testWidgets('seen-everyone without a refresh handler', (tester) async {
+      await _pump(tester, seenEveryone: true, withHandlers: false);
+
+      expect(find.byType(QeranButton), findsNothing);
+    });
+
+    testWidgets('filtered without an edit handler', (tester) async {
+      await _pump(tester, filtersMatchedNobody: true, withHandlers: false);
+
+      expect(find.byType(QeranButton), findsNothing);
+    });
   });
 }

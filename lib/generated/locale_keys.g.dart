@@ -218,9 +218,13 @@ abstract class  LocaleKeys {
   static const discovery_empty_subtitle = 'discovery.empty_subtitle';
   static const discovery_empty_filtered_title = 'discovery.empty_filtered_title';
   static const discovery_empty_filtered_subtitle = 'discovery.empty_filtered_subtitle';
+  static const discovery_empty_seen_all_title = 'discovery.empty_seen_all_title';
+  static const discovery_empty_seen_all_message = 'discovery.empty_seen_all_message';
+  static const discovery_empty_filtered_seen_all_message = 'discovery.empty_filtered_seen_all_message';
+  static const discovery_empty_seen_all_cta_refresh = 'discovery.empty_seen_all_cta_refresh';
+  static const discovery_empty_start_over = 'discovery.empty_start_over';
+  static const discovery_empty_start_over_failed = 'discovery.empty_start_over_failed';
   static const discovery_empty_edit_filters = 'discovery.empty_edit_filters';
-  static const discovery_empty_clear_filters = 'discovery.empty_clear_filters';
-  static const discovery_empty_replay = 'discovery.empty_replay';
   static const discovery_error_retry = 'discovery.error_retry';
   static const discovery_load_failed = 'discovery.load_failed';
   static const discovery_prefetch_failed = 'discovery.prefetch_failed';

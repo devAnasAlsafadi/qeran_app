@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../features/auth/di/auth_injection.dart';
 import '../../features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import '../../features/badges/di/badges_injection.dart';
 import '../../features/chat/di/chat_injection.dart';
 import '../../features/devices/di/devices_injection.dart';
 import '../../features/discovery/di/discovery_injection.dart';
@@ -155,6 +156,9 @@ Future<void> init() async {
 
   //! Features - Notifications (user-app shared inbox)
   initNotificationsDependencies();
+
+  //! Features - Badges (bottom-nav dots + bell count, both roles)
+  initBadgesDependencies();
 
   //! Features - Legal (privacy-policy + terms-and-conditions)
   initLegalDependencies();

@@ -392,6 +392,17 @@ class EndPoints {
   /// `GET /api/notifications/count` — `{ count }` (total, not unread).
   static const String notificationsCount = "notifications/count";
 
+  /// `GET /api/badges` — flat `{ "<tab>Unread": n }` dict for the signed-in
+  /// role. An absent key means zero; an unrecognised one is ignored. Read with
+  /// `getRaw`: the shape is a bare dict, and a pre-deploy 404 must be readable
+  /// as "no badges yet" rather than thrown past the caller.
+  static const String badges = "badges";
+
+  /// `POST /api/badges/mark-seen` — body `{ "tab": "<tab>Unread" }`. Zeroes
+  /// that one tab. Chat/conversations are NOT marked here: those clear when an
+  /// individual conversation is opened, through the chat hub's `MarkAsRead`.
+  static const String badgesMarkSeen = "badges/mark-seen";
+
   // Legal documents — public (no JWT), bilingual sectioned content.
   /// `GET /api/privacy-policy` — `{ lastUpdatedAt, sections[] }`.
   static const String privacyPolicy = "privacy-policy";

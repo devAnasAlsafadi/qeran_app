@@ -205,10 +205,6 @@ class EndPoints {
   /// status==0 with `لم يتم تعيين خطّابة لك بعد` if none yet.
   static const String chatMyMatchmaker = "chat/my-matchmaker";
 
-  /// `GET /api/chat/conversations` — kept for forward compatibility
-  /// (admin / multi-matchmaker futures). Not consumed by the MVP UI.
-  static const String chatConversations = "chat/conversations";
-
   /// `GET /api/chat/conversations/{id}/messages?page=N&pageSize=M` —
   /// newest-first paged list of `ChatMessageDto`.
   static String chatMessages(int conversationId) =>

@@ -3,7 +3,6 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../entities/chat_messages_page.dart';
-import '../entities/conversation.dart';
 import '../entities/my_matchmaker_outcome.dart';
 import '../entities/send_text_outcome.dart';
 import '../entities/share_profile_outcome.dart';
@@ -17,10 +16,6 @@ import '../entities/share_profile_outcome.dart';
 abstract interface class ChatRepository {
   /// `GET /api/chat/my-matchmaker`.
   Future<Either<Failure, MyMatchmakerOutcome>> getMyMatchmaker();
-
-  /// `GET /api/chat/conversations` — kept for forward compatibility;
-  /// MVP UI does not consume the list.
-  Future<Either<Failure, List<Conversation>>> getConversations();
 
   /// `GET /api/chat/conversations/{id}/messages?page=N&pageSize=M`.
   /// Newest-first per server contract.

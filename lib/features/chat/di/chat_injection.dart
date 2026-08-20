@@ -8,7 +8,6 @@ import '../data/repositories/chat_repository_impl.dart';
 import '../domain/ports/chat_realtime_port.dart';
 import '../domain/repositories/chat_repository.dart';
 import '../domain/usecases/get_conversation_messages_usecase.dart';
-import '../domain/usecases/get_conversations_usecase.dart';
 import '../domain/usecases/get_my_matchmaker_usecase.dart';
 import '../domain/usecases/mark_conversation_as_read_usecase.dart';
 import '../domain/usecases/send_text_message_usecase.dart';
@@ -46,7 +45,6 @@ void initChatDependencies() {
 
   //! UseCases
   sl.registerLazySingleton(() => GetMyMatchmakerUseCase(sl()));
-  sl.registerLazySingleton(() => GetConversationsUseCase(sl()));
   sl.registerLazySingleton(() => GetConversationMessagesUseCase(sl()));
   sl.registerLazySingleton(() => SendTextMessageUseCase(sl()));
   sl.registerLazySingleton(() => ShareProfileUseCase(sl()));

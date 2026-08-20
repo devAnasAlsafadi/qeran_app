@@ -10,12 +10,10 @@ import '../../domain/entities/share_profile_outcome.dart';
 import '../error_codes.dart';
 import '../models/chat_message_model.dart';
 import '../models/chat_messages_page_model.dart';
-import '../models/conversation_model.dart';
 import '../models/matchmaker_info_model.dart';
 
 abstract interface class ChatRemoteDataSource {
   Future<MyMatchmakerOutcome> getMyMatchmaker();
-  Future<List<ConversationModel>> getConversations();
   Future<ChatMessagesPageModel> getMessages({
     required int conversationId,
     required int page,
@@ -87,40 +85,6 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       );
       return MyMatchmakerFailure(serverMessage: e.message, errorCode: code);
     }
-  }
-
-  // ── Conversations list (future-proof) ──────────────────────────────
-
-  @override
-  Future<List<ConversationModel>> getConversations() async {
-    AppLogger.debug('CHAT — get conversations', tag: 'CHAT');
-    final body = await _apiConsumer.getRaw(EndPoints.chatConversations);
-    if (body is List) {
-      return body
-          .whereType<Map<String, dynamic>>()
-          .map(ConversationModel.fromJson)
-          .toList(growable: false);
-    }
-    if (body is Map<String, dynamic>) {
-      if (body.containsKey('status') || body.containsKey('data')) {
-        final ok = body['status'] == 1 || body['status'] == true;
-        if (!ok) {
-          throw ServerException(message: LocaleKeys.errors_generic);
-        }
-        final data = body['data'];
-        if (data is List) {
-          return data
-              .whereType<Map<String, dynamic>>()
-              .map(ConversationModel.fromJson)
-              .toList(growable: false);
-        }
-      }
-    }
-    AppLogger.error(
-      'CHAT — conversations unexpected body type=${body.runtimeType}',
-      tag: 'CHAT',
-    );
-    throw ServerException(message: LocaleKeys.errors_generic);
   }
 
   // ── Messages ───────────────────────────────────────────────────────

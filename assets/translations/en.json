@@ -233,6 +233,7 @@
     "empty_seen_all_cta_refresh": "Refresh",
     "empty_start_over": "Start over",
     "empty_start_over_failed": "Couldn't start over. Please try again.",
+    "empty_start_over_nothing": "There's nothing to restore.",
     "empty_edit_filters": "Edit filters",
     "error_retry": "Try again",
     "load_failed": "Failed to load profiles",

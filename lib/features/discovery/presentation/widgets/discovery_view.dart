@@ -197,9 +197,15 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
               curr.current != null &&
               (prev is! DiscoveryLoaded || prev.current == null);
           if (firstSuggestion) return true;
-          if (curr is! DiscoveryLoaded || curr.actionFailureKind == null) {
-            return false;
+          if (curr is! DiscoveryLoaded) return false;
+          // A reset that restored nobody changes nothing else on screen, so the
+          // version bump is the only thing that can announce it.
+          if (curr.resetNotice != null &&
+              (prev is! DiscoveryLoaded ||
+                  prev.resetNoticeVersion != curr.resetNoticeVersion)) {
+            return true;
           }
+          if (curr.actionFailureKind == null) return false;
           if (prev is! DiscoveryLoaded) return true;
           return prev.actionErrorVersion != curr.actionErrorVersion;
         },
@@ -207,6 +213,29 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
           if (state is! DiscoveryLoaded) return;
           if (state.current != null) {
             unawaited(_maybeShowFilterHint());
+          }
+          // "Start over" left the screen looking unchanged — it restored
+          // nobody, or it failed. A reset that DID restore someone reloads the
+          // deck instead, so it never lands here: the returning cards are its
+          // own feedback. Returns early so a notice and a like failure can
+          // never stack two snackbars.
+          final resetNotice = state.resetNotice;
+          if (resetNotice != null) {
+            AppSnackBar.show(
+              context,
+              message: switch (resetNotice) {
+                DiscoveryResetNotice.nothingToRestore =>
+                  LocaleKeys.discovery_empty_start_over_nothing,
+                DiscoveryResetNotice.failed =>
+                  LocaleKeys.discovery_empty_start_over_failed,
+                DiscoveryResetNotice.offline => LocaleKeys.errors_offline,
+              }.t(context),
+              // Only the no-op is benign; the other two are failures.
+              type: resetNotice == DiscoveryResetNotice.nothingToRestore
+                  ? SnackBarType.info
+                  : SnackBarType.error,
+            );
+            return;
           }
           final kind = state.actionFailureKind;
           if (kind == null) return;
@@ -386,7 +415,8 @@ class _ScrollableProfile extends StatelessWidget {
             onEditFilters: cubit.hasActiveFilters
                 ? () => _openFilters(context)
                 : null,
-            // onStartOver stays unwired — see DiscoveryEmptyView.onStartOver.
+            onStartOver: cubit.resetSeen,
+            startingOver: s.isResettingSeen,
           ),
         );
       }

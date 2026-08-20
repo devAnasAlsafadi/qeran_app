@@ -205,9 +205,9 @@ void main() {
     });
 
     // The deliberate exception to the no-dead-buttons rule, and the reason it
-    // is safe: with no handler QeranButton paints the action disabled, so the
-    // blocked reset cannot fire while the endpoint still clears likes.
-    testWidgets('start over renders disabled while the endpoint is blocked', (
+    // is safe: a caller that cannot service the reset gets the action painted
+    // disabled by QeranButton rather than one that fails on tap.
+    testWidgets('start over renders disabled when it has no handler', (
       tester,
     ) async {
       await _pump(tester, seenEveryone: true, filtersMatchedNobody: true);

@@ -224,6 +224,7 @@ abstract class  LocaleKeys {
   static const discovery_empty_seen_all_cta_refresh = 'discovery.empty_seen_all_cta_refresh';
   static const discovery_empty_start_over = 'discovery.empty_start_over';
   static const discovery_empty_start_over_failed = 'discovery.empty_start_over_failed';
+  static const discovery_empty_start_over_nothing = 'discovery.empty_start_over_nothing';
   static const discovery_empty_edit_filters = 'discovery.empty_edit_filters';
   static const discovery_error_retry = 'discovery.error_retry';
   static const discovery_load_failed = 'discovery.load_failed';

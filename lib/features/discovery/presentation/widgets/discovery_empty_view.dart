@@ -50,9 +50,11 @@ class DiscoveryEmptyView extends StatelessWidget {
   /// Reopens the filter sheet, seeded with what is applied.
   final VoidCallback? onEditFilters;
 
-  /// Clears the server-side seen history so previously-shown profiles return.
-  /// Null while the endpoint is unavailable — the button still renders, but
-  /// [QeranButton] paints it disabled.
+  /// Restores the profiles the user skipped, so they return to the deck.
+  /// Likes are untouched — server-side this clears skipped rows only.
+  ///
+  /// Still nullable: a caller that cannot service it gets the action painted
+  /// disabled by [QeranButton] rather than a button that fails on tap.
   final VoidCallback? onStartOver;
 
   /// Drives the button's own disable + spinner treatment while the reset is in
@@ -142,10 +144,9 @@ class DiscoveryEmptyView extends StatelessWidget {
           actions.add(_editFilters(context, QeranButtonVariant.primaryGold));
         }
       case _EmptyBranch.both:
-        // Rendered even with a null handler, which QeranButton paints disabled.
-        // BLOCKED ON BACKEND: reset-seen currently clears likes and passes too,
-        // and a like is a pending proposal someone may be waiting on. The call
-        // stays unwired until that endpoint clears only the seen history.
+        // Rendered even with a null handler, which QeranButton paints disabled
+        // — so a caller without a reset path shows an inert action rather than
+        // one that fails on tap.
         actions.add(
           QeranButton(
             label: LocaleKeys.discovery_empty_start_over.t(context),

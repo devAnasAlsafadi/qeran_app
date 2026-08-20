@@ -233,6 +233,7 @@
     "empty_seen_all_cta_refresh": "تحديث",
     "empty_start_over": "ابدأ من جديد",
     "empty_start_over_failed": "تعذّر البدء من جديد. حاول مرة أخرى.",
+    "empty_start_over_nothing": "لا توجد ملفات لاستعادتها.",
     "empty_edit_filters": "تعديل الفلترة",
     "error_retry": "حاول مرة أخرى",
     "load_failed": "تعذّر تحميل الملفات",

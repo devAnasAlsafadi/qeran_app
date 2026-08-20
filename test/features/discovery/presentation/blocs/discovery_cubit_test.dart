@@ -12,6 +12,7 @@ import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
 import 'package:qeran/features/discovery/domain/usecases/fetch_discovery_page_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/like_profile_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.dart';
+import 'package:qeran/features/discovery/domain/usecases/reset_skipped_profiles_usecase.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
@@ -21,6 +22,8 @@ class MockFetchPage extends Mock implements FetchDiscoveryPageUseCase {}
 class MockLike extends Mock implements LikeProfileUseCase {}
 
 class MockPass extends Mock implements PassProfileUseCase {}
+
+class MockReset extends Mock implements ResetSkippedProfilesUseCase {}
 
 class MockProfileGateCubit extends Mock implements ProfileGateCubit {}
 
@@ -51,6 +54,7 @@ void main() {
   late MockFetchPage fetch;
   late MockLike like;
   late MockPass pass;
+  late MockReset resetSkipped;
   late MockProfileGateCubit mockGate;
   late DiscoveryCubit cubit;
 
@@ -58,6 +62,7 @@ void main() {
     fetch = MockFetchPage();
     like = MockLike();
     pass = MockPass();
+    resetSkipped = MockReset();
     mockGate = MockProfileGateCubit();
     when(() => mockGate.isGated).thenReturn(false);
     sl.registerLazySingleton<ProfileGateCubit>(() => mockGate);
@@ -65,6 +70,7 @@ void main() {
       fetchPage: fetch,
       likeProfile: like,
       passProfile: pass,
+      resetSkipped: resetSkipped,
     );
   });
 
@@ -298,6 +304,7 @@ void main() {
           fetchPage: fetch,
           likeProfile: like,
           passProfile: pass,
+          resetSkipped: resetSkipped,
           onLikeSuccess: () => callbackHits++,
         );
         await prime();
@@ -322,6 +329,7 @@ void main() {
         fetchPage: fetch,
         likeProfile: like,
         passProfile: pass,
+        resetSkipped: resetSkipped,
         onLikeSuccess: () => callbackHits++,
       );
       await prime();
@@ -393,6 +401,7 @@ void main() {
         fetchPage: fetch,
         likeProfile: like,
         passProfile: pass,
+        resetSkipped: resetSkipped,
         onLikeSuccess: () => callbackHits++,
       );
       await prime();
@@ -1376,6 +1385,181 @@ void main() {
       expect(loaded.currentReason, isNull, reason: 'server said nothing');
       expect(loaded.sawEveryLoadedProfile, isTrue);
       expect(loaded.hasSeenEveryone, isTrue);
+    });
+  });
+
+  // "Start over" restores skipped profiles. The three outcomes are deliberately
+  // NOT collapsed: restoring somebody reloads (the cards are the feedback),
+  // restoring nobody must SAY so (a silent reload of an unchanged deck reads as
+  // a broken button), and a failure goes down the ordinary error channel.
+  group('resetSeen', () {
+    Future<void> primeExhausted() async {
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const [])),
+      );
+      await cubit.loadInitial();
+    }
+
+    test('a restored count reloads the deck and toasts nothing', () async {
+      await primeExhausted();
+      when(() => resetSkipped()).thenAnswer(
+        (_) async => const Right<Failure, int>(115),
+      );
+      // Second fetch returns the profiles the reset put back.
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
+        ),
+      );
+
+      await cubit.resetSeen();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.profiles.map((p) => p.id), ['a', 'b']);
+      expect(loaded.resetNotice, isNull, reason: 'the cards are the feedback');
+      expect(loaded.isResettingSeen, isFalse);
+    });
+
+    test('zero restored notices the user and does NOT reload', () async {
+      await primeExhausted();
+      when(
+        () => resetSkipped(),
+      ).thenAnswer((_) async => const Right<Failure, int>(0));
+
+      await cubit.resetSeen();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.resetNotice, DiscoveryResetNotice.nothingToRestore);
+      expect(loaded.resetNoticeVersion, 1);
+      expect(loaded.isResettingSeen, isFalse);
+      // Exactly the priming call — no reload of a deck that cannot have changed.
+      verify(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).called(1);
+    });
+
+    // Equatable would dedupe two identical notices, and the listener would
+    // swallow the second — so a user tapping twice must see two toasts.
+    test('a repeated no-op bumps the notice version', () async {
+      await primeExhausted();
+      when(
+        () => resetSkipped(),
+      ).thenAnswer((_) async => const Right<Failure, int>(0));
+
+      await cubit.resetSeen();
+      await cubit.resetSeen();
+
+      expect((cubit.state as DiscoveryLoaded).resetNoticeVersion, 2);
+    });
+
+    // Reset owns its channel outright. Borrowing `actionError` would route the
+    // failure through the like listener, which renders a generic "something
+    // went wrong" by design and would discard this action's own copy.
+    test('failure reports on the reset channel, not actionError', () async {
+      await primeExhausted();
+      when(() => resetSkipped()).thenAnswer(
+        (_) async => const Left<Failure, int>(ServerFailure(message: 'boom')),
+      );
+
+      await cubit.resetSeen();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.resetNotice, DiscoveryResetNotice.failed);
+      expect(loaded.resetNoticeVersion, 1);
+      expect(loaded.isResettingSeen, isFalse);
+      expect(loaded.actionError, isNull, reason: 'not the like channel');
+      expect(loaded.actionFailureKind, isNull);
+    });
+
+    test('an offline failure is told apart from a server failure', () async {
+      await primeExhausted();
+      when(() => resetSkipped()).thenAnswer(
+        (_) async => const Left<Failure, int>(OfflineFailure()),
+      );
+
+      await cubit.resetSeen();
+
+      expect(
+        (cubit.state as DiscoveryLoaded).resetNotice,
+        DiscoveryResetNotice.offline,
+      );
+    });
+
+    // A failed reset then a successful no-op must both be announced.
+    test('a failure then a no-op bumps the version twice', () async {
+      await primeExhausted();
+      when(() => resetSkipped()).thenAnswer(
+        (_) async => const Left<Failure, int>(ServerFailure(message: 'boom')),
+      );
+      await cubit.resetSeen();
+
+      when(
+        () => resetSkipped(),
+      ).thenAnswer((_) async => const Right<Failure, int>(0));
+      await cubit.resetSeen();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.resetNotice, DiscoveryResetNotice.nothingToRestore);
+      expect(loaded.resetNoticeVersion, 2);
+    });
+
+    test('the state flags the request while it is in flight', () async {
+      await primeExhausted();
+      final completer = Completer<Either<Failure, int>>();
+      when(() => resetSkipped()).thenAnswer((_) => completer.future);
+
+      final pending = cubit.resetSeen();
+      expect((cubit.state as DiscoveryLoaded).isResettingSeen, isTrue);
+
+      completer.complete(const Right(0));
+      await pending;
+
+      expect((cubit.state as DiscoveryLoaded).isResettingSeen, isFalse);
+    });
+
+    // The button is disabled while in flight, but a double-tap can still land
+    // in the same frame; the guard is what stops two resets racing.
+    test('a second tap while in flight is ignored', () async {
+      await primeExhausted();
+      final completer = Completer<Either<Failure, int>>();
+      when(() => resetSkipped()).thenAnswer((_) => completer.future);
+
+      final first = cubit.resetSeen();
+      await cubit.resetSeen();
+
+      completer.complete(const Right(0));
+      await first;
+
+      verify(() => resetSkipped()).called(1);
+    });
+
+    test('closing before the reset resolves does not throw', () async {
+      await primeExhausted();
+      final completer = Completer<Either<Failure, int>>();
+      when(() => resetSkipped()).thenAnswer((_) => completer.future);
+
+      final pending = cubit.resetSeen();
+      await cubit.close();
+      completer.complete(const Right(0));
+      await pending;
+      // Reaching here without a StateError is the assertion.
     });
   });
 }

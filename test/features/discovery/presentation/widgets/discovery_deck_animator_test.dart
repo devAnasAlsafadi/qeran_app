@@ -11,6 +11,7 @@ import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
 import 'package:qeran/features/discovery/domain/usecases/fetch_discovery_page_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/like_profile_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.dart';
+import 'package:qeran/features/discovery/domain/usecases/reset_skipped_profiles_usecase.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_deck_animation_controller.dart';
@@ -22,6 +23,8 @@ class _MockFetchPage extends Mock implements FetchDiscoveryPageUseCase {}
 class _MockLike extends Mock implements LikeProfileUseCase {}
 
 class _MockPass extends Mock implements PassProfileUseCase {}
+
+class _MockReset extends Mock implements ResetSkippedProfilesUseCase {}
 
 class _MockProfileGateCubit extends Mock implements ProfileGateCubit {}
 
@@ -117,6 +120,7 @@ void main() {
       fetchPage: fetch,
       likeProfile: like,
       passProfile: pass,
+      resetSkipped: _MockReset(),
     );
     await cubit.loadInitial();
     controller = DiscoveryDeckAnimationController();
@@ -427,6 +431,7 @@ void main() {
       fetchPage: localFetch,
       likeProfile: localLike,
       passProfile: localPass,
+      resetSkipped: _MockReset(),
     );
     await localCubit.loadInitial();
     final localController = DiscoveryDeckAnimationController();
@@ -606,6 +611,7 @@ void main() {
         fetchPage: undoFetch,
         likeProfile: undoLike,
         passProfile: undoPass,
+        resetSkipped: _MockReset(),
       );
       await undoCubit.loadInitial();
       undoController = DiscoveryDeckAnimationController();

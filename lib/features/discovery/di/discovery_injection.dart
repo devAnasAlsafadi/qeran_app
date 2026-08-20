@@ -8,6 +8,7 @@ import '../domain/usecases/fetch_discovery_page_usecase.dart';
 import '../domain/usecases/get_discovery_filters_usecase.dart';
 import '../domain/usecases/like_profile_usecase.dart';
 import '../domain/usecases/pass_profile_usecase.dart';
+import '../domain/usecases/reset_skipped_profiles_usecase.dart';
 import '../presentation/blocs/discovery_cubit.dart';
 import '../presentation/blocs/discovery_hydration_cubit.dart';
 
@@ -27,6 +28,7 @@ void initDiscoveryDependencies() {
   sl.registerLazySingleton(() => LikeProfileUseCase(sl()));
   sl.registerLazySingleton(() => PassProfileUseCase(sl()));
   sl.registerLazySingleton(() => GetDiscoveryFiltersUseCase(sl()));
+  sl.registerLazySingleton(() => ResetSkippedProfilesUseCase(sl()));
 
   //! Cubits (screen-scoped)
   // The `onLikeSuccess` callback is wired here — DiscoveryCubit stays
@@ -39,6 +41,7 @@ void initDiscoveryDependencies() {
       fetchPage: sl(),
       likeProfile: sl(),
       passProfile: sl(),
+      resetSkipped: sl(),
       onLikeSuccess: sl<CurrentSubscriptionCubit>().onActionConsumedCounter,
     ),
   );

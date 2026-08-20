@@ -52,6 +52,7 @@ import 'package:qeran/features/discovery/domain/entities/placement_value.dart'
 import 'package:qeran/features/discovery/domain/usecases/fetch_discovery_page_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/like_profile_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.dart';
+import 'package:qeran/features/discovery/domain/usecases/reset_skipped_profiles_usecase.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
@@ -189,6 +190,12 @@ class _FakePass implements PassProfileUseCase {
       const Right(unit);
 }
 
+/// Never invoked by these layout tests — the deck they drive is never empty.
+class _FakeReset implements ResetSkippedProfilesUseCase {
+  @override
+  Future<Either<Failure, int>> call() async => const Right(0);
+}
+
 class _FakeGetCurrent implements GetCurrentSubscriptionUseCase {
   @override
   Future<Either<Failure, CurrentSubscription?>> call() async =>
@@ -304,6 +311,7 @@ Future<_FakeProfileRepository> _pumpView(
       fetchPage: _FakeFetch(profiles),
       likeProfile: _FakeLike(),
       passProfile: _FakePass(),
+      resetSkipped: _FakeReset(),
     ),
   );
   sl.registerFactory<DiscoveryHydrationCubit>(

@@ -15,6 +15,7 @@ import '../../domain/entities/like_outcome.dart';
 import '../../domain/usecases/fetch_discovery_page_usecase.dart';
 import '../../domain/usecases/like_profile_usecase.dart';
 import '../../domain/usecases/pass_profile_usecase.dart';
+import '../../domain/usecases/reset_skipped_profiles_usecase.dart';
 import 'discovery_state.dart';
 
 /// Screen-scoped controller for the Discovery deck.
@@ -40,6 +41,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
   final FetchDiscoveryPageUseCase _fetchPage;
   final LikeProfileUseCase _likeProfile;
   final PassProfileUseCase _passProfile;
+  final ResetSkippedProfilesUseCase _resetSkipped;
 
   /// Fired exactly once per [LikeAccepted] outcome. DI wires this to
   /// `CurrentSubscriptionCubit.onActionConsumedCounter` so the Profile
@@ -109,10 +111,12 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
     required FetchDiscoveryPageUseCase fetchPage,
     required LikeProfileUseCase likeProfile,
     required PassProfileUseCase passProfile,
+    required ResetSkippedProfilesUseCase resetSkipped,
     VoidCallback? onLikeSuccess,
   }) : _fetchPage = fetchPage,
        _likeProfile = likeProfile,
        _passProfile = passProfile,
+       _resetSkipped = resetSkipped,
        _onLikeSuccess = (onLikeSuccess ?? _noOp),
        super(const DiscoveryInitial());
 
@@ -403,6 +407,72 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
     );
     if (newIndex == current.currentIndex) return;
     emit(current.copyWith(currentIndex: newIndex, resetActionError: true));
+  }
+
+  /// Puts every profile the user skipped back into the deck.
+  ///
+  /// Three outcomes, three different consequences on screen:
+  ///
+  /// * **restored > 0** — reload page 1. The cards coming back ARE the
+  ///   feedback, so nothing is toasted on top of them.
+  /// * **restored == 0** — do NOT reload. Nothing changed server-side, so a
+  ///   re-fetch would return the identical empty deck and the tap would look
+  ///   like it did nothing. [DiscoveryLoaded.resetNotice] is the only sign it
+  ///   worked and simply had nothing to undo.
+  /// * **failure** — also a notice. Reset does NOT borrow the like/pass
+  ///   `actionError` channel: that listener renders a generic "something went
+  ///   wrong" by design, which would discard this action's own copy.
+  ///
+  /// Skipping the reload on zero is also what keeps the notice visible:
+  /// `_loadFirstPage` emits [DiscoveryLoading], which would tear down the state
+  /// carrying the notice in the same frame it was emitted.
+  ///
+  /// Likes are never touched — server-side this clears skipped rows only.
+  Future<void> resetSeen() async {
+    final current = state;
+    if (current is! DiscoveryLoaded || current.isResettingSeen) return;
+    emit(
+      current.copyWith(
+        isResettingSeen: true,
+        resetActionError: true,
+        clearResetNotice: true,
+      ),
+    );
+    final result = await _resetSkipped();
+    if (isClosed) return;
+    // Live state, never the pre-await snapshot: a prefetch may have landed
+    // while the reset was in flight.
+    final live = state;
+    if (live is! DiscoveryLoaded) return;
+    // `fold` typed to Future and AWAITED: the success branch reloads, and
+    // without the await `resetSeen` would complete while the deck is still on
+    // DiscoveryLoading — the caller would see a half-finished reset.
+    await result.fold<Future<void>>(
+      (failure) async => emit(
+        live.copyWith(
+          isResettingSeen: false,
+          resetNotice: failure is OfflineFailure
+              ? DiscoveryResetNotice.offline
+              : DiscoveryResetNotice.failed,
+          resetNoticeVersion: live.resetNoticeVersion + 1,
+        ),
+      ),
+      (restored) async {
+        emit(live.copyWith(isResettingSeen: false));
+        if (restored > 0) {
+          await _loadFirstPage();
+          return;
+        }
+        final settled = state;
+        if (settled is! DiscoveryLoaded) return;
+        emit(
+          settled.copyWith(
+            resetNotice: DiscoveryResetNotice.nothingToRestore,
+            resetNoticeVersion: settled.resetNoticeVersion + 1,
+          ),
+        );
+      },
+    );
   }
 
   /// Public hook for the UI's "retry" affordance on a failed prefetch.

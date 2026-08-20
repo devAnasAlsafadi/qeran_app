@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/discovery/data/models/discovery_page_model.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_empty_reason.dart';
 import 'package:qeran/features/discovery/domain/entities/placement_code.dart';
 import 'package:qeran/features/discovery/domain/entities/placement_item_type.dart';
 import 'package:qeran/features/discovery/domain/entities/placement_value.dart';
@@ -131,6 +132,63 @@ void main() {
         'totalPages': 3,
       }).toEntity();
       expect(entity.hasMore, isTrue);
+    });
+  });
+
+  // `reason` explains an EMPTY deck. It is absent from every page that carries
+  // profiles, and absent entirely from a backend predating the field, so the
+  // parse has to treat "not there" as ordinary rather than exceptional.
+  group('empty reason', () {
+    DiscoveryEmptyReason? reasonFrom(Map<String, dynamic> overrides) =>
+        DiscoveryPageModel.fromJson({..._sample(), ...overrides})
+            .toEntity()
+            .reason;
+
+    test('SEEN_ALL parses', () {
+      expect(reasonFrom({'reason': 'SEEN_ALL'}), DiscoveryEmptyReason.seenAll);
+    });
+
+    test('NO_MATCHES_FOR_FILTERS parses', () {
+      expect(
+        reasonFrom({'reason': 'NO_MATCHES_FOR_FILTERS'}),
+        DiscoveryEmptyReason.noMatchesForFilters,
+      );
+    });
+
+    test('an absent field is null, not unknown', () {
+      // The pre-`reason` backend, and every page that carries profiles.
+      expect(reasonFrom(const {}), isNull);
+    });
+
+    test('an explicit null is null', () {
+      expect(reasonFrom({'reason': null}), isNull);
+    });
+
+    test('a blank string is null', () {
+      expect(reasonFrom({'reason': '   '}), isNull);
+    });
+
+    // A reason added server-side after this build shipped must degrade to the
+    // generic empty state, never throw.
+    test('an unrecognised name becomes unknown', () {
+      expect(
+        reasonFrom({'reason': 'PAUSED_FOR_MAINTENANCE'}),
+        DiscoveryEmptyReason.unknown,
+      );
+    });
+
+    test('casing drift still resolves', () {
+      expect(reasonFrom({'reason': 'seen_all'}), DiscoveryEmptyReason.seenAll);
+    });
+
+    test('a non-string does not throw', () {
+      expect(reasonFrom({'reason': 42}), DiscoveryEmptyReason.unknown);
+    });
+
+    test('a page carrying profiles parses fine with no reason', () {
+      final page = DiscoveryPageModel.fromJson(_sample()).toEntity();
+      expect(page.profiles, isNotEmpty);
+      expect(page.reason, isNull);
     });
   });
 }

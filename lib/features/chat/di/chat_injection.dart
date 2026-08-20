@@ -14,13 +14,12 @@ import '../domain/usecases/mark_conversation_as_read_usecase.dart';
 import '../domain/usecases/send_text_message_usecase.dart';
 import '../domain/usecases/share_profile_usecase.dart';
 import '../presentation/blocs/chat_entry_cubit.dart';
-import '../presentation/blocs/chat_unread_cubit.dart';
 import '../presentation/blocs/conversation_cubit.dart';
 
 /// Wire the chat feature into the global DI container. The realtime
 /// port is registered as a lazy singleton — there's exactly one
-/// SignalR connection per app lifetime; Phase 8 connects/disconnects
-/// it from `ConversationCubit`'s lifecycle.
+/// SignalR connection per app lifetime; each shell's `ChatRealtimeHost`
+/// owns its connect/disconnect.
 void initChatDependencies() {
   //! DataSources
   sl.registerLazySingleton<ChatRemoteDataSource>(
@@ -55,9 +54,6 @@ void initChatDependencies() {
 
   //! Cubits (screen-scoped)
   sl.registerFactory(() => ChatEntryCubit(getMyMatchmaker: sl()));
-
-  //! App-scoped unread badge used by the home navigation.
-  sl.registerLazySingleton(() => ChatUnreadCubit(getConversations: sl()));
 
   //! Parametrised — caller provides `(conversationId, myUserId)` per
   //  screen mount. `myUserId` is the current user's id (read from

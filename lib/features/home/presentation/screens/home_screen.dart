@@ -15,7 +15,6 @@ import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
-import 'package:qeran/features/chat/presentation/blocs/chat_unread_cubit.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
@@ -69,8 +68,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   // FCM deep-linking. Confined to the shell — mirrors the matchmaker shell
   // (no main.dart bootstrap changes). Role-guarded so a matchmaker-targeted
-  // push never acts on the user tree. The user app has no SignalR, so the
-  // foreground stream refreshes the bell badge here (live-update equivalent).
+  // push never acts on the user tree. The shell's SignalR carries chat traffic
+  // only, so the foreground stream is what refreshes the badges here.
   StreamSubscription<RemoteMessage>? _notifTapSub;
   StreamSubscription<RemoteMessage>? _notifForegroundSub;
 
@@ -82,8 +81,6 @@ class _HomeScreenState extends State<HomeScreen>
     // instead of reusing another account's resolved status. Fetch failures
     // remain fail-open; the backend stays the real action gate.
     unawaited(sl<ProfileGateCubit>().refresh());
-    sl<ChatUnreadCubit>().clear();
-    unawaited(sl<ChatUnreadCubit>().refresh());
     // A new shell means a new session — start from the server's counts rather
     // than whatever the last account left behind.
     sl<BadgesCubit>().clear();
@@ -93,14 +90,10 @@ class _HomeScreenState extends State<HomeScreen>
     FirebaseMessaging.instance.getInitialMessage().then((m) {
       if (m != null) _route(m);
     });
-    // Foreground push → refresh the unread bell dot (no auto-navigation).
+    // Foreground push → refresh the unread indicators (no auto-navigation).
     _notifForegroundSub = FirebaseMessaging.onMessage.listen((_) {
       unawaited(sl<NotificationBadgeCubit>().refresh());
-      if (_currentTab == _messagesTabIndex) {
-        sl<ChatUnreadCubit>().clear();
-      } else {
-        unawaited(sl<ChatUnreadCubit>().refresh());
-      }
+      unawaited(sl<BadgesCubit>().refresh());
     });
   }
 
@@ -118,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(sl<NotificationBadgeCubit>().refresh());
-      unawaited(sl<ChatUnreadCubit>().refresh());
       unawaited(sl<BadgesCubit>().refresh());
       unawaited(sl<CurrentSubscriptionCubit>().refresh(force: true));
     }
@@ -183,9 +175,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _selectTab(int index) async {
-    if (index == _messagesTabIndex) {
-      sl<ChatUnreadCubit>().clear();
-    }
     if (index == _currentTab || _tabTransitionPending) return;
     // Visited tabs stay mounted offstage. Clear a composer/form focus before
     // hiding its tab so Android cannot restore that invisible field (and its

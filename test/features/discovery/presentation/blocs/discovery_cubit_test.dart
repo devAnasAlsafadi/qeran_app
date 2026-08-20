@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_empty_reason.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_page.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_profile.dart';
 import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
@@ -36,12 +37,14 @@ DiscoveryPage _page({
   required int pageNumber,
   required int totalPages,
   required List<String> profileIds,
+  DiscoveryEmptyReason? reason,
 }) => DiscoveryPage(
   profiles: profileIds.map(_profile).toList(),
   pageNumber: pageNumber,
   pageSize: 10,
   totalCount: profileIds.length,
   totalPages: totalPages,
+  reason: reason,
 );
 
 void main() {
@@ -1211,5 +1214,199 @@ void main() {
         // Reaching here without a StateError is the assertion.
       },
     );
+  });
+
+  // ──────────────────────────────────────────────────────────────────
+  // empty reason: what the server reports vs what the client infers
+  // ──────────────────────────────────────────────────────────────────
+  group('empty reason', () {
+    void stubPass() => when(
+      () => pass(any()),
+    ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
+
+    test('loadInitial stores the reason the page reported', () async {
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
+            pageNumber: 1,
+            totalPages: 1,
+            profileIds: const [],
+            reason: DiscoveryEmptyReason.noMatchesForFilters,
+          ),
+        ),
+      );
+
+      await cubit.loadInitial();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.currentReason, DiscoveryEmptyReason.noMatchesForFilters);
+      expect(loaded.filtersMatchedNobody, isTrue);
+      expect(loaded.hasSeenEveryone, isFalse);
+    });
+
+    test('a page that reports nothing leaves the reason null', () async {
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
+
+      await cubit.loadInitial();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.currentReason, isNull);
+      expect(loaded.hasSeenEveryone, isFalse);
+    });
+
+    // Broadening a filter must not leave the old query's verdict on screen.
+    // `applyFilters` routes through `_loadFirstPage`, which BUILDS a new
+    // DiscoveryLoaded rather than copying — so there is nothing to inherit.
+    test('a fresh filter query cannot inherit the previous query reason', () async {
+      final responses = <DiscoveryPage>[
+        _page(
+          pageNumber: 1,
+          totalPages: 1,
+          profileIds: const [],
+          reason: DiscoveryEmptyReason.noMatchesForFilters,
+        ),
+        _page(pageNumber: 1, totalPages: 1, profileIds: const ['a', 'b']),
+      ];
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer((_) async => Right(responses.removeAt(0)));
+
+      await cubit.loadInitial();
+      expect(
+        (cubit.state as DiscoveryLoaded).currentReason,
+        DiscoveryEmptyReason.noMatchesForFilters,
+      );
+
+      await cubit.applyFilters({'q': 'wider'});
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.currentReason, isNull);
+      expect(loaded.filtersMatchedNobody, isFalse);
+    });
+
+    test('a prefetched page carries its own reason into state', () async {
+      stubPass();
+      when(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 1, totalPages: 2, profileIds: const ['a', 'b']),
+        ),
+      );
+      when(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
+            pageNumber: 2,
+            totalPages: 2,
+            profileIds: const [],
+            reason: DiscoveryEmptyReason.seenAll,
+          ),
+        ),
+      );
+
+      await cubit.loadInitial();
+      await cubit.pass(); // within the threshold → fires the prefetch
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.currentReason, DiscoveryEmptyReason.seenAll);
+      expect(loaded.hasSeenEveryone, isTrue);
+    });
+
+    // The half `??` alone cannot do, and the reason `resetReason` exists.
+    test('a prefetched page with no reason clears the stored one', () async {
+      stubPass();
+      when(
+        () => fetch(
+          page: 1,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(
+            pageNumber: 1,
+            totalPages: 2,
+            profileIds: const ['a', 'b'],
+            reason: DiscoveryEmptyReason.noMatchesForFilters,
+          ),
+        ),
+      );
+      when(
+        () => fetch(
+          page: 2,
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async => Right(
+          _page(pageNumber: 2, totalPages: 2, profileIds: const ['c']),
+        ),
+      );
+
+      await cubit.loadInitial();
+      await cubit.pass();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.currentReason, isNull);
+      expect(loaded.filtersMatchedNobody, isFalse);
+    });
+
+    // The headline case the whole arc exists for: the server handed over
+    // profiles, so it reports NO reason and never learns what happened next.
+    // Only the client can see the deck run dry.
+    test('swiping a single-page deck dry is detected with no server reason', () async {
+      stubPass();
+      when(
+        () => fetch(
+          page: any(named: 'page'),
+          pageSize: any(named: 'pageSize'),
+          filterParams: any(named: 'filterParams'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            Right(_page(pageNumber: 1, totalPages: 1, profileIds: const ['a'])),
+      );
+
+      await cubit.loadInitial();
+      expect((cubit.state as DiscoveryLoaded).hasSeenEveryone, isFalse);
+
+      await cubit.pass();
+
+      final loaded = cubit.state as DiscoveryLoaded;
+      expect(loaded.currentReason, isNull, reason: 'server said nothing');
+      expect(loaded.sawEveryLoadedProfile, isTrue);
+      expect(loaded.hasSeenEveryone, isTrue);
+    });
   });
 }

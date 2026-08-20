@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../domain/entities/discovery_empty_reason.dart';
 import '../../domain/entities/discovery_profile.dart';
 import 'like_failure_kind.dart';
 
@@ -73,6 +74,15 @@ final class DiscoveryLoaded extends DiscoveryState {
   /// banner with a retry button.
   final String? prefetchError;
 
+  /// Reason reported by the MOST RECENT page fetch. Null whenever the backend
+  /// gave none — which is every page that carried profiles, and every response
+  /// from a backend predating the field. A hint, never a requirement.
+  ///
+  /// Only describes what the SERVER can know: it never learns that the user
+  /// swiped through profiles it did hand over. [sawEveryLoadedProfile] covers
+  /// that half.
+  final DiscoveryEmptyReason? currentReason;
+
   const DiscoveryLoaded({
     required this.profiles,
     required this.currentIndex,
@@ -84,11 +94,35 @@ final class DiscoveryLoaded extends DiscoveryState {
     this.actionFailureKind,
     this.actionErrorVersion = 0,
     this.prefetchError,
+    this.currentReason,
   });
 
   bool get isEmpty => profiles.isEmpty;
   bool get isExhausted => currentIndex >= profiles.length;
   bool get hasMore => currentPage < totalPages;
+
+  /// The user was handed profiles and swiped past the last one, with no page
+  /// left to fetch. The server cannot report this — it never hears about the
+  /// swipes — so the client watches for it instead.
+  ///
+  /// `profiles.isNotEmpty` is LOAD-BEARING, not a tidiness check: [isExhausted]
+  /// is `currentIndex >= profiles.length`, which is also true of a deck that
+  /// never had anything (`0 >= 0`). Drop the guard and "you have seen everyone"
+  /// fires at a user who was shown nobody.
+  bool get sawEveryLoadedProfile =>
+      profiles.isNotEmpty && isExhausted && !hasMore;
+
+  /// Union of the two independent signals, per the agreed CTA rule: the server
+  /// saying so, OR the client having watched it happen. Either one alone is
+  /// enough to offer "start over".
+  bool get hasSeenEveryone =>
+      currentReason == DiscoveryEmptyReason.seenAll || sawEveryLoadedProfile;
+
+  /// Server-only signal: the query matched nobody, so the seen ledger is
+  /// irrelevant and the filters are the remedy. Deliberately NOT unioned with
+  /// [hasSeenEveryone] — both can be true at once, and each drives its own CTA.
+  bool get filtersMatchedNobody =>
+      currentReason == DiscoveryEmptyReason.noMatchesForFilters;
   DiscoveryProfile? get current =>
       isExhausted ? null : profiles[currentIndex];
 
@@ -100,6 +134,9 @@ final class DiscoveryLoaded extends DiscoveryState {
   /// `resetActionError` clears BOTH [actionError] and [actionFailureKind]
   /// — they're always set and cleared together.
   /// `resetPrefetchError` forces [prefetchError] to `null`.
+  /// `resetReason` forces [currentReason] to `null` — needed because a page
+  /// that reports NO reason must clear whatever the previous page reported,
+  /// and `??` alone can only ever set it.
   DiscoveryLoaded copyWith({
     List<DiscoveryProfile>? profiles,
     int? currentIndex,
@@ -111,8 +148,10 @@ final class DiscoveryLoaded extends DiscoveryState {
     LikeFailureKind? actionFailureKind,
     int? actionErrorVersion,
     String? prefetchError,
+    DiscoveryEmptyReason? currentReason,
     bool resetActionError = false,
     bool resetPrefetchError = false,
+    bool resetReason = false,
   }) {
     return DiscoveryLoaded(
       profiles: profiles ?? this.profiles,
@@ -129,6 +168,8 @@ final class DiscoveryLoaded extends DiscoveryState {
       actionErrorVersion: actionErrorVersion ?? this.actionErrorVersion,
       prefetchError:
           resetPrefetchError ? null : (prefetchError ?? this.prefetchError),
+      currentReason:
+          resetReason ? null : (currentReason ?? this.currentReason),
     );
   }
 
@@ -144,6 +185,7 @@ final class DiscoveryLoaded extends DiscoveryState {
         actionFailureKind,
         actionErrorVersion,
         prefetchError,
+        currentReason,
       ];
 
   /// Concise one-line summary for logs (BlocObserver dumps `$change`).
@@ -156,7 +198,8 @@ final class DiscoveryLoaded extends DiscoveryState {
       'DiscoveryLoaded(len: ${profiles.length}, idx: $currentIndex, '
       'page: $currentPage/$totalPages, prefetching: $isPrefetching'
       '${actionFailureKind != null ? ', fail: ${actionFailureKind!.name}#$actionErrorVersion' : ''}'
-      '${prefetchError != null ? ', prefetchErr' : ''})';
+      '${prefetchError != null ? ', prefetchErr' : ''}'
+      '${currentReason != null ? ', reason: ${currentReason!.name}' : ''})';
 }
 
 /// The no-subscription daily view cap was hit (`DAILY_VIEWS_EXCEEDED`). A

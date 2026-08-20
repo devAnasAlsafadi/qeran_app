@@ -176,6 +176,10 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
           currentPage: page.pageNumber,
           totalPages: page.totalPages,
           totalCount: page.totalCount,
+          // Built fresh rather than copied, so a filter change (which routes
+          // here via `applyFilters`) cannot carry the old query's reason into
+          // the new one. Nothing to reset — there is no prior state to inherit.
+          currentReason: page.reason,
         ),
       ),
     );
@@ -501,6 +505,11 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
             totalPages: page.totalPages,
             isPrefetching: false,
             resetPrefetchError: true,
+            // Latest page's answer wins. `resetReason` is what makes that true
+            // in both directions: a page that reports nothing has to CLEAR a
+            // reason an earlier page set, and `??` can only ever set it.
+            currentReason: page.reason,
+            resetReason: page.reason == null,
           ),
         );
         // Eager chain: a fast swiper may already sit within the threshold of

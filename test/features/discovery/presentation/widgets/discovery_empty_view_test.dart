@@ -101,6 +101,37 @@ void main() {
       );
     });
 
+    testWidgets('offers start over beneath refresh once it is wired', (
+      tester,
+    ) async {
+      await _pump(tester, seenEveryone: true, onStartOver: () {});
+
+      expect(find.byType(QeranButton), findsNWidgets(2));
+      expect(
+        _buttonWith(
+          tester,
+          LocaleKeys.discovery_empty_seen_all_cta_refresh,
+        ).variant,
+        QeranButtonVariant.primaryGold,
+      );
+      expect(
+        _buttonWith(tester, LocaleKeys.discovery_empty_start_over).variant,
+        QeranButtonVariant.ghost,
+      );
+    });
+
+    testWidgets('start over is reachable from the unfiltered branch too', (
+      tester,
+    ) async {
+      var resets = 0;
+      await _pump(tester, seenEveryone: true, onStartOver: () => resets++);
+
+      await tester.tap(find.text(LocaleKeys.discovery_empty_start_over));
+      await tester.pumpAndSettle();
+
+      expect(resets, 1);
+    });
+
     testWidgets('refreshing invokes the handler', (tester) async {
       var refreshes = 0;
       await _pump(tester, seenEveryone: true, onRefresh: () => refreshes++);
@@ -204,18 +235,24 @@ void main() {
       expect(resets, 1);
     });
 
-    // The deliberate exception to the no-dead-buttons rule, and the reason it
-    // is safe: a caller that cannot service the reset gets the action painted
-    // disabled by QeranButton rather than one that fails on tap.
-    testWidgets('start over renders disabled when it has no handler', (
+    // One rule for every action here, reset included: no handler, no button.
+    testWidgets('start over is not rendered without a handler', (
       tester,
     ) async {
       await _pump(tester, seenEveryone: true, filtersMatchedNobody: true);
 
-      expect(find.text(LocaleKeys.discovery_empty_start_over), findsOneWidget);
+      expect(find.text(LocaleKeys.discovery_empty_start_over), findsNothing);
+    });
+
+    // Losing the reset must not leave the branch with a lone ghost button.
+    testWidgets('edit filters takes the primary slot when reset is absent', (
+      tester,
+    ) async {
+      await _pump(tester, seenEveryone: true, filtersMatchedNobody: true);
+
       expect(
-        _buttonWith(tester, LocaleKeys.discovery_empty_start_over).onPressed,
-        isNull,
+        _buttonWith(tester, LocaleKeys.discovery_empty_edit_filters).variant,
+        QeranButtonVariant.primaryGold,
       );
     });
 

@@ -6,11 +6,7 @@ import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// Which terminal state the deck landed in. The two inputs are INDEPENDENT —
-/// the server reporting that a query matched nobody, and the client having
-/// watched the user swipe past the last card — so all four combinations are
-/// reachable and each gets its own copy.
-enum _EmptyBranch { seenAll, filtered, both, generic }
+import 'discovery_empty_branch.dart';
 
 /// Shown when the deck is empty (`profiles.isEmpty`) or exhausted
 /// (`currentIndex >= profiles.length`) with no page left to fetch.
@@ -53,8 +49,8 @@ class DiscoveryEmptyView extends StatelessWidget {
   /// Restores the profiles the user skipped, so they return to the deck.
   /// Likes are untouched — server-side this clears skipped rows only.
   ///
-  /// Still nullable: a caller that cannot service it gets the action painted
-  /// disabled by [QeranButton] rather than a button that fails on tap.
+  /// Offered by every branch that can tell the user they have seen everyone.
+  /// Null simply drops the action, like every other handler here.
   final VoidCallback? onStartOver;
 
   /// Drives the button's own disable + spinner treatment while the reset is in
@@ -63,35 +59,10 @@ class DiscoveryEmptyView extends StatelessWidget {
   /// skeleton, so a spinner here could never be seen.
   final bool startingOver;
 
-  _EmptyBranch get _branch {
-    if (seenEveryone && filtersMatchedNobody) return _EmptyBranch.both;
-    if (filtersMatchedNobody) return _EmptyBranch.filtered;
-    if (seenEveryone) return _EmptyBranch.seenAll;
-    return _EmptyBranch.generic;
-  }
-
-  IconData get _icon => switch (_branch) {
-    // Completion, not absence — the user did not hit a wall, they finished.
-    _EmptyBranch.seenAll => Icons.done_all_rounded,
-    _EmptyBranch.filtered || _EmptyBranch.both => Icons.filter_alt_off_outlined,
-    _EmptyBranch.generic => Icons.people_outline_rounded,
-  };
-
-  String get _titleKey => switch (_branch) {
-    _EmptyBranch.seenAll => LocaleKeys.discovery_empty_seen_all_title,
-    // The filter is the more actionable of the two problems, so it leads.
-    _EmptyBranch.filtered ||
-    _EmptyBranch.both => LocaleKeys.discovery_empty_filtered_title,
-    _EmptyBranch.generic => LocaleKeys.discovery_empty_title,
-  };
-
-  String get _messageKey => switch (_branch) {
-    _EmptyBranch.seenAll => LocaleKeys.discovery_empty_seen_all_message,
-    _EmptyBranch.filtered => LocaleKeys.discovery_empty_filtered_subtitle,
-    _EmptyBranch.both =>
-      LocaleKeys.discovery_empty_filtered_seen_all_message,
-    _EmptyBranch.generic => LocaleKeys.discovery_empty_subtitle,
-  };
+  DiscoveryEmptyBranch get _branch => DiscoveryEmptyBranch.resolve(
+    seenEveryone: seenEveryone,
+    filtersMatchedNobody: filtersMatchedNobody,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -101,16 +72,16 @@ class DiscoveryEmptyView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_icon, size: 72, color: QeranColors.inkMuted),
+            Icon(_branch.icon, size: 72, color: QeranColors.inkMuted),
             const SizedBox(height: QeranSpacing.s16),
             Text(
-              _titleKey.t(context),
+              _branch.titleKey.t(context),
               style: QeranTypography.title,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: QeranSpacing.s8),
             Text(
-              _messageKey.t(context),
+              _branch.messageKey.t(context),
               style: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
               textAlign: TextAlign.center,
             ),
@@ -121,13 +92,16 @@ class DiscoveryEmptyView extends StatelessWidget {
     );
   }
 
-  /// One primary per branch. A handler-less action is not rendered at all —
-  /// a caller that cannot service a button must not be able to paint a dead
-  /// one. [onStartOver] is the deliberate exception; see its doc.
+  /// One rule, no exceptions: an action whose handler is null is not rendered.
+  /// A caller that cannot service a button must not be able to paint one.
+  ///
+  /// Exactly one primary per branch. "Start over" is offered wherever the user
+  /// has seen everyone — which is both branches that can say so — and takes
+  /// whichever rank is left once the branch's own remedy has the primary slot.
   List<Widget> _actions(BuildContext context) {
     final actions = <Widget>[];
     switch (_branch) {
-      case _EmptyBranch.seenAll:
+      case DiscoveryEmptyBranch.seenAll:
         if (onRefresh != null) {
           actions.add(
             QeranButton(
@@ -139,28 +113,27 @@ class DiscoveryEmptyView extends StatelessWidget {
             ),
           );
         }
-      case _EmptyBranch.filtered:
+        _addIfAny(actions, _startOver(context, QeranButtonVariant.ghost));
+      case DiscoveryEmptyBranch.filtered:
         if (onEditFilters != null) {
           actions.add(_editFilters(context, QeranButtonVariant.primaryGold));
         }
-      case _EmptyBranch.both:
-        // Rendered even with a null handler, which QeranButton paints disabled
-        // — so a caller without a reset path shows an inert action rather than
-        // one that fails on tap.
-        actions.add(
-          QeranButton(
-            label: LocaleKeys.discovery_empty_start_over.t(context),
-            leadingIcon: Icons.restart_alt_rounded,
-            onPressed: onStartOver,
-            loading: startingOver,
-            variant: QeranButtonVariant.primaryGold,
-            fullWidth: false,
-          ),
-        );
+      case DiscoveryEmptyBranch.both:
+        final startOver = _startOver(context, QeranButtonVariant.primaryGold);
+        _addIfAny(actions, startOver);
         if (onEditFilters != null) {
-          actions.add(_editFilters(context, QeranButtonVariant.ghost));
+          // Falls back to primary when there is no reset to outrank it, so the
+          // branch is never left with a lone ghost button.
+          actions.add(
+            _editFilters(
+              context,
+              startOver == null
+                  ? QeranButtonVariant.primaryGold
+                  : QeranButtonVariant.ghost,
+            ),
+          );
         }
-      case _EmptyBranch.generic:
+      case DiscoveryEmptyBranch.generic:
         break;
     }
     if (actions.isEmpty) return const [];
@@ -171,6 +144,27 @@ class DiscoveryEmptyView extends StatelessWidget {
         action,
       ],
     ];
+  }
+
+  void _addIfAny(List<Widget> actions, Widget? action) {
+    if (action != null) actions.add(action);
+  }
+
+  /// Null when there is no reset to run, so the caller simply gets one fewer
+  /// action rather than an inert one.
+  Widget? _startOver(BuildContext context, QeranButtonVariant variant) {
+    if (onStartOver == null) return null;
+    return QeranButton(
+      label: LocaleKeys.discovery_empty_start_over.t(context),
+      leadingIcon: Icons.restart_alt_rounded,
+      onPressed: onStartOver,
+      loading: startingOver,
+      variant: variant,
+      size: variant == QeranButtonVariant.ghost
+          ? QeranButtonSize.md
+          : QeranButtonSize.lg,
+      fullWidth: false,
+    );
   }
 
   Widget _editFilters(BuildContext context, QeranButtonVariant variant) {

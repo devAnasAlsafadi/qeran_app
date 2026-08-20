@@ -94,6 +94,7 @@ class MatchmakerCaseCard extends StatelessWidget {
                       first: caseItem.myUser.name.trim(),
                       second: caseItem.otherUser.name.trim(),
                     ),
+                    if (dateLine != null) ...[QeranSpacing.vs8, dateLine],
                     if (statusChip != null || countdown != null) ...[
                       QeranSpacing.vs8,
                       Wrap(
@@ -102,7 +103,6 @@ class MatchmakerCaseCard extends StatelessWidget {
                         children: [?statusChip, ?countdown],
                       ),
                     ],
-                    if (dateLine != null) ...[QeranSpacing.vs8, dateLine],
                   ],
                 ),
               ),

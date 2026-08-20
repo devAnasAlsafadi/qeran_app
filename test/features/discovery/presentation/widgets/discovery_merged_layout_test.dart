@@ -16,6 +16,11 @@ import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.da
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 import 'package:qeran/features/notifications/domain/usecases/get_notifications_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/share_with_matchmaker/share_with_matchmaker_cubit.dart';
+import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
+import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
+import 'package:qeran/features/badges/domain/usecases/get_badges_usecase.dart';
+import 'package:qeran/features/badges/domain/usecases/mark_tab_seen_usecase.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/profile/domain/entities/other_profile.dart';
 import 'package:qeran/features/profile/domain/entities/placement.dart'
@@ -56,7 +61,6 @@ import 'package:qeran/features/discovery/domain/usecases/reset_skipped_profiles_
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
-import 'package:qeran/features/discovery/presentation/widgets/_image_overlay_button.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_action_bar.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_card_skeleton.dart';
@@ -220,6 +224,22 @@ class _FakeNotificationBadgeCubit extends NotificationBadgeCubit {
   void setUnread(bool value) => emit(value);
 }
 
+class _FakeGetBadges extends Fake implements GetBadgesUseCase {}
+
+class _FakeMarkTabSeen extends Fake implements MarkTabSeenUseCase {}
+
+/// The bell reads its count straight off the badges cubit now, so the layout
+/// tests need one they can drive without a server.
+class _FakeBadgesCubit extends BadgesCubit {
+  _FakeBadgesCubit()
+    : super(getBadges: _FakeGetBadges(), markTabSeen: _FakeMarkTabSeen());
+  @override
+  Future<void> refresh() async {}
+
+  void setNotifications(int count) =>
+      applyUpdate(BadgeTabKeys.notifications, count);
+}
+
 /// The share CTA at the end of the merged scroll resolves its cubit from
 /// GetIt; this keeps it in its unresolved state without any network.
 class _FakeChatRepository extends Fake implements ChatRepository {
@@ -322,6 +342,7 @@ Future<_FakeProfileRepository> _pumpView(
   sl.registerLazySingleton<NotificationBadgeCubit>(
     () => _FakeNotificationBadgeCubit(),
   );
+  sl.registerLazySingleton<BadgesCubit>(() => _FakeBadgesCubit());
   final chatRepo = _FakeChatRepository();
   sl.registerFactory<ShareWithMatchmakerCubit>(
     () => ShareWithMatchmakerCubit(
@@ -866,26 +887,37 @@ void main() {
 
     setUp(() async => sl.reset());
 
-    testWidgets('no dot when there is nothing unread', (tester) async {
+    testWidgets('no badge when there is nothing unread', (tester) async {
       // Regression: moving the bell onto the photo dropped the BlocBuilder and
-      // pinned the dot on unconditionally, so it claimed unread mail forever.
+      // pinned the marker on unconditionally, so it claimed unread mail
+      // forever.
       await _pumpView(tester, [_profile('a')]);
 
       expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
-      expect(find.byType(OverlayUnreadDot), findsNothing);
+      expect(find.byType(QeranCountBadge), findsNothing);
     });
 
-    testWidgets('the dot appears when the badge reports unread', (
+    testWidgets('the count appears when the server reports unread', (
       tester,
     ) async {
       await _pumpView(tester, [_profile('a')]);
 
-      (sl<NotificationBadgeCubit>() as _FakeNotificationBadgeCubit).setUnread(
-        true,
-      );
+      (sl<BadgesCubit>() as _FakeBadgesCubit).setNotifications(3);
       await tester.pumpAndSettle();
 
-      expect(find.byType(OverlayUnreadDot), findsOneWidget);
+      expect(find.byType(QeranCountBadge), findsOneWidget);
+      expect(find.text('3'), findsOneWidget);
+    });
+
+    // A bell pools everything, so the number can run away. It is a nudge, not
+    // a figure to read precisely.
+    testWidgets('a runaway count is capped at 99+', (tester) async {
+      await _pumpView(tester, [_profile('a')]);
+
+      (sl<BadgesCubit>() as _FakeBadgesCubit).setNotifications(140);
+      await tester.pumpAndSettle();
+
+      expect(find.text('99+'), findsOneWidget);
     });
   });
 

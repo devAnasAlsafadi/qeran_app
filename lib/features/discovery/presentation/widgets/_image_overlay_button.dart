@@ -54,23 +54,3 @@ class ImageOverlayButton extends StatelessWidget {
     );
   }
 }
-
-/// Small unread marker for the bell. Uses the danger token per the
-/// notification-badge convention; bordered with paper so it reads
-/// cleanly over the dark image overlay.
-class OverlayUnreadDot extends StatelessWidget {
-  const OverlayUnreadDot({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 10,
-      height: 10,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: QeranColors.danger,
-        border: Border.all(color: QeranColors.paper, width: 1.5),
-      ),
-    );
-  }
-}

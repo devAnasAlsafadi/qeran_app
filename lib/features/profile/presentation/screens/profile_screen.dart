@@ -20,6 +20,7 @@ import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/notifications/presentation/widgets/notification_back_row.dart';
@@ -200,6 +201,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // starts from its own state rather than inheriting this one's.
     sl<DefaultNameBannerSession>().reset();
     sl<AuthFormMemo>().clear();
+    // Badge counts belong to the account that earned them.
+    sl<BadgesCubit>().clear();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(
       context,

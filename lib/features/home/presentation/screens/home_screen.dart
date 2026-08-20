@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -12,6 +11,8 @@ import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/core/widgets/locale_rebuild_scope.dart';
 import 'package:qeran/core/widgets/scroll_hiding_nav_scaffold.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/chat/presentation/blocs/chat_unread_cubit.dart';
@@ -83,6 +84,10 @@ class _HomeScreenState extends State<HomeScreen>
     unawaited(sl<ProfileGateCubit>().refresh());
     sl<ChatUnreadCubit>().clear();
     unawaited(sl<ChatUnreadCubit>().refresh());
+    // A new shell means a new session — start from the server's counts rather
+    // than whatever the last account left behind.
+    sl<BadgesCubit>().clear();
+    unawaited(sl<BadgesCubit>().refresh());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {
@@ -114,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen>
     if (state == AppLifecycleState.resumed) {
       unawaited(sl<NotificationBadgeCubit>().refresh());
       unawaited(sl<ChatUnreadCubit>().refresh());
+      unawaited(sl<BadgesCubit>().refresh());
       unawaited(sl<CurrentSubscriptionCubit>().refresh(force: true));
     }
   }
@@ -326,9 +332,17 @@ class _HomeScreenState extends State<HomeScreen>
           openFromNotification: _openFromNotification,
           fromNotification: _fromNotification,
           returnToNotifications: _returnToNotifications,
-          child: BlocBuilder<ChatUnreadCubit, int>(
-            bloc: sl<ChatUnreadCubit>(),
-            builder: (context, unreadMessages) {
+          child: BlocBuilder<BadgesCubit, BadgeCounts>(
+            bloc: sl<BadgesCubit>(),
+            builder: (context, badges) {
+              // Dots, not numbers: a tab stands for one thing, so "there is
+              // something here" is the whole message. The real count is passed
+              // regardless — it decides whether the dot shows at all, and it
+              // leaves the door open to numbers without a design-system change.
+              //
+              // Discovery carries none. `exploreUnread` is documented as
+              // permanently zero, and a tab that can never light must not wear
+              // a badge implying it might.
               final items = <QeranNavItem>[
                 QeranNavItem(
                   outlineIcon: Icons.diamond_outlined,
@@ -339,19 +353,22 @@ class _HomeScreenState extends State<HomeScreen>
                   outlineIcon: Icons.favorite_border_rounded,
                   filledIcon: Icons.favorite_rounded,
                   label: LocaleKeys.home_nav_likes.t(context),
+                  badgeCount: badges.likes,
+                  badgeIsDot: true,
                 ),
                 QeranNavItem(
                   outlineIcon: Icons.chat_bubble_outline_rounded,
                   filledIcon: Icons.chat_bubble_rounded,
                   label: LocaleKeys.home_nav_messages.t(context),
-                  badgeCount: unreadMessages,
+                  badgeCount: badges.chat,
                   badgeIsDot: true,
-                  badgeColor: QeranColors.danger,
                 ),
                 QeranNavItem(
                   outlineIcon: Icons.person_outline_rounded,
                   filledIcon: Icons.person_rounded,
                   label: LocaleKeys.home_nav_profile.t(context),
+                  badgeCount: badges.account,
+                  badgeIsDot: true,
                 ),
               ];
               return ScrollHidingNavScaffold(

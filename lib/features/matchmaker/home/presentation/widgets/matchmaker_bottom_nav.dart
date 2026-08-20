@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/widgets/qeran_bottom_nav.dart';
+import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../../badges/domain/entities/badge_counts.dart';
+import '../../../../badges/presentation/blocs/badges_cubit.dart';
 
 /// Builds the 5-item `QeranBottomNav` for the Matchmaker shell.
 ///
@@ -26,7 +30,27 @@ class MatchmakerBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = <QeranNavItem>[
+    return BlocBuilder<BadgesCubit, BadgeCounts>(
+      bloc: sl<BadgesCubit>(),
+      builder: (context, badges) => QeranBottomNav(
+        items: _items(context, badges),
+        currentIndex: currentIndex,
+        onTap: onTap,
+      ),
+    );
+  }
+
+  /// Dots, not numbers — the user app's nav reads the same way.
+  ///
+  /// Dashboard and Explore carry none: the backend documents both as
+  /// permanently zero, and a tab that can never light must not wear a badge
+  /// implying it might.
+  ///
+  /// The Users dot is NOT the «بالانتظار» count inside that screen. That one
+  /// is a standing workload figure on the sub-tab; this one says something has
+  /// changed since you last looked. Different surfaces, different questions.
+  List<QeranNavItem> _items(BuildContext context, BadgeCounts badges) {
+    return <QeranNavItem>[
       QeranNavItem(
         outlineIcon: Icons.dashboard_outlined,
         filledIcon: Icons.dashboard_rounded,
@@ -36,16 +60,22 @@ class MatchmakerBottomNav extends StatelessWidget {
         outlineIcon: Icons.groups_2_outlined,
         filledIcon: Icons.groups_2_rounded,
         label: LocaleKeys.matchmaker_nav_users.t(context),
+        badgeCount: badges.users,
+        badgeIsDot: true,
       ),
       QeranNavItem(
         outlineIcon: Icons.handshake_outlined,
         filledIcon: Icons.handshake_rounded,
         label: LocaleKeys.matchmaker_nav_cases.t(context),
+        badgeCount: badges.cases,
+        badgeIsDot: true,
       ),
       QeranNavItem(
         outlineIcon: Icons.chat_bubble_outline_rounded,
         filledIcon: Icons.chat_bubble_rounded,
         label: LocaleKeys.matchmaker_nav_conversations.t(context),
+        badgeCount: badges.conversations,
+        badgeIsDot: true,
       ),
       QeranNavItem(
         outlineIcon: Icons.travel_explore_outlined,
@@ -53,10 +83,5 @@ class MatchmakerBottomNav extends StatelessWidget {
         label: LocaleKeys.matchmaker_nav_explore.t(context),
       ),
     ];
-    return QeranBottomNav(
-      items: items,
-      currentIndex: currentIndex,
-      onTap: onTap,
-    );
   }
 }

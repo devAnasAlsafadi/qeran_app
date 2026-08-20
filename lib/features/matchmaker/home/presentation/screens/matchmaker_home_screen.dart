@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 
@@ -77,6 +78,10 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     unawaited(_safeConnect());
     // Prime the bell badge (unread = total − last-seen). Silent on failure.
     unawaited(sl<MatchmakerNotificationBadgeCubit>().refresh());
+    // A new shell means a new session — start from the server's counts rather
+    // than whatever the last account left behind.
+    sl<BadgesCubit>().clear();
+    unawaited(sl<BadgesCubit>().refresh());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {
@@ -146,6 +151,7 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     // the cases cubit catches up via its own reconnect listener.
     if (state == AppLifecycleState.resumed) {
       unawaited(sl<MatchmakerNotificationBadgeCubit>().refresh());
+      unawaited(sl<BadgesCubit>().refresh());
       if (_realtimePort.status == MatchmakerRealtimeStatus.disconnected) {
         unawaited(_safeConnect());
       }

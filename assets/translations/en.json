@@ -213,7 +213,8 @@
     "error_title": "Couldn't load notifications",
     "error_message": "Something went wrong. Please try again.",
     "retry": "Try again",
-    "mark_all_read": "Mark all as read"
+    "mark_all_read": "Mark all as read",
+    "bell_unread_a11y": "Unread notifications: {count}"
   },
   "time": {
     "now": "Now",

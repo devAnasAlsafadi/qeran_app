@@ -4,10 +4,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
+import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/presentation/widgets/full_profile_image_overlays.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_photo_hero_motion.dart';
@@ -136,15 +140,28 @@ class DiscoveryImagePanel extends StatelessWidget {
                   // Row mirrors itself for English.
                   child: Row(
                     children: [
-                      // The dot is a STATE, not decoration: it appears only
-                      // while the badge cubit reports unread. It was pinned on
+                      // The badge is a STATE, not decoration: it appears only
+                      // while the server reports unread. It was pinned on
                       // unconditionally when the bell moved onto the photo,
                       // so it read as "you have mail" forever.
-                      BlocBuilder<NotificationBadgeCubit, bool>(
-                        builder: (context, hasUnread) => ImageOverlayButton(
-                          icon: Icons.notifications_outlined,
-                          onPressed: () => openNotifications(context),
-                          badge: hasUnread ? const OverlayUnreadDot() : null,
+                      //
+                      // A count, not a dot: the bell is the one surface where
+                      // the number is worth reading — the tabs each stand for
+                      // one thing, but the inbox pools everything.
+                      BlocBuilder<BadgesCubit, BadgeCounts>(
+                        bloc: sl<BadgesCubit>(),
+                        builder: (context, counts) => Semantics(
+                          label: LocaleKeys.notifications_bell_unread_a11y.t(
+                            context,
+                            namedArgs: {'count': '${counts.notifications}'},
+                          ),
+                          child: ImageOverlayButton(
+                            icon: Icons.notifications_outlined,
+                            onPressed: () => openNotifications(context),
+                            badge: counts.notifications > 0
+                                ? QeranCountBadge(count: counts.notifications)
+                                : null,
+                          ),
                         ),
                       ),
                       const Spacer(),

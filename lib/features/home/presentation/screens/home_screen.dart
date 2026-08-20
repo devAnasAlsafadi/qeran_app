@@ -13,6 +13,7 @@ import 'package:qeran/core/widgets/scroll_hiding_nav_scaffold.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
+import 'package:qeran/features/badges/presentation/widgets/badges_realtime_host.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
@@ -311,62 +312,68 @@ class _HomeScreenState extends State<HomeScreen>
       child: ChatRealtimeHost(
         port: sl<ChatRealtimePort>(),
         accessTokenProvider: sl<ChatAccessTokenProvider>(),
-        child: HomeShellScope(
-          openLikesTab: _openLikesTab,
-          openMessagesTab: _openMessagesTab,
-          openProfileTab: _openProfileTab,
-          openFromNotification: _openFromNotification,
-          fromNotification: _fromNotification,
-          returnToNotifications: _returnToNotifications,
-          child: BlocBuilder<BadgesCubit, BadgeCounts>(
-            bloc: sl<BadgesCubit>(),
-            builder: (context, badges) {
-              // Dots, not numbers: a tab stands for one thing, so "there is
-              // something here" is the whole message. The real count is passed
-              // regardless — it decides whether the dot shows at all, and it
-              // leaves the door open to numbers without a design-system change.
-              //
-              // Discovery carries none. `exploreUnread` is documented as
-              // permanently zero, and a tab that can never light must not wear
-              // a badge implying it might.
-              final items = <QeranNavItem>[
-                QeranNavItem(
-                  outlineIcon: Icons.diamond_outlined,
-                  filledIcon: Icons.diamond_rounded,
-                  label: LocaleKeys.home_nav_marriage.t(context),
-                ),
-                QeranNavItem(
-                  outlineIcon: Icons.favorite_border_rounded,
-                  filledIcon: Icons.favorite_rounded,
-                  label: LocaleKeys.home_nav_likes.t(context),
-                  badgeCount: badges.likes,
-                  badgeIsDot: true,
-                ),
-                QeranNavItem(
-                  outlineIcon: Icons.chat_bubble_outline_rounded,
-                  filledIcon: Icons.chat_bubble_rounded,
-                  label: LocaleKeys.home_nav_messages.t(context),
-                  badgeCount: badges.chat,
-                  badgeIsDot: true,
-                ),
-                QeranNavItem(
-                  outlineIcon: Icons.person_outline_rounded,
-                  filledIcon: Icons.person_rounded,
-                  label: LocaleKeys.home_nav_profile.t(context),
-                  badgeCount: badges.account,
-                  badgeIsDot: true,
-                ),
-              ];
-              return ScrollHidingNavScaffold(
-                currentIndex: _currentTab,
-                body: _buildTabStage(),
-                navBuilder: (context) => QeranBottomNav(
-                  items: items,
+        // Turns that session into live counts: assigns what the hub sends,
+        // and refetches whatever a dropped socket missed.
+        child: BadgesRealtimeHost(
+          port: sl<ChatRealtimePort>(),
+          badges: sl<BadgesCubit>(),
+          child: HomeShellScope(
+            openLikesTab: _openLikesTab,
+            openMessagesTab: _openMessagesTab,
+            openProfileTab: _openProfileTab,
+            openFromNotification: _openFromNotification,
+            fromNotification: _fromNotification,
+            returnToNotifications: _returnToNotifications,
+            child: BlocBuilder<BadgesCubit, BadgeCounts>(
+              bloc: sl<BadgesCubit>(),
+              builder: (context, badges) {
+                // Dots, not numbers: a tab stands for one thing, so "there is
+                // something here" is the whole message. The real count is passed
+                // regardless — it decides whether the dot shows at all, and it
+                // leaves the door open to numbers without a design-system change.
+                //
+                // Discovery carries none. `exploreUnread` is documented as
+                // permanently zero, and a tab that can never light must not wear
+                // a badge implying it might.
+                final items = <QeranNavItem>[
+                  QeranNavItem(
+                    outlineIcon: Icons.diamond_outlined,
+                    filledIcon: Icons.diamond_rounded,
+                    label: LocaleKeys.home_nav_marriage.t(context),
+                  ),
+                  QeranNavItem(
+                    outlineIcon: Icons.favorite_border_rounded,
+                    filledIcon: Icons.favorite_rounded,
+                    label: LocaleKeys.home_nav_likes.t(context),
+                    badgeCount: badges.likes,
+                    badgeIsDot: true,
+                  ),
+                  QeranNavItem(
+                    outlineIcon: Icons.chat_bubble_outline_rounded,
+                    filledIcon: Icons.chat_bubble_rounded,
+                    label: LocaleKeys.home_nav_messages.t(context),
+                    badgeCount: badges.chat,
+                    badgeIsDot: true,
+                  ),
+                  QeranNavItem(
+                    outlineIcon: Icons.person_outline_rounded,
+                    filledIcon: Icons.person_rounded,
+                    label: LocaleKeys.home_nav_profile.t(context),
+                    badgeCount: badges.account,
+                    badgeIsDot: true,
+                  ),
+                ];
+                return ScrollHidingNavScaffold(
                   currentIndex: _currentTab,
-                  onTap: _onNavTap,
-                ),
-              );
-            },
+                  body: _buildTabStage(),
+                  navBuilder: (context) => QeranBottomNav(
+                    items: items,
+                    currentIndex: _currentTab,
+                    onTap: _onNavTap,
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),

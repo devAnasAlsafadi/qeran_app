@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
+import 'package:qeran/features/badges/presentation/widgets/badges_realtime_host.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 
@@ -228,34 +229,40 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
       child: ChatRealtimeHost(
         port: sl<ChatRealtimePort>(),
         accessTokenProvider: sl<ChatAccessTokenProvider>(),
-        child: BlocProvider<MatchmakerDashboardCubit>(
-          create: (_) => sl<MatchmakerDashboardCubit>()..load(),
-          child: MatchmakerHomeShellScope(
-            openTab: _selectTab,
-            openFromNotification: _openFromNotification,
-            fromNotification: _fromNotification,
-            returnToNotifications: _returnToNotifications,
-            child: ScrollHidingNavScaffold(
-              currentIndex: _currentTab,
-              body: IndexedStack(
-                index: _currentTab,
-                children: [
-                  _lazyTab(0, const MatchmakerDashboardTab()),
-                  _lazyTab(
-                    1,
-                    MatchmakerUsersTab(
-                      subTab: _usersSubTab,
-                      onSubTabChanged: _changeUsersSubTab,
-                    ),
-                  ),
-                  _lazyTab(2, const MatchmakerCasesTab()),
-                  _lazyTab(3, const MatchmakerConversationsTab()),
-                  _lazyTab(4, const MatchmakerExploreTab()),
-                ],
-              ),
-              navBuilder: (context) => MatchmakerBottomNav(
+        // Turns that session into live counts: assigns what the hub sends,
+        // and refetches whatever a dropped socket missed.
+        child: BadgesRealtimeHost(
+          port: sl<ChatRealtimePort>(),
+          badges: sl<BadgesCubit>(),
+          child: BlocProvider<MatchmakerDashboardCubit>(
+            create: (_) => sl<MatchmakerDashboardCubit>()..load(),
+            child: MatchmakerHomeShellScope(
+              openTab: _selectTab,
+              openFromNotification: _openFromNotification,
+              fromNotification: _fromNotification,
+              returnToNotifications: _returnToNotifications,
+              child: ScrollHidingNavScaffold(
                 currentIndex: _currentTab,
-                onTap: _onNavTap,
+                body: IndexedStack(
+                  index: _currentTab,
+                  children: [
+                    _lazyTab(0, const MatchmakerDashboardTab()),
+                    _lazyTab(
+                      1,
+                      MatchmakerUsersTab(
+                        subTab: _usersSubTab,
+                        onSubTabChanged: _changeUsersSubTab,
+                      ),
+                    ),
+                    _lazyTab(2, const MatchmakerCasesTab()),
+                    _lazyTab(3, const MatchmakerConversationsTab()),
+                    _lazyTab(4, const MatchmakerExploreTab()),
+                  ],
+                ),
+                navBuilder: (context) => MatchmakerBottomNav(
+                  currentIndex: _currentTab,
+                  onTap: _onNavTap,
+                ),
               ),
             ),
           ),

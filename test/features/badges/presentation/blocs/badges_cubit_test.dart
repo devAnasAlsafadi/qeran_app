@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -52,6 +54,37 @@ void main() {
       await cubit.refresh();
 
       expect(cubit.state.likes, 3);
+    });
+
+    // A resume refreshes, and the socket reconnect it causes refreshes again
+    // a moment later. Two callers, one answer.
+    test('concurrent callers share one request', () async {
+      final gate = Completer<Either<Failure, BadgeCounts>>();
+      var calls = 0;
+      when(() => getBadges()).thenAnswer((_) {
+        calls++;
+        return gate.future;
+      });
+
+      final first = cubit.refresh();
+      final second = cubit.refresh();
+      gate.complete(const Right(BadgeCounts({BadgeTabKeys.likes: 3})));
+      await Future.wait([first, second]);
+
+      expect(calls, 1);
+      expect(cubit.state.likes, 3);
+    });
+
+    // The slot has to free up, or the counts freeze at whatever the first
+    // call returned for the rest of the session.
+    test('a later refresh still hits the network', () async {
+      stubGet(const BadgeCounts({BadgeTabKeys.likes: 1}));
+      await cubit.refresh();
+      stubGet(const BadgeCounts({BadgeTabKeys.likes: 8}));
+
+      await cubit.refresh();
+
+      expect(cubit.state.likes, 8);
     });
   });
 

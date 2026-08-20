@@ -28,12 +28,28 @@ class BadgesCubit extends Cubit<BadgeCounts> with SafeEmit<BadgeCounts> {
   final GetBadgesUseCase _getBadges;
   final MarkTabSeenUseCase _markTabSeen;
 
+  /// Coalesces concurrent fetches. A resume refreshes, and the socket
+  /// reconnect it causes refreshes again a moment later; sharing the in-flight
+  /// future collapses the pair into one request. (Same shape as
+  /// `CurrentSubscriptionCubit`.)
+  Future<void>? _inflight;
+
   /// Pulls the authoritative counts. Hung off the hooks that already exist —
-  /// shell mount, app resume — rather than a schedule of its own.
+  /// shell mount, app resume, socket reconnect — rather than a schedule of its
+  /// own.
   ///
   /// Silent on failure: the previous counts stay. A transient network blip must
   /// not clear a dot the user has not acted on, nor invent one.
-  Future<void> refresh() async {
+  Future<void> refresh() {
+    final existing = _inflight;
+    if (existing != null) return existing;
+    final task = _refresh();
+    _inflight = task;
+    task.whenComplete(() => _inflight = null);
+    return task;
+  }
+
+  Future<void> _refresh() async {
     final result = await _getBadges();
     result.fold(
       (failure) => AppLogger.warning(

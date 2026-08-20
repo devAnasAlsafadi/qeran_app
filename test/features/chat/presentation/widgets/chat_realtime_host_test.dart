@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/features/chat/domain/entities/badge_update_event.dart';
 import 'package:qeran/features/chat/domain/entities/chat_message.dart';
 import 'package:qeran/features/chat/domain/entities/messages_read_event.dart';
 import 'package:qeran/features/chat/domain/entities/realtime_status.dart';
@@ -28,6 +29,8 @@ class _FakePort implements ChatRealtimePort {
   Stream<ChatMessage> get incomingMessages => const Stream.empty();
   @override
   Stream<MessagesReadEvent> get messagesRead => const Stream.empty();
+  @override
+  Stream<BadgeUpdateEvent> get badgeUpdates => const Stream.empty();
 
   @override
   Future<void> connect({

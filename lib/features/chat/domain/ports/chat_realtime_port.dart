@@ -1,3 +1,4 @@
+import '../entities/badge_update_event.dart';
 import '../entities/chat_message.dart';
 import '../entities/messages_read_event.dart';
 import '../entities/realtime_status.dart';
@@ -28,6 +29,11 @@ abstract class ChatRealtimePort {
 
   /// `MessagesRead` event. The cubit flips `isRead` on outgoing only.
   Stream<MessagesReadEvent> get messagesRead;
+
+  /// `BadgeUpdated` event — not chat's own. It rides this connection because
+  /// the connection is the app's: both shells hold one open, so the counts
+  /// behind every tab can follow it. Consumed by the badges feature.
+  Stream<BadgeUpdateEvent> get badgeUpdates;
 
   /// Idempotent. Disconnects an existing session if one is open.
   /// `accessToken` is queried at every connect (and reconnect) so a

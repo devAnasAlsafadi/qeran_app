@@ -1,11 +1,13 @@
 import 'package:qeran/core/app_logger.dart';
 
+import '../../domain/entities/badge_update_event.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/entities/messages_read_event.dart';
+import '../models/badge_update_event_model.dart';
 import '../models/chat_message_model.dart';
 import '../models/messages_read_event_model.dart';
 
-/// Pure payload parsing for the two SignalR events. Extracted from
+/// Pure payload parsing for the SignalR events. Extracted from
 /// `ChatRealtimeSignalRService` so it can be unit-tested without
 /// spinning up a real hub connection: the SignalR transport hands us
 /// `List<Object?>?` and these helpers turn that into validated
@@ -52,6 +54,44 @@ class ChatRealtimeEventParser {
     } catch (e) {
       AppLogger.error(
         'CHAT — SignalR MessagesRead parse failed: $e',
+        error: e,
+        tag: 'CHAT',
+      );
+      return null;
+    }
+  }
+
+  /// Returns a parsed `BadgeUpdateEvent` for a valid `BadgeUpdated`
+  /// payload, or `null` if the wire shape is unexpected. Never throws.
+  ///
+  /// An unrecognised `tab` is NOT rejected. The contract is to ignore keys we
+  /// do not know, and the cubit already stores them where no getter reads
+  /// them — validating here would mean editing this file every time the
+  /// backend grows a tab.
+  static BadgeUpdateEvent? parseBadgeUpdate(List<Object?>? args) {
+    final map = _firstMap(args);
+    if (map == null) {
+      AppLogger.warning(
+        'CHAT — SignalR BadgeUpdated: missing or malformed args',
+        tag: 'CHAT',
+      );
+      return null;
+    }
+    try {
+      final event = BadgeUpdateEventModel.fromJson(map).toEntity();
+      // A tabless event names nothing to update — drop it here rather than
+      // publish something every consumer would have to skip.
+      if (event.tab.isEmpty) {
+        AppLogger.warning(
+          'CHAT — SignalR BadgeUpdated: empty tab, dropped',
+          tag: 'CHAT',
+        );
+        return null;
+      }
+      return event;
+    } catch (e) {
+      AppLogger.error(
+        'CHAT — SignalR BadgeUpdated parse failed: $e',
         error: e,
         tag: 'CHAT',
       );

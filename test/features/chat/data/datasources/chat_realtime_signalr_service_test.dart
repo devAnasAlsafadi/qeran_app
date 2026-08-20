@@ -133,6 +133,31 @@ void main() {
     });
   });
 
+  group('ChatRealtimeSignalRService — badge dispatch', () {
+    test('valid BadgeUpdated args emit an event on the stream', () async {
+      final svc = ChatRealtimeSignalRService();
+      final received = svc.badgeUpdates.first;
+      svc.onBadgeUpdatedForTest([
+        {'tab': 'likesUnread', 'count': 3},
+      ]);
+      final event = await received.timeout(const Duration(seconds: 1));
+      expect(event.tab, 'likesUnread');
+      expect(event.count, 3);
+    });
+
+    test('malformed BadgeUpdated args do NOT emit', () async {
+      final svc = ChatRealtimeSignalRService();
+      var emitted = false;
+      final sub = svc.badgeUpdates.listen((_) => emitted = true);
+      svc.onBadgeUpdatedForTest(null);
+      svc.onBadgeUpdatedForTest([]);
+      svc.onBadgeUpdatedForTest([42]);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await sub.cancel();
+      expect(emitted, isFalse);
+    });
+  });
+
   group('ChatRealtimeSignalRService — dispose', () {
     test('dispose closes controllers without throwing', () async {
       final svc = ChatRealtimeSignalRService();

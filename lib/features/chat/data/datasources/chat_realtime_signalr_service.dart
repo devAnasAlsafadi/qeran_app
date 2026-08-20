@@ -6,6 +6,7 @@ import 'package:signalr_netcore/signalr_client.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 
+import '../../domain/entities/badge_update_event.dart';
 import '../../domain/entities/chat_message.dart';
 import '../../domain/entities/messages_read_event.dart';
 import '../../domain/entities/realtime_status.dart';
@@ -20,9 +21,11 @@ import 'chat_realtime_event_parser.dart';
 /// a real server id, which is what the cubit's dedup pipeline keys
 /// off of.
 ///
-/// Two server-emitted events are subscribed: `ReceiveMessage` (full
-/// `ChatMessageDto` — same shape as REST) and `MessagesRead`
-/// (`{ conversationId, readByUserId, readAt }`). Both are parsed by
+/// Three server-emitted events are subscribed: `ReceiveMessage` (full
+/// `ChatMessageDto` — same shape as REST), `MessagesRead`
+/// (`{ conversationId, readByUserId, readAt }`), and `BadgeUpdated`
+/// (`{ tab, count }` — not a chat event, carried here because this
+/// connection is the app's). All are parsed by
 /// `ChatRealtimeEventParser` (testable in isolation); failures are
 /// logged and dropped so a single malformed broadcast never tears
 /// down the stream.
@@ -45,6 +48,8 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
       StreamController<ChatMessage>.broadcast();
   final StreamController<MessagesReadEvent> _messagesReadController =
       StreamController<MessagesReadEvent>.broadcast();
+  final StreamController<BadgeUpdateEvent> _badgeUpdatesController =
+      StreamController<BadgeUpdateEvent>.broadcast();
 
   ChatRealtimeSignalRService({
     HubConnection Function(String, AccessTokenFactory)? connectionFactory,
@@ -77,6 +82,9 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
   @override
   Stream<MessagesReadEvent> get messagesRead =>
       _messagesReadController.stream;
+
+  @override
+  Stream<BadgeUpdateEvent> get badgeUpdates => _badgeUpdatesController.stream;
 
   // ── Lifecycle serialization ────────────────────────────────────────
   // Every connect()/disconnect() runs through this single-slot queue, so
@@ -120,6 +128,7 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
     // Event subscriptions.
     connection.on('ReceiveMessage', _onReceiveMessage);
     connection.on('MessagesRead', _onMessagesRead);
+    connection.on('BadgeUpdated', _onBadgeUpdated);
 
     // Lifecycle callbacks.
     connection.onreconnecting(({Exception? error}) {
@@ -202,6 +211,7 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
     await _statusController.close();
     await _incomingController.close();
     await _messagesReadController.close();
+    await _badgeUpdatesController.close();
   }
 
   // ── Event dispatch (extracted for testability) ────────────────────
@@ -211,6 +221,9 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
 
   @visibleForTesting
   void onMessagesReadForTest(List<Object?>? args) => _onMessagesRead(args);
+
+  @visibleForTesting
+  void onBadgeUpdatedForTest(List<Object?>? args) => _onBadgeUpdated(args);
 
   void _onReceiveMessage(List<Object?>? args) {
     final msg = ChatRealtimeEventParser.parseReceiveMessage(args);
@@ -224,6 +237,13 @@ class ChatRealtimeSignalRService implements ChatRealtimePort {
     if (event == null) return;
     if (_messagesReadController.isClosed) return;
     _messagesReadController.add(event);
+  }
+
+  void _onBadgeUpdated(List<Object?>? args) {
+    final event = ChatRealtimeEventParser.parseBadgeUpdate(args);
+    if (event == null) return;
+    if (_badgeUpdatesController.isClosed) return;
+    _badgeUpdatesController.add(event);
   }
 
   void _setStatus(RealtimeStatus s) {

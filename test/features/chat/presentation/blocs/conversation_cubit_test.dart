@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/chat/domain/entities/badge_update_event.dart';
 import 'package:qeran/features/chat/domain/entities/chat_message.dart';
 import 'package:qeran/features/chat/domain/entities/chat_messages_page.dart';
 import 'package:qeran/features/chat/domain/entities/message_send_status.dart';
@@ -48,6 +49,9 @@ class _FakeRealtimePort implements ChatRealtimePort {
   @override
   Stream<MessagesReadEvent> get messagesRead =>
       _messagesReadController.stream;
+  // Not this cubit's concern — the badges host consumes it off the same port.
+  @override
+  Stream<BadgeUpdateEvent> get badgeUpdates => const Stream.empty();
 
   @override
   Future<void> connect({

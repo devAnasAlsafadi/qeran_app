@@ -43,6 +43,18 @@ abstract interface class DiscoveryRemoteDataSource {
   /// transport-level failure; the repository converts to
   /// `Left(Failure)`.
   Future<void> skipProfile(String targetUserId);
+
+  /// `POST /api/Discovery/skip/reset` — Bearer JWT, no body. Restores every
+  /// profile this user skipped.
+  ///
+  /// Returns how many were put back. **Zero is a success**, not a failure: it
+  /// means the user had skipped nobody, and the caller has to be able to tell
+  /// that apart from an error so the UI can say so instead of silently
+  /// reloading an unchanged deck.
+  ///
+  /// Throws `ServerException` on a failed envelope; the repository converts it
+  /// to `Left(Failure)`.
+  Future<int> resetSkippedProfiles();
 }
 
 class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
@@ -240,6 +252,31 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
     AppLogger.debug('SKIP profileId=$targetUserId', tag: 'DISCOVERY');
     await _apiConsumer.postRaw(EndPoints.discoverySkip(targetUserId));
     AppLogger.info('Skip recorded target=$targetUserId', tag: 'DISCOVERY');
+  }
+
+  @override
+  Future<int> resetSkippedProfiles() async {
+    AppLogger.debug('RESET SKIPPED PROFILES', tag: 'DISCOVERY');
+    // `post`, not the `postRaw` its sibling skip uses: this one has a count to
+    // read, and `post` enforces `status == 1` so anything reaching the next
+    // line is a success envelope.
+    final body = await _apiConsumer.post(EndPoints.discoverySkipReset);
+    final restored = _restoredCount(body);
+    AppLogger.info('Skip reset restored=$restored', tag: 'DISCOVERY');
+    return restored;
+  }
+
+  /// Reads `data` as a count of restored profiles.
+  ///
+  /// Anything unreadable — a missing field, a string, a negative — degrades to
+  /// `0` rather than throwing. The reset has ALREADY happened server-side by
+  /// the time this runs, so throwing here would report a completed mutation as
+  /// a failure and invite the user to fire it again.
+  int _restoredCount(dynamic body) {
+    if (body is! Map) return 0;
+    final raw = body['data'];
+    final value = raw is num ? raw.toInt() : int.tryParse('${raw ?? ''}');
+    return (value == null || value < 0) ? 0 : value;
   }
 
   /// Maps a gated like failure onto a typed [LikeOutcome]. Prefers the

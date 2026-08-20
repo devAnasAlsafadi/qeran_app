@@ -53,6 +53,11 @@ class DiscoveryRepositoryImpl
   }
 
   @override
+  Future<Either<Failure, int>> resetSkippedProfiles() {
+    return executeApiCall(() => _dataSource.resetSkippedProfiles());
+  }
+
+  @override
   Future<Either<Failure, List<DiscoveryFilterQuestion>>> getFilters() {
     return executeApiCall(() async {
       final models = await _dataSource.fetchFilters();

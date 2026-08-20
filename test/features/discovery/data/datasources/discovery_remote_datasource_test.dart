@@ -269,4 +269,78 @@ void main() {
       },
     );
   });
+
+  // The reset already happened server-side before any of this parsing runs, so
+  // the count is advisory: no shape of `data` may turn a completed mutation
+  // into a thrown error. Zero, however, is REAL information — it means nothing
+  // was restored — and must survive as zero rather than being lost.
+  group('resetSkippedProfiles', () {
+    Map<String, dynamic> envelope(Object? data) => {
+      'status': 1,
+      'message': 'ok',
+      'data': data,
+    };
+
+    test('posts to the reset route with no body', () async {
+      when(() => api.post(any())).thenAnswer((_) async => envelope(115));
+
+      await ds.resetSkippedProfiles();
+
+      verify(() => api.post(EndPoints.discoverySkipReset)).called(1);
+    });
+
+    test('returns the restored count', () async {
+      when(() => api.post(any())).thenAnswer((_) async => envelope(115));
+
+      expect(await ds.resetSkippedProfiles(), 115);
+    });
+
+    test('zero survives as zero — the nothing-to-restore signal', () async {
+      when(() => api.post(any())).thenAnswer((_) async => envelope(0));
+
+      expect(await ds.resetSkippedProfiles(), 0);
+    });
+
+    test('a numeric string still reads as a count', () async {
+      when(() => api.post(any())).thenAnswer((_) async => envelope('115'));
+
+      expect(await ds.resetSkippedProfiles(), 115);
+    });
+
+    test('a missing count degrades to zero, not an error', () async {
+      when(
+        () => api.post(any()),
+      ).thenAnswer((_) async => {'status': 1, 'message': 'ok'});
+
+      expect(await ds.resetSkippedProfiles(), 0);
+    });
+
+    test('an unreadable count degrades to zero, not an error', () async {
+      when(() => api.post(any())).thenAnswer((_) async => envelope('lots'));
+
+      expect(await ds.resetSkippedProfiles(), 0);
+    });
+
+    test('a negative count is clamped rather than surfaced', () async {
+      when(() => api.post(any())).thenAnswer((_) async => envelope(-3));
+
+      expect(await ds.resetSkippedProfiles(), 0);
+    });
+
+    test('a non-map body degrades to zero', () async {
+      when(() => api.post(any())).thenAnswer((_) async => 'unexpected');
+
+      expect(await ds.resetSkippedProfiles(), 0);
+    });
+
+    // `post` enforces status == 1, so a failed envelope never reaches the
+    // parser — it arrives as an exception the repository turns into a Left.
+    test('a failed envelope propagates as a ServerException', () async {
+      when(
+        () => api.post(any()),
+      ).thenThrow(ServerException(message: 'boom'));
+
+      expect(() => ds.resetSkippedProfiles(), throwsA(isA<ServerException>()));
+    });
+  });
 }

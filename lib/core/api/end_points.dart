@@ -126,6 +126,16 @@ class EndPoints {
   static String discoverySkip(String targetUserId) =>
       "discovery/skip/$targetUserId";
 
+  /// `POST /api/Discovery/skip/reset` — puts every profile this user skipped
+  /// back into the deck. Scoped to the caller's own JWT; touches nobody else.
+  ///
+  /// `data` carries the number of profiles restored, `0` when there were none
+  /// to restore — a success, not a failure.
+  ///
+  /// LIKES ARE NOT AFFECTED. Skips and saved profiles share one table, told
+  /// apart by `IsSkipped`, and only the skipped rows are removed.
+  static const String discoverySkipReset = "Discovery/skip/reset";
+
   /// `GET /api/likes/incoming` — people who liked me. Subscription-gated:
   /// non-subscribers receive redacted rows with `isLocked: true`.
   static const String likesIncoming = "likes/incoming";

@@ -142,4 +142,41 @@ void main() {
       );
     });
   });
+
+  group('resetSkippedProfiles', () {
+    test('returns Right(count) on success', () async {
+      when(
+        () => dataSource.resetSkippedProfiles(),
+      ).thenAnswer((_) async => 115);
+
+      final result = await repository.resetSkippedProfiles();
+
+      result.fold((_) => fail('expected Right'), (count) => expect(count, 115));
+    });
+
+    // Right(0) and Left(Failure) must NOT collapse: one means the reset ran
+    // and there was nothing to undo, the other means it did not run. The empty
+    // view says something different for each.
+    test('Right(0) stays a success, not a failure', () async {
+      when(() => dataSource.resetSkippedProfiles()).thenAnswer((_) async => 0);
+
+      final result = await repository.resetSkippedProfiles();
+
+      expect(result.isRight(), isTrue);
+      result.fold((_) => fail('expected Right'), (count) => expect(count, 0));
+    });
+
+    test('maps a thrown ServerException to Left(ServerFailure)', () async {
+      when(
+        () => dataSource.resetSkippedProfiles(),
+      ).thenThrow(ServerException(message: 'boom'));
+
+      final result = await repository.resetSkippedProfiles();
+
+      result.fold(
+        (failure) => expect(failure, isA<ServerFailure>()),
+        (_) => fail('expected Left(ServerFailure)'),
+      );
+    });
+  });
 }

@@ -12,8 +12,10 @@ import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/core/widgets/locale_rebuild_scope.dart';
 import 'package:qeran/core/widgets/scroll_hiding_nav_scaffold.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/chat/presentation/blocs/chat_unread_cubit.dart';
+import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
@@ -312,51 +314,57 @@ class _HomeScreenState extends State<HomeScreen>
         if (didPop) return;
         _returnToNotifications();
       },
-      child: HomeShellScope(
-        openLikesTab: _openLikesTab,
-        openMessagesTab: _openMessagesTab,
-        openProfileTab: _openProfileTab,
-        openFromNotification: _openFromNotification,
-        fromNotification: _fromNotification,
-        returnToNotifications: _returnToNotifications,
-        child: BlocBuilder<ChatUnreadCubit, int>(
-          bloc: sl<ChatUnreadCubit>(),
-          builder: (context, unreadMessages) {
-            final items = <QeranNavItem>[
-              QeranNavItem(
-                outlineIcon: Icons.diamond_outlined,
-                filledIcon: Icons.diamond_rounded,
-                label: LocaleKeys.home_nav_marriage.t(context),
-              ),
-              QeranNavItem(
-                outlineIcon: Icons.favorite_border_rounded,
-                filledIcon: Icons.favorite_rounded,
-                label: LocaleKeys.home_nav_likes.t(context),
-              ),
-              QeranNavItem(
-                outlineIcon: Icons.chat_bubble_outline_rounded,
-                filledIcon: Icons.chat_bubble_rounded,
-                label: LocaleKeys.home_nav_messages.t(context),
-                badgeCount: unreadMessages,
-                badgeIsDot: true,
-                badgeColor: QeranColors.danger,
-              ),
-              QeranNavItem(
-                outlineIcon: Icons.person_outline_rounded,
-                filledIcon: Icons.person_rounded,
-                label: LocaleKeys.home_nav_profile.t(context),
-              ),
-            ];
-            return ScrollHidingNavScaffold(
-              currentIndex: _currentTab,
-              body: _buildTabStage(),
-              navBuilder: (context) => QeranBottomNav(
-                items: items,
+      // Owns the `/hubs/chat` session for the whole user shell — the hub feeds
+      // every tab, so it must not depend on Messages having been opened.
+      child: ChatRealtimeHost(
+        port: sl<ChatRealtimePort>(),
+        accessTokenProvider: sl<ChatAccessTokenProvider>(),
+        child: HomeShellScope(
+          openLikesTab: _openLikesTab,
+          openMessagesTab: _openMessagesTab,
+          openProfileTab: _openProfileTab,
+          openFromNotification: _openFromNotification,
+          fromNotification: _fromNotification,
+          returnToNotifications: _returnToNotifications,
+          child: BlocBuilder<ChatUnreadCubit, int>(
+            bloc: sl<ChatUnreadCubit>(),
+            builder: (context, unreadMessages) {
+              final items = <QeranNavItem>[
+                QeranNavItem(
+                  outlineIcon: Icons.diamond_outlined,
+                  filledIcon: Icons.diamond_rounded,
+                  label: LocaleKeys.home_nav_marriage.t(context),
+                ),
+                QeranNavItem(
+                  outlineIcon: Icons.favorite_border_rounded,
+                  filledIcon: Icons.favorite_rounded,
+                  label: LocaleKeys.home_nav_likes.t(context),
+                ),
+                QeranNavItem(
+                  outlineIcon: Icons.chat_bubble_outline_rounded,
+                  filledIcon: Icons.chat_bubble_rounded,
+                  label: LocaleKeys.home_nav_messages.t(context),
+                  badgeCount: unreadMessages,
+                  badgeIsDot: true,
+                  badgeColor: QeranColors.danger,
+                ),
+                QeranNavItem(
+                  outlineIcon: Icons.person_outline_rounded,
+                  filledIcon: Icons.person_rounded,
+                  label: LocaleKeys.home_nav_profile.t(context),
+                ),
+              ];
+              return ScrollHidingNavScaffold(
                 currentIndex: _currentTab,
-                onTap: _onNavTap,
-              ),
-            );
-          },
+                body: _buildTabStage(),
+                navBuilder: (context) => QeranBottomNav(
+                  items: items,
+                  currentIndex: _currentTab,
+                  onTap: _onNavTap,
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

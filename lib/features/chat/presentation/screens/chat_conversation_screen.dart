@@ -20,7 +20,6 @@ import '../blocs/conversation_cubit.dart';
 import '../blocs/conversation_state.dart';
 import '../widgets/chat_error_view.dart';
 import '../widgets/chat_input_bar.dart';
-import '../widgets/chat_lifecycle_wrapper.dart';
 import '../widgets/chat_message_list.dart';
 import '../widgets/chat_message_skeleton.dart';
 import '../widgets/nav_aware_composer.dart';
@@ -59,15 +58,12 @@ class ChatConversationScreen extends StatelessWidget {
           param2: myUserId,
         )..init();
       },
-      child: Builder(
-        builder: (ctx) => ChatLifecycleWrapper(
-          cubit: ctx.read<ConversationCubit>(),
-          child: _ConversationView(
-            info: info,
-            onBack: onBack,
-            onHeaderTap: onHeaderTap,
-          ),
-        ),
+      // No realtime lifecycle here — the shell owns the session (see
+      // `ChatRealtimeHost`). This screen only reads the streams.
+      child: _ConversationView(
+        info: info,
+        onBack: onBack,
+        onHeaderTap: onHeaderTap,
       ),
     );
   }

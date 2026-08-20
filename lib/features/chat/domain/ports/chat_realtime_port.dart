@@ -2,6 +2,11 @@ import '../entities/chat_message.dart';
 import '../entities/messages_read_event.dart';
 import '../entities/realtime_status.dart';
 
+/// Supplies the JWT for a hub handshake. Registered once in DI so the shells
+/// that open the session and anything else that needs it read the token the
+/// same way — two hand-rolled closures would be free to drift apart.
+typedef ChatAccessTokenProvider = Future<String?> Function();
+
 /// Domain-side contract for the realtime layer. Concrete impl lives
 /// in `data/datasources/` and uses SignalR; the cubit only sees this
 /// interface so tests can swap a fake.
@@ -27,9 +32,7 @@ abstract class ChatRealtimePort {
   /// Idempotent. Disconnects an existing session if one is open.
   /// `accessToken` is queried at every connect (and reconnect) so a
   /// rotated token is picked up automatically.
-  Future<void> connect({
-    required Future<String?> Function() accessTokenProvider,
-  });
+  Future<void> connect({required ChatAccessTokenProvider accessTokenProvider});
 
   Future<void> disconnect();
 }

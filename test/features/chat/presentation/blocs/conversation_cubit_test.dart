@@ -137,7 +137,6 @@ void main() {
       sendText: send,
       shareProfile: share,
       realtimePort: realtime,
-      accessTokenProvider: _stubTokenProvider,
     );
   });
 
@@ -699,6 +698,14 @@ void main() {
   });
 
   group('realtime wiring (Phase 8)', () {
+    /// The shell opens the session before any conversation screen mounts, so
+    /// the port is already live by the time this cubit subscribes. Standing in
+    /// for `ChatRealtimeHost` here keeps the fixture honest about who connects.
+    Future<void> connectAsShell() async {
+      await realtime.connect(accessTokenProvider: _stubTokenProvider);
+      await Future<void>.delayed(Duration.zero);
+    }
+
     Future<void> stubInitialLoadEmpty() async {
       when(() => get(
             conversationId: 42,
@@ -708,21 +715,42 @@ void main() {
               _page(const [], 1, 0)));
       when(() => mark(42))
           .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+      await connectAsShell();
       await cubit.init();
-      // Let microtasks settle so the fake port's connect() emits its
-      // status transitions.
       await Future<void>.delayed(Duration.zero);
     }
 
-    test('init success wires realtime, calls connect, mirrors status',
+    test('init success subscribes and mirrors the shell-owned status',
         () async {
       await stubInitialLoadEmpty();
-      expect(realtime.connectCalls, 1);
       expect(cubit.state.realtimeStatus, RealtimeStatus.connected);
       expect(cubit.state.hasEverBeenConnected, isTrue);
     });
 
-    test('init failure does NOT wire realtime', () async {
+    // The whole point of the shell owning the session: a conversation must
+    // never open, close, or churn it. `connect()` tears down any live session
+    // before opening a new one, so a stray call here would drop the socket
+    // every other tab's badge depends on.
+    test('the cubit never touches the session, on any path', () async {
+      await stubInitialLoadEmpty();
+      await cubit.refresh();
+      await Future<void>.delayed(Duration.zero);
+      await cubit.close();
+      expect(realtime.connectCalls, 1, reason: 'only the shell connected');
+      expect(realtime.disconnectCalls, 0);
+      cubit = ConversationCubit(
+        conversationId: 42,
+        myUserId: 'me',
+        getMessages: get,
+        markAsRead: mark,
+        sendText: send,
+        shareProfile: share,
+        realtimePort: realtime,
+      );
+    });
+
+    test('init failure leaves the cubit unsubscribed', () async {
+      await connectAsShell();
       when(() => get(
             conversationId: 42,
             page: 1,
@@ -731,19 +759,16 @@ void main() {
               ServerFailure(message: 'errors.generic')));
       await cubit.init();
       await Future<void>.delayed(Duration.zero);
-      expect(realtime.connectCalls, 0);
-      expect(cubit.state.realtimeStatus, RealtimeStatus.disconnected);
-      expect(cubit.state.hasEverBeenConnected, isFalse);
-    });
-
-    test('refresh does NOT reconnect (only one connect per cubit life)',
-        () async {
-      await stubInitialLoadEmpty();
-      expect(realtime.connectCalls, 1);
-      await cubit.refresh();
+      // A live socket is not enough — without a successful load there is no
+      // message list to merge into, so nothing may be consumed.
+      realtime.emitIncoming(_msg(
+        id: 999,
+        sentAt: DateTime.utc(2026, 5, 21, 14, 30),
+        sender: 'mm',
+      ));
       await Future<void>.delayed(Duration.zero);
-      expect(realtime.connectCalls, 1,
-          reason: 'refresh must not tear down a working SignalR session');
+      expect(cubit.state.messages, isEmpty);
+      expect(cubit.state.hasEverBeenConnected, isFalse);
     });
 
     test('incoming message: prepended at top + serverId added to seen set',
@@ -825,6 +850,9 @@ void main() {
               _page([initial], 1, 1)));
       when(() => mark(42))
           .thenAnswer((_) async => const Right<Failure, Unit>(unit));
+      // The catch-up rule only arms once the socket has been up at least
+      // once, and it is the shell that puts it up.
+      await connectAsShell();
       await cubit.init();
       await Future<void>.delayed(Duration.zero);
 
@@ -852,12 +880,19 @@ void main() {
       expect(cubit.state.seenServerIds, {700, 701});
     });
 
-    test('close cancels subscriptions + disconnects port', () async {
+    test('close cancels subscriptions and leaves the session up', () async {
       await stubInitialLoadEmpty();
-      expect(realtime.connectCalls, 1);
-      expect(realtime.disconnectCalls, 0);
       await cubit.close();
-      expect(realtime.disconnectCalls, 1);
+      expect(realtime.disconnectCalls, 0,
+          reason: 'leaving a conversation must not close the shell session');
+      // The subscriptions are gone, so a later event reaches nobody.
+      realtime.emitIncoming(_msg(
+        id: 1234,
+        sentAt: DateTime.utc(2026, 5, 21, 14, 30),
+        sender: 'mm',
+      ));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.messages, isEmpty);
       // Re-create a fresh cubit so the test-suite's tearDown can call
       // close() again without throwing on a closed bloc.
       cubit = ConversationCubit(
@@ -868,104 +903,7 @@ void main() {
         sendText: send,
         shareProfile: share,
         realtimePort: realtime,
-        accessTokenProvider: _stubTokenProvider,
       );
-    });
-  });
-
-  group('backgrounding lifecycle (Phase 12)', () {
-    Future<void> stubInitialLoadEmpty() async {
-      when(() => get(
-            conversationId: 42,
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-          )).thenAnswer((_) async => Right<Failure, ChatMessagesPage>(
-              _page(const [], 1, 0)));
-      when(() => mark(42))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
-      await cubit.init();
-      await Future<void>.delayed(Duration.zero);
-    }
-
-    test('pauseRealtime disconnects when wired + connected', () async {
-      await stubInitialLoadEmpty();
-      expect(cubit.state.realtimeStatus, RealtimeStatus.connected);
-      await cubit.pauseRealtime();
-      expect(realtime.disconnectCalls, 1);
-      expect(cubit.state.realtimeStatus, RealtimeStatus.disconnected);
-    });
-
-    test('pauseRealtime is a no-op when not wired', () async {
-      // No init() call → realtime never wired.
-      await cubit.pauseRealtime();
-      expect(realtime.disconnectCalls, 0);
-    });
-
-    test('pauseRealtime is a no-op when already disconnected', () async {
-      await stubInitialLoadEmpty();
-      await cubit.pauseRealtime();
-      final firstDisconnects = realtime.disconnectCalls;
-      await cubit.pauseRealtime();
-      expect(realtime.disconnectCalls, firstDisconnects);
-    });
-
-    test('resumeRealtime reconnects + fires page=1 catch-up', () async {
-      // Initial state has one message.
-      final initial = _msg(
-        id: 1000,
-        sentAt: DateTime.utc(2026, 5, 21, 14, 30),
-        sender: 'mm',
-      );
-      when(() => get(
-            conversationId: 42,
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-          )).thenAnswer((_) async => Right<Failure, ChatMessagesPage>(
-              _page([initial], 1, 1)));
-      when(() => mark(42))
-          .thenAnswer((_) async => const Right<Failure, Unit>(unit));
-      await cubit.init();
-      await Future<void>.delayed(Duration.zero);
-      expect(cubit.state.hasEverBeenConnected, isTrue);
-
-      // Background pause.
-      await cubit.pauseRealtime();
-      expect(cubit.state.realtimeStatus, RealtimeStatus.disconnected);
-
-      // Stub catch-up to return a new message (id=1001).
-      final caughtUp = _msg(
-        id: 1001,
-        sentAt: DateTime.utc(2026, 5, 21, 15),
-        sender: 'mm',
-      );
-      when(() => get(
-            conversationId: 42,
-            page: 1,
-            pageSize: any(named: 'pageSize'),
-          )).thenAnswer((_) async => Right<Failure, ChatMessagesPage>(
-              _page([caughtUp, initial], 1, 1)));
-
-      // Resume — fake port emits connecting → connected; the cubit's
-      // status handler should now trigger catch-up because
-      // hasEverBeenConnected is true and prev != connected.
-      await cubit.resumeRealtime();
-      await Future<void>.delayed(Duration.zero);
-
-      expect(cubit.state.realtimeStatus, RealtimeStatus.connected);
-      expect(cubit.state.messages, hasLength(2));
-      expect(cubit.state.seenServerIds, {1000, 1001});
-    });
-
-    test('resumeRealtime is a no-op when not wired', () async {
-      await cubit.resumeRealtime();
-      expect(realtime.connectCalls, 0);
-    });
-
-    test('resumeRealtime is a no-op when already connected', () async {
-      await stubInitialLoadEmpty();
-      final connectsBefore = realtime.connectCalls;
-      await cubit.resumeRealtime();
-      expect(realtime.connectCalls, connectsBefore);
     });
   });
 

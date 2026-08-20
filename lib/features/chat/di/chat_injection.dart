@@ -33,6 +33,15 @@ void initChatDependencies() {
     () => ChatRealtimeSignalRService(),
   );
 
+  //! Read fresh from secure storage on every connect AND every reconnect —
+  //  once a refresh-token flow lands, swapping the stored value is the only
+  //  change the realtime layer needs. Registered rather than hand-rolled at
+  //  each shell so the two can never read the token differently.
+  sl.registerLazySingleton<ChatAccessTokenProvider>(
+    () =>
+        () => sl<StorageService>().get<String>(StorageKeys.token),
+  );
+
   //! Repository
   sl.registerLazySingleton<ChatRepository>(() => ChatRepositoryImpl(sl()));
 
@@ -63,11 +72,6 @@ void initChatDependencies() {
       sendText: sl(),
       shareProfile: sl(),
       realtimePort: sl(),
-      // Read fresh from secure storage on every connect AND every
-      // reconnect — once a refresh-token flow lands, swapping the
-      // stored value is the only change the realtime layer needs.
-      accessTokenProvider: () =>
-          sl<StorageService>().get<String>(StorageKeys.token),
     ),
   );
 }

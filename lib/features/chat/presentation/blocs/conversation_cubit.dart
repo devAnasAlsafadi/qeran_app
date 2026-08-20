@@ -44,7 +44,6 @@ class ConversationCubit extends Cubit<ConversationStateData> with SafeEmit<Conve
   final SendTextMessageUseCase _sendText;
   final ShareProfileUseCase _shareProfile;
   final ChatRealtimePort _realtimePort;
-  final Future<String?> Function() _accessTokenProvider;
 
   /// Source of truth for "who is me" when stamping optimistic temps
   /// and computing `isMine` rendering. Provided by the screen at
@@ -67,14 +66,12 @@ class ConversationCubit extends Cubit<ConversationStateData> with SafeEmit<Conve
     required SendTextMessageUseCase sendText,
     required ShareProfileUseCase shareProfile,
     required ChatRealtimePort realtimePort,
-    required Future<String?> Function() accessTokenProvider,
     Uuid? uuid,
   })  : _getMessages = getMessages,
         _markAsRead = markAsRead,
         _sendText = sendText,
         _shareProfile = shareProfile,
         _realtimePort = realtimePort,
-        _accessTokenProvider = accessTokenProvider,
         _uuid = uuid ?? const Uuid(),
         super(ConversationStateData(conversationId: conversationId));
 
@@ -124,10 +121,16 @@ class ConversationCubit extends Cubit<ConversationStateData> with SafeEmit<Conve
 
   // ── Realtime wiring ───────────────────────────────────────────────
 
-  /// Subscribe to the realtime port and fire `connect()` exactly once
-  /// per cubit lifetime. Idempotent across `refresh()` calls — we
-  /// never tear down a working SignalR session just because the user
-  /// pulled-to-refresh.
+  /// Subscribe to the realtime port exactly once per cubit lifetime.
+  /// Idempotent across `refresh()` calls.
+  ///
+  /// Deliberately does NOT open the session: the shell owns it (see
+  /// `ChatRealtimeHost`), because the hub carries traffic for every tab
+  /// and must outlive any one conversation. Connecting here as well
+  /// would not be a harmless duplicate — `connect()` tears down the live
+  /// session before opening a new one, so a second caller churns the
+  /// socket and republishes the whole status cycle, which this cubit
+  /// reads as a drop and answers with a needless page=1 refetch.
   void _wireRealtimeOnce() {
     if (_realtimeWired) return;
     _realtimeWired = true;
@@ -135,61 +138,13 @@ class ConversationCubit extends Cubit<ConversationStateData> with SafeEmit<Conve
     _statusSub = _realtimePort.statusStream.listen(_onRealtimeStatus);
     _messagesReadSub =
         _realtimePort.messagesRead.listen(_onMessagesRead);
-    unawaited(_safeConnect());
-  }
-
-  Future<void> _safeConnect() async {
-    try {
-      await _realtimePort.connect(
-        accessTokenProvider: _accessTokenProvider,
-      );
-    } catch (e) {
-      AppLogger.warning(
-        'CHAT — realtime initial connect failed: $e',
-        tag: 'CHAT',
-      );
-      // The status stream has already emitted `disconnected` from the
-      // service's catch block. The composer + REST keep working.
-    }
-  }
-
-  /// Called by the screen-level lifecycle wrapper when the app
-  /// backgrounds past the grace window. Disconnect the SignalR
-  /// session to save battery / sockets; `resumeRealtime()` will
-  /// re-establish it (and trigger a page=1 catch-up via the
-  /// `_onRealtimeStatus` rule).
-  ///
-  /// Idempotent — no-op if realtime was never wired or if we're
-  /// already disconnected. Subscriptions stay alive so reconnect
-  /// flows back into the existing handlers.
-  Future<void> pauseRealtime() async {
-    if (!_realtimeWired) return;
-    if (state.realtimeStatus == RealtimeStatus.disconnected) return;
-    try {
-      await _realtimePort.disconnect();
-    } catch (e) {
-      AppLogger.warning(
-        'CHAT — pauseRealtime disconnect failed: $e',
-        tag: 'CHAT',
-      );
-    }
-  }
-
-  /// Called by the screen-level lifecycle wrapper when the app
-  /// returns to the foreground after a background pause. Reconnect
-  /// the SignalR session; the existing status handler will fire
-  /// catch-up against page=1.
-  ///
-  /// Idempotent — no-op if realtime was never wired, or if the port
-  /// is already connecting / connected.
-  Future<void> resumeRealtime() async {
-    if (!_realtimeWired) return;
-    if (state.realtimeStatus == RealtimeStatus.connected ||
-        state.realtimeStatus == RealtimeStatus.connecting ||
-        state.realtimeStatus == RealtimeStatus.reconnecting) {
-      return;
-    }
-    await _safeConnect();
+    // Seed from the port's CURRENT status. The shell almost always
+    // connected long before this screen opened, and that `connected`
+    // event is already spent — a broadcast stream does not replay it.
+    // Without this the header would read "not active" over a perfectly
+    // live socket, and `hasEverBeenConnected` would stay false,
+    // disarming the catch-up rule for the rest of the conversation.
+    _onRealtimeStatus(_realtimePort.status);
   }
 
   void _onIncomingMessage(ChatMessage msg) {
@@ -624,16 +579,9 @@ class ConversationCubit extends Cubit<ConversationStateData> with SafeEmit<Conve
     _statusSub = null;
     await _messagesReadSub?.cancel();
     _messagesReadSub = null;
-    // Disconnect the SignalR session this cubit owned. The port is a
-    // lazy singleton — disconnecting is idempotent and won't affect
-    // a future cubit instance (it'll connect fresh).
-    if (_realtimeWired) {
-      try {
-        await _realtimePort.disconnect();
-      } catch (e) {
-        AppLogger.warning('CHAT — realtime disconnect on close: $e', tag: 'CHAT');
-      }
-    }
+    // Drops the subscriptions ONLY. The session belongs to the shell and
+    // has to survive leaving a conversation — every other tab's badge
+    // rides it.
     await super.close();
   }
 }

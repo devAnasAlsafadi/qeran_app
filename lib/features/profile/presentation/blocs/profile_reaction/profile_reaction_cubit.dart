@@ -63,8 +63,14 @@ class ProfileReactionCubit extends Cubit<ProfileReactionState>
             _emitEvent(ProfileReactionEvent.likeSuccess);
           case LikePaywall():
             _emitEvent(ProfileReactionEvent.paywall);
-          case LikeAlreadyPending():
-            _emitEvent(ProfileReactionEvent.alreadyPending);
+          // The only outcome that carries its message forward: the server's
+          // duplicate check is bidirectional, so only it knows whether the
+          // pending like is yours or theirs.
+          case LikeAlreadyPending(:final serverMessage):
+            _emitEvent(
+              ProfileReactionEvent.alreadyPending,
+              message: serverMessage,
+            );
           case LikeGenderMismatch():
             _emitEvent(ProfileReactionEvent.genderMismatch);
           case LikeUserUnavailable():
@@ -95,9 +101,13 @@ class ProfileReactionCubit extends Cubit<ProfileReactionState>
     }, (_) => _emitEvent(ProfileReactionEvent.passSuccess));
   }
 
-  void _emitEvent(ProfileReactionEvent event) {
+  void _emitEvent(ProfileReactionEvent event, {String? message}) {
     emit(
-      ProfileReactionState(event: event, eventVersion: state.eventVersion + 1),
+      ProfileReactionState(
+        event: event,
+        eventVersion: state.eventVersion + 1,
+        eventMessage: message,
+      ),
     );
   }
 }

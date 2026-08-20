@@ -72,4 +72,49 @@ void main() {
 
     expect(cubit.state.event, ProfileReactionEvent.passSuccess);
   });
+
+  // The server's duplicate-like check is BIDIRECTIONAL — the same code comes
+  // back whether you already liked them or they already liked you — so only
+  // its message can describe which. Dropping it forces the UI onto a local
+  // string that is wrong half the time.
+  test('a duplicate like carries the server message forward', () async {
+    when(() => like('candidate')).thenAnswer(
+      (_) async => const Right<Failure, LikeOutcome>(
+        LikeAlreadyPending(serverMessage: 'هذا الشخص أعجب بك بالفعل'),
+      ),
+    );
+
+    await cubit.like('candidate');
+
+    expect(cubit.state.event, ProfileReactionEvent.alreadyPending);
+    expect(cubit.state.eventMessage, 'هذا الشخص أعجب بك بالفعل');
+  });
+
+  // The UI falls back to its local string on an empty message, so the state
+  // must report emptiness rather than an invented one.
+  test('an empty server message is passed through untouched', () async {
+    when(() => like('candidate')).thenAnswer(
+      (_) async => const Right<Failure, LikeOutcome>(
+        LikeAlreadyPending(serverMessage: ''),
+      ),
+    );
+
+    await cubit.like('candidate');
+
+    expect(cubit.state.eventMessage, isEmpty);
+  });
+
+  // Outcomes with local copy must not start carrying stale text.
+  test('other outcomes leave the message null', () async {
+    when(() => like('candidate')).thenAnswer(
+      (_) async => const Right<Failure, LikeOutcome>(
+        LikeGenderMismatch(serverMessage: 'ignored'),
+      ),
+    );
+
+    await cubit.like('candidate');
+
+    expect(cubit.state.event, ProfileReactionEvent.genderMismatch);
+    expect(cubit.state.eventMessage, isNull);
+  });
 }

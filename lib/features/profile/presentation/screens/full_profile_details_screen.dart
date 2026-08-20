@@ -127,9 +127,14 @@ class _ProfileDetailsView extends StatelessWidget {
       case ProfileReactionEvent.paywall:
         showPaywall(context, intent: PaywallIntent.like);
       case ProfileReactionEvent.alreadyPending:
+        // The server's message, not a local string: its duplicate check fires
+        // in BOTH directions, and only it knows whether the pending like is
+        // yours or theirs. The local key is the fallback for an empty message.
         AppSnackBar.show(
           context,
-          message: LocaleKeys.discovery_like_already_pending.t(context),
+          message: (state.eventMessage?.trim().isNotEmpty ?? false)
+              ? state.eventMessage!.tOrRaw(context)
+              : LocaleKeys.discovery_like_already_pending.t(context),
           type: SnackBarType.info,
         );
         NavigationManager.pop(context, args.userId);

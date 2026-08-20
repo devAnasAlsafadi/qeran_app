@@ -254,9 +254,17 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
               unawaited(_animController.triggerSnapBack());
               showPaywall(context, intent: PaywallIntent.like);
             case LikeFailureKind.alreadyPending:
+              // The server's message, not a local string: its duplicate check
+              // fires in BOTH directions — you already liked them, or they
+              // already liked you — and only it knows which. A local string
+              // can only describe one, so it is wrong half the time. The key
+              // remains the fallback for an empty message.
+              final pending = state.actionError?.trim();
               AppSnackBar.show(
                 context,
-                message: LocaleKeys.discovery_like_already_pending.t(context),
+                message: (pending == null || pending.isEmpty)
+                    ? LocaleKeys.discovery_like_already_pending.t(context)
+                    : pending.tOrRaw(context),
                 type: SnackBarType.info,
               );
             case LikeFailureKind.genderMismatch:

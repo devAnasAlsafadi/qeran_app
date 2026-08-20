@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
@@ -14,14 +13,12 @@ import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
 import 'package:qeran/features/chat/domain/repositories/chat_repository.dart';
 import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
-import 'package:qeran/features/notifications/domain/usecases/get_notifications_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/share_with_matchmaker/share_with_matchmaker_cubit.dart';
 import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/domain/usecases/get_badges_usecase.dart';
 import 'package:qeran/features/badges/domain/usecases/mark_tab_seen_usecase.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
-import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/profile/domain/entities/other_profile.dart';
 import 'package:qeran/features/profile/domain/entities/placement.dart'
     as profile_placement;
@@ -210,20 +207,6 @@ class _FakeCurrentSubCubit extends CurrentSubscriptionCubit {
   _FakeCurrentSubCubit() : super(getCurrent: _FakeGetCurrent());
 }
 
-class _FakeGetNotifications extends Fake implements GetNotificationsUseCase {}
-
-class _FakePrefs extends Fake implements SharedPrefService {}
-
-class _FakeNotificationBadgeCubit extends NotificationBadgeCubit {
-  _FakeNotificationBadgeCubit()
-    : super(getNotifications: _FakeGetNotifications(), prefs: _FakePrefs());
-  @override
-  Future<void> refresh() async {}
-
-  /// Stands in for "the server has something newer than last-seen".
-  void setUnread(bool value) => emit(value);
-}
-
 class _FakeGetBadges extends Fake implements GetBadgesUseCase {}
 
 class _FakeMarkTabSeen extends Fake implements MarkTabSeenUseCase {}
@@ -338,9 +321,6 @@ Future<_FakeProfileRepository> _pumpView(
     () => DiscoveryHydrationCubit(
       getProfileById: GetProfileByIdUseCase(profileRepo),
     ),
-  );
-  sl.registerLazySingleton<NotificationBadgeCubit>(
-    () => _FakeNotificationBadgeCubit(),
   );
   sl.registerLazySingleton<BadgesCubit>(() => _FakeBadgesCubit());
   final chatRepo = _FakeChatRepository();

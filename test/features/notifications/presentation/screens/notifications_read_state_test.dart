@@ -8,21 +8,24 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
+import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
+import 'package:qeran/features/badges/domain/usecases/get_badges_usecase.dart';
+import 'package:qeran/features/badges/domain/usecases/mark_tab_seen_usecase.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/notifications/domain/entities/notification_item.dart';
 import 'package:qeran/features/notifications/domain/entities/notification_type.dart';
 import 'package:qeran/features/notifications/domain/entities/notifications_page.dart';
 import 'package:qeran/features/notifications/domain/repositories/notifications_repository.dart';
 import 'package:qeran/features/notifications/domain/usecases/get_notifications_usecase.dart';
-import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notification_read_cubit.dart';
 import 'package:qeran/features/notifications/presentation/blocs/notifications_cubit.dart';
 import 'package:qeran/features/notifications/presentation/screens/notifications_screen.dart';
 import 'package:qeran/features/notifications/presentation/widgets/notification_inbox_tile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// The inbox has no backend read-state, so "read" is local — and it is a
-/// DIFFERENT thing from the bell's "seen":
-/// * seen → the bell dot, marked on the way OUT of the screen
+/// The inbox has no backend PER-ROW read-state, so "read" is local — and it is
+/// a DIFFERENT thing from the bell's "seen":
+/// * seen → the bell's server-side count, marked on the way OUT of the screen
 /// * read → the row treatment, marked by opening a row or sweeping the lot
 ///
 /// These pin that split, because collapsing the two is what made the earlier
@@ -60,35 +63,36 @@ class _FakeRepo extends Fake implements NotificationsRepository {
   );
 }
 
-/// Records what the screen marked seen, without touching prefs or the network.
-class _SpyBadgeCubit extends NotificationBadgeCubit {
-  _SpyBadgeCubit(SharedPrefService prefs)
-    : super(getNotifications: GetNotificationsUseCase(_FakeRepo()), prefs: prefs);
+class _FakeGetBadges extends Fake implements GetBadgesUseCase {}
 
-  int? seenUpTo;
+class _FakeMarkTabSeen extends Fake implements MarkTabSeenUseCase {}
+
+/// Records which tabs the screen marked seen, without touching the network.
+class _SpyBadgesCubit extends BadgesCubit {
+  _SpyBadgesCubit()
+    : super(getBadges: _FakeGetBadges(), markTabSeen: _FakeMarkTabSeen());
+
+  final List<String> seenTabs = [];
 
   @override
-  Future<void> markSeen(int newestId) async {
-    seenUpTo = newestId;
-    emit(false);
-  }
+  Future<void> markSeen(String tabKey) async => seenTabs.add(tabKey);
 }
 
-late _SpyBadgeCubit _badge;
+late _SpyBadgesCubit _badge;
 
 Future<void> _pumpInbox(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = SharedPrefService(await SharedPreferences.getInstance());
   final usecase = GetNotificationsUseCase(_FakeRepo());
 
-  _badge = _SpyBadgeCubit(prefs);
+  _badge = _SpyBadgesCubit();
   sl.registerFactory<NotificationsCubit>(
     () => NotificationsCubit(getNotifications: usecase),
   );
   sl.registerLazySingleton<NotificationReadCubit>(
     () => NotificationReadCubit(prefs: prefs),
   );
-  sl.registerLazySingleton<NotificationBadgeCubit>(() => _badge);
+  sl.registerLazySingleton<BadgesCubit>(() => _badge);
 
   await tester.pumpWidget(
     EasyLocalization(
@@ -206,12 +210,12 @@ void main() {
   ) async {
     await _pumpInbox(tester);
 
-    // Still on the screen: the dot must survive long enough to be seen.
-    expect(_badge.seenUpTo, isNull);
+    // Still on the screen: the badge must survive long enough to be seen.
+    expect(_badge.seenTabs, isEmpty);
 
     await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
     await tester.pumpAndSettle();
 
-    expect(_badge.seenUpTo, 3);
+    expect(_badge.seenTabs, [BadgeTabKeys.notifications]);
   });
 }

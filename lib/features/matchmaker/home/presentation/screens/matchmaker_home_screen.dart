@@ -19,7 +19,6 @@ import '../../../conversations/presentation/screens/matchmaker_conversations_tab
 import '../../../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
 import '../../../dashboard/presentation/screens/matchmaker_dashboard_tab.dart';
 import '../../../explore/presentation/screens/matchmaker_explore_tab.dart';
-import '../../../notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
 import '../../../shared/data/matchmaker_notification_router.dart';
 import '../../../shared/domain/entities/matchmaker_realtime_status.dart';
 import '../../../shared/domain/ports/matchmaker_realtime_port.dart';
@@ -76,8 +75,6 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     _realtimePort = sl<MatchmakerRealtimePort>();
     WidgetsBinding.instance.addObserver(this);
     unawaited(_safeConnect());
-    // Prime the bell badge (unread = total − last-seen). Silent on failure.
-    unawaited(sl<MatchmakerNotificationBadgeCubit>().refresh());
     // A new shell means a new session — start from the server's counts rather
     // than whatever the last account left behind.
     sl<BadgesCubit>().clear();
@@ -150,7 +147,6 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     // resume, re-establish only if the socket dropped while backgrounded;
     // the cases cubit catches up via its own reconnect listener.
     if (state == AppLifecycleState.resumed) {
-      unawaited(sl<MatchmakerNotificationBadgeCubit>().refresh());
       unawaited(sl<BadgesCubit>().refresh());
       if (_realtimePort.status == MatchmakerRealtimeStatus.disconnected) {
         unawaited(_safeConnect());

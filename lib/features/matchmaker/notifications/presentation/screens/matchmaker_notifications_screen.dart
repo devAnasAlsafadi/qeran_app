@@ -13,6 +13,8 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/notifications/presentation/widgets/notification_inbox_tile.dart'
     show NotificationInboxDivider;
 import '../../../../../generated/locale_keys.g.dart';
@@ -20,24 +22,23 @@ import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../shared/data/matchmaker_notification_router.dart';
 import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/matchmaker_notification.dart';
-import '../blocs/matchmaker_notification_badge_cubit.dart';
 import '../blocs/matchmaker_notification_read_cubit.dart';
 import '../blocs/matchmaker_notifications_cubit.dart';
 import '../widgets/matchmaker_notification_tile.dart';
 
 /// The matchmaker notification inbox (F5). Paginated list backed by
-/// `GET /notifications`. On open it marks everything "seen" (clears the bell
-/// badge); a row tap deep-links via [MatchmakerNotificationRouter].
+/// `GET /notifications`. A row tap deep-links via
+/// [MatchmakerNotificationRouter].
 ///
-/// Read-state is LOCAL — the backend exposes none. Two separate ideas, the
-/// same split the user app makes:
-/// * **seen** ([MatchmakerNotificationBadgeCubit]) clears the bell badge, on
-///   open.
-/// * **read** ([MatchmakerNotificationReadCubit]) lifts a row. Coarser than
-///   the user app's: with no per-id endpoint there is no "mark this one read",
-///   so a row is unread when it arrived since the last visit. The watermark
-///   the rows render against is frozen at mount and advanced on the way OUT,
-///   so arriving at the inbox doesn't erase the very thing the user came for.
+/// Two separate ideas, the same split the user app makes:
+/// * **seen** clears the bell — a server-side count, cleared through
+///   [BadgesCubit] on the way OUT, so a load that failed never clears a badge
+///   for notifications the matchmaker never saw.
+/// * **read** ([MatchmakerNotificationReadCubit]) lifts a row, and stays LOCAL.
+///   Coarser than the user app's: with no per-id endpoint there is no "mark
+///   this one read", so a row is unread when it arrived since the last visit.
+///   The watermark the rows render against is frozen at mount and advanced on
+///   the way OUT, so arriving doesn't erase the very thing the user came for.
 class MatchmakerNotificationsScreen extends StatefulWidget {
   const MatchmakerNotificationsScreen({super.key});
 
@@ -59,16 +60,21 @@ class _MatchmakerNotificationsScreenState
     super.initState();
     _cubit = sl<MatchmakerNotificationsCubit>()..loadFirst();
     _readCubit = sl<MatchmakerNotificationReadCubit>()..load();
-    // Opening the inbox = everything seen → clears the app-bar bell badge.
-    sl<MatchmakerNotificationBadgeCubit>().markAllSeen();
   }
 
   @override
   void dispose() {
     // On the way out, not on load: the rows stay lifted for the whole visit,
-    // and the NEXT visit starts clean. Fire-and-forget — it only writes a
-    // preference, and never emits, so the close below is safe.
-    if (_newestLoadedId > 0) _readCubit.markAllRead(_newestLoadedId);
+    // and the NEXT visit starts clean. Both are fire-and-forget, and neither
+    // emits into this tree, so the close below is safe.
+    //
+    // The bell moved here from initState to share the guard: mark-seen is
+    // server-side now, so clearing it after a load that failed would lose the
+    // badge for notifications the matchmaker never saw.
+    if (_newestLoadedId > 0) {
+      _readCubit.markAllRead(_newestLoadedId);
+      sl<BadgesCubit>().markSeen(BadgeTabKeys.notifications);
+    }
     _readCubit.close();
     _cubit.close();
     super.dispose();

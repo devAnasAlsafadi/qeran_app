@@ -19,7 +19,6 @@ import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
-import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
@@ -92,7 +91,6 @@ class _HomeScreenState extends State<HomeScreen>
     });
     // Foreground push → refresh the unread indicators (no auto-navigation).
     _notifForegroundSub = FirebaseMessaging.onMessage.listen((_) {
-      unawaited(sl<NotificationBadgeCubit>().refresh());
       unawaited(sl<BadgesCubit>().refresh());
     });
   }
@@ -110,7 +108,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      unawaited(sl<NotificationBadgeCubit>().refresh());
       unawaited(sl<BadgesCubit>().refresh());
       unawaited(sl<CurrentSubscriptionCubit>().refresh(force: true));
     }

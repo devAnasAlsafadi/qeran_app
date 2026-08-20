@@ -187,10 +187,8 @@ class UserSessionCubit extends Cubit<UserSessionState>
     StorageKeys.uploadedPhotos,
     StorageKeys.pendingUserId,
     // Notification read-state heuristics (account-level)
-    StorageKeys.notifLastSeenId,
     StorageKeys.notifReadWatermark,
     StorageKeys.notifReadIds,
-    StorageKeys.matchmakerNotifLastSeenId,
     // Was missed when the matchmaker read watermark was added: without it the
     // next matchmaker to sign in on this device inherits the previous one's
     // read rows.

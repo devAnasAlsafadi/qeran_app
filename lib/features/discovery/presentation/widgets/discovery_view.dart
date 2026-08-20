@@ -13,7 +13,6 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/bottom_chrome_inset.dart';
-import 'package:qeran/features/notifications/presentation/blocs/notification_badge_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
@@ -61,11 +60,6 @@ class DiscoveryView extends StatelessWidget {
         // its pagination, or the paywall / daily-limit gating.
         BlocProvider<DiscoveryHydrationCubit>(
           create: (_) => sl<DiscoveryHydrationCubit>(),
-        ),
-        // App-wide unread-badge singleton (refreshed in initState + on resume,
-        // not per build). `.value` so the shared singleton is never closed here.
-        BlocProvider<NotificationBadgeCubit>.value(
-          value: sl<NotificationBadgeCubit>(),
         ),
       ],
       child: const _DiscoveryContent(),
@@ -117,8 +111,7 @@ bool _isFullScreenReplacement(DiscoveryState state) {
   return false;
 }
 
-class _DiscoveryContentState extends State<_DiscoveryContent>
-    with WidgetsBindingObserver {
+class _DiscoveryContentState extends State<_DiscoveryContent> {
   late final DiscoveryDeckAnimationController _animController =
       DiscoveryDeckAnimationController();
 
@@ -138,24 +131,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
   final ValueNotifier<double> _scrollOffset = ValueNotifier<double>(0);
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    // First unread check on mount (app open / return to the discovery tab).
-    sl<NotificationBadgeCubit>().refresh();
-  }
-
-  /// Re-check the unread badge when the app returns to the foreground.
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      sl<NotificationBadgeCubit>().refresh();
-    }
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _animController.dispose();
     _scrollOffset.dispose();
     super.dispose();

@@ -8,13 +8,15 @@ import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/badges/domain/usecases/get_badges_usecase.dart';
+import 'package:qeran/features/badges/domain/usecases/mark_tab_seen_usecase.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/matchmaker/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/matchmaker/notifications/domain/entities/matchmaker_notification.dart';
 import 'package:qeran/features/matchmaker/notifications/domain/entities/matchmaker_notifications_page.dart';
 import 'package:qeran/features/matchmaker/notifications/domain/repositories/matchmaker_notifications_repository.dart';
 import 'package:qeran/features/matchmaker/notifications/domain/usecases/get_notifications_usecase.dart';
-import 'package:qeran/features/matchmaker/notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/blocs/matchmaker_notification_read_cubit.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/blocs/matchmaker_notifications_cubit.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
@@ -50,6 +52,20 @@ MatchmakerNotification _caseRow() => const MatchmakerNotification(
   data: {'action': 'compatibility_case_updated', 'audience': 'matchmaker'},
   createdAt: null,
 );
+
+class _FakeGetBadges extends Fake implements GetBadgesUseCase {}
+
+class _FakeMarkTabSeen extends Fake implements MarkTabSeenUseCase {}
+
+/// The inbox marks the bell seen on the way out — a no-op stand-in keeps that
+/// off the network without changing the navigation under test.
+class _FakeBadgesCubit extends BadgesCubit {
+  _FakeBadgesCubit()
+    : super(getBadges: _FakeGetBadges(), markTabSeen: _FakeMarkTabSeen());
+
+  @override
+  Future<void> markSeen(String tabKey) async {}
+}
 
 class _FakeRepo extends Fake implements MatchmakerNotificationsRepository {
   @override
@@ -202,12 +218,7 @@ void main() {
       ),
     );
     sl.registerFactory(() => MatchmakerNotificationReadCubit(prefs: prefs));
-    sl.registerLazySingleton(
-      () => MatchmakerNotificationBadgeCubit(
-        getNotifications: GetNotificationsUseCase(repo),
-        prefs: prefs,
-      ),
-    );
+    sl.registerLazySingleton<BadgesCubit>(() => _FakeBadgesCubit());
 
     Object? popped;
     await tester.pumpWidget(

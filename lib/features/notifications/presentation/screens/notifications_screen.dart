@@ -10,11 +10,12 @@ import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
+import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/notification_item.dart';
-import '../blocs/notification_badge_cubit.dart';
 import '../blocs/notification_read_cubit.dart';
 import '../blocs/notification_read_state.dart';
 import '../blocs/notifications_cubit.dart';
@@ -28,12 +29,13 @@ import '../widgets/notifications_paginated_list.dart';
 /// returns here); Likes / Profile links pop back to [openNotifications], which
 /// switches the home tab; rows with no destination ([NoDeepLink]) don't move.
 ///
-/// Read-state is LOCAL — the backend exposes none. Two separate ideas:
-/// * **seen** ([NotificationBadgeCubit]) clears the bell dot. Marked on the way
-///   OUT, not on load, so arriving at the inbox doesn't erase the very thing
-///   the user came to look at.
-/// * **read** ([NotificationReadCubit]) greys a row out. A row is read once it
-///   is tapped, or once "mark all as read" is used.
+/// Two separate ideas, and they no longer share a source:
+/// * **seen** clears the bell — a server-side count, cleared through
+///   [BadgesCubit]. Marked on the way OUT, not on load, so a failed load
+///   never clears a badge for notifications the user never saw.
+/// * **read** ([NotificationReadCubit]) greys a row out and stays LOCAL — the
+///   backend exposes no per-row read-state. A row is read once it is tapped,
+///   or once "mark all as read" is used.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -58,10 +60,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   void dispose() {
-    // On the way out, not on load: the bell dot clears because the user has
-    // been here, while the rows they never opened stay marked unread.
+    // On the way out, not on load: the bell clears because the user has been
+    // here, while the rows they never opened stay marked unread. The guard
+    // matters more than it did — mark-seen is server-side now, so clearing it
+    // after a load that failed would lose the badge for good.
     if (_newestLoadedId > 0) {
-      sl<NotificationBadgeCubit>().markSeen(_newestLoadedId);
+      sl<BadgesCubit>().markSeen(BadgeTabKeys.notifications);
     }
     _cubit.close();
     super.dispose();

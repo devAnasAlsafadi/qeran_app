@@ -29,26 +29,13 @@ class StorageKeys {
   static const String lastLinkedFcm = 'last_linked_fcm';
   static const String notifPermissionAsked = 'notif_permission_asked';
 
-  /// Local "last seen" highest notification id for the MATCHMAKER inbox — the
-  /// same heuristic as [notifLastSeenId], under its own key.
-  ///
-  /// Replaced a stored TOTAL COUNT. A total cannot distinguish "new" from
-  /// "different": delete one notification server-side and the next arrival
-  /// restores the old total, so the badge stays dark. Ids only ever go up.
-  static const String matchmakerNotifLastSeenId =
-      'matchmaker_notif_last_seen_id';
-
-  /// Local "last seen" highest notification id for the USER-app inbox. Unread =
-  /// newest server id > this — the backend exposes no read-state.
-  static const String notifLastSeenId = 'notif_last_seen_id';
-
   /// Local READ watermark for the USER-app inbox — everything with an id at or
   /// below it counts as read. Set by "mark all as read".
   ///
-  /// Deliberately SEPARATE from [notifLastSeenId]: "seen" clears the bell dot
-  /// (you visited the inbox), "read" is what greys a row out (you opened that
-  /// notification, or cleared the lot). Still a local heuristic — the backend
-  /// exposes no read-state.
+  /// Deliberately SEPARATE from the bell: "seen" is the server's unread count,
+  /// cleared by visiting the inbox; "read" is what greys a row out (you opened
+  /// that notification, or cleared the lot). Still a local heuristic — the
+  /// backend exposes no per-row read-state.
   static const String notifReadWatermark = 'notif_read_watermark';
 
   /// Ids read one by one, ABOVE [notifReadWatermark]. Stored as strings because
@@ -62,9 +49,8 @@ class StorageKeys {
   /// "mark this one read" (no backend endpoint for it), so the watermark is the
   /// whole story.
   ///
-  /// Kept SEPARATE from the user-app key the same way
-  /// [matchmakerNotifLastSeenId] is separate from [notifLastSeenId] — the two
-  /// roles read the same endpoint but never share local state.
+  /// Kept SEPARATE from the user-app key — the two roles read the same
+  /// endpoint but never share local state.
   static const String matchmakerNotifReadWatermark =
       'matchmaker_notif_read_watermark';
 

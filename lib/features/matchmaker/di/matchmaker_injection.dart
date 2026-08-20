@@ -73,7 +73,6 @@ import '../notifications/data/repositories/matchmaker_notifications_repository_i
 import '../notifications/domain/repositories/matchmaker_notifications_repository.dart';
 import '../notifications/domain/usecases/get_notification_count_usecase.dart';
 import '../notifications/domain/usecases/get_notifications_usecase.dart';
-import '../notifications/presentation/blocs/matchmaker_notification_badge_cubit.dart';
 import '../notifications/presentation/blocs/matchmaker_notification_read_cubit.dart';
 import '../notifications/presentation/blocs/matchmaker_notifications_cubit.dart';
 import '../shared/data/datasources/matchmaker_realtime_signalr_service.dart';
@@ -355,13 +354,8 @@ Future<void> initMatchmakerDependencies() async {
   sl.registerFactory(
     () => MatchmakerNotificationsCubit(getNotifications: sl()),
   );
-  // Shared bell-badge source — SINGLETON so every MatchmakerAppBar + the inbox
-  // observe the same unread count. `prefs` resolves the SharedPrefService.
-  sl.registerLazySingleton(
-    () => MatchmakerNotificationBadgeCubit(getNotifications: sl(), prefs: sl()),
-  );
-  // FACTORY, unlike the badge: the watermark it exposes is frozen at mount, so
-  // a fresh instance per visit is what makes the next visit start clean.
+  // FACTORY, deliberately: the watermark it exposes is frozen at mount, so a
+  // fresh instance per visit is what makes the next visit start clean.
   sl.registerFactory(() => MatchmakerNotificationReadCubit(prefs: sl()));
 
   //! ── M4c-1 · App-wide realtime (matchmaker-owned, isolated) ───────

@@ -78,9 +78,6 @@ class _FakeRepo extends Fake implements MatchmakerNotificationsRepository {
       hasMore: false,
     ),
   );
-
-  @override
-  Future<Either<Failure, int>> getCount() async => const Right(0);
 }
 
 void main() {

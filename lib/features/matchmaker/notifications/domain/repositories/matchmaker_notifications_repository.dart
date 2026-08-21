@@ -9,7 +9,4 @@ abstract interface class MatchmakerNotificationsRepository {
     required int page,
     required int pageSize,
   });
-
-  /// Total notification count (not unread). Left on failure.
-  Future<Either<Failure, int>> getCount();
 }

@@ -381,12 +381,9 @@ class EndPoints {
   static const String affiliateCommissions = "affiliate/commissions";
 
   /// `GET /api/notifications?page=N&pageSize=M` — shared inbox (not
-  /// matchmaker-namespaced). Items carry no read-state; the unread badge is a
-  /// local heuristic (see the matchmaker notifications feature).
+  /// matchmaker-namespaced). Items carry no read-state: rows are greyed from a
+  /// local watermark, and the bell's count comes from [badges].
   static const String notifications = "notifications";
-
-  /// `GET /api/notifications/count` — `{ count }` (total, not unread).
-  static const String notificationsCount = "notifications/count";
 
   /// `GET /api/badges` — flat `{ "<tab>Unread": n }` dict for the signed-in
   /// role. An absent key means zero; an unrecognised one is ignored. Read with

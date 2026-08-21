@@ -26,8 +26,4 @@ class MatchmakerNotificationsRepositoryImpl
       return model.toEntity();
     });
   }
-
-  @override
-  Future<Either<Failure, int>> getCount() =>
-      executeApiCall(() => _dataSource.getCount());
 }

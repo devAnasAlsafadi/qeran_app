@@ -71,7 +71,6 @@ import '../interests/presentation/blocs/matchmaker_interests_cubit.dart';
 import '../notifications/data/datasources/matchmaker_notifications_remote_datasource.dart';
 import '../notifications/data/repositories/matchmaker_notifications_repository_impl.dart';
 import '../notifications/domain/repositories/matchmaker_notifications_repository.dart';
-import '../notifications/domain/usecases/get_notification_count_usecase.dart';
 import '../notifications/domain/usecases/get_notifications_usecase.dart';
 import '../notifications/presentation/blocs/matchmaker_notification_read_cubit.dart';
 import '../notifications/presentation/blocs/matchmaker_notifications_cubit.dart';
@@ -349,7 +348,6 @@ Future<void> initMatchmakerDependencies() async {
     () => MatchmakerNotificationsRepositoryImpl(sl()),
   );
   sl.registerLazySingleton(() => GetNotificationsUseCase(sl()));
-  sl.registerLazySingleton(() => GetNotificationCountUseCase(sl()));
   // One inbox cubit per screen mount.
   sl.registerFactory(
     () => MatchmakerNotificationsCubit(getNotifications: sl()),

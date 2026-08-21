@@ -12,6 +12,7 @@ import 'package:qeran/core/widgets/locale_rebuild_scope.dart';
 import 'package:qeran/core/widgets/scroll_hiding_nav_scaffold.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
+import 'package:qeran/features/badges/domain/entities/nav_badge_tabs.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/badges/presentation/widgets/badges_realtime_host.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
@@ -172,7 +173,17 @@ class _HomeScreenState extends State<HomeScreen>
     _selectTab(index);
   }
 
+  /// Opening a tab acknowledges its badge. Ahead of the early return below on
+  /// purpose: a live event can raise a dot on the tab already showing, and a
+  /// visible dot that ignores a tap reads as broken. No-ops when the tab has
+  /// no badge, so a repeat visit costs nothing.
+  void _markTabSeen(int index) {
+    final key = NavBadgeTabs.user[index];
+    if (key != null) unawaited(sl<BadgesCubit>().markSeen(key));
+  }
+
   Future<void> _selectTab(int index) async {
+    _markTabSeen(index);
     if (index == _currentTab || _tabTransitionPending) return;
     // Visited tabs stay mounted offstage. Clear a composer/form focus before
     // hiding its tab so Android cannot restore that invisible field (and its

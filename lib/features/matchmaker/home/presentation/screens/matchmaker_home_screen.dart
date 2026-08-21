@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
+import 'package:qeran/features/badges/domain/entities/nav_badge_tabs.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/badges/presentation/widgets/badges_realtime_host.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
@@ -164,7 +165,17 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     }
   }
 
+  /// Opening a tab acknowledges its badge. Ahead of the early return below on
+  /// purpose: a live event can raise a dot on the tab already showing, and a
+  /// visible dot that ignores a tap reads as broken. No-ops when the tab has
+  /// no badge, so a repeat visit costs nothing.
+  void _markTabSeen(int index) {
+    final key = NavBadgeTabs.matchmaker[index];
+    if (key != null) unawaited(sl<BadgesCubit>().markSeen(key));
+  }
+
   void _selectTab(int index, {MatchmakerUsersList? usersSubTab}) {
+    _markTabSeen(index);
     if (index == _currentTab && usersSubTab == null) return;
     setState(() {
       _currentTab = index;

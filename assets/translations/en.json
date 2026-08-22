@@ -347,6 +347,7 @@
     "matches_journey_matchmaker": "The matchmaker is following up",
     "matches_journey_completed": "Completed successfully",
     "matches_journey_current": "Current stage",
+    "matches_journey_view": "View journey",
     "matches_formal_step_message": "I'd like to proceed formally to the next step with this person",
     "matches_stage_matchmaker_will_contact": "The matchmaker will contact you soon",
     "matches_action_request_success": "Photo exchange requested",

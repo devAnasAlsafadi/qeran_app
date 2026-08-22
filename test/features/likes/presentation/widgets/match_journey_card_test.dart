@@ -145,4 +145,22 @@ void main() {
       expect(find.text(_completed), findsOneWidget, reason: locale.toString());
     }
   });
+
+  // The row sits under a big gold CTA and looks like the status line above it,
+  // so the chevron alone was read as decoration. The hint says outright that
+  // something is behind the row, then retires once the member has opened one.
+  testWidgets('closed, it says what opening the row reveals', (tester) async {
+    await _pump(tester, _card(stage: MatchStage.waitingForPhotoExchange));
+
+    expect(find.textContaining('likes.matches_journey_view'), findsOneWidget);
+  });
+
+  testWidgets('the hint retires once the journey is open', (tester) async {
+    await _pump(tester, _card(stage: MatchStage.waitingForPhotoExchange));
+
+    await tester.tap(find.text(_likeAccepted));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('likes.matches_journey_view'), findsNothing);
+  });
 }

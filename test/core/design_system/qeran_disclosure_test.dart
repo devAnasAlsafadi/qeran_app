@@ -158,4 +158,59 @@ void main() {
       expect(find.text('body'), findsNothing);
     });
   });
+
+  group('hint', () {
+    Widget hosted({bool? expanded}) => MaterialApp(
+      home: Scaffold(
+        body: QeranDisclosure(
+          hint: 'see more',
+          expanded: expanded,
+          onExpandedChanged: expanded == null ? null : (_) {},
+          summary: const Text('summary'),
+          child: const Text('body'),
+        ),
+      ),
+    );
+
+    testWidgets('it says what opening the row reveals', (tester) async {
+      await tester.pumpWidget(hosted());
+
+      expect(find.textContaining('see more'), findsOneWidget);
+    });
+
+    // Having said it once it stops: the member has learned the row opens, and
+    // the expanded row is busy enough without a standing instruction.
+    testWidgets('it goes away once open', (tester) async {
+      await tester.pumpWidget(hosted());
+
+      await tester.tap(find.text('summary'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('see more'), findsNothing);
+    });
+
+    testWidgets('a row that starts open never shows it', (tester) async {
+      await tester.pumpWidget(hosted(expanded: true));
+
+      expect(find.textContaining('see more'), findsNothing);
+    });
+
+    testWidgets('no hint, no extra text', (tester) async {
+      await tester.pumpWidget(_host());
+
+      expect(find.text('summary'), findsOneWidget);
+      expect(find.textContaining('·'), findsNothing);
+    });
+
+    // The hint is part of the row, so aiming at it must open the row rather
+    // than land on dead space.
+    testWidgets('tapping the hint opens the row', (tester) async {
+      await tester.pumpWidget(hosted());
+
+      await tester.tap(find.textContaining('see more'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('body'), findsOneWidget);
+    });
+  });
 }

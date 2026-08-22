@@ -43,6 +43,7 @@ class MatchJourneyCard extends StatelessWidget {
               scope.onOpenChanged(card.likeRequestId, open);
               if (open) _reveal(context);
             },
+      hint: LocaleKeys.likes_matches_journey_view.t(context),
       summary: _Summary(labelKey: matchJourneyLabelKey(current.stage)),
       child: Padding(
         padding: const EdgeInsets.only(top: QeranSpacing.s12),

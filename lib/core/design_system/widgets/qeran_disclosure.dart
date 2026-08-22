@@ -4,6 +4,7 @@ import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_motion.dart';
 import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_spacing.dart';
+import '../tokens/qeran_typography.dart';
 
 /// A tap-to-open section: an always-visible [summary] row with a chevron, and
 /// [child] revealed beneath it.
@@ -27,6 +28,7 @@ class QeranDisclosure extends StatefulWidget {
     this.initiallyExpanded = false,
     this.expanded,
     this.onExpandedChanged,
+    this.hint,
   });
 
   /// Always visible, beside the chevron. Sized by its own content.
@@ -48,6 +50,19 @@ class QeranDisclosure extends StatefulWidget {
   /// The value a tap is asking for — already flipped, so the caller can store
   /// it directly.
   final ValueChanged<bool>? onExpandedChanged;
+
+  /// A few words naming what opening this reveals, shown beside [summary]
+  /// while closed and dropped once open.
+  ///
+  /// A chevron alone is easy to read as decoration, especially on a row whose
+  /// summary looks like the status text around it. The hint says outright
+  /// that there is something behind the row — and having said it once, it
+  /// stops: a member who has opened one of these does not need telling again,
+  /// and the expanded row is busy enough.
+  ///
+  /// The caller supplies the WORDS, never the styling. Whatever this reveals,
+  /// the hint reads the same everywhere.
+  final String? hint;
 
   @override
   State<QeranDisclosure> createState() => _QeranDisclosureState();
@@ -88,7 +103,26 @@ class _QeranDisclosureState extends State<QeranDisclosure> {
                 constraints: const BoxConstraints(minHeight: 44),
                 child: Row(
                   children: [
-                    Expanded(child: widget.summary),
+                    // One Expanded around both, rather than flexing each of
+                    // them beside a Spacer. A Row splits free width by flex
+                    // factor, so summary + hint + Spacer capped the summary at
+                    // a THIRD of the row while two thirds sat empty — and a
+                    // label that fitted on one line while open wrapped to two
+                    // the moment the hint appeared beside it.
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(child: widget.summary),
+                          if (!_expanded && widget.hint != null) ...[
+                            QeranSpacing.hs8,
+                            // Unflexed on purpose: the hint is a few fixed
+                            // words, the summary is the part worth reading, so
+                            // the summary is what yields when space is tight.
+                            _Hint(text: widget.hint!),
+                          ],
+                        ],
+                      ),
+                    ),
                     QeranSpacing.hs8,
                     AnimatedRotation(
                       duration: QeranMotion.fast,
@@ -118,6 +152,32 @@ class _QeranDisclosureState extends State<QeranDisclosure> {
               : const SizedBox(width: double.infinity),
         ),
       ],
+    );
+  }
+}
+
+/// Subordinate by weight, but gold rather than muted ink: in this system gold
+/// is what "you can act on this" looks like on a light surface, and a hint
+/// whose whole job is to invite a tap should borrow that rather than the
+/// vocabulary of metadata.
+class _Hint extends StatelessWidget {
+  const _Hint({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      // Separator and hint share one style so the dot recedes with the words
+      // instead of punctuating the summary.
+      '· $text',
+      textAlign: TextAlign.start,
+      style: QeranTypography.label.copyWith(
+        color: QeranColors.goldDeep,
+        fontWeight: FontWeight.w400,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

@@ -50,10 +50,34 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         final ok = body['status'] == 1 || body['status'] == true;
         final message = _envelopeMessage(body);
         if (!ok) {
-          AppLogger.info(
-            'CHAT — my-matchmaker not assigned message="$message"',
-            tag: 'CHAT',
-          );
+          // All three documented failures on this endpoint arrive with no
+          // errorCode (backend batch 22), and the one that actually occurs —
+          // no matchmaker assigned yet — is a product state, not an error. So
+          // this branch keeps routing to `NotAssigned`.
+          //
+          // A code arriving here anyway would mean the server started sending
+          // something we have no handling for, and it would be indisting-
+          // uishable from "not assigned" on screen. Log it loudly rather than
+          // guess at a response: this is the tripwire that tells us a new
+          // server-side failure exists before a member has to report it.
+          //
+          // An empty string is not a code — envelopes carry one beside
+          // ordinary product states, and reacting to that would turn the calm
+          // not-assigned card into a false alarm.
+          final code = body['errorCode'];
+          if (code is String && code.isNotEmpty) {
+            AppLogger.warning(
+              'CHAT — my-matchmaker returned an UNHANDLED code in a 200 '
+              'envelope: code="$code" message="$message" — surfacing as '
+              'not-assigned',
+              tag: 'CHAT',
+            );
+          } else {
+            AppLogger.info(
+              'CHAT — my-matchmaker not assigned message="$message"',
+              tag: 'CHAT',
+            );
+          }
           return MyMatchmakerNotAssigned(serverMessage: message);
         }
         final data = body['data'];

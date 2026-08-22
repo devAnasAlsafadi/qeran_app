@@ -41,7 +41,7 @@ void main() {
       expect((outcome as MyMatchmakerAssigned).info.conversationId, 42);
     });
 
-    test('status:0 → MyMatchmakerNotAssigned', () async {
+    test('status:0 with no errorCode → MyMatchmakerNotAssigned', () async {
       when(() => api.getRaw(any())).thenAnswer((_) async => {
             'status': 0,
             'message': 'لم يتم تعيين خطّابة لك بعد',
@@ -52,13 +52,46 @@ void main() {
       expect(outcome, isA<MyMatchmakerNotAssigned>());
     });
 
-    test('transport ServerException → MyMatchmakerFailure (no rethrow)',
-        () async {
-      when(() => api.getRaw(any()))
-          .thenThrow(ServerException(message: LocaleKeys.errors_generic));
+    // Backend batch 22: all three documented failures on this endpoint come
+    // with no errorCode, and the realistic one is a product state. A code
+    // arriving anyway is logged as unhandled but must not change what the
+    // member sees — guessing at a response would be worse than the calm card.
+    test('an unhandled code in a 200 envelope still reads as not-assigned', () async {
+      when(() => api.getRaw(any())).thenAnswer((_) async => {
+            'status': 0,
+            'message': 'something went wrong',
+            'errorCode': 'SOME_SERVER_CODE',
+            'data': null,
+          });
 
       final outcome = await ds.getMyMatchmaker();
+      expect(outcome, isA<MyMatchmakerNotAssigned>());
+    });
+
+    test('an empty errorCode changes nothing either', () async {
+      when(() => api.getRaw(any())).thenAnswer((_) async => {
+            'status': 0,
+            'message': 'لم يتم تعيين خطّابة لك بعد',
+            'errorCode': '',
+            'data': null,
+          });
+
+      final outcome = await ds.getMyMatchmaker();
+      expect(outcome, isA<MyMatchmakerNotAssigned>());
+    });
+
+    // A non-2xx is a different path entirely: getRaw throws, and the catch
+    // below preserves the code on MyMatchmakerFailure. That half was never
+    // swallowed and stays covered by the transport test above.
+    test('a coded transport failure keeps its code', () async {
+      when(() => api.getRaw(any())).thenThrow(
+        CodedServerException(message: 'nope', errorCode: 'A_REAL_CODE'),
+      );
+
+      final outcome = await ds.getMyMatchmaker();
+
       expect(outcome, isA<MyMatchmakerFailure>());
+      expect((outcome as MyMatchmakerFailure).errorCode, 'A_REAL_CODE');
     });
   });
 

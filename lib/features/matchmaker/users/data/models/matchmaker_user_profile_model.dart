@@ -6,6 +6,7 @@ import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 import '../../../shared/data/json_parsers.dart';
 import '../../domain/entities/image_request_status.dart';
 import '../../domain/entities/matchmaker_user_profile.dart';
+import 'assigned_matchmaker_model.dart';
 
 /// Wire model for the matchmaker profile-detail payload — the object found
 /// at `data.data.data` (the datasource unwraps the double envelope before
@@ -33,6 +34,8 @@ class MatchmakerUserProfileModel {
   /// the server sent; [toEntity] does the typing.
   final String? imageRequestStatus;
 
+  final AssignedMatchmakerModel? assignedMatchmaker;
+
   const MatchmakerUserProfileModel({
     required this.userId,
     required this.name,
@@ -47,6 +50,7 @@ class MatchmakerUserProfileModel {
     required this.images,
     required this.placements,
     required this.imageRequestStatus,
+    required this.assignedMatchmaker,
   });
 
   factory MatchmakerUserProfileModel.fromJson(Map<String, dynamic> json) {
@@ -83,6 +87,9 @@ class MatchmakerUserProfileModel {
       images: images,
       placements: placements,
       imageRequestStatus: parseNullableString(json['imageRequestStatus']),
+      assignedMatchmaker: AssignedMatchmakerModel.fromJson(
+        json['assignedMatchmaker'],
+      ),
     );
   }
 
@@ -102,5 +109,6 @@ class MatchmakerUserProfileModel {
     imageRequestStatus: MatchmakerImageRequestStatus.fromString(
       imageRequestStatus,
     ),
+    assignedMatchmaker: assignedMatchmaker?.toEntity(),
   );
 }

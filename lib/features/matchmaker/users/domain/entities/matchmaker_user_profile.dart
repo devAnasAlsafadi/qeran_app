@@ -3,6 +3,7 @@ import 'package:qeran/features/profile/domain/entities/placement.dart';
 import 'package:qeran/features/profile/domain/entities/profile_image.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 
+import 'assigned_matchmaker.dart';
 import 'image_request_status.dart';
 
 /// A user's full profile as seen by the matchmaker
@@ -42,6 +43,10 @@ class MatchmakerUserProfile extends Equatable {
   /// [MatchmakerImageRequestStatus.none] when the server omits the field.
   final MatchmakerImageRequestStatus imageRequestStatus;
 
+  /// Who this user belongs to. Null when nobody is assigned — and the profile
+  /// is reachable from paths where that is normal, so absence is not an error.
+  final AssignedMatchmaker? assignedMatchmaker;
+
   const MatchmakerUserProfile({
     required this.userId,
     required this.name,
@@ -56,6 +61,7 @@ class MatchmakerUserProfile extends Equatable {
     required this.images,
     required this.placements,
     this.imageRequestStatus = MatchmakerImageRequestStatus.none,
+    this.assignedMatchmaker,
   });
 
   @override
@@ -73,5 +79,6 @@ class MatchmakerUserProfile extends Equatable {
     images,
     placements,
     imageRequestStatus,
+    assignedMatchmaker,
   ];
 }

@@ -12,6 +12,7 @@ import '../../../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cu
 import '../../../conversations/presentation/blocs/matchmaker_open_chat_state.dart';
 import '../../domain/entities/matchmaker_user_profile.dart';
 import '../matchmaker_user_profile_args.dart';
+import 'matchmaker_profile_contact.dart';
 import 'matchmaker_profile_hero.dart';
 import 'matchmaker_profile_main_card.dart';
 
@@ -33,6 +34,7 @@ class MatchmakerProfileBody extends StatelessWidget {
   /// How far the content sheet slides up under the photo's bottom edge — the
   /// identity's photo-into-content layered look (matches the user side).
   static const double _sheetOverlap = QeranSpacing.s24;
+
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +68,11 @@ class MatchmakerProfileBody extends StatelessWidget {
                     includeNarrative: false,
                   ),
                 ),
-                if (responsibleMatchmaker case final contact?)
+                if (profileContact(
+                      profile: profile,
+                      navArg: responsibleMatchmaker,
+                    )
+                    case final contact?)
                   Padding(
                     padding: const EdgeInsetsDirectional.fromSTEB(
                       QeranSpacing.s20,

@@ -51,7 +51,11 @@ class MatchmakerUserProfileScreen extends StatelessWidget {
         responsibleMatchmaker: args.responsibleMatchmaker,
       ),
     );
-    if (args.responsibleMatchmaker == null) return content;
+    // Mounted unconditionally. The profile's own `assignedMatchmaker` arrives
+    // asynchronously, so at build time there is no knowing whether the button
+    // will appear — and gating the provider on the nav arg meant every entry
+    // point except explore rendered that button into a tree with no cubit
+    // above it.
     return MatchmakerColleagueOpenChatHost(child: content);
   }
 }

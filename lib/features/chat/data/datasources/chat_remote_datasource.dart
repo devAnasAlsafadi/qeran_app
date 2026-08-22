@@ -50,34 +50,34 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
         final ok = body['status'] == 1 || body['status'] == true;
         final message = _envelopeMessage(body);
         if (!ok) {
-          // All three documented failures on this endpoint arrive with no
-          // errorCode (backend batch 22), and the one that actually occurs —
-          // no matchmaker assigned yet — is a product state, not an error. So
-          // this branch keeps routing to `NotAssigned`.
+          // Two very different things arrive here. "No matchmaker assigned
+          // yet" is a product state and gets a calm card telling the member
+          // one is on the way. A coded failure is not that, and routing it to
+          // the same place tells the member to wait for something waiting
+          // cannot fix.
           //
-          // A code arriving here anyway would mean the server started sending
-          // something we have no handling for, and it would be indisting-
-          // uishable from "not assigned" on screen. Log it loudly rather than
-          // guess at a response: this is the tripwire that tells us a new
-          // server-side failure exists before a member has to report it.
+          // The backend is moving this endpoint to an explicit enum, after
+          // which the ambiguity disappears and this branch is redundant.
+          // Redundant is fine; the members using the app before then are the
+          // point.
           //
-          // An empty string is not a code — envelopes carry one beside
-          // ordinary product states, and reacting to that would turn the calm
-          // not-assigned card into a false alarm.
+          // An empty string is not a code. Envelopes carry one beside
+          // ordinary product states, and treating that as a failure would
+          // replace the calm card with an error for every member who simply
+          // has no matchmaker yet.
           final code = body['errorCode'];
           if (code is String && code.isNotEmpty) {
             AppLogger.warning(
-              'CHAT — my-matchmaker returned an UNHANDLED code in a 200 '
-              'envelope: code="$code" message="$message" — surfacing as '
-              'not-assigned',
+              'CHAT — my-matchmaker failed inside a 200 envelope: '
+              'code="$code" message="$message"',
               tag: 'CHAT',
             );
-          } else {
-            AppLogger.info(
-              'CHAT — my-matchmaker not assigned message="$message"',
-              tag: 'CHAT',
-            );
+            return MyMatchmakerFailure(serverMessage: message, errorCode: code);
           }
+          AppLogger.info(
+            'CHAT — my-matchmaker not assigned message="$message"',
+            tag: 'CHAT',
+          );
           return MyMatchmakerNotAssigned(serverMessage: message);
         }
         final data = body['data'];

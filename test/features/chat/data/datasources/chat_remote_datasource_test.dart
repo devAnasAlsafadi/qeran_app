@@ -52,11 +52,11 @@ void main() {
       expect(outcome, isA<MyMatchmakerNotAssigned>());
     });
 
-    // Backend batch 22: all three documented failures on this endpoint come
-    // with no errorCode, and the realistic one is a product state. A code
-    // arriving anyway is logged as unhandled but must not change what the
-    // member sees — guessing at a response would be worse than the calm card.
-    test('an unhandled code in a 200 envelope still reads as not-assigned', () async {
+    // A coded failure used to be indistinguishable from "not assigned yet",
+    // because this endpoint reports both inside a 200 envelope. Reading them
+    // the same way told the member to wait for something waiting could not
+    // fix.
+    test('status:0 carrying an errorCode → MyMatchmakerFailure', () async {
       when(() => api.getRaw(any())).thenAnswer((_) async => {
             'status': 0,
             'message': 'something went wrong',
@@ -65,10 +65,16 @@ void main() {
           });
 
       final outcome = await ds.getMyMatchmaker();
-      expect(outcome, isA<MyMatchmakerNotAssigned>());
+
+      expect(outcome, isA<MyMatchmakerFailure>());
+      expect((outcome as MyMatchmakerFailure).errorCode, 'SOME_SERVER_CODE');
+      expect(outcome.serverMessage, 'something went wrong');
     });
 
-    test('an empty errorCode changes nothing either', () async {
+    // The regression the branch could cause: an envelope carrying an empty
+    // errorCode beside an ordinary product state would replace the calm
+    // not-assigned card with an error for every member without a matchmaker.
+    test('an empty errorCode is not a code', () async {
       when(() => api.getRaw(any())).thenAnswer((_) async => {
             'status': 0,
             'message': 'لم يتم تعيين خطّابة لك بعد',
@@ -80,9 +86,23 @@ void main() {
       expect(outcome, isA<MyMatchmakerNotAssigned>());
     });
 
+    // `ok` is defined by what status IS, not by what it is not.
+    test('a non-numeric falsy status still surfaces its code', () async {
+      when(() => api.getRaw(any())).thenAnswer((_) async => {
+            'status': false,
+            'message': 'nope',
+            'errorCode': 'ANOTHER_CODE',
+            'data': null,
+          });
+
+      final outcome = await ds.getMyMatchmaker();
+
+      expect(outcome, isA<MyMatchmakerFailure>());
+      expect((outcome as MyMatchmakerFailure).errorCode, 'ANOTHER_CODE');
+    });
+
     // A non-2xx is a different path entirely: getRaw throws, and the catch
-    // below preserves the code on MyMatchmakerFailure. That half was never
-    // swallowed and stays covered by the transport test above.
+    // below preserves the code. That half was never swallowed.
     test('a coded transport failure keeps its code', () async {
       when(() => api.getRaw(any())).thenThrow(
         CodedServerException(message: 'nope', errorCode: 'A_REAL_CODE'),

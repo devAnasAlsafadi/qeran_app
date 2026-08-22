@@ -241,7 +241,6 @@ abstract class  LocaleKeys {
   static const discovery_filter_hint_title = 'discovery.filter_hint_title';
   static const discovery_filter_hint_body = 'discovery.filter_hint_body';
   static const discovery_filter_hint_confirm = 'discovery.filter_hint_confirm';
-  static const discovery_filter_save_cta = 'discovery.filter_save_cta';
   static const discovery_filter_show_results = 'discovery.filter_show_results';
   static const discovery_filter_clear_all = 'discovery.filter_clear_all';
   static const discovery_filter_load_failed = 'discovery.filter_load_failed';

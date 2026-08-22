@@ -250,7 +250,6 @@
     "filter_hint_title": "👋 Welcome",
     "filter_hint_body": "For better suggestions, use the filter button at the top of the page and select what you're looking for. After applying it, matching profiles will be shown.",
     "filter_hint_confirm": "Got it",
-    "filter_save_cta": "Save Changes",
     "filter_show_results": "Show Results",
     "filter_clear_all": "Clear All",
     "filter_load_failed": "Couldn't load filters",

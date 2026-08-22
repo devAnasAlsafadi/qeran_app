@@ -504,6 +504,21 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     };
   }
 
+  // ── Compatibility journey ──
+
+  /// Open the journey on one match card, or pass null to close whichever is
+  /// open. At most one is ever open: a second open card would push the first
+  /// one's timeline off screen anyway, and the list would grow by the height
+  /// of a card for every one left behind.
+  void openJourney(int? likeRequestId) {
+    if (state.openJourneyLikeRequestId == likeRequestId) return;
+    emit(
+      likeRequestId == null
+          ? state.copyWith(clearOpenJourney: true)
+          : state.copyWith(openJourneyLikeRequestId: likeRequestId),
+    );
+  }
+
   // ── Matchmaker inquiry / formal step — profile card + text message ──
 
   /// Stage-0 inquiry. The ticket requires both the viewed profile card and

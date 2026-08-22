@@ -16,15 +16,17 @@ import '../tokens/qeran_spacing.dart';
 /// The caller owns padding and background; this contributes only the tap
 /// target and the reveal, so it drops into a card without fighting its rhythm.
 ///
-/// Expansion is self-managed. A caller that needs several of these to
-/// coordinate — one open at a time — will want an optional controlled mode,
-/// which is a pure addition to this constructor.
+/// Expansion works either way. Leave [expanded] null and the widget keeps its
+/// own state; pass it and the caller owns it — which is what a set of these
+/// needs when only one may be open at a time.
 class QeranDisclosure extends StatefulWidget {
   const QeranDisclosure({
     super.key,
     required this.summary,
     required this.child,
     this.initiallyExpanded = false,
+    this.expanded,
+    this.onExpandedChanged,
   });
 
   /// Always visible, beside the chevron. Sized by its own content.
@@ -34,16 +36,35 @@ class QeranDisclosure extends StatefulWidget {
   /// nothing for the ones nobody has touched.
   final Widget child;
 
+  /// Only consulted when [expanded] is null.
   final bool initiallyExpanded;
+
+  /// Non-null hands control to the caller: the row draws this, and a tap
+  /// reports the requested value through [onExpandedChanged] rather than
+  /// changing anything here. Without a listener that makes the row inert, so
+  /// pass both or neither.
+  final bool? expanded;
+
+  /// The value a tap is asking for — already flipped, so the caller can store
+  /// it directly.
+  final ValueChanged<bool>? onExpandedChanged;
 
   @override
   State<QeranDisclosure> createState() => _QeranDisclosureState();
 }
 
 class _QeranDisclosureState extends State<QeranDisclosure> {
-  late bool _expanded = widget.initiallyExpanded;
+  late bool _selfExpanded = widget.initiallyExpanded;
 
-  void _toggle() => setState(() => _expanded = !_expanded);
+  bool get _expanded => widget.expanded ?? _selfExpanded;
+
+  void _toggle() {
+    final next = !_expanded;
+    widget.onExpandedChanged?.call(next);
+    // Controlled: the caller decides, and the rebuild arrives with the new
+    // value. Touching local state here would let the two disagree for a frame.
+    if (widget.expanded == null) setState(() => _selfExpanded = next);
+  }
 
   @override
   Widget build(BuildContext context) {

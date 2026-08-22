@@ -97,6 +97,15 @@ class LikesState extends Equatable {
   /// session — guards against duplicate posts on repeat taps.
   final Set<int> formalStepSentLikeIds;
 
+  /// Which match card has its compatibility journey open, if any. At most
+  /// one at a time.
+  ///
+  /// View state, and here for the same reason [activeTab] is: `loadMatches`
+  /// emits `loading` before it fetches, so the matches list is torn down and
+  /// rebuilt on every pull-to-refresh and every time the gallery sheet closes.
+  /// Held in the list widget it would collapse itself on all of those.
+  final int? openJourneyLikeRequestId;
+
   /// One-shot outcome of the most recent action. The screen reacts on
   /// every [actionEventVersion] bump and ignores [LikesActionEvent.none].
   final LikesActionEvent actionEvent;
@@ -122,6 +131,7 @@ class LikesState extends Equatable {
     this.inquirySentLikeIds = const <int>{},
     this.formalStepInFlightLikeIds = const <int>{},
     this.formalStepSentLikeIds = const <int>{},
+    this.openJourneyLikeRequestId,
     this.actionEvent = LikesActionEvent.none,
     this.actionEventVersion = 0,
   });
@@ -161,6 +171,9 @@ class LikesState extends Equatable {
   bool isFormalStepSent(int likeRequestId) =>
       formalStepSentLikeIds.contains(likeRequestId);
 
+  bool isJourneyOpen(int likeRequestId) =>
+      openJourneyLikeRequestId == likeRequestId;
+
   LikesState copyWith({
     LikesTab? activeTab,
     LikesAsyncStatus? incomingStatus,
@@ -185,6 +198,8 @@ class LikesState extends Equatable {
     Set<int>? inquirySentLikeIds,
     Set<int>? formalStepInFlightLikeIds,
     Set<int>? formalStepSentLikeIds,
+    int? openJourneyLikeRequestId,
+    bool clearOpenJourney = false,
     LikesActionEvent? actionEvent,
     int? actionEventVersion,
   }) {
@@ -225,6 +240,9 @@ class LikesState extends Equatable {
           formalStepInFlightLikeIds ?? this.formalStepInFlightLikeIds,
       formalStepSentLikeIds:
           formalStepSentLikeIds ?? this.formalStepSentLikeIds,
+      openJourneyLikeRequestId: clearOpenJourney
+          ? null
+          : (openJourneyLikeRequestId ?? this.openJourneyLikeRequestId),
       actionEvent: actionEvent ?? this.actionEvent,
       actionEventVersion: actionEventVersion ?? this.actionEventVersion,
     );
@@ -251,6 +269,7 @@ class LikesState extends Equatable {
     inquirySentLikeIds,
     formalStepInFlightLikeIds,
     formalStepSentLikeIds,
+    openJourneyLikeRequestId,
     actionEvent,
     actionEventVersion,
   ];

@@ -85,4 +85,77 @@ void main() {
     );
     handle.dispose();
   });
+
+  group('controlled', () {
+    testWidgets('it draws what it is told, not what it was tapped into', (
+      tester,
+    ) async {
+      // A caller that ignores the callback pins the row shut. That is the
+      // guarantee single-open coordination rests on: no local state can
+      // disagree with the owner, even for one frame.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: QeranDisclosure(
+              expanded: false,
+              onExpandedChanged: (_) {},
+              summary: const Text('summary'),
+              child: const Text('body'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('summary'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('body'), findsNothing);
+    });
+
+    testWidgets('a tap reports the value it is asking for', (tester) async {
+      final asked = <bool>[];
+      Widget host(bool expanded) => MaterialApp(
+        home: Scaffold(
+          body: QeranDisclosure(
+            expanded: expanded,
+            onExpandedChanged: asked.add,
+            summary: const Text('summary'),
+            child: const Text('body'),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(host(false));
+      await tester.tap(find.text('summary'));
+      await tester.pumpAndSettle();
+      expect(asked, [true]);
+
+      await tester.pumpWidget(host(true));
+      expect(find.text('body'), findsOneWidget);
+
+      await tester.tap(find.text('summary'));
+      await tester.pumpAndSettle();
+      expect(asked, [true, false]);
+    });
+
+    // initiallyExpanded is for the uncontrolled case only; a controlled
+    // widget that honoured it would open against its owner's wishes.
+    testWidgets('an explicit value beats initiallyExpanded', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: QeranDisclosure(
+              initiallyExpanded: true,
+              expanded: false,
+              onExpandedChanged: (_) {},
+              summary: const Text('summary'),
+              child: const Text('body'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('body'), findsNothing);
+    });
+  });
 }

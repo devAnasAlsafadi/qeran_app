@@ -19,6 +19,7 @@ import '../widgets/likes_error_view.dart';
 import '../widgets/likes_loading_view.dart';
 import '../widgets/match_card.dart';
 import '../widgets/match_gallery_sheet.dart';
+import '../widgets/match_journey_scope.dart';
 
 /// Matches tab — active matches (post-acceptance) across stages 0/1/2.
 class MatchesSection extends StatelessWidget {
@@ -44,10 +45,18 @@ class MatchesSection extends StatelessWidget {
             subtitleKey: LocaleKeys.likes_matches_empty_subtitle,
           );
         }
-        return _MatchesList(
-          matches: matches,
-          state: state,
-          onRefresh: cubit.loadMatches,
+        return MatchJourneyScope(
+          // Read from the cubit, not held here: `loadMatches` flips the tab to
+          // `loading` before it fetches, so the list below is destroyed and
+          // rebuilt on every pull-to-refresh and every gallery close. State
+          // living down there would close the open card each time.
+          openLikeRequestId: state.openJourneyLikeRequestId,
+          onOpenChanged: (id, open) => cubit.openJourney(open ? id : null),
+          child: _MatchesList(
+            matches: matches,
+            state: state,
+            onRefresh: cubit.loadMatches,
+          ),
         );
     }
   }

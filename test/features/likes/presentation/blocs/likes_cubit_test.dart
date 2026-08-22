@@ -671,4 +671,47 @@ void main() {
       ).called(1);
     });
   });
+
+  group('compatibility journey', () {
+    test('opening a card records it, and only one at a time', () {
+      cubit.openJourney(1);
+      expect(cubit.state.isJourneyOpen(1), isTrue);
+
+      cubit.openJourney(2);
+      expect(cubit.state.isJourneyOpen(1), isFalse);
+      expect(cubit.state.isJourneyOpen(2), isTrue);
+    });
+
+    test('null closes whichever is open', () {
+      cubit.openJourney(1);
+      cubit.openJourney(null);
+
+      expect(cubit.state.openJourneyLikeRequestId, isNull);
+    });
+
+    // Cards rebuild on every matches refresh; re-reporting the card that is
+    // already open must not emit and churn the list.
+    test('re-opening the same card emits nothing', () async {
+      cubit.openJourney(1);
+      final emissions = <LikesState>[];
+      final sub = cubit.stream.listen(emissions.add);
+
+      cubit.openJourney(1);
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+
+      expect(emissions, isEmpty);
+    });
+
+    test('closing when nothing is open emits nothing', () async {
+      final emissions = <LikesState>[];
+      final sub = cubit.stream.listen(emissions.add);
+
+      cubit.openJourney(null);
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+
+      expect(emissions, isEmpty);
+    });
+  });
 }

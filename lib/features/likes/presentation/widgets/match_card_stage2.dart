@@ -8,11 +8,13 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../domain/entities/match_card.dart';
 import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
+import 'match_card_sent_action.dart';
 import 'match_matchmaker_status_pill.dart';
 
 /// Stage 2 — MatchmakerEngaged (photo exchange rejected). Photos stay
 /// BLURRED (`image.isBlurred == true`) and a formalRequest is active.
-/// Surfaces a single [خطوة رسمية عبر الخطّابة] primaryWine CTA.
+/// Surfaces a single gold formal-step CTA, which reads as sent — but stays
+/// tappable — once the message is posted ([MatchCardSentAction]).
 class MatchCardStage2 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onFormalStep;
@@ -35,6 +37,12 @@ class MatchCardStage2 extends StatelessWidget {
     final status =
         card.formalRequest?.localizedStatusName(context.locale.languageCode) ??
         '';
+    final formal = MatchCardSentAction.resolve(
+      isSent: isFormalStepSent,
+      cta: LocaleKeys.likes_matches_formal_step_cta.t(context),
+      sentLabel: LocaleKeys.likes_matches_formal_step_sent.t(context),
+      unsentVariant: QeranButtonVariant.primary,
+    );
     return MatchCardScaffold(
       avatar: MatchCardAvatar(
         url: image?.url,
@@ -47,14 +55,11 @@ class MatchCardStage2 extends StatelessWidget {
       statusText:
           LocaleKeys.likes_matches_stage_matchmaker_subtitle.t(context),
       statusColor: QeranColors.wine,
-      primaryLabel: LocaleKeys.likes_matches_formal_step_cta.t(context),
+      primaryLabel: formal.label,
       onPrimaryPressed: onFormalStep,
       primaryLoading: isFormalStepSending,
-      primaryTrailingIcon: isFormalStepSent ? Icons.check_rounded : null,
-      // Gold primary (decision B); de-emphasises to neutral once sent.
-      primaryVariant: isFormalStepSent
-          ? QeranButtonVariant.neutral
-          : QeranButtonVariant.primary,
+      primaryTrailingIcon: formal.trailingIcon,
+      primaryVariant: formal.variant,
       footer:
           status.isEmpty ? null : MatchMatchmakerStatusPill(status: status),
     );

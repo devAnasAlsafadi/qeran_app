@@ -329,6 +329,7 @@ abstract class  LocaleKeys {
   static const likes_matches_inquiry_sent = 'likes.matches_inquiry_sent';
   static const likes_matches_inquiry_message = 'likes.matches_inquiry_message';
   static const likes_matches_formal_step_cta = 'likes.matches_formal_step_cta';
+  static const likes_matches_formal_step_sent = 'likes.matches_formal_step_sent';
   static const likes_matches_matchmaker_status = 'likes.matches_matchmaker_status';
   static const likes_matches_formal_step_message = 'likes.matches_formal_step_message';
   static const likes_matches_stage_matchmaker_will_contact = 'likes.matches_stage_matchmaker_will_contact';

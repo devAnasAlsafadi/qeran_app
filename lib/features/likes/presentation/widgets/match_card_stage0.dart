@@ -9,14 +9,15 @@ import '../../domain/entities/match_card.dart';
 import '../../domain/entities/photo_exchange_pending.dart';
 import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
+import 'match_card_sent_action.dart';
 import 'photo_exchange_countdown_chip.dart';
 
 /// Stage 0 — WaitingForPhotoExchange. Three sub-states off
 /// `pendingPhotoExchange`:
-/// * `null` (no request yet) → [طلب تبادل الصور] (primaryWine) + [أرسل استفساراتك] (ghost).
+/// * `null` (no request yet) → [طلب تبادل الصور] (primaryWine) + [أرسل استفساراتك] (primaryWine).
 /// * `requestedByMe` (initiator waiting) → status + countdown, no actions.
 /// * `canAccept/canReject` (responder) → countdown + [قبول الطلب] (primaryWine) +
-///   [أرسل استفساراتك] (ghost) + [رفض] (ghost).
+///   [أرسل استفساراتك] (primaryWine) + [رفض] (ghost).
 class MatchCardStage0 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onRequestPhotoExchange;
@@ -141,16 +142,22 @@ class MatchCardStage0 extends StatelessWidget {
 
   /// Strong, full-width inquiry action. This must read as a real button in
   /// the compatibility list, not as a low-emphasis text link.
+  ///
+  /// Stays tappable once sent — see [MatchCardSentAction] for why. The tap
+  /// no longer re-sends; it opens the chat holding the inquiry.
   Widget _inquiryButton(BuildContext context) {
+    final action = MatchCardSentAction.resolve(
+      isSent: isInquirySent,
+      cta: LocaleKeys.likes_matches_inquiry_cta.t(context),
+      sentLabel: LocaleKeys.likes_matches_inquiry_sent.t(context),
+      unsentVariant: QeranButtonVariant.primaryWine,
+    );
     return QeranButton(
-      label:
-          (isInquirySent
-                  ? LocaleKeys.likes_matches_inquiry_sent
-                  : LocaleKeys.likes_matches_inquiry_cta)
-              .t(context),
-      onPressed: isInquirySent ? null : onContactMatchmaker,
-      variant: QeranButtonVariant.primaryWine,
+      label: action.label,
+      onPressed: onContactMatchmaker,
+      variant: action.variant,
       size: QeranButtonSize.xs,
+      trailingIcon: action.trailingIcon,
       loading: isInquirySending,
     );
   }

@@ -631,5 +631,44 @@ void main() {
       expect(cubit.state.actionEvent, LikesActionEvent.formalStepFailure);
       expect(cubit.state.isFormalStepSent(43), isFalse);
     });
+
+    // The sent button stays tappable on purpose, so this path is now
+    // reachable from the UI rather than dead code. It must NOT post a second
+    // copy of the same message — the screen reads `inquiryAlreadySent` the
+    // same way it reads success, and opens the chat.
+    test('a second tap opens the chat instead of sending again', () async {
+      when(() => getMyMatchmaker()).thenAnswer(
+        (_) async => const Right<Failure, MyMatchmakerOutcome>(
+          MyMatchmakerAssigned(
+            info: MatchmakerInfo(
+              matchmakerId: 'matchmaker-id',
+              name: 'Matchmaker',
+              profileImageUrl: null,
+              conversationId: 17,
+            ),
+          ),
+        ),
+      );
+      when(
+        () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
+      ).thenAnswer(
+        (_) async => Right<Failure, ShareProfileOutcome>(
+          ShareProfileSuccess(message: _MockChatMessage()),
+        ),
+      );
+      when(() => sendText(conversationId: 17, content: 'inquiry')).thenAnswer(
+        (_) async => Right<Failure, SendTextOutcome>(
+          SendTextSuccess(message: _MockChatMessage()),
+        ),
+      );
+
+      await cubit.sendInquiry(_stageZeroMatch, 'inquiry');
+      await cubit.sendInquiry(_stageZeroMatch, 'inquiry');
+
+      expect(cubit.state.actionEvent, LikesActionEvent.inquiryAlreadySent);
+      verify(
+        () => sendText(conversationId: 17, content: 'inquiry'),
+      ).called(1);
+    });
   });
 }

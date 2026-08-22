@@ -62,7 +62,11 @@ PhotoExchangePending _pending({
   );
 }
 
-Future<void> _pump(WidgetTester tester, MatchCard card) async {
+Future<void> _pump(
+  WidgetTester tester,
+  MatchCard card, {
+  bool isInquirySent = false,
+}) async {
   await tester.pumpWidget(
     EasyLocalization(
       supportedLocales: const [Locale('en')],
@@ -83,6 +87,7 @@ Future<void> _pump(WidgetTester tester, MatchCard card) async {
               isAcceptingPhotoExchange: false,
               isRejectingPhotoExchange: false,
               onContactMatchmaker: () {},
+              isInquirySent: isInquirySent,
             ),
           ),
         ),
@@ -196,5 +201,19 @@ void main() {
     // And it SAYS so, rather than leaving the "awaiting a reply" copy on a
     // request that can no longer be answered. (Stub loader → keys render raw.)
     expect(find.text('likes.status_expired'), findsOneWidget);
+  });
+
+  // A sent inquiry used to go dead on tap, which read as "this button is
+  // finished with you". It is not: the second tap is what carries the member
+  // to the chat holding the message they sent.
+  testWidgets('a sent inquiry relabels but stays tappable', (tester) async {
+    await _pump(tester, _card(pending: null), isInquirySent: true);
+
+    final button = tester.widget<QeranButton>(
+      find.widgetWithText(QeranButton, 'likes.matches_inquiry_sent'),
+    );
+    expect(button.onPressed, isNotNull);
+    expect(button.trailingIcon, Icons.check_rounded);
+    expect(find.text('likes.matches_inquiry_cta'), findsNothing);
   });
 }

@@ -8,12 +8,14 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../domain/entities/match_card.dart';
 import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
+import 'match_card_sent_action.dart';
 import 'match_matchmaker_status_pill.dart';
 
 /// Stage 1 — PhotosExchanged (photo exchange accepted). The preview never
 /// fetches clear bytes; the explicit reveal action opens the permission-
 /// controlled, one-time gallery. A formalRequest may also be active.
-/// Surfaces a single [خطوة رسمية عبر الخطّابة] primaryWine CTA.
+/// Surfaces a single gold formal-step CTA, which reads as sent — but stays
+/// tappable — once the message is posted ([MatchCardSentAction]).
 class MatchCardStage1 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onOpenGallery;
@@ -43,6 +45,12 @@ class MatchCardStage1 extends StatelessWidget {
     final status =
         card.formalRequest?.localizedStatusName(context.locale.languageCode) ??
         '';
+    final formal = MatchCardSentAction.resolve(
+      isSent: isFormalStepSent,
+      cta: LocaleKeys.likes_matches_formal_step_cta.t(context),
+      sentLabel: LocaleKeys.likes_matches_formal_step_sent.t(context),
+      unsentVariant: QeranButtonVariant.primary,
+    );
     return MatchCardScaffold(
       avatar: GestureDetector(
         onTap: canOpenPhotos ? onOpenGallery : null,
@@ -66,15 +74,11 @@ class MatchCardStage1 extends StatelessWidget {
                   : LocaleKeys.likes_matches_stage_photos_exchanged_subtitle)
               .t(context),
       statusColor: QeranColors.wine,
-      primaryLabel: LocaleKeys.likes_matches_formal_step_cta.t(context),
+      primaryLabel: formal.label,
       onPrimaryPressed: onFormalStep,
       primaryLoading: isFormalStepSending,
-      primaryTrailingIcon: isFormalStepSent ? Icons.check_rounded : null,
-      // Gold primary (decision B); once the formal step is sent it de-emphasises
-      // to a neutral "done" chip (still tappable — behaviour unchanged).
-      primaryVariant: isFormalStepSent
-          ? QeranButtonVariant.neutral
-          : QeranButtonVariant.primary,
+      primaryTrailingIcon: formal.trailingIcon,
+      primaryVariant: formal.variant,
       secondaryActions: canOpenPhotos
           ? [
               QeranButton(

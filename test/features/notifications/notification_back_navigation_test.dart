@@ -21,7 +21,8 @@ import 'package:qeran/features/matchmaker/notifications/presentation/blocs/match
 import 'package:qeran/features/matchmaker/notifications/presentation/blocs/matchmaker_notifications_cubit.dart';
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/matchmaker/shared/data/matchmaker_notification_router.dart';
-import 'package:qeran/features/notifications/presentation/widgets/notification_back_row.dart';
+import 'package:qeran/features/home/presentation/home_back_trail.dart';
+import 'package:qeran/features/home/presentation/widgets/tab_back_row.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Client rule: every notification target must offer a way back to the inbox,
@@ -129,7 +130,7 @@ void main() {
       var tapped = 0;
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: NotificationBackRow(onBack: () => tapped++)),
+          home: Scaffold(body: TabBackRow(onBack: () => tapped++)),
         ),
       );
 
@@ -143,18 +144,25 @@ void main() {
     // Both scopes returned a flat false, correct while every field was a stable
     // callback. A tab would never have rebuilt when the flag flipped.
     test('the user scope notifies on the flag, and only on it', () {
-      HomeShellScope scope({required bool from}) => HomeShellScope(
+      HomeShellScope scope({HomeBackTrail? trail}) => HomeShellScope(
         openLikesTab: () {},
-        openMessagesTab: ({bool refresh = false}) {},
+        openMessagesTab: ({bool refresh = false, HomeBackTrail? trail}) {},
         openProfileTab: () {},
         openFromNotification: (_) {},
-        fromNotification: from,
-        returnToNotifications: () {},
+        backTrail: trail,
+        followBackTrail: () {},
         child: const SizedBox.shrink(),
       );
 
-      expect(scope(from: true).updateShouldNotify(scope(from: false)), isTrue);
-      expect(scope(from: true).updateShouldNotify(scope(from: true)), isFalse);
+      const notif = HomeBackTrail.notifications;
+      expect(scope(trail: notif).updateShouldNotify(scope()), isTrue);
+      expect(scope(trail: notif).updateShouldNotify(scope(trail: notif)), isFalse);
+      // The two trails are different destinations — swapping one for the other
+      // has to rebuild, or the control would point at the wrong place.
+      expect(
+        scope(trail: notif).updateShouldNotify(scope(trail: HomeBackTrail.likes)),
+        isTrue,
+      );
     });
 
     test('the matchmaker scope behaves identically', () {
@@ -174,29 +182,29 @@ void main() {
     testWidgets('a tab picks up the flip without being rebuilt by its parent', (
       tester,
     ) async {
-      Widget host(bool from) => MaterialApp(
+      Widget host(HomeBackTrail? trail) => MaterialApp(
         home: HomeShellScope(
           openLikesTab: () {},
-          openMessagesTab: ({bool refresh = false}) {},
+          openMessagesTab: ({bool refresh = false, HomeBackTrail? trail}) {},
           openProfileTab: () {},
           openFromNotification: (_) {},
-          fromNotification: from,
-          returnToNotifications: () {},
+          backTrail: trail,
+          followBackTrail: () {},
           child: Builder(
             builder: (context) {
               final shell = HomeShellScope.maybeOf(context);
-              return (shell?.fromNotification ?? false)
-                  ? NotificationBackRow(onBack: shell!.returnToNotifications)
-                  : const SizedBox.shrink();
+              return shell?.backTrail == null
+                  ? const SizedBox.shrink()
+                  : TabBackRow(onBack: shell!.followBackTrail);
             },
           ),
         ),
       );
 
-      await tester.pumpWidget(host(false));
+      await tester.pumpWidget(host(null));
       expect(find.byType(QeranBackButton), findsNothing);
 
-      await tester.pumpWidget(host(true));
+      await tester.pumpWidget(host(HomeBackTrail.notifications));
       expect(find.byType(QeranBackButton), findsOneWidget);
     });
   });

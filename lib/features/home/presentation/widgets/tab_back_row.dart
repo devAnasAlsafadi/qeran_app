@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 
-/// The "back to the inbox" control for a bottom-nav TAB reached from a
-/// notification.
+import '../home_back_trail.dart';
+
+/// The "go back" control for a bottom-nav TAB that was reached from somewhere
+/// rather than tapped — see [HomeBackTrail] for where from, and the tab itself
+/// for where back leads.
 ///
 /// The matchmaker tabs each own a [MatchmakerAppBar] and take a leading through
 /// it; the user-app tabs have no app bar at all — Likes carries a
@@ -13,8 +16,8 @@ import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 /// wherever it appears, instead of being fitted into three different headers.
 ///
 /// Start-aligned, so it mirrors with the locale like every other back control.
-class NotificationBackRow extends StatelessWidget {
-  const NotificationBackRow({super.key, required this.onBack});
+class TabBackRow extends StatelessWidget {
+  const TabBackRow({super.key, required this.onBack});
 
   final VoidCallback onBack;
 

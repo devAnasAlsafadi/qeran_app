@@ -19,6 +19,7 @@ import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
+import 'package:qeran/features/home/presentation/home_back_trail.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
 import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
@@ -48,9 +49,10 @@ class _HomeScreenState extends State<HomeScreen>
   bool _tabTransitionPending = false;
   int _messagesRefreshEpoch = 0;
 
-  /// True while the visible tab was reached from a notification — see
-  /// [_openFromNotification]. Drives the destination's back control.
-  bool _fromNotification = false;
+  /// Where the visible tab was reached FROM, when it was not simply tapped —
+  /// see [_openFromNotification] and [_openMessagesTab]. Drives the
+  /// destination's back control and the system back button alike.
+  HomeBackTrail? _backTrail;
 
   late final AnimationController _tabTransition = AnimationController(
     vsync: this,
@@ -127,16 +129,16 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// The single entry point for BOTH notification paths — a row tapped in the
   /// inbox (handed back by `openNotifications`) and a system push tapped
-  /// outside the app. Switches the tab and raises [_fromNotification], which is
-  /// what puts a back control on the destination.
+  /// outside the app. Switches the tab and raises the notifications
+  /// [HomeBackTrail], which is what puts a back control on the destination.
   ///
-  /// The flag is raised OUTSIDE the tab switch on purpose: `_selectTab` returns
+  /// The trail is raised OUTSIDE the tab switch on purpose: `_selectTab` returns
   /// early when the target is already showing, and that is exactly the case
   /// where the control matters most — nothing else on screen changes, so it is
   /// the only sign the tap did anything.
   void _openFromNotification(NotificationDeepLink link) {
     if (link is NoDeepLink) return;
-    if (mounted) setState(() => _fromNotification = true);
+    if (mounted) setState(() => _backTrail = HomeBackTrail.notifications);
     switch (link) {
       case OpenLikesTab():
         _openLikesTab();
@@ -157,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen>
   /// spent once it has been followed, and popping the inbox without tapping
   /// anything leaves the tab as an ordinary tab.
   Future<void> _returnToNotifications() async {
-    if (_fromNotification) setState(() => _fromNotification = false);
+    if (_backTrail != null) setState(() => _backTrail = null);
     final result = await Navigator.of(
       context,
     ).pushNamed(RouteNames.notifications);
@@ -169,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen>
   /// control would sit there forever, pointing at an inbox the user has since
   /// navigated away from by hand.
   void _onNavTap(int index) {
-    if (_fromNotification) setState(() => _fromNotification = false);
+    if (_backTrail != null) setState(() => _backTrail = null);
     _selectTab(index);
   }
 
@@ -223,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen>
     // lands here — a chat row tapped in the inbox pushes over it instead.)
     _messagesTabIndex => ChatEntryScreen(
       key: ValueKey<String>('chat-entry-$_messagesRefreshEpoch'),
-      onBack: _fromNotification ? _returnToNotifications : null,
+      onBack: _backTrail == null ? null : _followBackTrail,
     ),
     _profileTabIndex => const ProfileScreen(),
     _ => const SizedBox.shrink(),
@@ -299,11 +301,37 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _openLikesTab() => _selectTab(_likesTabIndex);
-  void _openMessagesTab({bool refresh = false}) {
-    if (refresh && mounted) {
-      setState(() => _messagesRefreshEpoch++);
+  /// [trail] is set by callers that arrive from somewhere with a way back —
+  /// the Likes compatibility list. The notification path leaves it null
+  /// because [_openFromNotification] has already raised its own trail.
+  void _openMessagesTab({bool refresh = false, HomeBackTrail? trail}) {
+    if (mounted && (trail != null || refresh)) {
+      setState(() {
+        if (trail != null) _backTrail = trail;
+        if (refresh) _messagesRefreshEpoch++;
+      });
     }
     _selectTab(_messagesTabIndex);
+  }
+
+  /// Back for a tab that was never pushed onto. Both the tab's own control and
+  /// the Android back button land here, so there is one behaviour rather than
+  /// two.
+  void _followBackTrail() {
+    switch (_backTrail) {
+      case HomeBackTrail.notifications:
+        _returnToNotifications();
+      case HomeBackTrail.likes:
+        _returnToLikes();
+      case null:
+        break;
+    }
+  }
+
+  /// The trail is spent once followed, the same way the inbox one is.
+  void _returnToLikes() {
+    if (_backTrail != null) setState(() => _backTrail = null);
+    _selectTab(_likesTabIndex);
   }
 
   void _openProfileTab() => _selectTab(_profileTabIndex);
@@ -313,10 +341,10 @@ class _HomeScreenState extends State<HomeScreen>
     return PopScope(
       // Only while the trail is live. Otherwise the system back keeps its
       // default meaning — pop the shell, or leave the app from the root.
-      canPop: !_fromNotification,
+      canPop: _backTrail == null,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
-        _returnToNotifications();
+        _followBackTrail();
       },
       // Owns the `/hubs/chat` session for the whole user shell — the hub feeds
       // every tab, so it must not depend on Messages having been opened.
@@ -333,8 +361,8 @@ class _HomeScreenState extends State<HomeScreen>
             openMessagesTab: _openMessagesTab,
             openProfileTab: _openProfileTab,
             openFromNotification: _openFromNotification,
-            fromNotification: _fromNotification,
-            returnToNotifications: _returnToNotifications,
+            backTrail: _backTrail,
+            followBackTrail: _followBackTrail,
             child: BlocBuilder<BadgesCubit, BadgeCounts>(
               bloc: sl<BadgesCubit>(),
               builder: (context, badges) {

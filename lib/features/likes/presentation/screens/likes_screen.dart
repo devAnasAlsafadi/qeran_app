@@ -9,7 +9,8 @@ import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
-import 'package:qeran/features/notifications/presentation/widgets/notification_back_row.dart';
+import 'package:qeran/features/home/presentation/home_back_trail.dart';
+import 'package:qeran/features/home/presentation/widgets/tab_back_row.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
@@ -57,14 +58,16 @@ class _LikesView extends StatelessWidget {
               curr.actionEvent != LikesActionEvent.none,
           listener: _onActionEvent,
           builder: (context, state) {
-            // Reached from a notification, the tab carries a way back to the
-            // inbox. A tab has nothing to pop, so the shell reopens it.
+            // Reached from the inbox, the tab carries a way back to it. A tab
+            // has nothing to pop, so the shell reopens it. Only that trail
+            // lands here — nothing switches TO Likes from Likes.
             final shell = HomeShellScope.maybeOf(context);
-            final fromNotification = shell?.fromNotification ?? false;
+            final fromNotification =
+                shell?.backTrail == HomeBackTrail.notifications;
             return Column(
               children: [
                 if (fromNotification)
-                  NotificationBackRow(onBack: shell!.returnToNotifications),
+                  TabBackRow(onBack: shell!.followBackTrail),
                 _Header(),
                 const ProfileGateBanner(),
                 LikesSegmentedTabs(
@@ -243,7 +246,9 @@ class _LikesView extends StatelessWidget {
   void _openMatchmakerMessages(BuildContext context) {
     final shell = HomeShellScope.maybeOf(context);
     if (shell != null) {
-      shell.openMessagesTab(refresh: true);
+      // Leaves a trail: the compatibility list the user was reading is a tab,
+      // so there is nothing to pop back to without one.
+      shell.openMessagesTab(refresh: true, trail: HomeBackTrail.likes);
       return;
     }
     AppSnackBar.show(

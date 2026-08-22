@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
@@ -9,7 +8,7 @@ import '../../domain/entities/match_card.dart';
 import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
 import 'match_card_sent_action.dart';
-import 'match_matchmaker_status_pill.dart';
+import 'match_journey_card.dart';
 
 /// Stage 2 — MatchmakerEngaged (photo exchange rejected). Photos stay
 /// BLURRED (`image.isBlurred == true`) and a formalRequest is active.
@@ -32,11 +31,6 @@ class MatchCardStage2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = card.primaryImage;
-    // The matchmaker's current formal-request status, if the backend supplied
-    // one — surfaced as a pill; empty falls back to the static subtitle only.
-    final status =
-        card.formalRequest?.localizedStatusName(context.locale.languageCode) ??
-        '';
     final formal = MatchCardSentAction.resolve(
       isSent: isFormalStepSent,
       cta: LocaleKeys.likes_matches_formal_step_cta.t(context),
@@ -60,8 +54,7 @@ class MatchCardStage2 extends StatelessWidget {
       primaryLoading: isFormalStepSending,
       primaryTrailingIcon: formal.trailingIcon,
       primaryVariant: formal.variant,
-      footer:
-          status.isEmpty ? null : MatchMatchmakerStatusPill(status: status),
+      footer: MatchJourneyCard(card: card),
     );
   }
 }

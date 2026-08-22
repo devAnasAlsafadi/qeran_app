@@ -1,4 +1,5 @@
 import 'package:qeran/core/design_system/widgets/qeran_stepper.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
 import '../../domain/entities/match_journey.dart';
@@ -66,3 +67,18 @@ QeranStepTone _toneOf(MatchJourneyStage current) =>
     current == MatchJourneyStage.completed
     ? QeranStepTone.success
     : QeranStepTone.normal;
+
+/// The member's word for each node. Deliberately NOT the matchmaker's:
+/// `matchmaker.cases_formal_waiting_appointment` and `_parents_visited` name
+/// steps the matchmaker works, and both live behind
+/// [MatchJourneyStage.matchmakerFollowUp] here.
+String matchJourneyLabelKey(MatchJourneyStage stage) => switch (stage) {
+  MatchJourneyStage.liked => LocaleKeys.likes_matches_journey_liked,
+  MatchJourneyStage.likeAccepted =>
+    LocaleKeys.likes_matches_journey_like_accepted,
+  MatchJourneyStage.photoExchange =>
+    LocaleKeys.likes_matches_journey_photo_exchange,
+  MatchJourneyStage.matchmakerFollowUp =>
+    LocaleKeys.likes_matches_journey_matchmaker,
+  MatchJourneyStage.completed => LocaleKeys.likes_matches_journey_completed,
+};

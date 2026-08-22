@@ -9,6 +9,7 @@ import '../../domain/entities/match_card.dart';
 import '../../domain/entities/photo_exchange_pending.dart';
 import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
+import 'match_journey_card.dart';
 import 'match_card_sent_action.dart';
 import 'photo_exchange_countdown_chip.dart';
 
@@ -137,6 +138,7 @@ class MatchCardStage0 extends StatelessWidget {
       primaryVariant: QeranButtonVariant.primary,
       primaryOverride: primaryOverride,
       secondaryActions: secondaryActions,
+      footer: MatchJourneyCard(card: card),
     );
   }
 

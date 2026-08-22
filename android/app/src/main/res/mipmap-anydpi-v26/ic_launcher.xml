@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
   <background android:drawable="@color/ic_launcher_background"/>
+  <!-- The foreground master carries the symbol at ~61% of the 108dp frame,
+       which fills the 66dp safe zone edge to edge — the safe zone is the
+       maximum unclipped region, not a sizing target, so unwrapped it renders
+       at ~91% of the 72dp VISIBLE area against iOS's 70%. The 12% inset
+       lands it at ~50dp (69%), matching the iOS icon's visual weight. -->
   <foreground>
       <inset
-          android:drawable="@drawable/ic_launcher_foreground"
-          android:inset="16%" />
+          android:drawable="@mipmap/ic_launcher_foreground"
+          android:inset="12%" />
   </foreground>
   <monochrome>
       <inset
-          android:drawable="@drawable/ic_launcher_monochrome"
-          android:inset="16%" />
+          android:drawable="@mipmap/ic_launcher_foreground"
+          android:inset="12%" />
   </monochrome>
 </adaptive-icon>

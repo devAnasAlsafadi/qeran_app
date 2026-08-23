@@ -3,6 +3,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -137,7 +138,16 @@ class _RoadmapContent extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const OnboardingTrustBadges(),
+          // Warm gold rather than paper — the same ground the reassurance pill
+          // uses, which sits closer to the brand than a plain white card.
+          // Safe here because the badges are only ink and icons; the essence
+          // strip keeps paper, since its gold12 nodes would flatten against it.
+          const QeranCard(
+            background: QeranColors.goldPending,
+            margin: EdgeInsets.symmetric(horizontal: QeranSpacing.s12),
+            padding: EdgeInsets.all(QeranSpacing.s12),
+            child: OnboardingTrustBadges(),
+          ),
           QeranSpacing.vs16,
           // No next here — the full-width CTA below is this frame's action, so
           // the row keeps its end slot empty and the dots stay centred.

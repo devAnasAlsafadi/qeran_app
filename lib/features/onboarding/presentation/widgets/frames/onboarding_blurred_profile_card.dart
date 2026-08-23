@@ -29,10 +29,12 @@ class OnboardingBlurredProfileCard extends StatelessWidget {
           OnboardingCardTopScrim(),
           OnboardingCardBottomScrim(),
           _LockBadge(),
+          // Sits clear of the photo's lower edge so the name and chips read as
+          // part of the portrait rather than crowding whatever follows it.
           Positioned(
             left: QeranSpacing.s16,
             right: QeranSpacing.s16,
-            bottom: QeranSpacing.s16,
+            bottom: QeranSpacing.s32,
             child: OnboardingProfileMetaOverlay(),
           ),
         ],

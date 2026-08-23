@@ -94,7 +94,11 @@ class _EssenceContent extends StatelessWidget {
         children: [
           // The strip is the one block that keeps a paper surface: its nodes
           // and captions were drawn for light ground and read nowhere else.
+          // Inset from the column so it reads as a card on the canvas rather
+          // than a band across it — s12, not more: the strip splits its width
+          // across five nodes and the longest label ellipsises if squeezed.
           const QeranCard(
+            margin: EdgeInsets.symmetric(horizontal: QeranSpacing.s12),
             padding: EdgeInsets.symmetric(
               horizontal: QeranSpacing.s12,
               vertical: QeranSpacing.s12,
@@ -115,7 +119,10 @@ class _EssenceContent extends StatelessWidget {
             icon: Icons.shield_rounded,
             text: LocaleKeys.onboarding_essence_highlight.t(context),
           ),
-          QeranSpacing.vs16,
+          // Lifts the strip, copy and pill together: the panel is
+          // bottom-anchored, so widening the gap above the controls raises
+          // everything over it while the nav row holds its place.
+          QeranSpacing.vs32,
           footer,
         ],
       ),

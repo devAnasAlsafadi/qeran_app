@@ -121,20 +121,27 @@ class _MediationContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Looser than the other frames on purpose. The panel is bottom-
+          // anchored under an Expanded hero, so its own height is what lifts it
+          // off the glass card above — spacing the group out and raising it are
+          // the same edit here, not two.
           OnboardingSectionHeading(
             title: LocaleKeys.onboarding_mediation_title.t(context),
           ),
-          QeranSpacing.vs8,
+          QeranSpacing.vs16,
           Text(
             LocaleKeys.onboarding_mediation_body.t(context),
             style: QeranTypography.bodySm.copyWith(color: QeranColors.paper),
           ),
-          QeranSpacing.vs16,
+          QeranSpacing.vs20,
           OnboardingHighlightPill(
             icon: Icons.handshake_rounded,
             text: LocaleKeys.onboarding_mediation_highlight.t(context),
           ),
-          QeranSpacing.vs16,
+          // The gap that lifts the copy without moving the controls: the panel
+          // is bottom-anchored, so widening it here raises everything above it
+          // while the nav row keeps its distance from the screen edge.
+          QeranSpacing.vs48,
           footer,
         ],
       ),

@@ -13,6 +13,10 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 ///
 /// Radius stays [QeranRadii.controlR] rather than a full pill — the copy wraps
 /// to two lines in English, and true pill ends read badly around a block.
+///
+/// The pill spans the column and centres its contents rather than shrinking to
+/// fit: the copy runs long enough in English to fill the width anyway, so
+/// shrink-wrapping would leave the two languages visibly different shapes.
 class OnboardingHighlightPill extends StatelessWidget {
   final IconData icon;
   final String text;
@@ -34,12 +38,14 @@ class OnboardingHighlightPill extends StatelessWidget {
       padding: const EdgeInsets.all(QeranSpacing.s12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, color: QeranColors.goldDeep, size: 18),
           QeranSpacing.hs8,
-          Expanded(
+          Flexible(
             child: Text(
               text,
+              textAlign: TextAlign.center,
               style: QeranTypography.bodySm.copyWith(color: QeranColors.wine),
             ),
           ),

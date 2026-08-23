@@ -157,6 +157,11 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
   Future<void> _loadFirstPage() async {
     final generation = ++_deckGeneration;
     final filters = _activeFilters;
+    // The bump above and this emit are load-bearing as a PAIR: `_prefetch`
+    // relies on a superseded deck's state object being replaced here, which
+    // is why it can return without resetting `isPrefetching` (see the note
+    // at its generation guard). Moving a `_deckGeneration` bump anywhere
+    // that does not immediately replace the state would strand that flag.
     emit(const DiscoveryLoading());
     final result = await _fetchPage(
       page: 1,
@@ -536,6 +541,20 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
       filterParams: filters,
     );
     if (isClosed) return;
+    // A page-1 reload superseded this deck while we were away. Deliberately
+    // NO `isPrefetching` reset here, unlike every other exit below.
+    //
+    // It is not needed: `_deckGeneration` only ever moves in
+    // `_loadFirstPage`, which emits `DiscoveryLoading()` on its very next
+    // line — so the state object carrying our `true` is already gone, and
+    // the flag cannot strand.
+    //
+    // It would also be wrong: by now the NEW deck may have started its own
+    // prefetch (`_advance` -> `_maybePrefetch`, or the view's
+    // `ensurePrefetch` on an empty-but-hasMore deck). Clearing the flag here
+    // would clear THAT prefetch's guard and let a second one run beside it,
+    // with both racing to append pages. Reachable whenever this stale request
+    // outlives a reload plus a fresh prefetch start — i.e. on a slow network.
     if (generation != _deckGeneration) return;
     final post = state;
     if (post is! DiscoveryLoaded) return; // refresh / shutdown happened

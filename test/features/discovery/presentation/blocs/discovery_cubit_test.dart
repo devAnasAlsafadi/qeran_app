@@ -879,6 +879,92 @@ void main() {
         ]);
       },
     );
+
+    // `_prefetch`'s generation guard returns WITHOUT resetting
+    // `isPrefetching`, unlike every other exit. Two things must hold, and
+    // this pins both.
+    //
+    // 1. It is SAFE to skip the reset: `_loadFirstPage` replaces the state
+    //    object carrying the flag on the line after it bumps the generation,
+    //    so the stale `true` dies with the old deck.
+    // 2. It would be WRONG to perform it: by the time a superseded prefetch
+    //    lands, the NEW deck may have started its own. Resetting here clears
+    //    THAT prefetch's guard and lets a second run beside it.
+    //
+    // The setup below puts a live gen-2 prefetch in flight before the gen-1
+    // one returns — the exact window (2) needs, and the one a slow network
+    // opens. Add the reset and `isPrefetching` flips false here.
+    test(
+      'a superseded prefetch neither strands nor clears a live guard',
+      () async {
+        final pageTwo = <Completer<Either<Failure, DiscoveryPage>>>[];
+        var pageOneCalls = 0;
+        when(
+          () => fetch(
+            page: 1,
+            pageSize: any(named: 'pageSize'),
+            filterParams: any(named: 'filterParams'),
+          ),
+        ).thenAnswer((_) async {
+          pageOneCalls++;
+          final tag = pageOneCalls == 1 ? 'old' : 'new';
+          return Right(
+            _page(
+              pageNumber: 1,
+              totalPages: 2,
+              profileIds: List<String>.generate(
+                DiscoveryCubit.prefetchThreshold + 1,
+                (i) => '$tag$i',
+              ),
+            ),
+          );
+        });
+        when(
+          () => fetch(
+            page: 2,
+            pageSize: any(named: 'pageSize'),
+            filterParams: any(named: 'filterParams'),
+          ),
+        ).thenAnswer((_) {
+          final c = Completer<Either<Failure, DiscoveryPage>>();
+          pageTwo.add(c);
+          return c.future;
+        });
+        when(
+          () => pass(any()),
+        ).thenAnswer((_) async => const Right<Failure, Unit>(unit));
+
+        await cubit.loadInitial();
+        await cubit.pass(); // gen-1 prefetch starts and is held open.
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(pageTwo.length, 1);
+
+        await cubit.refresh(); // gen 2 — supersedes the deck above.
+        // `ensurePrefetch` rather than a second `pass()`: passes are
+        // rate-limited by `_passCooldown`, so the next one inside the window
+        // never advances. This is also the exact entry point the view uses.
+        cubit.ensurePrefetch(); // gen-2 prefetch starts, also held open.
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(pageTwo.length, 2);
+        expect((cubit.state as DiscoveryLoaded).isPrefetching, isTrue);
+
+        // Now the SUPERSEDED one lands, behind the new deck's live prefetch.
+        pageTwo[0].complete(
+          Right(
+            _page(pageNumber: 2, totalPages: 2, profileIds: const ['stale']),
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+
+        final loaded = cubit.state as DiscoveryLoaded;
+        // The gen-2 prefetch still owns the guard.
+        expect(loaded.isPrefetching, isTrue);
+        // Nothing re-fired off a wrongly-cleared guard.
+        expect(pageTwo.length, 2);
+        // And the stale page never reached the new deck.
+        expect(loaded.profiles.every((p) => p.id.startsWith('new')), isTrue);
+      },
+    );
   });
 
   // ──────────────────────────────────────────────────────────────────

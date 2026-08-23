@@ -8,15 +8,15 @@ import 'package:qeran/core/utils/app_assets.dart';
 /// The privacy hero portrait with an animated **blur-reveal seam**: a thin gold
 /// vertical line sweeps left↔right across the photo (ping-pong, ease-in-out) and
 /// is the moving boundary between two states — HEAVY blur + wine tint on one
-/// side, the SAME image under a permanent LIGHT blur on the other. The face is
-/// never fully revealed: even the "revealed" side keeps a light blur floor. A
-/// literal demo of the app's gradual-unblur privacy mechanic.
+/// side, the SHARP photo on the other. A literal demo of the app's blur privacy
+/// mechanic: the seam shows what the blur looks like, sweeping across an
+/// otherwise unobscured portrait.
 ///
-/// Performance (target: mid-range SM A325F): both blurred images use CONSTANT
-/// sigmas inside [RepaintBoundary]s, so each blur rasterises ONCE. The
+/// Performance (target: mid-range SM A325F): the one remaining blur uses a
+/// CONSTANT sigma inside a [RepaintBoundary], so it rasterises ONCE. The
 /// [AnimationController] drives only the seam position + the [ClipRect]
-/// boundary; the light floor sits outside the builder and the expensive frosted
-/// layer is passed as the [AnimatedBuilder] `child`, so neither is rebuilt (or
+/// boundary; the sharp base is a `const` widget and the expensive frosted layer
+/// is passed as the [AnimatedBuilder] `child`, so neither is rebuilt (or
 /// re-blurred) per frame.
 ///
 /// Reduce-motion: when [MediaQueryData.disableAnimations] is set, no ticker runs
@@ -35,12 +35,13 @@ class BlurRevealPortrait extends StatefulWidget {
 
 class _BlurRevealPortraitState extends State<BlurRevealPortrait>
     with SingleTickerProviderStateMixin {
-  /// Permanent "revealed-soft" floor — deliberately low so the shown side reads
-  /// clearly (the face is recognisable), while never going 100% sharp. That
-  /// whisper of softness keeps the "الصورة محمية" promise honest; set to 0 for a
-  /// fully-sharp reveal. Paired with [_heavyBlurSigma], the two visible states
-  /// read at clearly different degrees.
-  static const double _lightBlurSigma = 1.5;
+  /// The portrait itself, unfiltered — shared by the sharp base and the frosted
+  /// layer so the two stacked copies stay a single source of truth.
+  static const Widget _portrait = Image(
+    image: AssetImage(AppAssets.welcomePortrait),
+    fit: BoxFit.cover,
+    filterQuality: FilterQuality.low,
+  );
 
   /// The frosted side hidden behind the seam — strong enough that the face is
   /// clearly protected there (was the reference mock's `blur(9px)`).
@@ -96,13 +97,13 @@ class _BlurRevealPortraitState extends State<BlurRevealPortrait>
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          final softFloor = _blurredImage(_lightBlurSigma);
           final frostedLayer = _frostedLayer(); // built once; reused per frame
           final sweep = _sweep;
           return Stack(
             fit: StackFit.expand,
             children: [
-              softFloor,
+              // The sharp base — blur exists ONLY behind the seam.
+              const RepaintBoundary(child: _portrait),
               if (sweep == null)
                 ..._revealLayers(width * _staticSeamFraction, frostedLayer)
               else
@@ -150,16 +151,12 @@ class _BlurRevealPortraitState extends State<BlurRevealPortrait>
     );
   }
 
-  /// The same portrait at [sigma] blur, cached in its own [RepaintBoundary].
+  /// The portrait at [sigma] blur, cached in its own [RepaintBoundary].
   Widget _blurredImage(double sigma) {
     return RepaintBoundary(
       child: ImageFiltered(
         imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        child: const Image(
-          image: AssetImage(AppAssets.welcomePortrait),
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.low,
-        ),
+        child: _portrait,
       ),
     );
   }

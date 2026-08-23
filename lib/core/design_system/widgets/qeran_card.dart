@@ -19,6 +19,7 @@ class QeranCard extends StatelessWidget {
     this.accentBar = false,
     this.onTap,
     this.background,
+    this.border,
   });
 
   const QeranCard.hero({
@@ -29,6 +30,7 @@ class QeranCard extends StatelessWidget {
     this.accentBar = true,
     this.onTap,
     this.background,
+    this.border,
   }) : variant = QeranCardVariant.hero;
 
   const QeranCard.flat({
@@ -38,6 +40,7 @@ class QeranCard extends StatelessWidget {
     this.margin,
     this.onTap,
     this.background,
+    this.border,
   })  : variant = QeranCardVariant.flat,
         accentBar = false;
 
@@ -48,6 +51,11 @@ class QeranCard extends StatelessWidget {
   final bool accentBar;
   final VoidCallback? onTap;
   final Color? background;
+
+  /// Optional outline. Defaults to none — except [QeranCard.flat], which keeps
+  /// its wine hairline unless this overrides it. Use when a card has to read as
+  /// a distinct container against a coloured canvas rather than a page surface.
+  final BoxBorder? border;
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +88,10 @@ class QeranCard extends StatelessWidget {
         color: bg,
         borderRadius: radius,
         boxShadow: shadow,
-        border: variant == QeranCardVariant.flat
-            ? Border.all(color: QeranColors.wine08)
-            : null,
+        border: border ??
+            (variant == QeranCardVariant.flat
+                ? Border.all(color: QeranColors.wine08)
+                : null),
       ),
       child: content,
     );

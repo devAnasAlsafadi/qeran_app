@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
@@ -9,6 +7,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../custom_dot_indicator.dart';
+import '../onboarding_explainer_panel.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_responsive_frame.dart';
 import 'onboarding_roadmap_timeline.dart';
@@ -17,7 +16,7 @@ import 'onboarding_trust_badges.dart';
 /// Frame 3 — Marriage Roadmap (رحلة الزواج).
 ///
 /// A centred header + a flat 10-step journey timeline over the wine canvas,
-/// then a soft-white dome carrying the page dots, the trust-badge grid, and the
+/// then the detached explainer panel carrying the page dots, the badges and the
 /// "begin your journey" CTA. [onFinish] ends onboarding (routes onward).
 class OnboardingRoadmapFrame extends StatelessWidget {
   final VoidCallback onFinish;
@@ -64,15 +63,16 @@ class OnboardingRoadmapFrame extends StatelessWidget {
             ),
           ],
         ),
-        panel: _RoadmapDomePanel(
+        panel: OnboardingExplainerPanel(
           topInset: isLandscape
               ? safe.top + QeranSpacing.s64
               : QeranSpacing.s16,
-          bottomInset: safe.bottom + QeranSpacing.s16,
-          dotCount: dotCount,
-          activeDot: activeDot,
-          onDot: onDot,
-          onFinish: onFinish,
+          child: _RoadmapContent(
+            dotCount: dotCount,
+            activeDot: activeDot,
+            onDot: onDot,
+            onFinish: onFinish,
+          ),
         ),
       ),
     );
@@ -104,17 +104,13 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _RoadmapDomePanel extends StatelessWidget {
-  final double topInset;
-  final double bottomInset;
+class _RoadmapContent extends StatelessWidget {
   final int dotCount;
   final int activeDot;
   final ValueChanged<int> onDot;
   final VoidCallback onFinish;
 
-  const _RoadmapDomePanel({
-    required this.topInset,
-    required this.bottomInset,
+  const _RoadmapContent({
     required this.dotCount,
     required this.activeDot,
     required this.onDot,
@@ -123,39 +119,25 @@ class _RoadmapDomePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: QeranColors.paper,
-        borderRadius: QeranRadii.domeTop,
-        boxShadow: QeranShadows.eLiftUp,
-      ),
-      padding: EdgeInsetsDirectional.fromSTEB(
-        QeranSpacing.s20,
-        topInset,
-        QeranSpacing.s20,
-        bottomInset,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Center(
-            child: CustomDotIndicator(
-              count: dotCount,
-              activeIndex: activeDot,
-              onTap: onDot,
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Center(
+          child: CustomDotIndicator(
+            count: dotCount,
+            activeIndex: activeDot,
+            onTap: onDot,
           ),
-          QeranSpacing.vs16,
-          const OnboardingTrustBadges(),
-          QeranSpacing.vs16,
-          QeranButton(
-            label: LocaleKeys.onboarding_roadmap_cta.t(context),
-            trailingIcon: Icons.favorite_rounded,
-            onPressed: onFinish,
-          ),
-        ],
-      ),
+        ),
+        QeranSpacing.vs16,
+        const OnboardingTrustBadges(),
+        QeranSpacing.vs16,
+        QeranButton(
+          label: LocaleKeys.onboarding_roadmap_cta.t(context),
+          trailingIcon: Icons.favorite_rounded,
+          onPressed: onFinish,
+        ),
+      ],
     );
   }
 }

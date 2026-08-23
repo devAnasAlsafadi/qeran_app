@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/effects/ring_motif.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../onboarding_dome_footer.dart';
+import '../onboarding_explainer_panel.dart';
 import '../onboarding_dome_heading.dart';
 import '../onboarding_dome_highlight.dart';
 import 'onboarding_chat_backdrop.dart';
@@ -20,8 +19,8 @@ import 'onboarding_responsive_frame.dart';
 /// Frame 2 — Dignified Mediation (الوساطة الجادة).
 ///
 /// A frosted matchmaker glass card floats over a blurred chat backdrop and a
-/// faint gold ring motif, capped by a soft-white dome with the title / body /
-/// highlight copy and the in-dome footer (dots + next). The illustrative search
+/// faint gold ring motif, capped by the detached explainer panel with the title
+/// / body / highlight copy and the in-panel footer (dots + next). The search
 /// CTA lives inside the card. No network call happens in onboarding.
 class OnboardingMediationFrame extends StatelessWidget {
   final int dotCount;
@@ -77,16 +76,17 @@ class OnboardingMediationFrame extends StatelessWidget {
             ),
           ],
         ),
-        panel: _MediationDomePanel(
+        panel: OnboardingExplainerPanel(
           topInset: isLandscape
               ? safe.top + QeranSpacing.s64
               : QeranSpacing.s20,
-          bottomInset: safe.bottom + QeranSpacing.s16,
-          footer: OnboardingDomeFooter(
-            dotCount: dotCount,
-            activeDot: activeDot,
-            onDot: onDot,
-            onNext: onNext,
+          child: _MediationContent(
+            footer: OnboardingDomeFooter(
+              dotCount: dotCount,
+              activeDot: activeDot,
+              onDot: onDot,
+              onNext: onNext,
+            ),
           ),
         ),
       ),
@@ -94,53 +94,33 @@ class OnboardingMediationFrame extends StatelessWidget {
   }
 }
 
-class _MediationDomePanel extends StatelessWidget {
-  final double topInset;
-  final double bottomInset;
+class _MediationContent extends StatelessWidget {
   final Widget footer;
 
-  const _MediationDomePanel({
-    required this.topInset,
-    required this.bottomInset,
-    required this.footer,
-  });
+  const _MediationContent({required this.footer});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: QeranColors.paper,
-        borderRadius: QeranRadii.domeTop,
-        boxShadow: QeranShadows.eLiftUp,
-      ),
-      padding: EdgeInsetsDirectional.fromSTEB(
-        QeranSpacing.s20,
-        topInset,
-        QeranSpacing.s20,
-        bottomInset,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          OnboardingDomeHeading(
-            title: LocaleKeys.onboarding_mediation_title.t(context),
-          ),
-          QeranSpacing.vs8,
-          Text(
-            LocaleKeys.onboarding_mediation_body.t(context),
-            style: QeranTypography.bodySm,
-          ),
-          QeranSpacing.vs16,
-          OnboardingDomeHighlight(
-            icon: Icons.handshake_rounded,
-            text: LocaleKeys.onboarding_mediation_highlight.t(context),
-          ),
-          QeranSpacing.vs16,
-          footer,
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OnboardingDomeHeading(
+          title: LocaleKeys.onboarding_mediation_title.t(context),
+        ),
+        QeranSpacing.vs8,
+        Text(
+          LocaleKeys.onboarding_mediation_body.t(context),
+          style: QeranTypography.bodySm,
+        ),
+        QeranSpacing.vs16,
+        OnboardingDomeHighlight(
+          icon: Icons.handshake_rounded,
+          text: LocaleKeys.onboarding_mediation_highlight.t(context),
+        ),
+        QeranSpacing.vs16,
+        footer,
+      ],
     );
   }
 }

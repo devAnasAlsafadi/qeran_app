@@ -71,6 +71,13 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     unawaited(_animateToPage(state.currentPage + 1));
   }
 
+  /// Mirrors [_advance]: drive the controller and let `onPageChanged` sync the
+  /// cubit, rather than emitting a page change the animation hasn't made yet.
+  void _retreat(OnboardingState state) {
+    if (state.isFirstPage) return;
+    unawaited(_animateToPage(state.currentPage - 1));
+  }
+
   /// Where to land after onboarding finishes. Unauthenticated → login; an
   /// in-memory session → that role's home.
   String _postOnboardingRoute() {
@@ -139,6 +146,11 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     );
   }
 
+  /// Null on the first page — the frames hide the control rather than showing
+  /// a dead one, and the nav row keeps its slot so the dots stay centred.
+  VoidCallback? _backFor(OnboardingState state) =>
+      state.isFirstPage ? null : () => _retreat(state);
+
   Widget _frameFor(int index, OnboardingCubit cubit, OnboardingState state) {
     // The 3 frames map 1:1 to the 3 dots: dotCount = total frames, activeDot =
     // the current page, and onDot navigates straight to that page (no offset —
@@ -149,6 +161,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           dotCount: onboardingData.length,
           activeDot: state.currentPage,
           onDot: _animateToPage,
+          onBack: _backFor(state),
           onNext: () => _advance(cubit, state),
         );
       case OnboardingFrame.mediation:
@@ -156,6 +169,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           dotCount: onboardingData.length,
           activeDot: state.currentPage,
           onDot: _animateToPage,
+          onBack: _backFor(state),
           onNext: () => _advance(cubit, state),
           onSearch: () => _advance(cubit, state),
         );
@@ -165,6 +179,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
           dotCount: onboardingData.length,
           activeDot: state.currentPage,
           onDot: _animateToPage,
+          onBack: _backFor(state),
         );
     }
   }

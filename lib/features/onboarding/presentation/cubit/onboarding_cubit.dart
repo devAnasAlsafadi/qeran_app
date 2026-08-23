@@ -33,13 +33,6 @@ class OnboardingCubit extends Cubit<OnboardingState> with SafeEmit<OnboardingSta
     }
   }
 
-  /// Go back to the previous page (no-op on first page).
-  void previousPage() {
-    if (state is! OnboardingIdle) return;
-    final s = state as OnboardingIdle;
-    if (!s.isFirstPage) emit(s.copyWith(currentPage: s.currentPage - 1));
-  }
-
   /// Skip the onboarding entirely and persist the flag.
   Future<void> skip() => _finish();
 

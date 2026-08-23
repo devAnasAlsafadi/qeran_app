@@ -8,7 +8,7 @@ import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import '../custom_dot_indicator.dart';
+import '../onboarding_nav_row.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_responsive_frame.dart';
 import 'onboarding_roadmap_timeline.dart';
@@ -24,6 +24,7 @@ class OnboardingRoadmapFrame extends StatelessWidget {
   final int dotCount;
   final int activeDot;
   final ValueChanged<int> onDot;
+  final VoidCallback? onBack;
 
   const OnboardingRoadmapFrame({
     super.key,
@@ -31,6 +32,7 @@ class OnboardingRoadmapFrame extends StatelessWidget {
     required this.dotCount,
     required this.activeDot,
     required this.onDot,
+    this.onBack,
   });
 
   @override
@@ -72,6 +74,7 @@ class OnboardingRoadmapFrame extends StatelessWidget {
           dotCount: dotCount,
           activeDot: activeDot,
           onDot: onDot,
+          onBack: onBack,
           onFinish: onFinish,
         ),
       ),
@@ -110,6 +113,7 @@ class _RoadmapDomePanel extends StatelessWidget {
   final int dotCount;
   final int activeDot;
   final ValueChanged<int> onDot;
+  final VoidCallback? onBack;
   final VoidCallback onFinish;
 
   const _RoadmapDomePanel({
@@ -118,6 +122,7 @@ class _RoadmapDomePanel extends StatelessWidget {
     required this.dotCount,
     required this.activeDot,
     required this.onDot,
+    required this.onBack,
     required this.onFinish,
   });
 
@@ -139,15 +144,16 @@ class _RoadmapDomePanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Center(
-            child: CustomDotIndicator(
-              count: dotCount,
-              activeIndex: activeDot,
-              onTap: onDot,
-            ),
-          ),
-          QeranSpacing.vs16,
           const OnboardingTrustBadges(),
+          QeranSpacing.vs16,
+          // No next here — the full-width CTA below is this frame's action, so
+          // the row keeps its end slot empty and the dots stay centred.
+          OnboardingNavRow(
+            dotCount: dotCount,
+            activeDot: activeDot,
+            onDot: onDot,
+            onBack: onBack,
+          ),
           QeranSpacing.vs16,
           QeranButton(
             label: LocaleKeys.onboarding_roadmap_cta.t(context),

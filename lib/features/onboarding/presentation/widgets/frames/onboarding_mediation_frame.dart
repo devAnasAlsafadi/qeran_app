@@ -8,7 +8,7 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import '../onboarding_dome_footer.dart';
+import '../onboarding_nav_row.dart';
 import '../onboarding_dome_heading.dart';
 import '../onboarding_dome_highlight.dart';
 import 'onboarding_chat_backdrop.dart';
@@ -27,6 +27,7 @@ class OnboardingMediationFrame extends StatelessWidget {
   final int dotCount;
   final int activeDot;
   final ValueChanged<int> onDot;
+  final VoidCallback? onBack;
   final VoidCallback onNext;
   final VoidCallback onSearch;
 
@@ -37,6 +38,7 @@ class OnboardingMediationFrame extends StatelessWidget {
     required this.onDot,
     required this.onNext,
     required this.onSearch,
+    this.onBack,
   });
 
   @override
@@ -82,10 +84,11 @@ class OnboardingMediationFrame extends StatelessWidget {
               ? safe.top + QeranSpacing.s64
               : QeranSpacing.s20,
           bottomInset: safe.bottom + QeranSpacing.s16,
-          footer: OnboardingDomeFooter(
+          footer: OnboardingNavRow(
             dotCount: dotCount,
             activeDot: activeDot,
             onDot: onDot,
+            onBack: onBack,
             onNext: onNext,
           ),
         ),

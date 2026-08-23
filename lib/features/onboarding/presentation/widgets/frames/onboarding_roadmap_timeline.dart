@@ -7,13 +7,13 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// The marriage journey as a vertical 9-step timeline riding a gold spine:
+/// The marriage journey as a vertical 10-step timeline riding a gold spine:
 /// create profile → answer questions → hidden photo → matchmaker approval →
-/// search → mutual interest → photo reveal → contact → family details. Each is
-/// a flat row — a wine circle (gold ring + gold icon) + a single label, no
-/// descriptive sub-line. The unbroken spine runs behind the circles; the
-/// "الزواج الشرعي" rings capstone (in the frame) completes the journey as step
-/// ten.
+/// search → mutual interest → photo reveal → contact → family details →
+/// marriage. Each is a flat row — a wine circle (gold ring + gold icon) + a
+/// single label, no descriptive sub-line. The unbroken spine runs behind the
+/// circles and ends at the final node; "الزواج الشرعي" is an ordinary step in
+/// the sequence, not a hero capstone.
 class OnboardingRoadmapTimeline extends StatelessWidget {
   const OnboardingRoadmapTimeline({super.key});
 
@@ -29,6 +29,7 @@ class OnboardingRoadmapTimeline extends StatelessWidget {
       (Icons.visibility_rounded, LocaleKeys.onboarding_roadmap_step7.t(context)),
       (Icons.forum_rounded, LocaleKeys.onboarding_roadmap_step8.t(context)),
       (Icons.diversity_3_rounded, LocaleKeys.onboarding_roadmap_step9.t(context)),
+      (Icons.join_full_rounded, LocaleKeys.onboarding_roadmap_marriage.t(context)),
     ];
     return Stack(
       children: [

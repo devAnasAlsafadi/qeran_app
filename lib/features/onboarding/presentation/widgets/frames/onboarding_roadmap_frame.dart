@@ -10,17 +10,15 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../custom_dot_indicator.dart';
 import 'onboarding_hero_background.dart';
-import 'onboarding_marriage_destination.dart';
 import 'onboarding_responsive_frame.dart';
 import 'onboarding_roadmap_timeline.dart';
 import 'onboarding_trust_badges.dart';
 
 /// Frame 3 — Marriage Roadmap (رحلة الزواج).
 ///
-/// A centred header + a flat 9-step journey timeline capped by the
-/// interlocking-rings "الزواج الشرعي" destination (step ten) over the wine
-/// canvas, then a soft-white dome carrying the page dots, the trust-badge grid,
-/// and the "begin your journey" CTA. [onFinish] ends onboarding (routes onward).
+/// A centred header + a flat 10-step journey timeline over the wine canvas,
+/// then a soft-white dome carrying the page dots, the trust-badge grid, and the
+/// "begin your journey" CTA. [onFinish] ends onboarding (routes onward).
 class OnboardingRoadmapFrame extends StatelessWidget {
   final VoidCallback onFinish;
   final int dotCount;
@@ -60,8 +58,6 @@ class OnboardingRoadmapFrame extends StatelessWidget {
                     _Header(),
                     QeranSpacing.vs16,
                     OnboardingRoadmapTimeline(),
-                    QeranSpacing.vs8,
-                    OnboardingMarriageDestination(),
                   ],
                 ),
               ),

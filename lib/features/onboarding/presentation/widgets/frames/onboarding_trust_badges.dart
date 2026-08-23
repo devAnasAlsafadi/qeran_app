@@ -5,8 +5,11 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// The roadmap dome's reassurance grid: four trust badges in two columns, each a
-/// gold-deep check + a short line.
+/// The roadmap's reassurance grid: four trust badges in two columns, each a
+/// gold check + a short line.
+///
+/// Reads on the wine canvas — paper copy and a full-gold tick, since `inkBody`
+/// and `goldDeep` both sink into the wine they now sit on.
 class OnboardingTrustBadges extends StatelessWidget {
   const OnboardingTrustBadges({super.key});
 
@@ -48,14 +51,14 @@ class _Badge extends StatelessWidget {
       children: [
         const Icon(
           Icons.check_circle_rounded,
-          color: QeranColors.goldDeep,
+          color: QeranColors.gold,
           size: 17,
         ),
         QeranSpacing.hs4,
         Expanded(
           child: Text(
             text,
-            style: QeranTypography.caption.copyWith(color: QeranColors.inkBody),
+            style: QeranTypography.caption.copyWith(color: QeranColors.paper),
           ),
         ),
       ],

@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/effects/ring_motif.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../onboarding_highlight_pill.dart';
 import '../onboarding_nav_row.dart';
-import '../onboarding_dome_heading.dart';
-import '../onboarding_dome_highlight.dart';
+import '../onboarding_section_heading.dart';
 import 'onboarding_chat_backdrop.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_matchmaker_glass_card.dart';
@@ -20,9 +18,11 @@ import 'onboarding_responsive_frame.dart';
 /// Frame 2 — Dignified Mediation (الوساطة الجادة).
 ///
 /// A frosted matchmaker glass card floats over a blurred chat backdrop and a
-/// faint gold ring motif, capped by a soft-white dome with the title / body /
-/// highlight copy and the in-dome footer (dots + next). The illustrative search
-/// CTA lives inside the card. No network call happens in onboarding.
+/// faint gold ring motif. Below it the title / body / highlight copy and the
+/// nav row sit directly on the wine canvas — no paper panel, so the screen
+/// reads as explanation rather than product. The glass card already plays the
+/// "small container" role here, so nothing below needs one. The illustrative
+/// search CTA lives inside the card; no network call happens in onboarding.
 class OnboardingMediationFrame extends StatelessWidget {
   final int dotCount;
   final int activeDot;
@@ -79,7 +79,7 @@ class OnboardingMediationFrame extends StatelessWidget {
             ),
           ],
         ),
-        panel: _MediationDomePanel(
+        panel: _MediationContent(
           topInset: isLandscape
               ? safe.top + QeranSpacing.s64
               : QeranSpacing.s20,
@@ -97,12 +97,12 @@ class OnboardingMediationFrame extends StatelessWidget {
   }
 }
 
-class _MediationDomePanel extends StatelessWidget {
+class _MediationContent extends StatelessWidget {
   final double topInset;
   final double bottomInset;
   final Widget footer;
 
-  const _MediationDomePanel({
+  const _MediationContent({
     required this.topInset,
     required this.bottomInset,
     required this.footer,
@@ -110,13 +110,7 @@ class _MediationDomePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: QeranColors.paper,
-        borderRadius: QeranRadii.domeTop,
-        boxShadow: QeranShadows.eLiftUp,
-      ),
+    return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s20,
         topInset,
@@ -127,16 +121,16 @@ class _MediationDomePanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          OnboardingDomeHeading(
+          OnboardingSectionHeading(
             title: LocaleKeys.onboarding_mediation_title.t(context),
           ),
           QeranSpacing.vs8,
           Text(
             LocaleKeys.onboarding_mediation_body.t(context),
-            style: QeranTypography.bodySm,
+            style: QeranTypography.bodySm.copyWith(color: QeranColors.paper),
           ),
           QeranSpacing.vs16,
-          OnboardingDomeHighlight(
+          OnboardingHighlightPill(
             icon: Icons.handshake_rounded,
             text: LocaleKeys.onboarding_mediation_highlight.t(context),
           ),

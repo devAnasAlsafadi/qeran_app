@@ -14,7 +14,7 @@ import 'onboarding_profile_meta_overlay.dart';
 /// blur-reveal seam sweeping across it (frosted+wine ↔ softly revealed, the face
 /// never fully sharp), a top scrim for the floating chrome, a gold lock badge
 /// over it, and the name/age + category chips integrated over a wine scrim at
-/// the base. It bleeds to the screen top; the dome surfaces beneath it.
+/// the base. It bleeds to the screen top; the frame content sits beneath it.
 class OnboardingBlurredProfileCard extends StatelessWidget {
   const OnboardingBlurredProfileCard({super.key});
 

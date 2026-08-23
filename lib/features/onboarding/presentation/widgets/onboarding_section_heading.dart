@@ -4,13 +4,16 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
-/// A content-frame dome heading: a short gold accent bar followed by the
-/// section title. Shared across onboarding frames so every dome heading reads
+/// A content-frame section heading: a short gold accent bar followed by the
+/// section title. Shared across onboarding frames so every heading reads
 /// identically.
-class OnboardingDomeHeading extends StatelessWidget {
+///
+/// Gold on the wine canvas — the frames carry no paper surface, so the title
+/// takes the brand accent rather than wine ink, which would be invisible here.
+class OnboardingSectionHeading extends StatelessWidget {
   final String title;
 
-  const OnboardingDomeHeading({super.key, required this.title});
+  const OnboardingSectionHeading({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +31,7 @@ class OnboardingDomeHeading extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: QeranTypography.title.copyWith(color: QeranColors.wine),
+            style: QeranTypography.title.copyWith(color: QeranColors.gold),
           ),
         ),
       ],

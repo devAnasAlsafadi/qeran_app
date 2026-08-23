@@ -9,7 +9,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// The secure-unblur flow, as a horizontal 5-step strip riding the top of the
-/// essence dome: blurred → interest → request → consent → revealed. A wine
+/// essence frame: blurred → interest → request → consent → revealed. A wine
 /// hairline base line runs behind the nodes with a slow gold highlight sweeping
 /// along it (direction-agnostic via `PositionedDirectional`).
 class OnboardingPrivacyStepStrip extends StatefulWidget {

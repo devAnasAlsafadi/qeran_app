@@ -4,7 +4,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 /// The immersive wine hero canvas behind a content frame. A vertical
 /// wine-light→wine gradient (top-to-bottom, matching the design's
 /// `linear-gradient(180deg, …)`) gives the frames their premium depth; the
-/// white dome panel then surfaces out of it.
+/// frame content then sits directly on it.
 ///
 /// Wrap a whole content frame with this — the frame's own bottom panel paints
 /// its paper surface over the lower portion.

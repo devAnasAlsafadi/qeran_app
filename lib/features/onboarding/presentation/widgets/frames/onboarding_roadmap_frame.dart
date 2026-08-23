@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
@@ -17,8 +15,9 @@ import 'onboarding_trust_badges.dart';
 /// Frame 3 — Marriage Roadmap (رحلة الزواج).
 ///
 /// A centred header + a flat 10-step journey timeline over the wine canvas,
-/// then a soft-white dome carrying the page dots, the trust-badge grid, and the
-/// "begin your journey" CTA. [onFinish] ends onboarding (routes onward).
+/// then the trust-badge grid, the nav row and the "begin your journey" CTA,
+/// all sitting directly on that canvas — no paper panel, so the screen reads as
+/// explanation rather than product. [onFinish] ends onboarding (routes onward).
 class OnboardingRoadmapFrame extends StatelessWidget {
   final VoidCallback onFinish;
   final int dotCount;
@@ -66,7 +65,7 @@ class OnboardingRoadmapFrame extends StatelessWidget {
             ),
           ],
         ),
-        panel: _RoadmapDomePanel(
+        panel: _RoadmapContent(
           topInset: isLandscape
               ? safe.top + QeranSpacing.s64
               : QeranSpacing.s16,
@@ -107,7 +106,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _RoadmapDomePanel extends StatelessWidget {
+class _RoadmapContent extends StatelessWidget {
   final double topInset;
   final double bottomInset;
   final int dotCount;
@@ -116,7 +115,7 @@ class _RoadmapDomePanel extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback onFinish;
 
-  const _RoadmapDomePanel({
+  const _RoadmapContent({
     required this.topInset,
     required this.bottomInset,
     required this.dotCount,
@@ -128,13 +127,7 @@ class _RoadmapDomePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: QeranColors.paper,
-        borderRadius: QeranRadii.domeTop,
-        boxShadow: QeranShadows.eLiftUp,
-      ),
+    return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s20,
         topInset,

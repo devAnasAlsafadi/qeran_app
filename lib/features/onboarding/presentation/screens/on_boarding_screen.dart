@@ -17,8 +17,8 @@ import '../widgets/frames/onboarding_roadmap_frame.dart';
 import '../widgets/onboarding_top_bar.dart';
 
 /// The onboarding wizard coordinator: a 3-page `PageView` (essence · mediation ·
-/// roadmap) with a shared top bar (skip / language) and per-frame in-dome
-/// footer. All page math routes through the untouched [OnboardingCubit]; the
+/// roadmap) with a shared top bar (skip / language) and a per-frame nav row.
+/// All page math routes through the untouched [OnboardingCubit]; the
 /// brand-splash moment now lives in the Lottie splash, so onboarding opens
 /// directly on essence/privacy.
 class OnBoardingScreen extends StatefulWidget {
@@ -129,7 +129,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   ),
                 ),
                 // Chrome shows on every frame. Skip is hidden on the last frame
-                // (roadmap); each frame owns its in-dome footer, so there is no
+                // (roadmap); each frame owns its own nav row, so there is no
                 // floating bottom nav.
                 SafeArea(
                   bottom: false,

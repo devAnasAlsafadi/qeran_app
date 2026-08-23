@@ -106,7 +106,13 @@ const double _kFrostRampDistance = 80.0;
 bool _isFullScreenReplacement(DiscoveryState state) {
   if (state is DiscoveryDailyLimit || state is DiscoveryFailure) return true;
   if (state is DiscoveryLoaded) {
-    return (state.isEmpty || state.isExhausted) && !state.hasMore;
+    if (!state.isEmpty && !state.isExhausted) return false;
+    // A deck with nothing to show and a failed prefetch is terminal until the
+    // user retries, so the error surface owns the screen exactly as
+    // DiscoveryFailure does. Without the second clause the action cluster
+    // floats over it — its controls dead (`current` is null) and its frosted
+    // zone covering the retry button.
+    return !state.hasMore || state.prefetchError != null;
   }
   return false;
 }
@@ -376,6 +382,20 @@ class _ScrollableProfile extends StatelessWidget {
         // view.
         if (s.hasMore) {
           final cubit = context.read<DiscoveryCubit>();
+          // A failed prefetch is terminal until the user asks again. Without
+          // this branch the view re-schedules `ensurePrefetch` on every
+          // rebuild — and because the failure path clears `isPrefetching`,
+          // each rebuild fires another request behind an unchanging skeleton.
+          if (s.prefetchError != null) {
+            return _ScrollableCenter(
+              child: QeranErrorState(
+                title: LocaleKeys.discovery_prefetch_failed.t(context),
+                message: s.prefetchError!.t(context),
+                retryLabel: LocaleKeys.discovery_error_retry.t(context),
+                onRetry: cubit.retryPrefetch,
+              ),
+            );
+          }
           WidgetsBinding.instance.addPostFrameCallback(
             (_) => cubit.ensurePrefetch(),
           );

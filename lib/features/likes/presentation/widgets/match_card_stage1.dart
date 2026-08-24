@@ -73,6 +73,8 @@ class MatchCardStage1 extends StatelessWidget {
       primaryLoading: isFormalStepSending,
       primaryTrailingIcon: formal.trailingIcon,
       primaryVariant: formal.variant,
+      primaryHelperText:
+          LocaleKeys.likes_matches_formal_step_helper.t(context),
       secondaryActions: canOpenPhotos
           ? [
               QeranButton(

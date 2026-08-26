@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_stepper.dart';
 import 'package:qeran/features/likes/domain/entities/formal_request.dart';
 import 'package:qeran/features/likes/domain/entities/match_card.dart';
+import 'package:qeran/features/likes/domain/entities/match_case_stage.dart';
 import 'package:qeran/features/likes/domain/entities/match_formal_status.dart';
 import 'package:qeran/features/likes/domain/entities/match_journey.dart';
 import 'package:qeran/features/likes/domain/entities/match_stage.dart';
@@ -11,7 +12,8 @@ import 'package:qeran/features/likes/domain/entities/photo_exchange_status.dart'
 import 'package:qeran/features/likes/presentation/widgets/match_journey_timeline.dart';
 
 MatchCard _card({
-  required MatchStage stage,
+  MatchCaseStage caseStage = MatchCaseStage.unknown,
+  MatchStage stage = MatchStage.unknown,
   PhotoExchangePending? pending,
   String? formalStatus,
 }) => MatchCard(
@@ -36,6 +38,7 @@ MatchCard _card({
           createdAt: DateTime.fromMillisecondsSinceEpoch(0),
         ),
   conversationId: null,
+  caseStage: caseStage,
 );
 
 PhotoExchangePending get _livePending => PhotoExchangePending(
@@ -54,9 +57,12 @@ PhotoExchangePending get _livePending => PhotoExchangePending(
   canReject: true,
 );
 
-/// Every card the projection can be handed: each stage on its own, each with a
-/// live pending block, and each against every formal status.
+/// Every card the projection can be handed: each server stage on its own, and
+/// — because an unreadable `caseStage` falls back to the older fields — each
+/// card stage on its own, with a live pending block, and against every formal
+/// status.
 List<MatchCard> get _everyCard => [
+  for (final caseStage in MatchCaseStage.values) _card(caseStage: caseStage),
   for (final stage in MatchStage.values) ...[
     _card(stage: stage),
     _card(stage: stage, pending: _livePending),
@@ -84,12 +90,16 @@ void main() {
     }
   });
 
-  // A match card exists only because a like was sent AND accepted, so the
-  // opening node is behind the member before they ever see the card.
-  test('the opening node is always already done', () {
-    for (final card in _everyCard) {
-      expect(buildMatchJourney(card).first.state, QeranStepState.done);
-    }
+  // The projection this replaced opened on a node that was always already
+  // behind the member. Under the unified journey the opening node is a real
+  // stage a fresh match STANDS on, with nothing done behind it.
+  test('a fresh match stands on the opening node with nothing done', () {
+    final steps = buildMatchJourney(
+      _card(caseStage: MatchCaseStage.likeAccepted),
+    );
+
+    expect(steps.first.state, QeranStepState.current);
+    expect(steps.every((s) => s.state != QeranStepState.done), isTrue);
   });
 
   test(
@@ -114,10 +124,10 @@ void main() {
   );
 
   test(
-    'a successful close lights the last node and leaves nothing pending',
+    'a completed marriage lights the last node and leaves nothing pending',
     () {
       final steps = buildMatchJourney(
-        _card(stage: MatchStage.unknown, formalStatus: 'SuccessfullyClosed'),
+        _card(caseStage: MatchCaseStage.marriageCompleted),
       );
 
       expect(steps.last.state, QeranStepState.current);
@@ -133,23 +143,25 @@ void main() {
 
   test('an in-progress journey carries no success tone', () {
     final steps = buildMatchJourney(
-      _card(stage: MatchStage.waitingForPhotoExchange),
+      _card(caseStage: MatchCaseStage.formalStepPending),
     );
 
     expect(steps.every((s) => s.tone == QeranStepTone.normal), isTrue);
   });
 
-  // THE load-bearing one. A rejected exchange, a closed case and a cancelled
-  // case are all folded into "the matchmaker is following up" upstream, so no
-  // node may ever draw the danger cross. If someone adds the missing `ended`
-  // branch to _toneOf, this is what fails.
+  // THE load-bearing one. A declined photo exchange, a declined formal step, a
+  // closed case and a cancelled one all reach a node that carries no outcome,
+  // so none of them can draw the danger cross. If someone gives _toneOf an
+  // outcome to read and adds the missing `ended` branch, this is what fails.
   test('no card, in any state, ever renders an ended node', () {
     for (final card in _everyCard) {
       for (final step in buildMatchJourney(card)) {
         expect(
           step.tone,
           isNot(QeranStepTone.ended),
-          reason: '${card.stage} / ${card.formalRequest?.status}',
+          reason:
+              '${card.caseStage.name} / ${card.stage.name} / '
+              '${card.formalRequest?.status}',
         );
       }
     }

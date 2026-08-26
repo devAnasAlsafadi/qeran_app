@@ -330,11 +330,11 @@ abstract class  LocaleKeys {
   static const likes_matches_formal_step_cta = 'likes.matches_formal_step_cta';
   static const likes_matches_formal_step_helper = 'likes.matches_formal_step_helper';
   static const likes_matches_formal_step_sent = 'likes.matches_formal_step_sent';
-  static const likes_matches_journey_liked = 'likes.matches_journey_liked';
-  static const likes_matches_journey_like_accepted = 'likes.matches_journey_like_accepted';
+  static const likes_matches_journey_initial_compatibility = 'likes.matches_journey_initial_compatibility';
   static const likes_matches_journey_photo_exchange = 'likes.matches_journey_photo_exchange';
-  static const likes_matches_journey_matchmaker = 'likes.matches_journey_matchmaker';
-  static const likes_matches_journey_completed = 'likes.matches_journey_completed';
+  static const likes_matches_journey_formal_contact = 'likes.matches_journey_formal_contact';
+  static const likes_matches_journey_formal_meeting = 'likes.matches_journey_formal_meeting';
+  static const likes_matches_journey_marriage_completed = 'likes.matches_journey_marriage_completed';
   static const likes_matches_journey_current = 'likes.matches_journey_current';
   static const likes_matches_journey_view = 'likes.matches_journey_view';
   static const likes_matches_formal_step_message = 'likes.matches_formal_step_message';

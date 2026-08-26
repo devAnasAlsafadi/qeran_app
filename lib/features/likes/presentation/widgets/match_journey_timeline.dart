@@ -25,9 +25,8 @@ class MatchJourneyStep {
 /// Projects [card] onto all five journey nodes, in order.
 ///
 /// Everything before the card's current stage is done, everything after is
-/// still to come. The first node is always done: [matchJourneyStage] never
-/// returns [MatchJourneyStage.liked], because a match card exists only once a
-/// like has been both sent and accepted.
+/// still to come. Every node is reachable as the current one, the first
+/// included — a freshly accepted like stands on it with nothing behind it yet.
 List<MatchJourneyStep> buildMatchJourney(MatchCard card) {
   final current = matchJourneyStage(card);
   final index = current.index;
@@ -55,30 +54,35 @@ List<MatchJourneyStep> buildMatchJourney(MatchCard card) {
 /// exchange, a closed case and a cancelled one. The member's must not, and the
 /// missing branch is deliberate rather than unfinished: those are precisely
 /// the outcomes where the matchmaker takes the couple over and keeps working,
-/// so from the member's side the journey is still moving. [matchJourneyStage]
-/// has already folded all three into
-/// [MatchJourneyStage.matchmakerFollowUp] upstream, so no input can reach an
-/// "ended" branch — adding one would mean re-introducing the dead ends this
-/// feature exists to hide.
+/// so from the member's side the journey is still moving.
 ///
-/// `match_journey_timeline_test.dart` sweeps every stage x formal-status pair
-/// and fails if any node ever comes back carrying `ended`.
+/// It is unreachable BY CONSTRUCTION: [matchJourneyStage] answers where the
+/// couple got to and says nothing about how it went there, so a declined
+/// formal step and a live one arrive here as the same value. Adding a branch
+/// would mean giving this function an outcome to read — which is exactly how
+/// the dead ends this feature hides would come back.
+///
+/// `match_journey_timeline_test.dart` sweeps every server stage and every
+/// legacy stage x formal-status pair and fails if any node comes back `ended`.
 QeranStepTone _toneOf(MatchJourneyStage current) =>
-    current == MatchJourneyStage.completed
+    current == MatchJourneyStage.marriageCompleted
     ? QeranStepTone.success
     : QeranStepTone.normal;
 
-/// The member's word for each node. Deliberately NOT the matchmaker's:
-/// `matchmaker.cases_formal_waiting_appointment` and `_parents_visited` name
-/// steps the matchmaker works, and both live behind
-/// [MatchJourneyStage.matchmakerFollowUp] here.
+/// The member's word for each node. The nodes are the matchmaker's five, but
+/// the words are not: the matchmaker's name steps they perform
+/// (`cases_formal_waiting_appointment`, `_parents_visited`), and those same
+/// keys are also its status chips, so they cannot be reworded for one screen
+/// without moving under the other.
 String matchJourneyLabelKey(MatchJourneyStage stage) => switch (stage) {
-  MatchJourneyStage.liked => LocaleKeys.likes_matches_journey_liked,
-  MatchJourneyStage.likeAccepted =>
-    LocaleKeys.likes_matches_journey_like_accepted,
+  MatchJourneyStage.initialCompatibility =>
+    LocaleKeys.likes_matches_journey_initial_compatibility,
   MatchJourneyStage.photoExchange =>
     LocaleKeys.likes_matches_journey_photo_exchange,
-  MatchJourneyStage.matchmakerFollowUp =>
-    LocaleKeys.likes_matches_journey_matchmaker,
-  MatchJourneyStage.completed => LocaleKeys.likes_matches_journey_completed,
+  MatchJourneyStage.formalContact =>
+    LocaleKeys.likes_matches_journey_formal_contact,
+  MatchJourneyStage.formalMeeting =>
+    LocaleKeys.likes_matches_journey_formal_meeting,
+  MatchJourneyStage.marriageCompleted =>
+    LocaleKeys.likes_matches_journey_marriage_completed,
 };

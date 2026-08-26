@@ -178,6 +178,13 @@ class EndPoints {
   static String photoExchangeReject(int requestId) =>
       "photo-exchange/$requestId/reject";
 
+  /// `POST /api/formal-step/request/{likeRequestId}` — the member asking to
+  /// begin the formal step. Takes the LIKE id, not the request id; the
+  /// accept/reject twins take `pendingFormalStep.id`, exactly as photo
+  /// exchange splits them. Not subscription-gated.
+  static String formalStepRequest(int likeRequestId) =>
+      "formal-step/request/$likeRequestId";
+
   /// `GET /api/photo-exchange/permission/{targetUserId}` â€” authoritative
   /// one-time photo-view state for the current user and target.
   static String photoExchangePermission(String targetUserId) =>

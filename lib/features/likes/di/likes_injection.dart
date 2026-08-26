@@ -2,12 +2,15 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../application/photo_view_session_clock.dart';
+import '../data/datasources/formal_step_remote_datasource.dart';
 import '../data/datasources/likes_remote_datasource.dart';
 import '../data/datasources/matches_remote_datasource.dart';
 import '../data/datasources/photo_view_remote_datasource.dart';
+import '../data/repositories/formal_step_repository_impl.dart';
 import '../data/repositories/likes_repository_impl.dart';
 import '../data/repositories/matches_repository_impl.dart';
 import '../data/repositories/photo_view_repository_impl.dart';
+import '../domain/repositories/formal_step_repository.dart';
 import '../domain/repositories/likes_repository.dart';
 import '../domain/repositories/matches_repository.dart';
 import '../domain/repositories/photo_view_repository.dart';
@@ -20,6 +23,7 @@ import '../domain/usecases/get_matches_usecase.dart';
 import '../domain/usecases/get_outgoing_likes_usecase.dart';
 import '../domain/usecases/reject_like_usecase.dart';
 import '../domain/usecases/reject_photo_exchange_usecase.dart';
+import '../domain/usecases/request_formal_step_usecase.dart';
 import '../domain/usecases/request_photo_exchange_usecase.dart';
 import '../presentation/blocs/likes_cubit.dart';
 import '../presentation/blocs/photo_view_cubit.dart';
@@ -35,6 +39,9 @@ void initLikesDependencies() {
   sl.registerLazySingleton<PhotoViewRemoteDataSource>(
     () => PhotoViewRemoteDataSourceImpl(apiConsumer: sl()),
   );
+  sl.registerLazySingleton<FormalStepRemoteDataSource>(
+    () => FormalStepRemoteDataSourceImpl(apiConsumer: sl()),
+  );
 
   //! Repositories
   sl.registerLazySingleton<LikesRepository>(() => LikesRepositoryImpl(sl()));
@@ -43,6 +50,9 @@ void initLikesDependencies() {
   );
   sl.registerLazySingleton<PhotoViewRepository>(
     () => PhotoViewRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<FormalStepRepository>(
+    () => FormalStepRepositoryImpl(sl()),
   );
 
   //! UseCases — likes
@@ -56,6 +66,7 @@ void initLikesDependencies() {
   sl.registerLazySingleton(() => RequestPhotoExchangeUseCase(sl()));
   sl.registerLazySingleton(() => AcceptPhotoExchangeUseCase(sl()));
   sl.registerLazySingleton(() => RejectPhotoExchangeUseCase(sl()));
+  sl.registerLazySingleton(() => RequestFormalStepUseCase(sl()));
   sl.registerLazySingleton(() => GetPhotoViewPermissionUseCase(sl()));
   sl.registerLazySingleton(() => BeginPhotoViewUseCase(sl()));
   sl.registerLazySingleton(PhotoViewSessionClock.new);

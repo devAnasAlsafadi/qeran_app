@@ -164,7 +164,9 @@ void main() {
       }
     });
 
-    test('the two live statuses each enable a forward step and a closure', () {
+    test('before the visit: one forward step, and calling off', () {
+      // Nothing has happened yet that could be reported as not having worked
+      // out, so the outcome closure is absent — the server rejects 1→4 too.
       expect(
         _enabledTargets(
           _case(
@@ -174,9 +176,12 @@ void main() {
         ),
         {
           FormalRequestStatus.parentsVisited,
-          FormalRequestStatus.compatibilityCancelled,
+          FormalRequestStatus.calledOff,
         },
       );
+    });
+
+    test('after the visit: both endings become available', () {
       expect(
         _enabledTargets(
           _case(
@@ -186,7 +191,8 @@ void main() {
         ),
         {
           FormalRequestStatus.successfullyClosed,
-          FormalRequestStatus.compatibilityCancelled,
+          FormalRequestStatus.notSuccessful,
+          FormalRequestStatus.calledOff,
         },
       );
     });

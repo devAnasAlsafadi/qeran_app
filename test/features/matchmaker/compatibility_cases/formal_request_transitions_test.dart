@@ -3,65 +3,100 @@ import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/fo
 import 'package:qeran/features/matchmaker/compatibility_cases/presentation/widgets/matchmaker_case_labels.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-/// #10 — Closed and Cancelled are one negative terminal.
+/// The two negative terminals are two different outcomes again.
 ///
-/// The backend treats `CompatibilityClosed(4)` and `CompatibilityCancelled(5)`
-/// identically, so the UI offered two buttons that did the same thing. We now
-/// offer ONE closure and always send `CompatibilityCancelled`; `4` survives
-/// only so pre-merge cases still display.
-
+/// They were merged while the backend treated `CompatibilityClosed(4)` and
+/// `CompatibilityCancelled(5)` as one state: offering both meant two buttons
+/// that did the same thing, so we collapsed them and always sent `5`. The
+/// server now records them differently — `4` is `Failed`, `5` is `Cancelled` —
+/// and the merge became a bug: the matchmaker could report every ending as
+/// merely called off, and never as having not worked out.
+///
+/// These pin the split. The failure they exist to catch is a silent re-merge:
+/// both concepts still resolving to one wire value, or one label, in which
+/// case everything still compiles and the wrong outcome is recorded forever
+/// on a live case.
 void main() {
-  group('allowedNext — one closure per stage', () {
-    test('WaitingForParentAppointment → ParentsVisited | Cancelled', () {
+  group('the two terminals are genuinely distinct', () {
+    test('they are different members', () {
+      expect(
+        FormalRequestStatus.notSuccessful,
+        isNot(FormalRequestStatus.calledOff),
+      );
+    });
+
+    test('they send different wire values', () {
+      expect(FormalRequestStatus.notSuccessful.apiValue, 'CompatibilityClosed');
+      expect(
+        FormalRequestStatus.calledOff.apiValue,
+        'CompatibilityCancelled',
+      );
+    });
+
+    test('they read differently to the matchmaker', () {
+      expect(
+        actionLabelKey(FormalRequestStatus.notSuccessful),
+        isNot(actionLabelKey(FormalRequestStatus.calledOff)),
+      );
+      expect(
+        formalStatusLabelKey(FormalRequestStatus.notSuccessful),
+        isNot(formalStatusLabelKey(FormalRequestStatus.calledOff)),
+      );
+    });
+
+    test('both are confirmed before they submit', () {
+      expect(isDestructiveTarget(FormalRequestStatus.notSuccessful), isTrue);
+      expect(isDestructiveTarget(FormalRequestStatus.calledOff), isTrue);
+    });
+  });
+
+  group('allowedNext', () {
+    test('WaitingForParentAppointment → ParentsVisited | calledOff', () {
       expect(
         FormalRequestStatus.waitingForParentAppointment.allowedNext,
         {
           FormalRequestStatus.parentsVisited,
-          FormalRequestStatus.compatibilityCancelled,
+          FormalRequestStatus.calledOff,
         },
       );
     });
 
-    test('ParentsVisited → SuccessfullyClosed | Cancelled', () {
+    test('ParentsVisited → SuccessfullyClosed | notSuccessful | calledOff', () {
       expect(
         FormalRequestStatus.parentsVisited.allowedNext,
         {
           FormalRequestStatus.successfullyClosed,
-          FormalRequestStatus.compatibilityCancelled,
+          FormalRequestStatus.notSuccessful,
+          FormalRequestStatus.calledOff,
         },
       );
     });
 
-    test('CompatibilityClosed is never offered as a target', () {
-      // The lead regression: it used to sit in BOTH sets, producing the
-      // duplicate إغلاق/إلغاء pair.
-      for (final from in FormalRequestStatus.values) {
-        expect(
-          from.allowedNext,
-          isNot(contains(FormalRequestStatus.compatibilityClosed)),
-          reason: '$from must not offer CompatibilityClosed',
-        );
-      }
+    // The narrowing Tariq made server-side, mirrored so the button is never
+    // offered rather than offered and rejected. Before the families have met
+    // there is no outcome to report.
+    test('notSuccessful is offered only after the visit', () {
+      final offering = FormalRequestStatus.values
+          .where((s) => s.allowedNext.contains(FormalRequestStatus.notSuccessful))
+          .toList();
+      expect(offering, [FormalRequestStatus.parentsVisited]);
     });
 
-    test('exactly one destructive target per actionable stage', () {
-      for (final from in [
+    test('calledOff is offered from both live stages', () {
+      final offering = FormalRequestStatus.values
+          .where((s) => s.allowedNext.contains(FormalRequestStatus.calledOff))
+          .toList();
+      expect(offering, [
         FormalRequestStatus.waitingForParentAppointment,
         FormalRequestStatus.parentsVisited,
-      ]) {
-        expect(
-          from.allowedNext.where(isDestructiveTarget).toList(),
-          [FormalRequestStatus.compatibilityCancelled],
-          reason: '$from must offer exactly one closure',
-        );
-      }
+      ]);
     });
 
     test('the three terminal states stay terminal', () {
       for (final terminal in [
         FormalRequestStatus.successfullyClosed,
-        FormalRequestStatus.compatibilityClosed,
-        FormalRequestStatus.compatibilityCancelled,
+        FormalRequestStatus.notSuccessful,
+        FormalRequestStatus.calledOff,
         FormalRequestStatus.unknown,
       ]) {
         expect(terminal.allowedNext, isEmpty);
@@ -70,40 +105,37 @@ void main() {
     });
   });
 
-  group('what we send', () {
-    test('the closure sends CompatibilityCancelled verbatim', () {
-      expect(
-        FormalRequestStatus.compatibilityCancelled.apiValue,
-        'CompatibilityCancelled',
-      );
+  group('what the sheet offers', () {
+    test('all four targets are listed, forward steps first', () {
+      expect(statusUpdateTargets, [
+        FormalRequestStatus.parentsVisited,
+        FormalRequestStatus.successfullyClosed,
+        FormalRequestStatus.notSuccessful,
+        FormalRequestStatus.calledOff,
+      ]);
     });
 
-    test('CompatibilityClosed still parses back for display', () {
-      // Cases closed before the merge must keep rendering.
-      expect(
-        FormalRequestStatus.fromString('CompatibilityClosed'),
-        FormalRequestStatus.compatibilityClosed,
-      );
-      expect(
-        formalStatusLabelKey(FormalRequestStatus.compatibilityClosed),
-        isNotNull,
-      );
+    test('every listed target is reachable from somewhere', () {
+      final reachable = {
+        for (final from in FormalRequestStatus.values) ...from.allowedNext,
+      };
+      expect(statusUpdateTargets.toSet(), reachable);
     });
   });
 
   group('labels', () {
-    test('both negative terminals share the one closure verb', () {
+    test('the closures carry their own verbs', () {
       expect(
-        actionLabelKey(FormalRequestStatus.compatibilityCancelled),
-        LocaleKeys.matchmaker_cases_action_close_case,
+        actionLabelKey(FormalRequestStatus.notSuccessful),
+        LocaleKeys.matchmaker_cases_action_not_successful,
       );
       expect(
-        actionLabelKey(FormalRequestStatus.compatibilityClosed),
+        actionLabelKey(FormalRequestStatus.calledOff),
         LocaleKeys.matchmaker_cases_action_close_case,
       );
     });
 
-    test('the forward steps keep their own verbs', () {
+    test('the forward steps keep theirs', () {
       expect(
         actionLabelKey(FormalRequestStatus.parentsVisited),
         LocaleKeys.matchmaker_cases_action_parents_visited,
@@ -112,6 +144,31 @@ void main() {
         actionLabelKey(FormalRequestStatus.successfullyClosed),
         LocaleKeys.matchmaker_cases_action_successfully_closed,
       );
+    });
+
+    test('every offered target has a label and an icon', () {
+      for (final target in statusUpdateTargets) {
+        expect(actionLabelKey(target), isNotEmpty, reason: target.name);
+        expect(formalStatusIcon(target), isNotNull, reason: target.name);
+      }
+    });
+  });
+
+  group('wire round-trip', () {
+    test('every sendable status parses back to itself', () {
+      for (final status in FormalRequestStatus.values) {
+        final wire = status.apiValue;
+        if (wire == null) continue;
+        expect(
+          FormalRequestStatus.fromString(wire),
+          status,
+          reason: '$wire did not round-trip',
+        );
+      }
+    });
+
+    test('unknown is never sent', () {
+      expect(FormalRequestStatus.unknown.apiValue, isNull);
     });
   });
 }

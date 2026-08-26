@@ -14,6 +14,20 @@ enum FormalRequestStatus {
   compatibilityCancelled,
   unknown;
 
+  /// The two negative terminals, named by what they MEAN rather than by their
+  /// wire spelling. Every decision below and in presentation goes through
+  /// these, so the wire mapping is declared once instead of being re-derived
+  /// from a name at each use — and "Closed" reading neutral while it means an
+  /// outcome is exactly the kind of thing that gets re-derived wrongly.
+  ///
+  /// The matchmaker tried and it did not work out. The server records this as
+  /// `caseStatus = Failed`.
+  static const FormalRequestStatus notSuccessful = compatibilityClosed;
+
+  /// The case was called off rather than concluded — either party, or the
+  /// matchmaker. The server records `caseStatus = Cancelled`.
+  static const FormalRequestStatus calledOff = compatibilityCancelled;
+
   static FormalRequestStatus fromString(String? raw) {
     switch ((raw ?? '').toLowerCase()) {
       case 'waitingforparentappointment':
@@ -32,10 +46,6 @@ enum FormalRequestStatus {
   }
 
   /// Verbatim PascalCase value sent by the status POST. [unknown] has none.
-  ///
-  /// [compatibilityClosed] keeps a wire value so an existing closed case still
-  /// round-trips, but it is never SENT — it is absent from every [allowedNext]
-  /// set (see the merge note there).
   String? get apiValue => switch (this) {
         FormalRequestStatus.waitingForParentAppointment =>
           'WaitingForParentAppointment',
@@ -46,22 +56,32 @@ enum FormalRequestStatus {
         FormalRequestStatus.unknown => null,
       };
 
-  /// Server-validated transitions: 1→{2,5}, 2→{3,5}, 3/4/5 terminal.
+  /// Server-validated transitions: 1→{2,5}, 2→{3,4,5}, 3/4/5 terminal. The
+  /// server stays authoritative — an illegal move returns
+  /// `INVALID_STATUS_TRANSITION` — but the UI is built from this so an illegal
+  /// move is never offered in the first place.
   ///
-  /// `CompatibilityClosed(4)` and `CompatibilityCancelled(5)` are both negative
-  /// terminal states and the backend treats them identically, so the two used
-  /// to appear here as two separate buttons ("إغلاق" / "إلغاء") that did the
-  /// same thing. They are merged: we offer ONE closure and always send
-  /// `CompatibilityCancelled`, which is legal from both stages. `4` survives
-  /// only for DISPLAYING cases closed before the merge.
+  /// The two negative terminals used to be merged here. The backend once
+  /// treated them identically, so offering both meant two buttons ("إغلاق" /
+  /// "إلغاء") that did the same thing, and we collapsed them into one closure
+  /// that always sent [calledOff]. They are now distinct outcomes —
+  /// [notSuccessful] records `Failed`, [calledOff] records `Cancelled` — so
+  /// the split is back, and a case can finally be marked as having not worked
+  /// out rather than as merely called off.
+  ///
+  /// [notSuccessful] is offered ONLY after the families have met. Before that
+  /// there is nothing to have failed, and the server rejects 1→4 outright; a
+  /// matchmaker who wants out of an early case is calling it off, not
+  /// reporting an outcome.
   Set<FormalRequestStatus> get allowedNext => switch (this) {
         FormalRequestStatus.waitingForParentAppointment => const {
             FormalRequestStatus.parentsVisited,
-            FormalRequestStatus.compatibilityCancelled,
+            FormalRequestStatus.calledOff,
           },
         FormalRequestStatus.parentsVisited => const {
             FormalRequestStatus.successfullyClosed,
-            FormalRequestStatus.compatibilityCancelled,
+            FormalRequestStatus.notSuccessful,
+            FormalRequestStatus.calledOff,
           },
         FormalRequestStatus.successfullyClosed ||
         FormalRequestStatus.compatibilityClosed ||

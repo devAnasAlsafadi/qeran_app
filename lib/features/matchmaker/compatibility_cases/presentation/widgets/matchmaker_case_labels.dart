@@ -97,32 +97,43 @@ String? photoStatusLabelKey(CasePhotoExchangeStatus status) => switch (status) {
 /// Imperative button label for a status-update target, using an action verb
 /// rather than the state label.
 ///
-/// The negative terminal is now ONE action, so the old "إغلاق" / "إلغاء" split
-/// is gone: both closed and cancelled read "إغلاق الحالة". A bare "إلغاء" was
-/// the worst of the two anyway — it is also the dismiss button on the confirm
-/// dialog that opens right on top of it.
+/// The two negative terminals read differently again, because they now mean
+/// different things: [FormalRequestStatus.notSuccessful] reports an outcome
+/// after the families met, [FormalRequestStatus.calledOff] ends a case without
+/// claiming one. They shared "إغلاق الحالة" while the backend treated them as
+/// one state.
 ///
-/// Only `parentsVisited`, `successfullyClosed` and `compatibilityCancelled`
+/// "إلغاء" is still avoided for the closure — it is also the dismiss button on
+/// the confirm dialog that opens directly on top of it.
+///
+/// Only `parentsVisited`, `successfullyClosed`, `notSuccessful` and `calledOff`
 /// are reachable; the rest never appear in `allowedNext`.
 String actionLabelKey(FormalRequestStatus target) => switch (target) {
       FormalRequestStatus.parentsVisited =>
         LocaleKeys.matchmaker_cases_action_parents_visited,
       FormalRequestStatus.successfullyClosed =>
         LocaleKeys.matchmaker_cases_action_successfully_closed,
-      FormalRequestStatus.compatibilityClosed ||
-      FormalRequestStatus.compatibilityCancelled ||
+      FormalRequestStatus.notSuccessful =>
+        LocaleKeys.matchmaker_cases_action_not_successful,
+      FormalRequestStatus.calledOff ||
       FormalRequestStatus.waitingForParentAppointment ||
       FormalRequestStatus.unknown =>
         LocaleKeys.matchmaker_cases_action_close_case,
     };
 
-/// Every status a case can be moved TO, in the order they are offered. These
-/// are the only members that ever appear in an `allowedNext`; the rest are
-/// either the starting state or display-only.
+/// Every status a case can be moved TO, in the order they are offered — the
+/// journey forward first, then the two ways it can end without a marriage.
+/// These are the only members that ever appear in an `allowedNext`; the rest
+/// are either the starting state or display-only.
+///
+/// The sheet lists all four every time and disables the ones that are not
+/// legal yet, so the set of possible endings stays visible rather than
+/// appearing partway through a case.
 const List<FormalRequestStatus> statusUpdateTargets = [
   FormalRequestStatus.parentsVisited,
   FormalRequestStatus.successfullyClosed,
-  FormalRequestStatus.compatibilityCancelled,
+  FormalRequestStatus.notSuccessful,
+  FormalRequestStatus.calledOff,
 ];
 
 /// The timeline step the case is standing on. Drives the informative "why is

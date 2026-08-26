@@ -8,6 +8,7 @@ import 'package:qeran/features/likes/domain/entities/like_action_outcome.dart';
 import 'package:qeran/features/likes/domain/entities/like_requests_data.dart';
 import 'package:qeran/features/likes/domain/entities/likes_tab.dart';
 import 'package:qeran/features/likes/domain/entities/match_card.dart';
+import 'package:qeran/features/likes/domain/entities/formal_step_outcome.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_outcome.dart';
 import 'package:qeran/features/likes/domain/usecases/accept_like_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/accept_photo_exchange_usecase.dart';
@@ -16,6 +17,7 @@ import 'package:qeran/features/likes/domain/usecases/get_matches_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/get_outgoing_likes_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/reject_like_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/reject_photo_exchange_usecase.dart';
+import 'package:qeran/features/likes/domain/usecases/request_formal_step_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/request_photo_exchange_usecase.dart';
 import 'package:qeran/features/likes/presentation/blocs/likes_cubit.dart';
 import 'package:qeran/features/likes/presentation/blocs/likes_state.dart';
@@ -45,6 +47,9 @@ class _MockRequestPx extends Mock implements RequestPhotoExchangeUseCase {}
 class _MockAcceptPx extends Mock implements AcceptPhotoExchangeUseCase {}
 
 class _MockRejectPx extends Mock implements RejectPhotoExchangeUseCase {}
+
+class _MockRequestFormalStep extends Mock
+    implements RequestFormalStepUseCase {}
 
 class _MockGetMyMatchmaker extends Mock implements GetMyMatchmakerUseCase {}
 
@@ -84,6 +89,7 @@ void main() {
   late _MockRequestPx requestPx;
   late _MockAcceptPx acceptPx;
   late _MockRejectPx rejectPx;
+  late _MockRequestFormalStep requestFormal;
   late _MockGetMyMatchmaker getMyMatchmaker;
   late _MockShareProfile shareProfile;
   late _MockSendText sendText;
@@ -99,6 +105,7 @@ void main() {
     requestPx = _MockRequestPx();
     acceptPx = _MockAcceptPx();
     rejectPx = _MockRejectPx();
+    requestFormal = _MockRequestFormalStep();
     getMyMatchmaker = _MockGetMyMatchmaker();
     shareProfile = _MockShareProfile();
     sendText = _MockSendText();
@@ -113,6 +120,7 @@ void main() {
       requestPhotoExchange: requestPx,
       acceptPhotoExchange: acceptPx,
       rejectPhotoExchange: rejectPx,
+      requestFormalStep: requestFormal,
       getMyMatchmaker: getMyMatchmaker,
       shareProfile: shareProfile,
       sendText: sendText,
@@ -602,36 +610,6 @@ void main() {
       },
     );
 
-    test('message failure does not mark formal step as sent', () async {
-      const card = MatchCard(
-        likeRequestId: 43,
-        otherUserId: 'candidate-id',
-        otherUserName: 'Candidate',
-        images: [],
-        stage: MatchStage.photosExchanged,
-        pendingPhotoExchange: null,
-        formalRequest: null,
-        conversationId: '17',
-      );
-      when(
-        () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
-      ).thenAnswer(
-        (_) async => Right<Failure, ShareProfileOutcome>(
-          ShareProfileSuccess(message: _MockChatMessage()),
-        ),
-      );
-      when(() => sendText(conversationId: 17, content: 'formal')).thenAnswer(
-        (_) async => const Left<Failure, SendTextOutcome>(
-          ServerFailure(message: 'offline'),
-        ),
-      );
-
-      await cubit.sendFormalStep(card, 'formal');
-
-      expect(cubit.state.actionEvent, LikesActionEvent.formalStepFailure);
-      expect(cubit.state.isFormalStepSent(43), isFalse);
-    });
-
     // The sent button stays tappable on purpose, so this path is now
     // reachable from the UI rather than dead code. It must NOT post a second
     // copy of the same message — the screen reads `inquiryAlreadySent` the
@@ -669,6 +647,138 @@ void main() {
       verify(
         () => sendText(conversationId: 17, content: 'inquiry'),
       ).called(1);
+    });
+  });
+
+  group('sendFormalStep', () {
+    void serverSays(FormalStepRequestOutcome outcome) {
+      when(() => requestFormal(43)).thenAnswer(
+        (_) async => Right<Failure, FormalStepRequestOutcome>(outcome),
+      );
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+    }
+
+    // The removal that defines this method: asking the other member to begin
+    // the formal step tells the MATCHMAKER nothing, because she has no role
+    // until they approve. It used to post a profile card and a text to her.
+    test('shares nothing into the matchmaker chat', () async {
+      serverSays(
+        const FormalStepRequestSuccess(requestId: 9, serverMessage: ''),
+      );
+
+      await cubit.sendFormalStep(43);
+
+      expect(cubit.state.actionEvent, LikesActionEvent.formalStepSuccess);
+      verifyNever(() => getMyMatchmaker());
+      verifyNever(
+        () => shareProfile(
+          conversationId: any(named: 'conversationId'),
+          sharedUserId: any(named: 'sharedUserId'),
+        ),
+      );
+      verifyNever(
+        () => sendText(
+          conversationId: any(named: 'conversationId'),
+          content: any(named: 'content'),
+        ),
+      );
+    });
+
+    const outcomes = <FormalStepRequestOutcome, LikesActionEvent>{
+      FormalStepRequestSuccess(requestId: null, serverMessage: ''):
+          LikesActionEvent.formalStepSuccess,
+      FormalStepRequestAlreadyPending(serverMessage: ''):
+          LikesActionEvent.formalStepAlreadyPending,
+      FormalStepRequestNotAllowed(serverMessage: ''):
+          LikesActionEvent.formalStepNotAllowed,
+      FormalStepRequestCaseEnded(serverMessage: ''):
+          LikesActionEvent.formalStepCaseEnded,
+      FormalStepRequestProfileUnderReview(serverMessage: ''):
+          LikesActionEvent.formalStepUnderReview,
+      FormalStepRequestFailure(serverMessage: '', errorCode: null):
+          LikesActionEvent.formalStepFailure,
+    };
+
+    test('every outcome reaches an event of its own', () {
+      expect(outcomes.values.toSet().length, outcomes.length);
+    });
+
+    for (final entry in outcomes.entries) {
+      test('${entry.key.runtimeType} reports ${entry.value.name}', () async {
+        serverSays(entry.key);
+
+        await cubit.sendFormalStep(43);
+
+        expect(cubit.state.actionEvent, entry.value);
+      });
+    }
+
+    // Every REFUSAL means the card acted on a stale view, so the list is
+    // refetched for those too, not only on success. Under-review and a
+    // transport failure say nothing about the case, so they leave it alone.
+    test('refreshes on success and on every refusal, not on the rest', () async {
+      const refresh = {
+        LikesActionEvent.formalStepSuccess,
+        LikesActionEvent.formalStepAlreadyPending,
+        LikesActionEvent.formalStepNotAllowed,
+        LikesActionEvent.formalStepCaseEnded,
+      };
+      for (final entry in outcomes.entries) {
+        serverSays(entry.key);
+        await cubit.sendFormalStep(43);
+
+        // verify() throws rather than reporting zero when nothing matched,
+        // so the two cases have to be asked differently.
+        if (refresh.contains(entry.value)) {
+          verify(() => getMatches()).called(1);
+        } else {
+          verifyNever(() => getMatches());
+        }
+      }
+    });
+
+    test('a transport failure reports failure and does not refresh', () async {
+      when(() => requestFormal(43)).thenAnswer(
+        (_) async => const Left<Failure, FormalStepRequestOutcome>(
+          ServerFailure(message: 'offline'),
+        ),
+      );
+
+      await cubit.sendFormalStep(43);
+
+      expect(cubit.state.actionEvent, LikesActionEvent.formalStepFailure);
+      verifyNever(() => getMatches());
+    });
+
+    // The pre-gate exists so an unapproved member does not spend a round trip
+    // learning what the app already knows.
+    test('an unapproved profile never reaches the server', () async {
+      when(() => profileGate.isGated).thenReturn(true);
+
+      await cubit.sendFormalStep(43);
+
+      expect(cubit.state.actionEvent, LikesActionEvent.formalStepUnderReview);
+      verifyNever(() => requestFormal(any()));
+    });
+
+    test('a second tap while the first is in flight is dropped', () async {
+      final gate = Completer<Either<Failure, FormalStepRequestOutcome>>();
+      when(() => requestFormal(43)).thenAnswer((_) => gate.future);
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+
+      final first = cubit.sendFormalStep(43);
+      await Future<void>.delayed(Duration.zero);
+      final second = cubit.sendFormalStep(43);
+      gate.complete(
+        const Right(FormalStepRequestSuccess(requestId: 1, serverMessage: '')),
+      );
+      await Future.wait([first, second]);
+
+      verify(() => requestFormal(43)).called(1);
     });
   });
 

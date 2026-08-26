@@ -42,9 +42,12 @@ enum LikesActionEvent {
   inquirySuccess,
   inquiryAlreadySent,
   inquiryFailure,
-  // Formal step (stage 1/2) — share partner card + message
+  // Formal step (stage 1/2) — POST /api/formal-step/request/{likeRequestId}
   formalStepSuccess,
-  formalStepAlreadySent,
+  formalStepAlreadyPending,
+  formalStepNotAllowed,
+  formalStepCaseEnded,
+  formalStepUnderReview,
   formalStepFailure,
 }
 
@@ -90,12 +93,12 @@ class LikesState extends Equatable {
   /// LIKE-REQUEST ids whose inquiry was sent this session.
   final Set<int> inquirySentLikeIds;
 
-  /// LIKE-REQUEST ids whose formal-step share is in-flight (stage 1/2).
+  /// LIKE-REQUEST ids whose formal-step request is in-flight (stage 1/2).
+  ///
+  /// There is no `formalStepSent` twin. Whether the step was requested is a
+  /// server fact now — `MatchCard.hasRequestedFormalStep` reads it off the
+  /// row — where the set this replaced lost the answer on every restart.
   final Set<int> formalStepInFlightLikeIds;
-
-  /// LIKE-REQUEST ids whose formal-step card was already shared this
-  /// session — guards against duplicate posts on repeat taps.
-  final Set<int> formalStepSentLikeIds;
 
   /// Which match card has its compatibility journey open, if any. At most
   /// one at a time.
@@ -130,7 +133,6 @@ class LikesState extends Equatable {
     this.inquiryInFlightLikeIds = const <int>{},
     this.inquirySentLikeIds = const <int>{},
     this.formalStepInFlightLikeIds = const <int>{},
-    this.formalStepSentLikeIds = const <int>{},
     this.openJourneyLikeRequestId,
     this.actionEvent = LikesActionEvent.none,
     this.actionEventVersion = 0,
@@ -168,9 +170,6 @@ class LikesState extends Equatable {
   bool isFormalStepSending(int likeRequestId) =>
       formalStepInFlightLikeIds.contains(likeRequestId);
 
-  bool isFormalStepSent(int likeRequestId) =>
-      formalStepSentLikeIds.contains(likeRequestId);
-
   bool isJourneyOpen(int likeRequestId) =>
       openJourneyLikeRequestId == likeRequestId;
 
@@ -197,7 +196,6 @@ class LikesState extends Equatable {
     Set<int>? inquiryInFlightLikeIds,
     Set<int>? inquirySentLikeIds,
     Set<int>? formalStepInFlightLikeIds,
-    Set<int>? formalStepSentLikeIds,
     int? openJourneyLikeRequestId,
     bool clearOpenJourney = false,
     LikesActionEvent? actionEvent,
@@ -238,8 +236,6 @@ class LikesState extends Equatable {
       inquirySentLikeIds: inquirySentLikeIds ?? this.inquirySentLikeIds,
       formalStepInFlightLikeIds:
           formalStepInFlightLikeIds ?? this.formalStepInFlightLikeIds,
-      formalStepSentLikeIds:
-          formalStepSentLikeIds ?? this.formalStepSentLikeIds,
       openJourneyLikeRequestId: clearOpenJourney
           ? null
           : (openJourneyLikeRequestId ?? this.openJourneyLikeRequestId),
@@ -268,7 +264,6 @@ class LikesState extends Equatable {
     inquiryInFlightLikeIds,
     inquirySentLikeIds,
     formalStepInFlightLikeIds,
-    formalStepSentLikeIds,
     openJourneyLikeRequestId,
     actionEvent,
     actionEventVersion,

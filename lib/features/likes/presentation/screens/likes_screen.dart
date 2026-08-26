@@ -226,14 +226,55 @@ class _LikesView extends StatelessWidget {
           message: LocaleKeys.likes_matches_action_respond_failed.t(context),
           type: SnackBarType.error,
         );
-      // Inquiry / formal step — rebuild the preserved chat tab so the newly
-      // posted profile card and text are visible immediately.
+      // Inquiry — rebuild the preserved chat tab so the newly posted profile
+      // card and text are visible immediately. The formal step no longer
+      // joins this: it posts nothing to the matchmaker, so there would be
+      // nothing there to show.
       case LikesActionEvent.inquirySuccess:
       case LikesActionEvent.inquiryAlreadySent:
-      case LikesActionEvent.formalStepSuccess:
-      case LikesActionEvent.formalStepAlreadySent:
         _openMatchmakerMessages(context);
       case LikesActionEvent.inquiryFailure:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_action_request_failed.t(context),
+          type: SnackBarType.error,
+        );
+      // Formal step — the member stays on the card, which the refresh has
+      // already moved to "awaiting their approval".
+      case LikesActionEvent.formalStepSuccess:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_request_success.t(
+            context,
+          ),
+          type: SnackBarType.success,
+        );
+      case LikesActionEvent.formalStepAlreadyPending:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_already_pending.t(
+            context,
+          ),
+          type: SnackBarType.info,
+        );
+      case LikesActionEvent.formalStepNotAllowed:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_not_allowed.t(context),
+          type: SnackBarType.info,
+        );
+      case LikesActionEvent.formalStepCaseEnded:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_case_ended.t(context),
+          type: SnackBarType.info,
+        );
+      case LikesActionEvent.formalStepUnderReview:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.profile_status_pending_review.t(context),
+          type: SnackBarType.info,
+        );
       case LikesActionEvent.formalStepFailure:
         AppSnackBar.show(
           context,

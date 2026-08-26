@@ -92,6 +92,7 @@ void initLikesDependencies() {
       requestPhotoExchange: sl(),
       acceptPhotoExchange: sl(),
       rejectPhotoExchange: sl(),
+      requestFormalStep: sl(),
       // Cross-feature chat use-cases (registered by chat_injection) for
       // inquiry / formal-step auto-send.
       getMyMatchmaker: sl(),

@@ -121,12 +121,11 @@ class _MatchesList extends StatelessWidget {
             ),
             isInquirySending: state.isInquirySending(card.likeRequestId),
             isInquirySent: state.isInquirySent(card.likeRequestId),
-            onFormalStep: () => cubit.sendFormalStep(
-              card,
-              LocaleKeys.likes_matches_formal_step_message.t(context),
-            ),
+            onFormalStep: () => cubit.sendFormalStep(card.likeRequestId),
             isFormalStepSending: state.isFormalStepSending(card.likeRequestId),
-            isFormalStepSent: state.isFormalStepSent(card.likeRequestId),
+            // Read off the CARD, not the cubit: whether this member already
+            // asked is a server fact that outlives the session.
+            isFormalStepSent: card.hasRequestedFormalStep,
             onOpenProfile: () => _openProfile(context, card),
           );
         },

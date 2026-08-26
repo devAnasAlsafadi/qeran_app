@@ -60,6 +60,42 @@ class MatchCard extends Equatable {
     this.pendingFormalStep,
   });
 
+  /// Whether THIS member has already set the formal step in motion, so the
+  /// CTA should report it rather than offer to start it again.
+  ///
+  /// Server-derived, and that is the whole point of it. It replaces an
+  /// in-memory set on `LikesState` that survived a refresh but not a restart,
+  /// so a member who reopened the app was invited to request a step they had
+  /// already requested.
+  ///
+  /// Two halves, and the second is not optional: [pendingFormalStep] goes
+  /// NULL the moment the receiver approves, so reading only the block would
+  /// bring the CTA back to life on a case that has already moved past it.
+  ///
+  /// Deliberately FALSE in two states the card cannot speak for yet:
+  ///   • a request the OTHER member sent — "awaiting their approval" would
+  ///     name the wrong person; the receiver's own card answers that.
+  ///   • a step that was declined or lapsed — it is over, not pending, and
+  ///     the ended presentation is its own piece of work.
+  /// In both, tapping reaches the server and gets an honest refusal back.
+  bool get hasRequestedFormalStep {
+    if (pendingFormalStep?.requestedByMe == true) return true;
+    return switch (caseStage) {
+      MatchCaseStage.awaitingMatchmakerCoordination ||
+      MatchCaseStage.parentsVisited ||
+      MatchCaseStage.marriageCompleted => true,
+      MatchCaseStage.likeAccepted ||
+      MatchCaseStage.photoExchangePending ||
+      MatchCaseStage.photoExchangeAccepted ||
+      MatchCaseStage.photoExchangeRejected ||
+      MatchCaseStage.photoExchangeExpired ||
+      MatchCaseStage.formalStepPending ||
+      MatchCaseStage.formalStepRejected ||
+      MatchCaseStage.formalStepExpired ||
+      MatchCaseStage.unknown => false,
+    };
+  }
+
   /// First profile image if any, else the first image, else null.
   MatchImage? get primaryImage {
     if (images.isEmpty) return null;

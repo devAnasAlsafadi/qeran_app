@@ -12,8 +12,9 @@ import 'match_journey_card.dart';
 
 /// Stage 2 — MatchmakerEngaged (photo exchange rejected). Photos stay
 /// BLURRED (`image.isBlurred == true`) and a formalRequest is active.
-/// Surfaces a single gold formal-step CTA, which reads as sent — but stays
-/// tappable — once the message is posted ([MatchCardSentAction]).
+/// Surfaces a single gold formal-step CTA, which reads as sent and RETIRES
+/// once the request is in — a second tap would only ask the server to repeat
+/// what the label says ([MatchCardSentAction]).
 class MatchCardStage2 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onFormalStep;
@@ -36,6 +37,7 @@ class MatchCardStage2 extends StatelessWidget {
       cta: LocaleKeys.likes_matches_formal_step_cta.t(context),
       sentLabel: LocaleKeys.likes_matches_formal_step_sent.t(context),
       unsentVariant: QeranButtonVariant.primary,
+      staysTappableWhenSent: false,
     );
     return MatchCardScaffold(
       avatar: MatchCardAvatar(
@@ -50,7 +52,7 @@ class MatchCardStage2 extends StatelessWidget {
           LocaleKeys.likes_matches_stage_matchmaker_subtitle.t(context),
       statusColor: QeranColors.wine,
       primaryLabel: formal.label,
-      onPrimaryPressed: onFormalStep,
+      onPrimaryPressed: formal.isEnabled ? onFormalStep : null,
       primaryLoading: isFormalStepSending,
       primaryTrailingIcon: formal.trailingIcon,
       primaryVariant: formal.variant,

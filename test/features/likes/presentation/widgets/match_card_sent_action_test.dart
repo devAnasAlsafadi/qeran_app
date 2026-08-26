@@ -21,6 +21,7 @@ MatchCardSentAction _formal({required bool isSent}) =>
       cta: 'formal step',
       sentLabel: 'request sent',
       unsentVariant: QeranButtonVariant.primary,
+      staysTappableWhenSent: false,
     );
 
 void main() {
@@ -58,10 +59,40 @@ void main() {
     expect(inquiry.trailingIcon, formal.trailingIcon);
   });
 
-  // The button stays live, so the label alone would leave it looking
-  // unpressed. The checkmark is what carries "done".
   test('sent de-emphasises to neutral and gains the checkmark', () {
     expect(_formal(isSent: true).variant, QeranButtonVariant.neutral);
     expect(_formal(isSent: true).trailingIcon, Icons.check_rounded);
+  });
+
+  // The one thing the two callers do NOT share, because a second tap means
+  // different things to them. The inquiry's reopens the chat it posted to;
+  // the formal step's spends a round trip to be told what its label already
+  // says, so that one retires.
+  group('what a second tap is worth', () {
+    test('nothing is ever disabled before it is sent', () {
+      expect(_inquiry(isSent: false).isEnabled, isTrue);
+      expect(_formal(isSent: false).isEnabled, isTrue);
+    });
+
+    test('the inquiry stays tappable once sent', () {
+      expect(_inquiry(isSent: true).isEnabled, isTrue);
+    });
+
+    test('the formal step retires once sent', () {
+      expect(_formal(isSent: true).isEnabled, isFalse);
+    });
+
+    // Opting out has to be deliberate: a caller that says nothing keeps the
+    // older behaviour rather than silently going dead.
+    test('the default is to stay tappable', () {
+      final quiet = MatchCardSentAction.resolve(
+        isSent: true,
+        cta: 'go',
+        sentLabel: 'gone',
+        unsentVariant: QeranButtonVariant.primary,
+      );
+
+      expect(quiet.isEnabled, isTrue);
+    });
   });
 }

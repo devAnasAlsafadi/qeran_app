@@ -13,6 +13,7 @@ import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_g
 import '../../domain/entities/like_action_outcome.dart';
 import '../../domain/entities/likes_tab.dart';
 import '../../domain/entities/match_card.dart';
+import '../../domain/entities/formal_step_outcome.dart';
 import '../../domain/entities/photo_exchange_outcome.dart';
 import '../../domain/usecases/accept_like_usecase.dart';
 import '../../domain/usecases/accept_photo_exchange_usecase.dart';
@@ -21,6 +22,7 @@ import '../../domain/usecases/get_matches_usecase.dart';
 import '../../domain/usecases/get_outgoing_likes_usecase.dart';
 import '../../domain/usecases/reject_like_usecase.dart';
 import '../../domain/usecases/reject_photo_exchange_usecase.dart';
+import '../../domain/usecases/request_formal_step_usecase.dart';
 import '../../domain/usecases/request_photo_exchange_usecase.dart';
 import 'likes_state.dart';
 
@@ -45,6 +47,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   final RequestPhotoExchangeUseCase _requestPhotoExchange;
   final AcceptPhotoExchangeUseCase _acceptPhotoExchange;
   final RejectPhotoExchangeUseCase _rejectPhotoExchange;
+  final RequestFormalStepUseCase _requestFormalStep;
   // Chat use-cases (cross-feature) for inquiry / formal-step auto-send.
   final GetMyMatchmakerUseCase _getMyMatchmaker;
   final ShareProfileUseCase _shareProfile;
@@ -60,6 +63,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required RequestPhotoExchangeUseCase requestPhotoExchange,
     required AcceptPhotoExchangeUseCase acceptPhotoExchange,
     required RejectPhotoExchangeUseCase rejectPhotoExchange,
+    required RequestFormalStepUseCase requestFormalStep,
     required GetMyMatchmakerUseCase getMyMatchmaker,
     required ShareProfileUseCase shareProfile,
     required SendTextMessageUseCase sendText,
@@ -72,6 +76,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
        _requestPhotoExchange = requestPhotoExchange,
        _acceptPhotoExchange = acceptPhotoExchange,
        _rejectPhotoExchange = rejectPhotoExchange,
+       _requestFormalStep = requestFormalStep,
        _getMyMatchmaker = getMyMatchmaker,
        _shareProfile = shareProfile,
        _sendText = sendText,
@@ -554,37 +559,82 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     );
   }
 
-  /// Stage 1/2 formal intent. Inquiry and formal-step guards are deliberately
-  /// separate because a user may legitimately send both for the same match.
-  Future<void> sendFormalStep(MatchCard card, String message) async {
-    final id = card.likeRequestId;
-    if (state.isFormalStepSending(id)) return;
-    if (state.isFormalStepSent(id)) {
-      _emitAction(LikesActionEvent.formalStepAlreadySent);
+  /// Asks the OTHER MEMBER to begin the formal step.
+  ///
+  /// It shares nothing into the matchmaker chat, and that removal is the
+  /// point of this method rather than a simplification of it. The matchmaker
+  /// has no role until the receiver approves — that is when the server creates
+  /// the `FormalRequest` and moves the case to `AwaitingMatchmakerCoordination`
+  /// — so posting a card and a message on REQUEST told her about something
+  /// that might be declined. `sendInquiry` still shares, because a stage-0
+  /// inquiry genuinely is a message to her.
+  Future<void> sendFormalStep(int likeRequestId) async {
+    if (state.isFormalStepSending(likeRequestId)) return;
+    // Approval pre-gate, as on photo exchange: PROFILE_NOT_APPROVED is a
+    // documented answer here, and asking a question we already know the
+    // answer to costs a round trip.
+    if (_profileGate.isGated) {
+      _emitAction(LikesActionEvent.formalStepUnderReview);
       return;
     }
 
     emit(
       state.copyWith(
-        formalStepInFlightLikeIds: {...state.formalStepInFlightLikeIds, id},
+        formalStepInFlightLikeIds: {
+          ...state.formalStepInFlightLikeIds,
+          likeRequestId,
+        },
       ),
     );
-    final done = await _shareAndSend(card: card, message: message);
+    final result = await _requestFormalStep(likeRequestId);
     if (isClosed) return;
 
-    final cleared = {...state.formalStepInFlightLikeIds}..remove(id);
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'FORMAL-STEP — request transport failure id=$likeRequestId '
+        'raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return LikesActionEvent.formalStepFailure;
+    }, _formalStepEvent);
+
+    final cleared = {...state.formalStepInFlightLikeIds}..remove(likeRequestId);
     emit(
       state.copyWith(
         formalStepInFlightLikeIds: cleared,
-        formalStepSentLikeIds: done
-            ? {...state.formalStepSentLikeIds, id}
-            : state.formalStepSentLikeIds,
-        actionEvent: done
-            ? LikesActionEvent.formalStepSuccess
-            : LikesActionEvent.formalStepFailure,
+        actionEvent: event,
         actionEventVersion: state.actionEventVersion + 1,
       ),
     );
+    if (_shouldRefreshMatchesAfterFormalStep(event)) {
+      await loadMatches();
+    }
+  }
+
+  LikesActionEvent _formalStepEvent(FormalStepRequestOutcome outcome) {
+    return switch (outcome) {
+      FormalStepRequestSuccess() => LikesActionEvent.formalStepSuccess,
+      FormalStepRequestAlreadyPending() =>
+        LikesActionEvent.formalStepAlreadyPending,
+      FormalStepRequestNotAllowed() => LikesActionEvent.formalStepNotAllowed,
+      FormalStepRequestCaseEnded() => LikesActionEvent.formalStepCaseEnded,
+      FormalStepRequestProfileUnderReview() =>
+        LikesActionEvent.formalStepUnderReview,
+      FormalStepRequestFailure() => LikesActionEvent.formalStepFailure,
+    };
+  }
+
+  /// Refetch whenever the server's view of the case turned out to differ from
+  /// the one this screen acted on — including the refusals, since every one of
+  /// them means the card is showing something stale.
+  bool _shouldRefreshMatchesAfterFormalStep(LikesActionEvent event) {
+    return switch (event) {
+      LikesActionEvent.formalStepSuccess ||
+      LikesActionEvent.formalStepAlreadyPending ||
+      LikesActionEvent.formalStepNotAllowed ||
+      LikesActionEvent.formalStepCaseEnded => true,
+      _ => false,
+    };
   }
 
   Future<bool> _shareAndSend({

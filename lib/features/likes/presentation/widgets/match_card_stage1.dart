@@ -13,8 +13,9 @@ import 'match_journey_card.dart';
 /// Stage 1 — PhotosExchanged (photo exchange accepted). The preview never
 /// fetches clear bytes; the explicit reveal action opens the permission-
 /// controlled, one-time gallery. A formalRequest may also be active.
-/// Surfaces a single gold formal-step CTA, which reads as sent — but stays
-/// tappable — once the message is posted ([MatchCardSentAction]).
+/// Surfaces a single gold formal-step CTA, which reads as sent and RETIRES
+/// once the request is in — a second tap would only ask the server to repeat
+/// what the label says ([MatchCardSentAction]).
 class MatchCardStage1 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onOpenGallery;
@@ -44,6 +45,7 @@ class MatchCardStage1 extends StatelessWidget {
       cta: LocaleKeys.likes_matches_formal_step_cta.t(context),
       sentLabel: LocaleKeys.likes_matches_formal_step_sent.t(context),
       unsentVariant: QeranButtonVariant.primary,
+      staysTappableWhenSent: false,
     );
     return MatchCardScaffold(
       avatar: GestureDetector(
@@ -69,7 +71,7 @@ class MatchCardStage1 extends StatelessWidget {
               .t(context),
       statusColor: QeranColors.wine,
       primaryLabel: formal.label,
-      onPrimaryPressed: onFormalStep,
+      onPrimaryPressed: formal.isEnabled ? onFormalStep : null,
       primaryLoading: isFormalStepSending,
       primaryTrailingIcon: formal.trailingIcon,
       primaryVariant: formal.variant,

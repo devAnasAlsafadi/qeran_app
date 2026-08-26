@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/likes/data/models/match_card_model.dart';
+import 'package:qeran/features/likes/domain/entities/formal_step_status.dart';
+import 'package:qeran/features/likes/domain/entities/match_case_stage.dart';
+import 'package:qeran/features/likes/domain/entities/match_case_status.dart';
 import 'package:qeran/features/likes/domain/entities/match_stage.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_direction.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_status.dart';
@@ -480,6 +483,118 @@ void main() {
       expect(entity.formalRequest, isNotNull);
       expect(entity.formalRequest!.localizedStatusName('ar'), '');
       expect(entity.formalRequest!.localizedStatusName('en'), '');
+    });
+  });
+
+  // caseStage / caseStatus / pendingFormalStep arrived with the interactive
+  // journey. `stage` did NOT change, and these tests exist partly to pin that:
+  // the row now answers three different questions and the old field still
+  // answers only its own.
+  group('MatchCardModel — the journey fields', () {
+    Map<String, dynamic> row([Map<String, dynamic> extra = const {}]) => {
+      'likeRequestId': 405,
+      'otherUserId': 'guid',
+      'otherUserName': 'نور',
+      'images': const <Map<String, dynamic>>[],
+      'stage': 'MatchmakerEngaged',
+      'pendingPhotoExchange': null,
+      'formalRequest': null,
+      'conversationId': 16,
+      ...extra,
+    };
+
+    test('a row with none of them still parses, and reads as live', () {
+      // Exactly the shape the server sent before the deploy.
+      final entity = MatchCardModel.fromJson(row()).toEntity();
+
+      expect(entity.stage, MatchStage.matchmakerEngaged);
+      expect(entity.caseStage, MatchCaseStage.unknown);
+      expect(entity.caseStatus, MatchCaseStatus.active);
+      expect(entity.pendingFormalStep, isNull);
+    });
+
+    test('all three parse off one row', () {
+      final entity = MatchCardModel.fromJson(row({
+        'caseStage': 'AwaitingMatchmakerCoordination',
+        'caseStatus': 'Cancelled',
+      })).toEntity();
+
+      expect(entity.caseStage, MatchCaseStage.awaitingMatchmakerCoordination);
+      expect(entity.caseStatus, MatchCaseStatus.cancelled);
+      // The stage the card renders is untouched by either.
+      expect(entity.stage, MatchStage.matchmakerEngaged);
+    });
+
+    test('a cancelled case keeps the stage it reached', () {
+      // The whole reason the two fields are separate: a case can be called off
+      // while standing anywhere, and the journey should still show how far it
+      // got rather than collapsing to a terminal node.
+      final entity = MatchCardModel.fromJson(row({
+        'caseStage': 'ParentsVisited',
+        'caseStatus': 'Cancelled',
+      })).toEntity();
+
+      expect(entity.caseStage, MatchCaseStage.parentsVisited);
+      expect(entity.caseStatus.isEnded, isTrue);
+    });
+
+    test('the formal-step block parses whole', () {
+      final entity = MatchCardModel.fromJson(row({
+        'caseStage': 'FormalStepPending',
+        'caseStatus': 'Active',
+        'pendingFormalStep': {
+          'id': 1,
+          'likeRequestId': 405,
+          'status': 'Pending',
+          'createdAt': '2026-08-24T09:00:00Z',
+          'expiresAt': '2099-08-26T09:00:00Z',
+          'remainingSeconds': 172740,
+          'direction': 'Received',
+          'requestedByMe': false,
+          'canAccept': true,
+          'canReject': true,
+        },
+      })).toEntity();
+
+      final pending = entity.pendingFormalStep!;
+      expect(pending.id, 1);
+      expect(pending.likeRequestId, 405);
+      expect(pending.status, FormalStepStatus.pending);
+      expect(pending.remainingSeconds, 172740);
+      expect(pending.createdAt, isNotNull);
+      expect(pending.expiresAt, isNotNull);
+      // Kept as the raw string on purpose — diagnostic, never branched on.
+      expect(pending.direction, 'Received');
+      expect(pending.requestedByMe, isFalse);
+      expect(pending.canAccept, isTrue);
+      expect(pending.canReject, isTrue);
+      expect(pending.isAwaitingResponse, isTrue);
+    });
+
+    test('a formal-step block with no dates does not read as expired', () {
+      // Nullable rather than epoch-zero: epoch zero is a real moment in the
+      // deep past, so substituting it would make a live request look lapsed.
+      final entity = MatchCardModel.fromJson(row({
+        'pendingFormalStep': {
+          'id': 2,
+          'likeRequestId': 405,
+          'status': 'Pending',
+          'canAccept': true,
+          'canReject': true,
+        },
+      })).toEntity();
+
+      final pending = entity.pendingFormalStep!;
+      expect(pending.createdAt, isNull);
+      expect(pending.expiresAt, isNull);
+      expect(pending.isAwaitingResponse, isTrue);
+    });
+
+    test('an unparseable block is absent rather than half-built', () {
+      final entity = MatchCardModel.fromJson(
+        row({'pendingFormalStep': 'nonsense'}),
+      ).toEntity();
+      expect(entity.pendingFormalStep, isNull);
     });
   });
 }

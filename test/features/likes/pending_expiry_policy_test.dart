@@ -3,6 +3,8 @@ import 'package:qeran/core/utils/server_clock.dart';
 import 'package:qeran/features/likes/domain/entities/like_request_card.dart';
 import 'package:qeran/features/likes/domain/entities/like_request_status.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_direction.dart';
+import 'package:qeran/features/likes/domain/entities/formal_step_status.dart';
+import 'package:qeran/features/likes/domain/entities/pending_formal_step.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_pending.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_status.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_photo_exchange.dart';
@@ -10,7 +12,7 @@ import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/ca
 import 'package:qeran/features/matchmaker/interests/domain/entities/matchmaker_interest_enums.dart';
 import 'package:qeran/features/matchmaker/interests/domain/entities/matchmaker_interest_like.dart';
 
-/// One behaviour change, four entities, both apps.
+/// One behaviour change, five entities, both apps.
 ///
 /// The backend used to null `expiresAt` once a request lapsed, so "Pending
 /// with a deadline" was a safe shorthand for "still running". It now returns
@@ -20,6 +22,11 @@ import 'package:qeran/features/matchmaker/interests/domain/entities/matchmaker_i
 ///
 /// Every one of these types must answer the same way, or the two apps disagree
 /// about a single request.
+///
+/// [PendingFormalStep] joins them without the wart being confirmed on its own
+/// endpoint. Answering the same way costs nothing if the formal step turns out
+/// to null its deadlines properly, and is the difference between a live
+/// countdown and a dead one if it does not.
 
 final _past = DateTime.now().toUtc().subtract(const Duration(hours: 2));
 final _future = DateTime.now().toUtc().add(const Duration(hours: 2));
@@ -81,6 +88,22 @@ CasePhotoExchange _caseExchange({
   initiatorId: null,
   responderId: null,
   expiresAt: expiresAt,
+);
+
+PendingFormalStep _formalStep({
+  required FormalStepStatus status,
+  DateTime? expiresAt,
+}) => PendingFormalStep(
+  id: 1,
+  likeRequestId: 1,
+  status: status,
+  remainingSeconds: null,
+  createdAt: null,
+  expiresAt: expiresAt,
+  direction: 'Received',
+  requestedByMe: false,
+  canAccept: true,
+  canReject: true,
 );
 
 void main() {
@@ -211,6 +234,46 @@ void main() {
         ).isAwaitingResponse,
         isTrue,
       );
+      expect(
+        _formalStep(status: FormalStepStatus.pending).isAwaitingResponse,
+        isTrue,
+      );
+    });
+  });
+
+  group('the formal step answers like the rest', () {
+    test('pending with a future deadline is live', () {
+      expect(
+        _formalStep(
+          status: FormalStepStatus.pending,
+          expiresAt: _future,
+        ).isAwaitingResponse,
+        isTrue,
+      );
+    });
+
+    test('pending with a PAST deadline is not — the wart, pre-empted', () {
+      // The row still arrives as Pending carrying a real timestamp. Trusting
+      // either signal alone paints a live countdown and live buttons on a
+      // request nobody can answer any more.
+      expect(
+        _formalStep(
+          status: FormalStepStatus.pending,
+          expiresAt: _past,
+        ).isAwaitingResponse,
+        isFalse,
+      );
+    });
+
+    test('any non-pending status is closed whatever the deadline says', () {
+      for (final status in FormalStepStatus.values) {
+        if (status == FormalStepStatus.pending) continue;
+        expect(
+          _formalStep(status: status, expiresAt: _future).isAwaitingResponse,
+          isFalse,
+          reason: '${status.name} must not read as awaiting',
+        );
+      }
     });
   });
 

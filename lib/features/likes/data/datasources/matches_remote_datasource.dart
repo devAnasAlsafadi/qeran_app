@@ -333,27 +333,60 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
   /// Logs the exact backend-supplied fields the UI branches on so
   /// QA can compare initiator vs receiver sides of a pair without
   /// reaching for raw HTTP dumps. No-op in release builds.
+  ///
+  /// Also dumps the journey fields and the formal-step block. Those are new,
+  /// and the block's exact shape is taken from a spec rather than from a real
+  /// response — this is how the two get compared without arranging a special
+  /// capture. `expiresAt` is the one worth watching: the photo-exchange block
+  /// keeps returning a live-looking deadline after a request has lapsed, and
+  /// whether the formal step does the same is unconfirmed.
   void _logPendingDebug(Map<String, dynamic> row) {
     final lrid = row['likeRequestId'];
-    final pending = row['pendingPhotoExchange'];
-    if (pending is! Map<String, dynamic>) {
-      AppLogger.debug(
-        'MATCHES row — likeRequestId=$lrid pendingPhotoExchange=null',
-        tag: 'MATCHES',
-      );
-      return;
-    }
     AppLogger.debug(
       'MATCHES row — likeRequestId=$lrid '
-      'pe.id=${pending['id']} '
-      'direction=${pending['direction']} '
-      'requestedByMe=${pending['requestedByMe']} '
-      'canAccept=${pending['canAccept']} '
-      'canReject=${pending['canReject']} '
-      'initiatorId=${pending['initiatorId']} '
-      'responderId=${pending['responderId']} '
-      'statusCode=${pending['statusCode']} '
-      'remainingSeconds=${pending['remainingSeconds']}',
+      'stage=${row['stage']} '
+      'caseStage=${row['caseStage']} '
+      'caseStatus=${row['caseStatus']}',
+      tag: 'MATCHES',
+    );
+    _logBlock(lrid, 'pendingPhotoExchange', row['pendingPhotoExchange'], const [
+      'id',
+      'direction',
+      'requestedByMe',
+      'canAccept',
+      'canReject',
+      'initiatorId',
+      'responderId',
+      'statusCode',
+      'remainingSeconds',
+      'expiresAt',
+    ]);
+    _logBlock(lrid, 'pendingFormalStep', row['pendingFormalStep'], const [
+      'id',
+      'status',
+      'direction',
+      'requestedByMe',
+      'canAccept',
+      'canReject',
+      'remainingSeconds',
+      'expiresAt',
+    ]);
+  }
+
+  /// Dumps [keys] out of a nested block, or reports it absent. Unknown keys
+  /// print as `null`, which is itself the signal when a field we expected is
+  /// not there — and any key the server sends that we did NOT ask for stays
+  /// invisible, so the block is listed by name too.
+  void _logBlock(Object? lrid, String name, Object? raw, List<String> keys) {
+    if (raw is! Map<String, dynamic>) {
+      AppLogger.debug('MATCHES row — id=$lrid $name=null', tag: 'MATCHES');
+      return;
+    }
+    final shown = keys.map((k) => '$k=${raw[k]}').join(' ');
+    final extra = raw.keys.where((k) => !keys.contains(k)).toList();
+    AppLogger.debug(
+      'MATCHES row — id=$lrid $name: $shown'
+      '${extra.isEmpty ? '' : ' | unlisted keys: $extra'}',
       tag: 'MATCHES',
     );
   }

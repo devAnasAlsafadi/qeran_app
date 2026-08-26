@@ -1,8 +1,11 @@
 import '../../domain/entities/match_card.dart';
+import '../../domain/entities/match_case_stage.dart';
+import '../../domain/entities/match_case_status.dart';
 import '../../domain/entities/match_stage.dart';
 import '../json_parsers.dart';
 import 'formal_request_model.dart';
 import 'match_image_model.dart';
+import 'pending_formal_step_model.dart';
 import 'photo_exchange_pending_model.dart';
 
 class MatchCardModel {
@@ -14,6 +17,9 @@ class MatchCardModel {
   final PhotoExchangePendingModel? pendingPhotoExchange;
   final FormalRequestModel? formalRequest;
   final String? conversationId;
+  final MatchCaseStage caseStage;
+  final MatchCaseStatus caseStatus;
+  final PendingFormalStepModel? pendingFormalStep;
 
   const MatchCardModel({
     required this.likeRequestId,
@@ -24,6 +30,9 @@ class MatchCardModel {
     required this.pendingPhotoExchange,
     required this.formalRequest,
     required this.conversationId,
+    required this.caseStage,
+    required this.caseStatus,
+    required this.pendingFormalStep,
   });
 
   factory MatchCardModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +46,10 @@ class MatchCardModel {
           PhotoExchangePendingModel.fromJson(json['pendingPhotoExchange']),
       formalRequest: FormalRequestModel.fromJson(json['formalRequest']),
       conversationId: parseNullableString(json['conversationId']),
+      caseStage: MatchCaseStage.fromWire(json['caseStage']),
+      caseStatus: MatchCaseStatus.fromWire(json['caseStatus']),
+      pendingFormalStep:
+          PendingFormalStepModel.fromJson(json['pendingFormalStep']),
     );
   }
 
@@ -57,5 +70,10 @@ class MatchCardModel {
         pendingPhotoExchange: pendingPhotoExchange?.toEntity(),
         formalRequest: formalRequest?.toEntity(),
         conversationId: conversationId,
+        // Always explicit from the wire — the entity's defaults exist for the
+        // synthetic cards other features build, not for this path.
+        caseStage: caseStage,
+        caseStatus: caseStatus,
+        pendingFormalStep: pendingFormalStep?.toEntity(),
       );
 }

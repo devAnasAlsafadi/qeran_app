@@ -8,9 +8,14 @@ import 'compatibility_case_stage.dart';
 
 /// A denormalized compatibility case between two users, as returned by
 /// `GET /api/matchmaker/compatibility-cases`. Carries both participants,
-/// the photo-exchange sub-state, the formal-request sub-state (null until
-/// the case reaches the formal track), the chat ids (M4), and whether this
-/// matchmaker may drive the formal-request status (3b).
+/// the photo-exchange sub-state, the formal-request sub-state, the chat ids
+/// (M4), and whether this matchmaker may drive the formal-request status (3b).
+///
+/// [formalRequest] is null until the RECEIVER approves the formal step — i.e.
+/// from `awaitingMatchmakerCoordination` onward. It used to appear as soon as
+/// photos were exchanged, which is why the formal track once seemed to begin
+/// on its own; under the interactive journey a member has to ask for it and
+/// the other has to agree.
 class CompatibilityCase extends Equatable {
   final int caseId;
   final CaseUser myUser;

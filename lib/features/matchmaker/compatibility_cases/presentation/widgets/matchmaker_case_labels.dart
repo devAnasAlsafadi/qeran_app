@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/case_photo_exchange_status.dart';
 import '../../domain/entities/compatibility_case.dart';
@@ -24,6 +23,20 @@ String? stageLabelKey(CompatibilityCaseStage stage) => switch (stage) {
         LocaleKeys.matchmaker_cases_stage_photo_rejected,
       CompatibilityCaseStage.photoExchangeExpired =>
         LocaleKeys.matchmaker_cases_stage_photo_expired,
+      CompatibilityCaseStage.formalStepPending =>
+        LocaleKeys.matchmaker_cases_stage_formal_step_pending,
+      CompatibilityCaseStage.formalStepRejected =>
+        LocaleKeys.matchmaker_cases_stage_formal_step_rejected,
+      CompatibilityCaseStage.formalStepExpired =>
+        LocaleKeys.matchmaker_cases_stage_formal_step_expired,
+      CompatibilityCaseStage.awaitingMatchmakerCoordination =>
+        LocaleKeys.matchmaker_cases_stage_awaiting_coordination,
+      // The same milestone the formal status already names — one string, so
+      // the chip cannot disagree with itself depending on which field it read.
+      CompatibilityCaseStage.parentsVisited =>
+        LocaleKeys.matchmaker_cases_formal_parents_visited,
+      CompatibilityCaseStage.marriageCompleted =>
+        LocaleKeys.matchmaker_cases_formal_successfully_closed,
       CompatibilityCaseStage.unknown => null,
     };
 
@@ -35,6 +48,14 @@ IconData? stageIcon(CompatibilityCaseStage stage) => switch (stage) {
       CompatibilityCaseStage.photoExchangeRejected =>
         Icons.highlight_off_rounded,
       CompatibilityCaseStage.photoExchangeExpired => Icons.timer_off_outlined,
+      CompatibilityCaseStage.formalStepPending => Icons.hourglass_top_rounded,
+      CompatibilityCaseStage.formalStepRejected => Icons.cancel_outlined,
+      CompatibilityCaseStage.formalStepExpired => Icons.timer_off_outlined,
+      CompatibilityCaseStage.awaitingMatchmakerCoordination =>
+        Icons.handshake_outlined,
+      // Matching formalStatusIcon for the same two milestones.
+      CompatibilityCaseStage.parentsVisited => Icons.event_available_outlined,
+      CompatibilityCaseStage.marriageCompleted => Icons.verified_outlined,
       CompatibilityCaseStage.unknown => null,
     };
 
@@ -124,78 +145,3 @@ String noActionsMessageKey(CaseStepTone tone) => switch (tone) {
 bool isDestructiveTarget(FormalRequestStatus target) =>
     target == FormalRequestStatus.compatibilityClosed ||
     target == FormalRequestStatus.compatibilityCancelled;
-
-/// The colour "kind" of a case's overall status, driving the list card's
-/// differentiated status chip. Derived from the formal-request status when
-/// present, else the stage — the same precedence the timeline uses.
-enum CaseStatusKind { active, waiting, expired, closed }
-
-CaseStatusKind caseStatusKind(CompatibilityCase c) {
-  final formal = c.formalRequest;
-  if (formal != null) {
-    switch (formal.status) {
-      case FormalRequestStatus.waitingForParentAppointment:
-      case FormalRequestStatus.parentsVisited:
-      case FormalRequestStatus.successfullyClosed:
-        return CaseStatusKind.active;
-      case FormalRequestStatus.compatibilityClosed:
-      case FormalRequestStatus.compatibilityCancelled:
-        return CaseStatusKind.closed;
-      case FormalRequestStatus.unknown:
-        return CaseStatusKind.waiting;
-    }
-  }
-  switch (c.stage) {
-    case CompatibilityCaseStage.likeAccepted:
-    case CompatibilityCaseStage.photoExchangePending:
-    case CompatibilityCaseStage.photoExchangeAccepted:
-      return CaseStatusKind.waiting;
-    case CompatibilityCaseStage.photoExchangeRejected:
-      return CaseStatusKind.closed;
-    case CompatibilityCaseStage.photoExchangeExpired:
-      return CaseStatusKind.expired;
-    case CompatibilityCaseStage.unknown:
-      return CaseStatusKind.waiting;
-  }
-}
-
-/// Per-kind chip palette (background / foreground / border / leading dot) for
-/// the list card's status chip — the four visually distinct kinds from 05.
-({Color bg, Color fg, Color border, Color dot}) caseStatusKindPalette(
-  CaseStatusKind kind,
-) =>
-    switch (kind) {
-      CaseStatusKind.active => (
-          bg: QeranColors.gold12,
-          fg: QeranColors.goldDeep,
-          border: QeranColors.gold40,
-          dot: QeranColors.goldDeep,
-        ),
-      CaseStatusKind.waiting => (
-          bg: QeranColors.wine06,
-          fg: QeranColors.wine,
-          border: QeranColors.wine12,
-          dot: QeranColors.wine,
-        ),
-      CaseStatusKind.expired => (
-          bg: QeranColors.softFill,
-          fg: QeranColors.inkMuted,
-          border: Colors.transparent,
-          dot: QeranColors.inkMuted,
-        ),
-      CaseStatusKind.closed => (
-          bg: QeranColors.danger12,
-          fg: QeranColors.danger,
-          border: QeranColors.danger40,
-          dot: QeranColors.danger,
-        ),
-    };
-
-/// The single most-specific status label for the card chip: the formal-request
-/// status once on the formal track, otherwise the stage. `null` (no chip) when
-/// the value is unknown.
-String? caseStatusChipLabelKey(CompatibilityCase c) {
-  final formal = c.formalRequest;
-  if (formal != null) return formalStatusLabelKey(formal.status);
-  return stageLabelKey(c.stage);
-}

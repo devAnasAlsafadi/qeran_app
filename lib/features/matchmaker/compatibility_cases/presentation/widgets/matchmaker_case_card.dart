@@ -12,7 +12,7 @@ import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/compatibility_case.dart';
 import 'case_contact_actions.dart';
 import 'case_paired_avatars.dart';
-import 'matchmaker_case_labels.dart';
+import 'matchmaker_case_status_kind.dart';
 
 /// One compatibility-case card in the list: a compact "matched pair" — the
 /// two participants' overlapped monogram/photo avatars, both first names on

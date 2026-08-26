@@ -761,6 +761,10 @@ abstract class  LocaleKeys {
   static const matchmaker_cases_stage_photo_accepted = 'matchmaker.cases_stage_photo_accepted';
   static const matchmaker_cases_stage_photo_rejected = 'matchmaker.cases_stage_photo_rejected';
   static const matchmaker_cases_stage_photo_expired = 'matchmaker.cases_stage_photo_expired';
+  static const matchmaker_cases_stage_formal_step_pending = 'matchmaker.cases_stage_formal_step_pending';
+  static const matchmaker_cases_stage_formal_step_rejected = 'matchmaker.cases_stage_formal_step_rejected';
+  static const matchmaker_cases_stage_formal_step_expired = 'matchmaker.cases_stage_formal_step_expired';
+  static const matchmaker_cases_stage_awaiting_coordination = 'matchmaker.cases_stage_awaiting_coordination';
   static const matchmaker_cases_formal_waiting_appointment = 'matchmaker.cases_formal_waiting_appointment';
   static const matchmaker_cases_formal_parents_visited = 'matchmaker.cases_formal_parents_visited';
   static const matchmaker_cases_formal_successfully_closed = 'matchmaker.cases_formal_successfully_closed';

@@ -173,6 +173,15 @@ enum _CasesFilterChoice {
         CompatibilityCaseStage.photoExchangeAccepted => photoAccepted,
         CompatibilityCaseStage.photoExchangeRejected => photoRejected,
         CompatibilityCaseStage.photoExchangeExpired => photoExpired,
+        // The formal-track stages are deliberately not offered as filters yet,
+        // so no row stands for them. Treated like an unrecognised value: the
+        // sheet opens on "all" rather than inventing a selection.
+        CompatibilityCaseStage.formalStepPending ||
+        CompatibilityCaseStage.formalStepRejected ||
+        CompatibilityCaseStage.formalStepExpired ||
+        CompatibilityCaseStage.awaitingMatchmakerCoordination ||
+        CompatibilityCaseStage.parentsVisited ||
+        CompatibilityCaseStage.marriageCompleted ||
         CompatibilityCaseStage.unknown => all,
       };
     }

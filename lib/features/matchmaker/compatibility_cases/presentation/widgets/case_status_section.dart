@@ -11,6 +11,7 @@ import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/case_photo_exchange_status.dart';
 import '../../domain/entities/compatibility_case.dart';
 import 'matchmaker_case_labels.dart';
+import 'matchmaker_case_status_kind.dart';
 
 /// Read-only status block for the case detail: a gold-bar header + a paper
 /// card of labelled rows (stage · formal-request status · photo-exchange ·

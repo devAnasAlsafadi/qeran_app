@@ -39,22 +39,40 @@ String caseStageLabelKey(CaseStage stage) => switch (stage) {
     };
 
 CaseStepTone _toneOf(CaseStageOutcome outcome) => switch (outcome) {
-      CaseStageOutcome.inProgress => CaseStepTone.normal,
+      // A pending formal step is still live — it reads as the current stage in
+      // progress, not as an ending.
+      CaseStageOutcome.inProgress ||
+      CaseStageOutcome.formalStepPending =>
+        CaseStepTone.normal,
       CaseStageOutcome.completed => CaseStepTone.success,
       CaseStageOutcome.rejected ||
       CaseStageOutcome.expired ||
       CaseStageOutcome.closed ||
-      CaseStageOutcome.cancelled =>
+      CaseStageOutcome.cancelled ||
+      CaseStageOutcome.formalStepRejected ||
+      CaseStageOutcome.formalStepExpired =>
         CaseStepTone.ended,
     };
 
-/// The honest override label for an off-happy-path terminal (else null).
+/// The label that replaces the node's own when the case is not simply moving
+/// through it — an off-happy-path terminal, or a step waiting on the other
+/// member. Null means the node keeps its canonical label.
+///
+/// Every outcome names its OWN event. `rejected` / `expired` are the photo
+/// exchange; the formal step has its own three. Sharing them would print
+/// "رُفض تبادل الصور" over a declined formal step.
 String? _overrideLabel(CaseStageOutcome outcome) => switch (outcome) {
       CaseStageOutcome.rejected =>
         LocaleKeys.matchmaker_cases_stage_photo_rejected,
       CaseStageOutcome.expired => LocaleKeys.matchmaker_cases_stage_photo_expired,
       CaseStageOutcome.closed => LocaleKeys.matchmaker_cases_formal_closed,
       CaseStageOutcome.cancelled => LocaleKeys.matchmaker_cases_formal_cancelled,
+      CaseStageOutcome.formalStepPending =>
+        LocaleKeys.matchmaker_cases_stage_formal_step_pending,
+      CaseStageOutcome.formalStepRejected =>
+        LocaleKeys.matchmaker_cases_stage_formal_step_rejected,
+      CaseStageOutcome.formalStepExpired =>
+        LocaleKeys.matchmaker_cases_stage_formal_step_expired,
       CaseStageOutcome.inProgress || CaseStageOutcome.completed => null,
     };
 

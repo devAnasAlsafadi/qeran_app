@@ -104,7 +104,11 @@ void main() {
     // The server's own CompatibilityCaseStage schema, in order. Ordinals were
     // sent here once; a name cannot silently mean a different stage the way an
     // index can when the server's enum shifts.
-    test('all five server stage values map to their PascalCase names', () {
+    //
+    // Pinned as a LIST, so this fails on a reordering as well as on a wrong
+    // name — the reordering is the failure mode that would otherwise return
+    // 200 with cases from the wrong stage and surface nothing at all.
+    test('all eleven server stage values map to their PascalCase names', () {
       expect(
         CompatibilityCaseStage.values
             .where((stage) => stage != CompatibilityCaseStage.unknown)
@@ -115,8 +119,29 @@ void main() {
           'PhotoExchangeAccepted',
           'PhotoExchangeRejected',
           'PhotoExchangeExpired',
+          'FormalStepPending',
+          'FormalStepRejected',
+          'FormalStepExpired',
+          'AwaitingMatchmakerCoordination',
+          'ParentsVisited',
+          'MarriageCompleted',
         ],
       );
+    });
+
+    // Every name the server can send must round-trip. A stage that parses to
+    // `unknown` renders an unlabelled card sitting at the first node, which is
+    // the exact regression this whole change exists to prevent.
+    test('every server stage name parses back to its member', () {
+      for (final stage in CompatibilityCaseStage.values) {
+        final wire = stage.apiValue;
+        if (wire == null) continue;
+        expect(
+          CompatibilityCaseStage.fromString(wire),
+          stage,
+          reason: '$wire did not round-trip',
+        );
+      }
     });
 
     test('the unknown fallback is never sent as a filter', () {

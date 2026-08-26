@@ -16,7 +16,27 @@ enum CaseStage {
 /// How a case sits on its current stage: still moving forward, completed
 /// successfully, or ended off the happy path. Presentation maps this to the
 /// timeline node tone + the honest override label; domain keeps it semantic.
-enum CaseStageOutcome { inProgress, completed, rejected, expired, closed, cancelled }
+///
+/// ⚠️ [rejected] and [expired] mean the PHOTO EXCHANGE specifically — their
+/// override labels name it. The formal step has its own three members for
+/// exactly that reason: reusing [rejected] for a declined formal step made the
+/// timeline read "رُفض تبادل الصور", naming the wrong event with full
+/// confidence. Any future stage that ends off the happy path needs its own
+/// member too, not the nearest-looking one.
+enum CaseStageOutcome {
+  inProgress,
+  completed,
+  rejected,
+  expired,
+  closed,
+  cancelled,
+
+  /// The formal step is out and the receiver has not answered. Still moving —
+  /// it is simply not the matchmaker's turn.
+  formalStepPending,
+  formalStepRejected,
+  formalStepExpired,
+}
 
 /// A case's placement on the canonical journey: which [stage] it currently
 /// occupies and the [outcome] there.
@@ -72,10 +92,21 @@ CaseStagePlacement caseStagePlacement(CompatibilityCase c) {
         stage: CaseStage.photoExchange,
         outcome: CaseStageOutcome.inProgress,
       ),
-    // Photos accepted but no formal request yet — the formal track is about to
-    // begin; sit at the first formal stage.
+    // Photos are through and nobody has asked for the formal step yet, so the
+    // case is still standing on the photo-exchange node. This used to sit at
+    // the first FORMAL stage, which was true while the server created a
+    // formalRequest the moment photos were exchanged; under the interactive
+    // journey a member has to request that step, so claiming the formal track
+    // had begun would announce something neither of them has done.
+    //
+    // The outcome stays inProgress rather than completed even though the
+    // exchange itself succeeded: `completed` paints the node with the success
+    // tone, and that tone is what the detail screen's no-actions card reads to
+    // decide it should say "this case is complete". It is not complete — it is
+    // waiting on a member. inProgress makes that card read "awaiting the other
+    // party", which is the true statement.
     CompatibilityCaseStage.photoExchangeAccepted => const CaseStagePlacement(
-        stage: CaseStage.waitingAppointment,
+        stage: CaseStage.photoExchange,
         outcome: CaseStageOutcome.inProgress,
       ),
     CompatibilityCaseStage.photoExchangeRejected => const CaseStagePlacement(
@@ -85,6 +116,39 @@ CaseStagePlacement caseStagePlacement(CompatibilityCase c) {
     CompatibilityCaseStage.photoExchangeExpired => const CaseStagePlacement(
         stage: CaseStage.photoExchange,
         outcome: CaseStageOutcome.expired,
+      ),
+    // The three formal-step states all sit on the first formal stage: that is
+    // the step being negotiated. They keep their own outcomes rather than
+    // borrowing the photo ones, so the node says which event it is reporting.
+    // Pending in particular must not read as a plain in-progress appointment
+    // stage — nothing is waiting on the matchmaker yet.
+    CompatibilityCaseStage.formalStepPending => const CaseStagePlacement(
+        stage: CaseStage.waitingAppointment,
+        outcome: CaseStageOutcome.formalStepPending,
+      ),
+    CompatibilityCaseStage.formalStepRejected => const CaseStagePlacement(
+        stage: CaseStage.waitingAppointment,
+        outcome: CaseStageOutcome.formalStepRejected,
+      ),
+    CompatibilityCaseStage.formalStepExpired => const CaseStagePlacement(
+        stage: CaseStage.waitingAppointment,
+        outcome: CaseStageOutcome.formalStepExpired,
+      ),
+    // Approved — the matchmaker is arranging the meeting. Reached through the
+    // formalRequest branch above in practice, since the server creates one at
+    // this point; mapped here so the projection holds without it.
+    CompatibilityCaseStage.awaitingMatchmakerCoordination =>
+      const CaseStagePlacement(
+        stage: CaseStage.waitingAppointment,
+        outcome: CaseStageOutcome.inProgress,
+      ),
+    CompatibilityCaseStage.parentsVisited => const CaseStagePlacement(
+        stage: CaseStage.parentsVisited,
+        outcome: CaseStageOutcome.inProgress,
+      ),
+    CompatibilityCaseStage.marriageCompleted => const CaseStagePlacement(
+        stage: CaseStage.completed,
+        outcome: CaseStageOutcome.completed,
       ),
     CompatibilityCaseStage.unknown => const CaseStagePlacement(
         stage: CaseStage.likeAccepted,

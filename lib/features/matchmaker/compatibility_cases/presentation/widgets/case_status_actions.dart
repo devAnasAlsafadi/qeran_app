@@ -64,30 +64,28 @@ class CaseStatusActions extends StatelessWidget {
             ),
           QeranSpacing.vs12,
         ],
-        if (destructive.isNotEmpty)
-          Row(
-            children: [
-              for (var i = 0; i < destructive.length; i++) ...[
-                if (i > 0) QeranSpacing.hs12,
-                Expanded(
-                  child: QeranButton(
-                    label: actionLabelKey(destructive[i]).t(context),
-                    variant: QeranButtonVariant.destructive,
-                    size: QeranButtonSize.md,
-                    leadingIcon: formalStatusIcon(destructive[i]),
-                    loading: state.inFlight == destructive[i],
-                    onPressed: state.isBusy
-                        ? null
-                        : () => _confirmThenSubmit(
-                              context,
-                              cubit,
-                              destructive[i],
-                            ),
-                  ),
-                ),
-              ],
-            ],
+        // Stacked, never side by side. Two danger buttons sharing one row get
+        // an Expanded each, and after the icon and the md padding that leaves
+        // 68dp of text at 320dp — measured, and enough to ellipsise every
+        // label we have, including the short "إغلاق الحالة" that fits fine on
+        // its own. Full width clears all of them in both languages.
+        //
+        // Only one closure is offered today, where a row of one and a stack of
+        // one render identically. This is here for the second, which arrives
+        // when the two negative terminals stop being merged.
+        for (var i = 0; i < destructive.length; i++) ...[
+          if (i > 0) QeranSpacing.vs12,
+          QeranButton(
+            label: actionLabelKey(destructive[i]).t(context),
+            variant: QeranButtonVariant.destructive,
+            size: QeranButtonSize.md,
+            leadingIcon: formalStatusIcon(destructive[i]),
+            loading: state.inFlight == destructive[i],
+            onPressed: state.isBusy
+                ? null
+                : () => _confirmThenSubmit(context, cubit, destructive[i]),
           ),
+        ],
       ],
     );
   }

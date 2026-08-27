@@ -7,14 +7,19 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../domain/entities/formal_step_outcome.dart';
 import '../error_codes.dart';
 
-/// The formal-step endpoints, kept in their OWN datasource rather than added
-/// to `MatchesRemoteDataSource`.
+/// Every action a MEMBER can take on their compatibility case: asking for the
+/// formal step, answering one, and calling the whole case off.
 ///
-/// That file is already 409 lines carrying the matches list and all three
-/// photo-exchange calls; the formal step brings four more endpoints of its
-/// own once cancel lands. A sibling is not a split of anything — nothing
-/// moves — and it leaves both files a readable size.
-abstract interface class FormalStepRemoteDataSource {
+/// Kept in its own datasource rather than added to `MatchesRemoteDataSource`,
+/// which is already 409 lines carrying the matches list and all three
+/// photo-exchange calls. A sibling is not a split of anything — nothing
+/// moved — and it leaves both files a readable size.
+///
+/// It was named for the formal step while that was all it held. Cancel is a
+/// case action on a `/api/matches` path, not a formal-step one, so the name
+/// widened to what the four calls actually have in common. The backend groups
+/// them the same way: one block of four member-side case routes.
+abstract interface class CompatibilityCaseRemoteDataSource {
   /// `POST /api/formal-step/request/{likeRequestId}` — Bearer JWT, no body.
   /// Returns a typed outcome for the success path and the four known semantic
   /// failures.
@@ -27,12 +32,19 @@ abstract interface class FormalStepRemoteDataSource {
   /// `POST /api/formal-step/{requestId}/reject` — responder side. Ends the
   /// compatibility case rather than routing it anywhere.
   Future<FormalStepRespondOutcome> rejectFormalStep(int requestId);
+
+  /// `POST /api/matches/{likeRequestId}/cancel` — either member calling the
+  /// case off, at any stage, for as long as it is still running.
+  ///
+  /// Takes the RELATIONSHIP id, like the formal-step request and unlike the
+  /// accept/reject pair.
+  Future<CaseCancelOutcome> cancelCase(int likeRequestId);
 }
 
-class FormalStepRemoteDataSourceImpl implements FormalStepRemoteDataSource {
+class CompatibilityCaseRemoteDataSourceImpl implements CompatibilityCaseRemoteDataSource {
   final ApiConsumer _apiConsumer;
 
-  const FormalStepRemoteDataSourceImpl({required ApiConsumer apiConsumer})
+  const CompatibilityCaseRemoteDataSourceImpl({required ApiConsumer apiConsumer})
       : _apiConsumer = apiConsumer;
 
   @override
@@ -57,6 +69,17 @@ class FormalStepRemoteDataSourceImpl implements FormalStepRemoteDataSource {
   @override
   Future<FormalStepRespondOutcome> rejectFormalStep(int requestId) {
     return _respond(requestId, EndPoints.formalStepReject(requestId), 'reject');
+  }
+
+  @override
+  Future<CaseCancelOutcome> cancelCase(int likeRequestId) {
+    return _post<CaseCancelOutcome>(
+      path: EndPoints.matchCancel(likeRequestId),
+      label: 'cancel likeRequestId=$likeRequestId',
+      onOk: (_, message) => CaseCancelSuccess(serverMessage: message),
+      classify: _classifyCancel,
+      isUnmapped: (o) => o is CaseCancelFailure,
+    );
   }
 
   Future<FormalStepRespondOutcome> _respond(
@@ -175,6 +198,22 @@ class FormalStepRemoteDataSourceImpl implements FormalStepRemoteDataSource {
       FormalStepErrorCodes.caseNotActive =>
         FormalStepRespondCaseEnded(serverMessage: rawMessage),
       _ => FormalStepRespondFailure(
+          serverMessage: rawMessage,
+          errorCode: errorCode,
+        ),
+    };
+  }
+
+  /// Cancel has no error codes of its own — it reuses the shared ones. The
+  /// only failure worth naming is a case that has already stopped, which is
+  /// exactly what a second cancel gets.
+  CaseCancelOutcome _classifyCancel(String rawMessage, String? errorCode) {
+    return switch (errorCode) {
+      FormalStepErrorCodes.caseNotActive =>
+        CaseCancelAlreadyEnded(serverMessage: rawMessage),
+      FormalStepErrorCodes.caseNotFound =>
+        CaseCancelNotFound(serverMessage: rawMessage),
+      _ => CaseCancelFailure(
           serverMessage: rawMessage,
           errorCode: errorCode,
         ),

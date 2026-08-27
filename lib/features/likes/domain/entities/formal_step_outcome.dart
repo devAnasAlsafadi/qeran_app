@@ -139,3 +139,48 @@ final class FormalStepRespondFailure extends FormalStepRespondOutcome {
     required this.errorCode,
   });
 }
+
+/// Outcome of `POST /api/matches/{likeRequestId}/cancel`.
+///
+/// FOUR members, and only one of them is a named refusal. Cancel has no error
+/// codes of its own — the backend reuses the shared vocabulary — because there
+/// is almost nothing to refuse: it is allowed at every stage for as long as
+/// the case is running.
+sealed class CaseCancelOutcome {
+  const CaseCancelOutcome();
+}
+
+/// The case is now `caseStatus = Cancelled`.
+///
+/// The stage does NOT move — a case cancelled mid-coordination stays at
+/// `AwaitingMatchmakerCoordination` and records the ending separately. The row
+/// also STAYS in `/api/matches` rather than disappearing, so the refresh
+/// brings back a card that still exists and now reads as ended.
+final class CaseCancelSuccess extends CaseCancelOutcome {
+  final String serverMessage;
+  const CaseCancelSuccess({required this.serverMessage});
+}
+
+/// `CASE_NOT_ACTIVE` — it had already stopped: cancelled, failed, or the
+/// marriage completed. This is what a second cancel gets, and the affordance
+/// should already have been hidden, so reaching it means the card was stale.
+final class CaseCancelAlreadyEnded extends CaseCancelOutcome {
+  final String serverMessage;
+  const CaseCancelAlreadyEnded({required this.serverMessage});
+}
+
+/// `CASE_NOT_FOUND` — no case on that relationship id.
+final class CaseCancelNotFound extends CaseCancelOutcome {
+  final String serverMessage;
+  const CaseCancelNotFound({required this.serverMessage});
+}
+
+/// `UNAUTHORIZED` and anything else this build does not recognise.
+final class CaseCancelFailure extends CaseCancelOutcome {
+  final String serverMessage;
+  final String? errorCode;
+  const CaseCancelFailure({
+    required this.serverMessage,
+    required this.errorCode,
+  });
+}

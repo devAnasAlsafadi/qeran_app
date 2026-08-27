@@ -2,22 +2,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/errors/exceptions.dart';
-import 'package:qeran/features/likes/data/datasources/formal_step_remote_datasource.dart';
+import 'package:qeran/features/likes/data/datasources/compatibility_case_remote_datasource.dart';
 import 'package:qeran/features/likes/data/error_codes.dart';
 import 'package:qeran/features/likes/domain/entities/formal_step_outcome.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
 
-/// The request endpoint's whole job is turning one of five server verdicts
-/// into something the card can say. A misrouted code is silent: the member
-/// gets a plausible wrong sentence and no way to tell it is wrong.
+/// Four member-side case actions, and each one's whole job is turning a server
+/// verdict into something the card can say. A misrouted code is silent: the
+/// member gets a plausible wrong sentence and no way to tell it is wrong.
 void main() {
   late _MockApiConsumer api;
-  late FormalStepRemoteDataSourceImpl ds;
+  late CompatibilityCaseRemoteDataSourceImpl ds;
 
   setUp(() {
     api = _MockApiConsumer();
-    ds = FormalStepRemoteDataSourceImpl(apiConsumer: api);
+    ds = CompatibilityCaseRemoteDataSourceImpl(apiConsumer: api);
   });
 
   void answer(Map<String, dynamic> body) {
@@ -286,6 +286,99 @@ void main() {
       when(() => api.postRaw(any())).thenAnswer((_) async => 'not a map');
 
       expect(() => ds.acceptFormalStep(7), throwsA(isA<ServerException>()));
+    });
+  });
+
+  group('cancel', () {
+    // The RELATIONSHIP id, like the formal-step request and unlike the
+    // accept/reject pair — and a `matches` path, not a `formal-step` one.
+    // Literal, so the assertion cannot pass by agreeing with itself.
+    test('posts to /api/matches/{likeRequestId}/cancel', () async {
+      answer({'status': 1, 'message': 'تم الإلغاء'});
+
+      final outcome = await ds.cancelCase(405);
+
+      final path = verify(() => api.postRaw(captureAny())).captured.single;
+      expect(path, 'matches/405/cancel');
+      expect(outcome, isA<CaseCancelSuccess>());
+    });
+
+    // What a SECOND cancel gets. The affordance should already be hidden by
+    // then, so arriving here means the card was acting on a stale read.
+    test('CASE_NOT_ACTIVE reads as already ended', () async {
+      answer({
+        'status': 0,
+        'message': 'الحالة منتهية',
+        'errorCode': FormalStepErrorCodes.caseNotActive,
+      });
+
+      expect(await ds.cancelCase(1), isA<CaseCancelAlreadyEnded>());
+    });
+
+    test('CASE_NOT_FOUND reads as missing', () async {
+      answer({
+        'status': 0,
+        'message': '',
+        'errorCode': FormalStepErrorCodes.caseNotFound,
+      });
+
+      expect(await ds.cancelCase(1), isA<CaseCancelNotFound>());
+    });
+
+    // Cancel has no vocabulary of its own. The formal-step codes are not its
+    // business, and letting one through as a named outcome would give the
+    // member a sentence about a step when the case is what they acted on.
+    test('the formal-step codes get no special treatment', () async {
+      for (final code in const [
+        FormalStepErrorCodes.formalStepNotFound,
+        FormalStepErrorCodes.formalStepExpired,
+        FormalStepErrorCodes.formalStepAlreadyPending,
+        FormalStepErrorCodes.formalStepNotAllowed,
+        FormalStepErrorCodes.profileNotApproved,
+      ]) {
+        answer({'status': 0, 'message': 'x', 'errorCode': code});
+
+        expect(await ds.cancelCase(1), isA<CaseCancelFailure>(), reason: code);
+      }
+    });
+
+    test('an unmapped code is rethrown for the repository', () async {
+      when(() => api.postRaw(any())).thenThrow(
+        CodedServerException(message: 'oops', errorCode: 'UNKNOWN'),
+      );
+
+      expect(() => ds.cancelCase(6), throwsA(isA<ServerException>()));
+    });
+
+    test('a classified throw becomes its typed outcome', () async {
+      when(() => api.postRaw(any())).thenThrow(
+        CodedServerException(
+          message: 'ignored',
+          errorCode: FormalStepErrorCodes.caseNotActive,
+        ),
+      );
+
+      expect(await ds.cancelCase(5), isA<CaseCancelAlreadyEnded>());
+    });
+
+    test('an unexpected 2xx body shape throws rather than claiming success',
+        () async {
+      when(() => api.postRaw(any())).thenAnswer((_) async => 'not a map');
+
+      expect(() => ds.cancelCase(7), throwsA(isA<ServerException>()));
+    });
+
+    // Four routes, four distinct paths. Cancel resolving to any of the others
+    // would end a case when the member asked for something else entirely.
+    test('no two of the four actions share a path', () async {
+      answer({'status': 1, 'message': ''});
+      await ds.requestFormalStep(9);
+      await ds.acceptFormalStep(9);
+      await ds.rejectFormalStep(9);
+      await ds.cancelCase(9);
+
+      final paths = verify(() => api.postRaw(captureAny())).captured;
+      expect(paths.toSet().length, 4, reason: '$paths');
     });
   });
 }

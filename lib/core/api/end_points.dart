@@ -178,6 +178,14 @@ class EndPoints {
   static String photoExchangeReject(int requestId) =>
       "photo-exchange/$requestId/reject";
 
+  /// `POST /api/matches/{likeRequestId}/cancel` — either member ending the
+  /// compatibility case, at any stage, while `caseStatus` is still `Active`.
+  ///
+  /// Lives under `matches`, not `formal-step`: it ends the whole case rather
+  /// than answering one step of it.
+  static String matchCancel(int likeRequestId) =>
+      "matches/$likeRequestId/cancel";
+
   /// `POST /api/formal-step/request/{likeRequestId}` — the member asking to
   /// begin the formal step. Takes the LIKE id, not the request id; the
   /// accept/reject twins take `pendingFormalStep.id`, exactly as photo

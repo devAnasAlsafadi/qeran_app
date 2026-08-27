@@ -4,15 +4,15 @@ import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../../domain/entities/formal_step_outcome.dart';
-import '../../domain/repositories/formal_step_repository.dart';
-import '../datasources/formal_step_remote_datasource.dart';
+import '../../domain/repositories/compatibility_case_repository.dart';
+import '../datasources/compatibility_case_remote_datasource.dart';
 
-class FormalStepRepositoryImpl
+class CompatibilityCaseRepositoryImpl
     with BaseRepository
-    implements FormalStepRepository {
-  final FormalStepRemoteDataSource _dataSource;
+    implements CompatibilityCaseRepository {
+  final CompatibilityCaseRemoteDataSource _dataSource;
 
-  const FormalStepRepositoryImpl(this._dataSource);
+  const CompatibilityCaseRepositoryImpl(this._dataSource);
 
   @override
   Future<Either<Failure, FormalStepRequestOutcome>> requestFormalStep(
@@ -33,5 +33,10 @@ class FormalStepRepositoryImpl
     int requestId,
   ) {
     return executeApiCall(() => _dataSource.rejectFormalStep(requestId));
+  }
+
+  @override
+  Future<Either<Failure, CaseCancelOutcome>> cancelCase(int likeRequestId) {
+    return executeApiCall(() => _dataSource.cancelCase(likeRequestId));
   }
 }

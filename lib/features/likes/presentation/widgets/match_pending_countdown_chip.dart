@@ -6,8 +6,13 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 
 import 'like_countdown_formatter.dart';
 
-/// Compact "waiting" chip showing the remaining time on a pending
-/// photo-exchange request.
+/// Compact "waiting" chip showing the remaining time on a pending request.
+///
+/// Deliberately says nothing about WHICH request. It counts down a photo
+/// exchange on stage 0 and a formal step on stages 1/2, and it was named for
+/// the first of those until the second arrived — a class called
+/// `MatchPendingCountdownChip` rendering a formal-step deadline is the kind
+/// of name that quietly teaches the next reader something false.
 ///
 /// Owns its own [Timer.periodic] so the countdown ticks live without a
 /// parent rebuild; the timer is cancelled in `dispose`. Tick cadence is
@@ -15,23 +20,23 @@ import 'like_countdown_formatter.dart';
 /// [LikeCountdownFormatter]. When the local count reaches zero,
 /// [onExpired] fires once (the caller refreshes; we don't archive
 /// locally).
-class PhotoExchangeCountdownChip extends StatefulWidget {
+class MatchPendingCountdownChip extends StatefulWidget {
   final int initialSeconds;
   final VoidCallback? onExpired;
 
-  const PhotoExchangeCountdownChip({
+  const MatchPendingCountdownChip({
     super.key,
     required this.initialSeconds,
     this.onExpired,
   });
 
   @override
-  State<PhotoExchangeCountdownChip> createState() =>
-      _PhotoExchangeCountdownChipState();
+  State<MatchPendingCountdownChip> createState() =>
+      _MatchPendingCountdownChipState();
 }
 
-class _PhotoExchangeCountdownChipState
-    extends State<PhotoExchangeCountdownChip> {
+class _MatchPendingCountdownChipState
+    extends State<MatchPendingCountdownChip> {
   static const Duration _tick = Duration(seconds: 30);
 
   late int _seconds;
@@ -47,7 +52,7 @@ class _PhotoExchangeCountdownChipState
   }
 
   @override
-  void didUpdateWidget(PhotoExchangeCountdownChip old) {
+  void didUpdateWidget(MatchPendingCountdownChip old) {
     super.didUpdateWidget(old);
     if (widget.initialSeconds != old.initialSeconds) {
       _seconds = widget.initialSeconds;

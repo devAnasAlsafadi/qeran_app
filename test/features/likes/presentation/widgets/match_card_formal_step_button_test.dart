@@ -1,16 +1,22 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/features/likes/domain/entities/formal_step_status.dart';
 import 'package:qeran/features/likes/domain/entities/match_card.dart';
+import 'package:qeran/features/likes/domain/entities/match_case_stage.dart';
 import 'package:qeran/features/likes/domain/entities/match_image.dart';
+import 'package:qeran/features/likes/domain/entities/pending_formal_step.dart';
 import 'package:qeran/features/likes/domain/entities/match_stage.dart';
 import 'package:qeran/features/likes/presentation/widgets/match_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// `MatchCardSentAction.isEnabled` decides that the formal-step CTA retires
-/// once the request is in, but the stages have to HONOUR it — and that one
+/// once the request is in, but the section has to HONOUR it — and that one
 /// line is invisible: drop it and every label, colour and checkmark still
 /// reads correctly while the dead button quietly answers taps again.
+///
+/// "Sent" is driven off the CARD here, not a parameter. It became a server
+/// fact in the request commit, and the card is where that fact lives.
 class _StubAssetLoader extends AssetLoader {
   const _StubAssetLoader();
   @override
@@ -21,7 +27,9 @@ class _StubAssetLoader extends AssetLoader {
 const _cta = 'likes.matches_formal_step_cta';
 const _sent = 'likes.matches_formal_step_sent';
 
-MatchCard _card(MatchStage stage) => MatchCard(
+/// [isSent] builds the state the server would actually return: an open
+/// request this member sent. Nothing here fakes the flag.
+MatchCard _card(MatchStage stage, {required bool isSent}) => MatchCard(
   likeRequestId: 1,
   otherUserId: 'u1',
   otherUserName: 'User',
@@ -37,6 +45,23 @@ MatchCard _card(MatchStage stage) => MatchCard(
   pendingPhotoExchange: null,
   formalRequest: null,
   conversationId: null,
+  caseStage: isSent
+      ? MatchCaseStage.formalStepPending
+      : MatchCaseStage.photoExchangeAccepted,
+  pendingFormalStep: isSent
+      ? PendingFormalStep(
+          id: 55,
+          likeRequestId: 1,
+          status: FormalStepStatus.pending,
+          remainingSeconds: 3600,
+          createdAt: DateTime.now().toUtc(),
+          expiresAt: DateTime.now().toUtc().add(const Duration(hours: 47)),
+          direction: 'Sent',
+          requestedByMe: true,
+          canAccept: false,
+          canReject: false,
+        )
+      : null,
 );
 
 Future<int> _tapsAccepted(
@@ -59,9 +84,8 @@ Future<int> _tapsAccepted(
           home: Scaffold(
             body: SingleChildScrollView(
               child: MatchCardWidget(
-                card: _card(stage),
+                card: _card(stage, isSent: isSent),
                 onFormalStep: () => taps++,
-                isFormalStepSent: isSent,
               ),
             ),
           ),

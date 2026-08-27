@@ -38,11 +38,21 @@ class MatchCardWidget extends StatelessWidget {
   final bool isInquirySending;
   final bool isInquirySent;
 
-  /// Stage 1/2 — formal-step CTA: shares the partner card + message into
-  /// the matchmaker chat, then opens it (guarded once per session).
+  /// Stage 1/2 — formal-step CTA: asks the OTHER MEMBER to begin the formal
+  /// step. Nothing is posted to the matchmaker; she hears about it only once
+  /// the receiver approves.
+  /// Whether the step was already asked for is NOT a parameter: the section
+  /// reads `card.hasRequestedFormalStep` off the row. It is a server fact, and
+  /// a caller-supplied second opinion is exactly the drift that made it one.
   final VoidCallback? onFormalStep;
   final bool isFormalStepSending;
-  final bool isFormalStepSent;
+
+  /// Stage 1/2 — answering a formal step the other member asked for. Both
+  /// take `pendingFormalStep.id`, NOT the like id `onFormalStep` acts on.
+  final void Function(int requestId)? onAcceptFormalStep;
+  final void Function(int requestId)? onRejectFormalStep;
+  final bool isAcceptingFormalStep;
+  final bool isRejectingFormalStep;
 
   /// Tap on the card background opens the reusable Full Profile Details
   /// screen with a match seed. Action buttons inside the card absorb
@@ -64,7 +74,10 @@ class MatchCardWidget extends StatelessWidget {
     this.isInquirySent = false,
     this.onFormalStep,
     this.isFormalStepSending = false,
-    this.isFormalStepSent = false,
+    this.onAcceptFormalStep,
+    this.onRejectFormalStep,
+    this.isAcceptingFormalStep = false,
+    this.isRejectingFormalStep = false,
     this.onOpenProfile,
   });
 
@@ -119,21 +132,26 @@ class MatchCardWidget extends StatelessWidget {
           onOpenGallery: onOpenGallery,
           onFormalStep: onFormalStep,
           isFormalStepSending: isFormalStepSending,
-          isFormalStepSent: isFormalStepSent,
+          onAcceptFormalStep: onAcceptFormalStep,
+          onRejectFormalStep: onRejectFormalStep,
+          isAcceptingFormalStep: isAcceptingFormalStep,
+          isRejectingFormalStep: isRejectingFormalStep,
         );
       case MatchStage.matchmakerEngaged:
         return MatchCardStage2(
           card: card,
           onFormalStep: onFormalStep,
           isFormalStepSending: isFormalStepSending,
-          isFormalStepSent: isFormalStepSent,
+          onAcceptFormalStep: onAcceptFormalStep,
+          onRejectFormalStep: onRejectFormalStep,
+          isAcceptingFormalStep: isAcceptingFormalStep,
+          isRejectingFormalStep: isRejectingFormalStep,
         );
       case MatchStage.unknown:
         return MatchCardStage2(
           card: card,
           onFormalStep: null,
           isFormalStepSending: false,
-          isFormalStepSent: false,
         );
     }
   }

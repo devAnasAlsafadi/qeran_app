@@ -6,38 +6,49 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
 import 'match_card_avatar.dart';
+import 'match_card_formal_step_section.dart';
 import 'match_card_scaffold.dart';
-import 'match_card_sent_action.dart';
 import 'match_journey_card.dart';
 
 /// Stage 2 — MatchmakerEngaged (photo exchange rejected). Photos stay
 /// BLURRED (`image.isBlurred == true`) and a formalRequest is active.
-/// Surfaces a single gold formal-step CTA, which reads as sent and RETIRES
-/// once the request is in — a second tap would only ask the server to repeat
-/// what the label says ([MatchCardSentAction]).
+/// The formal-step region — CTA, "awaiting their approval", or the
+/// accept/decline pair when the other member asked first — is
+/// [FormalStepSection]'s, shared with stage 2.
 class MatchCardStage2 extends StatelessWidget {
   final MatchCard card;
   final VoidCallback? onFormalStep;
   final bool isFormalStepSending;
-  final bool isFormalStepSent;
+
+  /// Responder callbacks, both taking `pendingFormalStep.id`.
+  final void Function(int requestId)? onAcceptFormalStep;
+  final void Function(int requestId)? onRejectFormalStep;
+  final bool isAcceptingFormalStep;
+  final bool isRejectingFormalStep;
 
   const MatchCardStage2({
     super.key,
     required this.card,
     required this.onFormalStep,
     required this.isFormalStepSending,
-    required this.isFormalStepSent,
+    this.onAcceptFormalStep,
+    this.onRejectFormalStep,
+    this.isAcceptingFormalStep = false,
+    this.isRejectingFormalStep = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final image = card.primaryImage;
-    final formal = MatchCardSentAction.resolve(
-      isSent: isFormalStepSent,
-      cta: LocaleKeys.likes_matches_formal_step_cta.t(context),
-      sentLabel: LocaleKeys.likes_matches_formal_step_sent.t(context),
-      unsentVariant: QeranButtonVariant.primary,
-      staysTappableWhenSent: false,
+    final formal = FormalStepSection.resolve(
+      context,
+      card: card,
+      onFormalStep: onFormalStep,
+      isSending: isFormalStepSending,
+      onAccept: onAcceptFormalStep,
+      onReject: onRejectFormalStep,
+      isAccepting: isAcceptingFormalStep,
+      isRejecting: isRejectingFormalStep,
     );
     return MatchCardScaffold(
       avatar: MatchCardAvatar(
@@ -47,17 +58,19 @@ class MatchCardStage2 extends StatelessWidget {
         blurredThumbnailUrl: image?.blurredThumbnailUrl,
       ),
       name: card.otherUserName,
-      statusIcon: Icons.handshake_rounded,
+      statusIcon: formal.statusIconOverride ?? Icons.handshake_rounded,
       statusText:
+          formal.statusTextOverride ??
           LocaleKeys.likes_matches_stage_matchmaker_subtitle.t(context),
       statusColor: QeranColors.wine,
-      primaryLabel: formal.label,
-      onPrimaryPressed: formal.isEnabled ? onFormalStep : null,
-      primaryLoading: isFormalStepSending,
-      primaryTrailingIcon: formal.trailingIcon,
-      primaryVariant: formal.variant,
-      primaryHelperText:
-          LocaleKeys.likes_matches_formal_step_helper.t(context),
+      topChip: formal.topChip,
+      primaryLabel: formal.primaryLabel,
+      onPrimaryPressed: formal.onPrimaryPressed,
+      primaryLoading: formal.primaryLoading,
+      primaryTrailingIcon: formal.primaryTrailingIcon,
+      primaryVariant: QeranButtonVariant.primary,
+      primaryOverride: formal.primaryOverride,
+      primaryHelperText: formal.helperText,
       footer: MatchJourneyCard(card: card),
     );
   }

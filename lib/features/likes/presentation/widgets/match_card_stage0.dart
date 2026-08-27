@@ -11,7 +11,7 @@ import 'match_card_avatar.dart';
 import 'match_card_scaffold.dart';
 import 'match_journey_card.dart';
 import 'match_card_sent_action.dart';
-import 'photo_exchange_countdown_chip.dart';
+import 'match_pending_countdown_chip.dart';
 
 /// Stage 0 — WaitingForPhotoExchange. Three sub-states off
 /// `pendingPhotoExchange`:
@@ -75,7 +75,7 @@ class MatchCardStage0 extends StatelessWidget {
     // pull-to-refresh.
     final topChipWidget = secs == null
         ? null
-        : PhotoExchangeCountdownChip(initialSeconds: secs);
+        : MatchPendingCountdownChip(initialSeconds: secs);
 
     // Map footer actions
     String? primaryLabel;

@@ -338,6 +338,12 @@ abstract class  LocaleKeys {
   static const likes_matches_formal_step_reject_success = 'likes.matches_formal_step_reject_success';
   static const likes_matches_formal_step_respond_not_found = 'likes.matches_formal_step_respond_not_found';
   static const likes_matches_formal_step_respond_expired = 'likes.matches_formal_step_respond_expired';
+  static const likes_matches_formal_step_awaiting_you = 'likes.matches_formal_step_awaiting_you';
+  static const likes_matches_formal_step_action_accept = 'likes.matches_formal_step_action_accept';
+  static const likes_matches_formal_step_action_reject = 'likes.matches_formal_step_action_reject';
+  static const likes_matches_formal_step_reject_confirm_title = 'likes.matches_formal_step_reject_confirm_title';
+  static const likes_matches_formal_step_reject_confirm_message = 'likes.matches_formal_step_reject_confirm_message';
+  static const likes_matches_formal_step_reject_confirm_action = 'likes.matches_formal_step_reject_confirm_action';
   static const likes_matches_journey_initial_compatibility = 'likes.matches_journey_initial_compatibility';
   static const likes_matches_journey_photo_exchange = 'likes.matches_journey_photo_exchange';
   static const likes_matches_journey_formal_contact = 'likes.matches_journey_formal_contact';

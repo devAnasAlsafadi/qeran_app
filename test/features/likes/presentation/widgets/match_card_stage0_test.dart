@@ -7,7 +7,7 @@ import 'package:qeran/features/likes/domain/entities/photo_exchange_direction.da
 import 'package:qeran/features/likes/domain/entities/photo_exchange_pending.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_status.dart';
 import 'package:qeran/features/likes/presentation/widgets/match_card_stage0.dart';
-import 'package:qeran/features/likes/presentation/widgets/photo_exchange_countdown_chip.dart';
+import 'package:qeran/features/likes/presentation/widgets/match_pending_countdown_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -109,7 +109,7 @@ void main() {
     (tester) async {
       await _pump(tester, _card(pending: null));
       expect(find.byType(QeranButton), findsNWidgets(2));
-      expect(find.byType(PhotoExchangeCountdownChip), findsNothing);
+      expect(find.byType(MatchPendingCountdownChip), findsNothing);
     },
   );
 
@@ -127,7 +127,7 @@ void main() {
     );
     await _pump(tester, card);
     expect(find.byType(QeranButton), findsNWidgets(3));
-    expect(find.byType(PhotoExchangeCountdownChip), findsOneWidget);
+    expect(find.byType(MatchPendingCountdownChip), findsOneWidget);
   });
 
   testWidgets('Initiator (requestedByMe=true) → waiting state, NO action row', (
@@ -143,7 +143,7 @@ void main() {
     );
     await _pump(tester, card);
     expect(find.byType(QeranButton), findsNothing);
-    expect(find.byType(PhotoExchangeCountdownChip), findsOneWidget);
+    expect(find.byType(MatchPendingCountdownChip), findsOneWidget);
   });
 
   testWidgets('Defensive: Received but neither flag → waiting state '
@@ -159,7 +159,7 @@ void main() {
     );
     await _pump(tester, card);
     expect(find.byType(QeranButton), findsNothing);
-    expect(find.byType(PhotoExchangeCountdownChip), findsOneWidget);
+    expect(find.byType(MatchPendingCountdownChip), findsOneWidget);
   });
 
   testWidgets(
@@ -196,7 +196,7 @@ void main() {
     );
     await _pump(tester, card);
 
-    expect(find.byType(PhotoExchangeCountdownChip), findsNothing);
+    expect(find.byType(MatchPendingCountdownChip), findsNothing);
     expect(find.byType(QeranButton), findsNothing);
     // And it SAYS so, rather than leaving the "awaiting a reply" copy on a
     // request that can no longer be answered. (Stub loader → keys render raw.)

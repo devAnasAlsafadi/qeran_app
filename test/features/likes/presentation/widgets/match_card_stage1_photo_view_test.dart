@@ -52,7 +52,6 @@ Future<void> _pump(WidgetTester tester, MatchCard card) async {
               onOpenGallery: () {},
               onFormalStep: () {},
               isFormalStepSending: false,
-              isFormalStepSent: false,
             ),
           ),
         ),

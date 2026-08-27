@@ -95,6 +95,7 @@ class _MatchesList extends StatelessWidget {
         itemBuilder: (context, index) {
           final card = matches[index];
           final pendingId = card.pendingPhotoExchange?.id;
+          final formalStepId = card.pendingFormalStep?.id;
           return MatchCardWidget(
             card: card,
             onRequestPhotoExchange: () =>
@@ -123,9 +124,14 @@ class _MatchesList extends StatelessWidget {
             isInquirySent: state.isInquirySent(card.likeRequestId),
             onFormalStep: () => cubit.sendFormalStep(card.likeRequestId),
             isFormalStepSending: state.isFormalStepSending(card.likeRequestId),
-            // Read off the CARD, not the cubit: whether this member already
-            // asked is a server fact that outlives the session.
-            isFormalStepSent: card.hasRequestedFormalStep,
+            // Keyed by the FORMAL-STEP id, not the like id above — the two
+            // sit side by side here and index different things.
+            onAcceptFormalStep: cubit.acceptFormalStep,
+            onRejectFormalStep: cubit.rejectFormalStep,
+            isAcceptingFormalStep: formalStepId != null &&
+                state.isFormalStepAccepting(formalStepId),
+            isRejectingFormalStep: formalStepId != null &&
+                state.isFormalStepRejecting(formalStepId),
             onOpenProfile: () => _openProfile(context, card),
           );
         },

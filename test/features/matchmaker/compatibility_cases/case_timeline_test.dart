@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_chat.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_photo_exchange_status.dart';
@@ -308,6 +309,112 @@ void main() {
     // card's field label, so rewording the timeline reworded a reading where
     // a stage name is the wrong part of speech. Pointing a node back at a
     // borrowed key would quietly restore that coupling; this fails instead.
+    // A node's icon and its words are chosen by two switches that must agree
+    // on WHICH outcomes are overridden. Nothing structural forces that: adding
+    // an outcome to one and not the other produces a node whose glyph and text
+    // report different events — which is the defect the stage row shipped, in
+    // its other half.
+    //
+    // Read through the public projection: a node that is not the current one
+    // always shows its own icon, so any case placed elsewhere reveals it.
+    test('a node overrides its icon exactly when it overrides its words', () {
+      IconData nodeIconOf(CaseStage stage) => buildCaseTimeline(
+        _case(stage: CompatibilityCaseStage.likeAccepted),
+      )[stage.index].icon;
+
+      final cases = <CompatibilityCase>[
+        for (final stage in CompatibilityCaseStage.values) _case(stage: stage),
+        for (final formal in FormalRequestStatus.values)
+          _case(
+            stage: CompatibilityCaseStage.awaitingMatchmakerCoordination,
+            formal: formal,
+          ),
+      ];
+
+      for (final c in cases) {
+        final placement = caseStagePlacement(c);
+        final step = currentCaseStep(c);
+        final overrodeWords =
+            step.labelKey != caseStageLabelKey(placement.stage);
+        final overrodeIcon = step.icon != nodeIconOf(placement.stage);
+        expect(
+          overrodeIcon,
+          overrodeWords,
+          reason: 'outcome ${placement.outcome.name}: words '
+              '${overrodeWords ? "" : "not "}overridden but icon '
+              '${overrodeIcon ? "" : "not "}overridden',
+        );
+      }
+    });
+
+    // Lockstep alone says only THAT a glyph was overridden, not which one, so
+    // it stays green with a closed case wearing the photo-exchange camera —
+    // found by mutation. The seven override labels are each pinned already;
+    // these are their glyphs, held to the same standard.
+    test('every outcome wears the glyph for its own event', () {
+      const expected = <CaseStageOutcome, IconData?>{
+        // null → the node keeps its own icon, the two non-override outcomes.
+        CaseStageOutcome.inProgress: null,
+        CaseStageOutcome.completed: null,
+        CaseStageOutcome.rejected: Icons.highlight_off_rounded,
+        CaseStageOutcome.expired: Icons.timer_off_outlined,
+        CaseStageOutcome.closed: Icons.lock_outline_rounded,
+        CaseStageOutcome.cancelled: Icons.block_rounded,
+        CaseStageOutcome.formalStepPending: Icons.hourglass_top_rounded,
+        CaseStageOutcome.formalStepRejected: Icons.cancel_outlined,
+        CaseStageOutcome.formalStepExpired: Icons.timer_off_outlined,
+      };
+      // A new outcome must arrive here rather than inherit a glyph silently.
+      expect(expected.keys.toSet(), CaseStageOutcome.values.toSet());
+
+      const sources = <CaseStageOutcome, CompatibilityCaseStage>{
+        CaseStageOutcome.inProgress: CompatibilityCaseStage.likeAccepted,
+        CaseStageOutcome.completed: CompatibilityCaseStage.marriageCompleted,
+        CaseStageOutcome.rejected: CompatibilityCaseStage.photoExchangeRejected,
+        CaseStageOutcome.expired: CompatibilityCaseStage.photoExchangeExpired,
+        CaseStageOutcome.formalStepPending:
+            CompatibilityCaseStage.formalStepPending,
+        CaseStageOutcome.formalStepRejected:
+            CompatibilityCaseStage.formalStepRejected,
+        CaseStageOutcome.formalStepExpired:
+            CompatibilityCaseStage.formalStepExpired,
+      };
+      const viaFormal = <CaseStageOutcome, FormalRequestStatus>{
+        CaseStageOutcome.closed: FormalRequestStatus.compatibilityClosed,
+        CaseStageOutcome.cancelled: FormalRequestStatus.compatibilityCancelled,
+      };
+
+      IconData nodeIconOf(CaseStage stage) => buildCaseTimeline(
+        _case(stage: CompatibilityCaseStage.likeAccepted),
+      )[stage.index].icon;
+
+      for (final outcome in CaseStageOutcome.values) {
+        final c = sources.containsKey(outcome)
+            ? _case(stage: sources[outcome]!)
+            : _case(
+                stage: CompatibilityCaseStage.awaitingMatchmakerCoordination,
+                formal: viaFormal[outcome],
+              );
+        final placement = caseStagePlacement(c);
+        expect(placement.outcome, outcome, reason: 'bad fixture for $outcome');
+        expect(
+          currentCaseStep(c).icon,
+          expected[outcome] ?? nodeIconOf(placement.stage),
+          reason: '${outcome.name} is wearing another event glyph',
+        );
+      }
+    });
+
+    test('every node has an icon the others do not share', () {
+      final steps = buildCaseTimeline(
+        _case(stage: CompatibilityCaseStage.likeAccepted),
+      );
+      expect(
+        steps.map((s) => s.icon).toSet(),
+        hasLength(CaseStage.values.length),
+      );
+    });
+
     test('no node borrows a status, formal-status or field key', () {
       final borrowed = <String>{
         ...CompatibilityCaseStage.values.map(stageLabelKey).nonNulls,

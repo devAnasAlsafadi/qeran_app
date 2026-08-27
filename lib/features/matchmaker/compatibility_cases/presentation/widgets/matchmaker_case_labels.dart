@@ -136,15 +136,15 @@ const List<FormalRequestStatus> statusUpdateTargets = [
   FormalRequestStatus.calledOff,
 ];
 
-/// The timeline step the case is standing on. Drives the informative "why is
-/// there nothing to do here" message in both the detail screen's no-actions
-/// card and the list card's update sheet, so the two cannot drift.
-CaseStepTone currentCaseTone(CompatibilityCase c) {
-  for (final step in buildCaseTimeline(c)) {
-    if (step.state == CaseStepState.current) return step.tone;
-  }
-  return CaseStepTone.normal;
-}
+/// Tone of the timeline step the case is standing on. Drives the informative
+/// "why is there nothing to do here" message in both the detail screen's
+/// no-actions card and the list card's update sheet, so the two cannot drift.
+///
+/// Now one field off [currentCaseStep] rather than its own sweep of the
+/// timeline. It had a `CaseStepTone.normal` fallback for a list with no
+/// current node, which cannot happen — and would have quietly reported a
+/// finished case as still running if it ever did.
+CaseStepTone currentCaseTone(CompatibilityCase c) => currentCaseStep(c).tone;
 
 String noActionsMessageKey(CaseStepTone tone) => switch (tone) {
   CaseStepTone.success => LocaleKeys.matchmaker_cases_no_actions_complete,

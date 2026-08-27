@@ -203,7 +203,10 @@ class _HeroPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(QeranSpacing.s20),
       decoration: const BoxDecoration(
-        color: QeranColors.creamSurface,
+        // `paper`, matching every other card in the app — the list card that
+        // opens this screen is a QeranCard, whose default is exactly this.
+        // Cream made the couple panel the only warm card on the screen.
+        color: QeranColors.paper,
         borderRadius: QeranRadii.panelR,
         boxShadow: QeranShadows.e1,
       ),

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_radii.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../../../core/design_system/widgets/qeran_section_header.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/case_photo_exchange_status.dart';
 import '../../domain/entities/compatibility_case.dart';
+import '../../domain/entities/compatibility_case_stage.dart';
+import '../../domain/entities/formal_request_status.dart';
+import 'case_status_row.dart';
+import 'case_timeline.dart';
 import 'matchmaker_case_labels.dart';
 import 'matchmaker_case_status_kind.dart';
 
@@ -27,13 +29,24 @@ class CaseStatusSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = <Widget>[];
 
-    final stageKey = stageLabelKey(caseItem.stage);
-    if (stageKey != null) {
-      rows.add(_StatusRow(
-        icon: stageIcon(caseItem.stage) ?? Icons.timeline_rounded,
+    // Read off the SAME projection the timeline above draws, rather than the
+    // raw `stage` field. The backend freezes that field once the matchmaker
+    // takes a case over, so an ended case kept reporting «بانتظار تنسيق
+    // الخطّابة» here while the timeline two widgets up already said «لم ينجح».
+    //
+    // Label, icon and colour all come off one [CaseTimelineStep], so the row
+    // cannot half-update the way it did when the icon was looked up separately.
+    if (_hasBackedPlacement(caseItem)) {
+      final step = currentCaseStep(caseItem);
+      rows.add(CaseStatusRow(
+        icon: step.icon,
         labelKey: LocaleKeys.matchmaker_cases_field_stage,
-        value: stageKey.t(context),
-        valueColor: QeranColors.inkStrong,
+        value: step.labelKey.t(context),
+        // The stepper's own rule for its current node, so the two readings of
+        // one case are the same colour as well as the same words.
+        valueColor: step.tone == CaseStepTone.ended
+            ? QeranColors.danger
+            : QeranColors.inkStrong,
       ));
     }
 
@@ -41,7 +54,7 @@ class CaseStatusSection extends StatelessWidget {
     if (formal != null) {
       final key = formalStatusLabelKey(formal.status);
       if (key != null) {
-        rows.add(_StatusRow(
+        rows.add(CaseStatusRow(
           icon: formalStatusIcon(formal.status) ?? Icons.assignment_outlined,
           labelKey: LocaleKeys.matchmaker_cases_field_formal_status,
           value: key.t(context),
@@ -54,7 +67,7 @@ class CaseStatusSection extends StatelessWidget {
     if (pe != null) {
       final key = photoStatusLabelKey(pe.status);
       if (key != null) {
-        rows.add(_StatusRow(
+        rows.add(CaseStatusRow(
           icon: Icons.photo_camera_outlined,
           labelKey: LocaleKeys.matchmaker_cases_field_photo_exchange,
           value: key.t(context),
@@ -65,7 +78,7 @@ class CaseStatusSection extends StatelessWidget {
 
     final accepted = caseItem.likeAcceptedAt;
     if (accepted != null) {
-      rows.add(_StatusRow(
+      rows.add(CaseStatusRow(
         icon: Icons.event_rounded,
         labelKey: LocaleKeys.matchmaker_cases_field_like_accepted,
         value: _formatDate(accepted),
@@ -89,7 +102,7 @@ class CaseStatusSection extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               for (var i = 0; i < rows.length; i++) ...[
-                if (i > 0) const _RowDivider(),
+                if (i > 0) const CaseStatusRowDivider(),
                 rows[i],
               ],
             ],
@@ -98,6 +111,21 @@ class CaseStatusSection extends StatelessWidget {
       ],
     );
   }
+
+  /// Whether anything actually backs a placement.
+  ///
+  /// `caseStagePlacement` answers for every input, mapping an unreadable case
+  /// onto the first node — fine for a timeline, which has to draw five nodes
+  /// regardless, but this row has the option of saying nothing and must take
+  /// it. Announcing «التوافق الأولي» because a string failed to parse invents
+  /// a position for a couple.
+  ///
+  /// One readable source is enough: a case whose `stage` is unrecognised but
+  /// whose formal request is not is still genuinely placed, and vice versa.
+  bool _hasBackedPlacement(CompatibilityCase c) =>
+      c.stage != CompatibilityCaseStage.unknown ||
+      (c.formalRequest != null &&
+          c.formalRequest!.status != FormalRequestStatus.unknown);
 
   Color _photoColor(CasePhotoExchangeStatus status) => switch (status) {
         CasePhotoExchangeStatus.accepted => QeranColors.goldDeep,
@@ -112,62 +140,5 @@ class CaseStatusSection extends StatelessWidget {
     final m = local.month.toString().padLeft(2, '0');
     final day = local.day.toString().padLeft(2, '0');
     return '${local.year}/$m/$day';
-  }
-}
-
-class _StatusRow extends StatelessWidget {
-  const _StatusRow({
-    required this.icon,
-    required this.labelKey,
-    required this.value,
-    required this.valueColor,
-  });
-
-  final IconData icon;
-  final String labelKey;
-  final String value;
-  final Color valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: const BoxDecoration(
-            color: QeranColors.wine06,
-            borderRadius: QeranRadii.xsR,
-          ),
-          alignment: Alignment.center,
-          child: Icon(icon, size: 18, color: QeranColors.wine),
-        ),
-        QeranSpacing.hs12,
-        Expanded(
-          child: Text(labelKey.t(context), style: QeranTypography.caption),
-        ),
-        QeranSpacing.hs12,
-        Flexible(
-          child: Text(
-            value,
-            style: QeranTypography.label.copyWith(color: valueColor),
-            textAlign: TextAlign.end,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _RowDivider extends StatelessWidget {
-  const _RowDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: QeranSpacing.s12),
-      child: Divider(height: 1, color: QeranColors.divider),
-    );
   }
 }

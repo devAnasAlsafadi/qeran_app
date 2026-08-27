@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/case_stage.dart';
 import '../../domain/entities/compatibility_case.dart';
@@ -10,15 +12,27 @@ enum CaseStepState { done, current, future }
 /// cancelled). Ignored for done / future nodes.
 enum CaseStepTone { normal, success, ended }
 
-/// One node of the compatibility-journey timeline (label key + placement).
+/// One node of the compatibility-journey timeline: what it says, what it
+/// wears, and where the case is relative to it.
+///
+/// [icon] rides WITH [labelKey] rather than being looked up separately by
+/// whoever draws it. The status card used to take its label from the case's
+/// raw `stage` and its icon from the same place, which is how an ended case
+/// showed «لم ينجح» under a handshake: two properties describing one fact,
+/// resolved independently. One object, resolved once, cannot disagree.
+///
+/// The stepper ignores [icon] — it draws its own node discs. That is a small
+/// price for the guarantee.
 class CaseTimelineStep {
   const CaseTimelineStep({
     required this.labelKey,
+    required this.icon,
     required this.state,
     required this.tone,
   });
 
   final String labelKey;
+  final IconData icon;
   final CaseStepState state;
   final CaseStepTone tone;
 }
@@ -51,6 +65,17 @@ String caseStageLabelKey(CaseStage stage) => switch (stage) {
         LocaleKeys.matchmaker_cases_timeline_formal_meeting,
       CaseStage.completed =>
         LocaleKeys.matchmaker_cases_timeline_marriage_completed,
+    };
+
+/// The icon for a node showing its OWN label, one per [CaseStage] in the same
+/// order as [caseStageLabelKey]. Kept adjacent to it so a new node cannot gain
+/// words without a glyph.
+IconData _nodeIcon(CaseStage stage) => switch (stage) {
+      CaseStage.likeAccepted => Icons.favorite_border_rounded,
+      CaseStage.photoExchange => Icons.photo_camera_outlined,
+      CaseStage.waitingAppointment => Icons.event_outlined,
+      CaseStage.parentsVisited => Icons.event_available_outlined,
+      CaseStage.completed => Icons.verified_outlined,
     };
 
 CaseStepTone _toneOf(CaseStageOutcome outcome) => switch (outcome) {
@@ -91,6 +116,21 @@ String? _overrideLabel(CaseStageOutcome outcome) => switch (outcome) {
       CaseStageOutcome.inProgress || CaseStageOutcome.completed => null,
     };
 
+/// The glyph that replaces the node's own when [_overrideLabel] replaces its
+/// words. Deliberately the SAME shape as that function — every outcome with an
+/// override label has an override icon on the same line, and the two members
+/// that keep their node's label keep its icon.
+IconData? _overrideIcon(CaseStageOutcome outcome) => switch (outcome) {
+      CaseStageOutcome.rejected => Icons.highlight_off_rounded,
+      CaseStageOutcome.expired => Icons.timer_off_outlined,
+      CaseStageOutcome.closed => Icons.lock_outline_rounded,
+      CaseStageOutcome.cancelled => Icons.block_rounded,
+      CaseStageOutcome.formalStepPending => Icons.hourglass_top_rounded,
+      CaseStageOutcome.formalStepRejected => Icons.cancel_outlined,
+      CaseStageOutcome.formalStepExpired => Icons.timer_off_outlined,
+      CaseStageOutcome.inProgress || CaseStageOutcome.completed => null,
+    };
+
 /// Projects a live [CompatibilityCase] onto the canonical timeline. Nodes
 /// before the current one are [CaseStepState.done], the current one carries a
 /// [CaseStepTone] (normal / success / ended), and later ones are
@@ -101,6 +141,7 @@ List<CaseTimelineStep> buildCaseTimeline(CompatibilityCase c) {
   final index = placement.stage.index;
   final tone = _toneOf(placement.outcome);
   final overrideLabel = _overrideLabel(placement.outcome);
+  final overrideIcon = _overrideIcon(placement.outcome);
 
   return [
     for (var i = 0; i < CaseStage.values.length; i++)
@@ -108,6 +149,9 @@ List<CaseTimelineStep> buildCaseTimeline(CompatibilityCase c) {
         labelKey: (i == index && overrideLabel != null)
             ? overrideLabel
             : caseStageLabelKey(CaseStage.values[i]),
+        icon: (i == index && overrideIcon != null)
+            ? overrideIcon
+            : _nodeIcon(CaseStage.values[i]),
         state: i < index
             ? CaseStepState.done
             : i == index
@@ -117,3 +161,19 @@ List<CaseTimelineStep> buildCaseTimeline(CompatibilityCase c) {
       ),
   ];
 }
+
+/// The node the case is standing on — the single reading of "where is this
+/// case, and how did it go there".
+///
+/// The detail screen draws this twice: as the current node of the timeline,
+/// and as the «stage» row of the status card. The row used to compute its own
+/// answer from the raw `stage` field, which the backend FREEZES once the
+/// matchmaker takes a case over, so an ended case still read
+/// «بانتظار تنسيق الخطّابة» while the timeline beside it said the
+/// case had failed. Two readers of one fact is how they disagreed; this is the
+/// one reader.
+///
+/// Exactly one node is current for every case by construction of
+/// [buildCaseTimeline], so the lookup cannot come back empty.
+CaseTimelineStep currentCaseStep(CompatibilityCase c) =>
+    buildCaseTimeline(c).firstWhere((s) => s.state == CaseStepState.current);

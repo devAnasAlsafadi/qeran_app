@@ -76,3 +76,66 @@ final class FormalStepRequestFailure extends FormalStepRequestOutcome {
     required this.errorCode,
   });
 }
+
+/// Outcome of `POST /api/formal-step/{requestId}/accept` and `/reject`.
+///
+/// FIVE members where the photo-exchange twin has four. The extra one is
+/// [FormalStepRespondCaseEnded]: a compatibility case can be called off from
+/// either side while a formal step sits open, and answering a request on a
+/// case that no longer exists is a different thing to tell someone than
+/// "that request is gone".
+///
+/// Accept and reject share the family. They fail in exactly the same ways —
+/// the request has to be found, live, and on a running case either way — and
+/// which one was pressed is already known at the call site.
+sealed class FormalStepRespondOutcome {
+  const FormalStepRespondOutcome();
+}
+
+/// The answer was recorded. On accept the server creates the `FormalRequest`
+/// and moves the case to `AwaitingMatchmakerCoordination`; on reject it moves
+/// to `FormalStepRejected`. Either way the matches refresh is what brings the
+/// new shape back — nothing here carries it.
+final class FormalStepRespondSuccess extends FormalStepRespondOutcome {
+  final String serverMessage;
+  const FormalStepRespondSuccess({required this.serverMessage});
+}
+
+/// `FORMAL_STEP_NOT_FOUND` — no open request with that id.
+///
+/// ⚠️ The server also answers this to a member who is not the responder, so
+/// it CANNOT be read as "the request was withdrawn". It is deliberately
+/// ambiguous: the API never confirms a request exists to someone who has no
+/// business acting on it. Copy for this outcome must survive both readings.
+final class FormalStepRespondNotFound extends FormalStepRespondOutcome {
+  final String serverMessage;
+  const FormalStepRespondNotFound({required this.serverMessage});
+}
+
+/// `FORMAL_STEP_EXPIRED` — the window closed before the answer arrived.
+///
+/// Reachable even with a live-looking countdown on screen: the chip ticks
+/// against a value fetched minutes ago, and the server sweeps on its own
+/// clock.
+final class FormalStepRespondExpired extends FormalStepRespondOutcome {
+  final String serverMessage;
+  const FormalStepRespondExpired({required this.serverMessage});
+}
+
+/// `CASE_NOT_ACTIVE` — the case was cancelled, failed or completed while the
+/// request sat open, so there is nothing left to answer.
+final class FormalStepRespondCaseEnded extends FormalStepRespondOutcome {
+  final String serverMessage;
+  const FormalStepRespondCaseEnded({required this.serverMessage});
+}
+
+/// `UNAUTHORIZED`, `VALIDATION_ERROR`, and any status-0 envelope this build
+/// does not recognise.
+final class FormalStepRespondFailure extends FormalStepRespondOutcome {
+  final String serverMessage;
+  final String? errorCode;
+  const FormalStepRespondFailure({
+    required this.serverMessage,
+    required this.errorCode,
+  });
+}

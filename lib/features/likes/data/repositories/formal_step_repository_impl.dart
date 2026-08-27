@@ -20,4 +20,18 @@ class FormalStepRepositoryImpl
   ) {
     return executeApiCall(() => _dataSource.requestFormalStep(likeRequestId));
   }
+
+  @override
+  Future<Either<Failure, FormalStepRespondOutcome>> acceptFormalStep(
+    int requestId,
+  ) {
+    return executeApiCall(() => _dataSource.acceptFormalStep(requestId));
+  }
+
+  @override
+  Future<Either<Failure, FormalStepRespondOutcome>> rejectFormalStep(
+    int requestId,
+  ) {
+    return executeApiCall(() => _dataSource.rejectFormalStep(requestId));
+  }
 }

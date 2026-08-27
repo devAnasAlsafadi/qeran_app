@@ -185,6 +185,18 @@ class EndPoints {
   static String formalStepRequest(int likeRequestId) =>
       "formal-step/request/$likeRequestId";
 
+  /// `POST /api/formal-step/{requestId}/accept` — the RESPONDER agreeing.
+  /// Takes `pendingFormalStep.id`, not the like id — the request endpoint
+  /// takes the other one.
+  static String formalStepAccept(int requestId) =>
+      "formal-step/$requestId/accept";
+
+  /// `POST /api/formal-step/{requestId}/reject` — the responder declining.
+  /// Ends the compatibility case; there is no matchmaker hand-off the way a
+  /// rejected photo exchange has one.
+  static String formalStepReject(int requestId) =>
+      "formal-step/$requestId/reject";
+
   /// `GET /api/photo-exchange/permission/{targetUserId}` â€” authoritative
   /// one-time photo-view state for the current user and target.
   static String photoExchangePermission(String targetUserId) =>

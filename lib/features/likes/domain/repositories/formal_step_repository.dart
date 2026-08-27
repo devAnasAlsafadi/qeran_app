@@ -19,4 +19,20 @@ abstract interface class FormalStepRepository {
   Future<Either<Failure, FormalStepRequestOutcome>> requestFormalStep(
     int likeRequestId,
   );
+
+  /// `POST /api/formal-step/{requestId}/accept` — agree to begin.
+  ///
+  /// Takes the REQUEST id (`pendingFormalStep.id`), where [requestFormalStep]
+  /// takes the like id. The two are both ints and both plausible, so the
+  /// wrong one reaches a real endpoint and fails as if the server were at
+  /// fault.
+  Future<Either<Failure, FormalStepRespondOutcome>> acceptFormalStep(
+    int requestId,
+  );
+
+  /// `POST /api/formal-step/{requestId}/reject` — decline, which ends the
+  /// compatibility case.
+  Future<Either<Failure, FormalStepRespondOutcome>> rejectFormalStep(
+    int requestId,
+  );
 }

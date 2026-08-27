@@ -175,4 +175,117 @@ void main() {
       expect(() => ds.requestFormalStep(7), throwsA(isA<ServerException>()));
     });
   });
+
+  group('accept and reject', () {
+    // Literal paths again, for the reason the request test carries: verifying
+    // the EndPoints helper against itself proves only that it equals itself.
+    //
+    // And these take the REQUEST id where the request call takes the LIKE id.
+    // Both are ints, both plausible, so the wrong one reaches a real endpoint
+    // with a real id and fails looking like a server problem.
+    test('accept posts to /api/formal-step/{requestId}/accept', () async {
+      answer({'status': 1, 'message': 'تمت الموافقة'});
+
+      final outcome = await ds.acceptFormalStep(88);
+
+      final path = verify(() => api.postRaw(captureAny())).captured.single;
+      expect(path, 'formal-step/88/accept');
+      expect(outcome, isA<FormalStepRespondSuccess>());
+    });
+
+    test('reject posts to /api/formal-step/{requestId}/reject', () async {
+      answer({'status': 1, 'message': ''});
+
+      final outcome = await ds.rejectFormalStep(88);
+
+      final path = verify(() => api.postRaw(captureAny())).captured.single;
+      expect(path, 'formal-step/88/reject');
+      expect(outcome, isA<FormalStepRespondSuccess>());
+    });
+
+    test('the two never share a path', () async {
+      answer({'status': 1, 'message': ''});
+      await ds.acceptFormalStep(5);
+      await ds.rejectFormalStep(5);
+
+      final paths = verify(() => api.postRaw(captureAny())).captured;
+      expect(paths.toSet().length, 2, reason: '$paths');
+    });
+
+    const cases = <String, Type>{
+      FormalStepErrorCodes.formalStepNotFound: FormalStepRespondNotFound,
+      FormalStepErrorCodes.formalStepExpired: FormalStepRespondExpired,
+      FormalStepErrorCodes.caseNotActive: FormalStepRespondCaseEnded,
+    };
+
+    for (final entry in cases.entries) {
+      test('${entry.key} → ${entry.value}', () async {
+        answer({'status': 0, 'message': 'خطأ', 'errorCode': entry.key});
+
+        expect(
+          (await ds.acceptFormalStep(1)).runtimeType,
+          entry.value,
+        );
+      });
+    }
+
+    // Accept and reject fail in the same ways and share one outcome family;
+    // this pins that they also share one CLASSIFIER, rather than two that
+    // agree today and drift later.
+    test('both verbs classify a code identically', () async {
+      answer({
+        'status': 0,
+        'message': '',
+        'errorCode': FormalStepErrorCodes.formalStepExpired,
+      });
+
+      expect(
+        (await ds.acceptFormalStep(1)).runtimeType,
+        (await ds.rejectFormalStep(1)).runtimeType,
+      );
+    });
+
+    // The REQUEST vocabulary must not leak in. ALREADY_PENDING answering a
+    // request you are being asked to answer is meaningless, and NOT_ALLOWED
+    // is not in this endpoint's list.
+    test('request-only codes fall through to a plain failure', () async {
+      for (final code in const [
+        FormalStepErrorCodes.formalStepAlreadyPending,
+        FormalStepErrorCodes.formalStepNotAllowed,
+        FormalStepErrorCodes.likeNotAccepted,
+        FormalStepErrorCodes.profileNotApproved,
+      ]) {
+        answer({'status': 0, 'message': 'x', 'errorCode': code});
+
+        final outcome = await ds.acceptFormalStep(1);
+        expect(outcome, isA<FormalStepRespondFailure>(), reason: code);
+      }
+    });
+
+    test('an unmapped code is rethrown for the repository', () async {
+      when(() => api.postRaw(any())).thenThrow(
+        CodedServerException(message: 'oops', errorCode: 'UNKNOWN'),
+      );
+
+      expect(() => ds.rejectFormalStep(6), throwsA(isA<ServerException>()));
+    });
+
+    test('a classified throw becomes its typed outcome', () async {
+      when(() => api.postRaw(any())).thenThrow(
+        CodedServerException(
+          message: 'ignored',
+          errorCode: FormalStepErrorCodes.formalStepExpired,
+        ),
+      );
+
+      expect(await ds.acceptFormalStep(5), isA<FormalStepRespondExpired>());
+    });
+
+    test('an unexpected 2xx body shape throws rather than claiming success',
+        () async {
+      when(() => api.postRaw(any())).thenAnswer((_) async => 'not a map');
+
+      expect(() => ds.acceptFormalStep(7), throwsA(isA<ServerException>()));
+    });
+  });
 }

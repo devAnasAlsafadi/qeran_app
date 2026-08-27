@@ -56,6 +56,12 @@ enum LikesActionEvent {
   formalStepRespondExpired,
   formalStepRespondCaseEnded,
   formalStepRespondFailure,
+  // Cancel — ending the whole case, at any stage. Keyed by likeRequestId,
+  // because it acts on the CASE rather than on a request inside it.
+  cancelSuccess,
+  cancelAlreadyEnded,
+  cancelNotFound,
+  cancelFailure,
 }
 
 /// Single state class holding the active tab + per-tab status / data /
@@ -106,6 +112,14 @@ class LikesState extends Equatable {
   final Set<int> formalStepAcceptInFlightRequestIds;
   final Set<int> formalStepRejectInFlightRequestIds;
 
+  /// LIKE-REQUEST ids whose case is being cancelled.
+  ///
+  /// Keyed by the LIKE id, not a request id, and that is the whole distinction
+  /// from the two sets above: accept and reject answer one formal-step request
+  /// inside a case, while this ends the case they live in. A card can only
+  /// ever have one cancel in flight, so no accept/reject-style pair.
+  final Set<int> cancelInFlightLikeIds;
+
   /// LIKE-REQUEST ids whose formal-step request is in-flight (stage 1/2).
   ///
   /// There is no `formalStepSent` twin. Whether the step was requested is a
@@ -148,6 +162,7 @@ class LikesState extends Equatable {
     this.formalStepAcceptInFlightRequestIds = const <int>{},
     this.formalStepRejectInFlightRequestIds = const <int>{},
     this.formalStepInFlightLikeIds = const <int>{},
+    this.cancelInFlightLikeIds = const <int>{},
     this.openJourneyLikeRequestId,
     this.actionEvent = LikesActionEvent.none,
     this.actionEventVersion = 0,
@@ -196,6 +211,9 @@ class LikesState extends Equatable {
   bool isFormalStepResponding(int requestId) =>
       isFormalStepAccepting(requestId) || isFormalStepRejecting(requestId);
 
+  bool isCancelling(int likeRequestId) =>
+      cancelInFlightLikeIds.contains(likeRequestId);
+
   bool isJourneyOpen(int likeRequestId) =>
       openJourneyLikeRequestId == likeRequestId;
 
@@ -224,6 +242,7 @@ class LikesState extends Equatable {
     Set<int>? formalStepAcceptInFlightRequestIds,
     Set<int>? formalStepRejectInFlightRequestIds,
     Set<int>? formalStepInFlightLikeIds,
+    Set<int>? cancelInFlightLikeIds,
     int? openJourneyLikeRequestId,
     bool clearOpenJourney = false,
     LikesActionEvent? actionEvent,
@@ -270,6 +289,8 @@ class LikesState extends Equatable {
           this.formalStepRejectInFlightRequestIds,
       formalStepInFlightLikeIds:
           formalStepInFlightLikeIds ?? this.formalStepInFlightLikeIds,
+      cancelInFlightLikeIds:
+          cancelInFlightLikeIds ?? this.cancelInFlightLikeIds,
       openJourneyLikeRequestId: clearOpenJourney
           ? null
           : (openJourneyLikeRequestId ?? this.openJourneyLikeRequestId),
@@ -300,6 +321,7 @@ class LikesState extends Equatable {
     formalStepAcceptInFlightRequestIds,
     formalStepRejectInFlightRequestIds,
     formalStepInFlightLikeIds,
+    cancelInFlightLikeIds,
     openJourneyLikeRequestId,
     actionEvent,
     actionEventVersion,

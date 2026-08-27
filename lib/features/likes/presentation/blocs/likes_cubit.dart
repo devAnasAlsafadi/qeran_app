@@ -23,6 +23,7 @@ import '../../domain/usecases/get_outgoing_likes_usecase.dart';
 import '../../domain/usecases/reject_like_usecase.dart';
 import '../../domain/usecases/reject_photo_exchange_usecase.dart';
 import '../../domain/usecases/accept_formal_step_usecase.dart';
+import '../../domain/usecases/cancel_case_usecase.dart';
 import '../../domain/usecases/reject_formal_step_usecase.dart';
 import '../../domain/usecases/request_formal_step_usecase.dart';
 import '../../domain/usecases/request_photo_exchange_usecase.dart';
@@ -52,6 +53,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   final RequestFormalStepUseCase _requestFormalStep;
   final AcceptFormalStepUseCase _acceptFormalStep;
   final RejectFormalStepUseCase _rejectFormalStep;
+  final CancelCaseUseCase _cancelCase;
   // Chat use-cases (cross-feature) for inquiry / formal-step auto-send.
   final GetMyMatchmakerUseCase _getMyMatchmaker;
   final ShareProfileUseCase _shareProfile;
@@ -70,6 +72,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required RequestFormalStepUseCase requestFormalStep,
     required AcceptFormalStepUseCase acceptFormalStep,
     required RejectFormalStepUseCase rejectFormalStep,
+    required CancelCaseUseCase cancelCase,
     required GetMyMatchmakerUseCase getMyMatchmaker,
     required ShareProfileUseCase shareProfile,
     required SendTextMessageUseCase sendText,
@@ -85,6 +88,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
        _requestFormalStep = requestFormalStep,
        _acceptFormalStep = acceptFormalStep,
        _rejectFormalStep = rejectFormalStep,
+       _cancelCase = cancelCase,
        _getMyMatchmaker = getMyMatchmaker,
        _shareProfile = shareProfile,
        _sendText = sendText,
@@ -729,6 +733,74 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
       LikesActionEvent.formalStepRespondNotFound ||
       LikesActionEvent.formalStepRespondExpired ||
       LikesActionEvent.formalStepRespondCaseEnded => true,
+      _ => false,
+    };
+  }
+
+  /// Ends the whole compatibility case. Takes the LIKE id, not a request id —
+  /// this acts on the case, not on anything inside it. The caller confirms
+  /// first.
+  ///
+  /// Deliberately has no profile-approval pre-gate, unlike [sendFormalStep].
+  /// That gate exists because requesting the formal step is a new outward
+  /// approach to someone; withdrawing from a case you are already in is not,
+  /// and the server does not gate it either.
+  ///
+  /// The other member is told, but not by us: the server pushes the same
+  /// neutral notice it sends when a formal step is declined, naming no actor.
+  Future<void> cancelCase(int likeRequestId) async {
+    if (state.isCancelling(likeRequestId)) return;
+
+    emit(
+      state.copyWith(
+        cancelInFlightLikeIds: {...state.cancelInFlightLikeIds, likeRequestId},
+      ),
+    );
+
+    final result = await _cancelCase(likeRequestId);
+    if (isClosed) return;
+
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'CASE-CANCEL — transport failure likeRequestId=$likeRequestId '
+        'raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return LikesActionEvent.cancelFailure;
+    }, _cancelEvent);
+
+    emit(
+      state.copyWith(
+        cancelInFlightLikeIds: {...state.cancelInFlightLikeIds}
+          ..remove(likeRequestId),
+        actionEvent: event,
+        actionEventVersion: state.actionEventVersion + 1,
+      ),
+    );
+    if (_shouldRefreshAfterCancel(event)) {
+      await loadMatches();
+    }
+  }
+
+  LikesActionEvent _cancelEvent(CaseCancelOutcome outcome) {
+    return switch (outcome) {
+      CaseCancelSuccess() => LikesActionEvent.cancelSuccess,
+      CaseCancelAlreadyEnded() => LikesActionEvent.cancelAlreadyEnded,
+      CaseCancelNotFound() => LikesActionEvent.cancelNotFound,
+      CaseCancelFailure() => LikesActionEvent.cancelFailure,
+    };
+  }
+
+  /// Success refetches because the row does NOT disappear — the case stays in
+  /// `/api/matches` and comes back reading as ended, which is the only way the
+  /// card learns it. The other two are the server saying the card was already
+  /// stale, so they refetch for the same reason. Only a transport failure,
+  /// where the server said nothing at all, leaves the list alone.
+  bool _shouldRefreshAfterCancel(LikesActionEvent event) {
+    return switch (event) {
+      LikesActionEvent.cancelSuccess ||
+      LikesActionEvent.cancelAlreadyEnded ||
+      LikesActionEvent.cancelNotFound => true,
       _ => false,
     };
   }

@@ -177,13 +177,13 @@ class _ResponderActions extends StatelessWidget {
   Future<void> _confirmReject(BuildContext context) async {
     final confirmed = await QeranConfirmDialog.show(
       context,
-      title: LocaleKeys.likes_matches_formal_step_reject_confirm_title.t(
+      title: LocaleKeys.likes_matches_case_end_confirm_title.t(
         context,
       ),
-      message: LocaleKeys.likes_matches_formal_step_reject_confirm_message.t(
+      message: LocaleKeys.likes_matches_case_end_confirm_message.t(
         context,
       ),
-      confirmLabel: LocaleKeys.likes_matches_formal_step_reject_confirm_action
+      confirmLabel: LocaleKeys.likes_matches_case_end_confirm_action
           .t(context),
     );
     if (!confirmed) return;

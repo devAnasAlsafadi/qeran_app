@@ -266,7 +266,7 @@ class _LikesView extends StatelessWidget {
       case LikesActionEvent.formalStepCaseEnded:
         AppSnackBar.show(
           context,
-          message: LocaleKeys.likes_matches_formal_step_case_ended.t(context),
+          message: LocaleKeys.likes_matches_case_already_ended.t(context),
           type: SnackBarType.info,
         );
       case LikesActionEvent.formalStepUnderReview:
@@ -295,7 +295,7 @@ class _LikesView extends StatelessWidget {
       case LikesActionEvent.formalStepRejectSuccess:
         AppSnackBar.show(
           context,
-          message: LocaleKeys.likes_matches_formal_step_reject_success.t(
+          message: LocaleKeys.likes_matches_case_ended_success.t(
             context,
           ),
           type: SnackBarType.info,
@@ -325,10 +325,45 @@ class _LikesView extends StatelessWidget {
       case LikesActionEvent.formalStepRespondCaseEnded:
         AppSnackBar.show(
           context,
-          message: LocaleKeys.likes_matches_formal_step_case_ended.t(context),
+          message: LocaleKeys.likes_matches_case_already_ended.t(context),
           type: SnackBarType.info,
         );
       case LikesActionEvent.formalStepRespondFailure:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_action_request_failed.t(context),
+          type: SnackBarType.error,
+        );
+      // Cancel. It reaches the SAME ending a declined formal step does — the
+      // server even sends the other member the identical neutral notice — so
+      // it says the same sentence rather than a second one meaning the same
+      // thing.
+      //
+      // `info`, not `success`. The member got what they asked for, but a
+      // journey ending is not a thing to congratulate them on.
+      case LikesActionEvent.cancelSuccess:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_case_ended_success.t(context),
+          type: SnackBarType.info,
+        );
+      // Already over when they tapped. 5d hides the affordance on a case that
+      // is not Active, so this means the card was stale — the refresh that
+      // follows is what actually fixes it, and this only explains why nothing
+      // seemed to happen.
+      case LikesActionEvent.cancelAlreadyEnded:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_case_already_ended.t(context),
+          type: SnackBarType.info,
+        );
+      case LikesActionEvent.cancelNotFound:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_case_not_found.t(context),
+          type: SnackBarType.info,
+        );
+      case LikesActionEvent.cancelFailure:
         AppSnackBar.show(
           context,
           message: LocaleKeys.likes_matches_action_request_failed.t(context),

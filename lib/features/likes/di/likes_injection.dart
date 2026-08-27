@@ -101,6 +101,7 @@ void initLikesDependencies() {
       requestFormalStep: sl(),
       acceptFormalStep: sl(),
       rejectFormalStep: sl(),
+      cancelCase: sl(),
       // Cross-feature chat use-cases (registered by chat_injection) for
       // inquiry / formal-step auto-send.
       getMyMatchmaker: sl(),

@@ -31,7 +31,7 @@ const _accept = 'likes.matches_formal_step_action_accept';
 const _reject = 'likes.matches_formal_step_action_reject';
 const _awaitingYou = 'likes.matches_formal_step_awaiting_you';
 const _helper = 'likes.matches_formal_step_helper';
-const _confirmAction = 'likes.matches_formal_step_reject_confirm_action';
+const _confirmAction = 'likes.matches_case_end_confirm_action';
 
 PendingFormalStep _pending({
   required bool requestedByMe,

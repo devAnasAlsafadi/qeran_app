@@ -18,6 +18,7 @@ import 'package:qeran/features/likes/domain/usecases/get_outgoing_likes_usecase.
 import 'package:qeran/features/likes/domain/usecases/reject_like_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/reject_photo_exchange_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/accept_formal_step_usecase.dart';
+import 'package:qeran/features/likes/domain/usecases/cancel_case_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/reject_formal_step_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/request_formal_step_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/request_photo_exchange_usecase.dart';
@@ -55,6 +56,8 @@ class _MockRequestFormalStep extends Mock
 
 class _MockAcceptFormalStep extends Mock
     implements AcceptFormalStepUseCase {}
+
+class _MockCancelCase extends Mock implements CancelCaseUseCase {}
 
 class _MockRejectFormalStep extends Mock
     implements RejectFormalStepUseCase {}
@@ -100,6 +103,7 @@ void main() {
   late _MockRequestFormalStep requestFormal;
   late _MockAcceptFormalStep acceptFormal;
   late _MockRejectFormalStep rejectFormal;
+  late _MockCancelCase cancelCase;
   late _MockGetMyMatchmaker getMyMatchmaker;
   late _MockShareProfile shareProfile;
   late _MockSendText sendText;
@@ -118,6 +122,7 @@ void main() {
     requestFormal = _MockRequestFormalStep();
     acceptFormal = _MockAcceptFormalStep();
     rejectFormal = _MockRejectFormalStep();
+    cancelCase = _MockCancelCase();
     getMyMatchmaker = _MockGetMyMatchmaker();
     shareProfile = _MockShareProfile();
     sendText = _MockSendText();
@@ -135,6 +140,7 @@ void main() {
       requestFormalStep: requestFormal,
       acceptFormalStep: acceptFormal,
       rejectFormalStep: rejectFormal,
+      cancelCase: cancelCase,
       getMyMatchmaker: getMyMatchmaker,
       shareProfile: shareProfile,
       sendText: sendText,
@@ -982,6 +988,158 @@ void main() {
       await Future.wait([first, other]);
 
       verify(() => acceptFormal(78)).called(1);
+    });
+  });
+
+  group('cancelling a case', () {
+    void serverSays(CaseCancelOutcome outcome) {
+      when(() => cancelCase(42)).thenAnswer(
+        (_) async => Right<Failure, CaseCancelOutcome>(outcome),
+      );
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+    }
+
+    // Cancel takes the LIKE id. Accept and reject beside it take
+    // pendingFormalStep.id, and all three are ints — the wrong one reaches a
+    // real endpoint with a real id and ends someone else's case.
+    test('calls cancel with the like id and nothing else', () async {
+      serverSays(const CaseCancelSuccess(serverMessage: ''));
+
+      await cubit.cancelCase(42);
+
+      verify(() => cancelCase(42)).called(1);
+      verifyNever(() => rejectFormal(any()));
+      verifyNever(() => acceptFormal(any()));
+      verifyNever(() => requestFormal(any()));
+    });
+
+    const outcomes = <CaseCancelOutcome, LikesActionEvent>{
+      CaseCancelSuccess(serverMessage: ''): LikesActionEvent.cancelSuccess,
+      CaseCancelAlreadyEnded(serverMessage: ''):
+          LikesActionEvent.cancelAlreadyEnded,
+      CaseCancelNotFound(serverMessage: ''): LikesActionEvent.cancelNotFound,
+      CaseCancelFailure(serverMessage: '', errorCode: null):
+          LikesActionEvent.cancelFailure,
+    };
+
+    for (final entry in outcomes.entries) {
+      test('${entry.key.runtimeType} reports ${entry.value.name}', () async {
+        serverSays(entry.key);
+        await cubit.cancelCase(42);
+        expect(cubit.state.actionEvent, entry.value);
+      });
+    }
+
+    // AlreadyEnded is unreachable from the UI until 5d hides the affordance on
+    // a case that is not Active, so it is wired and pinned here rather than
+    // left as a hole for that sub-step to remember.
+    test('a second cancel on an ended case is reported, not swallowed',
+        () async {
+      serverSays(const CaseCancelAlreadyEnded(serverMessage: ''));
+      await cubit.cancelCase(42);
+      expect(cubit.state.actionEvent, LikesActionEvent.cancelAlreadyEnded);
+    });
+
+    test('a transport failure reports cancelFailure', () async {
+      when(() => cancelCase(42)).thenAnswer(
+        (_) async => const Left<Failure, CaseCancelOutcome>(
+          ServerFailure(message: 'boom'),
+        ),
+      );
+      await cubit.cancelCase(42);
+      expect(cubit.state.actionEvent, LikesActionEvent.cancelFailure);
+    });
+
+    // Success refetches because the row does NOT disappear — the case stays in
+    // the feed and comes back reading as ended. Without the refetch the card
+    // keeps offering the actions of a live case.
+    for (final entry in outcomes.entries) {
+      final refetches = entry.value != LikesActionEvent.cancelFailure;
+      test('${entry.value.name} ${refetches ? "" : "does not "}refetch',
+          () async {
+        serverSays(entry.key);
+        await cubit.cancelCase(42);
+        if (refetches) {
+          verify(() => getMatches()).called(1);
+        } else {
+          verifyNever(() => getMatches());
+        }
+      });
+    }
+
+    // Asserts the in-flight state is EMITTED, not merely held. Reading
+    // `cubit.state` is not enough: Cubit drops an emit whose state compares
+    // equal to the last one, so a field missing from `props` leaves the button
+    // without its spinner while `state` still looks correct to a test.
+    //
+    // The list is loaded first for the same reason — `emit` skips that
+    // equality check entirely on a cubit's very first emit, which is never how
+    // a real cancel arrives, since the card has to come from a loaded list.
+    test('the in-flight state reaches listeners, then clears', () async {
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+      await cubit.loadMatches();
+
+      final gate = Completer<Either<Failure, CaseCancelOutcome>>();
+      when(() => cancelCase(42)).thenAnswer((_) => gate.future);
+
+      final seen = <bool>[];
+      final sub = cubit.stream.listen((s) => seen.add(s.isCancelling(42)));
+      addTearDown(sub.cancel);
+
+      final pending = cubit.cancelCase(42);
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        seen,
+        contains(true),
+        reason: 'no state carrying the in-flight id was emitted',
+      );
+
+      gate.complete(const Right(CaseCancelSuccess(serverMessage: '')));
+      await pending;
+      expect(cubit.state.isCancelling(42), isFalse);
+    });
+
+    // The guard has to BITE, not just exist. A double-tap on an X that ends a
+    // case is the one place a dropped second call matters most.
+    test('a second cancel while one is in flight is dropped', () async {
+      final gate = Completer<Either<Failure, CaseCancelOutcome>>();
+      when(() => cancelCase(42)).thenAnswer((_) => gate.future);
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+
+      final first = cubit.cancelCase(42);
+      await Future<void>.delayed(Duration.zero);
+      final second = cubit.cancelCase(42);
+      gate.complete(const Right(CaseCancelSuccess(serverMessage: '')));
+      await Future.wait([first, second]);
+
+      verify(() => cancelCase(42)).called(1);
+    });
+
+    test('a different card is not blocked by one in flight', () async {
+      final gate = Completer<Either<Failure, CaseCancelOutcome>>();
+      when(() => cancelCase(42)).thenAnswer((_) => gate.future);
+      when(() => cancelCase(43)).thenAnswer(
+        (_) async => const Right<Failure, CaseCancelOutcome>(
+          CaseCancelSuccess(serverMessage: ''),
+        ),
+      );
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+
+      final first = cubit.cancelCase(42);
+      await Future<void>.delayed(Duration.zero);
+      final other = cubit.cancelCase(43);
+      gate.complete(const Right(CaseCancelSuccess(serverMessage: '')));
+      await Future.wait([first, other]);
+
+      verify(() => cancelCase(43)).called(1);
     });
   });
 

@@ -19,6 +19,8 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/likes_cubit.dart';
 import '../blocs/likes_state.dart';
+import '../blocs/matchmaker_inquiry_cubit.dart';
+import '../blocs/matchmaker_inquiry_state.dart';
 import '../widgets/likes_segmented_tabs.dart';
 import '../widgets/likes_swipeable_tab_body.dart';
 import '../widgets/photo_exchange_limit_sheet.dart';
@@ -34,8 +36,15 @@ class LikesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<LikesCubit>(
-      create: (_) => sl<LikesCubit>()..primeActiveTab(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<LikesCubit>(
+          create: (_) => sl<LikesCubit>()..primeActiveTab(),
+        ),
+        BlocProvider<MatchmakerInquiryCubit>(
+          create: (_) => sl<MatchmakerInquiryCubit>(),
+        ),
+      ],
       child: const _LikesView(),
     );
   }
@@ -49,7 +58,12 @@ class _LikesView extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: BlocConsumer<LikesCubit, LikesState>(
+        child: BlocListener<MatchmakerInquiryCubit, MatchmakerInquiryState>(
+          listenWhen: (prev, curr) =>
+              prev.eventVersion != curr.eventVersion &&
+              curr.event != InquiryEvent.none,
+          listener: _onInquiryEvent,
+          child: BlocConsumer<LikesCubit, LikesState>(
           // Listener only fires on `actionEventVersion` bumps so toasts
           // and the paywall sheet can never re-trigger from an
           // unrelated state change (tab switch, refresh, etc).
@@ -81,9 +95,35 @@ class _LikesView extends StatelessWidget {
               ],
             );
           },
+          ),
         ),
       ),
     );
+  }
+
+  /// The inquiry's own outcomes, on their own listener.
+  ///
+  /// Three arms rather than three of forty. Its enum holds only what this
+  /// cubit can emit, so the switch stays exhaustive AND every arm is
+  /// reachable — a new inquiry outcome is a compile error here, which is the
+  /// property a shared forty-member enum would have buried.
+  void _onInquiryEvent(BuildContext context, MatchmakerInquiryState state) {
+    switch (state.event) {
+      case InquiryEvent.none:
+        break;
+      // Rebuild the preserved chat tab so the newly posted profile card and
+      // text are visible immediately. The formal step does not join this: it
+      // posts nothing to the matchmaker, so there would be nothing to show.
+      case InquiryEvent.success:
+      case InquiryEvent.alreadySent:
+        _openMatchmakerMessages(context);
+      case InquiryEvent.failure:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_action_request_failed.t(context),
+          type: SnackBarType.error,
+        );
+    }
   }
 
   /// Dispatches the cubit's one-shot outcome to a snackbar / paywall.
@@ -224,19 +264,6 @@ class _LikesView extends StatelessWidget {
         AppSnackBar.show(
           context,
           message: LocaleKeys.likes_matches_action_respond_failed.t(context),
-          type: SnackBarType.error,
-        );
-      // Inquiry — rebuild the preserved chat tab so the newly posted profile
-      // card and text are visible immediately. The formal step no longer
-      // joins this: it posts nothing to the matchmaker, so there would be
-      // nothing there to show.
-      case LikesActionEvent.inquirySuccess:
-      case LikesActionEvent.inquiryAlreadySent:
-        _openMatchmakerMessages(context);
-      case LikesActionEvent.inquiryFailure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_failed.t(context),
           type: SnackBarType.error,
         );
       // Formal step — the member stays on the card, which the refresh has

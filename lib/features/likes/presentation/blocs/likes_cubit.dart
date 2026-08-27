@@ -2,16 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
-import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
-import 'package:qeran/features/chat/domain/entities/send_text_outcome.dart';
-import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
-import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
-import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
-import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../../domain/entities/likes_tab.dart';
-import '../../domain/entities/match_card.dart';
 import '../../domain/usecases/accept_like_usecase.dart';
 import '../../domain/usecases/accept_photo_exchange_usecase.dart';
 import '../../domain/usecases/get_incoming_likes_usecase.dart';
@@ -53,10 +46,6 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   final AcceptFormalStepUseCase _acceptFormalStep;
   final RejectFormalStepUseCase _rejectFormalStep;
   final CancelCaseUseCase _cancelCase;
-  // Chat use-cases (cross-feature) for inquiry / formal-step auto-send.
-  final GetMyMatchmakerUseCase _getMyMatchmaker;
-  final ShareProfileUseCase _shareProfile;
-  final SendTextMessageUseCase _sendText;
   final ProfileGateCubit _profileGate;
 
   LikesCubit({
@@ -72,9 +61,6 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required AcceptFormalStepUseCase acceptFormalStep,
     required RejectFormalStepUseCase rejectFormalStep,
     required CancelCaseUseCase cancelCase,
-    required GetMyMatchmakerUseCase getMyMatchmaker,
-    required ShareProfileUseCase shareProfile,
-    required SendTextMessageUseCase sendText,
     required ProfileGateCubit profileGate,
   }) : _getIncoming = getIncoming,
        _getOutgoing = getOutgoing,
@@ -88,9 +74,6 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
        _acceptFormalStep = acceptFormalStep,
        _rejectFormalStep = rejectFormalStep,
        _cancelCase = cancelCase,
-       _getMyMatchmaker = getMyMatchmaker,
-       _shareProfile = shareProfile,
-       _sendText = sendText,
        _profileGate = profileGate,
        super(const LikesState());
 
@@ -442,39 +425,6 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
 
   // ── Matchmaker inquiry / formal step — profile card + text message ──
 
-  /// Stage-0 inquiry. The ticket requires both the viewed profile card and
-  /// the predefined inquiry text to be present before the chat is opened.
-  Future<void> sendInquiry(MatchCard card, String message) async {
-    final id = card.likeRequestId;
-    if (state.isInquirySending(id)) return;
-    if (state.isInquirySent(id)) {
-      _emitAction(LikesActionEvent.inquiryAlreadySent);
-      return;
-    }
-
-    emit(
-      state.copyWith(
-        inquiryInFlightLikeIds: {...state.inquiryInFlightLikeIds, id},
-      ),
-    );
-    final done = await _shareAndSend(card: card, message: message);
-    if (isClosed) return;
-
-    final cleared = {...state.inquiryInFlightLikeIds}..remove(id);
-    emit(
-      state.copyWith(
-        inquiryInFlightLikeIds: cleared,
-        inquirySentLikeIds: done
-            ? {...state.inquirySentLikeIds, id}
-            : state.inquirySentLikeIds,
-        actionEvent: done
-            ? LikesActionEvent.inquirySuccess
-            : LikesActionEvent.inquiryFailure,
-        actionEventVersion: state.actionEventVersion + 1,
-      ),
-    );
-  }
-
   /// Asks the OTHER MEMBER to begin the formal step.
   ///
   /// It shares nothing into the matchmaker chat, and that removal is the
@@ -482,8 +432,14 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   /// has no role until the receiver approves — that is when the server creates
   /// the `FormalRequest` and moves the case to `AwaitingMatchmakerCoordination`
   /// — so posting a card and a message on REQUEST told her about something
-  /// that might be declined. `sendInquiry` still shares, because a stage-0
-  /// inquiry genuinely is a message to her.
+  /// that might be declined. The stage-0 inquiry still shares, because it
+  /// genuinely is a message to her; it lives in `MatchmakerInquiryCubit`.
+  ///
+  /// That guarantee is now STRUCTURAL rather than tested. This cubit holds no
+  /// chat use case at all, so there is nothing here to post with — restoring
+  /// the old behaviour would mean re-injecting three dependencies and a DI
+  /// registration, which is a decision rather than a slip. The test that
+  /// checked it at runtime was deleted for that reason.
   Future<void> sendFormalStep(int likeRequestId) async {
     if (state.isFormalStepSending(likeRequestId)) return;
     // Approval pre-gate, as on photo exchange: PROFILE_NOT_APPROVED is a
@@ -653,79 +609,6 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     if (refetchMatchesAfterCancel(event)) {
       await loadMatches();
     }
-  }
-
-  Future<bool> _shareAndSend({
-    required MatchCard card,
-    required String message,
-  }) async {
-    final conversationId = await _resolveConversationId(card);
-    if (conversationId == null || isClosed) return false;
-
-    final share = await _shareProfile(
-      conversationId: conversationId,
-      sharedUserId: card.otherUserId,
-    );
-    if (isClosed) return false;
-
-    final canSendMessage = share.fold(
-      (failure) {
-        AppLogger.warning(
-          'MATCHMAKER-SEND — share failed id=${card.likeRequestId} '
-          'raw="${failure.message}"',
-          tag: 'MATCHES',
-        );
-        return false;
-      },
-      (outcome) => switch (outcome) {
-        // A rate limit here means the same profile was shared recently. The
-        // accompanying text is still required and safe to attempt.
-        ShareProfileSuccess() || ShareProfileRateLimited() => true,
-        _ => false,
-      },
-    );
-    if (!canSendMessage) {
-      AppLogger.warning(
-        'MATCHMAKER-SEND — profile share rejected id=${card.likeRequestId}',
-        tag: 'MATCHES',
-      );
-      return false;
-    }
-
-    final send = await _sendText(
-      conversationId: conversationId,
-      content: message,
-    );
-    if (isClosed) return false;
-    return send.fold((failure) {
-      AppLogger.warning(
-        'MATCHMAKER-SEND — text failed id=${card.likeRequestId} '
-        'raw="${failure.message}"',
-        tag: 'MATCHES',
-      );
-      return false;
-    }, (outcome) => outcome is SendTextSuccess);
-  }
-
-  Future<int?> _resolveConversationId(MatchCard card) async {
-    final embedded = int.tryParse(card.conversationId ?? '');
-    if (embedded != null) return embedded;
-
-    final result = await _getMyMatchmaker();
-    if (isClosed) return null;
-    return result.fold(
-      (failure) {
-        AppLogger.warning(
-          'MATCHMAKER-SEND — resolve failed raw="${failure.message}"',
-          tag: 'MATCHES',
-        );
-        return null;
-      },
-      (outcome) => switch (outcome) {
-        MyMatchmakerAssigned(:final info) => info.conversationId,
-        MyMatchmakerNotAssigned() || MyMatchmakerFailure() => null,
-      },
-    );
   }
 
   void _emitAction(LikesActionEvent event) {

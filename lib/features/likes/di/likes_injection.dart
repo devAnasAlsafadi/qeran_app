@@ -29,6 +29,7 @@ import '../domain/usecases/reject_photo_exchange_usecase.dart';
 import '../domain/usecases/request_formal_step_usecase.dart';
 import '../domain/usecases/request_photo_exchange_usecase.dart';
 import '../presentation/blocs/likes_cubit.dart';
+import '../presentation/blocs/matchmaker_inquiry_cubit.dart';
 import '../presentation/blocs/photo_view_cubit.dart';
 
 void initLikesDependencies() {
@@ -102,12 +103,20 @@ void initLikesDependencies() {
       acceptFormalStep: sl(),
       rejectFormalStep: sl(),
       cancelCase: sl(),
-      // Cross-feature chat use-cases (registered by chat_injection) for
-      // inquiry / formal-step auto-send.
+      profileGate: sl<ProfileGateCubit>(),
+    ),
+  );
+
+  // Screen-scoped like LikesCubit, and separate from it because the inquiry
+  // is a CHAT action that happens to start from a match card: it shares a
+  // profile and posts a message, changes nothing the matches feed reports,
+  // and needs no reload of it.
+  sl.registerFactory(
+    () => MatchmakerInquiryCubit(
+      // Cross-feature chat use-cases, registered by chat_injection.
       getMyMatchmaker: sl(),
       shareProfile: sl(),
       sendText: sl(),
-      profileGate: sl<ProfileGateCubit>(),
     ),
   );
 }

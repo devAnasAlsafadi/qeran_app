@@ -24,15 +24,6 @@ import 'package:qeran/features/likes/domain/usecases/request_formal_step_usecase
 import 'package:qeran/features/likes/domain/usecases/request_photo_exchange_usecase.dart';
 import 'package:qeran/features/likes/presentation/blocs/likes_cubit.dart';
 import 'package:qeran/features/likes/presentation/blocs/likes_state.dart';
-import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
-import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.dart';
-import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
-import 'package:qeran/features/chat/domain/entities/chat_message.dart';
-import 'package:qeran/features/chat/domain/entities/matchmaker_info.dart';
-import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
-import 'package:qeran/features/chat/domain/entities/send_text_outcome.dart';
-import 'package:qeran/features/chat/domain/entities/share_profile_outcome.dart';
-import 'package:qeran/features/likes/domain/entities/match_stage.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 class _MockIncoming extends Mock implements GetIncomingLikesUseCase {}
@@ -62,15 +53,7 @@ class _MockCancelCase extends Mock implements CancelCaseUseCase {}
 class _MockRejectFormalStep extends Mock
     implements RejectFormalStepUseCase {}
 
-class _MockGetMyMatchmaker extends Mock implements GetMyMatchmakerUseCase {}
-
-class _MockShareProfile extends Mock implements ShareProfileUseCase {}
-
-class _MockSendText extends Mock implements SendTextMessageUseCase {}
-
 class _MockProfileGate extends Mock implements ProfileGateCubit {}
-
-class _MockChatMessage extends Mock implements ChatMessage {}
 
 const _empty = LikeRequestsData(
   pending: [],
@@ -79,17 +62,6 @@ const _empty = LikeRequestsData(
 );
 
 const List<MatchCard> _noMatches = <MatchCard>[];
-
-const _stageZeroMatch = MatchCard(
-  likeRequestId: 42,
-  otherUserId: 'candidate-id',
-  otherUserName: 'Candidate',
-  images: [],
-  stage: MatchStage.waitingForPhotoExchange,
-  pendingPhotoExchange: null,
-  formalRequest: null,
-  conversationId: null,
-);
 
 void main() {
   late _MockIncoming incoming;
@@ -104,9 +76,6 @@ void main() {
   late _MockAcceptFormalStep acceptFormal;
   late _MockRejectFormalStep rejectFormal;
   late _MockCancelCase cancelCase;
-  late _MockGetMyMatchmaker getMyMatchmaker;
-  late _MockShareProfile shareProfile;
-  late _MockSendText sendText;
   late _MockProfileGate profileGate;
   late LikesCubit cubit;
 
@@ -123,9 +92,6 @@ void main() {
     acceptFormal = _MockAcceptFormalStep();
     rejectFormal = _MockRejectFormalStep();
     cancelCase = _MockCancelCase();
-    getMyMatchmaker = _MockGetMyMatchmaker();
-    shareProfile = _MockShareProfile();
-    sendText = _MockSendText();
     profileGate = _MockProfileGate();
     when(() => profileGate.isGated).thenReturn(false);
     cubit = LikesCubit(
@@ -141,9 +107,6 @@ void main() {
       acceptFormalStep: acceptFormal,
       rejectFormalStep: rejectFormal,
       cancelCase: cancelCase,
-      getMyMatchmaker: getMyMatchmaker,
-      shareProfile: shareProfile,
-      sendText: sendText,
       profileGate: profileGate,
     );
   });
@@ -588,88 +551,6 @@ void main() {
     await expectLater(pending, completes);
   });
 
-  group('matchmaker profile + message flow', () {
-    test(
-      'stage-0 inquiry resolves missing conversation then shares and texts',
-      () async {
-        when(() => getMyMatchmaker()).thenAnswer(
-          (_) async => const Right<Failure, MyMatchmakerOutcome>(
-            MyMatchmakerAssigned(
-              info: MatchmakerInfo(
-                matchmakerId: 'matchmaker-id',
-                name: 'Matchmaker',
-                profileImageUrl: null,
-                conversationId: 17,
-              ),
-            ),
-          ),
-        );
-        when(
-          () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
-        ).thenAnswer(
-          (_) async => Right<Failure, ShareProfileOutcome>(
-            ShareProfileSuccess(message: _MockChatMessage()),
-          ),
-        );
-        when(() => sendText(conversationId: 17, content: 'inquiry')).thenAnswer(
-          (_) async => Right<Failure, SendTextOutcome>(
-            SendTextSuccess(message: _MockChatMessage()),
-          ),
-        );
-
-        await cubit.sendInquiry(_stageZeroMatch, 'inquiry');
-
-        expect(cubit.state.actionEvent, LikesActionEvent.inquirySuccess);
-        expect(cubit.state.isInquirySent(42), isTrue);
-        verify(
-          () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
-        ).called(1);
-        verify(
-          () => sendText(conversationId: 17, content: 'inquiry'),
-        ).called(1);
-      },
-    );
-
-    // The sent button stays tappable on purpose, so this path is now
-    // reachable from the UI rather than dead code. It must NOT post a second
-    // copy of the same message — the screen reads `inquiryAlreadySent` the
-    // same way it reads success, and opens the chat.
-    test('a second tap opens the chat instead of sending again', () async {
-      when(() => getMyMatchmaker()).thenAnswer(
-        (_) async => const Right<Failure, MyMatchmakerOutcome>(
-          MyMatchmakerAssigned(
-            info: MatchmakerInfo(
-              matchmakerId: 'matchmaker-id',
-              name: 'Matchmaker',
-              profileImageUrl: null,
-              conversationId: 17,
-            ),
-          ),
-        ),
-      );
-      when(
-        () => shareProfile(conversationId: 17, sharedUserId: 'candidate-id'),
-      ).thenAnswer(
-        (_) async => Right<Failure, ShareProfileOutcome>(
-          ShareProfileSuccess(message: _MockChatMessage()),
-        ),
-      );
-      when(() => sendText(conversationId: 17, content: 'inquiry')).thenAnswer(
-        (_) async => Right<Failure, SendTextOutcome>(
-          SendTextSuccess(message: _MockChatMessage()),
-        ),
-      );
-
-      await cubit.sendInquiry(_stageZeroMatch, 'inquiry');
-      await cubit.sendInquiry(_stageZeroMatch, 'inquiry');
-
-      expect(cubit.state.actionEvent, LikesActionEvent.inquiryAlreadySent);
-      verify(
-        () => sendText(conversationId: 17, content: 'inquiry'),
-      ).called(1);
-    });
-  });
-
   group('sendFormalStep', () {
     void serverSays(FormalStepRequestOutcome outcome) {
       when(() => requestFormal(43)).thenAnswer(
@@ -680,31 +561,12 @@ void main() {
       );
     }
 
-    // The removal that defines this method: asking the other member to begin
-    // the formal step tells the MATCHMAKER nothing, because she has no role
-    // until they approve. It used to post a profile card and a text to her.
-    test('shares nothing into the matchmaker chat', () async {
-      serverSays(
-        const FormalStepRequestSuccess(requestId: 9, serverMessage: ''),
-      );
-
-      await cubit.sendFormalStep(43);
-
-      expect(cubit.state.actionEvent, LikesActionEvent.formalStepSuccess);
-      verifyNever(() => getMyMatchmaker());
-      verifyNever(
-        () => shareProfile(
-          conversationId: any(named: 'conversationId'),
-          sharedUserId: any(named: 'sharedUserId'),
-        ),
-      );
-      verifyNever(
-        () => sendText(
-          conversationId: any(named: 'conversationId'),
-          content: any(named: 'content'),
-        ),
-      );
-    });
+    // The test that used to sit here verified sendFormalStep posts nothing
+    // into the matchmaker chat. It is GONE because it became unwritable, not
+    // because the rule was dropped: LikesCubit no longer holds a chat use case
+    // to mock, having handed all three to MatchmakerInquiryCubit. A runtime
+    // check became a compile-time one, and the reasoning now lives on
+    // sendFormalStep itself.
 
     const outcomes = <FormalStepRequestOutcome, LikesActionEvent>{
       FormalStepRequestSuccess(requestId: null, serverMessage: ''):

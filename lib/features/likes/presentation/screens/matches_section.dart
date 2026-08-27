@@ -14,6 +14,8 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../domain/entities/match_card.dart';
 import '../blocs/likes_cubit.dart';
 import '../blocs/likes_state.dart';
+import '../blocs/matchmaker_inquiry_cubit.dart';
+import '../blocs/matchmaker_inquiry_state.dart';
 import '../widgets/likes_empty_state.dart';
 import '../widgets/likes_error_view.dart';
 import '../widgets/likes_loading_view.dart';
@@ -96,43 +98,55 @@ class _MatchesList extends StatelessWidget {
           final card = matches[index];
           final pendingId = card.pendingPhotoExchange?.id;
           final formalStepId = card.pendingFormalStep?.id;
-          return MatchCardWidget(
-            card: card,
-            onRequestPhotoExchange: () =>
-                cubit.requestPhotoExchange(card.likeRequestId),
-            isRequestingPhotoExchange: state.isPhotoExchangeRequesting(
-              card.likeRequestId,
+          // The inquiry lives in its own cubit and is read HERE rather than
+          // threaded down from the screen, so posting one rebuilds the cards
+          // and nothing else. The screen only listens to it.
+          return BlocBuilder<MatchmakerInquiryCubit, MatchmakerInquiryState>(
+            builder: (context, inquiry) => MatchCardWidget(
+              card: card,
+              onRequestPhotoExchange: () =>
+                  cubit.requestPhotoExchange(card.likeRequestId),
+              isRequestingPhotoExchange: state.isPhotoExchangeRequesting(
+                card.likeRequestId,
+              ),
+              onAcceptPhotoExchange: pendingId == null
+                  ? null
+                  : () => cubit.acceptPhotoExchange(pendingId),
+              onRejectPhotoExchange: pendingId == null
+                  ? null
+                  : () => cubit.rejectPhotoExchange(pendingId),
+              isAcceptingPhotoExchange:
+                  pendingId != null &&
+                  state.isPhotoExchangeAccepting(pendingId),
+              isRejectingPhotoExchange:
+                  pendingId != null &&
+                  state.isPhotoExchangeRejecting(pendingId),
+              onOpenGallery: card.images.isEmpty
+                  ? null
+                  : () => _openGallery(context, card, cubit),
+              onContactMatchmaker: () =>
+                  context.read<MatchmakerInquiryCubit>().send(
+                    card,
+                    LocaleKeys.likes_matches_inquiry_message.t(context),
+                  ),
+              isInquirySending: inquiry.isSending(card.likeRequestId),
+              isInquirySent: inquiry.isSent(card.likeRequestId),
+              onFormalStep: () => cubit.sendFormalStep(card.likeRequestId),
+              isFormalStepSending: state.isFormalStepSending(
+                card.likeRequestId,
+              ),
+              // Keyed by the FORMAL-STEP id, not the like id above — the two
+              // sit side by side here and index different things.
+              onAcceptFormalStep: cubit.acceptFormalStep,
+              onRejectFormalStep: cubit.rejectFormalStep,
+              isAcceptingFormalStep:
+                  formalStepId != null &&
+                  state.isFormalStepAccepting(formalStepId),
+              isRejectingFormalStep:
+                  formalStepId != null &&
+                  state.isFormalStepRejecting(formalStepId),
+              onOpenProfile: () => _openProfile(context, card),
             ),
-            onAcceptPhotoExchange: pendingId == null
-                ? null
-                : () => cubit.acceptPhotoExchange(pendingId),
-            onRejectPhotoExchange: pendingId == null
-                ? null
-                : () => cubit.rejectPhotoExchange(pendingId),
-            isAcceptingPhotoExchange:
-                pendingId != null && state.isPhotoExchangeAccepting(pendingId),
-            isRejectingPhotoExchange:
-                pendingId != null && state.isPhotoExchangeRejecting(pendingId),
-            onOpenGallery: card.images.isEmpty
-                ? null
-                : () => _openGallery(context, card, cubit),
-            onContactMatchmaker: () => cubit.sendInquiry(
-              card,
-              LocaleKeys.likes_matches_inquiry_message.t(context),
-            ),
-            isInquirySending: state.isInquirySending(card.likeRequestId),
-            isInquirySent: state.isInquirySent(card.likeRequestId),
-            onFormalStep: () => cubit.sendFormalStep(card.likeRequestId),
-            isFormalStepSending: state.isFormalStepSending(card.likeRequestId),
-            // Keyed by the FORMAL-STEP id, not the like id above — the two
-            // sit side by side here and index different things.
-            onAcceptFormalStep: cubit.acceptFormalStep,
-            onRejectFormalStep: cubit.rejectFormalStep,
-            isAcceptingFormalStep: formalStepId != null &&
-                state.isFormalStepAccepting(formalStepId),
-            isRejectingFormalStep: formalStepId != null &&
-                state.isFormalStepRejecting(formalStepId),
-            onOpenProfile: () => _openProfile(context, card),
           );
         },
       ),

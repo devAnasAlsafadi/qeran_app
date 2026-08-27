@@ -39,9 +39,6 @@ enum LikesActionEvent {
   photoExchangeRespondExpired,
   photoExchangeRespondFailure,
   // Stage-0 inquiry — share partner card + predefined message
-  inquirySuccess,
-  inquiryAlreadySent,
-  inquiryFailure,
   // Formal step (stage 1/2) — POST /api/formal-step/request/{likeRequestId}
   formalStepSuccess,
   formalStepAlreadyPending,
@@ -100,12 +97,6 @@ class LikesState extends Equatable {
   final Set<int> photoExchangeAcceptInFlightRequestIds;
   final Set<int> photoExchangeRejectInFlightRequestIds;
 
-  /// LIKE-REQUEST ids whose inquiry share/message is in-flight.
-  final Set<int> inquiryInFlightLikeIds;
-
-  /// LIKE-REQUEST ids whose inquiry was sent this session.
-  final Set<int> inquirySentLikeIds;
-
   /// FORMAL-STEP request ids being answered. Keyed by `pendingFormalStep.id`
   /// like the photo-exchange pair above, NOT by the like id the request set
   /// below uses — the two live side by side and index different things.
@@ -157,8 +148,6 @@ class LikesState extends Equatable {
     this.photoExchangeRequestInFlightLikeIds = const <int>{},
     this.photoExchangeAcceptInFlightRequestIds = const <int>{},
     this.photoExchangeRejectInFlightRequestIds = const <int>{},
-    this.inquiryInFlightLikeIds = const <int>{},
-    this.inquirySentLikeIds = const <int>{},
     this.formalStepAcceptInFlightRequestIds = const <int>{},
     this.formalStepRejectInFlightRequestIds = const <int>{},
     this.formalStepInFlightLikeIds = const <int>{},
@@ -191,11 +180,7 @@ class LikesState extends Equatable {
       isPhotoExchangeAccepting(requestId) ||
       isPhotoExchangeRejecting(requestId);
 
-  bool isInquirySending(int likeRequestId) =>
-      inquiryInFlightLikeIds.contains(likeRequestId);
 
-  bool isInquirySent(int likeRequestId) =>
-      inquirySentLikeIds.contains(likeRequestId);
 
   bool isFormalStepSending(int likeRequestId) =>
       formalStepInFlightLikeIds.contains(likeRequestId);
@@ -237,8 +222,6 @@ class LikesState extends Equatable {
     Set<int>? photoExchangeRequestInFlightLikeIds,
     Set<int>? photoExchangeAcceptInFlightRequestIds,
     Set<int>? photoExchangeRejectInFlightRequestIds,
-    Set<int>? inquiryInFlightLikeIds,
-    Set<int>? inquirySentLikeIds,
     Set<int>? formalStepAcceptInFlightRequestIds,
     Set<int>? formalStepRejectInFlightRequestIds,
     Set<int>? formalStepInFlightLikeIds,
@@ -278,9 +261,6 @@ class LikesState extends Equatable {
       photoExchangeRejectInFlightRequestIds:
           photoExchangeRejectInFlightRequestIds ??
           this.photoExchangeRejectInFlightRequestIds,
-      inquiryInFlightLikeIds:
-          inquiryInFlightLikeIds ?? this.inquiryInFlightLikeIds,
-      inquirySentLikeIds: inquirySentLikeIds ?? this.inquirySentLikeIds,
       formalStepAcceptInFlightRequestIds:
           formalStepAcceptInFlightRequestIds ??
           this.formalStepAcceptInFlightRequestIds,
@@ -316,8 +296,6 @@ class LikesState extends Equatable {
     photoExchangeRequestInFlightLikeIds,
     photoExchangeAcceptInFlightRequestIds,
     photoExchangeRejectInFlightRequestIds,
-    inquiryInFlightLikeIds,
-    inquirySentLikeIds,
     formalStepAcceptInFlightRequestIds,
     formalStepRejectInFlightRequestIds,
     formalStepInFlightLikeIds,

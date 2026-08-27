@@ -22,6 +22,8 @@ import '../../domain/usecases/get_matches_usecase.dart';
 import '../../domain/usecases/get_outgoing_likes_usecase.dart';
 import '../../domain/usecases/reject_like_usecase.dart';
 import '../../domain/usecases/reject_photo_exchange_usecase.dart';
+import '../../domain/usecases/accept_formal_step_usecase.dart';
+import '../../domain/usecases/reject_formal_step_usecase.dart';
 import '../../domain/usecases/request_formal_step_usecase.dart';
 import '../../domain/usecases/request_photo_exchange_usecase.dart';
 import 'likes_state.dart';
@@ -48,6 +50,8 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   final AcceptPhotoExchangeUseCase _acceptPhotoExchange;
   final RejectPhotoExchangeUseCase _rejectPhotoExchange;
   final RequestFormalStepUseCase _requestFormalStep;
+  final AcceptFormalStepUseCase _acceptFormalStep;
+  final RejectFormalStepUseCase _rejectFormalStep;
   // Chat use-cases (cross-feature) for inquiry / formal-step auto-send.
   final GetMyMatchmakerUseCase _getMyMatchmaker;
   final ShareProfileUseCase _shareProfile;
@@ -64,6 +68,8 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required AcceptPhotoExchangeUseCase acceptPhotoExchange,
     required RejectPhotoExchangeUseCase rejectPhotoExchange,
     required RequestFormalStepUseCase requestFormalStep,
+    required AcceptFormalStepUseCase acceptFormalStep,
+    required RejectFormalStepUseCase rejectFormalStep,
     required GetMyMatchmakerUseCase getMyMatchmaker,
     required ShareProfileUseCase shareProfile,
     required SendTextMessageUseCase sendText,
@@ -77,6 +83,8 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
        _acceptPhotoExchange = acceptPhotoExchange,
        _rejectPhotoExchange = rejectPhotoExchange,
        _requestFormalStep = requestFormalStep,
+       _acceptFormalStep = acceptFormalStep,
+       _rejectFormalStep = rejectFormalStep,
        _getMyMatchmaker = getMyMatchmaker,
        _shareProfile = shareProfile,
        _sendText = sendText,
@@ -609,6 +617,120 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     if (_shouldRefreshMatchesAfterFormalStep(event)) {
       await loadMatches();
     }
+  }
+
+  /// Agrees to begin the formal step. Takes `pendingFormalStep.id`.
+  ///
+  /// On success the server creates the `FormalRequest` and moves the case to
+  /// `AwaitingMatchmakerCoordination` — this is the moment the matchmaker
+  /// first hears about any of it.
+  Future<void> acceptFormalStep(int requestId) =>
+      _respondToFormalStep(requestId, isAccept: true);
+
+  /// Declines, which ENDS the compatibility case. The caller confirms first.
+  Future<void> rejectFormalStep(int requestId) =>
+      _respondToFormalStep(requestId, isAccept: false);
+
+  /// Both answers, one body.
+  ///
+  /// They differ in the use case they call, the set they hold the id in, and
+  /// the event a success reports. Every failure path is identical, which is
+  /// also why `FormalStepRespondOutcome` is one family: keeping two copies of
+  /// this would mean two chances to classify the same refusal differently.
+  ///
+  /// No approval pre-gate, unlike `sendFormalStep`. Answering a request
+  /// someone already sent you is not a new outward action, so the server does
+  /// not gate it on profile approval and neither does this.
+  Future<void> _respondToFormalStep(
+    int requestId, {
+    required bool isAccept,
+  }) async {
+    // Guards on EITHER answer in flight, not just this one. A card whose
+    // accept is mid-flight must not also be able to send a reject.
+    if (state.isFormalStepResponding(requestId)) return;
+
+    final verb = isAccept ? 'accept' : 'reject';
+    emit(
+      isAccept
+          ? state.copyWith(
+              formalStepAcceptInFlightRequestIds: {
+                ...state.formalStepAcceptInFlightRequestIds,
+                requestId,
+              },
+            )
+          : state.copyWith(
+              formalStepRejectInFlightRequestIds: {
+                ...state.formalStepRejectInFlightRequestIds,
+                requestId,
+              },
+            ),
+    );
+
+    final result = isAccept
+        ? await _acceptFormalStep(requestId)
+        : await _rejectFormalStep(requestId);
+    if (isClosed) return;
+
+    final LikesActionEvent event = result.fold((failure) {
+      AppLogger.warning(
+        'FORMAL-STEP — $verb transport failure requestId=$requestId '
+        'raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return LikesActionEvent.formalStepRespondFailure;
+    }, (outcome) => _formalRespondEvent(outcome, isAccept: isAccept));
+
+    emit(
+      isAccept
+          ? state.copyWith(
+              formalStepAcceptInFlightRequestIds:
+                  {...state.formalStepAcceptInFlightRequestIds}
+                    ..remove(requestId),
+              actionEvent: event,
+              actionEventVersion: state.actionEventVersion + 1,
+            )
+          : state.copyWith(
+              formalStepRejectInFlightRequestIds:
+                  {...state.formalStepRejectInFlightRequestIds}
+                    ..remove(requestId),
+              actionEvent: event,
+              actionEventVersion: state.actionEventVersion + 1,
+            ),
+    );
+    if (_shouldRefreshAfterFormalRespond(event)) {
+      await loadMatches();
+    }
+  }
+
+  LikesActionEvent _formalRespondEvent(
+    FormalStepRespondOutcome outcome, {
+    required bool isAccept,
+  }) {
+    return switch (outcome) {
+      FormalStepRespondSuccess() => isAccept
+          ? LikesActionEvent.formalStepAcceptSuccess
+          : LikesActionEvent.formalStepRejectSuccess,
+      FormalStepRespondNotFound() =>
+        LikesActionEvent.formalStepRespondNotFound,
+      FormalStepRespondExpired() => LikesActionEvent.formalStepRespondExpired,
+      FormalStepRespondCaseEnded() =>
+        LikesActionEvent.formalStepRespondCaseEnded,
+      FormalStepRespondFailure() => LikesActionEvent.formalStepRespondFailure,
+    };
+  }
+
+  /// Every answer the SERVER gave moves the case or proves the card stale, so
+  /// all four refetch. Only a transport failure — where the server said
+  /// nothing at all — leaves the list alone.
+  bool _shouldRefreshAfterFormalRespond(LikesActionEvent event) {
+    return switch (event) {
+      LikesActionEvent.formalStepAcceptSuccess ||
+      LikesActionEvent.formalStepRejectSuccess ||
+      LikesActionEvent.formalStepRespondNotFound ||
+      LikesActionEvent.formalStepRespondExpired ||
+      LikesActionEvent.formalStepRespondCaseEnded => true,
+      _ => false,
+    };
   }
 
   LikesActionEvent _formalStepEvent(FormalStepRequestOutcome outcome) {

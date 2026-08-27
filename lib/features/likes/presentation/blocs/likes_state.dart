@@ -49,6 +49,13 @@ enum LikesActionEvent {
   formalStepCaseEnded,
   formalStepUnderReview,
   formalStepFailure,
+  // Formal-step accept/reject (responder) — keyed by pendingFormalStep.id
+  formalStepAcceptSuccess,
+  formalStepRejectSuccess,
+  formalStepRespondNotFound,
+  formalStepRespondExpired,
+  formalStepRespondCaseEnded,
+  formalStepRespondFailure,
 }
 
 /// Single state class holding the active tab + per-tab status / data /
@@ -93,6 +100,12 @@ class LikesState extends Equatable {
   /// LIKE-REQUEST ids whose inquiry was sent this session.
   final Set<int> inquirySentLikeIds;
 
+  /// FORMAL-STEP request ids being answered. Keyed by `pendingFormalStep.id`
+  /// like the photo-exchange pair above, NOT by the like id the request set
+  /// below uses — the two live side by side and index different things.
+  final Set<int> formalStepAcceptInFlightRequestIds;
+  final Set<int> formalStepRejectInFlightRequestIds;
+
   /// LIKE-REQUEST ids whose formal-step request is in-flight (stage 1/2).
   ///
   /// There is no `formalStepSent` twin. Whether the step was requested is a
@@ -132,6 +145,8 @@ class LikesState extends Equatable {
     this.photoExchangeRejectInFlightRequestIds = const <int>{},
     this.inquiryInFlightLikeIds = const <int>{},
     this.inquirySentLikeIds = const <int>{},
+    this.formalStepAcceptInFlightRequestIds = const <int>{},
+    this.formalStepRejectInFlightRequestIds = const <int>{},
     this.formalStepInFlightLikeIds = const <int>{},
     this.openJourneyLikeRequestId,
     this.actionEvent = LikesActionEvent.none,
@@ -170,6 +185,17 @@ class LikesState extends Equatable {
   bool isFormalStepSending(int likeRequestId) =>
       formalStepInFlightLikeIds.contains(likeRequestId);
 
+  bool isFormalStepAccepting(int requestId) =>
+      formalStepAcceptInFlightRequestIds.contains(requestId);
+
+  bool isFormalStepRejecting(int requestId) =>
+      formalStepRejectInFlightRequestIds.contains(requestId);
+
+  /// Either answer in flight. Both buttons retire together — answering twice
+  /// from one card is never what was meant.
+  bool isFormalStepResponding(int requestId) =>
+      isFormalStepAccepting(requestId) || isFormalStepRejecting(requestId);
+
   bool isJourneyOpen(int likeRequestId) =>
       openJourneyLikeRequestId == likeRequestId;
 
@@ -195,6 +221,8 @@ class LikesState extends Equatable {
     Set<int>? photoExchangeRejectInFlightRequestIds,
     Set<int>? inquiryInFlightLikeIds,
     Set<int>? inquirySentLikeIds,
+    Set<int>? formalStepAcceptInFlightRequestIds,
+    Set<int>? formalStepRejectInFlightRequestIds,
     Set<int>? formalStepInFlightLikeIds,
     int? openJourneyLikeRequestId,
     bool clearOpenJourney = false,
@@ -234,6 +262,12 @@ class LikesState extends Equatable {
       inquiryInFlightLikeIds:
           inquiryInFlightLikeIds ?? this.inquiryInFlightLikeIds,
       inquirySentLikeIds: inquirySentLikeIds ?? this.inquirySentLikeIds,
+      formalStepAcceptInFlightRequestIds:
+          formalStepAcceptInFlightRequestIds ??
+          this.formalStepAcceptInFlightRequestIds,
+      formalStepRejectInFlightRequestIds:
+          formalStepRejectInFlightRequestIds ??
+          this.formalStepRejectInFlightRequestIds,
       formalStepInFlightLikeIds:
           formalStepInFlightLikeIds ?? this.formalStepInFlightLikeIds,
       openJourneyLikeRequestId: clearOpenJourney
@@ -263,6 +297,8 @@ class LikesState extends Equatable {
     photoExchangeRejectInFlightRequestIds,
     inquiryInFlightLikeIds,
     inquirySentLikeIds,
+    formalStepAcceptInFlightRequestIds,
+    formalStepRejectInFlightRequestIds,
     formalStepInFlightLikeIds,
     openJourneyLikeRequestId,
     actionEvent,

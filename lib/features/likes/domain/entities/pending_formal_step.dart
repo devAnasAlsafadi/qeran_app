@@ -62,6 +62,18 @@ class PendingFormalStep extends Equatable {
   bool get isAwaitingResponse =>
       status == FormalStepStatus.pending && !hasServerExpired(expiresAt);
 
+  /// This member is the one who has to answer, and the window is still open.
+  ///
+  /// [canAccept] / [canReject] are the server's own verdict on whose turn it
+  /// is, so this never works it out from [requestedByMe] — a request can be
+  /// open without either side being able to act on it, and guessing would put
+  /// buttons on a card that the server would then refuse.
+  ///
+  /// Sub-step 5 reads this for the client's exception: the cancel X is kept
+  /// OFF the receiver's card, because declining already ends the case there.
+  bool get isAwaitingMyResponse =>
+      isAwaitingResponse && (canAccept || canReject);
+
   @override
   List<Object?> get props => [
         id,

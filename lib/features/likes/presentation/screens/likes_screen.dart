@@ -281,6 +281,59 @@ class _LikesView extends StatelessWidget {
           message: LocaleKeys.likes_matches_action_request_failed.t(context),
           type: SnackBarType.error,
         );
+      // Formal step — the receiver answering. Every one of these lands on a
+      // card the refresh has already redrawn, so the message only has to
+      // explain what happened, not what to do next.
+      case LikesActionEvent.formalStepAcceptSuccess:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_accept_success.t(
+            context,
+          ),
+          type: SnackBarType.success,
+        );
+      case LikesActionEvent.formalStepRejectSuccess:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_reject_success.t(
+            context,
+          ),
+          type: SnackBarType.info,
+        );
+      // Says "no longer available" rather than naming a cause. The server
+      // answers FORMAL_STEP_NOT_FOUND both for a request that is genuinely
+      // gone AND to anyone who is not its responder, so any wording that
+      // explains WHY would be wrong half the time.
+      case LikesActionEvent.formalStepRespondNotFound:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_respond_not_found.t(
+            context,
+          ),
+          type: SnackBarType.info,
+        );
+      case LikesActionEvent.formalStepRespondExpired:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_respond_expired.t(
+            context,
+          ),
+          type: SnackBarType.info,
+        );
+      // The same sentence the request path uses for CASE_NOT_ACTIVE — one
+      // ending, one way of saying it.
+      case LikesActionEvent.formalStepRespondCaseEnded:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_formal_step_case_ended.t(context),
+          type: SnackBarType.info,
+        );
+      case LikesActionEvent.formalStepRespondFailure:
+        AppSnackBar.show(
+          context,
+          message: LocaleKeys.likes_matches_action_request_failed.t(context),
+          type: SnackBarType.error,
+        );
     }
   }
 

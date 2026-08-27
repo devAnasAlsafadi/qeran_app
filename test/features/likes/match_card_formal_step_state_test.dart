@@ -112,6 +112,66 @@ void main() {
     }
   });
 
+  // `isAwaitingMyResponse` is what the receiver's card and (in sub-step 5)
+  // the cancel-X exception both read. It asks the SERVER whose turn it is
+  // rather than inferring it: a request can be open with neither side able
+  // to act, and guessing would draw buttons the server then refuses.
+  group('whose turn it is', () {
+    test('the receiver, with the window open, may answer', () {
+      final card = _card(
+        caseStage: MatchCaseStage.formalStepPending,
+        pending: _pending(requestedByMe: false),
+      );
+
+      expect(card.pendingFormalStep!.isAwaitingMyResponse, isTrue);
+    });
+
+    test('the sender may not', () {
+      final card = _card(
+        caseStage: MatchCaseStage.formalStepPending,
+        pending: _pending(requestedByMe: true),
+      );
+
+      expect(card.pendingFormalStep!.isAwaitingMyResponse, isFalse);
+    });
+
+    // A lapsed request keeps its Pending status until the server sweeps it,
+    // and canAccept can still read true. The clock is what settles it.
+    test('a lapsed window closes the answer, whatever the flags say', () {
+      final lapsed = PendingFormalStep(
+        id: 5,
+        likeRequestId: 1,
+        status: FormalStepStatus.pending,
+        remainingSeconds: 0,
+        createdAt: DateTime.now().toUtc().subtract(const Duration(days: 3)),
+        expiresAt: DateTime.now().toUtc().subtract(const Duration(hours: 1)),
+        direction: 'Received',
+        requestedByMe: false,
+        canAccept: true,
+        canReject: true,
+      );
+
+      expect(lapsed.isAwaitingMyResponse, isFalse);
+    });
+
+    test('the server withdrawing both verbs closes it too', () {
+      final noVerbs = PendingFormalStep(
+        id: 5,
+        likeRequestId: 1,
+        status: FormalStepStatus.pending,
+        remainingSeconds: 3600,
+        createdAt: DateTime.now().toUtc(),
+        expiresAt: DateTime.now().toUtc().add(const Duration(hours: 5)),
+        direction: 'Received',
+        requestedByMe: false,
+        canAccept: false,
+        canReject: false,
+      );
+
+      expect(noVerbs.isAwaitingMyResponse, isFalse);
+    });
+  });
+
   // A synthetic card — the matchmaker's interest row, the profile seed —
   // carries no case data at all and must not claim a request was made.
   test('a card with no journey data claims nothing', () {

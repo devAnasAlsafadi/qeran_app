@@ -17,6 +17,8 @@ import 'package:qeran/features/likes/domain/usecases/get_matches_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/get_outgoing_likes_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/reject_like_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/reject_photo_exchange_usecase.dart';
+import 'package:qeran/features/likes/domain/usecases/accept_formal_step_usecase.dart';
+import 'package:qeran/features/likes/domain/usecases/reject_formal_step_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/request_formal_step_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/request_photo_exchange_usecase.dart';
 import 'package:qeran/features/likes/presentation/blocs/likes_cubit.dart';
@@ -50,6 +52,12 @@ class _MockRejectPx extends Mock implements RejectPhotoExchangeUseCase {}
 
 class _MockRequestFormalStep extends Mock
     implements RequestFormalStepUseCase {}
+
+class _MockAcceptFormalStep extends Mock
+    implements AcceptFormalStepUseCase {}
+
+class _MockRejectFormalStep extends Mock
+    implements RejectFormalStepUseCase {}
 
 class _MockGetMyMatchmaker extends Mock implements GetMyMatchmakerUseCase {}
 
@@ -90,6 +98,8 @@ void main() {
   late _MockAcceptPx acceptPx;
   late _MockRejectPx rejectPx;
   late _MockRequestFormalStep requestFormal;
+  late _MockAcceptFormalStep acceptFormal;
+  late _MockRejectFormalStep rejectFormal;
   late _MockGetMyMatchmaker getMyMatchmaker;
   late _MockShareProfile shareProfile;
   late _MockSendText sendText;
@@ -106,6 +116,8 @@ void main() {
     acceptPx = _MockAcceptPx();
     rejectPx = _MockRejectPx();
     requestFormal = _MockRequestFormalStep();
+    acceptFormal = _MockAcceptFormalStep();
+    rejectFormal = _MockRejectFormalStep();
     getMyMatchmaker = _MockGetMyMatchmaker();
     shareProfile = _MockShareProfile();
     sendText = _MockSendText();
@@ -121,6 +133,8 @@ void main() {
       acceptPhotoExchange: acceptPx,
       rejectPhotoExchange: rejectPx,
       requestFormalStep: requestFormal,
+      acceptFormalStep: acceptFormal,
+      rejectFormalStep: rejectFormal,
       getMyMatchmaker: getMyMatchmaker,
       shareProfile: shareProfile,
       sendText: sendText,
@@ -779,6 +793,195 @@ void main() {
       await Future.wait([first, second]);
 
       verify(() => requestFormal(43)).called(1);
+    });
+  });
+
+  group('answering a formal step', () {
+    void serverSays(FormalStepRespondOutcome outcome) {
+      when(() => acceptFormal(77)).thenAnswer(
+        (_) async => Right<Failure, FormalStepRespondOutcome>(outcome),
+      );
+      when(() => rejectFormal(77)).thenAnswer(
+        (_) async => Right<Failure, FormalStepRespondOutcome>(outcome),
+      );
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+    }
+
+    // These take pendingFormalStep.id where sendFormalStep takes the like id.
+    // Both are ints; the wrong one reaches a real endpoint with a real id.
+    test('accept and reject each call their own use case', () async {
+      serverSays(const FormalStepRespondSuccess(serverMessage: ''));
+
+      await cubit.acceptFormalStep(77);
+      verify(() => acceptFormal(77)).called(1);
+      verifyNever(() => rejectFormal(any()));
+
+      await cubit.rejectFormalStep(77);
+      verify(() => rejectFormal(77)).called(1);
+    });
+
+    // Success is the ONLY outcome where the two verbs part company. Reporting
+    // a decline as an approval is the failure this pins.
+    test('success reports which answer was given', () async {
+      serverSays(const FormalStepRespondSuccess(serverMessage: ''));
+
+      await cubit.acceptFormalStep(77);
+      expect(cubit.state.actionEvent, LikesActionEvent.formalStepAcceptSuccess);
+
+      await cubit.rejectFormalStep(77);
+      expect(cubit.state.actionEvent, LikesActionEvent.formalStepRejectSuccess);
+    });
+
+    const refusals = <FormalStepRespondOutcome, LikesActionEvent>{
+      FormalStepRespondNotFound(serverMessage: ''):
+          LikesActionEvent.formalStepRespondNotFound,
+      FormalStepRespondExpired(serverMessage: ''):
+          LikesActionEvent.formalStepRespondExpired,
+      FormalStepRespondCaseEnded(serverMessage: ''):
+          LikesActionEvent.formalStepRespondCaseEnded,
+      FormalStepRespondFailure(serverMessage: '', errorCode: null):
+          LikesActionEvent.formalStepRespondFailure,
+    };
+
+    test('every refusal reaches an event of its own', () {
+      expect(refusals.values.toSet().length, refusals.length);
+    });
+
+    // Both verbs fail in the same ways, so both must report them the same
+    // way. Two copies of this mapping would be two chances to disagree.
+    for (final entry in refusals.entries) {
+      test('${entry.key.runtimeType} reads the same either way', () async {
+        serverSays(entry.key);
+
+        await cubit.acceptFormalStep(77);
+        expect(cubit.state.actionEvent, entry.value);
+
+        await cubit.rejectFormalStep(77);
+        expect(cubit.state.actionEvent, entry.value);
+      });
+    }
+
+    // Anything the SERVER answered moved the case or proved the card stale.
+    // Only a transport failure — where it said nothing — leaves the list be.
+    test('refreshes for every server answer, never for a dead connection',
+        () async {
+      for (final outcome in <FormalStepRespondOutcome>[
+        const FormalStepRespondSuccess(serverMessage: ''),
+        ...refusals.keys,
+      ]) {
+        serverSays(outcome);
+        await cubit.acceptFormalStep(77);
+
+        if (outcome is FormalStepRespondFailure) {
+          verifyNever(() => getMatches());
+        } else {
+          verify(() => getMatches()).called(1);
+        }
+      }
+    });
+
+    test('a transport failure reports failure and does not refresh', () async {
+      when(() => rejectFormal(77)).thenAnswer(
+        (_) async => const Left<Failure, FormalStepRespondOutcome>(
+          ServerFailure(message: 'offline'),
+        ),
+      );
+
+      await cubit.rejectFormalStep(77);
+
+      expect(
+        cubit.state.actionEvent,
+        LikesActionEvent.formalStepRespondFailure,
+      );
+      verifyNever(() => getMatches());
+    });
+
+    // Answering a request already sent to you is not a new outward action, so
+    // it is not approval-gated the way sending one is.
+    test('an unapproved profile can still answer', () async {
+      when(() => profileGate.isGated).thenReturn(true);
+      serverSays(const FormalStepRespondSuccess(serverMessage: ''));
+
+      await cubit.acceptFormalStep(77);
+
+      expect(cubit.state.actionEvent, LikesActionEvent.formalStepAcceptSuccess);
+      verify(() => acceptFormal(77)).called(1);
+    });
+
+    // THE guard that spans both buttons: a card mid-accept must not also be
+    // able to send a reject. A per-verb guard would let both through.
+    test('a reject while an accept is in flight is dropped', () async {
+      final gate = Completer<Either<Failure, FormalStepRespondOutcome>>();
+      when(() => acceptFormal(77)).thenAnswer((_) => gate.future);
+      when(() => rejectFormal(77)).thenAnswer(
+        (_) async => const Right<Failure, FormalStepRespondOutcome>(
+          FormalStepRespondSuccess(serverMessage: ''),
+        ),
+      );
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+
+      final accepting = cubit.acceptFormalStep(77);
+      await Future<void>.delayed(Duration.zero);
+      final rejecting = cubit.rejectFormalStep(77);
+      gate.complete(
+        const Right(FormalStepRespondSuccess(serverMessage: '')),
+      );
+      await Future.wait([accepting, rejecting]);
+
+      verifyNever(() => rejectFormal(any()));
+    });
+
+    // The MIRROR of the test above, and it is not redundant. A guard that
+    // reads only the accept set still drops a reject-during-accept — it is
+    // this direction that catches it, because nothing is in the accept set.
+    test('an accept while a reject is in flight is dropped', () async {
+      final gate = Completer<Either<Failure, FormalStepRespondOutcome>>();
+      when(() => rejectFormal(77)).thenAnswer((_) => gate.future);
+      when(() => acceptFormal(77)).thenAnswer(
+        (_) async => const Right<Failure, FormalStepRespondOutcome>(
+          FormalStepRespondSuccess(serverMessage: ''),
+        ),
+      );
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+
+      final rejecting = cubit.rejectFormalStep(77);
+      await Future<void>.delayed(Duration.zero);
+      final accepting = cubit.acceptFormalStep(77);
+      gate.complete(
+        const Right(FormalStepRespondSuccess(serverMessage: '')),
+      );
+      await Future.wait([rejecting, accepting]);
+
+      verifyNever(() => acceptFormal(any()));
+    });
+
+    test('a different request id is not blocked by one in flight', () async {
+      final gate = Completer<Either<Failure, FormalStepRespondOutcome>>();
+      when(() => acceptFormal(77)).thenAnswer((_) => gate.future);
+      when(() => acceptFormal(78)).thenAnswer(
+        (_) async => const Right<Failure, FormalStepRespondOutcome>(
+          FormalStepRespondSuccess(serverMessage: ''),
+        ),
+      );
+      when(() => getMatches()).thenAnswer(
+        (_) async => const Right<Failure, List<MatchCard>>(_noMatches),
+      );
+
+      final first = cubit.acceptFormalStep(77);
+      await Future<void>.delayed(Duration.zero);
+      final other = cubit.acceptFormalStep(78);
+      gate.complete(
+        const Right(FormalStepRespondSuccess(serverMessage: '')),
+      );
+      await Future.wait([first, other]);
+
+      verify(() => acceptFormal(78)).called(1);
     });
   });
 

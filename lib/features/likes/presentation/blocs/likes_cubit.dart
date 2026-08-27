@@ -10,11 +10,8 @@ import 'package:qeran/features/chat/domain/usecases/send_text_message_usecase.da
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
-import '../../domain/entities/like_action_outcome.dart';
 import '../../domain/entities/likes_tab.dart';
 import '../../domain/entities/match_card.dart';
-import '../../domain/entities/formal_step_outcome.dart';
-import '../../domain/entities/photo_exchange_outcome.dart';
 import '../../domain/usecases/accept_like_usecase.dart';
 import '../../domain/usecases/accept_photo_exchange_usecase.dart';
 import '../../domain/usecases/get_incoming_likes_usecase.dart';
@@ -27,6 +24,8 @@ import '../../domain/usecases/cancel_case_usecase.dart';
 import '../../domain/usecases/reject_formal_step_usecase.dart';
 import '../../domain/usecases/request_formal_step_usecase.dart';
 import '../../domain/usecases/request_photo_exchange_usecase.dart';
+import 'likes_action_events.dart';
+import 'likes_refetch_rules.dart';
 import 'likes_state.dart';
 
 /// Screen-scoped controller for the Likes / Interests tabs (Sent /
@@ -262,7 +261,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'LIKES',
       );
       return LikesActionEvent.acceptFailure;
-    }, _accept);
+    }, acceptLikeEvent);
     final clearedAccept = {...state.acceptInFlightIds}..remove(likeRequestId);
     // On accept success the matches list will get a new Stage-0 row —
     // invalidate the matches slot so the next tab visit refetches.
@@ -275,7 +274,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         resetMatchesToInitial: invalidateMatches,
       ),
     );
-    if (_shouldRefreshIncomingAfterLikeAction(event)) {
+    if (refetchIncomingAfterLikeAction(event)) {
       await loadIncoming();
     }
   }
@@ -296,7 +295,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'LIKES',
       );
       return LikesActionEvent.rejectFailure;
-    }, _reject);
+    }, rejectLikeEvent);
     final clearedReject = {...state.rejectInFlightIds}..remove(likeRequestId);
     emit(
       state.copyWith(
@@ -305,48 +304,9 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         actionEventVersion: state.actionEventVersion + 1,
       ),
     );
-    if (_shouldRefreshIncomingAfterLikeAction(event)) {
+    if (refetchIncomingAfterLikeAction(event)) {
       await loadIncoming();
     }
-  }
-
-  LikesActionEvent _accept(LikeActionOutcome outcome) {
-    return switch (outcome) {
-      LikeActionSuccess() => LikesActionEvent.acceptSuccess,
-      LikeActionRequiresSubscription() =>
-        LikesActionEvent.acceptRequiresSubscription,
-      LikeActionExpired() => LikesActionEvent.acceptExpired,
-      LikeActionNotFoundOrExpired() => LikesActionEvent.acceptNotFound,
-      LikeActionProfileUnderReview() => LikesActionEvent.acceptUnderReview,
-      LikeActionFailure() => LikesActionEvent.acceptFailure,
-    };
-  }
-
-  LikesActionEvent _reject(LikeActionOutcome outcome) {
-    return switch (outcome) {
-      LikeActionSuccess() => LikesActionEvent.rejectSuccess,
-      // Reject is never subscription-gated server-side; treat it as
-      // generic failure rather than opening the paywall.
-      LikeActionRequiresSubscription() => LikesActionEvent.rejectFailure,
-      LikeActionExpired() => LikesActionEvent.rejectExpired,
-      LikeActionNotFoundOrExpired() => LikesActionEvent.rejectNotFound,
-      // Reject is never approval-gated server-side; treat an under-review
-      // result as a generic failure rather than surfacing "under review".
-      LikeActionProfileUnderReview() => LikesActionEvent.rejectFailure,
-      LikeActionFailure() => LikesActionEvent.rejectFailure,
-    };
-  }
-
-  bool _shouldRefreshIncomingAfterLikeAction(LikesActionEvent event) {
-    return switch (event) {
-      LikesActionEvent.acceptSuccess ||
-      LikesActionEvent.acceptExpired ||
-      LikesActionEvent.acceptNotFound ||
-      LikesActionEvent.rejectSuccess ||
-      LikesActionEvent.rejectExpired ||
-      LikesActionEvent.rejectNotFound => true,
-      _ => false,
-    };
   }
 
   // ── Photo exchange — initiator (request) ───────────────────────────
@@ -380,7 +340,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'MATCHES',
       );
       return LikesActionEvent.photoExchangeRequestFailure;
-    }, _requestEvent);
+    }, photoExchangeRequestEvent);
     final cleared = {...state.photoExchangeRequestInFlightLikeIds}
       ..remove(likeRequestId);
     emit(
@@ -390,37 +350,9 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         actionEventVersion: state.actionEventVersion + 1,
       ),
     );
-    if (_shouldRefreshMatchesAfterRequest(event)) {
+    if (refetchMatchesAfterPhotoRequest(event)) {
       await loadMatches();
     }
-  }
-
-  LikesActionEvent _requestEvent(PhotoExchangeRequestOutcome outcome) {
-    return switch (outcome) {
-      PhotoExchangeRequestSuccess() =>
-        LikesActionEvent.photoExchangeRequestSuccess,
-      PhotoExchangeRequestAlreadyPending() =>
-        LikesActionEvent.photoExchangeRequestAlreadyPending,
-      PhotoExchangeRequestLikeNotAccepted() =>
-        LikesActionEvent.photoExchangeRequestLikeNotAccepted,
-      PhotoExchangeRequestRequiresSubscription() =>
-        LikesActionEvent.photoExchangeRequestRequiresSubscription,
-      PhotoExchangeRequestLimitReached() =>
-        LikesActionEvent.photoExchangeRequestLimitReached,
-      PhotoExchangeRequestProfileUnderReview() =>
-        LikesActionEvent.photoExchangeRequestUnderReview,
-      PhotoExchangeRequestFailure() =>
-        LikesActionEvent.photoExchangeRequestFailure,
-    };
-  }
-
-  bool _shouldRefreshMatchesAfterRequest(LikesActionEvent event) {
-    return switch (event) {
-      LikesActionEvent.photoExchangeRequestSuccess ||
-      LikesActionEvent.photoExchangeRequestAlreadyPending ||
-      LikesActionEvent.photoExchangeRequestLikeNotAccepted => true,
-      _ => false,
-    };
   }
 
   // ── Photo exchange — responder (accept / reject) ───────────────────
@@ -444,7 +376,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'MATCHES',
       );
       return LikesActionEvent.photoExchangeRespondFailure;
-    }, (outcome) => _respondEvent(outcome, isAccept: true));
+    }, (outcome) => photoExchangeRespondEvent(outcome, isAccept: true));
     final cleared = {...state.photoExchangeAcceptInFlightRequestIds}
       ..remove(requestId);
     emit(
@@ -454,7 +386,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         actionEventVersion: state.actionEventVersion + 1,
       ),
     );
-    if (_shouldRefreshMatchesAfterRespond(event)) {
+    if (refetchMatchesAfterPhotoRespond(event)) {
       await loadMatches();
     }
   }
@@ -478,7 +410,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'MATCHES',
       );
       return LikesActionEvent.photoExchangeRespondFailure;
-    }, (outcome) => _respondEvent(outcome, isAccept: false));
+    }, (outcome) => photoExchangeRespondEvent(outcome, isAccept: false));
     final cleared = {...state.photoExchangeRejectInFlightRequestIds}
       ..remove(requestId);
     emit(
@@ -488,37 +420,9 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         actionEventVersion: state.actionEventVersion + 1,
       ),
     );
-    if (_shouldRefreshMatchesAfterRespond(event)) {
+    if (refetchMatchesAfterPhotoRespond(event)) {
       await loadMatches();
     }
-  }
-
-  LikesActionEvent _respondEvent(
-    PhotoExchangeRespondOutcome outcome, {
-    required bool isAccept,
-  }) {
-    return switch (outcome) {
-      PhotoExchangeRespondSuccess() =>
-        isAccept
-            ? LikesActionEvent.photoExchangeAcceptSuccess
-            : LikesActionEvent.photoExchangeRejectSuccess,
-      PhotoExchangeRespondNotFound() =>
-        LikesActionEvent.photoExchangeRespondNotFound,
-      PhotoExchangeRespondExpired() =>
-        LikesActionEvent.photoExchangeRespondExpired,
-      PhotoExchangeRespondFailure() =>
-        LikesActionEvent.photoExchangeRespondFailure,
-    };
-  }
-
-  bool _shouldRefreshMatchesAfterRespond(LikesActionEvent event) {
-    return switch (event) {
-      LikesActionEvent.photoExchangeAcceptSuccess ||
-      LikesActionEvent.photoExchangeRejectSuccess ||
-      LikesActionEvent.photoExchangeRespondNotFound ||
-      LikesActionEvent.photoExchangeRespondExpired => true,
-      _ => false,
-    };
   }
 
   // ── Compatibility journey ──
@@ -608,7 +512,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'MATCHES',
       );
       return LikesActionEvent.formalStepFailure;
-    }, _formalStepEvent);
+    }, formalStepRequestEvent);
 
     final cleared = {...state.formalStepInFlightLikeIds}..remove(likeRequestId);
     emit(
@@ -618,7 +522,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         actionEventVersion: state.actionEventVersion + 1,
       ),
     );
-    if (_shouldRefreshMatchesAfterFormalStep(event)) {
+    if (refetchMatchesAfterFormalRequest(event)) {
       await loadMatches();
     }
   }
@@ -682,7 +586,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'MATCHES',
       );
       return LikesActionEvent.formalStepRespondFailure;
-    }, (outcome) => _formalRespondEvent(outcome, isAccept: isAccept));
+    }, (outcome) => formalStepRespondEvent(outcome, isAccept: isAccept));
 
     emit(
       isAccept
@@ -701,40 +605,9 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
               actionEventVersion: state.actionEventVersion + 1,
             ),
     );
-    if (_shouldRefreshAfterFormalRespond(event)) {
+    if (refetchMatchesAfterFormalRespond(event)) {
       await loadMatches();
     }
-  }
-
-  LikesActionEvent _formalRespondEvent(
-    FormalStepRespondOutcome outcome, {
-    required bool isAccept,
-  }) {
-    return switch (outcome) {
-      FormalStepRespondSuccess() => isAccept
-          ? LikesActionEvent.formalStepAcceptSuccess
-          : LikesActionEvent.formalStepRejectSuccess,
-      FormalStepRespondNotFound() =>
-        LikesActionEvent.formalStepRespondNotFound,
-      FormalStepRespondExpired() => LikesActionEvent.formalStepRespondExpired,
-      FormalStepRespondCaseEnded() =>
-        LikesActionEvent.formalStepRespondCaseEnded,
-      FormalStepRespondFailure() => LikesActionEvent.formalStepRespondFailure,
-    };
-  }
-
-  /// Every answer the SERVER gave moves the case or proves the card stale, so
-  /// all four refetch. Only a transport failure — where the server said
-  /// nothing at all — leaves the list alone.
-  bool _shouldRefreshAfterFormalRespond(LikesActionEvent event) {
-    return switch (event) {
-      LikesActionEvent.formalStepAcceptSuccess ||
-      LikesActionEvent.formalStepRejectSuccess ||
-      LikesActionEvent.formalStepRespondNotFound ||
-      LikesActionEvent.formalStepRespondExpired ||
-      LikesActionEvent.formalStepRespondCaseEnded => true,
-      _ => false,
-    };
   }
 
   /// Ends the whole compatibility case. Takes the LIKE id, not a request id —
@@ -767,7 +640,7 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         tag: 'MATCHES',
       );
       return LikesActionEvent.cancelFailure;
-    }, _cancelEvent);
+    }, caseCancelEvent);
 
     emit(
       state.copyWith(
@@ -777,58 +650,9 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
         actionEventVersion: state.actionEventVersion + 1,
       ),
     );
-    if (_shouldRefreshAfterCancel(event)) {
+    if (refetchMatchesAfterCancel(event)) {
       await loadMatches();
     }
-  }
-
-  LikesActionEvent _cancelEvent(CaseCancelOutcome outcome) {
-    return switch (outcome) {
-      CaseCancelSuccess() => LikesActionEvent.cancelSuccess,
-      CaseCancelAlreadyEnded() => LikesActionEvent.cancelAlreadyEnded,
-      CaseCancelNotFound() => LikesActionEvent.cancelNotFound,
-      CaseCancelFailure() => LikesActionEvent.cancelFailure,
-    };
-  }
-
-  /// Success refetches because the row does NOT disappear — the case stays in
-  /// `/api/matches` and comes back reading as ended, which is the only way the
-  /// card learns it. The other two are the server saying the card was already
-  /// stale, so they refetch for the same reason. Only a transport failure,
-  /// where the server said nothing at all, leaves the list alone.
-  bool _shouldRefreshAfterCancel(LikesActionEvent event) {
-    return switch (event) {
-      LikesActionEvent.cancelSuccess ||
-      LikesActionEvent.cancelAlreadyEnded ||
-      LikesActionEvent.cancelNotFound => true,
-      _ => false,
-    };
-  }
-
-  LikesActionEvent _formalStepEvent(FormalStepRequestOutcome outcome) {
-    return switch (outcome) {
-      FormalStepRequestSuccess() => LikesActionEvent.formalStepSuccess,
-      FormalStepRequestAlreadyPending() =>
-        LikesActionEvent.formalStepAlreadyPending,
-      FormalStepRequestNotAllowed() => LikesActionEvent.formalStepNotAllowed,
-      FormalStepRequestCaseEnded() => LikesActionEvent.formalStepCaseEnded,
-      FormalStepRequestProfileUnderReview() =>
-        LikesActionEvent.formalStepUnderReview,
-      FormalStepRequestFailure() => LikesActionEvent.formalStepFailure,
-    };
-  }
-
-  /// Refetch whenever the server's view of the case turned out to differ from
-  /// the one this screen acted on — including the refusals, since every one of
-  /// them means the card is showing something stale.
-  bool _shouldRefreshMatchesAfterFormalStep(LikesActionEvent event) {
-    return switch (event) {
-      LikesActionEvent.formalStepSuccess ||
-      LikesActionEvent.formalStepAlreadyPending ||
-      LikesActionEvent.formalStepNotAllowed ||
-      LikesActionEvent.formalStepCaseEnded => true,
-      _ => false,
-    };
   }
 
   Future<bool> _shareAndSend({

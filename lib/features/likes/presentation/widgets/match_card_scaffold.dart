@@ -4,7 +4,7 @@ import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 
-import 'like_user_card.dart';
+import 'match_card_header.dart';
 
 /// Shared body for every Matches-tab card so all stages read with one
 /// padding + alignment rhythm.
@@ -74,51 +74,16 @@ class MatchCardScaffold extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            avatar,
-            QeranSpacing.hs12,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Name + countdown chip share the top line; the status sits
-                  // below at FULL column width so a long Arabic status wraps to
-                  // two lines instead of being squeezed by the trailing chip
-                  // and clipped with an ellipsis.
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          textAlign: TextAlign.start,
-                          style: QeranTypography.subtitle
-                              .copyWith(color: QeranColors.wine),
-                          // Wraps rather than abbreviating — same rule as the
-                          // likes row it sits beside on this screen.
-                          maxLines: kLikeCardNameMaxLines,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (topChip != null) ...[
-                        QeranSpacing.hs12,
-                        topChip!,
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: QeranSpacing.s6),
-                  _StatusLine(
-                    icon: statusIcon,
-                    text: statusText,
-                    color: statusColor,
-                  ),
-                ],
-              ),
-            ),
-          ],
+        MatchCardHeader(
+          avatar: avatar,
+          name: name,
+          nameColor: QeranColors.wine,
+          topChip: topChip,
+          statusLine: MatchCardStatusLine(
+            icon: statusIcon,
+            text: statusText,
+            color: statusColor,
+          ),
         ),
         if (primaryOverride != null) ...[
           const SizedBox(height: QeranSpacing.s12),
@@ -155,40 +120,6 @@ class MatchCardScaffold extends StatelessWidget {
           const SizedBox(height: QeranSpacing.s12),
           footer!,
         ],
-      ],
-    );
-  }
-}
-
-class _StatusLine extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final Color color;
-  const _StatusLine({
-    required this.icon,
-    required this.text,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: color),
-        QeranSpacing.hs4,
-        Flexible(
-          child: Text(
-            text,
-            textAlign: TextAlign.start,
-            style: QeranTypography.bodySm.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
       ],
     );
   }

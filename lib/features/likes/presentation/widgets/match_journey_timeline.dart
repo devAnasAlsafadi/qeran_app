@@ -69,11 +69,20 @@ QeranStepTone _toneOf(MatchJourneyStage current) =>
     ? QeranStepTone.success
     : QeranStepTone.normal;
 
-/// The member's word for each node. The nodes are the matchmaker's five, but
-/// the words are not: the matchmaker's name steps they perform
-/// (`cases_formal_waiting_appointment`, `_parents_visited`), and those same
-/// keys are also its status chips, so they cannot be reworded for one screen
-/// without moving under the other.
+/// The member's word for each node. The nodes are the matchmaker's five and
+/// so are the WORDS now — `matchmaker.cases_timeline_*` carries the same five
+/// strings, so a member and the matchmaker reading the same case describe it
+/// the same way.
+///
+/// Two key sets rather than one shared set, deliberately: nothing else in
+/// `lib/features/matchmaker` reads a `likes_` key, and this is not the place
+/// to start. The pairing is held by the matching suffixes — grep
+/// `formal_contact` and both sides come back together.
+///
+/// The matchmaker's used to say something different, because its nodes
+/// borrowed keys that are also its status chips and could not be reworded for
+/// one screen without moving under the other. Those five are forked now, and
+/// `case_timeline_test.dart` fails if one is pointed back at a borrowed key.
 String matchJourneyLabelKey(MatchJourneyStage stage) => switch (stage) {
   MatchJourneyStage.initialCompatibility =>
     LocaleKeys.likes_matches_journey_initial_compatibility,

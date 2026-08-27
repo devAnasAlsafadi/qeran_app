@@ -23,19 +23,34 @@ class CaseTimelineStep {
   final CaseStepTone tone;
 }
 
-/// The five canonical stage labels, indexed by [CaseStage]. The SAME keys the
-/// status card and the filter sheet (08) use — nodes 0–1 from the case `stage`,
-/// nodes 2–4 from `formalRequest.status`, photo-pending/accepted collapsed into
-/// one "photo exchange" node.
+/// The five canonical stage labels, indexed by [CaseStage] — the matchmaker's
+/// half of the journey the member sees in `match_journey_timeline.dart`. Both
+/// sides name the same five nodes with the same five strings.
+///
+/// ⚠️ These keys are the TIMELINE'S OWN and must stay that way.
+///
+/// They used to be borrowed — nodes from `stageLabelKey`, `formalStatusLabelKey`
+/// and even the status card's «تبادل الصور» field label. That made the rename to
+/// the member's vocabulary impossible to do in place: those keys are read as
+/// STATUSES elsewhere, where a stage name is the wrong part of speech and
+/// throws away the answer. «حالة الطلب الرسمي: التواصل الرسمي مع الأهل»
+/// names a stage where the matchmaker needed to read that an appointment is
+/// still pending.
+///
+/// So do not point a node back at a shared key to save a duplicated string.
+/// `case_timeline_test.dart` fails if any of the five collides with a status,
+/// formal-status or field key.
 String caseStageLabelKey(CaseStage stage) => switch (stage) {
-      CaseStage.likeAccepted => LocaleKeys.matchmaker_cases_stage_like_accepted,
-      CaseStage.photoExchange => LocaleKeys.matchmaker_cases_field_photo_exchange,
+      CaseStage.likeAccepted =>
+        LocaleKeys.matchmaker_cases_timeline_initial_compatibility,
+      CaseStage.photoExchange =>
+        LocaleKeys.matchmaker_cases_timeline_photo_exchange,
       CaseStage.waitingAppointment =>
-        LocaleKeys.matchmaker_cases_formal_waiting_appointment,
+        LocaleKeys.matchmaker_cases_timeline_formal_contact,
       CaseStage.parentsVisited =>
-        LocaleKeys.matchmaker_cases_formal_parents_visited,
+        LocaleKeys.matchmaker_cases_timeline_formal_meeting,
       CaseStage.completed =>
-        LocaleKeys.matchmaker_cases_formal_successfully_closed,
+        LocaleKeys.matchmaker_cases_timeline_marriage_completed,
     };
 
 CaseStepTone _toneOf(CaseStageOutcome outcome) => switch (outcome) {

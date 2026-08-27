@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_chat.dart';
+import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_photo_exchange_status.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_stage.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_formal_request.dart';
 import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/case_user.dart';
@@ -267,6 +268,67 @@ void main() {
         noActionsMessageKey(tone),
         LocaleKeys.matchmaker_cases_no_actions_waiting,
       );
+    });
+  });
+
+  // The five canonical node labels had NO test at all: every existing
+  // labelKey assertion pinned an *override* (a rejected photo exchange, a
+  // closed case), so the happy-path words the timeline actually spends most
+  // of its life showing could be repointed anywhere and this file stayed
+  // green. That is precisely the blast radius of a rename.
+  group('canonical node labels', () {
+    // Exhaustive by construction: a new CaseStage member breaks this map at
+    // compile time rather than silently arriving unlabelled.
+    const expected = <CaseStage, String>{
+      CaseStage.likeAccepted:
+          LocaleKeys.matchmaker_cases_timeline_initial_compatibility,
+      CaseStage.photoExchange:
+          LocaleKeys.matchmaker_cases_timeline_photo_exchange,
+      CaseStage.waitingAppointment:
+          LocaleKeys.matchmaker_cases_timeline_formal_contact,
+      CaseStage.parentsVisited:
+          LocaleKeys.matchmaker_cases_timeline_formal_meeting,
+      CaseStage.completed:
+          LocaleKeys.matchmaker_cases_timeline_marriage_completed,
+    };
+
+    for (final stage in CaseStage.values) {
+      test('${stage.name} keeps its own label', () {
+        expect(caseStageLabelKey(stage), expected[stage]);
+      });
+    }
+
+    test('every node has a label the others do not share', () {
+      final keys = CaseStage.values.map(caseStageLabelKey).toList();
+      expect(keys.toSet(), hasLength(CaseStage.values.length));
+    });
+
+    // The reason the five were forked in the first place. Every one of them
+    // was previously ALSO a status chip, a formal-status value or the status
+    // card's field label, so rewording the timeline reworded a reading where
+    // a stage name is the wrong part of speech. Pointing a node back at a
+    // borrowed key would quietly restore that coupling; this fails instead.
+    test('no node borrows a status, formal-status or field key', () {
+      final borrowed = <String>{
+        ...CompatibilityCaseStage.values.map(stageLabelKey).nonNulls,
+        ...FormalRequestStatus.values.map(formalStatusLabelKey).nonNulls,
+        ...CasePhotoExchangeStatus.values.map(photoStatusLabelKey).nonNulls,
+        // Row labels in case_status_section.dart, which has no switch to
+        // sweep. cases_field_photo_exchange is here because node 1 borrowed
+        // exactly it.
+        LocaleKeys.matchmaker_cases_field_stage,
+        LocaleKeys.matchmaker_cases_field_formal_status,
+        LocaleKeys.matchmaker_cases_field_photo_exchange,
+        LocaleKeys.matchmaker_cases_field_like_accepted,
+      };
+
+      for (final stage in CaseStage.values) {
+        expect(
+          borrowed,
+          isNot(contains(caseStageLabelKey(stage))),
+          reason: '${stage.name} is reading a key another screen owns',
+        );
+      }
     });
   });
 }

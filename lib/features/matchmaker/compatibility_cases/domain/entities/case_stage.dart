@@ -2,9 +2,14 @@ import 'compatibility_case.dart';
 import 'compatibility_case_stage.dart';
 import 'formal_request_status.dart';
 
-/// The five canonical compatibility-journey stages, in order — the SINGLE
-/// source shared by the detail timeline (06) and the cases filter sheet (08),
-/// so the filter's stage vocabulary can never diverge from the timeline.
+/// The five canonical compatibility-journey stages, in order — the single
+/// source behind the detail timeline (06), and the matchmaker's half of the
+/// five nodes the member sees in `match_journey.dart`.
+///
+/// NOT what the cases filter sheet (08) offers. That filters on the raw
+/// backend `CompatibilityCaseStage` — eleven members, each a state rather
+/// than a node — and never reads this enum. An earlier version of this doc
+/// claimed it did.
 enum CaseStage {
   likeAccepted,
   photoExchange,

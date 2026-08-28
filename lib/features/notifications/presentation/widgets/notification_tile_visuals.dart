@@ -72,7 +72,21 @@ class NotificationTileVisuals {
     }
   }
 
-  /// Within `Match`, the glyph tells the specific story.
+  /// Within `Match`, the glyph tells the specific story — and the fallback
+  /// deliberately tells NONE.
+  ///
+  /// It used to be a filled heart, which reads as "someone liked you". That is
+  /// a specific claim, and `Match` covers events where it is simply false: the
+  /// compatibility journey grew a formal step and three ways to end in the
+  /// V2 arc, and [NotificationAction] has no member for any of them because
+  /// the wire strings the server sends are not documented yet. An unrecognised
+  /// action drawn as a like would put a heart on "your compatibility has
+  /// ended".
+  ///
+  /// So it falls back to the same glyph an unrecognised TYPE uses: unknown
+  /// looks like unknown at both levels, and the notification's own title and
+  /// body — which the server writes — carry the meaning until typed members
+  /// can be added against a real contract.
   static IconData _matchIcon(NotificationAction action) => switch (action) {
         NotificationAction.like => Icons.favorite_border_rounded,
         NotificationAction.likeAccepted => Icons.celebration_rounded,
@@ -81,7 +95,7 @@ class NotificationTileVisuals {
         NotificationAction.photoExchangeRejected =>
           Icons.photo_camera_outlined,
         NotificationAction.compatibilityCaseUpdated => Icons.handshake_rounded,
-        _ => Icons.favorite_rounded,
+        _ => Icons.notifications_none_rounded,
       };
 
   /// Profile approve/reject — both calm; rejection never wears red. Approval

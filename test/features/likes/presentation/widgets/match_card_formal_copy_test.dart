@@ -54,12 +54,12 @@ void main() {
     });
   });
 
-  // 360dp, not 320: these read as "320dp" until the harness started
-  // applying the list's own s20 inset, at which point the card they were
-  // measuring turned out to be the one a 360dp screen draws. The numbers are
-  // unchanged — only the label was wrong. Three of these assertions DO fail
-  // at a real 320dp; that copy has never been checked there.
-  group('shipped copy fits its slot at 360dp', () {
+  // A REAL 320dp, which these did not measure until now. They were written as
+  // "320dp", then found to be measuring a 360dp card once the harness started
+  // applying the list's own s20 inset, and were relabelled rather than
+  // retested. Dropped to the true floor here, and the copy that could not
+  // survive it was shortened rather than the guard being moved back up.
+  group('shipped copy fits its slot at 320dp', () {
     for (final locale in const [Locale('ar'), Locale('en')]) {
       final lang = locale.languageCode;
 
@@ -68,7 +68,7 @@ void main() {
           tester,
           card: copyCard(MatchStage.matchmakerEngaged),
           locale: locale,
-          size: const Size(360, 900),
+          size: const Size(320, 900),
         );
 
         final label = find.text(shipped(locale, 'matches_formal_step_cta'));
@@ -76,39 +76,54 @@ void main() {
         expect(
           isTruncated(tester, label),
           isFalse,
-          reason: 'formal-step CTA truncates at 360dp in $lang',
+          reason: 'formal-step CTA truncates at 320dp in $lang',
         );
       });
 
       // The tightest slot in the feature: reject and accept split one card
       // width between them, so each label gets well under half of what the
       // formal CTA has to work with.
-      testWidgets('photo-exchange reject is not ellipsised [$lang]', (
-        tester,
-      ) async {
-        await pumpMatchCard(
+      //
+      // BOTH halves, and that is the fix as much as the copy is. Only reject
+      // was ever asserted, so accept clipped in Arabic by 6.4dp for as long as
+      // reject clipped by 5.5 — one guard on a symmetrical pair reports half
+      // the truth, and would have let a fix ship that mismatched them.
+      for (final half in const ['accept', 'reject']) {
+        testWidgets('photo-exchange $half is not ellipsised [$lang]', (
           tester,
-          card: cardAwaitingMyResponse(),
-          locale: locale,
-          size: const Size(360, 900),
-        );
+        ) async {
+          await pumpMatchCard(
+            tester,
+            card: cardAwaitingMyResponse(),
+            locale: locale,
+            size: const Size(320, 900),
+          );
 
-        final label = find.text(
-          shipped(locale, 'matches_photo_exchange_action_reject'),
-        );
-        expect(label, findsOneWidget, reason: 'reject label not rendered');
-        expect(
-          isTruncated(tester, label),
-          isFalse,
-          reason: 'reject label truncates at 360dp in $lang',
-        );
-      });
+          final label = find.text(
+            shipped(locale, 'matches_photo_exchange_action_$half'),
+          );
+          expect(label, findsOneWidget, reason: '$half label not rendered');
+          expect(
+            isTruncated(tester, label),
+            isFalse,
+            reason: '$half label truncates at 320dp in $lang',
+          );
+        });
+      }
 
       // The journey's collapsed summary allows two lines and then ellipsises.
       // The unified stage names made the Arabic markedly longer than what they
       // replaced — «الخطّابة تتابع» became «التواصل الرسمي مع الأهل» — and this
-      // is the longest of the five, sharing its row with the glyph and the
-      // disclosure chevron.
+      // is the longest of the five, sharing its row with the glyph, the hint
+      // and the disclosure chevron.
+      //
+      // English was the half that clipped, and the string was never the
+      // problem: QeranStepper draws these same five labels with no maxLines at
+      // all, so they wrap freely everywhere else. It clipped here alone
+      // because the hint beside it is UNFLEXED, so the summary yielded until
+      // it was unreadable while a fixed neighbour kept full width. Shortening
+      // the hint gave the row back ~47dp; shortening the stage name would
+      // have broken its pairing with the matchmaker's own five.
       testWidgets('the longest journey stage fits its row [$lang]', (
         tester,
       ) async {
@@ -119,7 +134,7 @@ void main() {
             caseStage: MatchCaseStage.formalStepPending,
           ),
           locale: locale,
-          size: const Size(360, 900),
+          size: const Size(320, 900),
         );
 
         final label = find.text(
@@ -129,7 +144,7 @@ void main() {
         expect(
           isTruncated(tester, label),
           isFalse,
-          reason: 'journey stage truncates at 360dp in $lang',
+          reason: 'journey stage truncates at 320dp in $lang',
         );
       });
 
@@ -147,7 +162,7 @@ void main() {
             caseStatus: MatchCaseStatus.cancelled,
           ),
           locale: locale,
-          size: const Size(360, 900),
+          size: const Size(320, 900),
         );
 
         final label = find.text(shipped(locale, 'matches_journey_ended'));
@@ -155,7 +170,7 @@ void main() {
         expect(
           isTruncated(tester, label),
           isFalse,
-          reason: 'ended label truncates at 360dp in $lang',
+          reason: 'ended label truncates at 320dp in $lang',
         );
       });
     }

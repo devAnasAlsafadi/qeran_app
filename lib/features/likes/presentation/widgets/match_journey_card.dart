@@ -44,14 +44,14 @@ class MatchJourneyCard extends StatelessWidget {
               if (open) _reveal(context);
             },
       hint: LocaleKeys.likes_matches_journey_view.t(context),
-      summary: _Summary(labelKey: matchJourneyLabelKey(current.stage)),
+      summary: _Summary(labelKey: current.labelKey, tone: current.tone),
       child: Padding(
         padding: const EdgeInsets.only(top: QeranSpacing.s12),
         child: QeranStepper(
           steps: [
             for (final step in steps)
               QeranStepData(
-                label: matchJourneyLabelKey(step.stage).t(context),
+                label: step.labelKey.t(context),
                 state: step.state,
                 tone: step.tone,
               ),
@@ -88,19 +88,30 @@ class MatchJourneyCard extends StatelessWidget {
 /// That line describes the situation ("Photos hidden until exchange"); this
 /// one names the stage of the journey, and the two are meant to read as
 /// different registers rather than as a repeat.
+///
+/// An ended journey changes both the glyph and the colour, and this row is
+/// where that matters most: the disclosure is CLOSED by default, so an ending
+/// carried only by the timeline inside would leave a stopped case looking
+/// live until somebody thought to tap it. The danger close matches the node
+/// waiting behind the row, so opening it confirms rather than surprises.
 class _Summary extends StatelessWidget {
-  const _Summary({required this.labelKey});
+  const _Summary({required this.labelKey, required this.tone});
 
   final String labelKey;
+  final QeranStepTone tone;
 
   @override
   Widget build(BuildContext context) {
+    final ended = tone == QeranStepTone.ended;
+    // Danger is the only non-wine/gold hue in the identity and this is the
+    // sanctioned use of it: QeranStepper already paints an ended node with it,
+    // so the row and the node speak with one colour.
     return Row(
       children: [
-        const Icon(
-          Icons.timeline_rounded,
+        Icon(
+          ended ? Icons.close_rounded : Icons.timeline_rounded,
           size: 16,
-          color: QeranColors.goldDeep,
+          color: ended ? QeranColors.danger : QeranColors.goldDeep,
         ),
         QeranSpacing.hs8,
         Flexible(
@@ -108,7 +119,7 @@ class _Summary extends StatelessWidget {
             labelKey.t(context),
             textAlign: TextAlign.start,
             style: QeranTypography.label.copyWith(
-              color: QeranColors.wine,
+              color: ended ? QeranColors.danger : QeranColors.wine,
               fontWeight: FontWeight.w700,
             ),
             maxLines: 2,

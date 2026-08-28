@@ -7,15 +7,29 @@ import 'package:qeran/features/likes/domain/entities/match_case_status.dart';
 import 'package:qeran/features/likes/domain/entities/match_stage.dart';
 import 'package:qeran/features/likes/domain/entities/pending_formal_step.dart';
 import 'package:qeran/features/likes/presentation/widgets/match_card_cancel_action.dart';
+import 'package:qeran/features/likes/presentation/widgets/match_card_header.dart';
 
 import 'match_card_copy_harness.dart';
 
 /// Who gets a way out of a compatibility case, and who does not.
 ///
-/// The rule has three clauses and each one is here on its own, because each
-/// one fails differently: clause 1 wrong shows an X on a case that has already
-/// ended, clause 2 wrong offers to end a completed marriage, and clause 3
-/// wrong puts two irreversible controls on one card.
+/// The rule has four clauses and each one is here on its own, because each one
+/// fails differently: clause 1 wrong shows an X on a case that has already
+/// ended, clause 2 wrong offers to end a completed marriage, clause 3 wrong
+/// puts two irreversible controls on one card, and clause 4 wrong leaves the
+/// X on a case the journey underneath has already called over.
+
+/// The cancel X specifically, scoped to the header.
+///
+/// A bare `byIcon(close_rounded)` used to be unambiguous and no longer is: an
+/// ended journey draws the same glyph in its summary row, in danger rather
+/// than ink-muted. Two of the cards below are ended, so a whole-card finder
+/// would report the ending as if it were the control.
+
+Finder _cancelX() => find.descendant(
+  of: find.byType(MatchCardHeader),
+  matching: find.byIcon(Icons.close_rounded),
+);
 
 PendingFormalStep _formalStep({
   required bool canAccept,
@@ -66,14 +80,21 @@ void main() {
     });
   });
 
-  group('clause 2 — never a completed marriage', () {
+  group('clauses 2 and 4 — the two stages that refuse', () {
     // Exhaustive over MatchCaseStage, holding the status at `active`. That
-    // combination is the whole reason this clause exists: caseStatus says how
-    // a case ENDED and caseStage says how far it GOT, so a case can stand on
-    // the marriage stage while its status is still active. Clause 1 does not
-    // catch it.
+    // combination is the whole reason these two clauses exist: caseStatus says
+    // how a case ENDED and caseStage says how far it GOT, so BOTH of these
+    // stages arrive with a perfectly live status and clause 1 catches neither.
+    //
+    // They refuse for different reasons and through different clauses, which
+    // is why the reason strings below are not shared: the marriage has nothing
+    // left to end, while the declined formal step has already ended.
+    const refusing = {
+      MatchCaseStage.marriageCompleted: 'clause 2',
+      MatchCaseStage.formalStepRejected: 'clause 4',
+    };
     for (final stage in MatchCaseStage.values) {
-      final expected = stage != MatchCaseStage.marriageCompleted;
+      final expected = !refusing.containsKey(stage);
       test('$stage ${expected ? 'offers' : 'refuses'} a way out', () {
         final card = copyCard(
           MatchStage.matchmakerEngaged,
@@ -84,10 +105,17 @@ void main() {
         expect(
           MatchCardCancelAction.isAvailable(card),
           expected,
-          reason: stage == MatchCaseStage.marriageCompleted
-              ? 'the marriage went ahead; there is nothing left to end, and '
-                    'an X here is worse than no X at all'
-              : 'a live case at $stage can still be called off',
+          reason: switch (stage) {
+            MatchCaseStage.marriageCompleted =>
+              'clause 2: the marriage went ahead; there is nothing left to '
+                  'end, and an X here is worse than no X at all',
+            MatchCaseStage.formalStepRejected =>
+              'clause 4: the receiver declined, which ends the case on the '
+                  'STAGE while leaving the status Active. Without clause 4 '
+                  'the header offers to end what the journey below already '
+                  'calls over',
+            _ => 'a live case at $stage can still be called off',
+          },
         );
       });
     }
@@ -172,6 +200,13 @@ void main() {
         MatchStage.photosExchanged,
         caseStatus: MatchCaseStatus.cancelled,
       ),
+      // Clause 4, and the one clause 1 could never reach: declining the formal
+      // step moves the STAGE and leaves the status Active, so the X survived
+      // an ending the journey underneath had already announced.
+      'a declined formal step': copyCard(
+        MatchStage.matchmakerEngaged,
+        caseStage: MatchCaseStage.formalStepRejected,
+      ),
       'a completed marriage': copyCard(
         MatchStage.matchmakerEngaged,
         caseStage: MatchCaseStage.marriageCompleted,
@@ -188,7 +223,7 @@ void main() {
       ) async {
         await pumpMatchCard(tester, card: entry.value, onCancelCase: () {});
 
-        expect(find.byIcon(Icons.close_rounded), findsNothing);
+        expect(_cancelX(), findsNothing);
       });
     }
 

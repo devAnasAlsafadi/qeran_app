@@ -350,6 +350,7 @@ abstract class  LocaleKeys {
   static const likes_matches_journey_formal_contact = 'likes.matches_journey_formal_contact';
   static const likes_matches_journey_formal_meeting = 'likes.matches_journey_formal_meeting';
   static const likes_matches_journey_marriage_completed = 'likes.matches_journey_marriage_completed';
+  static const likes_matches_journey_ended = 'likes.matches_journey_ended';
   static const likes_matches_journey_current = 'likes.matches_journey_current';
   static const likes_matches_journey_view = 'likes.matches_journey_view';
   static const likes_matches_stage_matchmaker_will_contact = 'likes.matches_stage_matchmaker_will_contact';

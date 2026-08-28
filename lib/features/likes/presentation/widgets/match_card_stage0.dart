@@ -34,7 +34,7 @@ class MatchCardStage0 extends StatelessWidget {
 
   /// Sub-step 5d — end the whole compatibility case from the header. Whether
   /// this card offers a way out at all is [MatchCardCancelAction]'s
-  /// three-clause rule, not this widget's: all three stages ask the same
+  /// four-clause rule, not this widget's: all three stages ask the same
   /// question, and a rule about ending someone's case wants exactly one copy.
   final VoidCallback? onCancelCase;
   final bool isCancelling;

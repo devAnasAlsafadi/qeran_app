@@ -22,6 +22,7 @@ const _photoExchange = 'likes.matches_journey_photo_exchange';
 const _formalContact = 'likes.matches_journey_formal_contact';
 const _formalMeeting = 'likes.matches_journey_formal_meeting';
 const _marriage = 'likes.matches_journey_marriage_completed';
+const _ended = 'likes.matches_journey_ended';
 
 /// The four a card is NOT standing on when it stands on [current].
 List<String> _others(String current) =>
@@ -123,16 +124,62 @@ void main() {
     expect(find.text(_marriage), findsOneWidget);
   });
 
-  // A cancelled case reads as a live formal step here, never as a dead end —
-  // the business rule reaching the screen. It also comes in through the
-  // fallback, since a row this old carries no readable caseStage.
-  testWidgets('a cancelled case still shows a live journey', (tester) async {
+  // The reversal reaching the screen, and through the legacy fallback at that:
+  // a row this old carries no readable caseStage, so the ending has to be read
+  // off `formalRequest`. It used to assert the exact opposite — that a
+  // cancelled case still drew as a live formal step — which was the old
+  // blanket rule, correct for a declined photo exchange and wrong here.
+  //
+  // The row is CLOSED. That is the whole point: an ending carried only by the
+  // timeline inside would leave a stopped case looking live until someone
+  // tapped it.
+  testWidgets('a cancelled case reads as ended without being opened', (
+    tester,
+  ) async {
     await _pump(
       tester,
       _card(stage: MatchStage.unknown, formalStatus: 'CompatibilityCancelled'),
     );
 
+    expect(find.text(_ended), findsOneWidget);
+    expect(find.text(_formalContact), findsNothing);
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+  });
+
+  // The neutral label replaces the node's own name rather than sitting beside
+  // it, and only on the node the member stands on. Cancelling does not move
+  // the stage, so without the override a case ended at the photo step would
+  // read «تبادل الصور» under a danger cross — naming the wrong event with
+  // full confidence.
+  testWidgets('the ended node drops its stage name, and only it does', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _card(stage: MatchStage.unknown, formalStatus: 'CompatibilityCancelled'),
+    );
+
+    await tester.tap(find.text(_ended));
+    await tester.pumpAndSettle();
+
+    // Summary and timeline node, both reporting the ending.
+    expect(find.text(_ended), findsNWidgets(2));
+    expect(find.text(_formalContact), findsNothing);
+    for (final other in const [_initial, _photoExchange, _formalMeeting, _marriage]) {
+      expect(find.text(other), findsOneWidget, reason: other);
+    }
+  });
+
+  // A running case is untouched by any of it: gold glyph, canonical name, no
+  // danger anywhere.
+  testWidgets('a running case keeps its stage name and its gold glyph', (
+    tester,
+  ) async {
+    await _pump(tester, _card(caseStage: MatchCaseStage.formalStepPending));
+
     expect(find.text(_formalContact), findsOneWidget);
+    expect(find.text(_ended), findsNothing);
+    expect(find.byIcon(Icons.timeline_rounded), findsOneWidget);
     expect(find.byIcon(Icons.close_rounded), findsNothing);
   });
 

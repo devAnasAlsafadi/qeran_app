@@ -58,7 +58,7 @@ class MatchCardWidget extends StatelessWidget {
   /// not by any request inside the case — cancel acts on the case the other
   /// requests live in.
   ///
-  /// Which cards actually show it is [MatchCardCancelAction]'s three-clause
+  /// Which cards actually show it is [MatchCardCancelAction]'s four-clause
   /// rule; passing a callback here only says the screen can honour one.
   final VoidCallback? onCancelCase;
   final bool isCancelling;

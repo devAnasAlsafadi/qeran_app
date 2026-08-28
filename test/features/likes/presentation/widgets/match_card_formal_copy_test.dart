@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/likes/domain/entities/match_case_stage.dart';
+import 'package:qeran/features/likes/domain/entities/match_case_status.dart';
 import 'package:qeran/features/likes/domain/entities/match_stage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -129,6 +130,32 @@ void main() {
           isTruncated(tester, label),
           isFalse,
           reason: 'journey stage truncates at 360dp in $lang',
+        );
+      });
+
+      // The ending replaces the node's name in that same slot. It is shorter
+      // than the longest stage name in both languages, which is the reason it
+      // cannot add a fourth clip — pinned here so a reword cannot quietly
+      // make it one.
+      testWidgets('the ended-journey label fits its row [$lang]', (
+        tester,
+      ) async {
+        await pumpMatchCard(
+          tester,
+          card: copyCard(
+            MatchStage.photosExchanged,
+            caseStatus: MatchCaseStatus.cancelled,
+          ),
+          locale: locale,
+          size: const Size(360, 900),
+        );
+
+        final label = find.text(shipped(locale, 'matches_journey_ended'));
+        expect(label, findsOneWidget, reason: 'ended label not rendered');
+        expect(
+          isTruncated(tester, label),
+          isFalse,
+          reason: 'ended label truncates at 360dp in $lang',
         );
       });
     }

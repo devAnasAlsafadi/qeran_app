@@ -7,12 +7,13 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../domain/entities/match_card.dart';
 import '../../domain/entities/match_case_stage.dart';
 import '../../domain/entities/match_case_status.dart';
+import '../../domain/entities/match_journey_outcome.dart';
 
 /// The cancel X in a match card's header — a member's way out of a
 /// compatibility case at any stage, without waiting for the other side.
 ///
 /// One resolver rather than a branch repeated in each stage card, following
-/// [FormalStepSection]. All three stages ask the same three-clause question,
+/// [FormalStepSection]. All three stages ask the same four-clause question,
 /// and a rule about ending someone's compatibility case is not one to hold
 /// three copies of.
 class MatchCardCancelAction {
@@ -20,7 +21,7 @@ class MatchCardCancelAction {
 
   /// Whether this card offers a way to end the case.
   ///
-  /// Three clauses, none of them redundant:
+  /// Four clauses, none of them redundant:
   ///
   ///  1. **`caseStatus == active`**, and deliberately not `!caseStatus.isEnded`
   ///     — the two differ on [MatchCaseStatus.unknown], a status the server
@@ -40,11 +41,24 @@ class MatchCardCancelAction {
   ///     controls for one irreversible outcome, one of them a bare glyph, is
   ///     a mis-tap waiting to happen. `isAwaitingMyResponse` was written in
   ///     sub-step 4b naming this exact exception.
+  ///
+  ///  4. **the journey has not ended**, which is clause 1 finishing its own
+  ///     job. Two of the three endings land on `caseStatus` and clause 1
+  ///     catches those; the third — the receiver declining the formal step —
+  ///     lands on `caseStage` and leaves the status `Active`, so without this
+  ///     the X stayed on a case the server would refuse with
+  ///     `CASE_NOT_ACTIVE`. It also stopped the row reading coherently once
+  ///     the journey learned to say it had ended: the header offered to end
+  ///     something the summary underneath already called over.
+  ///
+  ///     Neither clause subsumes the other. Clause 1 alone misses that third
+  ///     ending; this one alone misses [MatchCaseStatus.unknown] and
+  ///     `completed`, which it deliberately does not treat as endings.
   static bool isAvailable(MatchCard card) {
     if (card.caseStatus != MatchCaseStatus.active) return false;
     if (card.caseStage == MatchCaseStage.marriageCompleted) return false;
     if (card.pendingFormalStep?.isAwaitingMyResponse ?? false) return false;
-    return true;
+    return !matchJourneyHasEnded(card);
   }
 
   /// The X itself, or null when this card offers no way out.

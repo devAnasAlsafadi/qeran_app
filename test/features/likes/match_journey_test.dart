@@ -154,9 +154,11 @@ void main() {
       );
     });
 
-    // Closed and cancelled are the business rule doing its work. The
-    // matchmaker's timeline anchors both to its first formal stage; so does
-    // this, and the member is shown no dead end there.
+    // Closed and cancelled anchor to the formal-contact node exactly as the
+    // matchmaker's timeline anchors them to its first formal stage. Where the
+    // couple GOT TO is all this answers — that both of them also END the
+    // journey is `matchJourneyHasEnded`'s business, pinned in
+    // `match_journey_outcome_test.dart`.
     test('every remaining status anchors to the formal-contact node', () {
       for (final status in const [
         MatchFormalStatus.waitingForParentAppointment,

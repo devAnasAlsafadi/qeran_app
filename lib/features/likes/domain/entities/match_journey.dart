@@ -14,8 +14,15 @@ import 'match_stage.dart';
 ///
 /// The old projection had a sixth opening node for the like itself and folded
 /// both formal steps into a single "the matchmaker is following up". It also
-/// folded every failure in there, which is why this projection still has no
-/// "ended" outcome at all where the matchmaker's has four.
+/// folded every failure in there, which is why this projection carried no
+/// "ended" outcome at all where the matchmaker's carries four.
+///
+/// It now carries exactly ONE, and the count is the point: the matchmaker's
+/// timeline names WHICH ending a case reached, the member's says only that the
+/// journey stopped. `matchJourneyHasEnded` holds the three that qualify and
+/// lives in `match_journey_outcome.dart` — the placement below still answers
+/// only where the couple got to, and keeping the two questions in two files
+/// is what stops the second from creeping into the first.
 enum MatchJourneyStage {
   /// The like is accepted and the journey has begun. Reachable as the CURRENT
   /// node — unlike the opening node of the projection this replaced.

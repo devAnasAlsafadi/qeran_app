@@ -54,6 +54,15 @@ class MatchCardWidget extends StatelessWidget {
   final bool isAcceptingFormalStep;
   final bool isRejectingFormalStep;
 
+  /// End the whole compatibility case, from any stage. Keyed by the LIKE id,
+  /// not by any request inside the case — cancel acts on the case the other
+  /// requests live in.
+  ///
+  /// Which cards actually show it is [MatchCardCancelAction]'s three-clause
+  /// rule; passing a callback here only says the screen can honour one.
+  final VoidCallback? onCancelCase;
+  final bool isCancelling;
+
   /// Tap on the card background opens the reusable Full Profile Details
   /// screen with a match seed. Action buttons inside the card absorb
   /// their own taps, so the stage CTAs continue to fire independently.
@@ -78,6 +87,8 @@ class MatchCardWidget extends StatelessWidget {
     this.onRejectFormalStep,
     this.isAcceptingFormalStep = false,
     this.isRejectingFormalStep = false,
+    this.onCancelCase,
+    this.isCancelling = false,
     this.onOpenProfile,
   });
 
@@ -125,6 +136,8 @@ class MatchCardWidget extends StatelessWidget {
           onContactMatchmaker: onContactMatchmaker,
           isInquirySending: isInquirySending,
           isInquirySent: isInquirySent,
+          onCancelCase: onCancelCase,
+          isCancelling: isCancelling,
         );
       case MatchStage.photosExchanged:
         return MatchCardStage1(
@@ -136,6 +149,8 @@ class MatchCardWidget extends StatelessWidget {
           onRejectFormalStep: onRejectFormalStep,
           isAcceptingFormalStep: isAcceptingFormalStep,
           isRejectingFormalStep: isRejectingFormalStep,
+          onCancelCase: onCancelCase,
+          isCancelling: isCancelling,
         );
       case MatchStage.matchmakerEngaged:
         return MatchCardStage2(
@@ -146,12 +161,16 @@ class MatchCardWidget extends StatelessWidget {
           onRejectFormalStep: onRejectFormalStep,
           isAcceptingFormalStep: isAcceptingFormalStep,
           isRejectingFormalStep: isRejectingFormalStep,
+          onCancelCase: onCancelCase,
+          isCancelling: isCancelling,
         );
       case MatchStage.unknown:
         return MatchCardStage2(
           card: card,
           onFormalStep: null,
           isFormalStepSending: false,
+          onCancelCase: onCancelCase,
+          isCancelling: isCancelling,
         );
     }
   }

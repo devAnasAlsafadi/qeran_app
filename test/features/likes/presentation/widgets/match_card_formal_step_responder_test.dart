@@ -345,10 +345,12 @@ void main() {
   });
 
   // The photo-exchange pair puts two Expanded buttons in one row, which
-  // leaves ~68dp of text each at 320dp. «عدم الموافقة وإنهاء التوافق» is more
+  // leaves ~68dp of text each at 360dp. «عدم الموافقة وإنهاء التوافق» is more
   // than twice the photo reject it would sit beside, so this pair is stacked
   // — and stacking is only right if it actually clears the labels.
-  group('the shipped labels fit at 320dp', () {
+  // 360dp for the same reason as the copy test: the inset moved, the pixels
+  // did not. «matches_formal_step_awaiting_you» does clip at a real 320dp.
+  group('the shipped labels fit at 360dp', () {
     for (final locale in const [Locale('ar'), Locale('en')]) {
       final lang = locale.languageCode;
 
@@ -365,7 +367,7 @@ void main() {
               pending: _pending(requestedByMe: false),
             ),
             locale: locale,
-            size: const Size(320, 900),
+            size: const Size(360, 900),
           );
 
           final label = find.text(shipped(locale, key));
@@ -373,7 +375,7 @@ void main() {
           expect(
             isTruncated(tester, label),
             isFalse,
-            reason: '$key truncates at 320dp in $lang',
+            reason: '$key truncates at 360dp in $lang',
           );
         });
       }

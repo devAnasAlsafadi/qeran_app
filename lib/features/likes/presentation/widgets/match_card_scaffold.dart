@@ -9,9 +9,12 @@ import 'match_card_header.dart';
 /// Shared body for every Matches-tab card so all stages read with one
 /// padding + alignment rhythm.
 ///
-/// Layout mirrors automatically by locale: the avatar sits on the
-/// leading edge; the trailing side carries the live countdown chip
-/// (if present) to keep headers consistent across states.
+/// Layout mirrors automatically by locale: the avatar sits on the leading
+/// edge, and the trailing edge of the name row belongs to [headerTrailing].
+///
+/// Three callers, all in this folder: `match_card_stage0`, `_stage1` and
+/// `_stage2`. This doc used to name a shared matchmaker interest card as a
+/// fourth — no matchmaker file has ever referenced this widget.
 class MatchCardScaffold extends StatelessWidget {
   final Widget avatar;
   final String name;
@@ -19,12 +22,16 @@ class MatchCardScaffold extends StatelessWidget {
   final String statusText;
   final Color statusColor;
 
-  /// Optional pending-countdown chip, shown on the trailing edge of the row.
+  /// Optional pending-countdown chip. [MatchCardHeader] gives it a line of
+  /// its own beneath the name — it does not fit beside one.
   final Widget? topChip;
 
+  /// Optional action pinned to the trailing edge of the name row: the cancel
+  /// X on the Matches tab, and nothing anywhere else.
+  final Widget? headerTrailing;
+
   /// Optional primary action parameters. [primaryVariant] defaults to
-  /// `primaryWine`; the Matches-tab stages pass `primary` (gold) while the
-  /// shared matchmaker interest card keeps the wine default.
+  /// `primaryWine`; all three Matches-tab stages pass `primary` (gold).
   final String? primaryLabel;
   final VoidCallback? onPrimaryPressed;
   final bool primaryLoading;
@@ -46,7 +53,7 @@ class MatchCardScaffold extends StatelessWidget {
   final List<Widget>? secondaryActions;
 
   /// Optional arbitrary footer content rendered below the action buttons.
-  /// Used by the matchmaker interest card for answers + formal-status chips.
+  /// The Matches stages put the compatibility journey here.
   final Widget? footer;
 
   const MatchCardScaffold({
@@ -57,6 +64,7 @@ class MatchCardScaffold extends StatelessWidget {
     required this.statusText,
     required this.statusColor,
     this.topChip,
+    this.headerTrailing,
     this.primaryLabel,
     this.onPrimaryPressed,
     this.primaryLoading = false,
@@ -79,6 +87,7 @@ class MatchCardScaffold extends StatelessWidget {
           name: name,
           nameColor: QeranColors.wine,
           topChip: topChip,
+          trailing: headerTrailing,
           statusLine: MatchCardStatusLine(
             icon: statusIcon,
             text: statusText,

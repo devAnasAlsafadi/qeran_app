@@ -6,6 +6,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
 import 'match_card_avatar.dart';
+import 'match_card_cancel_action.dart';
 import 'match_card_formal_step_section.dart';
 import 'match_card_scaffold.dart';
 import 'match_journey_card.dart';
@@ -28,6 +29,13 @@ class MatchCardStage1 extends StatelessWidget {
   final bool isAcceptingFormalStep;
   final bool isRejectingFormalStep;
 
+  /// Sub-step 5d — end the whole compatibility case from the header. Whether
+  /// this card offers a way out at all is [MatchCardCancelAction]'s
+  /// three-clause rule, not this widget's: all three stages ask the same
+  /// question, and a rule about ending someone's case wants exactly one copy.
+  final VoidCallback? onCancelCase;
+  final bool isCancelling;
+
   const MatchCardStage1({
     super.key,
     required this.card,
@@ -38,6 +46,8 @@ class MatchCardStage1 extends StatelessWidget {
     this.onRejectFormalStep,
     this.isAcceptingFormalStep = false,
     this.isRejectingFormalStep = false,
+    this.onCancelCase,
+    this.isCancelling = false,
   });
 
   @override
@@ -83,6 +93,12 @@ class MatchCardStage1 extends StatelessWidget {
               .t(context),
       statusColor: QeranColors.wine,
       topChip: formal.topChip,
+      headerTrailing: MatchCardCancelAction.resolve(
+        context,
+        card: card,
+        onCancel: onCancelCase,
+        isCancelling: isCancelling,
+      ),
       primaryLabel: formal.primaryLabel,
       onPrimaryPressed: formal.onPrimaryPressed,
       primaryLoading: formal.primaryLoading,

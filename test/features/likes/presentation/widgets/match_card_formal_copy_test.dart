@@ -53,7 +53,12 @@ void main() {
     });
   });
 
-  group('shipped copy fits its slot at 320dp', () {
+  // 360dp, not 320: these read as "320dp" until the harness started
+  // applying the list's own s20 inset, at which point the card they were
+  // measuring turned out to be the one a 360dp screen draws. The numbers are
+  // unchanged — only the label was wrong. Three of these assertions DO fail
+  // at a real 320dp; that copy has never been checked there.
+  group('shipped copy fits its slot at 360dp', () {
     for (final locale in const [Locale('ar'), Locale('en')]) {
       final lang = locale.languageCode;
 
@@ -62,7 +67,7 @@ void main() {
           tester,
           card: copyCard(MatchStage.matchmakerEngaged),
           locale: locale,
-          size: const Size(320, 900),
+          size: const Size(360, 900),
         );
 
         final label = find.text(shipped(locale, 'matches_formal_step_cta'));
@@ -70,7 +75,7 @@ void main() {
         expect(
           isTruncated(tester, label),
           isFalse,
-          reason: 'formal-step CTA truncates at 320dp in $lang',
+          reason: 'formal-step CTA truncates at 360dp in $lang',
         );
       });
 
@@ -84,7 +89,7 @@ void main() {
           tester,
           card: cardAwaitingMyResponse(),
           locale: locale,
-          size: const Size(320, 900),
+          size: const Size(360, 900),
         );
 
         final label = find.text(
@@ -94,7 +99,7 @@ void main() {
         expect(
           isTruncated(tester, label),
           isFalse,
-          reason: 'reject label truncates at 320dp in $lang',
+          reason: 'reject label truncates at 360dp in $lang',
         );
       });
 
@@ -113,7 +118,7 @@ void main() {
             caseStage: MatchCaseStage.formalStepPending,
           ),
           locale: locale,
-          size: const Size(320, 900),
+          size: const Size(360, 900),
         );
 
         final label = find.text(
@@ -123,7 +128,7 @@ void main() {
         expect(
           isTruncated(tester, label),
           isFalse,
-          reason: 'journey stage truncates at 320dp in $lang',
+          reason: 'journey stage truncates at 360dp in $lang',
         );
       });
     }

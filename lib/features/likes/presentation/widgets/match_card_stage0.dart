@@ -6,9 +6,10 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
-import '../../domain/entities/photo_exchange_pending.dart';
 import 'match_card_avatar.dart';
+import 'match_card_cancel_action.dart';
 import 'match_card_scaffold.dart';
+import 'match_card_stage0_status.dart';
 import 'match_journey_card.dart';
 import 'match_card_sent_action.dart';
 import 'match_pending_countdown_chip.dart';
@@ -31,6 +32,13 @@ class MatchCardStage0 extends StatelessWidget {
   final bool isInquirySending;
   final bool isInquirySent;
 
+  /// Sub-step 5d — end the whole compatibility case from the header. Whether
+  /// this card offers a way out at all is [MatchCardCancelAction]'s
+  /// three-clause rule, not this widget's: all three stages ask the same
+  /// question, and a rule about ending someone's case wants exactly one copy.
+  final VoidCallback? onCancelCase;
+  final bool isCancelling;
+
   const MatchCardStage0({
     super.key,
     required this.card,
@@ -43,6 +51,8 @@ class MatchCardStage0 extends StatelessWidget {
     required this.onContactMatchmaker,
     this.isInquirySending = false,
     this.isInquirySent = false,
+    this.onCancelCase,
+    this.isCancelling = false,
   });
 
   @override
@@ -66,8 +76,17 @@ class MatchCardStage0 extends StatelessWidget {
       blurredThumbnailUrl: image?.blurredThumbnailUrl,
     );
     final nameText = card.otherUserName;
-    final statusIconData = _statusIcon(pending, canRespond, live);
-    final statusTextString = _statusText(context, pending, canRespond, live);
+    final statusIconData = MatchCardStage0Status.icon(
+      pending,
+      canRespond: canRespond,
+      live: live,
+    );
+    final statusTextString = MatchCardStage0Status.text(
+      context,
+      pending,
+      canRespond: canRespond,
+      live: live,
+    );
     final statusColor = QeranColors.goldDeep;
     // No onExpired: hitting zero swaps the chip to "expired" and stops. It
     // deliberately does NOT refetch the list — a row rearranging itself under
@@ -132,6 +151,12 @@ class MatchCardStage0 extends StatelessWidget {
       statusText: statusTextString,
       statusColor: statusColor,
       topChip: topChipWidget,
+      headerTrailing: MatchCardCancelAction.resolve(
+        context,
+        card: card,
+        onCancel: onCancelCase,
+        isCancelling: isCancelling,
+      ),
       primaryLabel: primaryLabel,
       onPrimaryPressed: onPrimaryPressed,
       primaryLoading: primaryLoading,
@@ -162,34 +187,5 @@ class MatchCardStage0 extends StatelessWidget {
       trailingIcon: action.trailingIcon,
       loading: isInquirySending,
     );
-  }
-
-  IconData _statusIcon(
-    PhotoExchangePending? pending,
-    bool canRespond,
-    bool live,
-  ) {
-    if (pending != null && !live) return Icons.timer_off_rounded;
-    if (pending != null && !canRespond) return Icons.access_time_rounded;
-    return Icons.lock_outline_rounded;
-  }
-
-  /// [live] is checked FIRST. A lapsed request still arrives as a Pending
-  /// block, and reading it as "awaiting a reply" told the member to keep
-  /// waiting for an answer that can no longer come — the countdown vanished
-  /// but the copy still said pending. It now says the window closed.
-  String _statusText(
-    BuildContext context,
-    PhotoExchangePending? pending,
-    bool canRespond,
-    bool live,
-  ) {
-    if (pending != null && !live) {
-      return LocaleKeys.likes_status_expired.t(context);
-    }
-    if (pending != null && !canRespond) {
-      return LocaleKeys.likes_matches_stage_waiting_photos_pending.t(context);
-    }
-    return LocaleKeys.likes_matches_stage_waiting_photos_title.t(context);
   }
 }

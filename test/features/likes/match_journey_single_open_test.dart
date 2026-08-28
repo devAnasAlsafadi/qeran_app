@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_disclosure.dart';
-import 'package:qeran/features/likes/presentation/blocs/likes_state.dart';
 import 'package:qeran/features/likes/presentation/widgets/match_journey_scope.dart';
 
 /// One card open at a time. The scope is the whole mechanism, and the state
@@ -129,42 +128,12 @@ void main() {
     });
   });
 
-  // The finding this whole design exists for: `loadMatches` emits `loading`
-  // before it fetches, so the list is torn down and rebuilt on every refresh.
-  // State held there would close the open card; state on the cubit survives.
-  group('surviving a refresh', () {
-    const openState = LikesState(
-      matchesStatus: LikesAsyncStatus.loaded,
-      openJourneyLikeRequestId: 5,
-    );
+  // The `surviving a refresh` group that sat here moved to
+  // match_actions_cubit_test.dart with the state it asserted on. It round-
+  // tripped `matchesStatus` through the same object that held the journey id;
+  // those are two cubits now, so the survival is structural and the sequence
+  // is pinned at the cubit level instead.
 
-    test('the open card outlives a loading cycle', () {
-      final loading = openState.copyWith(
-        matchesStatus: LikesAsyncStatus.loading,
-      );
-      final reloaded = loading.copyWith(matchesStatus: LikesAsyncStatus.loaded);
-
-      expect(loading.isJourneyOpen(5), isTrue);
-      expect(reloaded.isJourneyOpen(5), isTrue);
-    });
-
-    test('closing needs the explicit clear, not a null', () {
-      expect(
-        openState.copyWith(openJourneyLikeRequestId: null).isJourneyOpen(5),
-        isTrue,
-        reason: 'a bare null must not be mistaken for "close it"',
-      );
-      expect(
-        openState.copyWith(clearOpenJourney: true).openJourneyLikeRequestId,
-        isNull,
-      );
-    });
-
-    test('nothing is open by default', () {
-      expect(const LikesState().openJourneyLikeRequestId, isNull);
-      expect(const LikesState().isJourneyOpen(1), isFalse);
-    });
-  });
 }
 
 void _noop(int id, bool open) {}

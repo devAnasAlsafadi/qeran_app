@@ -24,41 +24,6 @@ enum LikesActionEvent {
   rejectExpired,
   rejectNotFound,
   rejectFailure,
-  // Photo-exchange request (initiator, stage 0)
-  photoExchangeRequestSuccess,
-  photoExchangeRequestAlreadyPending,
-  photoExchangeRequestLikeNotAccepted,
-  photoExchangeRequestRequiresSubscription,
-  photoExchangeRequestLimitReached,
-  photoExchangeRequestFailure,
-  photoExchangeRequestUnderReview,
-  // Photo-exchange accept/reject (responder, stage 0)
-  photoExchangeAcceptSuccess,
-  photoExchangeRejectSuccess,
-  photoExchangeRespondNotFound,
-  photoExchangeRespondExpired,
-  photoExchangeRespondFailure,
-  // Stage-0 inquiry — share partner card + predefined message
-  // Formal step (stage 1/2) — POST /api/formal-step/request/{likeRequestId}
-  formalStepSuccess,
-  formalStepAlreadyPending,
-  formalStepNotAllowed,
-  formalStepCaseEnded,
-  formalStepUnderReview,
-  formalStepFailure,
-  // Formal-step accept/reject (responder) — keyed by pendingFormalStep.id
-  formalStepAcceptSuccess,
-  formalStepRejectSuccess,
-  formalStepRespondNotFound,
-  formalStepRespondExpired,
-  formalStepRespondCaseEnded,
-  formalStepRespondFailure,
-  // Cancel — ending the whole case, at any stage. Keyed by likeRequestId,
-  // because it acts on the CASE rather than on a request inside it.
-  cancelSuccess,
-  cancelAlreadyEnded,
-  cancelNotFound,
-  cancelFailure,
 }
 
 /// Single state class holding the active tab + per-tab status / data /
@@ -86,47 +51,6 @@ class LikesState extends Equatable {
   /// Like-request ids whose reject call is in-flight (Received tab).
   final Set<int> rejectInFlightIds;
 
-  /// LIKE-REQUEST ids whose `photo-exchange/request/{likeRequestId}`
-  /// call is in-flight (Matches tab, stage 0, initiator path). Keyed
-  /// by `likeRequestId`.
-  final Set<int> photoExchangeRequestInFlightLikeIds;
-
-  /// PHOTO-EXCHANGE REQUEST ids whose `accept`/`reject` call is in-
-  /// flight (Matches tab, stage 0, responder path). Keyed by
-  /// `pendingPhotoExchange.id`. Two separate id namespaces.
-  final Set<int> photoExchangeAcceptInFlightRequestIds;
-  final Set<int> photoExchangeRejectInFlightRequestIds;
-
-  /// FORMAL-STEP request ids being answered. Keyed by `pendingFormalStep.id`
-  /// like the photo-exchange pair above, NOT by the like id the request set
-  /// below uses — the two live side by side and index different things.
-  final Set<int> formalStepAcceptInFlightRequestIds;
-  final Set<int> formalStepRejectInFlightRequestIds;
-
-  /// LIKE-REQUEST ids whose case is being cancelled.
-  ///
-  /// Keyed by the LIKE id, not a request id, and that is the whole distinction
-  /// from the two sets above: accept and reject answer one formal-step request
-  /// inside a case, while this ends the case they live in. A card can only
-  /// ever have one cancel in flight, so no accept/reject-style pair.
-  final Set<int> cancelInFlightLikeIds;
-
-  /// LIKE-REQUEST ids whose formal-step request is in-flight (stage 1/2).
-  ///
-  /// There is no `formalStepSent` twin. Whether the step was requested is a
-  /// server fact now — `MatchCard.hasRequestedFormalStep` reads it off the
-  /// row — where the set this replaced lost the answer on every restart.
-  final Set<int> formalStepInFlightLikeIds;
-
-  /// Which match card has its compatibility journey open, if any. At most
-  /// one at a time.
-  ///
-  /// View state, and here for the same reason [activeTab] is: `loadMatches`
-  /// emits `loading` before it fetches, so the matches list is torn down and
-  /// rebuilt on every pull-to-refresh and every time the gallery sheet closes.
-  /// Held in the list widget it would collapse itself on all of those.
-  final int? openJourneyLikeRequestId;
-
   /// One-shot outcome of the most recent action. The screen reacts on
   /// every [actionEventVersion] bump and ignores [LikesActionEvent.none].
   final LikesActionEvent actionEvent;
@@ -145,14 +69,6 @@ class LikesState extends Equatable {
     this.matchesErrorKey,
     this.acceptInFlightIds = const <int>{},
     this.rejectInFlightIds = const <int>{},
-    this.photoExchangeRequestInFlightLikeIds = const <int>{},
-    this.photoExchangeAcceptInFlightRequestIds = const <int>{},
-    this.photoExchangeRejectInFlightRequestIds = const <int>{},
-    this.formalStepAcceptInFlightRequestIds = const <int>{},
-    this.formalStepRejectInFlightRequestIds = const <int>{},
-    this.formalStepInFlightLikeIds = const <int>{},
-    this.cancelInFlightLikeIds = const <int>{},
-    this.openJourneyLikeRequestId,
     this.actionEvent = LikesActionEvent.none,
     this.actionEventVersion = 0,
   });
@@ -166,41 +82,6 @@ class LikesState extends Equatable {
 
   bool isRejecting(int likeRequestId) =>
       rejectInFlightIds.contains(likeRequestId);
-
-  bool isPhotoExchangeRequesting(int likeRequestId) =>
-      photoExchangeRequestInFlightLikeIds.contains(likeRequestId);
-
-  bool isPhotoExchangeAccepting(int requestId) =>
-      photoExchangeAcceptInFlightRequestIds.contains(requestId);
-
-  bool isPhotoExchangeRejecting(int requestId) =>
-      photoExchangeRejectInFlightRequestIds.contains(requestId);
-
-  bool isPhotoExchangeResponding(int requestId) =>
-      isPhotoExchangeAccepting(requestId) ||
-      isPhotoExchangeRejecting(requestId);
-
-
-
-  bool isFormalStepSending(int likeRequestId) =>
-      formalStepInFlightLikeIds.contains(likeRequestId);
-
-  bool isFormalStepAccepting(int requestId) =>
-      formalStepAcceptInFlightRequestIds.contains(requestId);
-
-  bool isFormalStepRejecting(int requestId) =>
-      formalStepRejectInFlightRequestIds.contains(requestId);
-
-  /// Either answer in flight. Both buttons retire together — answering twice
-  /// from one card is never what was meant.
-  bool isFormalStepResponding(int requestId) =>
-      isFormalStepAccepting(requestId) || isFormalStepRejecting(requestId);
-
-  bool isCancelling(int likeRequestId) =>
-      cancelInFlightLikeIds.contains(likeRequestId);
-
-  bool isJourneyOpen(int likeRequestId) =>
-      openJourneyLikeRequestId == likeRequestId;
 
   LikesState copyWith({
     LikesTab? activeTab,
@@ -219,15 +100,6 @@ class LikesState extends Equatable {
     bool resetMatchesToInitial = false,
     Set<int>? acceptInFlightIds,
     Set<int>? rejectInFlightIds,
-    Set<int>? photoExchangeRequestInFlightLikeIds,
-    Set<int>? photoExchangeAcceptInFlightRequestIds,
-    Set<int>? photoExchangeRejectInFlightRequestIds,
-    Set<int>? formalStepAcceptInFlightRequestIds,
-    Set<int>? formalStepRejectInFlightRequestIds,
-    Set<int>? formalStepInFlightLikeIds,
-    Set<int>? cancelInFlightLikeIds,
-    int? openJourneyLikeRequestId,
-    bool clearOpenJourney = false,
     LikesActionEvent? actionEvent,
     int? actionEventVersion,
   }) {
@@ -252,28 +124,6 @@ class LikesState extends Equatable {
           : (matchesErrorKey ?? this.matchesErrorKey),
       acceptInFlightIds: acceptInFlightIds ?? this.acceptInFlightIds,
       rejectInFlightIds: rejectInFlightIds ?? this.rejectInFlightIds,
-      photoExchangeRequestInFlightLikeIds:
-          photoExchangeRequestInFlightLikeIds ??
-          this.photoExchangeRequestInFlightLikeIds,
-      photoExchangeAcceptInFlightRequestIds:
-          photoExchangeAcceptInFlightRequestIds ??
-          this.photoExchangeAcceptInFlightRequestIds,
-      photoExchangeRejectInFlightRequestIds:
-          photoExchangeRejectInFlightRequestIds ??
-          this.photoExchangeRejectInFlightRequestIds,
-      formalStepAcceptInFlightRequestIds:
-          formalStepAcceptInFlightRequestIds ??
-          this.formalStepAcceptInFlightRequestIds,
-      formalStepRejectInFlightRequestIds:
-          formalStepRejectInFlightRequestIds ??
-          this.formalStepRejectInFlightRequestIds,
-      formalStepInFlightLikeIds:
-          formalStepInFlightLikeIds ?? this.formalStepInFlightLikeIds,
-      cancelInFlightLikeIds:
-          cancelInFlightLikeIds ?? this.cancelInFlightLikeIds,
-      openJourneyLikeRequestId: clearOpenJourney
-          ? null
-          : (openJourneyLikeRequestId ?? this.openJourneyLikeRequestId),
       actionEvent: actionEvent ?? this.actionEvent,
       actionEventVersion: actionEventVersion ?? this.actionEventVersion,
     );
@@ -293,14 +143,6 @@ class LikesState extends Equatable {
     matchesErrorKey,
     acceptInFlightIds,
     rejectInFlightIds,
-    photoExchangeRequestInFlightLikeIds,
-    photoExchangeAcceptInFlightRequestIds,
-    photoExchangeRejectInFlightRequestIds,
-    formalStepAcceptInFlightRequestIds,
-    formalStepRejectInFlightRequestIds,
-    formalStepInFlightLikeIds,
-    cancelInFlightLikeIds,
-    openJourneyLikeRequestId,
     actionEvent,
     actionEventVersion,
   ];

@@ -2,9 +2,16 @@ import '../../domain/entities/formal_step_outcome.dart';
 import '../../domain/entities/like_action_outcome.dart';
 import '../../domain/entities/photo_exchange_outcome.dart';
 import 'likes_state.dart';
+import 'match_actions_state.dart';
 
-/// Turns each use case's OUTCOME into the one-shot [LikesActionEvent] the
-/// screen renders as a snackbar.
+/// Turns each use case's OUTCOME into the one-shot event the screen renders
+/// as a snackbar.
+///
+/// Two enums, because two cubits: the like pair answers with
+/// [LikesActionEvent], the five match families with [MatchActionEvent]. They
+/// stay in ONE file anyway — a mapper belongs beside the others it is easy to
+/// confuse with, and which cubit executes it is not the axis that matters
+/// when you are checking that a decline is not reported as an approval.
 ///
 /// Pure, and lifted out of the cubit for that reason — none of them reads
 /// state, emits, or touches a use case. Seven families of server answer, seven
@@ -44,78 +51,78 @@ LikesActionEvent rejectLikeEvent(LikeActionOutcome outcome) {
   };
 }
 
-LikesActionEvent photoExchangeRequestEvent(PhotoExchangeRequestOutcome outcome) {
+MatchActionEvent photoExchangeRequestEvent(PhotoExchangeRequestOutcome outcome) {
   return switch (outcome) {
     PhotoExchangeRequestSuccess() =>
-      LikesActionEvent.photoExchangeRequestSuccess,
+      MatchActionEvent.photoRequestSuccess,
     PhotoExchangeRequestAlreadyPending() =>
-      LikesActionEvent.photoExchangeRequestAlreadyPending,
+      MatchActionEvent.photoRequestAlreadyPending,
     PhotoExchangeRequestLikeNotAccepted() =>
-      LikesActionEvent.photoExchangeRequestLikeNotAccepted,
+      MatchActionEvent.photoRequestLikeNotAccepted,
     PhotoExchangeRequestRequiresSubscription() =>
-      LikesActionEvent.photoExchangeRequestRequiresSubscription,
+      MatchActionEvent.photoRequestRequiresSubscription,
     PhotoExchangeRequestLimitReached() =>
-      LikesActionEvent.photoExchangeRequestLimitReached,
+      MatchActionEvent.photoRequestLimitReached,
     PhotoExchangeRequestProfileUnderReview() =>
-      LikesActionEvent.photoExchangeRequestUnderReview,
+      MatchActionEvent.photoRequestUnderReview,
     PhotoExchangeRequestFailure() =>
-      LikesActionEvent.photoExchangeRequestFailure,
+      MatchActionEvent.photoRequestFailure,
   };
 }
 
-LikesActionEvent photoExchangeRespondEvent(
+MatchActionEvent photoExchangeRespondEvent(
   PhotoExchangeRespondOutcome outcome, {
   required bool isAccept,
 }) {
   return switch (outcome) {
     PhotoExchangeRespondSuccess() =>
       isAccept
-          ? LikesActionEvent.photoExchangeAcceptSuccess
-          : LikesActionEvent.photoExchangeRejectSuccess,
+          ? MatchActionEvent.photoAcceptSuccess
+          : MatchActionEvent.photoRejectSuccess,
     PhotoExchangeRespondNotFound() =>
-      LikesActionEvent.photoExchangeRespondNotFound,
+      MatchActionEvent.photoRespondNotFound,
     PhotoExchangeRespondExpired() =>
-      LikesActionEvent.photoExchangeRespondExpired,
+      MatchActionEvent.photoRespondExpired,
     PhotoExchangeRespondFailure() =>
-      LikesActionEvent.photoExchangeRespondFailure,
+      MatchActionEvent.photoRespondFailure,
   };
 }
 
-LikesActionEvent formalStepRequestEvent(FormalStepRequestOutcome outcome) {
+MatchActionEvent formalStepRequestEvent(FormalStepRequestOutcome outcome) {
   return switch (outcome) {
-    FormalStepRequestSuccess() => LikesActionEvent.formalStepSuccess,
+    FormalStepRequestSuccess() => MatchActionEvent.formalStepSuccess,
     FormalStepRequestAlreadyPending() =>
-      LikesActionEvent.formalStepAlreadyPending,
-    FormalStepRequestNotAllowed() => LikesActionEvent.formalStepNotAllowed,
-    FormalStepRequestCaseEnded() => LikesActionEvent.formalStepCaseEnded,
+      MatchActionEvent.formalStepAlreadyPending,
+    FormalStepRequestNotAllowed() => MatchActionEvent.formalStepNotAllowed,
+    FormalStepRequestCaseEnded() => MatchActionEvent.formalStepCaseEnded,
     FormalStepRequestProfileUnderReview() =>
-      LikesActionEvent.formalStepUnderReview,
-    FormalStepRequestFailure() => LikesActionEvent.formalStepFailure,
+      MatchActionEvent.formalStepUnderReview,
+    FormalStepRequestFailure() => MatchActionEvent.formalStepFailure,
   };
 }
 
-LikesActionEvent formalStepRespondEvent(
+MatchActionEvent formalStepRespondEvent(
   FormalStepRespondOutcome outcome, {
   required bool isAccept,
 }) {
   return switch (outcome) {
     FormalStepRespondSuccess() => isAccept
-        ? LikesActionEvent.formalStepAcceptSuccess
-        : LikesActionEvent.formalStepRejectSuccess,
+        ? MatchActionEvent.formalStepAcceptSuccess
+        : MatchActionEvent.formalStepRejectSuccess,
     FormalStepRespondNotFound() =>
-      LikesActionEvent.formalStepRespondNotFound,
-    FormalStepRespondExpired() => LikesActionEvent.formalStepRespondExpired,
+      MatchActionEvent.formalStepRespondNotFound,
+    FormalStepRespondExpired() => MatchActionEvent.formalStepRespondExpired,
     FormalStepRespondCaseEnded() =>
-      LikesActionEvent.formalStepRespondCaseEnded,
-    FormalStepRespondFailure() => LikesActionEvent.formalStepRespondFailure,
+      MatchActionEvent.formalStepRespondCaseEnded,
+    FormalStepRespondFailure() => MatchActionEvent.formalStepRespondFailure,
   };
 }
 
-LikesActionEvent caseCancelEvent(CaseCancelOutcome outcome) {
+MatchActionEvent caseCancelEvent(CaseCancelOutcome outcome) {
   return switch (outcome) {
-    CaseCancelSuccess() => LikesActionEvent.cancelSuccess,
-    CaseCancelAlreadyEnded() => LikesActionEvent.cancelAlreadyEnded,
-    CaseCancelNotFound() => LikesActionEvent.cancelNotFound,
-    CaseCancelFailure() => LikesActionEvent.cancelFailure,
+    CaseCancelSuccess() => MatchActionEvent.cancelSuccess,
+    CaseCancelAlreadyEnded() => MatchActionEvent.cancelAlreadyEnded,
+    CaseCancelNotFound() => MatchActionEvent.cancelNotFound,
+    CaseCancelFailure() => MatchActionEvent.cancelFailure,
   };
 }

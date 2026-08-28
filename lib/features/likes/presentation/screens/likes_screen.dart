@@ -12,18 +12,19 @@ import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/home/presentation/home_back_trail.dart';
 import 'package:qeran/features/home/presentation/widgets/tab_back_row.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
-import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/likes_cubit.dart';
 import '../blocs/likes_state.dart';
+import '../blocs/match_actions_cubit.dart';
+import '../blocs/match_actions_state.dart';
+import 'match_action_snackbars.dart';
 import '../blocs/matchmaker_inquiry_cubit.dart';
 import '../blocs/matchmaker_inquiry_state.dart';
 import '../widgets/likes_segmented_tabs.dart';
 import '../widgets/likes_swipeable_tab_body.dart';
-import '../widgets/photo_exchange_limit_sheet.dart';
 import 'match_success_screen.dart';
 
 /// Likes / Interests screen — entry point from the bottom nav (index 1).
@@ -36,16 +37,26 @@ class LikesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<LikesCubit>(
-          create: (_) => sl<LikesCubit>()..primeActiveTab(),
+    // Nested rather than flat: MatchActionsCubit is built from LikesCubit's
+    // `loadMatches`, so the outer provider has to exist before the inner ones
+    // are created. That ordering IS the one dependency between them.
+    return BlocProvider<LikesCubit>(
+      create: (_) => sl<LikesCubit>()..primeActiveTab(),
+      child: Builder(
+        builder: (context) => MultiBlocProvider(
+          providers: [
+            BlocProvider<MatchActionsCubit>(
+              create: (_) => sl<MatchActionsCubit>(
+                param1: context.read<LikesCubit>().loadMatches,
+              ),
+            ),
+            BlocProvider<MatchmakerInquiryCubit>(
+              create: (_) => sl<MatchmakerInquiryCubit>(),
+            ),
+          ],
+          child: const _LikesView(),
         ),
-        BlocProvider<MatchmakerInquiryCubit>(
-          create: (_) => sl<MatchmakerInquiryCubit>(),
-        ),
-      ],
-      child: const _LikesView(),
+      ),
     );
   }
 }
@@ -58,7 +69,12 @@ class _LikesView extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: BlocListener<MatchmakerInquiryCubit, MatchmakerInquiryState>(
+        child: BlocListener<MatchActionsCubit, MatchActionsState>(
+          listenWhen: (prev, curr) =>
+              prev.eventVersion != curr.eventVersion &&
+              curr.event != MatchActionEvent.none,
+          listener: onMatchActionEvent,
+          child: BlocListener<MatchmakerInquiryCubit, MatchmakerInquiryState>(
           listenWhen: (prev, curr) =>
               prev.eventVersion != curr.eventVersion &&
               curr.event != InquiryEvent.none,
@@ -95,6 +111,7 @@ class _LikesView extends StatelessWidget {
               ],
             );
           },
+          ),
           ),
         ),
       ),
@@ -188,212 +205,6 @@ class _LikesView extends StatelessWidget {
         AppSnackBar.show(
           context,
           message: LocaleKeys.likes_action_failed.t(context),
-          type: SnackBarType.error,
-        );
-      // Photo-exchange request (initiator)
-      case LikesActionEvent.photoExchangeRequestSuccess:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_success.t(context),
-          type: SnackBarType.success,
-        );
-      case LikesActionEvent.photoExchangeRequestAlreadyPending:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_already_pending.t(
-            context,
-          ),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.photoExchangeRequestLikeNotAccepted:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_like_not_accepted.t(
-            context,
-          ),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.photoExchangeRequestRequiresSubscription:
-        showPaywall(context, intent: PaywallIntent.photoExchange);
-      // Subscribed user hit their plan's photo-exchange cap — an upgrade
-      // prompt (NOT a subscribe gate). The sheet reads the current plan +
-      // renewal date from the app-wide subscription state.
-      case LikesActionEvent.photoExchangeRequestLimitReached:
-        showPhotoExchangeLimitSheet(
-          context,
-          subscription: context.read<CurrentSubscriptionCubit>().subscription,
-        );
-      case LikesActionEvent.photoExchangeRequestFailure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_failed.t(context),
-          type: SnackBarType.error,
-        );
-      case LikesActionEvent.photoExchangeRequestUnderReview:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.profile_status_pending_review.t(context),
-          type: SnackBarType.info,
-        );
-      // Photo-exchange responder
-      case LikesActionEvent.photoExchangeAcceptSuccess:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_accept_success.t(context),
-          type: SnackBarType.success,
-        );
-      case LikesActionEvent.photoExchangeRejectSuccess:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_reject_success.t(context),
-          type: SnackBarType.success,
-        );
-      case LikesActionEvent.photoExchangeRespondNotFound:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_respond_not_found.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.photoExchangeRespondExpired:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_respond_expired.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.photoExchangeRespondFailure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_respond_failed.t(context),
-          type: SnackBarType.error,
-        );
-      // Formal step — the member stays on the card, which the refresh has
-      // already moved to "awaiting their approval".
-      case LikesActionEvent.formalStepSuccess:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_formal_step_request_success.t(
-            context,
-          ),
-          type: SnackBarType.success,
-        );
-      case LikesActionEvent.formalStepAlreadyPending:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_formal_step_already_pending.t(
-            context,
-          ),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.formalStepNotAllowed:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_formal_step_not_allowed.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.formalStepCaseEnded:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_case_already_ended.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.formalStepUnderReview:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.profile_status_pending_review.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.formalStepFailure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_failed.t(context),
-          type: SnackBarType.error,
-        );
-      // Formal step — the receiver answering. Every one of these lands on a
-      // card the refresh has already redrawn, so the message only has to
-      // explain what happened, not what to do next.
-      case LikesActionEvent.formalStepAcceptSuccess:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_formal_step_accept_success.t(
-            context,
-          ),
-          type: SnackBarType.success,
-        );
-      case LikesActionEvent.formalStepRejectSuccess:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_case_ended_success.t(
-            context,
-          ),
-          type: SnackBarType.info,
-        );
-      // Says "no longer available" rather than naming a cause. The server
-      // answers FORMAL_STEP_NOT_FOUND both for a request that is genuinely
-      // gone AND to anyone who is not its responder, so any wording that
-      // explains WHY would be wrong half the time.
-      case LikesActionEvent.formalStepRespondNotFound:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_formal_step_respond_not_found.t(
-            context,
-          ),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.formalStepRespondExpired:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_formal_step_respond_expired.t(
-            context,
-          ),
-          type: SnackBarType.info,
-        );
-      // The same sentence the request path uses for CASE_NOT_ACTIVE — one
-      // ending, one way of saying it.
-      case LikesActionEvent.formalStepRespondCaseEnded:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_case_already_ended.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.formalStepRespondFailure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_failed.t(context),
-          type: SnackBarType.error,
-        );
-      // Cancel. It reaches the SAME ending a declined formal step does — the
-      // server even sends the other member the identical neutral notice — so
-      // it says the same sentence rather than a second one meaning the same
-      // thing.
-      //
-      // `info`, not `success`. The member got what they asked for, but a
-      // journey ending is not a thing to congratulate them on.
-      case LikesActionEvent.cancelSuccess:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_case_ended_success.t(context),
-          type: SnackBarType.info,
-        );
-      // Already over when they tapped. 5d hides the affordance on a case that
-      // is not Active, so this means the card was stale — the refresh that
-      // follows is what actually fixes it, and this only explains why nothing
-      // seemed to happen.
-      case LikesActionEvent.cancelAlreadyEnded:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_case_already_ended.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.cancelNotFound:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_case_not_found.t(context),
-          type: SnackBarType.info,
-        );
-      case LikesActionEvent.cancelFailure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_failed.t(context),
           type: SnackBarType.error,
         );
     }

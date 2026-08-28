@@ -6,17 +6,10 @@ import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_g
 
 import '../../domain/entities/likes_tab.dart';
 import '../../domain/usecases/accept_like_usecase.dart';
-import '../../domain/usecases/accept_photo_exchange_usecase.dart';
 import '../../domain/usecases/get_incoming_likes_usecase.dart';
 import '../../domain/usecases/get_matches_usecase.dart';
 import '../../domain/usecases/get_outgoing_likes_usecase.dart';
 import '../../domain/usecases/reject_like_usecase.dart';
-import '../../domain/usecases/reject_photo_exchange_usecase.dart';
-import '../../domain/usecases/accept_formal_step_usecase.dart';
-import '../../domain/usecases/cancel_case_usecase.dart';
-import '../../domain/usecases/reject_formal_step_usecase.dart';
-import '../../domain/usecases/request_formal_step_usecase.dart';
-import '../../domain/usecases/request_photo_exchange_usecase.dart';
 import 'likes_action_events.dart';
 import 'likes_refetch_rules.dart';
 import 'likes_state.dart';
@@ -39,13 +32,6 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
   final AcceptLikeUseCase _acceptLike;
   final RejectLikeUseCase _rejectLike;
   final GetMatchesUseCase _getMatches;
-  final RequestPhotoExchangeUseCase _requestPhotoExchange;
-  final AcceptPhotoExchangeUseCase _acceptPhotoExchange;
-  final RejectPhotoExchangeUseCase _rejectPhotoExchange;
-  final RequestFormalStepUseCase _requestFormalStep;
-  final AcceptFormalStepUseCase _acceptFormalStep;
-  final RejectFormalStepUseCase _rejectFormalStep;
-  final CancelCaseUseCase _cancelCase;
   final ProfileGateCubit _profileGate;
 
   LikesCubit({
@@ -54,26 +40,12 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
     required AcceptLikeUseCase acceptLike,
     required RejectLikeUseCase rejectLike,
     required GetMatchesUseCase getMatches,
-    required RequestPhotoExchangeUseCase requestPhotoExchange,
-    required AcceptPhotoExchangeUseCase acceptPhotoExchange,
-    required RejectPhotoExchangeUseCase rejectPhotoExchange,
-    required RequestFormalStepUseCase requestFormalStep,
-    required AcceptFormalStepUseCase acceptFormalStep,
-    required RejectFormalStepUseCase rejectFormalStep,
-    required CancelCaseUseCase cancelCase,
     required ProfileGateCubit profileGate,
   }) : _getIncoming = getIncoming,
        _getOutgoing = getOutgoing,
        _acceptLike = acceptLike,
        _rejectLike = rejectLike,
        _getMatches = getMatches,
-       _requestPhotoExchange = requestPhotoExchange,
-       _acceptPhotoExchange = acceptPhotoExchange,
-       _rejectPhotoExchange = rejectPhotoExchange,
-       _requestFormalStep = requestFormalStep,
-       _acceptFormalStep = acceptFormalStep,
-       _rejectFormalStep = rejectFormalStep,
-       _cancelCase = cancelCase,
        _profileGate = profileGate,
        super(const LikesState());
 
@@ -294,329 +266,10 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
 
   // ── Photo exchange — initiator (request) ───────────────────────────
 
-  Future<void> requestPhotoExchange(int likeRequestId) async {
-    if (state.isPhotoExchangeRequesting(likeRequestId)) return;
-    // Approval pre-gate — an unapproved user can't request photo exchange yet.
-    if (_profileGate.isGated) {
-      emit(
-        state.copyWith(
-          actionEvent: LikesActionEvent.photoExchangeRequestUnderReview,
-          actionEventVersion: state.actionEventVersion + 1,
-        ),
-      );
-      return;
-    }
-    emit(
-      state.copyWith(
-        photoExchangeRequestInFlightLikeIds: {
-          ...state.photoExchangeRequestInFlightLikeIds,
-          likeRequestId,
-        },
-      ),
-    );
-    final result = await _requestPhotoExchange(likeRequestId);
-    if (isClosed) return;
-    final LikesActionEvent event = result.fold((failure) {
-      AppLogger.warning(
-        'PHOTO-EXCHANGE — request transport failure id=$likeRequestId '
-        'raw="${failure.message}"',
-        tag: 'MATCHES',
-      );
-      return LikesActionEvent.photoExchangeRequestFailure;
-    }, photoExchangeRequestEvent);
-    final cleared = {...state.photoExchangeRequestInFlightLikeIds}
-      ..remove(likeRequestId);
-    emit(
-      state.copyWith(
-        photoExchangeRequestInFlightLikeIds: cleared,
-        actionEvent: event,
-        actionEventVersion: state.actionEventVersion + 1,
-      ),
-    );
-    if (refetchMatchesAfterPhotoRequest(event)) {
-      await loadMatches();
-    }
-  }
-
   // ── Photo exchange — responder (accept / reject) ───────────────────
-
-  Future<void> acceptPhotoExchange(int requestId) async {
-    if (state.isPhotoExchangeResponding(requestId)) return;
-    emit(
-      state.copyWith(
-        photoExchangeAcceptInFlightRequestIds: {
-          ...state.photoExchangeAcceptInFlightRequestIds,
-          requestId,
-        },
-      ),
-    );
-    final result = await _acceptPhotoExchange(requestId);
-    if (isClosed) return;
-    final LikesActionEvent event = result.fold((failure) {
-      AppLogger.warning(
-        'PHOTO-EXCHANGE — accept transport failure requestId=$requestId '
-        'raw="${failure.message}"',
-        tag: 'MATCHES',
-      );
-      return LikesActionEvent.photoExchangeRespondFailure;
-    }, (outcome) => photoExchangeRespondEvent(outcome, isAccept: true));
-    final cleared = {...state.photoExchangeAcceptInFlightRequestIds}
-      ..remove(requestId);
-    emit(
-      state.copyWith(
-        photoExchangeAcceptInFlightRequestIds: cleared,
-        actionEvent: event,
-        actionEventVersion: state.actionEventVersion + 1,
-      ),
-    );
-    if (refetchMatchesAfterPhotoRespond(event)) {
-      await loadMatches();
-    }
-  }
-
-  Future<void> rejectPhotoExchange(int requestId) async {
-    if (state.isPhotoExchangeResponding(requestId)) return;
-    emit(
-      state.copyWith(
-        photoExchangeRejectInFlightRequestIds: {
-          ...state.photoExchangeRejectInFlightRequestIds,
-          requestId,
-        },
-      ),
-    );
-    final result = await _rejectPhotoExchange(requestId);
-    if (isClosed) return;
-    final LikesActionEvent event = result.fold((failure) {
-      AppLogger.warning(
-        'PHOTO-EXCHANGE — reject transport failure requestId=$requestId '
-        'raw="${failure.message}"',
-        tag: 'MATCHES',
-      );
-      return LikesActionEvent.photoExchangeRespondFailure;
-    }, (outcome) => photoExchangeRespondEvent(outcome, isAccept: false));
-    final cleared = {...state.photoExchangeRejectInFlightRequestIds}
-      ..remove(requestId);
-    emit(
-      state.copyWith(
-        photoExchangeRejectInFlightRequestIds: cleared,
-        actionEvent: event,
-        actionEventVersion: state.actionEventVersion + 1,
-      ),
-    );
-    if (refetchMatchesAfterPhotoRespond(event)) {
-      await loadMatches();
-    }
-  }
 
   // ── Compatibility journey ──
 
-  /// Open the journey on one match card, or pass null to close whichever is
-  /// open. At most one is ever open: a second open card would push the first
-  /// one's timeline off screen anyway, and the list would grow by the height
-  /// of a card for every one left behind.
-  void openJourney(int? likeRequestId) {
-    if (state.openJourneyLikeRequestId == likeRequestId) return;
-    emit(
-      likeRequestId == null
-          ? state.copyWith(clearOpenJourney: true)
-          : state.copyWith(openJourneyLikeRequestId: likeRequestId),
-    );
-  }
-
   // ── Matchmaker inquiry / formal step — profile card + text message ──
 
-  /// Asks the OTHER MEMBER to begin the formal step.
-  ///
-  /// It shares nothing into the matchmaker chat, and that removal is the
-  /// point of this method rather than a simplification of it. The matchmaker
-  /// has no role until the receiver approves — that is when the server creates
-  /// the `FormalRequest` and moves the case to `AwaitingMatchmakerCoordination`
-  /// — so posting a card and a message on REQUEST told her about something
-  /// that might be declined. The stage-0 inquiry still shares, because it
-  /// genuinely is a message to her; it lives in `MatchmakerInquiryCubit`.
-  ///
-  /// That guarantee is now STRUCTURAL rather than tested. This cubit holds no
-  /// chat use case at all, so there is nothing here to post with — restoring
-  /// the old behaviour would mean re-injecting three dependencies and a DI
-  /// registration, which is a decision rather than a slip. The test that
-  /// checked it at runtime was deleted for that reason.
-  Future<void> sendFormalStep(int likeRequestId) async {
-    if (state.isFormalStepSending(likeRequestId)) return;
-    // Approval pre-gate, as on photo exchange: PROFILE_NOT_APPROVED is a
-    // documented answer here, and asking a question we already know the
-    // answer to costs a round trip.
-    if (_profileGate.isGated) {
-      _emitAction(LikesActionEvent.formalStepUnderReview);
-      return;
-    }
-
-    emit(
-      state.copyWith(
-        formalStepInFlightLikeIds: {
-          ...state.formalStepInFlightLikeIds,
-          likeRequestId,
-        },
-      ),
-    );
-    final result = await _requestFormalStep(likeRequestId);
-    if (isClosed) return;
-
-    final LikesActionEvent event = result.fold((failure) {
-      AppLogger.warning(
-        'FORMAL-STEP — request transport failure id=$likeRequestId '
-        'raw="${failure.message}"',
-        tag: 'MATCHES',
-      );
-      return LikesActionEvent.formalStepFailure;
-    }, formalStepRequestEvent);
-
-    final cleared = {...state.formalStepInFlightLikeIds}..remove(likeRequestId);
-    emit(
-      state.copyWith(
-        formalStepInFlightLikeIds: cleared,
-        actionEvent: event,
-        actionEventVersion: state.actionEventVersion + 1,
-      ),
-    );
-    if (refetchMatchesAfterFormalRequest(event)) {
-      await loadMatches();
-    }
-  }
-
-  /// Agrees to begin the formal step. Takes `pendingFormalStep.id`.
-  ///
-  /// On success the server creates the `FormalRequest` and moves the case to
-  /// `AwaitingMatchmakerCoordination` — this is the moment the matchmaker
-  /// first hears about any of it.
-  Future<void> acceptFormalStep(int requestId) =>
-      _respondToFormalStep(requestId, isAccept: true);
-
-  /// Declines, which ENDS the compatibility case. The caller confirms first.
-  Future<void> rejectFormalStep(int requestId) =>
-      _respondToFormalStep(requestId, isAccept: false);
-
-  /// Both answers, one body.
-  ///
-  /// They differ in the use case they call, the set they hold the id in, and
-  /// the event a success reports. Every failure path is identical, which is
-  /// also why `FormalStepRespondOutcome` is one family: keeping two copies of
-  /// this would mean two chances to classify the same refusal differently.
-  ///
-  /// No approval pre-gate, unlike `sendFormalStep`. Answering a request
-  /// someone already sent you is not a new outward action, so the server does
-  /// not gate it on profile approval and neither does this.
-  Future<void> _respondToFormalStep(
-    int requestId, {
-    required bool isAccept,
-  }) async {
-    // Guards on EITHER answer in flight, not just this one. A card whose
-    // accept is mid-flight must not also be able to send a reject.
-    if (state.isFormalStepResponding(requestId)) return;
-
-    final verb = isAccept ? 'accept' : 'reject';
-    emit(
-      isAccept
-          ? state.copyWith(
-              formalStepAcceptInFlightRequestIds: {
-                ...state.formalStepAcceptInFlightRequestIds,
-                requestId,
-              },
-            )
-          : state.copyWith(
-              formalStepRejectInFlightRequestIds: {
-                ...state.formalStepRejectInFlightRequestIds,
-                requestId,
-              },
-            ),
-    );
-
-    final result = isAccept
-        ? await _acceptFormalStep(requestId)
-        : await _rejectFormalStep(requestId);
-    if (isClosed) return;
-
-    final LikesActionEvent event = result.fold((failure) {
-      AppLogger.warning(
-        'FORMAL-STEP — $verb transport failure requestId=$requestId '
-        'raw="${failure.message}"',
-        tag: 'MATCHES',
-      );
-      return LikesActionEvent.formalStepRespondFailure;
-    }, (outcome) => formalStepRespondEvent(outcome, isAccept: isAccept));
-
-    emit(
-      isAccept
-          ? state.copyWith(
-              formalStepAcceptInFlightRequestIds:
-                  {...state.formalStepAcceptInFlightRequestIds}
-                    ..remove(requestId),
-              actionEvent: event,
-              actionEventVersion: state.actionEventVersion + 1,
-            )
-          : state.copyWith(
-              formalStepRejectInFlightRequestIds:
-                  {...state.formalStepRejectInFlightRequestIds}
-                    ..remove(requestId),
-              actionEvent: event,
-              actionEventVersion: state.actionEventVersion + 1,
-            ),
-    );
-    if (refetchMatchesAfterFormalRespond(event)) {
-      await loadMatches();
-    }
-  }
-
-  /// Ends the whole compatibility case. Takes the LIKE id, not a request id —
-  /// this acts on the case, not on anything inside it. The caller confirms
-  /// first.
-  ///
-  /// Deliberately has no profile-approval pre-gate, unlike [sendFormalStep].
-  /// That gate exists because requesting the formal step is a new outward
-  /// approach to someone; withdrawing from a case you are already in is not,
-  /// and the server does not gate it either.
-  ///
-  /// The other member is told, but not by us: the server pushes the same
-  /// neutral notice it sends when a formal step is declined, naming no actor.
-  Future<void> cancelCase(int likeRequestId) async {
-    if (state.isCancelling(likeRequestId)) return;
-
-    emit(
-      state.copyWith(
-        cancelInFlightLikeIds: {...state.cancelInFlightLikeIds, likeRequestId},
-      ),
-    );
-
-    final result = await _cancelCase(likeRequestId);
-    if (isClosed) return;
-
-    final LikesActionEvent event = result.fold((failure) {
-      AppLogger.warning(
-        'CASE-CANCEL — transport failure likeRequestId=$likeRequestId '
-        'raw="${failure.message}"',
-        tag: 'MATCHES',
-      );
-      return LikesActionEvent.cancelFailure;
-    }, caseCancelEvent);
-
-    emit(
-      state.copyWith(
-        cancelInFlightLikeIds: {...state.cancelInFlightLikeIds}
-          ..remove(likeRequestId),
-        actionEvent: event,
-        actionEventVersion: state.actionEventVersion + 1,
-      ),
-    );
-    if (refetchMatchesAfterCancel(event)) {
-      await loadMatches();
-    }
-  }
-
-  void _emitAction(LikesActionEvent event) {
-    emit(
-      state.copyWith(
-        actionEvent: event,
-        actionEventVersion: state.actionEventVersion + 1,
-      ),
-    );
-  }
 }

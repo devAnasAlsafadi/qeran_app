@@ -1,4 +1,5 @@
 import 'likes_state.dart';
+import 'match_actions_state.dart';
 
 /// Whether an action's result means the list it acted on has to be refetched.
 ///
@@ -21,8 +22,9 @@ import 'likes_state.dart';
 ///      at all. There is no new truth to fetch, and the request that just
 ///      failed is poor evidence the next one will not.
 ///
-/// Read together rather than scattered through the cubit, which is the point
-/// of this file: the difference between «لا يمكن بدء الخطوة الرسمية في
+/// Read together rather than scattered through the cubits, which is the point
+/// of this file — they stayed in ONE file when the cubits split, because the
+/// rule they share is what has to stay consistent, not the class that runs it: the difference between «لا يمكن بدء الخطوة الرسمية في
 /// هذه المرحلة» (part 1, refetch) and «ملفك قيد المراجعة» (part 2, do not)
 /// is invisible when the two live four hundred lines apart.
 
@@ -38,21 +40,21 @@ bool refetchIncomingAfterLikeAction(LikesActionEvent event) {
   };
 }
 
-bool refetchMatchesAfterPhotoRequest(LikesActionEvent event) {
+bool refetchMatchesAfterPhotoRequest(MatchActionEvent event) {
   return switch (event) {
-    LikesActionEvent.photoExchangeRequestSuccess ||
-    LikesActionEvent.photoExchangeRequestAlreadyPending ||
-    LikesActionEvent.photoExchangeRequestLikeNotAccepted => true,
+    MatchActionEvent.photoRequestSuccess ||
+    MatchActionEvent.photoRequestAlreadyPending ||
+    MatchActionEvent.photoRequestLikeNotAccepted => true,
     _ => false,
   };
 }
 
-bool refetchMatchesAfterPhotoRespond(LikesActionEvent event) {
+bool refetchMatchesAfterPhotoRespond(MatchActionEvent event) {
   return switch (event) {
-    LikesActionEvent.photoExchangeAcceptSuccess ||
-    LikesActionEvent.photoExchangeRejectSuccess ||
-    LikesActionEvent.photoExchangeRespondNotFound ||
-    LikesActionEvent.photoExchangeRespondExpired => true,
+    MatchActionEvent.photoAcceptSuccess ||
+    MatchActionEvent.photoRejectSuccess ||
+    MatchActionEvent.photoRespondNotFound ||
+    MatchActionEvent.photoRespondExpired => true,
     _ => false,
   };
 }
@@ -64,12 +66,12 @@ bool refetchMatchesAfterPhotoRespond(LikesActionEvent event) {
 /// Not `formalStepUnderReview`, which describes the MEMBER and leaves the card
 /// exactly as drawn. This doc used to say "every one of the refusals", which
 /// was never what the code did — visible now that the six rules sit together.
-bool refetchMatchesAfterFormalRequest(LikesActionEvent event) {
+bool refetchMatchesAfterFormalRequest(MatchActionEvent event) {
   return switch (event) {
-    LikesActionEvent.formalStepSuccess ||
-    LikesActionEvent.formalStepAlreadyPending ||
-    LikesActionEvent.formalStepNotAllowed ||
-    LikesActionEvent.formalStepCaseEnded => true,
+    MatchActionEvent.formalStepSuccess ||
+    MatchActionEvent.formalStepAlreadyPending ||
+    MatchActionEvent.formalStepNotAllowed ||
+    MatchActionEvent.formalStepCaseEnded => true,
     _ => false,
   };
 }
@@ -77,13 +79,13 @@ bool refetchMatchesAfterFormalRequest(LikesActionEvent event) {
 /// Every answer the SERVER gave moves the case or proves the card stale, so
 /// all four refetch. Only a transport failure — where the server said
 /// nothing at all — leaves the list alone.
-bool refetchMatchesAfterFormalRespond(LikesActionEvent event) {
+bool refetchMatchesAfterFormalRespond(MatchActionEvent event) {
   return switch (event) {
-    LikesActionEvent.formalStepAcceptSuccess ||
-    LikesActionEvent.formalStepRejectSuccess ||
-    LikesActionEvent.formalStepRespondNotFound ||
-    LikesActionEvent.formalStepRespondExpired ||
-    LikesActionEvent.formalStepRespondCaseEnded => true,
+    MatchActionEvent.formalStepAcceptSuccess ||
+    MatchActionEvent.formalStepRejectSuccess ||
+    MatchActionEvent.formalStepRespondNotFound ||
+    MatchActionEvent.formalStepRespondExpired ||
+    MatchActionEvent.formalStepRespondCaseEnded => true,
     _ => false,
   };
 }
@@ -93,11 +95,11 @@ bool refetchMatchesAfterFormalRespond(LikesActionEvent event) {
 /// card learns it. The other two are the server saying the card was already
 /// stale, so they refetch for the same reason. Only a transport failure,
 /// where the server said nothing at all, leaves the list alone.
-bool refetchMatchesAfterCancel(LikesActionEvent event) {
+bool refetchMatchesAfterCancel(MatchActionEvent event) {
   return switch (event) {
-    LikesActionEvent.cancelSuccess ||
-    LikesActionEvent.cancelAlreadyEnded ||
-    LikesActionEvent.cancelNotFound => true,
+    MatchActionEvent.cancelSuccess ||
+    MatchActionEvent.cancelAlreadyEnded ||
+    MatchActionEvent.cancelNotFound => true,
     _ => false,
   };
 }

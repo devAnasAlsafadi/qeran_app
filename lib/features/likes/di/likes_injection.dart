@@ -29,6 +29,7 @@ import '../domain/usecases/reject_photo_exchange_usecase.dart';
 import '../domain/usecases/request_formal_step_usecase.dart';
 import '../domain/usecases/request_photo_exchange_usecase.dart';
 import '../presentation/blocs/likes_cubit.dart';
+import '../presentation/blocs/match_actions_cubit.dart';
 import '../presentation/blocs/matchmaker_inquiry_cubit.dart';
 import '../presentation/blocs/photo_view_cubit.dart';
 
@@ -96,6 +97,16 @@ void initLikesDependencies() {
       acceptLike: sl(),
       rejectLike: sl(),
       getMatches: sl(),
+      profileGate: sl<ProfileGateCubit>(),
+    ),
+  );
+
+  // Takes its reload as a PARAMETER because the only thing it needs from the
+  // list is the ability to refetch it — the screen supplies
+  // `likesCubit.loadMatches`. Holding the cubit itself would let an action
+  // start reading match data, which is exactly the coupling the split removed.
+  sl.registerFactoryParam<MatchActionsCubit, Future<void> Function(), void>(
+    (reloadMatches, _) => MatchActionsCubit(
       requestPhotoExchange: sl(),
       acceptPhotoExchange: sl(),
       rejectPhotoExchange: sl(),
@@ -104,6 +115,7 @@ void initLikesDependencies() {
       rejectFormalStep: sl(),
       cancelCase: sl(),
       profileGate: sl<ProfileGateCubit>(),
+      reloadMatches: reloadMatches,
     ),
   );
 

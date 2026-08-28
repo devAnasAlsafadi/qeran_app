@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
-import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
 import '../../domain/entities/pending_formal_step.dart';
+import 'match_card_formal_step_responder_actions.dart';
 import 'match_card_sent_action.dart';
 import 'match_pending_countdown_chip.dart';
 
@@ -20,6 +19,13 @@ import 'match_pending_countdown_chip.dart';
 ///   • nobody asked → the gold CTA, with the helper line under it.
 ///   • I asked → the retired "awaiting their approval" button + countdown.
 ///   • they asked ME → accept / decline + countdown, and no helper.
+///
+/// The third state's buttons live in
+/// `match_card_formal_step_responder_actions.dart`. They were extracted when
+/// this file reached 192 lines and sub-step 7 needed to add to it — the
+/// standing rule is that the next change splits first rather than squeezing
+/// under the cap. This file resolves WHICH state applies; that one draws the
+/// only state complex enough to need a widget.
 class FormalStepSection {
   const FormalStepSection._({
     this.primaryLabel,
@@ -69,7 +75,7 @@ class FormalStepSection {
     // sweeps it, exactly as photo exchange does. The clock decides.
     if (pending != null && pending.isAwaitingMyResponse) {
       return FormalStepSection._(
-        primaryOverride: _ResponderActions(
+        primaryOverride: MatchCardResponderActions(
           pending: pending,
           onAccept: onAccept,
           onReject: onReject,
@@ -111,82 +117,5 @@ class FormalStepSection {
     // list rearranging itself under a thumb mid-scroll is worse than a stale
     // row the member can pull to refresh.
     return secs == null ? null : MatchPendingCountdownChip(initialSeconds: secs);
-  }
-}
-
-/// Accept and decline, STACKED rather than side by side.
-///
-/// The pair the photo exchange draws puts two `Expanded` buttons in a row,
-/// which leaves about 68dp of text each at 320dp — measured, and enough to
-/// ellipsise every label we have. «عدم الموافقة وإنهاء التوافق» is more than
-/// twice the length of the photo-exchange reject it would sit beside. Full
-/// width clears both labels in both languages.
-///
-/// Decline is on the BOTTOM and outlined. It ends the case, and the button
-/// that ends things should not be the one a thumb reaches first.
-class _ResponderActions extends StatelessWidget {
-  const _ResponderActions({
-    required this.pending,
-    required this.onAccept,
-    required this.onReject,
-    required this.isAccepting,
-    required this.isRejecting,
-  });
-
-  final PendingFormalStep pending;
-  final void Function(int requestId)? onAccept;
-  final void Function(int requestId)? onReject;
-  final bool isAccepting;
-  final bool isRejecting;
-
-  @override
-  Widget build(BuildContext context) {
-    // canAccept / canReject are the server's verdict on each verb separately,
-    // so they are read separately. The card never works out whose turn it is.
-    final busy = isAccepting || isRejecting;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        QeranButton(
-          label: LocaleKeys.likes_matches_formal_step_action_accept.t(context),
-          onPressed: pending.canAccept && !busy
-              ? () => onAccept?.call(pending.id)
-              : null,
-          variant: QeranButtonVariant.primary,
-          size: QeranButtonSize.xs,
-          loading: isAccepting,
-        ),
-        QeranSpacing.vs8,
-        QeranButton(
-          label: LocaleKeys.likes_matches_formal_step_action_reject.t(context),
-          onPressed: pending.canReject && !busy
-              ? () => _confirmReject(context)
-              : null,
-          variant: QeranButtonVariant.secondary,
-          size: QeranButtonSize.xs,
-          loading: isRejecting,
-        ),
-      ],
-    );
-  }
-
-  /// Declining ends the compatibility case outright — there is no matchmaker
-  /// hand-off the way a rejected photo exchange has one, and no way back. It
-  /// also sits directly under the accept button, so a mis-tap is a real way
-  /// to lose a case.
-  Future<void> _confirmReject(BuildContext context) async {
-    final confirmed = await QeranConfirmDialog.show(
-      context,
-      title: LocaleKeys.likes_matches_case_end_confirm_title.t(
-        context,
-      ),
-      message: LocaleKeys.likes_matches_case_end_confirm_message.t(
-        context,
-      ),
-      confirmLabel: LocaleKeys.likes_matches_case_end_confirm_action
-          .t(context),
-    );
-    if (!confirmed) return;
-    onReject?.call(pending.id);
   }
 }

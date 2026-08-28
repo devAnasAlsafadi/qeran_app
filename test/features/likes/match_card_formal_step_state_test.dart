@@ -93,8 +93,13 @@ void main() {
   });
 
   // Declined or lapsed is OVER, not pending. Claiming "awaiting their
-  // approval" there would describe a wait that ended. The ended presentation
-  // is its own piece of work; until then the server refuses the retry.
+  // approval" there would describe a wait that ended.
+  //
+  // The ended presentation landed in sub-step 7, and it separated these two:
+  // a DECLINED step is one of the three endings, so the card now withdraws
+  // its actions entirely; a LAPSED one is not, so it keeps its button and
+  // takes the refusal from the server. This function answers the same for
+  // both because it is about the REQUEST, not about the case.
   group('the step was answered and it is finished', () {
     for (final stage in const [
       MatchCaseStage.formalStepRejected,

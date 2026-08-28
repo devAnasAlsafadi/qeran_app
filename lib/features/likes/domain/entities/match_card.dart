@@ -72,12 +72,16 @@ class MatchCard extends Equatable {
   /// NULL the moment the receiver approves, so reading only the block would
   /// bring the CTA back to life on a case that has already moved past it.
   ///
-  /// Deliberately FALSE in two states the card cannot speak for yet:
+  /// Deliberately FALSE in three states, and what happens next differs:
   ///   • a request the OTHER member sent — "awaiting their approval" would
-  ///     name the wrong person; the receiver's own card answers that.
-  ///   • a step that was declined or lapsed — it is over, not pending, and
-  ///     the ended presentation is its own piece of work.
-  /// In both, tapping reaches the server and gets an honest refusal back.
+  ///     name the wrong person; the receiver's own card answers that. Tapping
+  ///     reaches the server and gets an honest refusal back.
+  ///   • a step that was DECLINED — over, not pending. Since sub-step 7 the
+  ///     card offers no tap at all: a decline is one of the three endings, so
+  ///     `MatchCardScaffold.isEnded` withdraws the whole primary region.
+  ///   • a step that LAPSED — also over, but expiry is deliberately NOT an
+  ///     ending (the matchmaker can still pick the couple up), so this one
+  ///     keeps its button and still takes the refusal from the server.
   bool get hasRequestedFormalStep {
     if (pendingFormalStep?.requestedByMe == true) return true;
     return switch (caseStage) {

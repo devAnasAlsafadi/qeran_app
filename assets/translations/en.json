@@ -364,6 +364,7 @@
     "matches_journey_ended": "Journey ended",
     "matches_journey_current": "Current stage",
     "matches_journey_view": "View",
+    "matches_stage_ended_subtitle": "You can carry on looking for a match",
     "matches_stage_matchmaker_will_contact": "The matchmaker will contact you soon",
     "matches_action_request_success": "Photo exchange requested",
     "matches_action_request_already_pending": "A photo exchange is already pending",

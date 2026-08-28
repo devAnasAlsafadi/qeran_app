@@ -6,6 +6,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
+import '../../domain/entities/match_journey_outcome.dart';
 import 'match_card_avatar.dart';
 import 'match_card_cancel_action.dart';
 import 'match_card_scaffold.dart';
@@ -164,6 +165,7 @@ class MatchCardStage0 extends StatelessWidget {
       primaryOverride: primaryOverride,
       secondaryActions: secondaryActions,
       footer: MatchJourneyCard(card: card),
+      isEnded: matchJourneyHasEnded(card),
     );
   }
 

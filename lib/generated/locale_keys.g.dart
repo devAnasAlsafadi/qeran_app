@@ -353,6 +353,7 @@ abstract class  LocaleKeys {
   static const likes_matches_journey_ended = 'likes.matches_journey_ended';
   static const likes_matches_journey_current = 'likes.matches_journey_current';
   static const likes_matches_journey_view = 'likes.matches_journey_view';
+  static const likes_matches_stage_ended_subtitle = 'likes.matches_stage_ended_subtitle';
   static const likes_matches_stage_matchmaker_will_contact = 'likes.matches_stage_matchmaker_will_contact';
   static const likes_matches_action_request_success = 'likes.matches_action_request_success';
   static const likes_matches_action_request_already_pending = 'likes.matches_action_request_already_pending';

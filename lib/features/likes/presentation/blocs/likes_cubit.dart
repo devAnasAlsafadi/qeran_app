@@ -5,6 +5,7 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../../domain/entities/likes_tab.dart';
+import '../../domain/entities/match_card_order.dart';
 import '../../domain/usecases/accept_like_usecase.dart';
 import '../../domain/usecases/get_incoming_likes_usecase.dart';
 import '../../domain/usecases/get_matches_usecase.dart';
@@ -166,10 +167,15 @@ class LikesCubit extends Cubit<LikesState> with SafeEmit<LikesState> {
           ),
         );
       },
+      // Ordered here, at the ONE place the list enters state. That covers tab
+      // entry, pull-to-refresh and every post-action reload, because no match
+      // action edits the list in place — each one refetches. So the order can
+      // only change on a fetch the member caused, never under a thumb that is
+      // mid-scroll.
       (data) => emit(
         state.copyWith(
           matchesStatus: LikesAsyncStatus.loaded,
-          matches: data,
+          matches: matchCardsByLastActivity(data),
           clearMatchesError: true,
         ),
       ),

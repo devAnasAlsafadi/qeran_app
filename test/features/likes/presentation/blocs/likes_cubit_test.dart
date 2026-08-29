@@ -8,6 +8,8 @@ import 'package:qeran/features/likes/domain/entities/like_action_outcome.dart';
 import 'package:qeran/features/likes/domain/entities/like_requests_data.dart';
 import 'package:qeran/features/likes/domain/entities/likes_tab.dart';
 import 'package:qeran/features/likes/domain/entities/match_card.dart';
+import 'package:qeran/features/likes/domain/entities/match_stage.dart';
+import 'package:qeran/features/likes/domain/entities/match_case_status.dart';
 import 'package:qeran/features/likes/domain/usecases/accept_like_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/get_incoming_likes_usecase.dart';
 import 'package:qeran/features/likes/domain/usecases/get_matches_usecase.dart';
@@ -36,6 +38,19 @@ const _empty = LikeRequestsData(
 );
 
 const List<MatchCard> _noMatches = <MatchCard>[];
+
+MatchCard _match(int id, {DateTime? at, MatchCaseStatus? status}) => MatchCard(
+  likeRequestId: id,
+  otherUserId: 'u$id',
+  otherUserName: 'User $id',
+  images: const [],
+  stage: MatchStage.photosExchanged,
+  pendingPhotoExchange: null,
+  formalRequest: null,
+  conversationId: null,
+  caseStatus: status ?? MatchCaseStatus.active,
+  lastActivityAt: at,
+);
 
 void main() {
   late _MockIncoming incoming;
@@ -482,5 +497,30 @@ void main() {
       expect(cubit.state.actionEvent, LikesActionEvent.rejectSuccess);
       verify(() => reject(42)).called(1);
     });
+  });
+
+  // The comparator has its own tests; this one asks a different question —
+  // whether the list that reaches state went through it. A correct comparator
+  // that nothing calls passes every test in `match_card_order_test` and ships
+  // an unsorted list.
+  test('loadMatches orders what it emits', () async {
+    when(() => getMatches()).thenAnswer(
+      (_) async => Right<Failure, List<MatchCard>>([
+        _match(1, at: DateTime.utc(2026, 8, 1)),
+        _match(2, at: DateTime.utc(2026, 8, 9), status: MatchCaseStatus.cancelled),
+        _match(3, at: DateTime.utc(2026, 8, 5)),
+      ]),
+    );
+
+    await cubit.loadMatches();
+
+    expect(
+      cubit.state.matches!.map((c) => c.likeRequestId).toList(),
+      [3, 1, 2],
+      reason:
+          'the list reached state in the order the server sent it. The most '
+          'recent card here is a CANCELLED one, so an unordered list and a '
+          'recency-only order both differ from this.',
+    );
   });
 }

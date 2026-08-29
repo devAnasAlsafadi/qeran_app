@@ -61,11 +61,6 @@ class MatchCardScaffold extends StatelessWidget {
   /// place a two-button (reject + accept) row the single slot can't express.
   final Widget? primaryOverride;
 
-  /// Optional explanatory line directly beneath the primary button — what
-  /// pressing it actually sets in motion. Sits above [secondaryActions] so it
-  /// stays attached to the action it describes.
-  final String? primaryHelperText;
-
   /// Optional list of secondary actions (ghost buttons / text links)
   /// placed below the primary button.
   final List<Widget>? secondaryActions;
@@ -113,7 +108,6 @@ class MatchCardScaffold extends StatelessWidget {
     this.primaryTrailingIcon,
     this.primaryVariant = QeranButtonVariant.primaryWine,
     this.primaryOverride,
-    this.primaryHelperText,
     this.secondaryActions,
     this.footer,
     this.isEnded = false,
@@ -167,7 +161,6 @@ class MatchCardScaffold extends StatelessWidget {
           primaryTrailingIcon: primaryTrailingIcon,
           primaryVariant: primaryVariant,
           primaryOverride: primaryOverride,
-          primaryHelperText: primaryHelperText,
           isEnded: isEnded,
         ),
         if (secondaryActions != null && secondaryActions!.isNotEmpty) ...[

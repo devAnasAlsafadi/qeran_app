@@ -16,9 +16,15 @@ import 'match_pending_countdown_chip.dart';
 /// differ in their avatar treatment and their own status line — not in this.
 ///
 /// Three states, and which one applies is the SERVER's answer, never a guess:
-///   • nobody asked → the gold CTA, with the helper line under it.
+///   • nobody asked → the gold CTA.
 ///   • I asked → the retired "awaiting their approval" button + countdown.
-///   • they asked ME → accept / decline + countdown, and no helper.
+///   • they asked ME → accept / decline + countdown.
+///
+/// The CTA used to carry a caption — «ستتواصل معك الخطّابة للتنسيق للقاء
+/// الرسمي مع الأهل» — removed at the owner's call. Its future tense read as
+/// though the step had already happened while the button above it still said
+/// «بدء», and it stayed on screen through both post-send states saying the
+/// same thing. The button names the action; nothing else was needed.
 ///
 /// The third state's buttons live in
 /// `match_card_formal_step_responder_actions.dart`. They were extracted when
@@ -33,7 +39,6 @@ class FormalStepSection {
     this.primaryLoading = false,
     this.primaryTrailingIcon,
     this.primaryOverride,
-    this.helperText,
     this.topChip,
     this.statusTextOverride,
     this.statusIconOverride,
@@ -44,11 +49,6 @@ class FormalStepSection {
   final bool primaryLoading;
   final IconData? primaryTrailingIcon;
   final Widget? primaryOverride;
-
-  /// Null in the responder state. A line explaining what the primary button
-  /// sets in motion becomes a caption for BOTH buttons once there are two,
-  /// and it only describes one of them.
-  final String? helperText;
 
   final Widget? topChip;
 
@@ -101,7 +101,6 @@ class FormalStepSection {
       onPrimaryPressed: action.isEnabled ? onFormalStep : null,
       primaryLoading: isSending,
       primaryTrailingIcon: action.trailingIcon,
-      helperText: LocaleKeys.likes_matches_formal_step_helper.t(context),
       // Only while MY request is genuinely open. Once it is answered the
       // block is gone and the button is reading `caseStage` instead, which
       // carries no deadline to count down.

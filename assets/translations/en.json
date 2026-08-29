@@ -339,7 +339,6 @@
     "matches_inquiry_sent": "Inquiry sent to the matchmaker",
     "matches_inquiry_message": "Hello, I'd like to ask about this profile and learn more about the available details.",
     "matches_formal_step_cta": "Start formal contact",
-    "matches_formal_step_helper": "The matchmaker will contact you to arrange the formal family meeting",
     "matches_formal_step_sent": "Awaiting their approval",
     "matches_formal_step_request_success": "Request sent — awaiting their answer",
     "matches_formal_step_already_pending": "A formal-step request is already open",

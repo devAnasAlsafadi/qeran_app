@@ -23,37 +23,6 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
-  group('formal-step helper', () {
-    const helperKey = 'matches_formal_step_helper';
-
-    testWidgets('reaches stage 1', (tester) async {
-      await pumpMatchCard(
-        tester,
-        card: copyCard(MatchStage.photosExchanged),
-      );
-
-      expect(find.text(shipped(const Locale('ar'), helperKey)), findsOneWidget);
-    });
-
-    testWidgets('reaches stage 2', (tester) async {
-      await pumpMatchCard(
-        tester,
-        card: copyCard(MatchStage.matchmakerEngaged),
-      );
-
-      expect(find.text(shipped(const Locale('ar'), helperKey)), findsOneWidget);
-    });
-
-    testWidgets('stays off stage 0, which has no formal CTA', (tester) async {
-      await pumpMatchCard(
-        tester,
-        card: copyCard(MatchStage.waitingForPhotoExchange),
-      );
-
-      expect(find.text(shipped(const Locale('ar'), helperKey)), findsNothing);
-    });
-  });
-
   // A REAL 320dp, which these did not measure until now. They were written as
   // "320dp", then found to be measuring a 360dp card once the harness started
   // applying the list's own s20 inset, and were relabelled rather than

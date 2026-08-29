@@ -30,7 +30,6 @@ const _sent = 'likes.matches_formal_step_sent';
 const _accept = 'likes.matches_formal_step_action_accept';
 const _reject = 'likes.matches_formal_step_action_reject';
 const _awaitingYou = 'likes.matches_formal_step_awaiting_you';
-const _helper = 'likes.matches_formal_step_helper';
 const _confirmAction = 'likes.matches_case_end_confirm_action';
 
 PendingFormalStep _pending({
@@ -216,20 +215,6 @@ void main() {
       );
 
       expect(find.text(_awaitingYou), findsOneWidget);
-    });
-
-    // A line explaining what the primary button sets in motion becomes a
-    // caption for BOTH once there are two, and it describes only one.
-    testWidgets('the helper retires in the responder state', (tester) async {
-      await _pump(
-        tester,
-        _card(
-          caseStage: MatchCaseStage.formalStepPending,
-          pending: _pending(requestedByMe: false),
-        ),
-      );
-
-      expect(find.text(_helper), findsNothing);
     });
 
     testWidgets('both sides get the countdown while it is open', (

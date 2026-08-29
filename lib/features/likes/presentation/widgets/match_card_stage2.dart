@@ -87,7 +87,6 @@ class MatchCardStage2 extends StatelessWidget {
       primaryTrailingIcon: formal.primaryTrailingIcon,
       primaryVariant: QeranButtonVariant.primary,
       primaryOverride: formal.primaryOverride,
-      primaryHelperText: formal.helperText,
       footer: MatchJourneyCard(card: card),
       isEnded: matchJourneyHasEnded(card),
     );

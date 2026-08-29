@@ -106,7 +106,6 @@ class MatchCardStage1 extends StatelessWidget {
       primaryTrailingIcon: formal.primaryTrailingIcon,
       primaryVariant: QeranButtonVariant.primary,
       primaryOverride: formal.primaryOverride,
-      primaryHelperText: formal.helperText,
       secondaryActions: canOpenPhotos
           ? [
               QeranButton(

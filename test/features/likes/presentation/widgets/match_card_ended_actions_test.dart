@@ -149,7 +149,6 @@ void main() {
         ),
       );
 
-      expect(_text('matches_formal_step_helper'), findsNothing);
     });
   });
 
@@ -215,14 +214,13 @@ void main() {
       expect(_text('matches_stage_ended_subtitle'), findsNothing);
     });
 
-    testWidgets('stage 2 keeps its formal CTA and its helper', (tester) async {
+    testWidgets('stage 2 keeps its formal CTA', (tester) async {
       await pumpMatchCard(
         tester,
         card: copyCard(MatchStage.matchmakerEngaged),
       );
 
       expect(_text('matches_formal_step_cta'), findsOneWidget);
-      expect(_text('matches_formal_step_helper'), findsOneWidget);
     });
 
     // A lapsed formal step is NOT an ending — the matchmaker can still pick

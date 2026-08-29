@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -9,6 +8,7 @@ import '../../domain/entities/match_card.dart';
 import '../../domain/entities/match_journey_outcome.dart';
 import 'match_card_avatar.dart';
 import 'match_card_cancel_action.dart';
+import 'match_card_photo_exchange_actions.dart';
 import 'match_card_scaffold.dart';
 import 'match_card_stage0_status.dart';
 import 'match_journey_card.dart';
@@ -113,34 +113,16 @@ class MatchCardStage0 extends StatelessWidget {
       primaryLoading = isRequestingPhotoExchange;
       secondaryActions = [_inquiryButton(context)];
     } else if (canRespond) {
-      // Responder -> [Reject (outline)] + [Accept (gold)] side by side, with
-      // Inquiry as a ghost footer below.
-      primaryOverride = Row(
-        children: [
-          Expanded(
-            child: QeranButton(
-              label: LocaleKeys.likes_matches_photo_exchange_action_reject.t(
-                context,
-              ),
-              onPressed: pending.canReject ? onRejectPhotoExchange : null,
-              variant: QeranButtonVariant.secondary,
-              size: QeranButtonSize.xs,
-              loading: isRejectingPhotoExchange,
-            ),
-          ),
-          const SizedBox(width: QeranSpacing.s8),
-          Expanded(
-            child: QeranButton(
-              label: LocaleKeys.likes_matches_photo_exchange_action_accept.t(
-                context,
-              ),
-              onPressed: pending.canAccept ? onAcceptPhotoExchange : null,
-              variant: QeranButtonVariant.primary,
-              size: QeranButtonSize.xs,
-              loading: isAcceptingPhotoExchange,
-            ),
-          ),
-        ],
+      // Responder -> reject + accept, side by side or stacked depending on
+      // whether the labels fit, with Inquiry as a ghost footer below. The
+      // pair measures itself; see MatchCardPhotoExchangeActions.
+      primaryOverride = MatchCardPhotoExchangeActions(
+        canAccept: pending.canAccept,
+        canReject: pending.canReject,
+        onAccept: onAcceptPhotoExchange,
+        onReject: onRejectPhotoExchange,
+        isAccepting: isAcceptingPhotoExchange,
+        isRejecting: isRejectingPhotoExchange,
       );
       secondaryActions = [_inquiryButton(context)];
     }

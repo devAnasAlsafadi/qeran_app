@@ -80,14 +80,18 @@ void main() {
         );
       });
 
-      // The tightest slot in the feature: reject and accept split one card
-      // width between them, so each label gets well under half of what the
-      // formal CTA has to work with.
-      //
       // BOTH halves, and that is the fix as much as the copy is. Only reject
       // was ever asserted, so accept clipped in Arabic by 6.4dp for as long as
       // reject clipped by 5.5 — one guard on a symmetrical pair reports half
       // the truth, and would have let a fix ship that mismatched them.
+      //
+      // ⚠️ This passes for a DIFFERENT reason than when it was written. It
+      // used to prove the shortened copy fitted two-across at 320dp. The
+      // labels are back to their full «قبول تبادل الصور» / «رفض تبادل الصور»
+      // and the pair now STACKS at this width, so what it proves today is
+      // narrower: whatever layout the pair chooses at 320dp, neither label
+      // ellipsises. That the choice itself is right — a row only when a row
+      // fits — belongs to `match_card_photo_exchange_layout_test`.
       for (final half in const ['accept', 'reject']) {
         testWidgets('photo-exchange $half is not ellipsised [$lang]', (
           tester,

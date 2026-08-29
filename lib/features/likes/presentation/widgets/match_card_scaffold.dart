@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import 'match_card_header.dart';
+import 'match_card_primary_region.dart';
 
 /// Shared body for every Matches-tab card so all stages read with one
 /// padding + alignment rhythm.
@@ -65,17 +65,9 @@ class MatchCardScaffold extends StatelessWidget {
   /// Whether the compatibility journey has stopped — `matchJourneyHasEnded`,
   /// which each stage reads off its own card.
   ///
-  /// One flag rather than a branch in each of the three stages, and it lands
-  /// here rather than in them because every control it has to withdraw is in
-  /// the primary region THIS widget owns: the stage-0 photo CTA and the
-  /// accept/decline pair, and the stage-1/2 formal CTA and its responder
-  /// buttons all arrive as [primaryLabel] or [primaryOverride].
-  ///
-  /// It takes [primaryHelperText] with them, which is the reason the flag
-  /// belongs at this seam rather than at each caller. On an ended case that
-  /// line reads «ستتواصل معك الخطّابة للتنسيق للقاء الرسمي مع الأهل» — a
-  /// promise about a meeting nobody is arranging. Withdrawing the button and
-  /// leaving its caption behind would have been the worse half-fix.
+  /// One flag rather than a branch in each of the three stages. What it
+  /// withdraws from the action region — the buttons and the helper line that
+  /// captions them — is [MatchCardPrimaryRegion]'s to explain.
   ///
   /// The countdown chip goes too. A cancelled case whose pending block is
   /// still arriving from the server would otherwise tick «٢٣ ساعة و٣٢ دقيقة»
@@ -145,37 +137,16 @@ class MatchCardScaffold extends StatelessWidget {
                   color: statusColor,
                 ),
         ),
-        // The whole primary region under ONE guard, helper included. The
-        // helper is a separate `if` from the button it captions — it has to
-        // be, since the responder state has a button and no helper — so
-        // guarding only the button would have withdrawn the action and left
-        // its caption promising a meeting nobody is arranging.
-        if (!isEnded) ...[
-          if (primaryOverride != null) ...[
-            const SizedBox(height: QeranSpacing.s12),
-            primaryOverride!,
-          ] else if (primaryLabel != null) ...[
-            const SizedBox(height: QeranSpacing.s12),
-            QeranButton(
-              label: primaryLabel!,
-              onPressed: onPrimaryPressed,
-              variant: primaryVariant,
-              size: QeranButtonSize.xs,
-              loading: primaryLoading,
-              trailingIcon: primaryTrailingIcon,
-            ),
-          ],
-          if (primaryHelperText != null) ...[
-            const SizedBox(height: QeranSpacing.s6),
-            Text(
-              primaryHelperText!,
-              textAlign: TextAlign.start,
-              style: QeranTypography.caption.copyWith(
-                color: QeranColors.inkBody,
-              ),
-            ),
-          ],
-        ],
+        MatchCardPrimaryRegion(
+          primaryLabel: primaryLabel,
+          onPrimaryPressed: onPrimaryPressed,
+          primaryLoading: primaryLoading,
+          primaryTrailingIcon: primaryTrailingIcon,
+          primaryVariant: primaryVariant,
+          primaryOverride: primaryOverride,
+          primaryHelperText: primaryHelperText,
+          isEnded: isEnded,
+        ),
         if (secondaryActions != null && secondaryActions!.isNotEmpty) ...[
           const SizedBox(height: QeranSpacing.s8),
           Wrap(

@@ -26,6 +26,10 @@ class MatchCardScaffold extends StatelessWidget {
 
   /// Optional pending-countdown chip. [MatchCardHeader] gives it a line of
   /// its own beneath the name — it does not fit beside one.
+  ///
+  /// Withdrawn by [isEnded] along with the actions, which is why it is gated
+  /// HERE rather than by the two resolvers that build it: one rule about an
+  /// ended case, in one place, covering both pending kinds.
   final Widget? topChip;
 
   /// Optional action pinned to the trailing edge of the name row: the cancel
@@ -73,6 +77,12 @@ class MatchCardScaffold extends StatelessWidget {
   /// promise about a meeting nobody is arranging. Withdrawing the button and
   /// leaving its caption behind would have been the worse half-fix.
   ///
+  /// The countdown chip goes too. A cancelled case whose pending block is
+  /// still arriving from the server would otherwise tick «٢٣ ساعة و٣٢ دقيقة»
+  /// toward a response nobody can give — the same lie as the helper line, one
+  /// region higher, and on a sender card it is the ONLY live thing left. An
+  /// ended case awaits nothing, so it counts down to nothing.
+  ///
   /// [secondaryActions] deliberately SURVIVES. The only thing there is the
   /// stage-0 «أرسل استفساراتك للخطّابة», and asking the matchmaker is exactly
   /// what a member whose case just ended may want to do — the server's own
@@ -115,7 +125,7 @@ class MatchCardScaffold extends StatelessWidget {
           avatar: avatar,
           name: name,
           nameColor: QeranColors.wine,
-          topChip: topChip,
+          topChip: isEnded ? null : topChip,
           trailing: headerTrailing,
           statusLine: isEnded
               // Muted, not danger. The journey row underneath already carries

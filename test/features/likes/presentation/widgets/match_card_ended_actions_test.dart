@@ -9,6 +9,7 @@ import 'package:qeran/features/likes/domain/entities/pending_formal_step.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_direction.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_pending.dart';
 import 'package:qeran/features/likes/domain/entities/photo_exchange_status.dart';
+import 'package:qeran/features/likes/presentation/widgets/match_pending_countdown_chip.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'match_card_copy_harness.dart';
@@ -22,6 +23,10 @@ import 'match_card_copy_harness.dart';
 ///
 /// One flag on the scaffold withdraws the whole primary region. These tests
 /// pin BOTH halves of that: what goes, and what deliberately stays.
+///
+/// The countdown chip was the third thing that had to go, found after the
+/// fact: it lives in the HEADER, so 7b's guard walked straight past it and an
+/// ended case went on ticking toward a response nobody could give.
 PendingFormalStep _awaitingMe() => PendingFormalStep(
   id: 55,
   likeRequestId: 1,
@@ -262,5 +267,90 @@ void main() {
         );
       });
     }
+  });
+
+  // The chip is not an action, so 7b's guard — which covers the primary
+  // region — never touched it. On a card whose case has ended it was the last
+  // live thing on screen, counting toward a deadline that governs nothing.
+  //
+  // Whether the server keeps sending a pending block past a cancel is an open
+  // question with Tariq. It does not change this: the card has never trusted
+  // the presence of the block, only the clock, and now not even the clock once
+  // the case is over.
+  group('an ended case stops counting down', () {
+    // The sender card carries NO buttons at all — measured, not assumed — so
+    // here the chip is not merely inconsistent with the rest of the card, it
+    // IS the rest of the card.
+    testWidgets('stage 0, the request I sent', (tester) async {
+      await pumpMatchCard(
+        tester,
+        card: copyCard(
+          MatchStage.waitingForPhotoExchange,
+          caseStatus: MatchCaseStatus.cancelled,
+          pendingPhotoExchange: livePhotoRequestFromMe(),
+        ),
+      );
+
+      expect(find.byType(MatchPendingCountdownChip), findsNothing);
+    });
+
+    testWidgets('stage 0, a request I could have answered', (tester) async {
+      await pumpMatchCard(
+        tester,
+        card: copyCard(
+          MatchStage.waitingForPhotoExchange,
+          caseStatus: MatchCaseStatus.cancelled,
+          pendingPhotoExchange: _incomingPhotos(),
+        ),
+      );
+
+      expect(find.byType(MatchPendingCountdownChip), findsNothing);
+    });
+
+    testWidgets('the matchmaker recorded «لم ينجح»', (tester) async {
+      await pumpMatchCard(
+        tester,
+        card: copyCard(
+          MatchStage.waitingForPhotoExchange,
+          caseStatus: MatchCaseStatus.failed,
+          pendingPhotoExchange: livePhotoRequestFromMe(),
+        ),
+      );
+
+      expect(find.byType(MatchPendingCountdownChip), findsNothing);
+    });
+
+    // THE one a status-only gate misses, and the second time this exact case
+    // has caught a half-written rule: declining the formal step moves the
+    // STAGE and leaves `caseStatus` Active. A gate reading status alone lets
+    // the formal-step countdown run on after the ending it announces.
+    testWidgets('the formal step was declined — status still Active', (
+      tester,
+    ) async {
+      await pumpMatchCard(
+        tester,
+        card: copyCard(
+          MatchStage.photosExchanged,
+          caseStage: MatchCaseStage.formalStepRejected,
+          pendingFormalStep: _awaitingMe(),
+        ),
+      );
+
+      expect(find.byType(MatchPendingCountdownChip), findsNothing);
+    });
+
+    // Guards the guard. Without it, deleting the chip outright passes every
+    // assertion above — and the four of them would be pinning nothing.
+    testWidgets('a RUNNING case still counts down', (tester) async {
+      await pumpMatchCard(
+        tester,
+        card: copyCard(
+          MatchStage.waitingForPhotoExchange,
+          pendingPhotoExchange: livePhotoRequestFromMe(),
+        ),
+      );
+
+      expect(find.byType(MatchPendingCountdownChip), findsOneWidget);
+    });
   });
 }

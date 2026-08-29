@@ -4,27 +4,26 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import 'like_user_card.dart';
 
-/// The top of every Matches-tab card: avatar, name, an optional trailing
-/// action, the countdown chip, and the status line beneath.
+/// The identity block of every Matches-tab card: avatar, name, an optional
+/// trailing action, and the status line beneath.
 ///
-/// Lifted out of [MatchCardScaffold] whole. The scaffold's job is the vertical
-/// rhythm — header, primary action, helper, secondary actions, footer — and
-/// the header was the one part carrying its own layout reasoning about how a
-/// long Arabic name shares a row with a countdown.
+/// ⚠️ The countdown chip is NOT here, and its absence is the design. It sat on
+/// the name row first, and does not fit: measured with the shipped fonts
+/// against the widest countdown the formatter produces, it took 118.6dp of a
+/// 170dp row at 320dp and left the name 39.4dp — ellipsising real Arabic names
+/// before any trailing action existed, in three of four (width, locale)
+/// combinations. 5d moved it to its own line under the name, which fixed the
+/// clipping and left a second problem: it is not identity information. It
+/// reports on a REQUEST, and it was sitting in the block that answers who this
+/// person is, taking 144.8dp of the 170dp name column at 320dp.
 ///
-/// ⚠️ The trailing edge of the name row is [trailing]'s, and the countdown
-/// gets a line of its own beneath it. The chip used to sit on the name row,
-/// and it does not fit there: measured with the shipped fonts against the
-/// widest countdown the formatter produces, it took 118.6dp of a 170dp row at
-/// 320dp and left the name 39.4dp — ellipsising real Arabic names before any
-/// trailing action existed. Three of four (width, locale) combinations were
-/// clipping. See `match_card_header_layout_test`.
+/// So it moved again, out of this widget entirely, to a full-width line the
+/// scaffold owns between the status line and the actions. Both moves are
+/// pinned by `match_card_header_layout_test`; the 118.6dp measurement is why
+/// it must never come back to the name row.
 ///
-/// The chip is the element that VARIES by state, so the chip is the one that
-/// moves; [trailing] keeps a fixed position a member can learn. The chip line
-/// is built only when there IS a chip — a card with nothing pending keeps its
-/// old height exactly, which that same test pins to the number measured
-/// before the move.
+/// The trailing edge of the name row is [trailing]'s, and it keeps a fixed
+/// position a member can learn.
 class MatchCardHeader extends StatelessWidget {
   const MatchCardHeader({
     super.key,
@@ -32,7 +31,6 @@ class MatchCardHeader extends StatelessWidget {
     required this.name,
     required this.nameColor,
     required this.statusLine,
-    this.topChip,
     this.trailing,
   });
 
@@ -42,10 +40,6 @@ class MatchCardHeader extends StatelessWidget {
 
   /// Already-built status row, so this widget stays layout-only.
   final Widget statusLine;
-
-  /// Optional pending-countdown chip. Rendered on its own line under the
-  /// name, NOT beside it — see the class doc.
-  final Widget? topChip;
 
   /// Optional action pinned to the trailing edge of the name row. The cancel
   /// X on the Matches tab; null everywhere else.
@@ -82,14 +76,6 @@ class MatchCardHeader extends StatelessWidget {
                   if (trailing != null) ...[QeranSpacing.hs8, trailing!],
                 ],
               ),
-              // Its own line, and only when there is one to draw.
-              if (topChip != null) ...[
-                const SizedBox(height: QeranSpacing.s6),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: topChip!,
-                ),
-              ],
               const SizedBox(height: QeranSpacing.s6),
               statusLine,
             ],

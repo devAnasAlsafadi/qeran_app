@@ -24,12 +24,24 @@ class MatchCardScaffold extends StatelessWidget {
   final String statusText;
   final Color statusColor;
 
-  /// Optional pending-countdown chip. [MatchCardHeader] gives it a line of
-  /// its own beneath the name — it does not fit beside one.
+  /// Optional pending-countdown chip, on a full-width line of its own between
+  /// the identity block and the actions.
   ///
-  /// Withdrawn by [isEnded] along with the actions, which is why it is gated
-  /// HERE rather than by the two resolvers that build it: one rule about an
-  /// ended case, in one place, covering both pending kinds.
+  /// It reports on a REQUEST, not on a person, so it does not belong inside
+  /// [MatchCardHeader] — see that widget for the two measurements that moved
+  /// it, first off the name row and then out of the header altogether.
+  ///
+  /// This position holds in every state, which is why it was chosen over the
+  /// more obvious one. Anchoring the chip above the action buttons reads well
+  /// on a card that HAS buttons and is undefined on the two that do not: the
+  /// photo-exchange sender card carries no buttons at all, and an ended case
+  /// withdraws the ones it had. Here it lands above the accept/decline pair
+  /// for a responder, and directly under «بانتظار ردهم» for a sender — what
+  /// is awaited, then how long is left — without a conditional either way.
+  ///
+  /// Withdrawn by [isEnded] along with the actions, and gated HERE rather than
+  /// by the two resolvers that build it: one rule about an ended case, in one
+  /// place, covering both pending kinds.
   final Widget? topChip;
 
   /// Optional action pinned to the trailing edge of the name row: the cancel
@@ -117,7 +129,6 @@ class MatchCardScaffold extends StatelessWidget {
           avatar: avatar,
           name: name,
           nameColor: QeranColors.wine,
-          topChip: isEnded ? null : topChip,
           trailing: headerTrailing,
           statusLine: isEnded
               // Muted, not danger. The journey row underneath already carries
@@ -137,6 +148,18 @@ class MatchCardScaffold extends StatelessWidget {
                   color: statusColor,
                 ),
         ),
+        // Start-aligned to the CARD's leading edge, not indented to the name
+        // column, so it reads as the card's own line rather than as a stray
+        // piece of the identity block. AlignmentDirectional, not centerLeft:
+        // a hardcoded left is invisible in English and wrong in Arabic, which
+        // is this app's default.
+        if (!isEnded && topChip != null) ...[
+          const SizedBox(height: QeranSpacing.s12),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: topChip!,
+          ),
+        ],
         MatchCardPrimaryRegion(
           primaryLabel: primaryLabel,
           onPrimaryPressed: onPrimaryPressed,

@@ -35,9 +35,19 @@ const Map<String, double> kChiplessCardHeight = {
 ///
 /// So the chip alone was taking 70% of the row and clipping real names, and
 /// adding a 32dp X to the same line would have taken the name to nothing.
-/// Sub-step 5d moves the chip to its own line under the name instead — the
+/// Sub-step 5d moved the chip to its own line under the name instead — the
 /// element that VARIES by state is the one that moves, and the X gets a fixed
 /// trailing slot.
+///
+/// It has since moved AGAIN, out of the header altogether, onto a full-width
+/// line the scaffold owns. That second move was about meaning rather than
+/// width: the chip reports on a request, and the header answers who someone
+/// is. `match_card_countdown_placement_test` pins where it went.
+///
+/// These tests survive both moves and are worth keeping through them. They no
+/// longer describe the layout that solves the problem — they describe the
+/// PROBLEM, and a chip returned to the name row by anyone who has not read the
+/// numbers below fails them just as it did the first time.
 ///
 /// When these were first written THREE of the four combinations below failed,
 /// not just the Arabic one that prompted the work: English clips at 320dp too,
@@ -76,9 +86,10 @@ void main() {
           isTruncated(tester, find.text(name)),
           isFalse,
           reason:
-              'a real name is ellipsised at ${width}dp in $lang beside a live '
-              'countdown. The chip and the name are competing for one row — '
-              'the chip belongs on its own line beneath the name.',
+              'a real name is ellipsised at ${width}dp in $lang while a '
+              'countdown is live. The name and the chip are sharing a row '
+              'again — the chip belongs on a full-width line of its own, '
+              'outside this widget entirely.',
         );
       });
 
@@ -110,8 +121,8 @@ void main() {
             reason:
                 'the name is ellipsised at ${width}dp in $lang once the X '
                 'takes its share of the row. This is the case the whole '
-                'layout was chosen for — if it fails, the X is back on the '
-                'countdown\'s line rather than the countdown being on its own.',
+                'layout was chosen for: the name and the X share a row, and '
+                'nothing else may join them.',
           );
         },
       );
@@ -138,10 +149,11 @@ void main() {
           withoutChip,
           kChiplessCardHeight['${width.toInt()}-$lang'],
           reason:
-              'a chipless card changed height. Moving the countdown onto its '
-              'own line must cost nothing on the cards that have no '
-              'countdown — an always-present empty slot would add this row '
-              'to every card in the list. Numbers pinned BEFORE the move.',
+              'a chipless card changed height. Giving the countdown a line '
+              'must cost nothing on the cards that have no countdown — an '
+              'always-present empty slot would add this row to every card in '
+              'the list. Numbers pinned BEFORE the first move, and still '
+              'correct after the second: no chip, no line, either way.',
         );
       });
     }

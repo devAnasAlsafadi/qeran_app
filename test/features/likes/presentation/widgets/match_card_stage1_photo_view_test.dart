@@ -82,8 +82,11 @@ void main() {
     await _pump(tester, _card(isBlurred: true));
 
     expect(find.text(LocaleKeys.likes_matches_photo_view_show), findsNothing);
+    // One string for one fact: the card's status line and the sheet's overlay
+    // used to say the same thing in different words, one of them singular
+    // about a window that covers every photo.
     expect(
-      find.text(LocaleKeys.likes_matches_photo_view_consumed),
+      find.text(LocaleKeys.likes_matches_photo_view_expired),
       findsOneWidget,
     );
   });

@@ -89,7 +89,7 @@ class MatchCardStage1 extends StatelessWidget {
       statusText:
           formal.statusTextOverride ??
           (isConsumed
-                  ? LocaleKeys.likes_matches_photo_view_consumed
+                  ? LocaleKeys.likes_matches_photo_view_expired
                   : LocaleKeys.likes_matches_stage_photos_exchanged_subtitle)
               .t(context),
       statusColor: QeranColors.wine,

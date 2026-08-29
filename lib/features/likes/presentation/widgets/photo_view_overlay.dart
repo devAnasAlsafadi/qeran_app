@@ -38,12 +38,33 @@ class PhotoViewOverlay extends StatelessWidget {
           leadingIcon: Icons.visibility_outlined,
         ),
       ),
+      // Two lines, and the second is the load-bearing one. The headline only
+      // says the window closed, which reads as "come back later"; the note is
+      // where the member learns it was their one opening. The confirm dialog
+      // warned them, but this is the moment it becomes true, and a warning
+      // read a minute ago is not a warning read now. Overlay only — the card's
+      // status line shares the headline and has no room for the rest.
       PhotoViewPhase.consumed => _CenteredPanel(
         icon: Icons.lock_clock_outlined,
-        child: Text(
-          LocaleKeys.likes_matches_photo_view_expired.t(context),
-          textAlign: TextAlign.center,
-          style: QeranTypography.subtitle.copyWith(color: QeranColors.wine),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              LocaleKeys.likes_matches_photo_view_expired.t(context),
+              textAlign: TextAlign.center,
+              style: QeranTypography.subtitle.copyWith(
+                color: QeranColors.wine,
+              ),
+            ),
+            QeranSpacing.vs8,
+            Text(
+              LocaleKeys.likes_matches_photo_view_expired_note.t(context),
+              textAlign: TextAlign.center,
+              style: QeranTypography.bodySm.copyWith(
+                color: QeranColors.inkMuted,
+              ),
+            ),
+          ],
         ),
       ),
       PhotoViewPhase.failure => _CenteredPanel(

@@ -327,10 +327,9 @@
     "matches_gallery_title": "Photos",
     "matches_photo_view_show": "Show photos",
     "matches_photo_view_confirm_title": "Show photos now?",
-    "matches_photo_view_confirm_message": "You can view these photos for 60 seconds only, and you will not be able to open them again.",
+    "matches_photo_view_confirm_message": "Photos open once only, for a limited time. You will not be able to open them again.",
     "matches_photo_view_remaining": "{seconds} seconds remaining",
-    "matches_photo_view_expired": "Photo viewing period has ended",
-    "matches_photo_view_consumed": "The viewing period has ended",
+    "matches_photo_view_expired": "Photo viewing has ended",
     "matches_photo_view_retry": "Check again",
     "matches_formal_last_updated": "Updated {date}",
     "matches_stage_matchmaker_subtitle": "The matchmaker has taken over",
@@ -380,7 +379,8 @@
     "matches_photo_exchange_limit_renewal": "Renews on {date}",
     "matches_photo_exchange_limit_upgrade_line": "Upgrade to VIP for unlimited exchanges",
     "matches_photo_exchange_limit_cta_upgrade": "Upgrade plan",
-    "matches_photo_exchange_limit_dismiss_later": "Later"
+    "matches_photo_exchange_limit_dismiss_later": "Later",
+    "matches_photo_view_expired_note": "Viewing was available once only. These photos cannot be opened again."
   },
   "questionnaire": {
     "welcome": "Welcome",

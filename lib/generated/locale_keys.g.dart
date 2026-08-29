@@ -319,7 +319,6 @@ abstract class  LocaleKeys {
   static const likes_matches_photo_view_confirm_message = 'likes.matches_photo_view_confirm_message';
   static const likes_matches_photo_view_remaining = 'likes.matches_photo_view_remaining';
   static const likes_matches_photo_view_expired = 'likes.matches_photo_view_expired';
-  static const likes_matches_photo_view_consumed = 'likes.matches_photo_view_consumed';
   static const likes_matches_photo_view_retry = 'likes.matches_photo_view_retry';
   static const likes_matches_formal_last_updated = 'likes.matches_formal_last_updated';
   static const likes_matches_stage_matchmaker_subtitle = 'likes.matches_stage_matchmaker_subtitle';
@@ -370,6 +369,7 @@ abstract class  LocaleKeys {
   static const likes_matches_photo_exchange_limit_upgrade_line = 'likes.matches_photo_exchange_limit_upgrade_line';
   static const likes_matches_photo_exchange_limit_cta_upgrade = 'likes.matches_photo_exchange_limit_cta_upgrade';
   static const likes_matches_photo_exchange_limit_dismiss_later = 'likes.matches_photo_exchange_limit_dismiss_later';
+  static const likes_matches_photo_view_expired_note = 'likes.matches_photo_view_expired_note';
   static const likes = 'likes';
   static const questionnaire_welcome = 'questionnaire.welcome';
   static const questionnaire_choose_identity = 'questionnaire.choose_identity';

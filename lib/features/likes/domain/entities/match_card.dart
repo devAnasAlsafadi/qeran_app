@@ -46,6 +46,19 @@ class MatchCard extends Equatable {
   /// An open formal-step request, or null when none is in flight.
   final PendingFormalStep? pendingFormalStep;
 
+  /// When anything last happened to this case — the key `/api/matches` orders
+  /// by, newest first, so a card the member needs to act on rises to the top.
+  ///
+  /// The server moves it on every event that touches the case: the like being
+  /// accepted, a photo request and its answer, a formal-step request and its
+  /// answer, a matchmaker action, a cancellation. It deliberately does NOT
+  /// move on expiry — a sweep marking dozens of cases expired at once would
+  /// reshuffle dozens of members' lists with no real news in any of them.
+  ///
+  /// Null only before the field is deployed, or on a payload cached from
+  /// before it shipped; existing rows were backfilled.
+  final DateTime? lastActivityAt;
+
   const MatchCard({
     required this.likeRequestId,
     required this.otherUserId,
@@ -58,6 +71,7 @@ class MatchCard extends Equatable {
     this.caseStage = MatchCaseStage.unknown,
     this.caseStatus = MatchCaseStatus.active,
     this.pendingFormalStep,
+    this.lastActivityAt,
   });
 
   /// Whether THIS member has already set the formal step in motion, so the
@@ -122,5 +136,6 @@ class MatchCard extends Equatable {
         caseStage,
         caseStatus,
         pendingFormalStep,
+        lastActivityAt,
       ];
 }

@@ -597,4 +597,77 @@ void main() {
       expect(entity.pendingFormalStep, isNull);
     });
   });
+
+  // The key `/api/matches` orders by. It arrives from Tariq's
+  // UtcDateTimeConverter, which marks every date it emits with an explicit
+  // `Z`, and it must reach us as the instant he meant — an ordering key read
+  // an hour off puts the wrong card on top.
+  group('MatchCardModel — lastActivityAt', () {
+    Map<String, dynamic> payload(Object? lastActivityAt) => {
+      'likeRequestId': 7,
+      'otherUserId': 'guid',
+      'otherUserName': 'نور',
+      'images': const <Map<String, dynamic>>[],
+      'stage': 1,
+      'pendingPhotoExchange': null,
+      'formalRequest': null,
+      'conversationId': null,
+      'lastActivityAt': ?lastActivityAt,
+    };
+
+    test('a Z-marked timestamp parses to that instant', () {
+      final entity = MatchCardModel.fromJson(
+        payload('2026-08-08T21:39:17.1106984Z'),
+      ).toEntity();
+
+      expect(
+        entity.lastActivityAt!.toUtc(),
+        DateTime.utc(2026, 8, 8, 21, 39, 17, 110, 698),
+      );
+    });
+
+    // Not deployed yet, and older cached payloads never carried it. A missing
+    // key must read as "unknown", not as the epoch — the sort puts nulls last
+    // and an epoch would put them first.
+    test('an absent field is null, not a zero date', () {
+      expect(MatchCardModel.fromJson(payload(null)).toEntity().lastActivityAt,
+          isNull);
+      expect(
+        MatchCardModel.fromJson(payload('')).toEntity().lastActivityAt,
+        isNull,
+      );
+    });
+
+    // THE parse-path test. `DateTime.parse` reads an unmarked string as
+    // DEVICE-LOCAL; `parseServerDateTime` appends the marker and treats it as
+    // UTC. Those agree only on a device at UTC+0, so this pins which parser
+    // the model uses rather than what the server happens to send.
+    test('an unmarked timestamp is read as UTC, not as device-local', () {
+      final entity = MatchCardModel.fromJson(
+        payload('2026-08-08T21:39:17'),
+      ).toEntity();
+
+      expect(
+        entity.lastActivityAt!.toUtc(),
+        DateTime.utc(2026, 8, 8, 21, 39, 17),
+        reason:
+            'parsed through DateTime.parse, which would shift this by the '
+            'device UTC offset, reordering the list by where the phone is',
+      );
+    });
+
+    // Equatable: without the field in `props` two cards whose only difference
+    // is when they last moved compare equal, and a re-fetch that changes only
+    // the ordering key emits no new state.
+    test('two cards differing only in lastActivityAt are not equal', () {
+      final earlier = MatchCardModel.fromJson(
+        payload('2026-08-08T21:39:17Z'),
+      ).toEntity();
+      final later = MatchCardModel.fromJson(
+        payload('2026-08-09T21:39:17Z'),
+      ).toEntity();
+
+      expect(earlier, isNot(later));
+    });
+  });
 }

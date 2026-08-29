@@ -20,6 +20,7 @@ class MatchCardModel {
   final MatchCaseStage caseStage;
   final MatchCaseStatus caseStatus;
   final PendingFormalStepModel? pendingFormalStep;
+  final DateTime? lastActivityAt;
 
   const MatchCardModel({
     required this.likeRequestId,
@@ -33,6 +34,7 @@ class MatchCardModel {
     required this.caseStage,
     required this.caseStatus,
     required this.pendingFormalStep,
+    required this.lastActivityAt,
   });
 
   factory MatchCardModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +52,12 @@ class MatchCardModel {
       caseStatus: MatchCaseStatus.fromWire(json['caseStatus']),
       pendingFormalStep:
           PendingFormalStepModel.fromJson(json['pendingFormalStep']),
+      // Through the shared server-date parser, never DateTime.parse: that one
+      // reads an unmarked timestamp as DEVICE-LOCAL, which would shift the
+      // ordering key by the member's UTC offset. Tariq's converter marks every
+      // date it emits, so this is the belt to that braces — and it is the
+      // difference between an ordering key and a guess.
+      lastActivityAt: parseNullableDateTime(json['lastActivityAt']),
     );
   }
 
@@ -75,5 +83,6 @@ class MatchCardModel {
         caseStage: caseStage,
         caseStatus: caseStatus,
         pendingFormalStep: pendingFormalStep?.toEntity(),
+        lastActivityAt: lastActivityAt,
       );
 }

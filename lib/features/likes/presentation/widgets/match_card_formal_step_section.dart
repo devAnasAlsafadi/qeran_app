@@ -116,12 +116,10 @@ class FormalStepSection {
     if (MatchCardFormalStepStatus.isPastApproval(card.caseStage)) {
       // No label and no override: nothing here renders as a control. The
       // step is done, and the only thing left to say is what happens next.
+      final line = MatchCardFormalStepStatus.forStage(context, card.caseStage);
       return FormalStepSection._(
-        statusTextOverride: MatchCardFormalStepStatus.text(
-          context,
-          card.caseStage,
-        ),
-        statusIconOverride: MatchCardFormalStepStatus.icon(card.caseStage),
+        statusTextOverride: line?.text,
+        statusIconOverride: line?.icon,
       );
     }
 

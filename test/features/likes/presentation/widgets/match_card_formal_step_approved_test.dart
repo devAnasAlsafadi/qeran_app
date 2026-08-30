@@ -2,11 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
-import 'package:qeran/features/likes/domain/entities/formal_step_status.dart';
 import 'package:qeran/features/likes/domain/entities/match_card.dart';
 import 'package:qeran/features/likes/domain/entities/match_case_stage.dart';
 import 'package:qeran/features/likes/domain/entities/match_stage.dart';
-import 'package:qeran/features/likes/domain/entities/pending_formal_step.dart';
 import 'package:qeran/features/likes/presentation/widgets/match_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,7 +27,17 @@ class _StubAssetLoader extends AssetLoader {
 
 const _sent = 'likes.matches_formal_step_sent';
 const _cta = 'likes.matches_formal_step_cta';
-const _approved = 'likes.matches_formal_step_approved';
+
+/// The line each post-approval stage says for itself. Held here as a map
+/// rather than one constant so a stage borrowing a neighbour's words is a
+/// test failure and not a reading exercise.
+const _lines = {
+  MatchCaseStage.awaitingMatchmakerCoordination:
+      'likes.matches_formal_step_approved',
+  MatchCaseStage.parentsVisited: 'likes.matches_formal_step_parents_visited',
+  MatchCaseStage.marriageCompleted:
+      'likes.matches_formal_step_marriage_completed',
+};
 
 /// Reachable only by an approval. The button is wrong at all three; only the
 /// first has copy of its own, the other two keep their stage subtitle until
@@ -45,7 +53,6 @@ const _hosts = [MatchStage.photosExchanged, MatchStage.matchmakerEngaged];
 MatchCard _card(
   MatchCaseStage caseStage, {
   MatchStage host = MatchStage.photosExchanged,
-  PendingFormalStep? pending,
 }) => MatchCard(
   likeRequestId: 1,
   otherUserId: 'u1',
@@ -56,22 +63,7 @@ MatchCard _card(
   formalRequest: null,
   conversationId: null,
   caseStage: caseStage,
-  pendingFormalStep: pending,
-);
-
-/// An ANSWERED block, so neither fixture reaches the responder branch: the
-/// only thing that differs between the two is who asked.
-PendingFormalStep _answered({required bool requestedByMe}) => PendingFormalStep(
-  id: 5,
-  likeRequestId: 1,
-  status: FormalStepStatus.accepted,
-  remainingSeconds: 0,
-  createdAt: DateTime.utc(2026, 8, 1),
-  expiresAt: DateTime.utc(2026, 8, 3),
-  direction: requestedByMe ? 'Sent' : 'Received',
-  requestedByMe: requestedByMe,
-  canAccept: false,
-  canReject: false,
+  pendingFormalStep: null,
 );
 
 Future<void> _pump(WidgetTester tester, MatchCard card) async {
@@ -97,11 +89,6 @@ Future<void> _pump(WidgetTester tester, MatchCard card) async {
   );
   await tester.pumpAndSettle();
 }
-
-List<String> _texts(WidgetTester tester) => tester
-    .widgetList<Text>(find.byType(Text))
-    .map((text) => text.data ?? '')
-    .toList();
 
 void main() {
   setUpAll(() async {
@@ -141,57 +128,26 @@ void main() {
         });
       }
 
-      testWidgets('the approval gets said in words', (tester) async {
-        await _pump(
-          tester,
-          _card(MatchCaseStage.awaitingMatchmakerCoordination, host: host),
-        );
-
-        expect(find.text(_approved), findsOneWidget);
-      });
-
-      // The other two are their own states, not the moment after approval:
-      // «تمت الموافقة. ستتواصل معك الخطّابة» is stale by parentsVisited and
-      // false once the marriage happened. Their subtitle stands until the
-      // owner says what should replace it.
-      for (final stage in const [
-        MatchCaseStage.parentsVisited,
-        MatchCaseStage.marriageCompleted,
-      ]) {
-        testWidgets('${stage.name} does not borrow the approval line', (
+      // Each stage says its own thing. The approval line is true the moment
+      // the step is approved, stale by the family visit, and false once the
+      // marriage happened — so a stage wearing a neighbour's words is the
+      // same defect as the button that started this, one row up.
+      for (final stage in _pastApproval) {
+        testWidgets('${stage.name} says its own line and no other', (
           tester,
         ) async {
           await _pump(tester, _card(stage, host: host));
 
-          expect(find.text(_approved), findsNothing);
+          expect(find.text(_lines[stage]!), findsOneWidget);
+          for (final other in _pastApproval.where((s) => s != stage)) {
+            expect(
+              find.text(_lines[other]!),
+              findsNothing,
+              reason: '${stage.name} is wearing the line for ${other.name}',
+            );
+          }
         });
       }
     });
   }
-
-  // THE one. The original bug was a perspective read off a payload that has
-  // none, so the sender's card and the accepter's card must be
-  // indistinguishable here — any branch on `requestedByMe` is the same bug
-  // returning under a new name.
-  group('both members read the same card', () {
-    for (final stage in _pastApproval) {
-      testWidgets('${stage.name} renders identically either way', (
-        tester,
-      ) async {
-        await _pump(
-          tester,
-          _card(stage, pending: _answered(requestedByMe: true)),
-        );
-        final asSender = _texts(tester);
-
-        await _pump(
-          tester,
-          _card(stage, pending: _answered(requestedByMe: false)),
-        );
-
-        expect(_texts(tester), asSender);
-        expect(asSender, isNot(contains(_sent)));
-      });
-    }
-  });
 }

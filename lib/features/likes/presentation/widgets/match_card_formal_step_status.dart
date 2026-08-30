@@ -17,8 +17,10 @@ import '../../domain/entities/match_case_stage.dart';
 ///   • [isPastApproval] — is the retired "awaiting their approval" button a
 ///     lie here? True at all three post-approval stages, because the payload
 ///     carries no perspective and the button would say it to both members.
-///   • [text] / [icon] — what should the card say instead? Not every stage
-///     that must LOSE the button has words of its own yet.
+///   • [forStage] — what should the card say instead? All three are spoken
+///     for now, but the questions stay apart: a twelfth post-approval stage
+///     added server-side must lose the button whether or not anyone has
+///     written its line yet.
 class MatchCardFormalStepStatus {
   const MatchCardFormalStepStatus._();
 
@@ -45,28 +47,55 @@ class MatchCardFormalStepStatus {
     MatchCaseStage.unknown => false,
   };
 
-  /// The line this stage puts under the name, or null to keep the stage's
-  /// own subtitle.
+  /// The line and glyph this stage puts under the name, or null to keep the
+  /// stage's own subtitle.
   ///
-  /// Only the moment of approval is spoken for. «تمت الموافقة. ستتواصل معك
-  /// الخطّابة» is true the instant the step is approved and the matchmaker
-  /// picks the case up; by `parentsVisited` it is stale, and on
-  /// `marriageCompleted` it is simply false — the marriage already happened.
-  /// What those two should say instead is an open question with the owner,
-  /// and answering it inside a bug fix would trade one wrong line for
-  /// another. They keep their stage's own subtitle until it is settled; the
-  /// button is withdrawn from them all the same, because that part is a lie
-  /// at every one of the three.
-  static String? text(BuildContext context, MatchCaseStage stage) =>
-      _justApproved(stage)
-      ? LocaleKeys.likes_matches_formal_step_approved.t(context)
-      : null;
-
-  /// Paired with [text] and null wherever it is, so a stage never draws one
-  /// widget's glyph beside another's words.
-  static IconData? icon(MatchCaseStage stage) =>
-      _justApproved(stage) ? Icons.check_circle_outline : null;
-
-  static bool _justApproved(MatchCaseStage stage) =>
-      stage == MatchCaseStage.awaitingMatchmakerCoordination;
+  /// ONE lookup returning both, never a pair of them. `MatchJourneyStep`
+  /// makes the same choice for the same reason — "two properties describing
+  /// one fact, resolved independently, is exactly how they come to disagree"
+  /// — and here a stage wearing another stage's glyph would be the label bug
+  /// this file was split out of, one field over.
+  ///
+  /// Exhaustive, so a twelfth server stage breaks the build in all three
+  /// places that answer for it: the entity's `hasRequestedFormalStep`,
+  /// [isPastApproval], and this. Reading wrong in one of the three while the
+  /// other two are right is the failure this shape exists to prevent.
+  ///
+  /// Wine, not gold, at every one of them. Approval and marriage are the
+  /// app's warmest moments and gold is how it celebrates — but the status
+  /// line is not where that decision is being made, and half-celebrating the
+  /// smaller milestone louder than the larger one is worse than waiting.
+  static ({String text, IconData icon})? forStage(
+    BuildContext context,
+    MatchCaseStage stage,
+  ) => switch (stage) {
+    MatchCaseStage.awaitingMatchmakerCoordination => (
+      text: LocaleKeys.likes_matches_formal_step_approved.t(context),
+      icon: Icons.check_circle_outline,
+    ),
+    // The families have met. Deliberately NOT the matchmaker "arranging" a
+    // meeting — that is the stage before, and saying it here would move the
+    // case backwards a step. `groups_outlined` over stage 2's handshake for
+    // the same reason: this is the meeting that happened, not the deal.
+    MatchCaseStage.parentsVisited => (
+      text: LocaleKeys.likes_matches_formal_step_parents_visited.t(context),
+      icon: Icons.groups_outlined,
+    ),
+    // The journey, not the step. Every other line here reports on the formal
+    // step; this one closes the whole case, which is why it borrows stage
+    // 1's own success glyph rather than continuing the formal-step series.
+    MatchCaseStage.marriageCompleted => (
+      text: LocaleKeys.likes_matches_formal_step_marriage_completed.t(context),
+      icon: Icons.favorite_rounded,
+    ),
+    MatchCaseStage.likeAccepted ||
+    MatchCaseStage.photoExchangePending ||
+    MatchCaseStage.photoExchangeAccepted ||
+    MatchCaseStage.photoExchangeRejected ||
+    MatchCaseStage.photoExchangeExpired ||
+    MatchCaseStage.formalStepPending ||
+    MatchCaseStage.formalStepRejected ||
+    MatchCaseStage.formalStepExpired ||
+    MatchCaseStage.unknown => null,
+  };
 }

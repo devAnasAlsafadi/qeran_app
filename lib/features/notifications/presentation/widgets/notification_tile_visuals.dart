@@ -76,17 +76,24 @@ class NotificationTileVisuals {
   /// deliberately tells NONE.
   ///
   /// It used to be a filled heart, which reads as "someone liked you". That is
-  /// a specific claim, and `Match` covers events where it is simply false: the
-  /// compatibility journey grew a formal step and three ways to end in the
-  /// V2 arc, and [NotificationAction] has no member for any of them because
-  /// the wire strings the server sends are not documented yet. An unrecognised
-  /// action drawn as a like would put a heart on "your compatibility has
-  /// ended".
+  /// a specific claim, and `Match` covers events where it is simply false. The
+  /// V2 events — the formal step and the ways a case ends — now have typed
+  /// members drawn from the server's own verbatim strings, but an action this
+  /// build has never heard of still resolves to the same glyph an unrecognised
+  /// TYPE uses: unknown looks like unknown at both levels, and the server's own
+  /// title and body carry the meaning.
   ///
-  /// So it falls back to the same glyph an unrecognised TYPE uses: unknown
-  /// looks like unknown at both levels, and the notification's own title and
-  /// body — which the server writes — carry the meaning until typed members
-  /// can be added against a real contract.
+  /// ⚠️ EXHAUSTIVE, and the wildcard it replaced is the point. `none` reaching
+  /// the neutral bell is the intended behaviour and is spelled by name; a
+  /// FUTURE member reaching it silently was not, and that is what a `_` arm
+  /// could not tell apart. `profileApproved` / `profileRejected` are listed
+  /// because the wire pairs type and action independently — a mismatched pair
+  /// must resolve rather than throw — not because they are reachable here.
+  ///
+  /// The two endings wear different glyphs on purpose. A declined formal step
+  /// and a called-off case are different events, and this feature's own rule
+  /// is that an ending never borrows the nearest-looking member. Neither wears
+  /// danger: rejection stays calm here as it does on the profile side.
   static IconData _matchIcon(NotificationAction action) => switch (action) {
         NotificationAction.like => Icons.favorite_border_rounded,
         NotificationAction.likeAccepted => Icons.celebration_rounded,
@@ -94,8 +101,19 @@ class NotificationTileVisuals {
         NotificationAction.photoExchangeAccepted ||
         NotificationAction.photoExchangeRejected =>
           Icons.photo_camera_outlined,
+        // Both borrowed from the match card, so the row in the inbox and the
+        // row in the Matches tab describe the same moment with one glyph.
+        NotificationAction.formalStepRequested =>
+          Icons.mark_email_unread_outlined,
+        NotificationAction.formalStepAccepted => Icons.check_circle_outline,
+        // The glyph the journey timeline draws on an ended node.
+        NotificationAction.caseEnded => Icons.close_rounded,
+        NotificationAction.caseCancelled => Icons.cancel_outlined,
         NotificationAction.compatibilityCaseUpdated => Icons.handshake_rounded,
-        _ => Icons.notifications_none_rounded,
+        NotificationAction.none ||
+        NotificationAction.profileApproved ||
+        NotificationAction.profileRejected =>
+          Icons.notifications_none_rounded,
       };
 
   /// Profile approve/reject — both calm; rejection never wears red. Approval

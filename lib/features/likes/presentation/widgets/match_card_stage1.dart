@@ -9,6 +9,7 @@ import '../../domain/entities/match_journey_outcome.dart';
 import 'match_card_avatar.dart';
 import 'match_card_cancel_action.dart';
 import 'match_card_formal_step_section.dart';
+import 'match_card_photo_access.dart';
 import 'match_card_scaffold.dart';
 import 'match_journey_card.dart';
 
@@ -54,11 +55,7 @@ class MatchCardStage1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final image = card.primaryImage;
-    final isConsumed =
-        card.images.isNotEmpty && card.images.every((image) => image.isBlurred);
-    final canOpenPhotos =
-        card.images.any((candidate) => !candidate.isBlurred) &&
-        onOpenGallery != null;
+    final photos = MatchCardPhotoAccess.resolve(card, onOpen: onOpenGallery);
     final formal = FormalStepSection.resolve(
       context,
       card: card,
@@ -71,7 +68,7 @@ class MatchCardStage1 extends StatelessWidget {
     );
     return MatchCardScaffold(
       avatar: GestureDetector(
-        onTap: canOpenPhotos ? onOpenGallery : null,
+        onTap: photos.canOpen ? onOpenGallery : null,
         child: MatchCardAvatar(
           url: image?.url,
           // A stage-1 preview must never fetch/cache the CLEAR bytes; the
@@ -86,12 +83,13 @@ class MatchCardStage1 extends StatelessWidget {
       ),
       name: card.otherUserName,
       statusIcon: formal.statusIconOverride ?? Icons.favorite_rounded,
+      // The spent view is reported by `MatchCardPhotosViewed` in the action
+      // slot and NOWHERE else. This line used to say it too — one fact in
+      // two places, and the two drifted apart in wording the moment either
+      // was edited.
       statusText:
           formal.statusTextOverride ??
-          (isConsumed
-                  ? LocaleKeys.likes_matches_photo_view_expired
-                  : LocaleKeys.likes_matches_stage_photos_exchanged_subtitle)
-              .t(context),
+          LocaleKeys.likes_matches_stage_photos_exchanged_subtitle.t(context),
       statusColor: QeranColors.wine,
       topChip: formal.topChip,
       headerTrailing: MatchCardCancelAction.resolve(
@@ -106,18 +104,22 @@ class MatchCardStage1 extends StatelessWidget {
       primaryTrailingIcon: formal.primaryTrailingIcon,
       primaryVariant: QeranButtonVariant.primary,
       primaryOverride: formal.primaryOverride,
-      secondaryActions: canOpenPhotos
-          ? [
-              QeranButton(
-                label: LocaleKeys.likes_matches_photo_view_show.t(context),
-                onPressed: onOpenGallery,
-                variant: QeranButtonVariant.ghost,
-                size: QeranButtonSize.xs,
-                leadingIcon: Icons.visibility_outlined,
-                fullWidth: false,
-              ),
-            ]
-          : null,
+      secondaryActions: switch (photos) {
+        MatchCardPhotoAccess(canOpen: true) => [
+          QeranButton(
+            label: LocaleKeys.likes_matches_photo_view_show.t(context),
+            onPressed: onOpenGallery,
+            variant: QeranButtonVariant.ghost,
+            size: QeranButtonSize.xs,
+            leadingIcon: Icons.visibility_outlined,
+            fullWidth: false,
+          ),
+        ],
+        MatchCardPhotoAccess(wasViewed: true) => const [
+          MatchCardPhotosViewed(),
+        ],
+        _ => null,
+      },
       footer: MatchJourneyCard(card: card),
       isEnded: matchJourneyHasEnded(card),
     );

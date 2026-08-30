@@ -330,6 +330,7 @@
     "matches_photo_view_confirm_message": "تُفتح الصور مرة واحدة فقط ولمدة محدودة، ولن تتمكن من فتحها مرة أخرى.",
     "matches_photo_view_remaining": "متبقي {seconds} ثانية",
     "matches_photo_view_expired": "انتهت مدة مشاهدة الصور",
+    "matches_photo_view_done": "تمت المشاهدة",
     "matches_photo_view_retry": "إعادة التحقق",
     "matches_formal_last_updated": "آخر تحديث: {date}",
     "matches_stage_matchmaker_subtitle": "تم تحويل الطلب إلى الخطّابة",

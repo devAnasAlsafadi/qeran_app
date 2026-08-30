@@ -2,65 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qeran/features/likes/domain/entities/match_card.dart';
-import 'package:qeran/features/likes/domain/entities/match_image.dart';
-import 'package:qeran/features/likes/domain/entities/match_stage.dart';
-import 'package:qeran/features/likes/presentation/widgets/match_card_stage1.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class _EmptyLoader extends AssetLoader {
-  const _EmptyLoader();
+import 'match_card_stage1_photo_harness.dart';
 
-  @override
-  Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
-      const {};
-}
-
-MatchCard _card({required bool isBlurred}) => MatchCard(
-  likeRequestId: 1,
-  otherUserId: 'u1',
-  otherUserName: 'User',
-  images: [
-    MatchImage(
-          id: '7',
-      url: 'https://example.invalid/protected.jpg',
-      isProfile: true,
-      isBlurred: isBlurred,
-    ),
-  ],
-  stage: MatchStage.photosExchanged,
-  pendingPhotoExchange: null,
-  formalRequest: null,
-  conversationId: null,
-);
-
-Future<void> _pump(WidgetTester tester, MatchCard card) async {
-  await tester.pumpWidget(
-    EasyLocalization(
-      supportedLocales: const [Locale('ar')],
-      path: 'unused',
-      assetLoader: const _EmptyLoader(),
-      child: Builder(
-        builder: (context) => MaterialApp(
-          locale: context.locale,
-          supportedLocales: context.supportedLocales,
-          localizationsDelegates: context.localizationDelegates,
-          home: Scaffold(
-            body: MatchCardStage1(
-              card: card,
-              onOpenGallery: () {},
-              onFormalStep: () {},
-              isFormalStepSending: false,
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-  await tester.pumpAndSettle();
-}
-
+/// What a RUNNING case offers about photos: one reveal while the view is
+/// unspent, and one muted line once it is not.
+///
+/// The lock half — what an ended or completed case withdraws — is
+/// `match_card_stage1_photo_lock_test.dart`.
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -68,26 +19,52 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
-  testWidgets('available exchange offers reveal without fetching clear bytes', (
-    tester,
-  ) async {
-    await _pump(tester, _card(isBlurred: false));
+  group('a running case', () {
+    testWidgets('offers the reveal without fetching clear bytes', (
+      tester,
+    ) async {
+      await pumpStage1(tester, photoCard(isBlurred: false));
 
-    expect(find.text(LocaleKeys.likes_matches_photo_view_show), findsOneWidget);
-    expect(find.byType(CachedNetworkImage), findsNothing);
-    expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
-  });
+      expect(
+        find.text(LocaleKeys.likes_matches_photo_view_show),
+        findsOneWidget,
+      );
+      expect(find.byType(CachedNetworkImage), findsNothing);
+      expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
+    });
 
-  testWidgets('consumed exchange removes the reveal action', (tester) async {
-    await _pump(tester, _card(isBlurred: true));
+    // The other direction of the gate. Without this, hiding the photos
+    // everywhere would pass every test below.
+    testWidgets('opens the gallery from the avatar', (tester) async {
+      expect(
+        await opensAfterTappingAvatar(tester, photoCard(isBlurred: false)),
+        1,
+      );
+    });
 
-    expect(find.text(LocaleKeys.likes_matches_photo_view_show), findsNothing);
-    // One string for one fact: the card's status line and the sheet's overlay
-    // used to say the same thing in different words, one of them singular
-    // about a window that covers every photo.
-    expect(
-      find.text(LocaleKeys.likes_matches_photo_view_expired),
-      findsOneWidget,
-    );
+    testWidgets('the spent view is reported once, and not as a control', (
+      tester,
+    ) async {
+      await pumpStage1(tester, photoCard(isBlurred: true));
+
+      expect(find.text(LocaleKeys.likes_matches_photo_view_show), findsNothing);
+      expect(
+        find.text(LocaleKeys.likes_matches_photo_view_done),
+        findsOneWidget,
+      );
+      // One fact, one place. The status line used to say this too, in
+      // different words — the drift starts the moment either is edited.
+      expect(
+        find.text(LocaleKeys.likes_matches_photo_view_expired),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a spent view closes the avatar too', (tester) async {
+      expect(
+        await opensAfterTappingAvatar(tester, photoCard(isBlurred: true)),
+        isZero,
+      );
+    });
   });
 }

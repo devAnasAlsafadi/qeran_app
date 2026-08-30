@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'notification_action.dart';
+import 'notification_audience.dart';
 import 'notification_type.dart';
 
 /// One inbox notification from `GET /api/notifications`.
@@ -35,6 +36,14 @@ class NotificationItem extends Equatable {
   /// The specific event for an overloaded type, read from `data.action`.
   NotificationAction get action =>
       NotificationAction.fromWire(data['action']?.toString());
+
+  /// Who the notification was written for, read from `data.audience`.
+  ///
+  /// Derived like [action] rather than being a constructor field: the entity
+  /// already carries the decoded `data` map, so the model, the repository and
+  /// DI stay untouched, and a payload carrying neither field costs nothing.
+  NotificationAudience get audience =>
+      NotificationAudience.fromWire(data['audience']);
 
   /// Title for the active locale (falls back to the other when one is empty).
   String title({required bool isArabic}) =>

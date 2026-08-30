@@ -1,3 +1,5 @@
+import 'package:qeran/features/notifications/domain/entities/notification_audience.dart';
+
 import 'json_parsers.dart';
 
 /// A matchmaker deep-link intent parsed from an FCM `data` payload.
@@ -31,9 +33,11 @@ class IgnoreDeepLink extends MatchmakerDeepLink {
 ///
 /// Guards (built to the real backend payloads):
 ///   • Cases: `action == "compatibility_case_updated"` AND
-///     `audience == "matchmaker"`. The same event is also pushed to the
-///     two USERS, so the explicit `audience` field is what keeps the
-///     matchmaker shell from acting on a user-targeted push.
+///     [NotificationAudience.isMatchmaker]. The same event is also pushed to
+///     the two USERS, so the explicit `audience` field is what keeps the
+///     matchmaker shell from acting on a user-targeted push. An ABSENT
+///     audience fails the guard exactly as an unrecognised one does — this
+///     shell acts only on what is addressed to it.
 ///   • Chat: `type == "chat"` with a parseable `conversationId`.
 /// Anything else → [IgnoreDeepLink]. Never throws.
 class MatchmakerNotificationRouter {
@@ -44,9 +48,9 @@ class MatchmakerNotificationRouter {
 
     final type = parseString(data['type']).toLowerCase();
     final action = parseString(data['action']).toLowerCase();
-    final audience = parseString(data['audience']).toLowerCase();
+    final audience = NotificationAudience.fromWire(data['audience']);
 
-    if (action == 'compatibility_case_updated' && audience == 'matchmaker') {
+    if (action == 'compatibility_case_updated' && audience.isMatchmaker) {
       return OpenCases(highlightCaseId: parseNullableInt(data['caseId']));
     }
 

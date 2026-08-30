@@ -338,6 +338,7 @@ abstract class  LocaleKeys {
   static const likes_matches_formal_step_respond_not_found = 'likes.matches_formal_step_respond_not_found';
   static const likes_matches_formal_step_respond_expired = 'likes.matches_formal_step_respond_expired';
   static const likes_matches_formal_step_awaiting_you = 'likes.matches_formal_step_awaiting_you';
+  static const likes_matches_formal_step_approved = 'likes.matches_formal_step_approved';
   static const likes_matches_formal_step_action_accept = 'likes.matches_formal_step_action_accept';
   static const likes_matches_formal_step_action_reject = 'likes.matches_formal_step_action_reject';
   static const likes_matches_case_end_confirm_title = 'likes.matches_case_end_confirm_title';

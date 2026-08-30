@@ -4,6 +4,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_card.dart';
+import '../../domain/entities/match_case_stage.dart';
 import '../../domain/entities/pending_formal_step.dart';
 import 'match_card_formal_step_responder_actions.dart';
 import 'match_card_sent_action.dart';
@@ -12,13 +13,14 @@ import 'match_pending_countdown_chip.dart';
 /// Everything the formal step contributes to a stage-1 or stage-2 card.
 ///
 /// Extracted rather than branched in place: stages 1 and 2 both host the
-/// formal step and would otherwise each carry the same three-way branch. They
+/// formal step and would otherwise each carry the same four-way branch. They
 /// differ in their avatar treatment and their own status line — not in this.
 ///
-/// Three states, and which one applies is the SERVER's answer, never a guess:
+/// Four states, and which one applies is the SERVER's answer, never a guess:
 ///   • nobody asked → the gold CTA.
 ///   • I asked → the retired "awaiting their approval" button + countdown.
 ///   • they asked ME → accept / decline + countdown.
+///   • it was APPROVED and the case moved on → a status line, no button.
 ///
 /// The CTA used to carry a caption — «ستتواصل معك الخطّابة للتنسيق للقاء
 /// الرسمي مع الأهل» — removed at the owner's call. Its future tense read as
@@ -89,6 +91,37 @@ class FormalStepSection {
       );
     }
 
+    // The step was APPROVED and the case has travelled past it.
+    //
+    // Both members land here, because the payload after an approval carries
+    // no perspective at all: `pendingFormalStep` goes null, and `caseStage`
+    // is a property of the CASE rather than of who is reading it. That is
+    // the bug this branch exists for — `hasRequestedFormalStep` is true at
+    // these stages for BOTH sides, so the retired sent button told the
+    // member who granted the approval that she was waiting for one.
+    //
+    // `hasRequestedFormalStep` is deliberately left alone. It answers "has
+    // a request been made on this case", which is still true here and is
+    // still the right reason to withhold the CTA. Only the WORDS were
+    // wrong, and words are this file's job.
+    //
+    // Placed AFTER the responder branch on purpose. A live block the server
+    // says this member may still answer contradicts an advanced stage, and
+    // where the two disagree, honouring an action the server explicitly
+    // offered beats withdrawing it on the strength of a stage code.
+    if (_isPastApproval(card.caseStage)) {
+      final justApproved =
+          card.caseStage == MatchCaseStage.awaitingMatchmakerCoordination;
+      // No label and no override: nothing here renders as a control. The
+      // step is done, and the only thing left to say is what happens next.
+      return FormalStepSection._(
+        statusTextOverride: justApproved
+            ? LocaleKeys.likes_matches_formal_step_approved.t(context)
+            : null,
+        statusIconOverride: justApproved ? Icons.check_circle_outline : null,
+      );
+    }
+
     final action = MatchCardSentAction.resolve(
       isSent: card.hasRequestedFormalStep,
       cta: LocaleKeys.likes_matches_formal_step_cta.t(context),
@@ -109,6 +142,39 @@ class FormalStepSection {
           : null,
     );
   }
+
+  /// Stages reachable only by the receiver APPROVING the step. All three,
+  /// which is what makes the retired sent button wrong on all three rather
+  /// than only on the newest.
+  ///
+  /// Only the first is given words of its own. «تمت الموافقة. ستتواصل معك
+  /// الخطّابة» is true the moment the step is approved and the matchmaker
+  /// picks the case up; by `parentsVisited` it is stale, and on
+  /// `marriageCompleted` it is simply false — the marriage already happened.
+  /// What those two should say instead is an open question with the owner,
+  /// and answering it inside a bug fix would trade one wrong line for
+  /// another. They keep their stage's own subtitle until it is settled; the
+  /// button is withdrawn from them all the same, because that part is a lie
+  /// at every one of the three.
+  ///
+  /// Exhaustive rather than a set literal: these stages shadow the ones
+  /// `MatchCard.hasRequestedFormalStep` answers true for, and a twelfth
+  /// stage added server-side should break the build in both places rather
+  /// than quietly read as "not approved" in one of them.
+  static bool _isPastApproval(MatchCaseStage stage) => switch (stage) {
+    MatchCaseStage.awaitingMatchmakerCoordination ||
+    MatchCaseStage.parentsVisited ||
+    MatchCaseStage.marriageCompleted => true,
+    MatchCaseStage.likeAccepted ||
+    MatchCaseStage.photoExchangePending ||
+    MatchCaseStage.photoExchangeAccepted ||
+    MatchCaseStage.photoExchangeRejected ||
+    MatchCaseStage.photoExchangeExpired ||
+    MatchCaseStage.formalStepPending ||
+    MatchCaseStage.formalStepRejected ||
+    MatchCaseStage.formalStepExpired ||
+    MatchCaseStage.unknown => false,
+  };
 
   static Widget? _chip(PendingFormalStep pending) {
     final secs = pending.remainingSeconds;

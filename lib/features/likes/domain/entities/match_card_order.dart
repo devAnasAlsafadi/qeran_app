@@ -52,13 +52,19 @@ int _byLastActivity(MatchCard a, MatchCard b) {
 /// `matchJourneyHasEnded` — which is the better predicate everywhere else in
 /// this feature and is the wrong one here.
 ///
-/// They disagree on exactly one case: declining the formal step moves
-/// `caseStage` to `formalStepRejected` and leaves `caseStatus` **Active**. The
-/// server's tier reads the status, so it puts that card in tier 0; our
-/// ending predicate would put it in tier 1. Use ours and the two orders differ
-/// on every fetch — the card lands in one place, then jumps when the list
-/// refreshes. Matching the server matters more here than being right in
+/// They disagree on the marriage. `matchJourneyHasEnded` excludes `completed`
+/// on purpose, so a wedding is never drawn as a failure; the server's tier has
+/// no such exception and sinks `Completed` with every other finished case. Use
+/// ours and a completed marriage floats into tier 0, above cases still waiting
+/// on an answer — then drops the moment the list refreshes against the
+/// server's order. Matching the server matters more here than being right in
 /// isolation.
+///
+/// ⚠️ Not what an earlier version of this comment claimed. It said declining
+/// the formal step leaves `caseStatus` at `Active`; the backend sets
+/// `Cancelled`, and always has. The misreading came from spacing in a batch-24
+/// flow diagram rather than from behaviour, and it survived here long enough to
+/// send a question to Tariq. The rule was right for the wrong reason.
 ///
 /// `unknown` lands in tier 1, with the rest of `!= Active`. That is a knowing
 /// departure from this feature's rule that an unrecognised status OMITS rather

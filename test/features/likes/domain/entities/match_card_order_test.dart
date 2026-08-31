@@ -83,13 +83,17 @@ void main() {
     }
   });
 
-  // THE one. `matchJourneyHasEnded` is the right predicate everywhere else in
-  // this feature and the wrong one here, and this is the single card that
-  // tells them apart: declining the formal step moves the STAGE and leaves the
-  // status Active. The server tiers on the status, so this card is tier 0 to
-  // it. Tier it as ended and our list disagrees with the server's on every
-  // fetch.
-  test('a declined formal step keeps its ACTIVE tier, as the server has it', () {
+  // A SYNTHETIC card, and deliberately so: an active `caseStatus` alongside a
+  // rejected formal step is a pairing the server does not send — declining
+  // sets `Cancelled`. Holding the status active is exactly what isolates the
+  // one question this test asks: which field does `_tier` read? Tier through
+  // `matchJourneyHasEnded` and the stage sinks a card the status calls live.
+  //
+  // Belt to the braces of the `completed` and `unknown` cases above, which
+  // kill the same mutation on payloads that ARE real (verified by running it).
+  // Kept because it pins the field directly, rather than depending on which
+  // values happen to co-occur.
+  test('the tier reads caseStatus, not the stage', () {
     final ordered = matchCardsByLastActivity([
       _card(1, at: _at(2)),
       _card(
@@ -103,9 +107,9 @@ void main() {
       _ids(ordered),
       [2, 1],
       reason:
-          'tiered through the ending predicate rather than caseStatus. The '
-          'server calls this case Active and puts it first; we would sink it, '
-          'and the row would jump on the next refresh.',
+          'tiered through the ending predicate rather than caseStatus. This '
+          'card is active by status, so the server puts it first; reading the '
+          'stage instead sinks it, and the row jumps on the next refresh.',
     );
   });
 

@@ -11,11 +11,17 @@ import 'match_formal_status.dart';
 ///   • the matchmaker recorded «لم ينجح» — `Failed`.
 ///   • the receiver declined the formal step — `formalStepRejected`.
 ///
-/// Two of the three arrive on `caseStatus` and the third on `caseStage`,
-/// because that is how the backend records them and not an inconsistency to
-/// tidy: cancelling leaves the stage exactly where it stood and writes the
-/// ending beside it, while declining a formal step MOVES the stage. Reading
-/// only one of the two fields would miss an ending either way.
+/// All three arrive on `caseStatus`. Declining the formal step sets
+/// `Cancelled` just as cancelling does, and MOVES the stage to
+/// `formalStepRejected` as well — so the stage clause below is redundant
+/// against a current server. It is kept deliberately, not by oversight: a
+/// second independent reading of the same fact, for the price of one
+/// comparison.
+///
+/// ⚠️ That redundancy does NOT extend to the legacy fallback, which is
+/// load-bearing. A row old enough to carry no `caseStatus` reads as `active`,
+/// and its ending survives only in `formalRequest.status`. Deleting that one
+/// loses endings; deleting the stage clause loses only the belt to the braces.
 ///
 /// ⚠️ Deliberately NOT [MatchCaseStatus.isEnded]. That getter also covers
 /// [MatchCaseStatus.completed] — the marriage — which is the SUCCESS ending,
@@ -39,6 +45,9 @@ bool matchJourneyHasEnded(MatchCard card) {
       card.caseStatus == MatchCaseStatus.failed) {
     return true;
   }
+  // Redundant against a current server: declining sets `Cancelled`, so the
+  // clause above already caught this. Kept as a second independent reading —
+  // read the doc above before removing it.
   if (card.caseStage == MatchCaseStage.formalStepRejected) return true;
   return card.caseStage == MatchCaseStage.unknown && _endedInOlderFields(card);
 }

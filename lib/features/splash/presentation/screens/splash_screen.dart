@@ -8,6 +8,7 @@ import 'package:lottie/lottie.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/widgets/privacy_shield_suppression.dart';
+import 'package:qeran/features/splash/presentation/splash_reveal_policy.dart';
 import 'package:qeran/features/splash/presentation/screens/splash_screen_controller.dart';
 import '../blocs/splash_cubit.dart';
 import '../blocs/splash_state.dart';
@@ -41,19 +42,9 @@ class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   static const String _animationAsset = 'assets/animations/logo_qeran_v3.json';
 
-  /// Backstop: force the animation gate open if nothing else has within this
-  /// cap (comfortably over the full reveal), so a stalled/never-loading
-  /// animation can never hang the splash. The real reveal length is read from
-  /// the composition at runtime (see [_startReveal]); this is only an upper bound.
-  static const Duration _safetyCap = Duration(seconds: 3);
-
-  /// Used only if the composition reports a non-positive duration.
-  static const Duration _fallbackDuration = Duration(milliseconds: 1800);
-
-  /// Preserve every authored Lottie frame but cap wall-clock playback. The
-  /// current 3.5-second composition is played faster instead of keeping the
-  /// user on a decorative screen after routing is already ready.
-  static const Duration _maxRevealDuration = Duration(milliseconds: 1800);
+  /// Owns the reveal length, the backstop, and the dual gate's arithmetic —
+  /// see [SplashRevealPolicy] for why those three belong together.
+  static const SplashRevealPolicy _policy = SplashRevealPolicy();
 
   /// The transparent logo+wordmark art (1080×795) is centred on the wine canvas
   /// at this fraction of the screen width — sized, not full-bleed — so it never
@@ -102,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen>
     privacyShieldSuppressed.value = true;
     // Backstop timer — cancelled by the first settle (see _markAnimationSettled)
     // or in dispose.
-    _safetyTimer = Timer(_safetyCap, _markAnimationSettled);
+    _safetyTimer = Timer(_policy.safetyCap, _markAnimationSettled);
     // Hydrate the session and resolve the route while the animation is visible.
     unawaited(_controller.init());
   }
@@ -125,13 +116,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _startReveal(Duration duration) {
     if (_revealStarted) return;
     _revealStarted = true;
-    final reportedDuration = duration.inMicroseconds <= 0
-        ? _fallbackDuration
-        : duration;
-    final playbackDuration = reportedDuration > _maxRevealDuration
-        ? _maxRevealDuration
-        : reportedDuration;
-    final totalUs = playbackDuration.inMicroseconds;
+    final totalUs = _policy.revealFor(duration).inMicroseconds;
     _revealTicker = createTicker((elapsed) {
       final t = (elapsed.inMicroseconds / totalUs).clamp(0.0, 1.0);
       _anim.value = t; // direct set — NOT forward(); ignores disableAnimations
@@ -154,7 +139,12 @@ class _SplashScreenState extends State<SplashScreen>
   /// Navigate only when BOTH the animation is done AND the routing decision has
   /// arrived — and never more than once.
   void _maybeNavigate() {
-    if (_navigated || !_animDone || _pending == null) return;
+    final go = _policy.shouldNavigate(
+      animationSettled: _animDone,
+      decisionReady: _pending != null,
+      alreadyNavigated: _navigated,
+    );
+    if (!go) return;
     _navigated = true;
     _controller.handleNavigation(_pending!);
   }

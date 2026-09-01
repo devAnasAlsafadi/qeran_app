@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/widgets/privacy_shield_suppression.dart';
 import 'package:qeran/features/splash/presentation/screens/splash_screen_controller.dart';
 import '../blocs/splash_cubit.dart';
 import '../blocs/splash_state.dart';
@@ -93,6 +94,12 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = SplashScreenController(context);
     _anim = AnimationController(vsync: this);
+    // Stand the privacy shield down for as long as this screen is up.
+    // Its fill is the same wine as this canvas, so when a system alert
+    // (the first-launch notification prompt) takes the app out of
+    // `resumed`, the screen still looks right and the animation is
+    // simply gone. There is nothing on a logo screen worth hiding.
+    privacyShieldSuppressed.value = true;
     // Backstop timer — cancelled by the first settle (see _markAnimationSettled)
     // or in dispose.
     _safetyTimer = Timer(_safetyCap, _markAnimationSettled);
@@ -102,6 +109,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    // Restored before the next route paints, so every screen that DOES
+    // hold private content gets the shield back.
+    privacyShieldSuppressed.value = false;
     _safetyTimer?.cancel();
     _revealTicker?.dispose();
     _anim.dispose();

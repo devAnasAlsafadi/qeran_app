@@ -54,7 +54,11 @@ class _QuestionTextWidgetState extends State<QuestionTextWidget> {
       hint: widget.hintText ?? LocaleKeys.questionnaire_answer_hint.t(context),
       keyboardType: TextInputType.multiline,
       textInputAction: TextInputAction.newline,
-      maxLines: 5,
+      // Rests at two lines so a first-open form stays light, grows with
+      // typing to twelve, then scrolls inside itself. The Next button sits
+      // outside the scroll view, so a tall field can never push it away.
+      minLines: 2,
+      maxLines: 12,
       maxLength: widget.maxLength,
       onChanged: widget.onChanged,
     );

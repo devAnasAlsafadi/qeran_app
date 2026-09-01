@@ -59,5 +59,26 @@ class HomeRefreshPolicy {
 
   /// A push arrived while the app was already foregrounded. Refreshes the
   /// unread indicators; navigation is never automatic.
-  Future<void> onForegroundPush() => _badges.refresh();
+  ///
+  /// Then re-reads the gate — but only while the gate is CLOSED. This hook is
+  /// what covers the member who never backgrounds the app: standing with their
+  /// matchmaker as the approval is granted, [onResume] never fires for them, so
+  /// without this only a restart would show it.
+  ///
+  /// ⚠️ Deliberately blind to the payload — do not "improve" this into a read
+  /// of `data.action`. A `profile_approved` string exists in our notification
+  /// contract, but it has never been observed in production traffic, so
+  /// branching on it would gate the fix on a guess (`ENGINEERING.md` §4). ANY
+  /// push means "something may have changed".
+  ///
+  /// The [ProfileGateCubit.isGated] guard is what makes that affordable: an
+  /// approved member — who receives the overwhelming majority of pushes — does
+  /// no extra work. The guard belongs HERE and nowhere else. On [onResume] the
+  /// same guard would be a bug: a gate that is already open can only be closed
+  /// again by a refresh the guard would skip.
+  Future<void> onForegroundPush() {
+    final badges = _badges.refresh();
+    if (!_profileGate.isGated) return badges;
+    return Future.wait([badges, _profileGate.refresh()]);
+  }
 }

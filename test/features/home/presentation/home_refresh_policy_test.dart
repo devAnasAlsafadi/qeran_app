@@ -29,6 +29,8 @@ void main() {
     when(() => profileGate.refresh()).thenAnswer((_) async {});
     when(() => badges.refresh()).thenAnswer((_) async {});
     when(() => badges.clear()).thenReturn(null);
+    // Default to the common case: an approved member, gate open.
+    when(() => profileGate.isGated).thenReturn(false);
     when(
       () => subscription.refresh(force: any(named: 'force')),
     ).thenAnswer((_) async {});
@@ -110,11 +112,23 @@ void main() {
       verifyNever(() => subscription.refresh(force: any(named: 'force')));
     });
 
-    test('does not refresh the gate — the staleness bug, pinned', () async {
+    test('refreshes the gate while the gate is closed', () async {
+      when(() => profileGate.isGated).thenReturn(true);
+
       await policy.onForegroundPush();
 
-      // Characterisation, NOT the desired behaviour: the approval push lands
-      // here and only the badges move. Flipped in a later sub-step.
+      // Covers the member who never backgrounds the app, so `onResume` never
+      // fires: the approval push itself is what re-reads the status.
+      verify(() => profileGate.refresh()).called(1);
+    });
+
+    test('does not refresh the gate when it is already open', () async {
+      when(() => profileGate.isGated).thenReturn(false);
+
+      await policy.onForegroundPush();
+
+      // The mirror of the resume defence. An approved member receives the
+      // overwhelming majority of pushes and must pay nothing for this hook.
       verifyNever(() => profileGate.refresh());
     });
   });

@@ -14,6 +14,7 @@ import '../blocs/my_profile/my_profile_cubit.dart';
 import '../blocs/my_profile/my_profile_state.dart';
 import '../blocs/photo_manager/photo_manager_state.dart';
 import '../blocs/profile_gate/profile_gate_cubit.dart';
+import '../blocs/profile_gate/profile_gate_state.dart';
 import 'photo_manager/photo_manager_screen.dart';
 import '../mappers/my_profile_to_other_profile.dart';
 import '../widgets/full_profile_body.dart';
@@ -110,19 +111,7 @@ class _Loaded extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (profile.profileStatus != ProfileStatus.unknown)
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  QeranSpacing.s20,
-                  QeranSpacing.s12,
-                  QeranSpacing.s20,
-                  QeranSpacing.s12,
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: ProfileStatusChip(status: profile.profileStatus),
-                ),
-              ),
+            const _GateStatusChip(),
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 QeranSpacing.s20,
@@ -142,6 +131,46 @@ class _Loaded extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The owner's review state, read from the app-scoped [ProfileGateCubit].
+///
+/// That cubit already holds the `GET /api/profile` this chip needs, so taking
+/// the status from it rather than from [MyProfileCubit]'s own copy leaves ONE
+/// source: the chip and the gate banner can no longer disagree, and a status
+/// refreshed on resume or on a foreground push reaches the chip with them. The
+/// profile cubit still feeds the hero, the photos and the placements — only
+/// `profileStatus` stops being read from it.
+///
+/// Renders nothing until the gate resolves (loading, or fetch-failed and
+/// failing open) — the same nothing an unrecognised [ProfileStatus.unknown]
+/// has always drawn here. No new visual state.
+class _GateStatusChip extends StatelessWidget {
+  const _GateStatusChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileGateCubit, ProfileGateState>(
+      builder: (context, state) {
+        final status = state is ProfileGateResolved ? state.status : null;
+        if (status == null || status == ProfileStatus.unknown) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            QeranSpacing.s20,
+            QeranSpacing.s12,
+            QeranSpacing.s20,
+            QeranSpacing.s12,
+          ),
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: ProfileStatusChip(status: status),
+          ),
+        );
+      },
     );
   }
 }

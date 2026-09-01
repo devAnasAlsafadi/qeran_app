@@ -39,15 +39,9 @@ class _Panel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          QeranTextField(
+          QeranSearchField(
             controller: controller,
             focusNode: focusNode,
-            hint: LocaleKeys.filters_search_hint.t(context),
-            prefix: const Icon(
-              Icons.search_rounded,
-              color: QeranColors.inkFaint,
-              size: 20,
-            ),
             onChanged: onQueryChanged,
           ),
           QeranSpacing.vs8,

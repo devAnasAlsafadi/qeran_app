@@ -6,8 +6,8 @@ import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
+import 'qeran_search_field.dart';
 import 'qeran_selectable_option.dart';
-import 'qeran_text_field.dart';
 
 part 'qeran_filter_searchable_facet_parts.dart';
 part 'qeran_filter_searchable_facet_row.dart';

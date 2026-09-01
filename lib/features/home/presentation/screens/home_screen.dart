@@ -20,6 +20,7 @@ import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart'
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_back_trail.dart';
+import 'package:qeran/features/home/presentation/home_refresh_policy.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
 import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
@@ -76,18 +77,19 @@ class _HomeScreenState extends State<HomeScreen>
   StreamSubscription<RemoteMessage>? _notifTapSub;
   StreamSubscription<RemoteMessage>? _notifForegroundSub;
 
+  /// When the shell re-reads the state that lives above the tabs. Every
+  /// dependency is an app-scoped singleton, so this holds no state of its own.
+  late final HomeRefreshPolicy _refresh = HomeRefreshPolicy(
+    profileGate: sl<ProfileGateCubit>(),
+    badges: sl<BadgesCubit>(),
+    subscription: sl<CurrentSubscriptionCubit>(),
+  );
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // A new shell means a new signed-in session. Refresh the app-scoped gate
-    // instead of reusing another account's resolved status. Fetch failures
-    // remain fail-open; the backend stays the real action gate.
-    unawaited(sl<ProfileGateCubit>().refresh());
-    // A new shell means a new session — start from the server's counts rather
-    // than whatever the last account left behind.
-    sl<BadgesCubit>().clear();
-    unawaited(sl<BadgesCubit>().refresh());
+    unawaited(_refresh.onShellMount());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
     _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
     FirebaseMessaging.instance.getInitialMessage().then((m) {
@@ -95,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen>
     });
     // Foreground push → refresh the unread indicators (no auto-navigation).
     _notifForegroundSub = FirebaseMessaging.onMessage.listen((_) {
-      unawaited(sl<BadgesCubit>().refresh());
+      unawaited(_refresh.onForegroundPush());
     });
   }
 
@@ -112,8 +114,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      unawaited(sl<BadgesCubit>().refresh());
-      unawaited(sl<CurrentSubscriptionCubit>().refresh(force: true));
+      unawaited(_refresh.onResume());
     }
   }
 

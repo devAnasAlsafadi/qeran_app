@@ -78,12 +78,22 @@ void main() {
       verifyNever(() => badges.clear());
     });
 
-    test('does not refresh the gate — the staleness bug, pinned', () async {
+    test('refreshes the gate, so an approval no longer needs a restart',
+        () async {
       await policy.onResume();
 
-      // Characterisation, NOT the desired behaviour: this is why an approval
-      // needs a process kill to show up. Flipped in the next sub-step.
-      verifyNever(() => profileGate.refresh());
+      verify(() => profileGate.refresh()).called(1);
+    });
+
+    test('refreshes the gate even when the gate is already open', () async {
+      when(() => profileGate.isGated).thenReturn(false);
+
+      await policy.onResume();
+
+      // Unconditional on purpose. Refreshing only while gated would let an
+      // approval open the gate and never let a later hide or rejection close
+      // it — the bug we are fixing, mirrored.
+      verify(() => profileGate.refresh()).called(1);
     });
   });
 

@@ -43,8 +43,19 @@ class HomeRefreshPolicy {
   }
 
   /// The app returned to the foreground.
-  Future<void> onResume() =>
-      Future.wait([_badges.refresh(), _subscription.refresh(force: true)]);
+  ///
+  /// The gate is re-read here because nothing else re-reads it: it is fetched
+  /// on shell mount, and the shell only mounts on a cold start. That is why an
+  /// approval granted while the member watched needed a process kill to show up.
+  ///
+  /// UNCONDITIONAL, deliberately. Guarding on `isGated` would let an approval
+  /// OPEN the gate and never let a later hide or rejection CLOSE it again —
+  /// the same staleness bug pointing the other way.
+  Future<void> onResume() => Future.wait([
+    _profileGate.refresh(),
+    _badges.refresh(),
+    _subscription.refresh(force: true),
+  ]);
 
   /// A push arrived while the app was already foregrounded. Refreshes the
   /// unread indicators; navigation is never automatic.

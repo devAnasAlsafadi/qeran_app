@@ -36,10 +36,14 @@ class QeranTextField extends StatefulWidget {
     this.readOnly = false,
     this.maxLength,
     this.maxLines = 1,
+    this.minLines,
     this.prefix,
     this.suffix,
     this.autofillHints,
-  });
+  }) : assert(
+         minLines == null || minLines <= maxLines,
+         'minLines cannot exceed maxLines',
+       );
 
   final TextEditingController controller;
 
@@ -70,6 +74,12 @@ class QeranTextField extends StatefulWidget {
   final bool readOnly;
   final int? maxLength;
   final int maxLines;
+
+  /// How many lines the field RESTS at before anything is typed. `null`
+  /// (default) keeps every existing call site opening at one line and growing
+  /// from there; setting it gives a text area a taller resting box that still
+  /// grows to [maxLines] and then scrolls inside itself.
+  final int? minLines;
 
   /// Arbitrary leading widget — an icon, or a richer control like the
   /// country-code picker for the phone field.
@@ -180,6 +190,9 @@ class _QeranTextFieldState extends State<QeranTextField> {
         maxLength: widget.maxLength,
         // Obscured input must stay single-line.
         maxLines: widget.obscureText ? 1 : widget.maxLines,
+        // Dropped alongside it: a resting height above the forced ceiling of 1
+        // would trip the framework's own `maxLines >= minLines` assert.
+        minLines: widget.obscureText ? null : widget.minLines,
         autofillHints: widget.autofillHints,
         cursorColor: QeranColors.wine,
         style: QeranTypography.body.copyWith(color: QeranColors.inkStrong),

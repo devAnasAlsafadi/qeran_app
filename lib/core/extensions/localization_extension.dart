@@ -1,10 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-/// Matches a translation key (`errors.invalid_credentials`) and nothing a
-/// backend would ever send as prose — every segment is ASCII word chars and
-/// there is at least one dot. Arabic/English sentences never match.
-final RegExp _kLooksLikeKey = RegExp(r'^[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)+$');
+import '../errors/server_error_classifier.dart';
 
 extension LocalizationExtension on String {
   String t(BuildContext context, {Map<String, String>? namedArgs}) =>
@@ -22,6 +19,6 @@ extension LocalizationExtension on String {
   String tOrRaw(BuildContext context) {
     final value = trim();
     if (value.isEmpty) return value;
-    return _kLooksLikeKey.hasMatch(value) ? value.t(context) : value;
+    return kLocaleKeyShape.hasMatch(value) ? value.t(context) : value;
   }
 }

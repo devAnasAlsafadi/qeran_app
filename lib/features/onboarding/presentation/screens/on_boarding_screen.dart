@@ -19,7 +19,7 @@ import '../widgets/onboarding_top_bar.dart';
 /// The onboarding wizard coordinator: a 3-page `PageView` (essence · mediation ·
 /// roadmap) with a shared top bar (skip / language) and a per-frame nav row.
 /// All page math routes through the untouched [OnboardingCubit]; the
-/// brand-splash moment now lives in the Lottie splash, so onboarding opens
+/// brand-splash moment now lives in the splash animation, so onboarding opens
 /// directly on essence/privacy.
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});

@@ -19,7 +19,7 @@ class SplashCubit extends Cubit<SplashState> with SafeEmit<SplashState> {
   /// re-shown on cold start. Photo upload is optional and never gates Home.
   Future<void> checkAuthStatus() async {
     // No artificial delay: the route decision resolves as fast as storage
-    // reads allow. The splash's on-screen duration is driven by the Lottie
+    // reads allow. The splash's on-screen duration is driven by the brand
     // animation completing (see SplashScreen), not by a timer here.
     //
     // Every path below emits a Navigate* state; a thrown storage read (e.g. a

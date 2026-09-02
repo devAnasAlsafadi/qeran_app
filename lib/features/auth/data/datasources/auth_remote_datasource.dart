@@ -327,16 +327,32 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       AppLogger.error('Firebase Google login failed', error: e, tag: 'AUTH');
       throw AuthException(message: _mapFirebaseError(e.code));
     } on GoogleSignInException catch (e) {
-      AppLogger.error('Google sign-in failed', error: e, tag: 'AUTH');
-      throw AuthException(message: 'فشل تسجيل الدخول بـ Google');
+      // Release-visible on purpose. On iOS this catch is where a missing client
+      // configuration lands, and the generic toast below tells nobody which
+      // failure it was — so in a shipped build the cause reached nothing at all
+      // and cost a whole investigation to rediscover.
+      //
+      // Only the plugin's own diagnostics are written: an enum name and its
+      // description. Neither carries anything the user typed.
+      AppLogger.releaseDiagnostic(
+        'Google sign-in failed: code=${e.code.name} description=${e.description}',
+        tag: 'AUTH',
+      );
+      throw AuthException(message: LocaleKeys.errors_auth_failed_google);
     } on AuthException {
       rethrow;
     } catch (e) {
       // Let an offline signal bubble to the repository as OfflineFailure
       // instead of being masked as a generic Google-login failure.
       if (e is OfflineException) rethrow;
-      AppLogger.error('Unexpected Google sign-in error', error: e, tag: 'AUTH');
-      throw AuthException(message: 'فشل تسجيل الدخول بـ Google');
+      // Also release-visible: the type alone usually names the layer that
+      // failed (a PlatformException from the plugin, a StateError from our own
+      // wiring), which is the difference between a fix and another dig.
+      AppLogger.releaseDiagnostic(
+        'Unexpected Google sign-in error: ${e.runtimeType} - $e',
+        tag: 'AUTH',
+      );
+      throw AuthException(message: LocaleKeys.errors_auth_failed_google);
     }
   }
 

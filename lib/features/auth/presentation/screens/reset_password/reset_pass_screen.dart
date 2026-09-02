@@ -159,7 +159,7 @@ class _ResetPassScreenState extends State<ResetPassScreen> {
     } else if (state is PasswordResetFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }

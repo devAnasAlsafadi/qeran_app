@@ -125,7 +125,7 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
     } else if (state is WhatsappFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }

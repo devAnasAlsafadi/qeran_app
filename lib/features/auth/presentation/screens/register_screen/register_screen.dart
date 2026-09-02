@@ -130,7 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else if (state is RegisterFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }
@@ -164,7 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else if (state is LoginFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }

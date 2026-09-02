@@ -69,7 +69,7 @@ class _OathScreenState extends State<OathScreen> {
     } else if (state is OathFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }

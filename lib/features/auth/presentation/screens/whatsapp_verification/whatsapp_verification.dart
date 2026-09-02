@@ -222,7 +222,7 @@ class _WhatsappVerificationScreenState
     } else if (state is WhatsappFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }
@@ -246,7 +246,7 @@ class _WhatsappVerificationScreenState
     } else if (state is PasswordResetFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.t(context),
+        message: state.message.tOrRaw(context),
         type: SnackBarType.error,
       );
     }

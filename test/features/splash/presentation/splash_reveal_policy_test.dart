@@ -4,90 +4,105 @@ import 'package:qeran/features/splash/presentation/splash_reveal_policy.dart';
 void main() {
   const policy = SplashRevealPolicy();
 
-  group('how long the reveal plays', () {
-    test('honours the length the asset reports, in full', () {
-      const reported = Duration(milliseconds: 3570);
-
-      // The whole point of this sub-step: the reported length used to be
-      // squeezed into a 1.8s ceiling and played at roughly twice speed.
-      expect(policy.revealFor(reported), reported);
-    });
-
-    test('does not shorten an asset longer than the old ceiling', () {
-      // 5.23s — the length of the approved animation. Under the retired cap
-      // this came out at 1.8s.
-      const reported = Duration(milliseconds: 5230);
-
-      expect(policy.revealFor(reported), reported);
-    });
-
-    test('a short asset is not stretched either', () {
-      const reported = Duration(milliseconds: 400);
-
-      expect(policy.revealFor(reported), reported);
-    });
-
-    test('falls back when the asset reports nothing usable', () {
-      // Asserted against a LITERAL, not against the constant it returns —
-      // comparing `revealFor(zero)` to `fallbackReveal` compares the code with
-      // itself and passes for any value, zero included.
+  group('when the reveal is over', () {
+    test('not until playback reaches the end', () {
       expect(
-        policy.revealFor(Duration.zero),
-        const Duration(milliseconds: 1800),
+        policy.hasReachedEnd(
+          position: const Duration(seconds: 2),
+          total: const Duration(milliseconds: 4333),
+        ),
+        isFalse,
       );
     });
 
-    test('the fallback is a real length the ticker can divide by', () {
-      // A zero fallback reaches `_startReveal` as `totalUs = 0` and the
-      // reveal's elapsed/total becomes NaN — the animation never advances and
-      // only the backstop rescues the splash.
-      expect(policy.revealFor(Duration.zero), greaterThan(Duration.zero));
-    });
-
-    test('falls back on a negative duration rather than running backwards', () {
+    test('the moment playback reaches the end', () {
       expect(
-        policy.revealFor(const Duration(seconds: -1)),
-        const Duration(milliseconds: 1800),
+        policy.hasReachedEnd(
+          position: const Duration(milliseconds: 4333),
+          total: const Duration(milliseconds: 4333),
+        ),
+        isTrue,
       );
     });
 
-    test('one microsecond still counts as a real length', () {
-      // Pins the boundary at <= 0, not < 0 and not <= some fudge.
-      const reported = Duration(microseconds: 1);
+    test('a position past the end still counts', () {
+      // Player ticks are sampled, so the reported position can land beyond the
+      // duration rather than exactly on it.
+      expect(
+        policy.hasReachedEnd(
+          position: const Duration(milliseconds: 4500),
+          total: const Duration(milliseconds: 4333),
+        ),
+        isTrue,
+      );
+    });
 
-      expect(policy.revealFor(reported), reported);
+    test('one tick short is still not the end', () {
+      // Pins the boundary at >=, not at some rounded-off approximation.
+      expect(
+        policy.hasReachedEnd(
+          position: const Duration(milliseconds: 4332),
+          total: const Duration(milliseconds: 4333),
+        ),
+        isFalse,
+      );
+    });
+
+    test('an unknown length is not an instant finish', () {
+      // THE trap: before the player reports a duration, both values are zero.
+      // Answering true here ends the splash on its first frame, which is the
+      // single-frame splash the dual gate exists to prevent.
+      expect(
+        policy.hasReachedEnd(position: Duration.zero, total: Duration.zero),
+        isFalse,
+      );
+    });
+
+    test('a negative length is not an instant finish either', () {
+      expect(
+        policy.hasReachedEnd(
+          position: Duration.zero,
+          total: const Duration(seconds: -1),
+        ),
+        isFalse,
+      );
+    });
+
+    test('the start of a known asset is not the end of it', () {
+      expect(
+        policy.hasReachedEnd(
+          position: Duration.zero,
+          total: const Duration(milliseconds: 4333),
+        ),
+        isFalse,
+      );
     });
   });
 
   group('the backstop', () {
-    test('outlasts the reveal it guards', () {
-      // THE invariant of this sub-step. A 3s backstop over a 3.57s asset is
-      // what cut the animation short on every launch, and deriving the cap
-      // from the asset is what stops that drifting back.
-      expect(
-        policy.safetyCap,
-        greaterThan(policy.revealFor(SplashRevealPolicy.assetDuration)),
-      );
+    test('outlasts the asset it guards', () {
+      // A backstop that fires first is not a backstop, it is a truncation.
+      expect(policy.safetyCap, greaterThan(SplashRevealPolicy.assetDuration));
     });
 
-    test('leaves real headroom, not a hair', () {
-      // Cold-start decode and first-frame latency are spent before the reveal
-      // starts, so the slack has to be worth something.
+    test('is derived from the asset, not written down beside it', () {
+      // The coupling is the point: sub-step 3 changed the asset length and the
+      // cap had to follow without anyone remembering to edit it.
       expect(
         policy.safetyCap - SplashRevealPolicy.assetDuration,
         SplashRevealPolicy.safetyHeadroom,
       );
+    });
+
+    test('leaves real headroom, not a hair', () {
+      // Cold-start decode and first-frame latency are spent before playback
+      // starts, so the slack has to be worth something.
       expect(
         SplashRevealPolicy.safetyHeadroom,
         greaterThanOrEqualTo(const Duration(seconds: 1)),
       );
     });
 
-    test('still outlasts the fallback reveal', () {
-      // The other path into the reveal: a broken asset plays the fallback, and
-      // the backstop must not cut that short either.
-      expect(policy.safetyCap, greaterThan(policy.revealFor(Duration.zero)));
-    });
   });
 
   group('the dual gate', () {
@@ -127,8 +142,8 @@ void main() {
     });
 
     test('never goes twice', () {
-      // Both gates satisfied and already gone — a second settle must not push
-      // another route onto the stack.
+      // A tap, the end of playback and the backstop can all settle the same
+      // splash; only the first may push a route.
       expect(
         policy.shouldNavigate(
           animationSettled: true,

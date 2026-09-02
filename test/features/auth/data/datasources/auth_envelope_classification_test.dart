@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -106,5 +108,46 @@ void main() {
         newPassword: 'newpw',
       ),
     ));
+  });
+
+  // ── Social sign-in ────────────────────────────────────────────────────
+  //
+  // ⚠️ Read as SOURCE, deliberately. `_postFirebaseSignIn` is private and sits
+  // behind a Firebase chain (signInWithCredential -> UserCredential -> User ->
+  // getIdToken) that no test in this repo mocks — the existing Google tests
+  // only stub `authenticate()` to throw, never driving the success path. A
+  // structural invariant is stronger here anyway: it catches an unclassified
+  // call on ANY endpoint, present or future, not just this one.
+  group('no server call escapes the classifier', () {
+    final source = File(
+      'lib/features/auth/data/datasources/auth_remote_datasource.dart',
+    ).readAsStringSync();
+
+    test('the only raw post is the one inside _postClassified', () {
+      expect(
+        '_apiConsumer.post('.allMatches(source).length,
+        1,
+        reason: 'a call was added or reverted to an unclassified post — its '
+            'server prose would reach .t() and render verbatim',
+      );
+    });
+
+    test('firebase-signin routes through the shared helper', () {
+      // Social sign-in backs BOTH Google and Apple, so one unclassified call
+      // here leaks on two providers.
+      expect(
+        source,
+        contains('codeKeys: AuthFailureKeys.firebaseSignIn'),
+        reason: 'the social envelope must go through _postClassified',
+      );
+    });
+
+    test('the server message is never preferred over a locale key', () {
+      expect(
+        source,
+        isNot(contains('apiResponse.message ??')),
+        reason: 'that fallback prefers English prose over a translated key',
+      );
+    });
   });
 }

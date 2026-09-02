@@ -41,4 +41,9 @@ class AuthFailureKeys {
 
   /// `POST Auth/reset-password`.
   static const Map<String, String> resetPassword = {};
+
+  /// `POST Auth/firebase-signin` — backs BOTH Google and Apple sign-in.
+  /// Firebase SDK errors are a different source and stay with
+  /// `_mapFirebaseError`; this map is only for the server's own envelope.
+  static const Map<String, String> firebaseSignIn = {};
 }

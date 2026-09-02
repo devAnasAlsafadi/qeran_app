@@ -83,25 +83,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    final dynamic response;
-    try {
-      response = await _apiConsumer.post(
-        EndPoints.login,
-        body: {'email': email, 'password': password},
-      );
-    } on ServerException catch (e) {
-      // Classify HERE, on errorCode — the repository flattens every
-      // ServerException into `ServerFailure(message)` and the code is lost
-      // after this point. What leaves this method is always a locale KEY.
-      throw ServerException(
-        message: serverFailureKey(
-          e,
-          codeKeys: AuthFailureKeys.login,
-          label: 'LOGIN',
-          tag: 'AUTH',
-        ),
-      );
-    }
+    final response = await _postClassified(
+      EndPoints.login,
+      body: {'email': email, 'password': password},
+      codeKeys: AuthFailureKeys.login,
+      label: 'LOGIN',
+    );
 
     final apiResponse = ApiResponse<UserModel>.fromJson(
       response,
@@ -466,9 +453,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String idToken,
     required String displayName,
   }) async {
-    final response = await _apiConsumer.post(
+    final response = await _postClassified(
       EndPoints.firebaseSignIn,
       body: {'idToken': idToken, 'displayName': displayName},
+      codeKeys: AuthFailureKeys.firebaseSignIn,
+      label: 'FIREBASE-SIGNIN',
     );
 
     // Parse DEFENSIVELY (mirrors register-new): a brand-new social user can
@@ -480,9 +469,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // failure (status != 1) still throws.
     final apiResponse = ApiResponse<dynamic>.fromJson(response, (json) => json);
     if (!apiResponse.isSuccess) {
-      throw ServerException(
-        message: apiResponse.message ?? LocaleKeys.errors_auth_failed_google,
-      );
+      // Defensive only: _postClassified already turned a status != 1
+      // envelope into a key. Never prefer the server's prose here either.
+      throw ServerException(message: LocaleKeys.errors_auth_failed_google);
     }
     final data = apiResponse.data;
     final user = data is Map<String, dynamic>

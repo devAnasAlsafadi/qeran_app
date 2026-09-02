@@ -131,8 +131,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // `displayName` is the informal name shown across the app. The legal
     // name (`realName`) is collected later from profile edit — registration
     // deliberately asks for one name only.
-    final response = await _apiConsumer.post(
+    final response = await _postClassified(
       EndPoints.register,
+      codeKeys: AuthFailureKeys.register,
+      label: 'REGISTER',
       body: {
         'displayName': name,
         'email': email,
@@ -166,7 +168,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     } else {
       throw ServerException(
-        message: apiResponse.message ?? 'Registration failed',
+        message: LocaleKeys.errors_generic,
       );
     }
   }
@@ -181,8 +183,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'ADD-PHONE REQUEST -> userId: "$userId" | phone: ${LogMasker.phone(phoneNumber)}',
       tag: 'AUTH_DEBUG',
     );
-    final response = await _apiConsumer.post(
+    final response = await _postClassified(
       EndPoints.addPhone,
+      codeKeys: AuthFailureKeys.addPhone,
+      label: 'ADD-PHONE',
       body: {'userId': userId, 'phoneNumber': phoneNumber},
     );
 
@@ -201,8 +205,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'VERIFY-OTP REQUEST -> userId: "$userId" | phone: ${LogMasker.phone(phoneNumber)} | ${LogMasker.otp(otp)}',
       tag: 'AUTH_DEBUG',
     );
-    final response = await _apiConsumer.post(
+    final response = await _postClassified(
       EndPoints.verifyOtp,
+      codeKeys: AuthFailureKeys.verifyOtp,
+      label: 'VERIFY-OTP',
       body: {'userId': userId, 'phoneNumber': phoneNumber, 'code': otp},
     );
 
@@ -248,8 +254,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'FORGOT PASSWORD REQUEST -> phone: ${LogMasker.phone(formattedPhone)}',
       tag: 'AUTH_DEBUG',
     );
-    final response = await _apiConsumer.post(
+    final response = await _postClassified(
       EndPoints.forgotPassword,
+      codeKeys: AuthFailureKeys.forgotPassword,
+      label: 'FORGOT-PASSWORD',
       body: {'phoneNumber': formattedPhone},
     );
 
@@ -267,8 +275,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'VERIFY FORGOT OTP -> phone: ${LogMasker.phone(formattedPhone)} | ${LogMasker.otp(code)}',
       tag: 'AUTH_DEBUG',
     );
-    final response = await _apiConsumer.post(
+    final response = await _postClassified(
       EndPoints.verifyForgotPasswordOtp,
+      codeKeys: AuthFailureKeys.verifyForgotPasswordOtp,
+      label: 'VERIFY-FORGOT-OTP',
       body: {'phoneNumber': formattedPhone, 'code': code},
     );
 
@@ -287,8 +297,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'RESET PASSWORD -> phone: ${LogMasker.phone(formattedPhone)} | ${LogMasker.otp(code)}',
       tag: 'AUTH_DEBUG',
     );
-    final response = await _apiConsumer.post(
+    final response = await _postClassified(
       EndPoints.resetPassword,
+      codeKeys: AuthFailureKeys.resetPassword,
+      label: 'RESET-PASSWORD',
       body: {
         'phoneNumber': formattedPhone,
         'code': code,
@@ -421,6 +433,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   // ─── Helpers ──────────────────────────────────────────────────
+
+  /// `POST` that converts an envelope failure into a locale KEY before it
+  /// leaves this data source.
+  ///
+  /// The repository flattens every [ServerException] into
+  /// `ServerFailure(message)` and the `errorCode` is gone after that, so the
+  /// server's English prose would otherwise be rendered verbatim by `.t()`.
+  /// An endpoint with no confirmed codes passes an empty [codeKeys] and still
+  /// gets the fix: every failure degrades to the generic localized key.
+  Future<dynamic> _postClassified(
+    String path, {
+    required Object? body,
+    required Map<String, String> codeKeys,
+    required String label,
+  }) async {
+    try {
+      return await _apiConsumer.post(path, body: body);
+    } on ServerException catch (e) {
+      throw ServerException(
+        message: serverFailureKey(
+          e,
+          codeKeys: codeKeys,
+          label: label,
+          tag: 'AUTH',
+        ),
+      );
+    }
+  }
 
   Future<SuccessResponse<UserModel>> _postFirebaseSignIn({
     required String idToken,

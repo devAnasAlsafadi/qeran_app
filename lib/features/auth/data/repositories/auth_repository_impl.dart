@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -26,9 +27,10 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(
-          message: successResponse.message ?? 'Unknown Error',
-        );
+        // The server's own prose is English and must never reach the UI;
+        // a status:1 envelope with no payload has no code to classify on,
+        // so it degrades to the generic localized key.
+        throw ServerException(message: LocaleKeys.errors_generic);
       }
     });
   }
@@ -50,9 +52,10 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(
-          message: successResponse.message ?? 'Unknown Error',
-        );
+        // The server's own prose is English and must never reach the UI;
+        // a status:1 envelope with no payload has no code to classify on,
+        // so it degrades to the generic localized key.
+        throw ServerException(message: LocaleKeys.errors_generic);
       }
     });
   }
@@ -78,9 +81,10 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(
-          message: successResponse.message ?? 'Unknown Error',
-        );
+        // The server's own prose is English and must never reach the UI;
+        // a status:1 envelope with no payload has no code to classify on,
+        // so it degrades to the generic localized key.
+        throw ServerException(message: LocaleKeys.errors_generic);
       }
     });
   }
@@ -134,9 +138,10 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(
-          message: successResponse.message ?? 'Unknown Error',
-        );
+        // The server's own prose is English and must never reach the UI;
+        // a status:1 envelope with no payload has no code to classify on,
+        // so it degrades to the generic localized key.
+        throw ServerException(message: LocaleKeys.errors_generic);
       }
     });
   }
@@ -148,9 +153,10 @@ class AuthRepositoryImpl with BaseRepository implements AuthRepository {
       if (successResponse.data != null) {
         return successResponse.data!.toEntity();
       } else {
-        throw ServerException(
-          message: successResponse.message ?? 'Unknown Error',
-        );
+        // The server's own prose is English and must never reach the UI;
+        // a status:1 envelope with no payload has no code to classify on,
+        // so it degrades to the generic localized key.
+        throw ServerException(message: LocaleKeys.errors_generic);
       }
     });
   }

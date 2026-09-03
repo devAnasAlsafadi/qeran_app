@@ -47,8 +47,35 @@ class _AppLifecyclePrivacyShieldState extends State<AppLifecyclePrivacyShield>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final conceal = state != AppLifecycleState.resumed;
+    final conceal = _shouldConceal(state);
     if (conceal != _concealed) setState(() => _concealed = conceal);
+  }
+
+  /// Android is the ONE platform that does not conceal on `inactive`;
+  /// everywhere else keeps the original "anything but resumed" rule.
+  ///
+  /// `inactive` is transient focus loss with the window STILL VISIBLE — a
+  /// permission prompt, the notification shade, the screenshot preview
+  /// overlay. On Android that is not an app-switcher moment and the fill just
+  /// flashes over content the user is looking at; the recents thumbnail is
+  /// already withheld natively by FLAG_SECURE (`MainActivity`), so skipping
+  /// `inactive` there costs no protection.
+  ///
+  /// iOS has no FLAG_SECURE equivalent (QER-3), and its app-switcher gesture
+  /// leaves the app inactive-and-visible while it shrinks into its card — so
+  /// iOS must keep concealing here. Every other platform keeps the same rule
+  /// deliberately: only Android was reasoned about, so nothing else is
+  /// narrowed and nothing is left accidentally exposed.
+  ///
+  /// Reads [defaultTargetPlatform], NOT `dart:io`'s `Platform.isAndroid` that
+  /// the rest of the codebase uses. Deliberate: only this one responds to
+  /// `TargetPlatformVariant`, and `Platform.isAndroid` is false under
+  /// `flutter test` on every host, which would leave this branch permanently
+  /// unexercised.
+  static bool _shouldConceal(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) return false;
+    if (state != AppLifecycleState.inactive) return true;
+    return defaultTargetPlatform != TargetPlatform.android;
   }
 
   @override

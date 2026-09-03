@@ -36,4 +36,29 @@ void main() {
 
     expect(concealer(), findsNothing);
   }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
+  testWidgets('android does NOT conceal on inactive', (tester) async {
+    await pumpShield(tester);
+
+    await lifecycle(tester, AppLifecycleState.inactive);
+
+    // The regression guard for the flashes. `inactive` on android is a
+    // permission prompt, the shade, the screenshot preview — the window is
+    // still on screen and the user is looking at it. Painting wine here is the
+    // bug, not the protection.
+    expect(concealer(), findsNothing);
+    expect(find.text('protected content'), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
+  testWidgets('a platform we did not reason about keeps concealing', (
+    tester,
+  ) async {
+    await pumpShield(tester);
+
+    await lifecycle(tester, AppLifecycleState.inactive);
+
+    // Only android is special. Anything else keeps the original rule, so a
+    // future target is never left exposed by default.
+    expect(concealer(), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 }

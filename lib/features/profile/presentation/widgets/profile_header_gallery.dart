@@ -200,6 +200,11 @@ class _IndexBadge extends StatelessWidget {
       ),
       child: Text(
         '$index / $total',
+        // A ratio, not prose — it reads the same way in every language. Left
+        // to the ambient direction, Arabic reverses it: the bidi algorithm
+        // treats the separator between two numbers as RTL, so `1 / 5` renders
+        // as `5 / 1` and the member is told they are on photo 5 of 1.
+        textDirection: TextDirection.ltr,
         style: QeranTypography.caption.copyWith(color: QeranColors.paper),
       ),
     );

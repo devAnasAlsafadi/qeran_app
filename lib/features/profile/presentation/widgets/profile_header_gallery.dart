@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_page_indicator.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -98,13 +98,13 @@ class _ProfileHeaderGalleryState extends State<ProfileHeaderGallery> {
             PositionedDirectional(
               top: QeranSpacing.s12,
               end: QeranSpacing.s12,
-              child: _IndexBadge(index: _index + 1, total: images.length),
+              child: QeranPageCounter(index: _index + 1, total: images.length),
             ),
             Positioned(
               left: 0,
               right: 0,
               bottom: 16,
-              child: _DotsIndicator(count: images.length, current: _index),
+              child: QeranPageDots(count: images.length, current: _index),
             ),
           ],
         ],
@@ -181,63 +181,6 @@ class _EmptyState extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _IndexBadge extends StatelessWidget {
-  final int index;
-  final int total;
-  const _IndexBadge({required this.index, required this.total});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: const BoxDecoration(
-        color: QeranColors.overlayTintDark,
-        borderRadius: QeranRadii.pill,
-      ),
-      child: Text(
-        '$index / $total',
-        // A ratio, not prose — it reads the same way in every language. Left
-        // to the ambient direction, Arabic reverses it: the bidi algorithm
-        // treats the separator between two numbers as RTL, so `1 / 5` renders
-        // as `5 / 1` and the member is told they are on photo 5 of 1.
-        textDirection: TextDirection.ltr,
-        style: QeranTypography.caption.copyWith(color: QeranColors.paper),
-      ),
-    );
-  }
-}
-
-/// Bottom-centered page-position indicator. Gold + 8 dp for the active
-/// dot, cream-surface + 6 dp for the rest. Animates between states so a
-/// page swipe reads as a smooth shift rather than a hard cut.
-class _DotsIndicator extends StatelessWidget {
-  final int count;
-  final int current;
-  const _DotsIndicator({required this.count, required this.current});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(count, (i) {
-        final isActive = i == current;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          width: isActive ? 8 : 6,
-          height: isActive ? 8 : 6,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive ? QeranColors.gold : QeranColors.creamSurface,
-          ),
-        );
-      }),
     );
   }
 }

@@ -20,7 +20,11 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
 
   Timer? _ticker;
   int? _activeExchangeId;
-  bool _loading = false;
+
+  /// The re-verification currently in flight, or null. Held as a FUTURE rather
+  /// than a flag so a press arriving mid-read can wait for the answer instead
+  /// of being judged against a phase that is still `loading`.
+  Future<void>? _inFlightLoad;
 
   /// Counts the authoritative facts this cubit has learned. A permission GET
   /// issued BEFORE one of them was answered from a snapshot that predates it,
@@ -47,9 +51,12 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
        _sessionClock = sessionClock,
        super(const PhotoViewState());
 
-  Future<void> load() async {
-    if (_loading) return;
-    _loading = true;
+  /// Concurrent callers join the read already running rather than starting a
+  /// second one, and get a future they can wait on.
+  Future<void> load() =>
+      _inFlightLoad ??= _read().whenComplete(() => _inFlightLoad = null);
+
+  Future<void> _read() async {
     // Stamped at ISSUE time and compared at apply time, so this drops exactly
     // the reads that are OUT OF DATE. It deliberately does not ask "are we
     // viewing?" — that question would also swallow the re-verification that
@@ -69,7 +76,6 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
     }
 
     final result = await _getPermission(targetUserId);
-    _loading = false;
     if (isClosed) return;
     // Before the fold, not inside it: a GET that FAILS after a reveal landed
     // would otherwise clobber the open window into `failure`.
@@ -87,6 +93,19 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
   }
 
   Future<void> beginViewing() async {
+    // A re-verification already in flight is the authority on whether this
+    // press is still allowed, so DEFER to it rather than race it. Losing that
+    // scheduling coin-flip used to leave the gate below reading `loading`, and
+    // the press vanished with no feedback of any kind.
+    //
+    // Waiting is strictly safer than widening the gate to accept `loading`:
+    // that would POST against an exchangeId taken from a permission the cubit
+    // is in the middle of re-checking. This waits for the answer and then
+    // applies the same gate, so a press can still only proceed on a permission
+    // currently believed to be `available` — and if the read says the window
+    // is gone, the member sees that rather than nothing.
+    await _inFlightLoad;
+    if (isClosed) return;
     if (state.phase != PhotoViewPhase.available || state.isStarting) return;
     final exchangeId = state.permission?.photoExchangeId;
     if (exchangeId == null) return;

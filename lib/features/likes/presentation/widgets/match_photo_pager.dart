@@ -148,6 +148,10 @@ class _MatchPhotoPagerState extends State<MatchPhotoPager> {
       onPageChanged: (i) => setState(() => _index = i),
       itemCount: widget.images.length,
       itemBuilder: (_, i) => MatchPhotoPage(
+        // Keyed on the image id, not the index: it addresses one page whether
+        // or not it is the visible one, which is what lets a test assert that
+        // an OFF-SCREEN page obeys the policy too.
+        key: ValueKey<String>('match-photo-page-${widget.images[i].id}'),
         image: widget.images[i],
         // Leaving a page resets its zoom, so every page is framed the same way
         // each time it is reached.

@@ -2,20 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_motion.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/features/profile/presentation/screens/photo_manager/widgets/photo_preview_screen.dart';
 import 'package:qeran/features/report/presentation/widgets/report_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/match_image.dart';
 import '../blocs/photo_view_cubit.dart';
-import '../blocs/photo_view_state.dart';
 import 'like_blurred_image.dart';
+import 'match_photo_pager.dart';
 import 'photo_view_access_host.dart';
 import 'photo_view_overlay.dart';
+
+part 'match_gallery_sheet_parts.dart';
 
 /// Gallery shown when the user taps the avatar on a stage-1 Match card.
 /// Renders the full server-ordered image list with the per-image blur flag
@@ -49,10 +51,29 @@ Future<void> showMatchGallerySheet(
   );
 }
 
-class _MatchGallerySheet extends StatelessWidget {
+class _MatchGallerySheet extends StatefulWidget {
   final List<MatchImage> images;
   final String? targetUserId;
   const _MatchGallerySheet({required this.images, this.targetUserId});
+
+  @override
+  State<_MatchGallerySheet> createState() => _MatchGallerySheetState();
+}
+
+class _MatchGallerySheetState extends State<_MatchGallerySheet> {
+  /// The photo open in the pager, or null while the grid is showing. The pager
+  /// is a LAYER over this sheet rather than a pushed route, which is what keeps
+  /// it inside `PhotoViewScope` — see [MatchPhotoPager].
+  int? _openIndex;
+
+  void _open(int index) => setState(() => _openIndex = index);
+
+  /// Idempotent: the pager also calls this when the viewing window ends, which
+  /// can arrive while a close is already animating out.
+  void _close() {
+    if (_openIndex == null) return;
+    setState(() => _openIndex = null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,176 +83,116 @@ class _MatchGallerySheet extends StatelessWidget {
       minChildSize: 0.4,
       maxChildSize: 0.95,
       builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: QeranColors.paper,
-            borderRadius: QeranRadii.domeTop,
-          ),
-          padding: const EdgeInsets.fromLTRB(
-            QeranSpacing.s16,
-            QeranSpacing.s12,
-            QeranSpacing.s16,
-            QeranSpacing.s16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const _DragHandle(),
-              const SizedBox(height: QeranSpacing.s12),
-              Row(
-                children: [
-                  const SizedBox(width: 40),
-                  Expanded(
-                    child: Text(
-                      LocaleKeys.likes_matches_gallery_title.t(context),
-                      textAlign: TextAlign.center,
-                      style: QeranTypography.title.copyWith(
-                        color: QeranColors.wine,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 40,
-                    child: targetUserId == null
-                        ? null
-                        : IconButton(
-                            tooltip: LocaleKeys.report_title.t(context),
-                            icon: const Icon(
-                              Icons.flag_outlined,
-                              color: QeranColors.wine,
-                              size: 22,
-                            ),
-                            onPressed: () => showReportSheet(
-                              context,
-                              targetUserId: targetUserId,
-                            ),
+        return Stack(
+          children: [
+            Positioned.fill(child: _grid(scrollController)),
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: _openIndex == null,
+                child: AnimatedSwitcher(
+                  // The route this replaces flew a Hero into place. A layer
+                  // cannot fly, so it fades — a hard cut on a photo the member
+                  // has one chance to see reads as a glitch.
+                  duration: QeranMotion.standard,
+                  child: _openIndex == null
+                      ? const SizedBox.shrink()
+                      : ClipRRect(
+                          // Keeps the sheet's domed top instead of painting
+                          // square corners over it.
+                          borderRadius: QeranRadii.domeTop,
+                          child: MatchPhotoPager(
+                            images: widget.images,
+                            initialIndex: _openIndex!,
+                            onClose: _close,
                           ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: QeranSpacing.s12),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: GridView.builder(
-                        controller: scrollController,
-                        padding: const EdgeInsets.only(top: QeranSpacing.s8),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: QeranSpacing.s12,
-                              crossAxisSpacing: QeranSpacing.s12,
-                              childAspectRatio: 0.85,
-                            ),
-                        itemCount: images.length,
-                        itemBuilder: (context, index) =>
-                            _GalleryTile(image: images[index]),
-                      ),
-                    ),
-                    const PhotoViewOverlay(),
-                  ],
+                        ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
   }
-}
 
-class _DragHandle extends StatelessWidget {
-  const _DragHandle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 44,
-        height: 4,
-        decoration: BoxDecoration(
-          color: QeranColors.wine.withValues(alpha: 0.30),
-          borderRadius: QeranRadii.pill,
-        ),
+  Widget _grid(ScrollController scrollController) {
+    final targetUserId = widget.targetUserId;
+    return Container(
+      decoration: const BoxDecoration(
+        color: QeranColors.paper,
+        borderRadius: QeranRadii.domeTop,
+      ),
+      padding: const EdgeInsets.fromLTRB(
+        QeranSpacing.s16,
+        QeranSpacing.s12,
+        QeranSpacing.s16,
+        QeranSpacing.s16,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _DragHandle(),
+          const SizedBox(height: QeranSpacing.s12),
+          Row(
+            children: [
+              const SizedBox(width: 40),
+              Expanded(
+                child: Text(
+                  LocaleKeys.likes_matches_gallery_title.t(context),
+                  textAlign: TextAlign.center,
+                  style: QeranTypography.title.copyWith(
+                    color: QeranColors.wine,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 40,
+                child: targetUserId == null
+                    ? null
+                    : IconButton(
+                        tooltip: LocaleKeys.report_title.t(context),
+                        icon: const Icon(
+                          Icons.flag_outlined,
+                          color: QeranColors.wine,
+                          size: 22,
+                        ),
+                        onPressed: () => showReportSheet(
+                          context,
+                          targetUserId: targetUserId,
+                        ),
+                      ),
+              ),
+            ],
+          ),
+          const SizedBox(height: QeranSpacing.s12),
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: GridView.builder(
+                    controller: scrollController,
+                    padding: const EdgeInsets.only(top: QeranSpacing.s8),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: QeranSpacing.s12,
+                          crossAxisSpacing: QeranSpacing.s12,
+                          childAspectRatio: 0.85,
+                        ),
+                    itemCount: widget.images.length,
+                    itemBuilder: (context, index) => _GalleryTile(
+                      image: widget.images[index],
+                      onOpen: () => _open(index),
+                    ),
+                  ),
+                ),
+                const PhotoViewOverlay(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-
-/// One photo in the gallery grid.
-///
-/// Tappable exactly when the photo is already being shown CLEAR — during the
-/// open 60-second window. A blurred tile (locked, or the window spent) ignores
-/// taps entirely rather than offering a zoom of a redacted image.
-class _GalleryTile extends StatelessWidget {
-  const _GalleryTile({required this.image});
-
-  final MatchImage image;
-
-  @override
-  Widget build(BuildContext context) {
-    final access = PhotoViewScope.maybeOf(context);
-    final blurred = access?.effectiveBlur(image.isBlurred) ?? image.isBlurred;
-    final tile = LikeBlurredImage(
-      url: image.url,
-      blur: image.isBlurred,
-      blurredUrl: image.blurredUrl,
-      blurredThumbnailUrl: image.blurredThumbnailUrl,
-      size: null,
-      shape: BoxShape.rectangle,
-      borderRadius: QeranRadii.cardR,
-    );
-    if (blurred || image.url.isEmpty) return tile;
-    return GestureDetector(
-      onTap: () => _openPreview(context),
-      child: Hero(tag: serverPhotoHeroTag(image.id), child: tile),
-    );
-  }
-
-  void _openPreview(BuildContext context) {
-    // The preview is pushed ABOVE this scope, so it cannot inherit the policy.
-    // It gets the cubit by value — to close itself the moment the window ends
-    // — and `memoryOnly` so the clear bytes never reach the disk cache.
-    PhotoViewCubit? cubit;
-    try {
-      cubit = context.read<PhotoViewCubit>();
-    } catch (_) {
-      cubit = null;
-    }
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) {
-          final preview = PhotoPreviewScreen.network(
-            imageUrl: image.url,
-            imageId: image.id,
-            memoryOnly: cubit != null,
-          );
-          if (cubit == null) return preview;
-          return BlocProvider<PhotoViewCubit>.value(
-            value: cubit,
-            child: _PopWhenWindowCloses(child: preview),
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// Pops the full-screen preview as soon as the viewing window ends, so an open
-/// zoom cannot outlive the 60 seconds it was granted.
-class _PopWhenWindowCloses extends StatelessWidget {
-  const _PopWhenWindowCloses({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<PhotoViewCubit, PhotoViewState>(
-      listenWhen: (previous, current) => current.phase != PhotoViewPhase.viewing,
-      listener: (context, _) => Navigator.of(context).maybePop(),
-      child: child,
-    );
-  }
-}

@@ -7,6 +7,7 @@ import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
+import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
 import 'user_session_state.dart';
 
 /// App-scoped holder for the currently signed-in user.
@@ -25,13 +26,21 @@ class UserSessionCubit extends Cubit<UserSessionState>
   final SharedPrefService _sharedPrefs;
   final GoogleSignInService _googleSignIn;
 
+  /// What the auth forms carried between login and register. It outlives both
+  /// screens, so tearing the session down has to reach it explicitly.
+  final AuthFormMemo _formMemo;
+
+  /// [formMemo] defaults to the app-scoped instance; a test that has not booted
+  /// the container gets an isolated one rather than a lookup crash.
   UserSessionCubit({
     required StorageService secureStorage,
     required SharedPrefService sharedPrefs,
     required GoogleSignInService googleSignIn,
+    AuthFormMemo? formMemo,
   }) : _secureStorage = secureStorage,
        _sharedPrefs = sharedPrefs,
        _googleSignIn = googleSignIn,
+       _formMemo = formMemo ?? resolveAuthFormMemo(),
        super(const UserSessionInitial());
 
   /// Synchronous accessor for call sites that can't await a stream.
@@ -121,10 +130,15 @@ class UserSessionCubit extends Cubit<UserSessionState>
     );
   }
 
-  /// Clears the persisted session and emits `Unauthenticated`. Stubbed for
-  /// the future logout flow — not yet wired into any UI.
+  /// Clears the persisted session and emits `Unauthenticated`. Reached from
+  /// the logout action on `ProfileScreen` and `MatchmakerAccountScreen`.
+  ///
+  /// Also drops what the auth forms remembered. The memo is app-scoped and
+  /// survives the screens that filled it, so without this the NEXT person to
+  /// open login on the device is greeted by the previous account's email.
   Future<void> signOut() async {
     await _clearSocialSessions();
+    _formMemo.clear();
     await _secureStorage.remove(StorageKeys.token);
     await _sharedPrefs.remove(StorageKeys.userId);
     await _sharedPrefs.remove(StorageKeys.userName);
@@ -153,6 +167,10 @@ class UserSessionCubit extends Cubit<UserSessionState>
     await _clearSocialSessions();
     // Secure: only the JWT (+ any sensitive auth) — safe to clear wholesale.
     await _secureStorage.clear();
+    // Sharper here than on sign-out: an email outliving a PERMANENT delete is
+    // the account still being on the device after the member asked for it to
+    // be gone.
+    _formMemo.clear();
     for (final key in _accountPrefKeys) {
       await _sharedPrefs.remove(key);
     }

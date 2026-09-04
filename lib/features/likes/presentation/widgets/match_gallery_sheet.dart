@@ -19,6 +19,15 @@ import 'photo_view_overlay.dart';
 
 part 'match_gallery_sheet_parts.dart';
 
+/// Where the sheet rests while the grid is showing — still reads as a sheet,
+/// with the card it was opened from visible behind it.
+const double _kRestingSize = 0.7;
+
+/// Where it goes while a photo is open. The pager stays INSIDE the sheet (see
+/// [MatchPhotoPager] for why that is not negotiable), so the only way to give
+/// a photo the screen is to give it to the host.
+const double _kExpandedSize = 0.95;
+
 /// Gallery shown when the user taps the avatar on a stage-1 Match card.
 /// Renders the full server-ordered image list with the per-image blur flag
 /// honored, and lets the user open any photo they can already see clearly
@@ -66,26 +75,64 @@ class _MatchGallerySheetState extends State<_MatchGallerySheet> {
   /// it inside `PhotoViewScope` — see [MatchPhotoPager].
   int? _openIndex;
 
-  void _open(int index) => setState(() => _openIndex = index);
+  /// Drives the sheet's own extent so opening a photo can expand the host.
+  /// Only the HEIGHT moves — the pager never leaves this subtree.
+  final DraggableScrollableController _sheetController =
+      DraggableScrollableController();
+
+  @override
+  void dispose() {
+    _sheetController.dispose();
+    super.dispose();
+  }
+
+  void _open(int index) {
+    setState(() => _openIndex = index);
+    _resize(_kExpandedSize);
+  }
 
   /// Idempotent: the pager also calls this when the viewing window ends, which
   /// can arrive while a close is already animating out.
   void _close() {
     if (_openIndex == null) return;
     setState(() => _openIndex = null);
+    _resize(_kRestingSize);
+  }
+
+  /// The controller detaches as the sheet is dismissed, and `animateTo`
+  /// asserts on a detached one — a window that ends on the way out would
+  /// otherwise crash instead of just closing.
+  void _resize(double size) {
+    if (!_sheetController.isAttached) return;
+    _sheetController.animateTo(
+      size,
+      duration: QeranMotion.gentle,
+      curve: QeranCurves.standard,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
+      controller: _sheetController,
       expand: false,
-      initialChildSize: 0.7,
+      initialChildSize: _kRestingSize,
       minChildSize: 0.4,
-      maxChildSize: 0.95,
+      maxChildSize: _kExpandedSize,
       builder: (context, scrollController) {
+        // Rebuilt on every extent tick of the resize. The pager sits at a
+        // fixed spot in this tree with an unchanging type, so it is UPDATED
+        // rather than replaced — its page index and its zoom survive.
         return Stack(
           children: [
-            Positioned.fill(child: _grid(scrollController)),
+            Positioned.fill(
+              child: _GalleryGrid(
+                images: widget.images,
+                targetUserId: widget.targetUserId,
+                scrollController: scrollController,
+                onOpen: _open,
+              ),
+            ),
             Positioned.fill(
               child: IgnorePointer(
                 ignoring: _openIndex == null,
@@ -114,85 +161,4 @@ class _MatchGallerySheetState extends State<_MatchGallerySheet> {
       },
     );
   }
-
-  Widget _grid(ScrollController scrollController) {
-    final targetUserId = widget.targetUserId;
-    return Container(
-      decoration: const BoxDecoration(
-        color: QeranColors.paper,
-        borderRadius: QeranRadii.domeTop,
-      ),
-      padding: const EdgeInsets.fromLTRB(
-        QeranSpacing.s16,
-        QeranSpacing.s12,
-        QeranSpacing.s16,
-        QeranSpacing.s16,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const _DragHandle(),
-          const SizedBox(height: QeranSpacing.s12),
-          Row(
-            children: [
-              const SizedBox(width: 40),
-              Expanded(
-                child: Text(
-                  LocaleKeys.likes_matches_gallery_title.t(context),
-                  textAlign: TextAlign.center,
-                  style: QeranTypography.title.copyWith(
-                    color: QeranColors.wine,
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 40,
-                child: targetUserId == null
-                    ? null
-                    : IconButton(
-                        tooltip: LocaleKeys.report_title.t(context),
-                        icon: const Icon(
-                          Icons.flag_outlined,
-                          color: QeranColors.wine,
-                          size: 22,
-                        ),
-                        onPressed: () => showReportSheet(
-                          context,
-                          targetUserId: targetUserId,
-                        ),
-                      ),
-              ),
-            ],
-          ),
-          const SizedBox(height: QeranSpacing.s12),
-          Expanded(
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: GridView.builder(
-                    controller: scrollController,
-                    padding: const EdgeInsets.only(top: QeranSpacing.s8),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: QeranSpacing.s12,
-                          crossAxisSpacing: QeranSpacing.s12,
-                          childAspectRatio: 0.85,
-                        ),
-                    itemCount: widget.images.length,
-                    itemBuilder: (context, index) => _GalleryTile(
-                      image: widget.images[index],
-                      onOpen: () => _open(index),
-                    ),
-                  ),
-                ),
-                const PhotoViewOverlay(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
-

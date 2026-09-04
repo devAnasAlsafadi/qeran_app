@@ -22,6 +22,21 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
   int? _activeExchangeId;
   bool _loading = false;
 
+  /// Counts the authoritative facts this cubit has learned. A permission GET
+  /// issued BEFORE one of them was answered from a snapshot that predates it,
+  /// so applying its result would undo the newer fact.
+  ///
+  /// Two things bump it, and both are things the server already knows and an
+  /// older read does not: a completed reveal POST, and a 403 saying the window
+  /// is dead. The second matters most — a read issued before a revocation
+  /// still says "viewing", and applying it would resurrect a window the server
+  /// has already closed.
+  ///
+  /// Every bump is paired with its own `emit`, which is what makes dropping a
+  /// read safe: the write that trips the guard has already replaced whatever
+  /// [load] put on screen, so nothing is left stranded at `loading`.
+  int _authorityVersion = 0;
+
   PhotoViewCubit({
     required this.targetUserId,
     required GetPhotoViewPermissionUseCase getPermission,
@@ -35,6 +50,12 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
   Future<void> load() async {
     if (_loading) return;
     _loading = true;
+    // Stamped at ISSUE time and compared at apply time, so this drops exactly
+    // the reads that are OUT OF DATE. It deliberately does not ask "are we
+    // viewing?" — that question would also swallow the re-verification that
+    // catches a REVOKED window on resume, turning this into a leak. A read
+    // issued after the newest fact always applies, revocation included.
+    final issuedAt = _authorityVersion;
 
     if (state.phase == PhotoViewPhase.viewing) {
       emit(state.copyWith(isConcealed: true, clearError: true));
@@ -50,6 +71,9 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
     final result = await _getPermission(targetUserId);
     _loading = false;
     if (isClosed) return;
+    // Before the fold, not inside it: a GET that FAILS after a reveal landed
+    // would otherwise clobber the open window into `failure`.
+    if (_authorityVersion != issuedAt) return;
     result.fold(
       (failure) => emit(
         PhotoViewState(
@@ -78,7 +102,12 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
           eventVersion: state.eventVersion + 1,
         ),
       ),
-      _startSession,
+      (session) {
+        // The POST changed server state. Any permission read already in flight
+        // was answered before that, so it can no longer speak for this cubit.
+        _authorityVersion += 1;
+        _startSession(session);
+      },
     );
   }
 
@@ -94,6 +123,9 @@ class PhotoViewCubit extends Cubit<PhotoViewState>
   /// memory-only providers via rebuild/dispose, then reconcile silently.
   void markImageAccessConsumed() {
     if (state.phase == PhotoViewPhase.consumed) return;
+    // A read in flight was issued before this 403 and still believes the
+    // window is open. Fail closed: it must not be allowed to reopen it.
+    _authorityVersion += 1;
     // The visible countdown is gone, so the end of the window has to announce
     // itself — but only to someone who was actually looking at the photos. A
     // 403 that arrives before any reveal is not an expiry they witnessed.

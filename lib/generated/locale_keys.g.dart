@@ -43,6 +43,15 @@ abstract class  LocaleKeys {
   static const errors_invalid_server_response = 'errors.invalid_server_response';
   static const errors_unauthorized_access = 'errors.unauthorized_access';
   static const errors_invalid_credentials = 'errors.invalid_credentials';
+  static const errors_email_already_exists = 'errors.email_already_exists';
+  static const errors_phone_already_registered = 'errors.phone_already_registered';
+  static const errors_otp_invalid = 'errors.otp_invalid';
+  static const errors_otp_not_found = 'errors.otp_not_found';
+  static const errors_otp_max_attempts = 'errors.otp_max_attempts';
+  static const errors_otp_cooldown = 'errors.otp_cooldown';
+  static const errors_account_not_found = 'errors.account_not_found';
+  static const errors_password_mismatch = 'errors.password_mismatch';
+  static const errors_social_account_already_linked = 'errors.social_account_already_linked';
   static const errors_account_deactivated = 'errors.account_deactivated';
   static const errors_questions_load_failed = 'errors.questions_load_failed';
   static const errors_network_failed = 'errors.network_failed';

@@ -19,7 +19,9 @@ AuthFormMemo resolveAuthFormMemo() =>
 /// correct trade for a matrimony account.
 ///
 /// In-memory and never persisted. Cleared the moment sign-in or registration
-/// succeeds, and again on sign-out.
+/// succeeds, and again when the session is torn down — both sign-out and a
+/// permanent account deletion, in `UserSessionCubit`. It is app-scoped and
+/// outlives the two screens, so nothing else drops it.
 class AuthFormMemo {
   String _email = '';
   String _displayName = '';

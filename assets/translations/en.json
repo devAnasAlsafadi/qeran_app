@@ -423,6 +423,7 @@
     "validate_code": "Validate",
     "remove_code": "Remove",
     "discount_ios_unavailable": "Discount not available on iPhone yet",
+    "discount_code_invalid": "This discount code is invalid or has expired",
     "restore_purchases": "Restore purchases",
     "restore_purchases_subtitle": "If you previously purchased a subscription on this account",
     "legal_binding_line": "By subscribing, you agree to the ",

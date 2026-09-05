@@ -65,8 +65,21 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
   bool _reconcileInFlight = false;
 
   /// Validates [code] against [productId] for the current platform. Emits
-  /// [PackagePurchaseValidatingCode] then success/failure. A server `valid:false`
-  /// surfaces as [PackagePurchaseCodeValidationFailure] with the server message.
+  /// [PackagePurchaseValidatingCode] then success/failure.
+  ///
+  /// Both failure branches carry a locale KEY, never the server's own text.
+  /// `message` on this endpoint is prose — the display site translates what it
+  /// is handed, so prose arriving there is shown verbatim: right in Arabic by
+  /// luck, and Arabic in an English UI.
+  ///
+  /// The two branches stay separate on purpose. A rejected code and a request
+  /// that never got an answer are different facts, and on a payment path
+  /// telling someone their code is wrong when the network failed is a lie the
+  /// member acts on.
+  ///
+  /// One key covers every rejection — wrong, expired, already used — because
+  /// the endpoint returns no errorCode to tell them apart. Recovering that
+  /// from the prose would mean matching on Arabic sentences.
   Future<void> validateDiscountCode({
     required String code,
     required String productId,
@@ -80,14 +93,24 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
     );
     if (isClosed) return;
     result.fold(
-      (failure) => emit(
-        PackagePurchaseCodeValidationFailure(message: failure.message),
-      ),
+      // The request itself failed. `failure.message` is whatever the server or
+      // transport said, so it is logged and dropped rather than shown.
+      (failure) {
+        AppLogger.warning(
+          'VALIDATE CODE failed — serverMessage="${failure.message}"',
+          tag: 'SUBSCRIPTIONS',
+        );
+        emit(
+          const PackagePurchaseCodeValidationFailure(
+            message: LocaleKeys.errors_generic,
+          ),
+        );
+      },
       (response) => emit(
         response.valid
             ? PackagePurchaseCodeValidationSuccess(response: response)
-            : PackagePurchaseCodeValidationFailure(
-                message: response.message ?? LocaleKeys.errors_generic,
+            : const PackagePurchaseCodeValidationFailure(
+                message: LocaleKeys.subscriptions_discount_code_invalid,
               ),
       ),
     );

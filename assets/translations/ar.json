@@ -423,6 +423,7 @@
     "validate_code": "تحقق",
     "remove_code": "إزالة",
     "discount_ios_unavailable": "الخصم غير متاح حالياً على iPhone",
+    "discount_code_invalid": "كود الخصم غير صالح أو منتهي الصلاحية",
     "restore_purchases": "استعادة المشتريات",
     "restore_purchases_subtitle": "إذا اشتريت اشتراكاً سابقاً على هذا الحساب",
     "legal_binding_line": "بالاشتراك، أنت توافق على ",

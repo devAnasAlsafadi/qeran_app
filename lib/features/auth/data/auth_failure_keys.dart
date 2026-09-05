@@ -22,11 +22,10 @@ import 'error_codes.dart';
 /// map that omitted it would degrade "check what you typed" into "something
 /// went wrong" on that one screen alone.
 ///
-/// Three live codes are deliberately absent. `OTP_SEND_FAILED` and
+/// Two live codes are deliberately absent. `OTP_SEND_FAILED` and
 /// `FIREBASE_TOKEN_INVALID` are infrastructure failures with nothing the
 /// member can act on, so a specific sentence would only be a more precise way
-/// of saying "try again". `INVALID_OLD_PASSWORD` belongs to
-/// `Auth/change-password`, whose data source is not classified at all.
+/// of saying "try again".
 class AuthFailureKeys {
   AuthFailureKeys._();
 
@@ -81,6 +80,19 @@ class AuthFailureKeys {
   static const Map<String, String> resetPassword = {
     AuthErrorCodes.passwordMismatch: LocaleKeys.errors_password_mismatch,
     AuthErrorCodes.otpInvalid: LocaleKeys.errors_otp_invalid,
+    AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
+  };
+
+  /// `POST Auth/change-password`. Lives on a SEPARATE data source from the
+  /// seven above, which is why it was unclassified until now.
+  ///
+  /// Where each of these is shown is decided once, in `ChangePasswordCubit` —
+  /// only the wrong-current-password case is anchored under a field, because
+  /// it is the only one that is about that field.
+  static const Map<String, String> changePassword = {
+    AuthErrorCodes.invalidOldPassword:
+        LocaleKeys.settings_change_password_incorrect,
+    AuthErrorCodes.passwordMismatch: LocaleKeys.errors_password_mismatch,
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 

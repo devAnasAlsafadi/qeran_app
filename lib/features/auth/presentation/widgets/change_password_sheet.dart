@@ -77,14 +77,21 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
         );
         Navigator.of(context).pop();
       case ChangePasswordStatus.failure:
-        if (state.error == ChangePasswordError.offline) {
-          AppSnackBar.showOnRoot(
-            message: LocaleKeys.errors_offline.t(context),
-            type: SnackBarType.error,
-          );
-        } else {
-          setState(() => _currentServerError =
-              LocaleKeys.settings_change_password_incorrect.t(context));
+        // The cubit decided WHERE this belongs; the sheet only obeys. Pinning
+        // everything under the current-password field is what used to tell the
+        // member their password was wrong for reasons that were not that.
+        final message = (state.errorKey ?? LocaleKeys.errors_generic).t(
+          context,
+        );
+        switch (state.errorSlot) {
+          case ChangePasswordErrorSlot.field:
+            setState(() => _currentServerError = message);
+          case ChangePasswordErrorSlot.banner:
+          case ChangePasswordErrorSlot.none:
+            AppSnackBar.showOnRoot(
+              message: message,
+              type: SnackBarType.error,
+            );
         }
       case ChangePasswordStatus.initial:
       case ChangePasswordStatus.submitting:

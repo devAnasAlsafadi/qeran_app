@@ -91,6 +91,16 @@ void main() {
         map: AuthFailureKeys.resetPassword,
         key: LocaleKeys.errors_otp_invalid,
       ),
+      'change-password — wrong current password': (
+        code: AuthErrorCodes.invalidOldPassword,
+        map: AuthFailureKeys.changePassword,
+        key: LocaleKeys.settings_change_password_incorrect,
+      ),
+      'change-password — server-side mismatch': (
+        code: AuthErrorCodes.passwordMismatch,
+        map: AuthFailureKeys.changePassword,
+        key: LocaleKeys.errors_password_mismatch,
+      ),
       'firebase-signin — already linked': (
         code: AuthErrorCodes.socialAccountAlreadyLinked,
         map: AuthFailureKeys.firebaseSignIn,
@@ -133,6 +143,7 @@ void main() {
         'verifyForgotPasswordOtp': AuthFailureKeys.verifyForgotPasswordOtp,
         'resetPassword': AuthFailureKeys.resetPassword,
         'firebaseSignIn': AuthFailureKeys.firebaseSignIn,
+        'changePassword': AuthFailureKeys.changePassword,
       }.entries) {
         expect(
           keyFor(AuthErrorCodes.validationError, entry.value),
@@ -142,6 +153,17 @@ void main() {
         );
       }
     });
+  });
+
+  test('change-password tells its two codes apart', () {
+    expect(
+      keyFor(AuthErrorCodes.invalidOldPassword, AuthFailureKeys.changePassword),
+      isNot(
+        keyFor(AuthErrorCodes.passwordMismatch, AuthFailureKeys.changePassword),
+      ),
+      reason: 'one accuses the current password and the other does not — '
+          'sharing a key makes them the same event on screen',
+    );
   });
 
   group('the codes left unmapped stay generic on purpose', () {
@@ -183,6 +205,7 @@ void main() {
       AuthFailureKeys.verifyForgotPasswordOtp,
       AuthFailureKeys.resetPassword,
       AuthFailureKeys.firebaseSignIn,
+      AuthFailureKeys.changePassword,
     ]) {
       for (final code in [...map.keys, 'UNMAPPED', null]) {
         expect(

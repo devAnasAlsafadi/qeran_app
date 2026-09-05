@@ -3,6 +3,10 @@ import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/domain/entities/success_response.dart';
+import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
+
+import '../auth_failure_keys.dart';
 
 /// Data source for the signed-in user's password change. Hits the SHARED
 /// `Auth/change-password` endpoint (the same one the matchmaker account
@@ -35,14 +39,31 @@ class ChangePasswordRemoteDataSourceImpl
     required String confirmPassword,
   }) async {
     AppLogger.debug('AUTH — change password', tag: 'AUTH');
-    final response = await _apiConsumer.post(
-      EndPoints.changePassword,
-      body: {
-        'oldPassword': currentPassword,
-        'newPassword': newPassword,
-        'confirmNewPassword': confirmPassword,
-      },
-    );
+    final dynamic response;
+    try {
+      response = await _apiConsumer.post(
+        EndPoints.changePassword,
+        body: {
+          'oldPassword': currentPassword,
+          'newPassword': newPassword,
+          'confirmNewPassword': confirmPassword,
+        },
+      );
+    } on ServerException catch (e) {
+      // Classified like the other seven auth calls, so `message` is always a
+      // locale key. The errorCode is carried FORWARD rather than dropped:
+      // `BaseRepository` preserves it on a `CodedServerFailure`, and the cubit
+      // needs it to decide where the message belongs on screen.
+      throw CodedServerException(
+        message: serverFailureKey(
+          e,
+          codeKeys: AuthFailureKeys.changePassword,
+          label: 'CHANGE PASSWORD',
+          tag: 'AUTH',
+        ),
+        errorCode: e is CodedServerException ? e.errorCode : null,
+      );
+    }
     final apiResponse = ApiResponse<void>.fromJson(response, (_) {});
     return SuccessResponse.fromApiResponse(apiResponse);
   }

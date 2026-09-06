@@ -24,3 +24,24 @@ String? formatCommissionRate(
 String _formatNumber(double value) => value == value.roundToDouble()
     ? value.toStringAsFixed(0)
     : value.toStringAsFixed(2);
+
+/// The commission rate to show on ONE code's row, or `null` when there is
+/// nothing worth saying.
+///
+/// A code normally earns the matchmaker her account rate, and repeating `10%`
+/// on every row would say nothing while competing for attention with the
+/// buyer's discount sitting beside it — the one number on that row that means
+/// somebody else's money. So the rate appears only when the backend has set a
+/// per-code override and it genuinely differs.
+///
+/// Returns `null` for an equal rate, and also when the account rate is unknown:
+/// with nothing to compare against, "differs" is not a claim we can make.
+String? formatPerCodeRate(
+  double codeRate,
+  double? accountRate,
+  AffiliateCommissionType? type,
+  String currency,
+) {
+  if (accountRate == null || codeRate == accountRate) return null;
+  return formatCommissionRate(codeRate, type, currency);
+}

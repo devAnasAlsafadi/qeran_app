@@ -39,4 +39,30 @@ void main() {
       );
     });
   });
+
+  group('formatPerCodeRate — silent unless it differs', () {
+    test('equal to the account rate says nothing', () {
+      expect(
+        formatPerCodeRate(10, 10, AffiliateCommissionType.percent, 'USD'),
+        isNull,
+      );
+    });
+
+    test('an override is stated', () {
+      expect(
+        formatPerCodeRate(15, 10, AffiliateCommissionType.percent, 'USD'),
+        '15%',
+      );
+    });
+
+    test('no account rate to compare against says nothing', () {
+      // "Differs" is not a claim that can be made against an unknown, and a
+      // bare rate on one row would read as the headline it is not.
+      expect(
+        formatPerCodeRate(15, null, AffiliateCommissionType.percent, 'USD'),
+        isNull,
+      );
+    });
+  });
+
 }

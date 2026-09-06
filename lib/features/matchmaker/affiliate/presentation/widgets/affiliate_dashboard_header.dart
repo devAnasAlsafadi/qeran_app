@@ -11,13 +11,20 @@ import '../../domain/entities/affiliate_commission_type.dart';
 import '../../domain/entities/affiliate_summary.dart';
 import 'affiliate_count_tile.dart';
 import 'affiliate_metric_tile.dart';
+import 'affiliate_codes_section.dart';
 import 'affiliate_rate_format.dart';
 
-/// Non-scrolling header of the affiliate dashboard: the shared code, the
+part 'affiliate_dashboard_header_parts.dart';
+
+/// Non-scrolling header of the affiliate dashboard: the primary code, the
 /// commission-rate highlight card, the three earnings tiles (Total / Pending /
-/// Paid), the two referral-count tiles (Signed up / Converted), and the ledger
-/// section title. Sits above the paginated commission list. Currency is
-/// backend-driven ([AffiliateSummary.currency]).
+/// Paid), the two referral-count tiles (Signed up / Converted), the per-code
+/// breakdown, and the ledger section title. Sits above the paginated
+/// commission list. Currency is backend-driven ([AffiliateSummary.currency]).
+///
+/// The tiles are ACCOUNT-level: they sum every code. That is why the breakdown
+/// follows them rather than the code at the top — a single code named above a
+/// set of totals is read as owning them, which is what it used to do.
 class AffiliateDashboardHeader extends StatelessWidget {
   const AffiliateDashboardHeader({super.key, required this.summary});
 
@@ -83,106 +90,18 @@ class AffiliateDashboardHeader extends StatelessWidget {
           ],
         ),
         QeranSpacing.vs24,
+        AffiliateCodesSection(
+          codes: summary.codes,
+          accountRate: summary.commissionRate,
+          commissionType: summary.commissionType,
+          currency: currency,
+        ),
         Text(
           LocaleKeys.matchmaker_affiliate_ledger_title.t(context),
           style: QeranTypography.title.copyWith(color: QeranColors.inkStrong),
         ),
         QeranSpacing.vs8,
       ],
-    );
-  }
-}
-
-/// Dedicated gold-tinted highlight card for the matchmaker's commission rate —
-/// the headline number of the dashboard. The value is backend-driven and
-/// forward-safe: `10%` for a percent rate, `10 USD` for a (reserved) fixed
-/// rate, and a neutral `—` when no rate has been set (never fabricated).
-class _RateCard extends StatelessWidget {
-  const _RateCard({
-    required this.rate,
-    required this.type,
-    required this.currency,
-  });
-
-  final double? rate;
-  final AffiliateCommissionType? type;
-  final String currency;
-
-  @override
-  Widget build(BuildContext context) {
-    final value = formatCommissionRate(rate, type, currency) ??
-        LocaleKeys.matchmaker_affiliate_rate_none.t(context);
-    final hasRate = rate != null;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: QeranSpacing.s16,
-        vertical: QeranSpacing.s16,
-      ),
-      decoration: BoxDecoration(
-        color: QeranColors.gold12,
-        borderRadius: QeranRadii.cardR,
-        border: Border.all(color: QeranColors.gold40),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            LocaleKeys.matchmaker_affiliate_rate_label.t(context),
-            style: QeranTypography.caption.copyWith(color: QeranColors.inkMuted),
-          ),
-          QeranSpacing.vs8,
-          Text(
-            value,
-            textDirection: TextDirection.ltr,
-            style: QeranTypography.headline.copyWith(
-              color: hasRate ? QeranColors.goldDeep : QeranColors.inkMuted,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The matchmaker's own shared code on a gold-tinted pill (read-only here — the
-/// copy/share affordance lives on the account referral card).
-class _SharedCode extends StatelessWidget {
-  const _SharedCode({required this.code});
-
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    return QeranCard(
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              LocaleKeys.matchmaker_affiliate_shared_code_label.t(context),
-              style:
-                  QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
-            ),
-          ),
-          QeranSpacing.hs12,
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: QeranSpacing.s12,
-              vertical: QeranSpacing.s8,
-            ),
-            decoration: BoxDecoration(
-              color: QeranColors.gold12,
-              borderRadius: QeranRadii.controlR,
-              border: Border.all(color: QeranColors.gold40),
-            ),
-            child: Text(
-              code,
-              textDirection: TextDirection.ltr,
-              style: QeranTypography.numeric.copyWith(color: QeranColors.wine),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

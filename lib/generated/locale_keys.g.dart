@@ -629,6 +629,10 @@ abstract class  LocaleKeys {
   static const matchmaker_affiliate_row_title = 'matchmaker.affiliate_row_title';
   static const matchmaker_affiliate_row_subtitle = 'matchmaker.affiliate_row_subtitle';
   static const matchmaker_affiliate_shared_code_label = 'matchmaker.affiliate_shared_code_label';
+  static const matchmaker_affiliate_codes_title = 'matchmaker.affiliate_codes_title';
+  static const matchmaker_affiliate_code_buyer_discount = 'matchmaker.affiliate_code_buyer_discount';
+  static const matchmaker_affiliate_code_used_count = 'matchmaker.affiliate_code_used_count';
+  static const matchmaker_affiliate_code_primary_badge = 'matchmaker.affiliate_code_primary_badge';
   static const matchmaker_affiliate_total_label = 'matchmaker.affiliate_total_label';
   static const matchmaker_affiliate_pending_label = 'matchmaker.affiliate_pending_label';
   static const matchmaker_affiliate_paid_label = 'matchmaker.affiliate_paid_label';

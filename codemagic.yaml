@@ -30,17 +30,12 @@ workflows:
       xcode: latest
       cocoapods: default
 
-      ios_signing:
-        # Automatic signing: Codemagic fetches/creates the distribution
-        # certificate and profile through the API key above.
-        distribution_type: app_store
-        bundle_identifier: com.qeran.app
-
       vars:
         # Apple ID of the app in App Store Connect — the numeric id from the
         # app's URL, NOT the bundle id and NOT an email address. Used only to
         # read back the latest TestFlight build number.
         APP_STORE_APPLE_ID: "6783272039"
+        BUNDLE_ID: "com.qeran.app"
 
     scripts:
       - name: Flutter packages
@@ -51,14 +46,17 @@ workflows:
         # plugins come through Swift Package Manager, which needs no step.
         script: find . -name "Podfile" -execdir pod install \;
 
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+
       - name: Apply fetched provisioning profiles
-        # Rewrites the Runner target's signing settings to the profile fetched
-        # above and writes /Users/builder/export_options.plist for the build.
-        #
-        # ⚠️ The project currently pins CODE_SIGN_STYLE = Manual with
-        # PROVISIONING_PROFILE_SPECIFIER = "Qeran App Store Distribution v2"
-        # (project.pbxproj:492-505). This step overrides both. If the build
-        # fails with "no profile matching", that pin is the first suspect.
+        # Configures Xcode project to use the fetched profiles and writes
+        # /Users/builder/export_options.plist for the build.
         script: xcode-project use-profiles
 
       - name: Build signed IPA

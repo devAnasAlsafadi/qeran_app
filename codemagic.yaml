@@ -49,10 +49,12 @@ workflows:
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect certificates create --type IOS_DISTRIBUTION
+          openssl genrsa -out /tmp/certificate_private_key 2048
+          export CERTIFICATE_PRIVATE_KEY=$(cat /tmp/certificate_private_key)
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --certificate-key=@file:/tmp/certificate_private_key
           keychain add-certificates
 
       - name: Apply fetched provisioning profiles

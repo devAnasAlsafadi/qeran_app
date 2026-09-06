@@ -3,6 +3,7 @@ import 'package:qeran/core/app_logger.dart';
 import '../../../shared/data/json_parsers.dart';
 import '../../domain/entities/affiliate_commission_type.dart';
 import '../../domain/entities/affiliate_summary.dart';
+import 'affiliate_code_model.dart';
 
 /// Wire model for `GET /affiliate/summary`. Field names are the live (Tariq)
 /// camelCase keys; the defensive parsers tolerate int↔string / null drift so
@@ -18,6 +19,7 @@ class AffiliateSummaryModel {
   final double pendingCommission;
   final double paidCommission;
   final String currency;
+  final List<AffiliateCodeModel> codes;
 
   const AffiliateSummaryModel({
     required this.referralCode,
@@ -30,6 +32,7 @@ class AffiliateSummaryModel {
     required this.pendingCommission,
     required this.paidCommission,
     required this.currency,
+    required this.codes,
   });
 
   factory AffiliateSummaryModel.fromJson(Map<String, dynamic> json) =>
@@ -44,6 +47,12 @@ class AffiliateSummaryModel {
         pendingCommission: parseDouble(json['pendingCommission']),
         paidCommission: parseDouble(json['paidCommission']),
         currency: parseString(json['currency'], fallback: 'USD'),
+        // `parseMapList` already yields an empty list for an absent key, an
+        // explicit null, or a value that is not a list at all — which is
+        // also what a payload from before this field existed looks like.
+        codes: parseMapList(json['codes'])
+            .map(AffiliateCodeModel.fromJson)
+            .toList(),
       );
 
   /// Case-insensitive map into the contract's two rate kinds. An absent or
@@ -79,5 +88,6 @@ class AffiliateSummaryModel {
         pendingCommission: pendingCommission,
         paidCommission: paidCommission,
         currency: currency,
+        codes: codes.map((code) => code.toEntity()).toList(),
       );
 }

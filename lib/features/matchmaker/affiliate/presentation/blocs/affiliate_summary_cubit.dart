@@ -46,11 +46,27 @@ class AffiliateSummaryCubit extends Cubit<AffiliateSummaryState>
           errorKey: failure.message,
         ));
       },
-      (summary) => emit(state.copyWith(
-        status: AffiliateSummaryStatus.loaded,
-        summary: summary,
-        clearError: true,
-      )),
+      (summary) {
+        // Built on the backend's word that the per-code figures add up, with
+        // no manual check. This is that check, running on every load: a
+        // mismatch means the stored account counters have drifted from the
+        // referral rows, and it would otherwise surface only as a money figure
+        // nobody could explain. Logged, never corrected — the app shows what
+        // it is sent, and inventing a total here would hide the fault.
+        if (!summary.codesReconcile) {
+          AppLogger.warning(
+            'AFFILIATE — codes do NOT reconcile with the account totals: '
+            'used ${summary.codesUsedSum} vs ${summary.codeUsedCount}, '
+            'earned ${summary.codesCommissionSum} vs ${summary.totalCommission}',
+            tag: 'AFFILIATE',
+          );
+        }
+        emit(state.copyWith(
+          status: AffiliateSummaryStatus.loaded,
+          summary: summary,
+          clearError: true,
+        ));
+      },
     );
   }
 }

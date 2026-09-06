@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'affiliate_code.dart';
 import 'affiliate_commission_type.dart';
 
 /// The matchmaker's affiliate dashboard header (`GET /affiliate/summary`): their
@@ -38,6 +39,14 @@ class AffiliateSummary extends Equatable {
   /// Commission already paid out to the matchmaker.
   final double paidCommission;
 
+  /// Every code this matchmaker holds, each with its OWN usage count and
+  /// earnings. Empty when the backend sends no list — never null, so callers
+  /// never branch on absence.
+  ///
+  /// The account-level fields above are the SUM across these, which is why the
+  /// dashboard must not show them under one code's name.
+  final List<AffiliateCode> codes;
+
   /// ISO currency code for every money field. Backend field — today always
   /// `USD` (confirmed contract decision), but the app always displays whatever
   /// the backend sends, never a hardcoded literal.
@@ -45,6 +54,7 @@ class AffiliateSummary extends Equatable {
 
   const AffiliateSummary({
     required this.referralCode,
+    this.codes = const [],
     required this.commissionRate,
     required this.commissionType,
     required this.referredUsersCount,
@@ -56,9 +66,41 @@ class AffiliateSummary extends Equatable {
     required this.currency,
   });
 
+  /// Redemptions summed across [codes].
+  int get codesUsedSum =>
+      codes.fold(0, (total, code) => total + code.codeUsedCount);
+
+  /// Earnings summed across [codes].
+  double get codesCommissionSum =>
+      codes.fold(0, (total, code) => total + code.totalCommission);
+
+  /// Whether the per-code figures add up to the account totals.
+  ///
+  /// True when there is nothing to check — an empty list is not a
+  /// disagreement. A false here is a BACKEND data fault (stored counters out
+  /// of step with the referral rows), not a display one: the app shows what it
+  /// is sent either way, and the cubit logs so the drift is visible on the
+  /// device the moment it appears rather than surfacing as a wrong number.
+  ///
+  /// Money is compared with a TOLERANCE, not equality. Adding doubles does not
+  /// always land on the decimal value written down (`0.1 + 0.2` is famously
+  /// `0.30000000000000004`), so an `==` here would report drift on payloads
+  /// that are perfectly correct — and a warning that cries wolf is one nobody
+  /// reads. Half a cent is far below anything the UI can render and far above
+  /// float noise.
+  ///
+  /// Today's live figures happen to add up exactly, which is luck about those
+  /// particular values and not something to rely on.
+  bool get codesReconcile {
+    if (codes.isEmpty) return true;
+    return codesUsedSum == codeUsedCount &&
+        (codesCommissionSum - totalCommission).abs() < 0.005;
+  }
+
   @override
   List<Object?> get props => [
         referralCode,
+        codes,
         commissionRate,
         commissionType,
         referredUsersCount,

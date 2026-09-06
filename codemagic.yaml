@@ -1,0 +1,101 @@
+# Codemagic CI — iOS release build to TestFlight.
+#
+# Scope: builds a signed IPA and hands it to TestFlight for internal testers.
+# It deliberately does NOT submit to App Store review — `submit_to_app_store`
+# is absent, and adding it is a separate decision.
+#
+# ⚠️ EVERY value marked REPLACE_ME is account-specific and is a placeholder.
+# Nothing here was invented from a real Apple/Codemagic account: the API key
+# name, the Apple ID and the tester group must be filled in by hand. A wrong
+# guess in any of them fails the build late, after the ~15 minute compile.
+#
+# Triggering is manual on purpose (no `triggering:` block) — the first build
+# should be started from the Codemagic UI and watched.
+
+workflows:
+  ios-testflight:
+    name: iOS release → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      # Codemagic → Teams → Integrations → Developer Portal → the NAME given
+      # to the App Store Connect API key there. Anas uploads the .p8 himself;
+      # only the name is referenced here.
+      app_store_connect: REPLACE_ME_ASC_API_KEY_NAME
+
+    environment:
+      flutter: 3.44.8 # matches the local toolchain this was verified against
+      xcode: latest
+      cocoapods: default
+
+      ios_signing:
+        # Automatic signing: Codemagic fetches/creates the distribution
+        # certificate and profile through the API key above.
+        distribution_type: app_store
+        bundle_identifier: com.qeran.app
+
+      vars:
+        # Apple ID of the app in App Store Connect — the numeric id from the
+        # app's URL, NOT the bundle id and NOT an email address. Used only to
+        # read back the latest TestFlight build number.
+        APP_STORE_APPLE_ID: REPLACE_ME_APP_STORE_APPLE_ID
+
+    scripts:
+      - name: Flutter packages
+        script: flutter pub get
+
+      - name: CocoaPods
+        # sign_in_with_apple is a real pod (ios/Podfile.lock); the rest of the
+        # plugins come through Swift Package Manager, which needs no step.
+        script: find . -name "Podfile" -execdir pod install \;
+
+      - name: Apply fetched provisioning profiles
+        # Rewrites the Runner target's signing settings to the profile fetched
+        # above and writes /Users/builder/export_options.plist for the build.
+        #
+        # ⚠️ The project currently pins CODE_SIGN_STYLE = Manual with
+        # PROVISIONING_PROFILE_SPECIFIER = "Qeran App Store Distribution v2"
+        # (project.pbxproj:492-505). This step overrides both. If the build
+        # fails with "no profile matching", that pin is the first suspect.
+        script: xcode-project use-profiles
+
+      - name: Build signed IPA
+        # Apple rejects a build whose number is not greater than the last one
+        # uploaded, and pubspec is at +11 locally. Reading the latest from
+        # TestFlight and adding one keeps that true without editing pubspec.
+        script: |
+          BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID") + 1))
+          flutter build ipa --release \
+            --build-number="$BUILD_NUMBER" \
+            --export-options-plist=/Users/builder/export_options.plist
+
+      - name: Confirm GoogleService-Info.plist reached the bundle
+        # THE pass condition for the Runner-target registration. A green build
+        # proves nothing here: the broken state — plist in the folder, absent
+        # from the target — compiled and shipped green, and that is exactly
+        # what broke iOS Google Sign-In. Fail loudly instead of shipping it.
+        script: |
+          APP=$(find build/ios/iphoneos -maxdepth 1 -name '*.app' | head -1)
+          if [ -f "$APP/GoogleService-Info.plist" ]; then
+            echo "OK — GoogleService-Info.plist is in $APP"
+          else
+            echo "MISSING — the Runner target registration did not take effect"
+            ls -la "$APP"
+            exit 1
+          fi
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # Internal tester group as named in App Store Connect → TestFlight.
+        # The name must match exactly; an unknown group fails the publish
+        # step AFTER the upload has already succeeded.
+        beta_groups:
+          - REPLACE_ME_INTERNAL_TESTER_GROUP
+        # submit_to_app_store intentionally omitted — TestFlight only.

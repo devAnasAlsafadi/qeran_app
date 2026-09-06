@@ -4,10 +4,11 @@
 # It deliberately does NOT submit to App Store review — `submit_to_app_store`
 # is absent, and adding it is a separate decision.
 #
-# ⚠️ EVERY value marked REPLACE_ME is account-specific and is a placeholder.
-# Nothing here was invented from a real Apple/Codemagic account: the API key
-# name, the Apple ID and the tester group must be filled in by hand. A wrong
-# guess in any of them fails the build late, after the ~15 minute compile.
+# The three account-specific values here — the App Store Connect API key
+# NAME, the numeric app id, and the tester group — are confirmed values,
+# not guesses. None of them is a secret: the .p8 private key and the
+# Issuer/Key IDs live in Codemagic’s own integration store and must never
+# be committed to this repository.
 #
 # Triggering is manual on purpose (no `triggering:` block) — the first build
 # should be started from the Codemagic UI and watched.
@@ -22,7 +23,7 @@ workflows:
       # Codemagic → Teams → Integrations → Developer Portal → the NAME given
       # to the App Store Connect API key there. Anas uploads the .p8 himself;
       # only the name is referenced here.
-      app_store_connect: REPLACE_ME_ASC_API_KEY_NAME
+      app_store_connect: Codemagic
 
     environment:
       flutter: 3.44.8 # matches the local toolchain this was verified against
@@ -39,7 +40,7 @@ workflows:
         # Apple ID of the app in App Store Connect — the numeric id from the
         # app's URL, NOT the bundle id and NOT an email address. Used only to
         # read back the latest TestFlight build number.
-        APP_STORE_APPLE_ID: REPLACE_ME_APP_STORE_APPLE_ID
+        APP_STORE_APPLE_ID: "6783272039"
 
     scripts:
       - name: Flutter packages
@@ -94,8 +95,10 @@ workflows:
         auth: integration
         submit_to_testflight: true
         # Internal tester group as named in App Store Connect → TestFlight.
+        # INTERNAL, so a build reaches testers without Apple review — which
+        # is the point of testing on a device before submitting.
         # The name must match exactly; an unknown group fails the publish
         # step AFTER the upload has already succeeded.
         beta_groups:
-          - REPLACE_ME_INTERNAL_TESTER_GROUP
+          - Internal
         # submit_to_app_store intentionally omitted — TestFlight only.

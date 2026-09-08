@@ -95,11 +95,17 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        # Internal tester group as named in App Store Connect → TestFlight.
-        # INTERNAL, so a build reaches testers without Apple review — which
-        # is the point of testing on a device before submitting.
-        # The name must match exactly; an unknown group fails the publish
-        # step AFTER the upload has already succeeded.
-        beta_groups:
-          - Internal
+        # No `beta_groups` here, deliberately — do not re-add "Internal".
+        #
+        # `beta_groups` maps to the App Store Connect build→betaGroups
+        # assignment, which accepts EXTERNAL groups only. Internal groups
+        # already receive every processed build automatically, so there is
+        # nothing to assign; asking for it fails with "Builds cannot be
+        # assigned to this internal group." That failure lands AFTER the
+        # upload has succeeded, so it reds a build that actually shipped.
+        #
+        # With submit_to_testflight and no beta_groups, the build reaches
+        # internal testers without Apple review — which is what we want.
+        # An EXTERNAL group would be listed here, and needs Beta App Review.
+        #
         # submit_to_app_store intentionally omitted — TestFlight only.

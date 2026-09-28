@@ -1,5 +1,6 @@
 package com.qeran.app
 
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
@@ -17,14 +18,26 @@ import io.flutter.embedding.android.FlutterActivity
  * gallery and the matchmaker share sheet — live in this same window, so they
  * are covered by construction.
  *
+ * Release builds only. Debug and profile builds are debuggable (Flutter's
+ * profile build type is initialised from debug), so they skip the flag and
+ * screenshots work for design and QA. The gate reads the debuggable bit rather
+ * than a build-type name because Play Console rejects debuggable uploads: any
+ * build that reaches the store is protected by construction, with no switch to
+ * remember to turn back on.
+ *
  * Android only. iOS has no equivalent API; that exposure is accepted (QER-3).
  */
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE,
-        )
+        if (!isDebuggable()) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE,
+            )
+        }
     }
+
+    private fun isDebuggable(): Boolean =
+        (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 }

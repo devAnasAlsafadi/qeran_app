@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import '../design_system/tokens/qeran_colors.dart';
 
 /// Prevents iOS/app-switcher snapshots from capturing a revealed photo.
-/// Android also has FLAG_SECURE at the native window level; this Flutter-side
-/// shield gives both platforms an immediate opaque surface while inactive.
+/// Android release builds also have FLAG_SECURE at the native window level;
+/// this Flutter-side shield gives both platforms an immediate opaque surface
+/// while inactive.
 class AppLifecyclePrivacyShield extends StatefulWidget {
   final Widget child;
 
@@ -57,9 +58,11 @@ class _AppLifecyclePrivacyShieldState extends State<AppLifecyclePrivacyShield>
   /// `inactive` is transient focus loss with the window STILL VISIBLE — a
   /// permission prompt, the notification shade, the screenshot preview
   /// overlay. On Android that is not an app-switcher moment and the fill just
-  /// flashes over content the user is looking at; the recents thumbnail is
-  /// already withheld natively by FLAG_SECURE (`MainActivity`), so skipping
-  /// `inactive` there costs no protection.
+  /// flashes over content the user is looking at; in release builds the
+  /// recents thumbnail is already withheld natively by FLAG_SECURE
+  /// (`MainActivity`), so skipping `inactive` there costs no protection.
+  /// Debug and profile builds leave FLAG_SECURE off so screenshots work, and
+  /// their recents thumbnail can show content — a dev-only exposure.
   ///
   /// iOS has no FLAG_SECURE equivalent (QER-3), and its app-switcher gesture
   /// leaves the app inactive-and-visible while it shrinks into its card — so

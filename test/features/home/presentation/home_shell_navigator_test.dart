@@ -6,14 +6,13 @@ import 'package:qeran/features/home/presentation/home_shell_navigator.dart';
 import 'package:qeran/features/home/presentation/home_tab_switcher.dart';
 import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
 
-const _discovery = HomeShellNavigator.discoveryTab;
+const _community = HomeShellNavigator.communityTab;
 const _likes = HomeShellNavigator.likesTab;
-const _messages = HomeShellNavigator.messagesTab;
 const _profile = HomeShellNavigator.profileTab;
 
 class _Shell {
   _Shell(WidgetTester tester) {
-    tabs = HomeTabSwitcher(vsync: tester, initialTab: _discovery);
+    tabs = HomeTabSwitcher(vsync: tester, initialTab: _community);
     navigator = HomeShellNavigator(
       tabs: tabs,
       markTabSeen: seen.add,
@@ -22,6 +21,7 @@ class _Shell {
         inbox = Completer<Object?>();
         return inbox.future;
       },
+      openChat: () => chatOpens++,
     );
     addTearDown(() {
       navigator.dispose();
@@ -33,6 +33,7 @@ class _Shell {
   late final HomeShellNavigator navigator;
   final List<int> seen = [];
   int inboxOpens = 0;
+  int chatOpens = 0;
   late Completer<Object?> inbox;
 }
 
@@ -80,7 +81,7 @@ void main() {
     shell.navigator.openFromNotification(const OpenProfileTab());
     await tester.pumpAndSettle();
 
-    shell.navigator.onNavTap(_discovery);
+    shell.navigator.onNavTap(_community);
     await tester.pumpAndSettle();
 
     expect(shell.navigator.backTrail, isNull);
@@ -127,32 +128,20 @@ void main() {
     expect(shell.navigator.backTrail, isNull);
   });
 
-  testWidgets('the Likes trail switches back to Likes and is spent', (
+  // The chat is pushed over whatever shows, so its own back returns there. A
+  // trail would leave the tab underneath pointing at an inbox.
+  testWidgets('a chat notification pushes the chat and leaves no trail', (
     tester,
   ) async {
     final shell = _Shell(tester);
-    shell.navigator.onNavTap(_likes);
-    await tester.pumpAndSettle();
-    shell.navigator.openMessagesTab(trail: HomeBackTrail.likes);
-    await tester.pumpAndSettle();
-    expect(shell.tabs.currentTab, _messages);
-    expect(shell.navigator.backTrail, HomeBackTrail.likes);
 
-    shell.navigator.followBackTrail();
+    shell.navigator.openFromNotification(const OpenMatchmakerChat());
     await tester.pumpAndSettle();
 
-    expect(shell.tabs.currentTab, _likes);
+    expect(shell.chatOpens, 1);
     expect(shell.navigator.backTrail, isNull);
-  });
-
-  testWidgets('a refresh rebuilds Messages from scratch', (tester) async {
-    final shell = _Shell(tester);
-
-    shell.navigator.openMessagesTab(refresh: true);
-    await tester.pumpAndSettle();
-
-    expect(shell.navigator.messagesRefreshEpoch, 1);
-    expect(shell.tabs.currentTab, _messages);
+    expect(shell.tabs.currentTab, _community);
+    expect(shell.seen, isEmpty);
   });
 
   // A live event can light a dot on the tab already showing; a tap that
@@ -162,9 +151,9 @@ void main() {
   ) async {
     final shell = _Shell(tester);
 
-    shell.navigator.onNavTap(_discovery);
+    shell.navigator.onNavTap(_community);
 
-    expect(shell.seen, [_discovery]);
+    expect(shell.seen, [_community]);
   });
 
   testWidgets('with no trail, back does nothing', (tester) async {

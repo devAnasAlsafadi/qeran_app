@@ -8,6 +8,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/home/presentation/home_back_trail.dart';
 import 'package:qeran/features/home/presentation/widgets/tab_back_row.dart';
@@ -27,7 +28,7 @@ import '../widgets/likes_segmented_tabs.dart';
 import '../widgets/likes_swipeable_tab_body.dart';
 import 'match_success_screen.dart';
 
-/// Likes / Interests screen — entry point from the bottom nav (index 1).
+/// Likes / Interests screen — entry point from the bottom nav (index 2).
 ///
 /// Three tabs: Sent (outgoing), Received (incoming), and Matches
 /// (post-acceptance). Each tab loads lazily through [LikesCubit] and
@@ -128,12 +129,12 @@ class _LikesView extends StatelessWidget {
     switch (state.event) {
       case InquiryEvent.none:
         break;
-      // Rebuild the preserved chat tab so the newly posted profile card and
+      // Open the chat, freshly loaded, so the newly posted profile card and
       // text are visible immediately. The formal step does not join this: it
       // posts nothing to the matchmaker, so there would be nothing to show.
       case InquiryEvent.success:
       case InquiryEvent.alreadySent:
-        _openMatchmakerMessages(context);
+        openMatchmakerChat(context);
       case InquiryEvent.failure:
         AppSnackBar.show(
           context,
@@ -208,23 +209,6 @@ class _LikesView extends StatelessWidget {
           type: SnackBarType.error,
         );
     }
-  }
-
-  void _openMatchmakerMessages(BuildContext context) {
-    final shell = HomeShellScope.maybeOf(context);
-    if (shell != null) {
-      // Leaves a trail: the compatibility list the user was reading is a tab,
-      // so there is nothing to pop back to without one.
-      shell.openMessagesTab(refresh: true, trail: HomeBackTrail.likes);
-      return;
-    }
-    AppSnackBar.show(
-      context,
-      message: LocaleKeys.likes_matches_stage_matchmaker_will_contact.t(
-        context,
-      ),
-      type: SnackBarType.info,
-    );
   }
 }
 

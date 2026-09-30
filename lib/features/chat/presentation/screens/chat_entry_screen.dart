@@ -18,9 +18,8 @@ import 'chat_conversation_screen.dart';
 /// Every state carries the header. Until the conversation is known it is
 /// titled with the matchmaker's role; once it is, it shows her.
 ///
-/// [onBack] puts a back chevron in that header. The pushed page
-/// (`MyMatchmakerChatPage`) always passes it; the Messages tab only while a
-/// back trail is live (a tab has nothing to pop).
+/// [onBack] puts a back chevron in that header; the pushed page
+/// (`MyMatchmakerChatPage`) passes it.
 class ChatEntryScreen extends StatelessWidget {
   const ChatEntryScreen({super.key, this.onBack});
 

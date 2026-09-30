@@ -3,10 +3,10 @@ import '../../domain/entities/notification_type.dart';
 
 /// A user-app deep-link intent parsed from a notification.
 ///
-/// Sealed so the inbox screen's `switch` is exhaustive. Every actionable
-/// destination is a bottom-nav TAB inside the home shell (not a pushed route) —
-/// the backend doc's route names (`/likes/incoming`, `/chat`, …) don't exist on
-/// the user side; the real targets are the Likes / Messages / Profile tabs.
+/// Sealed so the inbox screen's `switch` is exhaustive. The backend doc's route
+/// names (`/likes/incoming`, `/chat`, …) don't exist on the user side; the real
+/// targets are the Interests and Profile tabs of the home shell, and the chat
+/// with the matchmaker, which is a pushed screen.
 sealed class NotificationDeepLink {
   const NotificationDeepLink();
 }
@@ -18,11 +18,11 @@ class OpenLikesTab extends NotificationDeepLink {
   const OpenLikesTab();
 }
 
-/// Messages tab — the user's single conversation with their matchmaker. The
-/// doc's `conversationId`/`senderName` are matchmaker-shaped and irrelevant for
-/// the user app, which has exactly one conversation.
-class OpenMessagesTab extends NotificationDeepLink {
-  const OpenMessagesTab();
+/// The user's single conversation with their matchmaker, pushed over whatever
+/// is showing. The doc's `conversationId`/`senderName` are matchmaker-shaped and
+/// irrelevant for the user app, which has exactly one conversation.
+class OpenMatchmakerChat extends NotificationDeepLink {
+  const OpenMatchmakerChat();
 }
 
 /// Profile tab — profile approved / rejected updates.
@@ -66,7 +66,7 @@ class NotificationDeepLinkRouter {
       case 'compatibility-cases':
         return const OpenLikesTab();
       case 'chat':
-        return const OpenMessagesTab();
+        return const OpenMatchmakerChat();
       case 'profile':
         return const OpenProfileTab();
     }
@@ -76,7 +76,7 @@ class NotificationDeepLinkRouter {
   /// Fallback when `screen` is absent/unknown — route by notification type.
   static NotificationDeepLink _fromType(NotificationType type) => switch (type) {
         NotificationType.match => const OpenLikesTab(),
-        NotificationType.chat => const OpenMessagesTab(),
+        NotificationType.chat => const OpenMatchmakerChat(),
         NotificationType.profile => const OpenProfileTab(),
         NotificationType.announcement ||
         NotificationType.offer ||

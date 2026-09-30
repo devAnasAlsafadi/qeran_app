@@ -6,14 +6,16 @@ import 'badge_tab_keys.dart';
 /// the server is told. A tab absent from a map is excluded deliberately, and
 /// the two reasons are not the same:
 ///
-///   * Discovery, Dashboard and Explore have nothing to clear. The backend
-///     documents their keys as permanently zero and no dot is rendered for
-///     them, so there is no acknowledgement to make.
-///   * Messages and Conversations DO carry a badge, and still must not clear
-///     it here. A list of conversations is not "seen" because someone looked
-///     at the list; it is seen one conversation at a time, which `MarkAsRead`
-///     already reports over the chat hub. Clearing on tab open would bury
-///     messages nobody opened.
+///   * Community, Discovery, Dashboard and Explore have nothing to clear.
+///     Community has no badge key; the backend documents the others as
+///     permanently zero. No dot is rendered for them, so there is no
+///     acknowledgement to make.
+///   * Conversations DOES carry a badge, and still must not clear it here. A
+///     list of conversations is not "seen" because someone looked at the
+///     list; it is seen one conversation at a time, which `MarkAsRead` already
+///     reports over the chat hub. Clearing on tab open would bury messages
+///     nobody opened. The member's chat is not a tab at all, and its count
+///     clears the same way.
 ///
 /// The indices are the bottom-nav order each shell builds. They live here
 /// rather than in a switch inside the shells because neither shell can be
@@ -22,12 +24,12 @@ import 'badge_tab_keys.dart';
 class NavBadgeTabs {
   const NavBadgeTabs._();
 
-  /// Discovery (0) · Likes (1) · Messages (2) · Profile (3).
+  /// Community (0) · Suggestions (1) · Interests (2) · Profile (3).
   ///
-  /// Likes clears on the PARENT tab: its sub-tabs split one server count, so
-  /// there is nothing finer to acknowledge.
+  /// Interests clears on the PARENT tab: its sub-tabs split one server count,
+  /// so there is nothing finer to acknowledge.
   static const Map<int, String> user = {
-    1: BadgeTabKeys.likes,
+    2: BadgeTabKeys.likes,
     3: BadgeTabKeys.account,
   };
 

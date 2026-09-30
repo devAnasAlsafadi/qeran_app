@@ -11,8 +11,9 @@ import 'package:qeran/features/badges/domain/entities/nav_badge_tabs.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/badges/presentation/widgets/badges_realtime_host.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
-import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
+import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
+import 'package:qeran/features/community/presentation/screens/community_placeholder_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_push_routing.dart';
 import 'package:qeran/features/home/presentation/home_refresh_policy.dart';
@@ -26,8 +27,9 @@ import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_g
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 
-/// Home shell. Hosts the Discovery deck (with its own top bar — title +
-/// filter + notification bell) and the bottom navigation.
+/// Home shell: the four tabs — Community (where it lands), Suggestions,
+/// Interests, Profile — and the bottom navigation. Chat is not a tab; it is
+/// pushed over the shell.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -39,13 +41,14 @@ class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late final HomeTabSwitcher _tabs = HomeTabSwitcher(
     vsync: this,
-    initialTab: HomeShellNavigator.discoveryTab,
+    initialTab: HomeShellNavigator.communityTab,
   );
 
   late final HomeShellNavigator _navigator = HomeShellNavigator(
     tabs: _tabs,
     markTabSeen: _markTabSeen,
     openInbox: () => Navigator.of(context).pushNamed(RouteNames.notifications),
+    openChat: () => openMatchmakerChat(context),
   );
 
   late final HomePushRouting _push = HomePushRouting(
@@ -100,15 +103,9 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _tabBody(int index) => switch (index) {
+    HomeShellNavigator.communityTab => const CommunityPlaceholderScreen(),
     HomeShellNavigator.discoveryTab => const DiscoveryView(),
     HomeShellNavigator.likesTab => const LikesScreen(),
-    // The Messages tab already takes an onBack for its pushed copy; reached
-    // from a notification it needs the same control. (Only the system-push path
-    // lands here — a chat row tapped in the inbox pushes over it instead.)
-    HomeShellNavigator.messagesTab => ChatEntryScreen(
-      key: ValueKey<String>('chat-entry-${_navigator.messagesRefreshEpoch}'),
-      onBack: _navigator.backTrail == null ? null : _navigator.followBackTrail,
-    ),
     HomeShellNavigator.profileTab => const ProfileScreen(),
     _ => const SizedBox.shrink(),
   };
@@ -124,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen>
         _navigator.followBackTrail();
       },
       // Owns the `/hubs/chat` session for the whole user shell — the hub feeds
-      // every tab, so it must not depend on Messages having been opened.
+      // every tab, so it must not depend on the chat having been opened.
       child: ChatRealtimeHost(
         port: sl<ChatRealtimePort>(),
         accessTokenProvider: sl<ChatAccessTokenProvider>(),
@@ -135,7 +132,6 @@ class _HomeScreenState extends State<HomeScreen>
           badges: sl<BadgesCubit>(),
           child: HomeShellScope(
             openLikesTab: _navigator.openLikesTab,
-            openMessagesTab: _navigator.openMessagesTab,
             openProfileTab: _navigator.openProfileTab,
             openFromNotification: _navigator.openFromNotification,
             backTrail: _navigator.backTrail,

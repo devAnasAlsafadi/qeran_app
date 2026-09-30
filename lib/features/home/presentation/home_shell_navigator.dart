@@ -12,11 +12,12 @@ class HomeShellNavigator extends ChangeNotifier {
     required this.tabs,
     required this.markTabSeen,
     required this.openInbox,
+    required this.openChat,
   });
 
-  static const int discoveryTab = 0;
-  static const int likesTab = 1;
-  static const int messagesTab = 2;
+  static const int communityTab = 0;
+  static const int discoveryTab = 1;
+  static const int likesTab = 2;
   static const int profileTab = 3;
 
   final HomeTabSwitcher tabs;
@@ -27,39 +28,41 @@ class HomeShellNavigator extends ChangeNotifier {
   /// Pushes the notifications inbox; completes with what the user tapped.
   final Future<Object?> Function() openInbox;
 
+  /// Pushes the chat with the matchmaker.
+  final VoidCallback openChat;
+
   HomeBackTrail? _backTrail;
-  int _messagesRefreshEpoch = 0;
   bool _disposed = false;
 
   /// Where the visible tab was reached FROM, when it was not simply tapped —
-  /// see [openFromNotification] and [openMessagesTab]. Drives the
-  /// destination's back control and the system back button alike.
+  /// see [openFromNotification]. Drives the destination's back control and the
+  /// system back button alike.
   HomeBackTrail? get backTrail => _backTrail;
-
-  /// Bumped to rebuild the Messages tab from scratch.
-  int get messagesRefreshEpoch => _messagesRefreshEpoch;
 
   /// The single entry point for BOTH notification paths — a row tapped in the
   /// inbox (handed back by `openNotifications`) and a system push tapped
-  /// outside the app. Switches the tab and raises the notifications
+  /// outside the app. A tab link switches the tab and raises the notifications
   /// [HomeBackTrail], which is what puts a back control on the destination.
   ///
   /// The trail is raised OUTSIDE the tab switch on purpose: the switch returns
   /// early when the target is already showing, and that is exactly the case
   /// where the control matters most — nothing else on screen changes, so it is
   /// the only sign the tap did anything.
+  ///
+  /// A chat link raises no trail: the chat is pushed, so its own back returns
+  /// to whatever it covered.
   void openFromNotification(NotificationDeepLink link) {
-    if (link is NoDeepLink) return;
-    _setTrail(HomeBackTrail.notifications);
     switch (link) {
-      case OpenLikesTab():
-        openLikesTab();
-      case OpenMessagesTab():
-        openMessagesTab();
-      case OpenProfileTab():
-        openProfileTab();
       case NoDeepLink():
-        break;
+        return;
+      case OpenMatchmakerChat():
+        openChat();
+      case OpenLikesTab():
+        _setTrail(HomeBackTrail.notifications);
+        openLikesTab();
+      case OpenProfileTab():
+        _setTrail(HomeBackTrail.notifications);
+        openProfileTab();
     }
   }
 
@@ -73,18 +76,6 @@ class HomeShellNavigator extends ChangeNotifier {
 
   void openLikesTab() => _selectTab(likesTab);
 
-  /// [trail] is set by callers that arrive from somewhere with a way back —
-  /// the Likes compatibility list. The notification path leaves it null
-  /// because [openFromNotification] has already raised its own trail.
-  void openMessagesTab({bool refresh = false, HomeBackTrail? trail}) {
-    if (!_disposed && (trail != null || refresh)) {
-      if (trail != null) _backTrail = trail;
-      if (refresh) _messagesRefreshEpoch++;
-      notifyListeners();
-    }
-    _selectTab(messagesTab);
-  }
-
   void openProfileTab() => _selectTab(profileTab);
 
   /// Back for a tab that was never pushed onto. Both the tab's own control and
@@ -94,8 +85,6 @@ class HomeShellNavigator extends ChangeNotifier {
     switch (_backTrail) {
       case HomeBackTrail.notifications:
         _returnToNotifications();
-      case HomeBackTrail.likes:
-        _returnToLikes();
       case null:
         break;
     }
@@ -113,12 +102,6 @@ class HomeShellNavigator extends ChangeNotifier {
     final result = await openInbox();
     if (_disposed || result is! NotificationDeepLink) return;
     openFromNotification(result);
-  }
-
-  /// The trail is spent once followed, the same way the inbox one is.
-  void _returnToLikes() {
-    _clearTrail();
-    _selectTab(likesTab);
   }
 
   /// Opening a tab acknowledges its badge. Ahead of the switch's early return

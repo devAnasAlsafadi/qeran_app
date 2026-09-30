@@ -210,13 +210,16 @@
     "about_me": "نبذة عني",
     "height_chip": "الطول {value} سم",
     "weight_chip": "الوزن {value} كغ",
-    "nav_marriage": "زواج",
-    "nav_likes": "إعجابات",
-    "nav_messages": "رسائل",
+    "nav_community": "المجتمع",
+    "nav_marriage": "ترشيحات",
+    "nav_likes": "الاهتمامات",
     "nav_profile": "ملفي"
   },
   "shell": {
     "matchmaker_role": "خطّابتك"
+  },
+  "community": {
+    "placeholder_body": "موجز المجتمع · يُصمَّم في المرحلة الثانية"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -379,7 +382,6 @@
     "matches_journey_current": "المرحلة الحالية",
     "matches_journey_view": "عرض",
     "matches_stage_ended_subtitle": "يمكنك متابعة البحث عن شريك مناسب",
-    "matches_stage_matchmaker_will_contact": "ستتواصل الخطّابة معك قريباً",
     "matches_action_request_success": "تم إرسال طلب تبادل الصور",
     "matches_action_request_already_pending": "يوجد طلب تبادل قائم بالفعل",
     "matches_action_request_like_not_accepted": "هذا التوافق غير جاهز لتبادل الصور بعد",

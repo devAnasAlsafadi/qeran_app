@@ -6,31 +6,22 @@ import 'home_back_trail.dart';
 /// Inherited handle exposed by `HomeScreen` so descendants can switch
 /// the bottom-nav tab without pushing a new route.
 ///
-/// Consumers:
-/// * The Stage-2 Match card's "Contact the matchmaker" CTA inside Likes —
-///   switches to the Messages tab instead of pushing a placeholder chat
-///   screen, so the `ChatEntryScreen` cubit state survives the navigation.
-/// * The notifications inbox deep-link router — a tapped row switches to the
-///   tab its `data.screen` points at (Likes / Messages / Profile) rather than
-///   pushing a route, keeping every destination inside the shell.
+/// Consumer: the notifications inbox deep-link router — a tapped row switches
+/// to the tab its `data.screen` points at (Interests / Profile) rather than
+/// pushing a route, keeping every tab destination inside the shell.
 ///
-/// Because none of these push anything, a destination reached this way has
+/// Because a switch pushes nothing, a destination reached this way has
 /// nothing to pop — which is what [backTrail] and [followBackTrail] exist for.
 class HomeShellScope extends InheritedWidget {
-  /// Switch the bottom navigation to the Likes tab.
+  /// Switch the bottom navigation to the Interests tab.
   final VoidCallback openLikesTab;
-
-  /// Switch the bottom navigation to the Messages tab.
-  ///
-  /// [trail] records where the switch came from, so the tab can offer a way
-  /// back. Omitted for a plain switch.
-  final void Function({bool refresh, HomeBackTrail? trail}) openMessagesTab;
 
   /// Switch the bottom navigation to the Profile tab.
   final VoidCallback openProfileTab;
 
   /// Apply a notification deep-link: switch to its tab AND remember that the
   /// destination was reached from a notification, so it can offer a way back.
+  /// A chat link pushes the chat instead, which has a back of its own.
   ///
   /// Both notification paths funnel through here — a row tapped in the inbox
   /// (popped back to `openNotifications`) and a system push tapped outside the
@@ -44,16 +35,14 @@ class HomeShellScope extends InheritedWidget {
 
   /// Follow whichever trail is live, or do nothing when there is none.
   ///
-  /// Deliberately NOT a pop for either trail: nothing was pushed. The inbox
-  /// route is destroyed on the way to a tab (and never existed at all on the
-  /// push path), and a tab switch leaves no route behind either — so "back"
-  /// means reopening the inbox, or switching tabs again.
+  /// Deliberately NOT a pop: nothing was pushed. The inbox route is destroyed
+  /// on the way to a tab (and never existed at all on the push path), so
+  /// "back" means reopening the inbox.
   final VoidCallback followBackTrail;
 
   const HomeShellScope({
     super.key,
     required this.openLikesTab,
-    required this.openMessagesTab,
     required this.openProfileTab,
     required this.openFromNotification,
     required this.backTrail,

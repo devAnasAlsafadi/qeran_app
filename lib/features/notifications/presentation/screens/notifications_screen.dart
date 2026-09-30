@@ -91,7 +91,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       // home → inbox → chat, so back returns to the inbox and back again to
       // where they started. The pushed chat carries its own back affordance
       // (QER-16).
-      case OpenMessagesTab():
+      case OpenMatchmakerChat():
         openMatchmakerChat(context);
       // Likes and Profile are bottom-nav TABS, not routes — they are still
       // handed back to `openNotifications` to switch the tab. Pushing a tab

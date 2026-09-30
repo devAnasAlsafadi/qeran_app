@@ -7,26 +7,25 @@ import 'package:qeran/features/badges/domain/entities/nav_badge_tabs.dart';
 /// exclusions, and the exclusions are the part a later edit would quietly undo.
 void main() {
   group('the user shell', () {
-    test('Likes and Profile acknowledge their badges', () {
-      expect(NavBadgeTabs.user[1], BadgeTabKeys.likes);
+    test('Interests and Profile acknowledge their badges', () {
+      expect(NavBadgeTabs.user[2], BadgeTabKeys.likes);
       expect(NavBadgeTabs.user[3], BadgeTabKeys.account);
     });
 
-    // Messages HAS a badge. It clears one conversation at a time, through the
-    // hub's MarkAsRead — clearing it on tab open would bury messages nobody
-    // opened.
-    test('Messages does not, though it carries one', () {
-      expect(NavBadgeTabs.user[2], isNull);
+    // Community has no badge key; Suggestions' is permanently zero.
+    test('Community and Suggestions have nothing to clear', () {
+      expect(NavBadgeTabs.user[0], isNull);
+      expect(NavBadgeTabs.user[1], isNull);
+    });
+
+    // Chat is not a tab. Its count clears one conversation at a time, through
+    // the hub's MarkAsRead — no tab may clear it on open.
+    test('no tab clears the chat count', () {
       expect(NavBadgeTabs.user.values, isNot(contains(BadgeTabKeys.chat)));
     });
 
-    // Discovery carries no badge at all — nothing to acknowledge.
-    test('Discovery has nothing to clear', () {
-      expect(NavBadgeTabs.user[0], isNull);
-    });
-
     test('nothing else is wired', () {
-      expect(NavBadgeTabs.user.keys, unorderedEquals([1, 3]));
+      expect(NavBadgeTabs.user.keys, unorderedEquals([2, 3]));
     });
   });
 
@@ -36,7 +35,7 @@ void main() {
       expect(NavBadgeTabs.matchmaker[2], BadgeTabKeys.cases);
     });
 
-    // Same rule as the user app's Messages, same reason.
+    // Same rule as the user app's chat, same reason.
     test('Conversations does not, though it carries one', () {
       expect(NavBadgeTabs.matchmaker[3], isNull);
       expect(

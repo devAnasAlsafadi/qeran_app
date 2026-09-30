@@ -11,29 +11,29 @@ import 'package:qeran/generated/locale_keys.g.dart';
 /// whether the dot shows at all, and it leaves the door open to numbers without
 /// a design-system change.
 ///
-/// Discovery carries none. `exploreUnread` is documented as permanently zero,
-/// and a tab that can never light must not wear a badge implying it might.
+/// Community and Suggestions carry none. Community has no badge key, and
+/// `exploreUnread` is documented as permanently zero: a tab that can never
+/// light must not wear a badge implying it might. Chat is not a tab; its
+/// unread count belongs to the shell's top bar.
 List<QeranNavItem> buildHomeNavItems(
   BuildContext context,
   BadgeCounts badges,
 ) => [
+  QeranNavItem(
+    outlineIcon: Icons.groups_outlined,
+    filledIcon: Icons.groups_rounded,
+    label: LocaleKeys.home_nav_community.t(context),
+  ),
   QeranNavItem(
     outlineIcon: Icons.diamond_outlined,
     filledIcon: Icons.diamond_rounded,
     label: LocaleKeys.home_nav_marriage.t(context),
   ),
   QeranNavItem(
-    outlineIcon: Icons.favorite_border_rounded,
-    filledIcon: Icons.favorite_rounded,
+    outlineIcon: Icons.volunteer_activism_outlined,
+    filledIcon: Icons.volunteer_activism_rounded,
     label: LocaleKeys.home_nav_likes.t(context),
     badgeCount: badges.likes,
-    badgeIsDot: true,
-  ),
-  QeranNavItem(
-    outlineIcon: Icons.chat_bubble_outline_rounded,
-    filledIcon: Icons.chat_bubble_rounded,
-    label: LocaleKeys.home_nav_messages.t(context),
-    badgeCount: badges.chat,
     badgeIsDot: true,
   ),
   QeranNavItem(

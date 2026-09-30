@@ -204,13 +204,15 @@ abstract class  LocaleKeys {
   static const home_about_me = 'home.about_me';
   static const home_height_chip = 'home.height_chip';
   static const home_weight_chip = 'home.weight_chip';
+  static const home_nav_community = 'home.nav_community';
   static const home_nav_marriage = 'home.nav_marriage';
   static const home_nav_likes = 'home.nav_likes';
-  static const home_nav_messages = 'home.nav_messages';
   static const home_nav_profile = 'home.nav_profile';
   static const home = 'home';
   static const shell_matchmaker_role = 'shell.matchmaker_role';
   static const shell = 'shell';
+  static const community_placeholder_body = 'community.placeholder_body';
+  static const community = 'community';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';
   static const notifications_empty_subtitle = 'notifications.empty_subtitle';
@@ -367,7 +369,6 @@ abstract class  LocaleKeys {
   static const likes_matches_journey_current = 'likes.matches_journey_current';
   static const likes_matches_journey_view = 'likes.matches_journey_view';
   static const likes_matches_stage_ended_subtitle = 'likes.matches_stage_ended_subtitle';
-  static const likes_matches_stage_matchmaker_will_contact = 'likes.matches_stage_matchmaker_will_contact';
   static const likes_matches_action_request_success = 'likes.matches_action_request_success';
   static const likes_matches_action_request_already_pending = 'likes.matches_action_request_already_pending';
   static const likes_matches_action_request_like_not_accepted = 'likes.matches_action_request_like_not_accepted';

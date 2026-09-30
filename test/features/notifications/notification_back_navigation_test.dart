@@ -146,7 +146,6 @@ void main() {
     test('the user scope notifies on the flag, and only on it', () {
       HomeShellScope scope({HomeBackTrail? trail}) => HomeShellScope(
         openLikesTab: () {},
-        openMessagesTab: ({bool refresh = false, HomeBackTrail? trail}) {},
         openProfileTab: () {},
         openFromNotification: (_) {},
         backTrail: trail,
@@ -157,12 +156,6 @@ void main() {
       const notif = HomeBackTrail.notifications;
       expect(scope(trail: notif).updateShouldNotify(scope()), isTrue);
       expect(scope(trail: notif).updateShouldNotify(scope(trail: notif)), isFalse);
-      // The two trails are different destinations — swapping one for the other
-      // has to rebuild, or the control would point at the wrong place.
-      expect(
-        scope(trail: notif).updateShouldNotify(scope(trail: HomeBackTrail.likes)),
-        isTrue,
-      );
     });
 
     test('the matchmaker scope behaves identically', () {
@@ -185,8 +178,7 @@ void main() {
       Widget host(HomeBackTrail? trail) => MaterialApp(
         home: HomeShellScope(
           openLikesTab: () {},
-          openMessagesTab: ({bool refresh = false, HomeBackTrail? trail}) {},
-          openProfileTab: () {},
+            openProfileTab: () {},
           openFromNotification: (_) {},
           backTrail: trail,
           followBackTrail: () {},

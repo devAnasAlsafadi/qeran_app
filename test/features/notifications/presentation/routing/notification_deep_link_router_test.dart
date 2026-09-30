@@ -24,10 +24,10 @@ void main() {
       );
     });
 
-    test('screen=chat → Messages tab', () {
+    test('screen=chat → the matchmaker chat', () {
       expect(
         NotificationDeepLinkRouter.resolveData({'screen': 'chat'}),
-        isA<OpenMessagesTab>(),
+        isA<OpenMatchmakerChat>(),
       );
     });
 
@@ -41,7 +41,7 @@ void main() {
     test('screen is case-insensitive', () {
       expect(
         NotificationDeepLinkRouter.resolveData({'screen': 'CHAT'}),
-        isA<OpenMessagesTab>(),
+        isA<OpenMatchmakerChat>(),
       );
     });
 
@@ -52,10 +52,10 @@ void main() {
       );
     });
 
-    test('no screen → falls back to data.type (Chat → Messages)', () {
+    test('no screen → falls back to data.type (Chat → the matchmaker chat)', () {
       expect(
         NotificationDeepLinkRouter.resolveData({'type': 'Chat'}),
-        isA<OpenMessagesTab>(),
+        isA<OpenMatchmakerChat>(),
       );
     });
 
@@ -72,7 +72,7 @@ void main() {
         NotificationDeepLinkRouter.resolveData(
           {'screen': 'something_new', 'type': 'Chat'},
         ),
-        isA<OpenMessagesTab>(),
+        isA<OpenMatchmakerChat>(),
       );
     });
 

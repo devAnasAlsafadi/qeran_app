@@ -210,13 +210,16 @@
     "about_me": "About Me",
     "height_chip": "Height {value} cm",
     "weight_chip": "Weight {value} kg",
-    "nav_marriage": "Match",
-    "nav_likes": "Likes",
-    "nav_messages": "Messages",
+    "nav_community": "Community",
+    "nav_marriage": "Suggestions",
+    "nav_likes": "Interests",
     "nav_profile": "Profile"
   },
   "shell": {
     "matchmaker_role": "Your matchmaker"
+  },
+  "community": {
+    "placeholder_body": "Community feed · designed in Phase 2"
   },
   "notifications": {
     "title": "Notifications",
@@ -379,7 +382,6 @@
     "matches_journey_current": "Current stage",
     "matches_journey_view": "View",
     "matches_stage_ended_subtitle": "You can carry on looking for a match",
-    "matches_stage_matchmaker_will_contact": "The matchmaker will contact you soon",
     "matches_action_request_success": "Photo exchange requested",
     "matches_action_request_already_pending": "A photo exchange is already pending",
     "matches_action_request_like_not_accepted": "This match isn't ready for photo exchange yet",

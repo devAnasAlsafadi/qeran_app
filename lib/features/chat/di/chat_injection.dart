@@ -14,6 +14,7 @@ import '../domain/usecases/send_text_message_usecase.dart';
 import '../domain/usecases/share_profile_usecase.dart';
 import '../presentation/blocs/chat_entry_cubit.dart';
 import '../presentation/blocs/conversation_cubit.dart';
+import '../presentation/blocs/my_matchmaker_cubit.dart';
 
 /// Wire the chat feature into the global DI container. The realtime
 /// port is registered as a lazy singleton — there's exactly one
@@ -52,6 +53,8 @@ void initChatDependencies() {
 
   //! Cubits (screen-scoped)
   sl.registerFactory(() => ChatEntryCubit(getMyMatchmaker: sl()));
+  // Shell-scoped: the user shell's top bar owns one for its lifetime.
+  sl.registerFactory(() => MyMatchmakerCubit(getMyMatchmaker: sl()));
 
   //! Parametrised — caller provides `(conversationId, myUserId)` per
   //  screen mount. `myUserId` is the current user's id (read from

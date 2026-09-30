@@ -216,7 +216,11 @@
     "nav_profile": "ملفي"
   },
   "shell": {
-    "matchmaker_role": "خطّابتك"
+    "matchmaker_role": "خطّابتك",
+    "matchmaker_assigning": "جاري التعيين",
+    "chat_unread": "رسالة جديدة",
+    "chat_entry_a11y": "خطّابتك {name}",
+    "chat_entry_a11y_unread": "خطّابتك {name}، رسالة جديدة"
   },
   "community": {
     "placeholder_body": "موجز المجتمع · يُصمَّم في المرحلة الثانية"

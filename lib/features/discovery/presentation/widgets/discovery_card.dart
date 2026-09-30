@@ -124,8 +124,8 @@ class DiscoveryImagePanel extends StatelessWidget {
               top: 0,
               left: 0,
               right: 0,
-              // SafeArea keeps both buttons below the clock / notch now that
-              // the photo runs edge-to-edge under a transparent status bar.
+              // SafeArea keeps both buttons clear of a landscape notch; the
+              // shell's top bar above already owns the status-bar inset.
               child: SafeArea(
                 bottom: false,
                 child: Padding(

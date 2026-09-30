@@ -11,6 +11,7 @@ import 'package:qeran/features/badges/domain/entities/nav_badge_tabs.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/badges/presentation/widgets/badges_realtime_host.dart';
 import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
+import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 import 'package:qeran/features/community/presentation/screens/community_placeholder_screen.dart';
@@ -22,14 +23,16 @@ import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/home/presentation/home_tab_switcher.dart';
 import 'package:qeran/features/home/presentation/widgets/home_nav_items.dart';
 import 'package:qeran/features/home/presentation/widgets/home_tab_stage.dart';
+import 'package:qeran/features/home/presentation/widgets/shell_top_bar.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
+import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 
-/// Home shell: the four tabs — Community (where it lands), Suggestions,
-/// Interests, Profile — and the bottom navigation. Chat is not a tab; it is
-/// pushed over the shell.
+/// Home shell: the top bar, the four tabs — Community (where it lands),
+/// Suggestions, Interests, Profile — and the bottom navigation. Chat is not a
+/// tab; the bar pushes it over the shell.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -58,12 +61,17 @@ class _HomeScreenState extends State<HomeScreen>
     onForegroundPush: () => unawaited(_refresh.onForegroundPush()),
   );
 
-  /// When the shell re-reads the state that lives above the tabs. Every
-  /// dependency is an app-scoped singleton, so this holds no state of its own.
+  /// Who the member's matchmaker is, for the top bar. The shell's own, closed
+  /// with it.
+  late final MyMatchmakerCubit _matchmaker = sl<MyMatchmakerCubit>();
+
+  /// When the shell re-reads the state that lives above the tabs. It holds no
+  /// state of its own: the cubits are app-scoped singletons, and the shell's.
   late final HomeRefreshPolicy _refresh = HomeRefreshPolicy(
     profileGate: sl<ProfileGateCubit>(),
     badges: sl<BadgesCubit>(),
     subscription: sl<CurrentSubscriptionCubit>(),
+    matchmaker: _matchmaker,
   );
 
   @override
@@ -82,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen>
     _push.dispose();
     _navigator.dispose();
     _tabs.dispose();
+    _matchmaker.close();
     super.dispose();
   }
 
@@ -110,6 +119,26 @@ class _HomeScreenState extends State<HomeScreen>
     _ => const SizedBox.shrink(),
   };
 
+  /// [context] is inside [HomeShellScope], which the inbox needs to hand back
+  /// what the user taps there.
+  Widget _body(BuildContext context, BadgeCounts badges) => Column(
+    children: [
+      ShellTopBar(
+        badges: badges,
+        onOpenChat: () => openMatchmakerChat(context),
+        onOpenInbox: () => openNotifications(context),
+      ),
+      // The bar owns the status-bar inset, so the tabs start below it.
+      Expanded(
+        child: MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          child: HomeTabStage(tabs: _tabs, tabBuilder: _tabBody),
+        ),
+      ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -136,20 +165,23 @@ class _HomeScreenState extends State<HomeScreen>
             openFromNotification: _navigator.openFromNotification,
             backTrail: _navigator.backTrail,
             followBackTrail: _navigator.followBackTrail,
-            child: BlocBuilder<BadgesCubit, BadgeCounts>(
-              bloc: sl<BadgesCubit>(),
-              builder: (context, badges) {
-                final items = buildHomeNavItems(context, badges);
-                return ScrollHidingNavScaffold(
-                  currentIndex: _tabs.currentTab,
-                  body: HomeTabStage(tabs: _tabs, tabBuilder: _tabBody),
-                  navBuilder: (context) => QeranBottomNav(
-                    items: items,
+            child: BlocProvider<MyMatchmakerCubit>.value(
+              value: _matchmaker,
+              child: BlocBuilder<BadgesCubit, BadgeCounts>(
+                bloc: sl<BadgesCubit>(),
+                builder: (context, badges) {
+                  final items = buildHomeNavItems(context, badges);
+                  return ScrollHidingNavScaffold(
                     currentIndex: _tabs.currentTab,
-                    onTap: _navigator.onNavTap,
-                  ),
-                );
-              },
+                    body: _body(context, badges),
+                    navBuilder: (context) => QeranBottomNav(
+                      items: items,
+                      currentIndex: _tabs.currentTab,
+                      onTap: _navigator.onNavTap,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),

@@ -304,9 +304,9 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
     );
   }
 
-  /// The status bar stays opaque and the photo starts BELOW it — hence the
-  /// top SafeArea here rather than inside the card. No title bar: the two
-  /// overlay buttons float on the photo itself.
+  /// The photo starts below the shell's top bar, which owns the status-bar
+  /// inset; the SafeArea keeps the sides clear of a landscape notch. No title
+  /// bar: the two overlay buttons float on the photo itself.
   Widget _buildBody(BuildContext context, DiscoveryState state) => SafeArea(
     bottom: false,
     child: _ScrollableProfile(state: state, scrollOffset: _scrollOffset),
@@ -507,9 +507,9 @@ class _ProfilePageState extends State<_ProfilePage> {
             QeranBottomNav.contentClearance(context) +
             (isLandscape ? 12.0 : 24.0);
         final profile = widget.loaded.current!;
-        // constraints.maxHeight is already the area below the status bar (the
-        // screen-level SafeArea), so this is the visible viewport — the same
-        // height the first screenful is padded out to.
+        // constraints.maxHeight is already the area below the shell's top
+        // bar, so this is the visible viewport — the same height the first
+        // screenful is padded out to.
         final viewportHeight = constraints.maxHeight;
         // Landscape has far less height to spend, so the photo takes a
         // smaller share and the profile starts sooner.

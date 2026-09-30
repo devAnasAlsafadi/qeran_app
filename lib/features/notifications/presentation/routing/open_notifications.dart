@@ -9,7 +9,7 @@ import 'notification_deep_link.dart';
 /// The inbox is pushed on top of the home shell, so it can't reach
 /// [HomeShellScope] itself (a pushed route isn't a descendant of `HomeScreen`).
 /// Instead the screen pops returning a [NotificationDeepLink]; this helper —
-/// invoked from a caller that IS inside the shell (the discovery bell) — reads
+/// invoked from a caller that IS inside the shell (a bell) — reads
 /// the scope up front, awaits the intent, then hands it to the shell.
 ///
 /// The shell owns what to do with it, so this path and the system-push path

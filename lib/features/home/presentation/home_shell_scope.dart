@@ -57,7 +57,7 @@ class HomeShellScope extends InheritedWidget {
       context.dependOnInheritedWidgetOfExactType<HomeShellScope>();
 
   // Was unconditionally false while every field was a stable callback. It no
-  // longer is: the tabs rebuild their back control off [backTrail].
+  // longer is: the shell's top bar rebuilds its back control off [backTrail].
   @override
   bool updateShouldNotify(HomeShellScope oldWidget) =>
       oldWidget.backTrail != backTrail;

@@ -22,7 +22,6 @@ import 'package:qeran/features/matchmaker/notifications/presentation/blocs/match
 import 'package:qeran/features/matchmaker/notifications/presentation/screens/matchmaker_notifications_screen.dart';
 import 'package:qeran/features/matchmaker/shared/data/matchmaker_notification_router.dart';
 import 'package:qeran/features/home/presentation/home_back_trail.dart';
-import 'package:qeran/features/home/presentation/widgets/tab_back_row.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Client rule: every notification target must offer a way back to the inbox,
@@ -93,8 +92,8 @@ void main() {
 
   group('the seam a tab hangs its back control on', () {
     // QeranAppBar draws no leading on a tab because the tab's route has
-    // nothing below it — which is exactly why the tabs had no back arrow. onBack overrides that,
-    // and it is how the matchmaker tabs get theirs.
+    // nothing below it — which is exactly why the tabs had no back arrow.
+    // onBack overrides that, and it is how the matchmaker tabs get theirs.
     testWidgets('an app bar with onBack draws a leading with nothing to pop', (
       tester,
     ) async {
@@ -122,21 +121,6 @@ void main() {
       );
 
       expect(find.byType(QeranBackButton), findsNothing);
-    });
-
-    // The user tabs have no app bar at all, so they carry the same glyph
-    // through this row instead.
-    testWidgets('the user-tab row carries the same glyph', (tester) async {
-      var tapped = 0;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: TabBackRow(onBack: () => tapped++)),
-        ),
-      );
-
-      expect(find.byType(QeranBackButton), findsOneWidget);
-      await tester.tap(find.byType(QeranBackButton));
-      expect(tapped, 1);
     });
   });
 
@@ -172,7 +156,8 @@ void main() {
       expect(scope(from: true).updateShouldNotify(scope(from: true)), isFalse);
     });
 
-    testWidgets('a tab picks up the flip without being rebuilt by its parent', (
+    // The user shell's top bar reads the flag this way (home_back_trail_test).
+    testWidgets('a reader picks up the flip without its parent rebuilding', (
       tester,
     ) async {
       Widget host(HomeBackTrail? trail) => MaterialApp(
@@ -187,7 +172,7 @@ void main() {
               final shell = HomeShellScope.maybeOf(context);
               return shell?.backTrail == null
                   ? const SizedBox.shrink()
-                  : TabBackRow(onBack: shell!.followBackTrail);
+                  : QeranBackButton(onTap: shell!.followBackTrail);
             },
           ),
         ),

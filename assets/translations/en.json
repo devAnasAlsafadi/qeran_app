@@ -216,7 +216,11 @@
     "nav_profile": "Profile"
   },
   "shell": {
-    "matchmaker_role": "Your matchmaker"
+    "matchmaker_role": "Your matchmaker",
+    "matchmaker_assigning": "Being assigned",
+    "chat_unread": "New message",
+    "chat_entry_a11y": "Your matchmaker, {name}",
+    "chat_entry_a11y_unread": "Your matchmaker, {name}. New message"
   },
   "community": {
     "placeholder_body": "Community feed · designed in Phase 2"

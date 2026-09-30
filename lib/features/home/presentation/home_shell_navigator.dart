@@ -78,7 +78,7 @@ class HomeShellNavigator extends ChangeNotifier {
 
   void openProfileTab() => _selectTab(profileTab);
 
-  /// Back for a tab that was never pushed onto. Both the tab's own control and
+  /// Back for a tab that was never pushed onto. Both the top bar's control and
   /// the Android back button land here, so there is one behaviour rather than
   /// two.
   void followBackTrail() {

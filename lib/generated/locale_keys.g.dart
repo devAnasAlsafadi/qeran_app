@@ -210,6 +210,10 @@ abstract class  LocaleKeys {
   static const home_nav_profile = 'home.nav_profile';
   static const home = 'home';
   static const shell_matchmaker_role = 'shell.matchmaker_role';
+  static const shell_matchmaker_assigning = 'shell.matchmaker_assigning';
+  static const shell_chat_unread = 'shell.chat_unread';
+  static const shell_chat_entry_a11y = 'shell.chat_entry_a11y';
+  static const shell_chat_entry_a11y_unread = 'shell.chat_entry_a11y_unread';
   static const shell = 'shell';
   static const community_placeholder_body = 'community.placeholder_body';
   static const community = 'community';

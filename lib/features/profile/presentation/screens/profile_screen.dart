@@ -22,9 +22,6 @@ import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
-import 'package:qeran/features/home/presentation/home_shell_scope.dart';
-import 'package:qeran/features/home/presentation/home_back_trail.dart';
-import 'package:qeran/features/home/presentation/widgets/tab_back_row.dart';
 import 'package:qeran/features/profile/presentation/default_name_banner_session.dart';
 import 'package:qeran/features/profile/presentation/widgets/default_name_banner.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
@@ -124,17 +121,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               final showNameBanner =
                   (resolved?.isDefaultName ?? false) &&
                   !sl<DefaultNameBannerSession>().isHidden;
-              // Reached from the inbox, the tab carries a way back to it. A
-              // tab has nothing to pop, so the shell reopens it. Only that
-              // trail reaches Profile.
-              final shell = HomeShellScope.maybeOf(context);
-              final fromNotification =
-                  shell?.backTrail == HomeBackTrail.notifications;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (fromNotification)
-                    TabBackRow(onBack: shell!.followBackTrail),
                   if (showNameBanner)
                     DefaultNameBanner(
                       currentName: name,

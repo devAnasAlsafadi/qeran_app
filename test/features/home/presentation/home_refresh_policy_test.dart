@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
+import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_cubit.dart';
 import 'package:qeran/features/home/presentation/home_refresh_policy.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
@@ -11,21 +12,27 @@ class _MockBadges extends Mock implements BadgesCubit {}
 
 class _MockSubscription extends Mock implements CurrentSubscriptionCubit {}
 
+class _MockMatchmaker extends Mock implements MyMatchmakerCubit {}
+
 void main() {
   late _MockProfileGate profileGate;
   late _MockBadges badges;
   late _MockSubscription subscription;
+  late _MockMatchmaker matchmaker;
   late HomeRefreshPolicy policy;
 
   setUp(() {
     profileGate = _MockProfileGate();
     badges = _MockBadges();
     subscription = _MockSubscription();
+    matchmaker = _MockMatchmaker();
     policy = HomeRefreshPolicy(
       profileGate: profileGate,
       badges: badges,
       subscription: subscription,
+      matchmaker: matchmaker,
     );
+    when(() => matchmaker.refresh()).thenAnswer((_) async {});
     when(() => profileGate.refresh()).thenAnswer((_) async {});
     when(() => badges.refresh()).thenAnswer((_) async {});
     when(() => badges.clear()).thenReturn(null);
@@ -56,6 +63,12 @@ void main() {
       await policy.onShellMount();
 
       verifyNever(() => subscription.refresh(force: any(named: 'force')));
+    });
+
+    test('reads the matchmaker for the top bar', () async {
+      await policy.onShellMount();
+
+      verify(() => matchmaker.refresh()).called(1);
     });
   });
 
@@ -97,6 +110,12 @@ void main() {
       // it — the bug we are fixing, mirrored.
       verify(() => profileGate.refresh()).called(1);
     });
+
+    test('re-reads the matchmaker, so one assigned meanwhile shows', () async {
+      await policy.onResume();
+
+      verify(() => matchmaker.refresh()).called(1);
+    });
   });
 
   group('onForegroundPush', () {
@@ -130,6 +149,12 @@ void main() {
       // The mirror of the resume defence. An approved member receives the
       // overwhelming majority of pushes and must pay nothing for this hook.
       verifyNever(() => profileGate.refresh());
+    });
+
+    test('does not re-read the matchmaker', () async {
+      await policy.onForegroundPush();
+
+      verifyNever(() => matchmaker.refresh());
     });
   });
 }

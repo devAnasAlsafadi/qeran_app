@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
+import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_cubit.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 
 /// When the user shell re-reads the server state that lives ABOVE any single
-/// tab — the approval gate, the unread badges, the active subscription.
+/// tab — the approval gate, the unread badges, the active subscription, and
+/// who the member's matchmaker is (the top bar shows her).
 ///
 /// Three moments, three different answers. They live here rather than inline in
 /// `HomeScreen` because "when do we refetch" is the thing that regresses
@@ -19,14 +21,17 @@ class HomeRefreshPolicy {
   final ProfileGateCubit _profileGate;
   final BadgesCubit _badges;
   final CurrentSubscriptionCubit _subscription;
+  final MyMatchmakerCubit _matchmaker;
 
   const HomeRefreshPolicy({
     required ProfileGateCubit profileGate,
     required BadgesCubit badges,
     required CurrentSubscriptionCubit subscription,
+    required MyMatchmakerCubit matchmaker,
   }) : _profileGate = profileGate,
        _badges = badges,
-       _subscription = subscription;
+       _subscription = subscription,
+       _matchmaker = matchmaker;
 
   /// The shell mounted — a new shell means a new signed-in session.
   ///
@@ -35,11 +40,11 @@ class HomeRefreshPolicy {
   /// remains the real action gate. The badges are CLEARED before their refetch
   /// for the same reason — they are app-scoped and outlive the session that
   /// filled them, so the server's counts must replace the last account's, not
-  /// merge with them.
+  /// merge with them. The matchmaker is read for the first time here.
   Future<void> onShellMount() {
     final gate = _profileGate.refresh();
     _badges.clear();
-    return Future.wait([gate, _badges.refresh()]);
+    return Future.wait([gate, _badges.refresh(), _matchmaker.refresh()]);
   }
 
   /// The app returned to the foreground.
@@ -51,10 +56,14 @@ class HomeRefreshPolicy {
   /// UNCONDITIONAL, deliberately. Guarding on `isGated` would let an approval
   /// OPEN the gate and never let a later hide or rejection CLOSE it again —
   /// the same staleness bug pointing the other way.
+  ///
+  /// The matchmaker is re-read so a member assigned one while away sees her in
+  /// the bar on their return.
   Future<void> onResume() => Future.wait([
     _profileGate.refresh(),
     _badges.refresh(),
     _subscription.refresh(force: true),
+    _matchmaker.refresh(),
   ]);
 
   /// A push arrived while the app was already foregrounded. Refreshes the

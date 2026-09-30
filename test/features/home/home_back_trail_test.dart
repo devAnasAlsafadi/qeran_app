@@ -1,48 +1,37 @@
-import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
 import 'package:qeran/features/home/presentation/home_back_trail.dart';
-import 'package:qeran/features/home/presentation/home_shell_scope.dart';
-import 'package:qeran/features/home/presentation/widgets/tab_back_row.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'presentation/widgets/shell_top_bar_host.dart';
 
 /// A tab reached by a switch has nothing to pop, so the shell remembers where
-/// the switch came from — the inbox — and the tab offers the way back. What
-/// these pin is the destination: a control that shows without a trail sends
-/// the user somewhere they never came from.
-Widget _host({
-  required HomeBackTrail? trail,
-  VoidCallback? followBackTrail,
-  required Widget Function(HomeShellScope? shell) builder,
-}) => MaterialApp(
-  home: HomeShellScope(
-    openLikesTab: () {},
-    openProfileTab: () {},
-    openFromNotification: (_) {},
-    backTrail: trail,
-    followBackTrail: followBackTrail ?? () {},
-    child: Builder(builder: (c) => builder(HomeShellScope.maybeOf(c))),
-  ),
-);
-
-/// What Interests and Profile ask: only the inbox trail reaches them.
-Widget _inboxTab(HomeShellScope? shell) =>
-    shell?.backTrail == HomeBackTrail.notifications
-    ? TabBackRow(onBack: shell!.followBackTrail)
-    : const SizedBox.shrink();
-
+/// the switch came from — the inbox — and the shell's top bar offers the way
+/// back. What these pin is the destination: a control that shows without a
+/// trail sends the user somewhere they never came from.
 void main() {
-  testWidgets('a tab reached from the inbox offers a way back to it', (
+  setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
+    await EasyLocalization.ensureInitialized();
+  });
+
+  testWidgets('a tab reached from the inbox gets a way back in the bar', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      _host(trail: HomeBackTrail.notifications, builder: _inboxTab),
+    await pumpShellTopBar(
+      tester,
+      matchmaker: await matchmakerCubit(null),
+      trail: HomeBackTrail.notifications,
     );
 
     expect(find.byType(QeranBackButton), findsOneWidget);
   });
 
-  testWidgets('a tapped tab carries no control at all', (tester) async {
-    await tester.pumpWidget(_host(trail: null, builder: _inboxTab));
+  testWidgets('a tapped tab: the bar carries no control at all', (
+    tester,
+  ) async {
+    await pumpShellTopBar(tester, matchmaker: await matchmakerCubit(null));
 
     expect(find.byType(QeranBackButton), findsNothing);
   });
@@ -51,12 +40,11 @@ void main() {
     tester,
   ) async {
     var followed = 0;
-    await tester.pumpWidget(
-      _host(
-        trail: HomeBackTrail.notifications,
-        followBackTrail: () => followed++,
-        builder: _inboxTab,
-      ),
+    await pumpShellTopBar(
+      tester,
+      matchmaker: await matchmakerCubit(null),
+      trail: HomeBackTrail.notifications,
+      followBackTrail: () => followed++,
     );
 
     await tester.tap(find.byType(QeranBackButton));

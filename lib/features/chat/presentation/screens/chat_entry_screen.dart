@@ -2,20 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/chat_entry_cubit.dart';
 import '../blocs/chat_entry_state.dart';
 import '../widgets/chat_empty_no_matchmaker.dart';
 import '../widgets/chat_error_view.dart';
+import '../widgets/chat_header.dart';
 import 'chat_conversation_screen.dart';
 
-/// Tab entry. Resolves `/api/chat/my-matchmaker` and renders one of:
-/// loading / no-matchmaker / failure / conversation. Embedded by
-/// `HomeScreen` for the Messages bottom-nav tab.
+/// The member's chat with their matchmaker. Resolves `/api/chat/my-matchmaker`
+/// and renders one of: loading / no-matchmaker / failure / conversation.
 ///
-/// [onBack] is forwarded to the conversation so a *pushed* instance (e.g. the
-/// likes non-shell fallback) gets a back button; the bottom-nav tab leaves it
-/// null (a tab can't pop).
+/// Every state carries the header. Until the conversation is known it is
+/// titled with the matchmaker's role; once it is, it shows her.
+///
+/// [onBack] puts a back chevron in that header. The pushed page
+/// (`MyMatchmakerChatPage`) always passes it; the Messages tab only while a
+/// back trail is live (a tab has nothing to pop).
 class ChatEntryScreen extends StatelessWidget {
   const ChatEntryScreen({super.key, this.onBack});
 
@@ -42,26 +47,50 @@ class _ChatEntryView extends StatelessWidget {
         switch (state) {
           case ChatEntryInitial():
           case ChatEntryLoading():
-            return const Center(child: QeranLoader());
+            return _withHeader(context, const Center(child: QeranLoader()));
           case ChatEntryNoMatchmaker():
-            return SafeArea(
-              child: ChatEmptyNoMatchmaker(
-                onRefresh: context.read<ChatEntryCubit>().refresh,
+            return _withHeader(
+              context,
+              SafeArea(
+                top: false,
+                child: ChatEmptyNoMatchmaker(
+                  onRefresh: context.read<ChatEntryCubit>().refresh,
+                ),
               ),
             );
           case ChatEntryFailure():
-            return SafeArea(
-              child: ChatErrorView(
-                onRetry: context.read<ChatEntryCubit>().refresh,
+            return _withHeader(
+              context,
+              SafeArea(
+                top: false,
+                child: ChatErrorView(
+                  onRetry: context.read<ChatEntryCubit>().refresh,
+                ),
               ),
             );
           case ChatEntryReady(:final info):
             return KeyedSubtree(
               key: ValueKey<int>(info.conversationId),
-              child: ChatConversationScreen(info: info, onBack: onBack),
+              child: ChatConversationScreen(
+                info: info,
+                viewer: ChatViewer.member,
+                onBack: onBack,
+              ),
             );
         }
       },
+    );
+  }
+
+  Widget _withHeader(BuildContext context, Widget body) {
+    return Column(
+      children: [
+        ChatHeader.title(
+          title: LocaleKeys.shell_matchmaker_role.t(context),
+          onBack: onBack,
+        ),
+        Expanded(child: body),
+      ],
     );
   }
 }

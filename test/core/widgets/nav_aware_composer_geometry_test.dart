@@ -161,4 +161,46 @@ void main() {
 
     expect(composerBottomFromEdge(tester), closeTo(inset, 0.5));
   });
+
+  // With the keyboard up, the inset is behind the keyboard: `padding` drops to
+  // zero while `viewPadding` keeps it. Paying the inset anyway floats the
+  // composer an inset's height above the keys.
+  testWidgets('outside a shell, the composer sits directly on the keyboard', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, screenH);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    // The layout above the keyboard, as a resizing Scaffold hands it down.
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(400, screenH),
+            viewPadding: EdgeInsets.only(bottom: inset),
+            viewInsets: EdgeInsets.only(bottom: 300),
+          ),
+          child: Column(
+            children: [
+              const Spacer(),
+              NavAwareComposer(
+                child: SafeArea(
+                  top: false,
+                  child: SizedBox(
+                    key: composerKey,
+                    height: composerHeight,
+                    child: const ColoredBox(color: Color(0xFF00FF00)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(composerBottomFromEdge(tester), closeTo(0, 0.5));
+  });
 }

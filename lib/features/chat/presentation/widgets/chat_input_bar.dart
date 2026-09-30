@@ -13,7 +13,9 @@ import 'package:qeran/generated/locale_keys.g.dart';
 class ChatInputBar extends StatefulWidget {
   static const int maxLength = 2000;
 
-  final Future<void> Function(String content) onSend;
+  /// Sends the text. Completes with false when it did not go out and belongs
+  /// back in the field (a rate limit); true otherwise.
+  final Future<bool> Function(String content) onSend;
   final bool sendDisabledByCooldown;
 
   const ChatInputBar({
@@ -53,11 +55,18 @@ class _ChatInputBarState extends State<ChatInputBar> {
 
   bool get _canSend => _hasText && !widget.sendDisabledByCooldown;
 
-  void _handleSend() {
+  Future<void> _handleSend() async {
     if (!_canSend) return;
     final raw = _controller.text;
     _controller.clear();
-    widget.onSend(raw);
+    final sent = await widget.onSend(raw);
+    // A rate-limited message never went out. Give it back, unless the member
+    // has already started typing something else.
+    if (sent || !mounted || _controller.text.trim().isNotEmpty) return;
+    _controller.value = TextEditingValue(
+      text: raw,
+      selection: TextSelection.collapsed(offset: raw.length),
+    );
   }
 
   @override

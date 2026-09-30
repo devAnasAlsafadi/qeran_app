@@ -20,6 +20,9 @@ class ChatMessageList extends StatefulWidget {
 
   /// Peer display name — powers the empty-state monogram + "start with {peer}".
   final String peerName;
+
+  /// The empty state's invitation to write first, worded for the reader.
+  final String emptyPromptKey;
   final bool hasMore;
   final bool isPaginating;
   final bool paginationFailed;
@@ -33,6 +36,7 @@ class ChatMessageList extends StatefulWidget {
     required this.messages,
     required this.me,
     required this.peerName,
+    required this.emptyPromptKey,
     required this.hasMore,
     required this.isPaginating,
     required this.paginationFailed,
@@ -81,6 +85,7 @@ class _ChatMessageListState extends State<ChatMessageList> {
       return ChatEmptyConversation(
         onRefresh: widget.onRefresh,
         peerName: widget.peerName,
+        promptKey: widget.emptyPromptKey,
       );
     }
     // Build items: each ChatMessage gets a bubble; insert a date

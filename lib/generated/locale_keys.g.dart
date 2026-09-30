@@ -209,6 +209,8 @@ abstract class  LocaleKeys {
   static const home_nav_messages = 'home.nav_messages';
   static const home_nav_profile = 'home.nav_profile';
   static const home = 'home';
+  static const shell_matchmaker_role = 'shell.matchmaker_role';
+  static const shell = 'shell';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';
   static const notifications_empty_subtitle = 'notifications.empty_subtitle';
@@ -579,9 +581,9 @@ abstract class  LocaleKeys {
   static const chat_entry_failure_title = 'chat.entry_failure_title';
   static const chat_entry_retry = 'chat.entry_retry';
   static const chat_header_default_subtitle = 'chat.header_default_subtitle';
-  static const chat_header_status_active = 'chat.header_status_active';
   static const chat_empty_title = 'chat.empty_title';
   static const chat_empty_start_with = 'chat.empty_start_with';
+  static const chat_empty_start_with_matchmaker = 'chat.empty_start_with_matchmaker';
   static const chat_send_failed_retry = 'chat.send_failed_retry';
   static const chat_realtime_retry = 'chat.realtime_retry';
   static const chat_composer_placeholder = 'chat.composer_placeholder';

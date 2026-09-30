@@ -12,10 +12,15 @@ import 'package:qeran/generated/locale_keys.g.dart';
 class ChatEmptyConversation extends StatelessWidget {
   final Future<void> Function() onRefresh;
   final String peerName;
+
+  /// "Start the conversation with {peer}", in the reader's voice.
+  final String promptKey;
+
   const ChatEmptyConversation({
     super.key,
     required this.onRefresh,
     required this.peerName,
+    required this.promptKey,
   });
 
   @override
@@ -46,10 +51,7 @@ class ChatEmptyConversation extends StatelessWidget {
                       ),
                       QeranSpacing.vs8,
                       Text(
-                        context.tr(
-                          LocaleKeys.chat_empty_start_with,
-                          namedArgs: {'peer': peerName},
-                        ),
+                        context.tr(promptKey, namedArgs: {'peer': peerName}),
                         textAlign: TextAlign.center,
                         style: QeranTypography.body.copyWith(
                           color: QeranColors.inkMuted,

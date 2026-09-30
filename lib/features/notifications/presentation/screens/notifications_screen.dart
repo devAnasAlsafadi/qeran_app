@@ -12,7 +12,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
-import 'package:qeran/features/chat/presentation/screens/chat_entry_screen.dart';
+import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/notification_item.dart';
@@ -90,20 +90,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       // the inbox gone and nothing to go back to. Pushing leaves
       // home → inbox → chat, so back returns to the inbox and back again to
       // where they started. The pushed chat carries its own back affordance
-      // (QER-16); the tab copy does not, because a tab has nothing to pop.
+      // (QER-16).
       case OpenMessagesTab():
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (routeContext) => Scaffold(
-              backgroundColor: QeranColors.creamCanvas,
-              body: SafeArea(
-                child: ChatEntryScreen(
-                  onBack: () => Navigator.of(routeContext).pop(),
-                ),
-              ),
-            ),
-          ),
-        );
+        openMatchmakerChat(context);
       // Likes and Profile are bottom-nav TABS, not routes — they are still
       // handed back to `openNotifications` to switch the tab. Pushing a tab
       // body as a route would detach it from the shell it reads state from.

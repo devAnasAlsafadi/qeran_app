@@ -18,8 +18,8 @@ import '../../../../core/widgets/scroll_hiding_nav_scaffold.dart';
 /// arriving at the composer to type therefore does so with the island rising
 /// over it.
 ///
-/// Outside a [ScrollHidingNavScaffold] — the matchmaker opens conversations as
-/// a pushed route — there is no nav to avoid and the padding stays zero.
+/// Outside a [ScrollHidingNavScaffold] — a pushed conversation, in either app —
+/// there is no nav to avoid, and the composer is left to its own safe area.
 class NavAwareComposer extends StatelessWidget {
   const NavAwareComposer({super.key, required this.child});
 
@@ -33,13 +33,18 @@ class NavAwareComposer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nav = BottomNavGeometry.maybeOf(context);
-    final navVisible = nav?.visible ?? false;
+    // No island to clear. The composer's own SafeArea takes the device inset,
+    // and unlike viewPadding it drops to zero while the keyboard is up — so
+    // the composer sits directly on the keyboard instead of floating an
+    // inset's height above it.
+    if (nav == null) return child;
+    final navVisible = nav.visible;
     // The inset comes from the shell, NOT from MediaQuery: Scaffold strips the
     // bottom padding from its body when a bottomNavigationBar is present, and
     // removePadding takes it out of viewPadding too, so both read 0 down here.
     // Reading them was the regression — the composer lost the whole inset and
     // sank into the island by exactly that much.
-    final inset = nav?.insetBottom ?? MediaQuery.viewPaddingOf(context).bottom;
+    final inset = nav.insetBottom;
     // Measured to the island's PAINT (the gold disc crests above the bar), not
     // to its layout box and not via contentClearance, which omits bMargin so
     // that scrolled content passes underneath — the opposite of what a pinned

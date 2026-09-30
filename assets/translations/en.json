@@ -215,6 +215,9 @@
     "nav_messages": "Messages",
     "nav_profile": "Profile"
   },
+  "shell": {
+    "matchmaker_role": "Your matchmaker"
+  },
   "notifications": {
     "title": "Notifications",
     "empty_title": "No notifications yet",
@@ -594,9 +597,9 @@
     "entry_failure_title": "Couldn't open the chat",
     "entry_retry": "Try again",
     "header_default_subtitle": "Your matchmaker",
-    "header_status_active": "Active now",
     "empty_title": "No messages yet",
     "empty_start_with": "Start the conversation with {peer}",
+    "empty_start_with_matchmaker": "Start the conversation with {peer}",
     "send_failed_retry": "Not sent · Retry",
     "realtime_retry": "Retry",
     "composer_placeholder": "Write a message…",

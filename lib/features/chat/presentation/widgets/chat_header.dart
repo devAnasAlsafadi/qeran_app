@@ -4,28 +4,43 @@ import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
-import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/matchmaker_info.dart';
 
+/// The chat's header: paper, running under the status bar, with a back
+/// chevron whenever there is somewhere to go back to.
+///
+/// Two shapes. Before the conversation is known — loading, being assigned,
+/// failure — it carries a plain title. Once it is, it shows the peer: avatar,
+/// name, and an optional line under the name. Both are the same height, so the
+/// header doesn't jump when the conversation arrives.
 class ChatHeader extends StatelessWidget {
-  final MatchmakerInfo info;
+  const ChatHeader.title({super.key, required String this.title, this.onBack})
+    : peer = null,
+      subtitle = null,
+      onTap = null;
+
+  const ChatHeader.peer({
+    super.key,
+    required MatchmakerInfo this.peer,
+    this.subtitle,
+    this.onBack,
+    this.onTap,
+  }) : title = null;
+
+  final String? title;
+  final MatchmakerInfo? peer;
+
+  /// A line under the peer's name. The member's side names the role; the
+  /// matchmaker's side has none.
+  final String? subtitle;
+
   final VoidCallback? onBack;
   final VoidCallback? onTap;
 
-  /// Whether our realtime socket is connected — drives the neutral "active
-  /// now" status. Bound to OUR connection (not fabricated peer presence).
-  final bool isActive;
-
-  const ChatHeader({
-    super.key,
-    required this.info,
-    this.onBack,
-    this.onTap,
-    this.isActive = false,
-  });
+  /// The avatar's size — every shape of the header is at least this tall.
+  static const double _rowHeight = 44;
 
   @override
   Widget build(BuildContext context) {
@@ -46,65 +61,50 @@ class ChatHeader extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          child: Row(
-            children: [
-              if (onBack != null) ...[
-                _HeaderBackButton(onBack: onBack!),
-                QeranSpacing.hs4,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: _rowHeight),
+            child: Row(
+              children: [
+                if (onBack != null) ...[
+                  _HeaderBackButton(onBack: onBack!),
+                  QeranSpacing.hs4,
+                ],
+                ..._content(),
               ],
-              _HeaderAvatar(url: info.profileImageUrl, name: info.name),
-              QeranSpacing.hs12,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      info.name,
-                      style: QeranTypography.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    // Neutral, role-agnostic status — shown only while our
-                    // realtime link is up (the reconnecting strip covers the
-                    // rest), so it never claims presence we can't back.
-                    if (isActive) ...[
-                      QeranSpacing.vs4,
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: QeranColors.goldDeep,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          QeranSpacing.hs4,
-                          Text(
-                            LocaleKeys.chat_header_status_active.t(context),
-                            style: QeranTypography.caption.copyWith(
-                              color: QeranColors.goldDeep,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  List<Widget> _content() {
+    final peer = this.peer;
+    if (peer == null) {
+      return [Expanded(child: _line(title!, QeranTypography.title))];
+    }
+    return [
+      _HeaderAvatar(url: peer.profileImageUrl, name: peer.name),
+      QeranSpacing.hs12,
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _line(peer.name, QeranTypography.title),
+            if (subtitle != null) _line(subtitle!, QeranTypography.caption),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  static Widget _line(String text, TextStyle style) =>
+      Text(text, style: style, maxLines: 1, overflow: TextOverflow.ellipsis);
 }
 
-/// Leading back affordance for the header — shown only when
-/// `ChatConversationScreen.onBack` is set (pushed-route usage). Transparent
-/// host since the header is already on a paper surface.
+/// Leading back affordance. Transparent host since the header is already on
+/// a paper surface.
 class _HeaderBackButton extends StatelessWidget {
   const _HeaderBackButton({required this.onBack});
 

@@ -32,6 +32,7 @@ class MatchmakerUserChatScreen extends StatelessWidget {
             // Carried for the header peer identity; unused by the screen.
             matchmakerId: conversation.userId,
           ),
+          viewer: ChatViewer.matchmaker,
           onBack: () => NavigationManager.pop(context),
           onHeaderTap: () => NavigationManager.navigateTo(
             context,

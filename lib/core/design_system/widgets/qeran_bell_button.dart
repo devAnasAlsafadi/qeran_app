@@ -12,10 +12,19 @@ import 'qeran_count_badge.dart';
 /// reports unread notifications, and reads "99+" past 99. What a tap opens is
 /// the caller's.
 class QeranBellButton extends StatelessWidget {
-  const QeranBellButton({super.key, required this.count, required this.onTap});
+  const QeranBellButton({
+    super.key,
+    required this.count,
+    required this.onTap,
+    this.size = 26,
+  });
 
   final int count;
   final VoidCallback onTap;
+
+  /// The glyph's size: 26 in the user's top bar, as the board draws it; an app
+  /// bar passes its own actions' size so the bell doesn't outgrow them.
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +38,9 @@ class QeranBellButton extends StatelessWidget {
         icon: Stack(
           clipBehavior: Clip.none,
           children: [
-            const Icon(
+            Icon(
               Icons.notifications_none_rounded,
-              size: 26,
+              size: size,
               color: QeranColors.wine,
             ),
             if (count > 0)

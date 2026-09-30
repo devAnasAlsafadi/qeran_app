@@ -136,6 +136,15 @@ void main() {
 
       expect(find.byType(QeranCountBadge), findsOneWidget);
     });
+
+    testWidgets('is 26 pt, as the board draws it', (tester) async {
+      await pumpShellTopBar(tester, matchmaker: await matchmakerCubit(null));
+
+      final glyph = tester.widget<Icon>(
+        find.byIcon(Icons.notifications_none_rounded),
+      );
+      expect(glyph.size, 26);
+    });
   });
 
   group('the bar', () {

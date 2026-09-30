@@ -104,6 +104,12 @@ void main() {
       final bell = tester.widget<QeranBellButton>(find.byType(QeranBellButton));
       expect(bell.count, 4);
       expect(find.text('4'), findsOneWidget);
+      // As big as the gear beside it, not the user bar's 26.
+      Icon glyph(IconData icon) => tester.widget<Icon>(find.byIcon(icon));
+      expect(
+        glyph(Icons.notifications_none_rounded).size,
+        glyph(Icons.settings_outlined).size,
+      );
     });
   });
 }

@@ -66,6 +66,8 @@ class _BellAction extends StatelessWidget {
         return QeranBellButton(
           count: counts.notifications,
           onTap: () => _openInbox(context),
+          // The size of the gear beside it.
+          size: 24,
         );
       },
     );

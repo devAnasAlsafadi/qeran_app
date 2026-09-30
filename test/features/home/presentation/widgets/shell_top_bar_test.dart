@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/theme/qeran_system_bars.dart';
+import 'package:qeran/core/design_system/widgets/qeran_bell_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
 import 'package:qeran/core/design_system/widgets/qeran_dashed_ring.dart';
@@ -122,7 +123,7 @@ void main() {
       );
 
       expect(find.byType(QeranCountBadge), findsNothing);
-      await tester.tap(find.byIcon(Icons.notifications_outlined));
+      await tester.tap(find.byType(QeranBellButton));
       expect(opened, 1);
     });
 

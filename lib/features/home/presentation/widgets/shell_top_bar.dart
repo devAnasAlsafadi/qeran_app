@@ -5,13 +5,13 @@ import 'package:qeran/core/design_system/theme/qeran_system_bars.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
+import 'package:qeran/core/design_system/widgets/qeran_bell_button.dart';
 import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
 import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_cubit.dart';
 import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_state.dart';
 
 import '../home_back_trail.dart';
 import '../home_shell_scope.dart';
-import 'shell_bell_button.dart';
 import 'shell_matchmaker_block.dart';
 
 /// The user shell's top bar, above every tab: pinned — the nav hides on
@@ -78,7 +78,7 @@ class ShellTopBar extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: QeranSpacing.s2),
-                    ShellBellButton(
+                    QeranBellButton(
                       count: badges.notifications,
                       onTap: onOpenInbox,
                     ),

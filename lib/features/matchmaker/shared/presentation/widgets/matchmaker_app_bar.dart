@@ -3,11 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
-import '../../../../../core/design_system/widgets/qeran_count_badge.dart';
+import '../../../../../core/design_system/widgets/qeran_bell_button.dart';
 import '../../../../../core/di/injection_container.dart';
-import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/route_name.dart';
-import '../../../../../generated/locale_keys.g.dart';
 import '../../../../badges/domain/entities/badge_counts.dart';
 import '../../../../badges/presentation/blocs/badges_cubit.dart';
 import '../../../home/presentation/home_shell_scope.dart';
@@ -65,31 +63,9 @@ class _BellAction extends StatelessWidget {
     return BlocBuilder<BadgesCubit, BadgeCounts>(
       bloc: sl<BadgesCubit>(),
       builder: (context, counts) {
-        final unread = counts.notifications;
-        return Semantics(
-          label: LocaleKeys.notifications_bell_unread_a11y.t(
-            context,
-            namedArgs: {'count': '$unread'},
-          ),
-          child: IconButton(
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(
-                  Icons.notifications_none_rounded,
-                  size: 24,
-                  color: QeranColors.wine,
-                ),
-                if (unread > 0)
-                  PositionedDirectional(
-                    top: -4,
-                    end: -4,
-                    child: QeranCountBadge(count: unread),
-                  ),
-              ],
-            ),
-            onPressed: () => _openInbox(context),
-          ),
+        return QeranBellButton(
+          count: counts.notifications,
+          onTap: () => _openInbox(context),
         );
       },
     );

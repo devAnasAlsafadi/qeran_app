@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 
 import 'package:qeran/core/data/repositories/base_repository.dart';
@@ -13,12 +15,23 @@ import '../datasources/chat_remote_datasource.dart';
 class ChatRepositoryImpl with BaseRepository implements ChatRepository {
   final ChatRemoteDataSource _dataSource;
 
-  const ChatRepositoryImpl(this._dataSource);
+  /// App-lifetime, like the repository: never closed.
+  final _matchmakerAnswers = StreamController<MyMatchmakerOutcome>.broadcast();
+
+  ChatRepositoryImpl(this._dataSource);
 
   @override
-  Future<Either<Failure, MyMatchmakerOutcome>> getMyMatchmaker() {
-    return executeApiCall(() => _dataSource.getMyMatchmaker());
+  Future<Either<Failure, MyMatchmakerOutcome>> getMyMatchmaker() async {
+    final result = await executeApiCall(() => _dataSource.getMyMatchmaker());
+    result.fold((_) {}, (outcome) {
+      if (outcome is! MyMatchmakerFailure) _matchmakerAnswers.add(outcome);
+    });
+    return result;
   }
+
+  @override
+  Stream<MyMatchmakerOutcome> get myMatchmakerAnswers =>
+      _matchmakerAnswers.stream;
 
   @override
   Future<Either<Failure, ChatMessagesPage>> getMessages({

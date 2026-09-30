@@ -8,6 +8,7 @@ import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
 import 'package:qeran/features/chat/domain/entities/matchmaker_info.dart';
 import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
 import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
+import 'package:qeran/features/chat/domain/usecases/watch_my_matchmaker_usecase.dart';
 import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_cubit.dart';
 import 'package:qeran/features/home/presentation/home_back_trail.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
@@ -23,6 +24,8 @@ class _StubAssetLoader extends AssetLoader {
 
 class _MockGetMyMatchmaker extends Mock implements GetMyMatchmakerUseCase {}
 
+class _MockWatchMyMatchmaker extends Mock implements WatchMyMatchmakerUseCase {}
+
 const kHuda = MatchmakerInfo(
   matchmakerId: 'm1',
   name: 'Huda',
@@ -34,7 +37,12 @@ const kHuda = MatchmakerInfo(
 /// first read is still in flight.
 Future<MyMatchmakerCubit> matchmakerCubit(MyMatchmakerOutcome? outcome) async {
   final getMyMatchmaker = _MockGetMyMatchmaker();
-  final cubit = MyMatchmakerCubit(getMyMatchmaker: getMyMatchmaker);
+  final watchMyMatchmaker = _MockWatchMyMatchmaker();
+  when(() => watchMyMatchmaker()).thenAnswer((_) => const Stream.empty());
+  final cubit = MyMatchmakerCubit(
+    getMyMatchmaker: getMyMatchmaker,
+    watchMyMatchmaker: watchMyMatchmaker,
+  );
   addTearDown(cubit.close);
   if (outcome != null) {
     when(() => getMyMatchmaker()).thenAnswer((_) async => Right(outcome));

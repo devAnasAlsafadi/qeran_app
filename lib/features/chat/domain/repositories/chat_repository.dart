@@ -17,6 +17,11 @@ abstract interface class ChatRepository {
   /// `GET /api/chat/my-matchmaker`.
   Future<Either<Failure, MyMatchmakerOutcome>> getMyMatchmaker();
 
+  /// Every answer [getMyMatchmaker] gets about who the matchmaker is —
+  /// assigned or not yet — whichever screen asked. Never a failure: a failed
+  /// read says nothing about who she is.
+  Stream<MyMatchmakerOutcome> get myMatchmakerAnswers;
+
   /// `GET /api/chat/conversations/{id}/messages?page=N&pageSize=M`.
   /// Newest-first per server contract.
   Future<Either<Failure, ChatMessagesPage>> getMessages({

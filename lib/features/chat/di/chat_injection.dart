@@ -12,6 +12,7 @@ import '../domain/usecases/get_my_matchmaker_usecase.dart';
 import '../domain/usecases/mark_conversation_as_read_usecase.dart';
 import '../domain/usecases/send_text_message_usecase.dart';
 import '../domain/usecases/share_profile_usecase.dart';
+import '../domain/usecases/watch_my_matchmaker_usecase.dart';
 import '../presentation/blocs/chat_entry_cubit.dart';
 import '../presentation/blocs/conversation_cubit.dart';
 import '../presentation/blocs/my_matchmaker_cubit.dart';
@@ -46,6 +47,7 @@ void initChatDependencies() {
 
   //! UseCases
   sl.registerLazySingleton(() => GetMyMatchmakerUseCase(sl()));
+  sl.registerLazySingleton(() => WatchMyMatchmakerUseCase(sl()));
   sl.registerLazySingleton(() => GetConversationMessagesUseCase(sl()));
   sl.registerLazySingleton(() => SendTextMessageUseCase(sl()));
   sl.registerLazySingleton(() => ShareProfileUseCase(sl()));
@@ -54,7 +56,9 @@ void initChatDependencies() {
   //! Cubits (screen-scoped)
   sl.registerFactory(() => ChatEntryCubit(getMyMatchmaker: sl()));
   // Shell-scoped: the user shell's top bar owns one for its lifetime.
-  sl.registerFactory(() => MyMatchmakerCubit(getMyMatchmaker: sl()));
+  sl.registerFactory(
+    () => MyMatchmakerCubit(getMyMatchmaker: sl(), watchMyMatchmaker: sl()),
+  );
 
   //! Parametrised — caller provides `(conversationId, myUserId)` per
   //  screen mount. `myUserId` is the current user's id (read from

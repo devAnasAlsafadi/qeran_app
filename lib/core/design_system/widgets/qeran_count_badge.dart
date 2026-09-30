@@ -46,6 +46,9 @@ class QeranCountBadge extends StatelessWidget {
         // Kept as digits + '+' in both locales. The app renders Western digits
         // throughout, and the nav's own badge has shipped this shape already.
         count > cap ? '$cap+' : '$count',
+        // A figure, not prose: left to an Arabic paragraph, the bidi
+        // algorithm draws the trailing '+' before the digits ("+99").
+        textDirection: TextDirection.ltr,
         style: QeranTypography.caption.copyWith(
           color: QeranColors.wine,
           fontWeight: FontWeight.w700,

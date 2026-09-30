@@ -15,7 +15,6 @@ import '../widgets/chat_header.dart';
 import '../widgets/chat_input_bar.dart';
 import '../widgets/chat_message_list.dart';
 import '../widgets/chat_message_skeleton.dart';
-import '../widgets/nav_aware_composer.dart';
 import 'chat_composer_send.dart';
 import 'chat_conversation_toasts.dart';
 
@@ -34,9 +33,8 @@ class ChatConversationScreen extends StatelessWidget {
   final ChatViewer viewer;
 
   /// Optional leading back action. When non-null the header renders a back
-  /// button that calls it — used when this screen is PUSHED as a route
-  /// (e.g. the matchmaker opening a conversation). Null on the user Messages
-  /// tab (no route to pop), so that tab renders exactly as before.
+  /// button that calls it. Both apps push the conversation as a route and
+  /// pass it; null leaves the header without one.
   final VoidCallback? onBack;
 
   /// Optional peer-profile action. Matchmaker conversations provide this so
@@ -133,11 +131,9 @@ class _ConversationView extends StatelessWidget {
                   viewer: viewer,
                 ),
               ),
-              NavAwareComposer(
-                child: ChatInputBar(
-                  onSend: (raw) => sendFromComposer(cubit, raw),
-                  sendDisabledByCooldown: cooldown,
-                ),
+              ChatInputBar(
+                onSend: (raw) => sendFromComposer(cubit, raw),
+                sendDisabledByCooldown: cooldown,
               ),
             ],
           ),

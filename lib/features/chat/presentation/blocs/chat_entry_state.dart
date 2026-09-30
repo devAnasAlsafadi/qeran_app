@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/matchmaker_info.dart';
 
-/// Sealed state for the chat tab entry. Drives loading vs
+/// Sealed state for the member's chat entry. Drives loading vs
 /// no-matchmaker vs failure vs ready (which embeds the conversation
 /// screen).
 sealed class ChatEntryState extends Equatable {

@@ -7,17 +7,14 @@ import '../../domain/entities/my_matchmaker_outcome.dart';
 import '../../domain/usecases/get_my_matchmaker_usecase.dart';
 import 'chat_entry_state.dart';
 
-/// Resolves `/api/chat/my-matchmaker` for the Messages tab.
+/// Resolves `/api/chat/my-matchmaker` for the member's chat page
+/// (`MyMatchmakerChatPage`). Each opening of the page builds a fresh cubit
+/// and loads.
 ///
 /// Two non-error terminal states:
 /// * `ChatEntryNoMatchmaker` — backend `status:0` + `data:null`.
 ///   Calm empty state; user can pull-to-refresh.
 /// * `ChatEntryReady` — embeds `ChatConversationScreen`.
-///
-/// `refresh()` is called when the tab refocuses; if the
-/// conversationId changed we still emit `Ready` with the new info
-/// and the screen rebuilds against the new id (handled by a
-/// ValueKey in the widget tree).
 class ChatEntryCubit extends Cubit<ChatEntryState> with SafeEmit<ChatEntryState> {
   final GetMyMatchmakerUseCase _getMyMatchmaker;
 
@@ -55,8 +52,7 @@ class ChatEntryCubit extends Cubit<ChatEntryState> with SafeEmit<ChatEntryState>
     );
   }
 
-  /// Tab-refocus / pull-to-refresh entry. Same flow as [load]. The
-  /// screen-level widget keys the `ChatConversationScreen` on the
-  /// conversationId so a different id rebuilds the conversation cleanly.
+  /// Pull-to-refresh on the empty state and retry after a failure. Same flow
+  /// as [load].
   Future<void> refresh() => load();
 }

@@ -3,10 +3,9 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
-import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
 
 import '../../domain/entities/matchmaker_info.dart';
+import 'matchmaker_avatar.dart';
 
 /// The chat's header: paper, running under the status bar, with a back
 /// chevron whenever there is somewhere to go back to.
@@ -84,7 +83,7 @@ class ChatHeader extends StatelessWidget {
       return [Expanded(child: _line(title!, QeranTypography.title))];
     }
     return [
-      _HeaderAvatar(url: peer.profileImageUrl, name: peer.name),
+      MatchmakerAvatar(url: peer.profileImageUrl, name: peer.name),
       QeranSpacing.hs12,
       Expanded(
         child: Column(
@@ -129,36 +128,6 @@ class _HeaderBackButton extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Header peer avatar — the real photo (unblurred; the parties are already
-/// connected) inside a gold ring, falling back to the wine+gold monogram
-/// when there's no photo.
-class _HeaderAvatar extends StatelessWidget {
-  const _HeaderAvatar({required this.url, required this.name});
-
-  final String? url;
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    if (url == null || url!.isEmpty) {
-      return QeranMonogram(name: name, size: 44, borderWidth: 1.2);
-    }
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: QeranColors.gold, width: 1.2),
-      ),
-      child: LikeBlurredImage(
-        url: url,
-        blur: false,
-        size: 40,
-        fallbackIcon: Icons.person_rounded,
       ),
     );
   }

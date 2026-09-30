@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/widgets/connectivity_banner_host.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/chat_entry_cubit.dart';
@@ -88,6 +89,7 @@ class _ChatEntryView extends StatelessWidget {
           title: LocaleKeys.shell_matchmaker_role.t(context),
           onBack: onBack,
         ),
+        const ConnectivityBannerSlot(),
         Expanded(child: body),
       ],
     );

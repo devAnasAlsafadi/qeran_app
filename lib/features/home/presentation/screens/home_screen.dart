@@ -22,8 +22,8 @@ import 'package:qeran/features/home/presentation/home_shell_navigator.dart';
 import 'package:qeran/features/home/presentation/home_shell_scope.dart';
 import 'package:qeran/features/home/presentation/home_tab_switcher.dart';
 import 'package:qeran/features/home/presentation/widgets/home_nav_items.dart';
+import 'package:qeran/features/home/presentation/widgets/home_shell_body.dart';
 import 'package:qeran/features/home/presentation/widgets/home_tab_stage.dart';
-import 'package:qeran/features/home/presentation/widgets/shell_top_bar.dart';
 import 'package:qeran/features/likes/presentation/screens/likes_screen.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
@@ -121,22 +121,11 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// [context] is inside [HomeShellScope], which the inbox needs to hand back
   /// what the user taps there.
-  Widget _body(BuildContext context, BadgeCounts badges) => Column(
-    children: [
-      ShellTopBar(
-        badges: badges,
-        onOpenChat: () => openMatchmakerChat(context),
-        onOpenInbox: () => openNotifications(context),
-      ),
-      // The bar owns the status-bar inset, so the tabs start below it.
-      Expanded(
-        child: MediaQuery.removePadding(
-          context: context,
-          removeTop: true,
-          child: HomeTabStage(tabs: _tabs, tabBuilder: _tabBody),
-        ),
-      ),
-    ],
+  Widget _body(BuildContext context, BadgeCounts badges) => HomeShellBody(
+    badges: badges,
+    onOpenChat: () => openMatchmakerChat(context),
+    onOpenInbox: () => openNotifications(context),
+    tabs: HomeTabStage(tabs: _tabs, tabBuilder: _tabBody),
   );
 
   @override

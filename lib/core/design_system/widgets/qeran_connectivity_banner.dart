@@ -13,9 +13,18 @@ import '../tokens/qeran_typography.dart';
 /// based on [visible] — revealing from the top edge on [QeranMotion.standard]
 /// and leaving symmetrically, with no toast on restore.
 class QeranConnectivityBanner extends StatelessWidget {
-  const QeranConnectivityBanner({super.key, required this.visible});
+  const QeranConnectivityBanner({
+    super.key,
+    required this.visible,
+    this.attached = false,
+  });
 
   final bool visible;
+
+  /// Under a bar or header instead of over the top of the screen: it slides
+  /// out from under the bar and pushes the content below it down, covering
+  /// nothing, and leaves the status-bar inset to the bar.
+  final bool attached;
 
   @override
   Widget build(BuildContext context) {
@@ -26,20 +35,30 @@ class QeranConnectivityBanner extends StatelessWidget {
       // Pure slide from the top edge — the bar translates down into place and
       // back up on restore (no fade, so the motion reads as "slide", not
       // "appear").
-      transitionBuilder: (child, animation) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, -1),
-          end: Offset.zero,
-        ).animate(animation),
-        child: child,
-      ),
-      child: visible ? const _BannerBar() : const SizedBox.shrink(),
+      transitionBuilder: (child, animation) => attached
+          // Grows from under the bar, bottom edge first, so it reads as the
+          // same slide while the content below makes room.
+          ? SizeTransition(
+              sizeFactor: animation,
+              alignment: Alignment.bottomCenter,
+              child: child,
+            )
+          : SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, -1),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+      child: visible ? _BannerBar(attached: attached) : const SizedBox.shrink(),
     );
   }
 }
 
 class _BannerBar extends StatelessWidget {
-  const _BannerBar();
+  const _BannerBar({required this.attached});
+
+  final bool attached;
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +70,7 @@ class _BannerBar extends StatelessWidget {
     return Material(
       color: QeranColors.wine,
       child: SafeArea(
+        top: !attached,
         bottom: false,
         child: Padding(
           padding: const EdgeInsetsDirectional.symmetric(

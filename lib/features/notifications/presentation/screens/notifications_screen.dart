@@ -6,6 +6,7 @@ import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/state/paginated_list_state.dart';
+import 'package:qeran/core/widgets/connectivity_banner_host.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
@@ -112,21 +113,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           title: LocaleKeys.notifications_title.t(context),
           actions: const [_MarkAllReadAction()],
         ),
-        body: SafeArea(
-          top: false,
-          child:
-              BlocListener<
-                NotificationsCubit,
-                PaginatedListState<NotificationItem>
-              >(
-                listenWhen: (prev, curr) =>
-                    prev.items.length != curr.items.length,
-                listener: (_, state) => _rememberNewest(state.items),
-                child: NotificationsInboxBody(
-                  isArabic: isArabic,
-                  onTap: _onTap,
+        // Offline, the banner comes out from under the app bar, not over it.
+        body: AttachedConnectivityBanner(
+          child: Column(
+            children: [
+              const ConnectivityBannerSlot(),
+              Expanded(
+                child: SafeArea(
+                  top: false,
+                  child:
+                      BlocListener<
+                        NotificationsCubit,
+                        PaginatedListState<NotificationItem>
+                      >(
+                        listenWhen: (prev, curr) =>
+                            prev.items.length != curr.items.length,
+                        listener: (_, state) => _rememberNewest(state.items),
+                        child: NotificationsInboxBody(
+                          isArabic: isArabic,
+                          onTap: _onTap,
+                        ),
+                      ),
                 ),
               ),
+            ],
+          ),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/widgets/connectivity_banner_host.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -123,6 +124,8 @@ class _ConversationView extends StatelessWidget {
                 onBack: onBack,
                 onTap: onHeaderTap,
               ),
+              // Inert unless the page attaches the offline banner.
+              const ConnectivityBannerSlot(),
               Expanded(
                 child: _Body(
                   state: state,

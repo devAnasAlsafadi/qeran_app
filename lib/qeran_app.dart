@@ -8,7 +8,6 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'core/connectivity/connectivity_cubit.dart';
 import 'core/constants/app_constants.dart';
 import 'core/design_system/theme/qeran_theme.dart';
-import 'core/design_system/widgets/qeran_connectivity_banner.dart';
 import 'core/di/injection_container.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_name.dart';
@@ -17,6 +16,7 @@ import 'core/services/firebase_initialization_service.dart';
 import 'core/services/language_service.dart';
 import 'core/utils/app_snackbar.dart';
 import 'core/widgets/app_lifecycle_privacy_shield.dart';
+import 'core/widgets/connectivity_banner_host.dart';
 import 'core/widgets/privacy_shield_suppression.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'features/auth/presentation/blocs/user_session/user_session_state.dart';
@@ -122,8 +122,8 @@ Future<void> _notifyLanguageChangedWhenReady(String languageCode) async {
   await sl<DeviceBootstrapService>().onLanguageChanged(languageCode);
 }
 
-/// Overlays [QeranConnectivityBanner] above every route. Post-login gate (S9):
-/// the banner shows only when the session is authenticated AND offline, so
+/// The offline banner, above every route ([ConnectivityBannerHost]). Post-login
+/// gate (S9): it shows only when the session is authenticated AND offline, so
 /// splash and the pre-login auth flow never surface it.
 class _ConnectivityBannerHost extends StatelessWidget {
   const _ConnectivityBannerHost({required this.child});
@@ -132,26 +132,16 @@ class _ConnectivityBannerHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(child: child),
-        PositionedDirectional(
-          top: 0,
-          start: 0,
-          end: 0,
-          child: BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
-            builder: (context, status) =>
-                BlocBuilder<UserSessionCubit, UserSessionState>(
-                  builder: (context, session) {
-                    final show =
-                        status == ConnectivityStatus.offline &&
-                        session is UserSessionAuthenticated;
-                    return QeranConnectivityBanner(visible: show);
-                  },
-                ),
+    return BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
+      builder: (context, status) =>
+          BlocBuilder<UserSessionCubit, UserSessionState>(
+            builder: (context, session) => ConnectivityBannerHost(
+              offline:
+                  status == ConnectivityStatus.offline &&
+                  session is UserSessionAuthenticated,
+              child: child,
+            ),
           ),
-        ),
-      ],
     );
   }
 }

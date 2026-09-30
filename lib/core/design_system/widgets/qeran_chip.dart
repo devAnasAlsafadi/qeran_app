@@ -5,7 +5,16 @@ import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 
-enum QeranChipVariant { score, meta, inside, interest, plan, status, glass }
+enum QeranChipVariant {
+  score,
+  meta,
+  inside,
+  interest,
+  plan,
+  status,
+  glass,
+  highlight,
+}
 
 /// All pill / tag visuals in the app go through this widget.
 class QeranChip extends StatelessWidget {
@@ -140,6 +149,13 @@ class QeranChip extends StatelessWidget {
             bg: QeranColors.paper.withValues(alpha: 0.13),
             fg: QeranColors.paper,
             border: QeranColors.paper.withValues(alpha: 0.18),
+          ),
+        // Solid gold with a wine label — for news that is waiting for the
+        // member (an unread message), on a paper or cream surface. It must
+        // stand out without borrowing danger's red.
+        QeranChipVariant.highlight => const _ChipSpec(
+            bg: QeranColors.gold,
+            fg: QeranColors.wine,
           ),
       };
 }

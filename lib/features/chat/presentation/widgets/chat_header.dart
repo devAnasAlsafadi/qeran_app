@@ -3,6 +3,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/utils/own_text_direction.dart';
 
 import '../../domain/entities/matchmaker_info.dart';
 import 'matchmaker_avatar.dart';
@@ -90,7 +91,12 @@ class ChatHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _line(peer.name, QeranTypography.title),
+            // In its own direction, so a long name gives way at its own end.
+            _line(
+              peer.name,
+              QeranTypography.title,
+              direction: ownTextDirection(peer.name),
+            ),
             if (subtitle != null) _line(subtitle!, QeranTypography.caption),
           ],
         ),
@@ -98,8 +104,17 @@ class ChatHeader extends StatelessWidget {
     ];
   }
 
-  static Widget _line(String text, TextStyle style) =>
-      Text(text, style: style, maxLines: 1, overflow: TextOverflow.ellipsis);
+  static Widget _line(
+    String text,
+    TextStyle style, {
+    TextDirection? direction,
+  }) => Text(
+    text,
+    style: style,
+    textDirection: direction,
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+  );
 }
 
 /// Leading back affordance. Transparent host since the header is already on

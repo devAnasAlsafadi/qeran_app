@@ -7,6 +7,7 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_dashed_ring.dart';
 import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/own_text_direction.dart';
 import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_state.dart';
 import 'package:qeran/features/chat/presentation/widgets/matchmaker_avatar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -97,7 +98,8 @@ class ShellMatchmakerBlock extends StatelessWidget {
   }
 }
 
-/// Role over name; the name is the one that gives way when space runs out.
+/// Role over name; the name is the one that gives way when space runs out, at
+/// its own end — it is laid out in its own direction, not the UI's.
 class _Lines extends StatelessWidget {
   const _Lines({required this.name, required this.muted});
 
@@ -119,6 +121,7 @@ class _Lines extends StatelessWidget {
         if (name != null)
           Text(
             name!,
+            textDirection: ownTextDirection(name!),
             style: QeranTypography.body.copyWith(
               fontWeight: FontWeight.w700,
               color: muted ? QeranColors.inkMuted : QeranColors.inkStrong,

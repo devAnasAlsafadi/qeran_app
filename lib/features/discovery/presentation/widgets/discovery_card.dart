@@ -1,33 +1,23 @@
-import 'dart:math' as math;
-
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
-import 'package:qeran/features/profile/presentation/widgets/full_profile_image_overlays.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_photo_hero_motion.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/discovery_profile.dart';
-import '../../domain/entities/placement.dart';
 import '../../domain/entities/placement_code.dart';
 import '../../domain/entities/placement_item.dart';
-import '../../domain/entities/placement_value.dart';
 import '_image_overlay_button.dart';
-import 'discovery_about_me.dart';
 import 'discovery_blurred_image.dart';
-import 'discovery_chips_above_image.dart';
-import 'discovery_inside_chips.dart';
-import 'discovery_privacy_message.dart';
+import 'discovery_image_overlay.dart';
 
 /// Full-bleed image panel for a single Discovery profile. Renders the blurred
 /// image with the notifications bell (top-start) and filter button (top-end)
@@ -110,7 +100,7 @@ class DiscoveryImagePanel extends StatelessWidget {
           // Each region scales down inside its own bounded flex slot, so neither
           // can collide with the other or produce a RenderFlex overflow.
           Positioned.fill(
-            child: _AdaptiveImageOverlay(
+            child: DiscoveryImageOverlay(
               name: profile.name,
               age: profile.age,
               matchPercent: profile.matchingScore,
@@ -194,295 +184,5 @@ class DiscoveryImagePanel extends StatelessWidget {
       if (p.code == PlacementCode.aboveImage) return p.items;
     }
     return const <PlacementItem>[];
-  }
-}
-
-class _AdaptiveImageOverlay extends StatelessWidget {
-  const _AdaptiveImageOverlay({
-    required this.name,
-    required this.age,
-    required this.matchPercent,
-    required this.matchPillReveal,
-    required this.aboveItems,
-    required this.bottomContentInset,
-  });
-
-  final String name;
-  final int age;
-  final double matchPercent;
-  final ValueListenable<double>? matchPillReveal;
-  final List<PlacementItem> aboveItems;
-  final double bottomContentInset;
-
-  static const double _compactHeight = 220;
-  static const double _veryCompactHeight = 150;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxHeight < _compactHeight;
-        final isVeryCompact = constraints.maxHeight < _veryCompactHeight;
-        final horizontalPadding = isCompact
-            ? QeranSpacing.s12
-            : QeranSpacing.s16;
-        final topPadding = isCompact ? QeranSpacing.s8 : QeranSpacing.s16;
-        // Whichever is larger: the panel's own breathing room, or the space
-        // the caller reserved for whatever overlaps the bottom edge.
-        final bottomPadding = math.max(
-          isCompact ? QeranSpacing.s8 : QeranSpacing.s20,
-          bottomContentInset,
-        );
-        final contentWidth = (constraints.maxWidth - horizontalPadding * 2)
-            .clamp(0.0, double.infinity)
-            .toDouble();
-
-        final identity = SizedBox(
-          width: contentWidth,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _NameAgeRow(name: name, age: age),
-              // Compatibility pill — directly under name+age, exactly where
-              // the standalone full profile puts it. On the merged screen it
-              // is a scroll reveal (see [matchPillReveal]) that takes up NO
-              // room until it arrives.
-              if (matchPercent > 0)
-                _RevealingMatchPill(
-                  percent: matchPercent,
-                  reveal: matchPillReveal,
-                  gap: isCompact ? QeranSpacing.s4 : QeranSpacing.s8,
-                ),
-              SizedBox(height: isCompact ? QeranSpacing.s4 : QeranSpacing.s8),
-              DiscoveryChipsAboveImage(items: aboveItems),
-            ],
-          ),
-        );
-
-        // On regular portrait cards the privacy group belongs to the visual
-        // center of the whole photo. Previously it occupied the first half of
-        // a Column, which made the lock and caption look noticeably too high.
-        // Compact landscape/split-screen layouts keep the collision-safe flex
-        // arrangement below because the identity block shares very little
-        // vertical space with the privacy message there.
-        if (!isCompact) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: SizedBox(
-                    width: contentWidth,
-                    child: const DiscoveryPrivacyMessage(),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.only(
-                  start: horizontalPadding,
-                  end: horizontalPadding,
-                  top: topPadding,
-                  bottom: bottomPadding,
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional.bottomStart,
-                  child: identity,
-                ),
-              ),
-            ],
-          );
-        }
-
-        return Padding(
-          padding: EdgeInsetsDirectional.only(
-            start: horizontalPadding,
-            end: horizontalPadding,
-            top: topPadding,
-            bottom: bottomPadding,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (!isVeryCompact)
-                Expanded(
-                  flex: isCompact ? 4 : 5,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: contentWidth,
-                      child: const DiscoveryPrivacyMessage(),
-                    ),
-                  ),
-                ),
-              Expanded(
-                flex: isVeryCompact ? 1 : (isCompact ? 6 : 5),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: AlignmentDirectional.bottomStart,
-                  child: identity,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// The compatibility pill, revealed by [reveal].
-///
-/// It occupies NO height at rest — name and chips sit directly against each
-/// other — and grows into place as [reveal] runs 0 → 1. Because the identity
-/// block is anchored to the BOTTOM of the photo, that growth pushes the name
-/// upward and the pill slides into the room the name just left, which is the
-/// whole point: no reserved gap waiting to be filled.
-///
-/// A null [reveal] renders the pill outright (any caller that isn't the merged
-/// scroll).
-class _RevealingMatchPill extends StatelessWidget {
-  const _RevealingMatchPill({
-    required this.percent,
-    required this.reveal,
-    required this.gap,
-  });
-
-  final double percent;
-  final ValueListenable<double>? reveal;
-
-  /// Space between the name and the pill. Part of what collapses, so at rest
-  /// it costs nothing either.
-  final double gap;
-
-  @override
-  Widget build(BuildContext context) {
-    final pill = ProfileMatchPill(
-      label: context.tr(
-        LocaleKeys.profile_compatibility_label,
-        namedArgs: {'percent': '${percent.round()}'},
-      ),
-    );
-    final source = reveal;
-    final block = Padding(
-      padding: EdgeInsets.only(top: gap),
-      child: Align(alignment: AlignmentDirectional.centerStart, child: pill),
-    );
-    if (source == null) return block;
-    return ValueListenableBuilder<double>(
-      valueListenable: source,
-      builder: (context, value, child) {
-        final t = value.clamp(0.0, 1.0);
-        if (t == 0) return const SizedBox.shrink();
-        // heightFactor scales the box; bottom alignment means the pill emerges
-        // from under the chips rather than being squashed. Opacity on top so
-        // it fades rather than wipes.
-        return ClipRect(
-          child: Align(
-            alignment: AlignmentDirectional.bottomStart,
-            heightFactor: t,
-            child: Opacity(opacity: t, child: child),
-          ),
-        );
-      },
-      child: block,
-    );
-  }
-}
-
-class _NameAgeRow extends StatelessWidget {
-  final String name;
-  final int age;
-
-  const _NameAgeRow({required this.name, required this.age});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      '$name $age',
-      style: QeranTypography.headline.copyWith(
-        color: QeranColors.paper,
-        fontWeight: FontWeight.w700,
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-}
-
-/// Content panel for the lower white sheet: the about-me header + body,
-/// followed by the inside-card chips. Does NOT include its own white
-/// background — the caller wraps it in the sheet container.
-class DiscoveryInfoPanel extends StatelessWidget {
-  final DiscoveryProfile profile;
-
-  /// Body maxLines forwarded to [DiscoveryAboutMe]. `null` (default) shows
-  /// the full about-me text (main card); the peek preview passes a small
-  /// value to truncate.
-  final int? maxLines;
-
-  /// Replaces the deck payload's about-me body when set.
-  ///
-  /// The deck sends a SHORT preview of نبذة عني; the by-id profile carries the
-  /// whole thing. The caller passes the fuller text through once it has landed
-  /// so the user reads the paragraph, not its first line.
-  final String? aboutMeOverride;
-
-  const DiscoveryInfoPanel({
-    super.key,
-    required this.profile,
-    this.maxLines,
-    this.aboutMeOverride,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final aboutMe = _aboutMe();
-    final insideItems = _insideItems();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (aboutMe != null) ...[
-          DiscoveryAboutMe(
-            header: aboutMe.name,
-            text: aboutMeOverride?.trim().isNotEmpty ?? false
-                ? aboutMeOverride!.trim()
-                : _aboutMeText(aboutMe),
-            maxLines: maxLines,
-          ),
-          // Increased breathing room between About Me text and the inside chips
-          const SizedBox(height: QeranSpacing.s20),
-        ],
-        DiscoveryInsideChips(items: insideItems),
-      ],
-    );
-  }
-
-  Placement? _aboutMe() {
-    for (final p in profile.placements) {
-      if (p.code == PlacementCode.aboutMe) return p;
-    }
-    return null;
-  }
-
-  List<PlacementItem> _insideItems() {
-    for (final p in profile.placements) {
-      if (p.code == PlacementCode.insideCard) return p.items;
-    }
-    return const <PlacementItem>[];
-  }
-
-  String _aboutMeText(Placement section) {
-    if (section.items.isEmpty) return '';
-    final v = section.items.first.display;
-    return switch (v) {
-      PlacementSingle(value: final s) => s,
-      PlacementMulti(values: final vs) => vs.join('\n'),
-    };
   }
 }

@@ -17,7 +17,7 @@ import 'package:qeran/features/profile/presentation/widgets/share_with_matchmake
 import '../../domain/entities/discovery_profile.dart';
 import '../blocs/discovery_hydration_cubit.dart';
 import '../blocs/discovery_hydration_state.dart';
-import 'discovery_card.dart';
+import 'discovery_info_panel.dart';
 
 /// نبذة عني + the chips under it — the ONLY profile content above the fold.
 ///

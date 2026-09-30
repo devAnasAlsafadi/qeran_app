@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
 import 'package:qeran/core/di/injection_container.dart';
-import 'package:qeran/core/enum/snakebar_tybe.dart';
-import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
-import 'package:qeran/features/likes/presentation/widgets/like_blurred_image.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/matchmaker_info.dart';
@@ -19,10 +11,12 @@ import '../../domain/entities/realtime_status.dart';
 import '../blocs/conversation_cubit.dart';
 import '../blocs/conversation_state.dart';
 import '../widgets/chat_error_view.dart';
+import '../widgets/chat_header.dart';
 import '../widgets/chat_input_bar.dart';
 import '../widgets/chat_message_list.dart';
 import '../widgets/chat_message_skeleton.dart';
 import '../widgets/nav_aware_composer.dart';
+import 'chat_conversation_toasts.dart';
 
 /// One open conversation. Phase 6 adds optimistic outgoing: the
 /// composer immediately renders a temp bubble while REST runs in
@@ -106,7 +100,7 @@ class _ConversationView extends StatelessWidget {
           color: QeranColors.creamCanvas,
           child: Column(
             children: [
-              _Header(
+              ChatHeader(
                 info: info,
                 onBack: onBack,
                 onTap: onHeaderTap,
@@ -128,86 +122,8 @@ class _ConversationView extends StatelessWidget {
     );
   }
 
-  void _onEvent(BuildContext context, ConversationStateData state) {
-    switch (state.event) {
-      case ConversationEvent.none:
-        break;
-      case ConversationEvent.sendValidationEmpty:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_send_validation_empty.t(context),
-          type: SnackBarType.info,
-        );
-      case ConversationEvent.sendValidationTooLong:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_send_validation_too_long.t(context),
-          type: SnackBarType.info,
-        );
-      case ConversationEvent.sendRateLimited:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_send_rate_limited.t(context),
-          type: SnackBarType.info,
-        );
-      case ConversationEvent.sendConversationNotFound:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_send_conversation_not_found.t(context),
-          type: SnackBarType.error,
-        );
-      case ConversationEvent.sendUnauthorized:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_send_unauthorized.t(context),
-          type: SnackBarType.error,
-        );
-      case ConversationEvent.sendFailure:
-        // No snackbar — the failed bubble itself carries the
-        // tap-to-retry affordance. Showing a toast would double-
-        // surface the failure.
-        break;
-      case ConversationEvent.shareProfileNotFound:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_share_profile_not_found.t(context),
-          type: SnackBarType.info,
-        );
-      case ConversationEvent.shareValidation:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_share_validation.t(context),
-          type: SnackBarType.info,
-        );
-      case ConversationEvent.shareRateLimited:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_share_rate_limited.t(context),
-          type: SnackBarType.info,
-        );
-      case ConversationEvent.shareConversationNotFound:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_send_conversation_not_found.t(context),
-          type: SnackBarType.error,
-        );
-      case ConversationEvent.shareUnauthorized:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_send_unauthorized.t(context),
-          type: SnackBarType.error,
-        );
-      case ConversationEvent.shareFailure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.chat_share_failure.t(context),
-          type: SnackBarType.error,
-        );
-      case ConversationEvent.shareSuccess:
-        // No snackbar — the inserted message itself confirms.
-        break;
-    }
-  }
+  void _onEvent(BuildContext context, ConversationStateData state) =>
+      showConversationEventToast(context, state.event);
 }
 
 class _Body extends StatelessWidget {
@@ -242,158 +158,5 @@ class _Body extends StatelessWidget {
           onRetryFailedSend: cubit.retryFailedSend,
         );
     }
-  }
-}
-
-/// Leading back affordance for the header — shown only when
-/// [ChatConversationScreen.onBack] is set (pushed-route usage). Transparent
-/// host since the header is already on a paper surface.
-class _HeaderBackButton extends StatelessWidget {
-  const _HeaderBackButton({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onBack,
-        child: const SizedBox(
-          width: 40,
-          height: 40,
-          child: Center(
-            child: Icon(
-              Icons.chevron_left_rounded,
-              color: QeranColors.wine,
-              size: 24,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final MatchmakerInfo info;
-  final VoidCallback? onBack;
-  final VoidCallback? onTap;
-
-  /// Whether our realtime socket is connected — drives the neutral "active
-  /// now" status. Bound to OUR connection (not fabricated peer presence).
-  final bool isActive;
-
-  const _Header({
-    required this.info,
-    this.onBack,
-    this.onTap,
-    this.isActive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: QeranColors.paper,
-        border: Border(bottom: BorderSide(color: QeranColors.wine08)),
-        boxShadow: QeranShadows.e1,
-      ),
-      padding: const EdgeInsets.fromLTRB(
-        QeranSpacing.s16,
-        QeranSpacing.s12,
-        QeranSpacing.s16,
-        QeranSpacing.s12,
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            children: [
-              if (onBack != null) ...[
-                _HeaderBackButton(onBack: onBack!),
-                QeranSpacing.hs4,
-              ],
-              _HeaderAvatar(url: info.profileImageUrl, name: info.name),
-              QeranSpacing.hs12,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      info.name,
-                      style: QeranTypography.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    // Neutral, role-agnostic status — shown only while our
-                    // realtime link is up (the reconnecting strip covers the
-                    // rest), so it never claims presence we can't back.
-                    if (isActive) ...[
-                      QeranSpacing.vs4,
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: QeranColors.goldDeep,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          QeranSpacing.hs4,
-                          Text(
-                            LocaleKeys.chat_header_status_active.t(context),
-                            style: QeranTypography.caption.copyWith(
-                              color: QeranColors.goldDeep,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Header peer avatar — the real photo (unblurred; the parties are already
-/// connected) inside a gold ring, falling back to the wine+gold monogram
-/// when there's no photo.
-class _HeaderAvatar extends StatelessWidget {
-  const _HeaderAvatar({required this.url, required this.name});
-
-  final String? url;
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    if (url == null || url!.isEmpty) {
-      return QeranMonogram(name: name, size: 44, borderWidth: 1.2);
-    }
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: QeranColors.gold, width: 1.2),
-      ),
-      child: LikeBlurredImage(
-        url: url,
-        blur: false,
-        size: 40,
-        fallbackIcon: Icons.person_rounded,
-      ),
-    );
   }
 }

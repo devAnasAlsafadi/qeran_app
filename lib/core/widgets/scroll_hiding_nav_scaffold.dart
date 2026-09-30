@@ -1,41 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-/// What bottom-anchored chrome INSIDE a tab needs to know about the shell's
-/// nav: whether the island is currently on screen, and how tall the device's
-/// own bottom inset is.
-///
-/// [insetBottom] is carried rather than looked up because a descendant CANNOT
-/// look it up. Scaffold strips the bottom padding from its body when a
-/// `bottomNavigationBar` is present, and `MediaQuery.removePadding` subtracts
-/// `padding` from `viewPadding` as well — so both read 0 inside the body, and
-/// chrome that reconstructs the island's position from them silently loses the
-/// whole inset and sinks into the nav. The shell reads it from its own context,
-/// which sits ABOVE the Scaffold and still sees the real value.
-///
-/// Absent — [maybeOf] returns null — on any route pushed above the shell,
-/// which has no nav to avoid.
-class BottomNavGeometry extends InheritedWidget {
-  const BottomNavGeometry({
-    super.key,
-    required this.visible,
-    required this.insetBottom,
-    required super.child,
-  });
-
-  final bool visible;
-
-  /// The device's bottom safe-area inset, in logical pixels.
-  final double insetBottom;
-
-  static BottomNavGeometry? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<BottomNavGeometry>();
-
-  @override
-  bool updateShouldNotify(BottomNavGeometry old) =>
-      old.visible != visible || old.insetBottom != insetBottom;
-}
-
 /// Shell scaffold whose bottom nav slides out of the way while the reader
 /// scrolls down and returns on the first upward scroll. Shared by the user and
 /// matchmaker shells so the two can never drift apart again.
@@ -74,8 +39,7 @@ class ScrollHidingNavScaffold extends StatefulWidget {
   /// the toast host's clearance honest as the island slides.
   final WidgetBuilder navBuilder;
 
-  /// Shared by the island and by any chrome stepping aside for it, so the two
-  /// always travel together. 220 ms read as a snap rather than a glide on a
+  /// The island's slide. 220 ms read as a snap rather than a glide on a
   /// surface this large — the island is the full width of the screen, and a
   /// short duration on a big travel distance is what makes motion feel abrupt.
   static const Duration duration = Duration(milliseconds: 300);
@@ -138,12 +102,7 @@ class _ScrollHidingNavScaffoldState extends State<ScrollHidingNavScaffold> {
       extendBody: true,
       body: NotificationListener<UserScrollNotification>(
         onNotification: _onUserScroll,
-        child: BottomNavGeometry(
-          visible: _visible,
-          // Read HERE, above the Scaffold — inside its body this is 0.
-          insetBottom: MediaQuery.viewPaddingOf(context).bottom,
-          child: widget.body,
-        ),
+        child: widget.body,
       ),
       bottomNavigationBar: AnimatedSlide(
         // A full-height translation down — the island leaves the screen without

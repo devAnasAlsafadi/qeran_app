@@ -26,7 +26,14 @@ class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canPop = onBack != null || Navigator.of(context).canPop();
+    // Asks THIS screen's route, not the navigator: `Navigator.canPop()` is
+    // true for a shell tab whenever another screen sits on top of it, and a
+    // tab rebuilt then (a language switch made from a pushed screen) kept a
+    // chevron that went nowhere. `ModalRoute.of` also rebuilds the bar when
+    // its route's standing changes. The same test Material's AppBar uses.
+    final canPop =
+        onBack != null ||
+        (ModalRoute.of(context)?.impliesAppBarDismissal ?? false);
     return AppBar(
       backgroundColor: background,
       elevation: 0,

@@ -92,8 +92,8 @@ void main() {
   setUp(() async => sl.reset());
 
   group('the seam a tab hangs its back control on', () {
-    // QeranAppBar draws no leading on a tab because canPop() is false there —
-    // which is exactly why the tabs had no back arrow. onBack overrides that,
+    // QeranAppBar draws no leading on a tab because the tab's route has
+    // nothing below it — which is exactly why the tabs had no back arrow. onBack overrides that,
     // and it is how the matchmaker tabs get theirs.
     testWidgets('an app bar with onBack draws a leading with nothing to pop', (
       tester,

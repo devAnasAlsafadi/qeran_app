@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
-import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
-import 'package:qeran/core/design_system/widgets/qeran_sheet_handle.dart';
+import 'package:qeran/core/design_system/widgets/qeran_options_sheet.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -16,6 +12,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/block_action_cubit.dart';
 import '../blocs/block_action_state.dart';
+import 'confirm_block_dialog.dart';
 
 enum _SafetyAction { report, block }
 
@@ -89,11 +86,21 @@ class _SafetyMenuButtonView extends StatelessWidget {
   Future<void> _openMenu(BuildContext context) async {
     // Capture the cubit before the menu sheet (a separate route can't read it).
     final cubit = context.read<BlockActionCubit>();
-    final action = await showModalBottomSheet<_SafetyAction>(
-      context: context,
-      backgroundColor: QeranColors.paper,
-      shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
-      builder: (_) => const _SafetyMenuSheet(),
+    final action = await QeranOptionsSheet.show<_SafetyAction>(
+      context,
+      options: [
+        QeranOption(
+          icon: Icons.flag_outlined,
+          label: LocaleKeys.report_action_report_user.t(context),
+          value: _SafetyAction.report,
+        ),
+        QeranOption(
+          icon: Icons.block_rounded,
+          label: LocaleKeys.block_action_block.t(context),
+          value: _SafetyAction.block,
+          danger: true,
+        ),
+      ],
     );
     if (action == null || !context.mounted) return;
 
@@ -101,88 +108,8 @@ class _SafetyMenuButtonView extends StatelessWidget {
       case _SafetyAction.report:
         await showReportSheet(context, targetUserId: targetUserId);
       case _SafetyAction.block:
-        final ok = await QeranConfirmDialog.show(
-          context,
-          title: LocaleKeys.block_confirm_title.t(context),
-          message: LocaleKeys.block_confirm_body.t(context),
-          confirmLabel: LocaleKeys.block_confirm_button.t(context),
-          cancelLabel: LocaleKeys.common_cancel.t(context),
-          icon: Icons.block_rounded,
-        );
+        final ok = await confirmBlockMember(context);
         if (ok && context.mounted) cubit.block(targetUserId);
     }
-  }
-}
-
-class _SafetyMenuSheet extends StatelessWidget {
-  const _SafetyMenuSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          QeranSpacing.s12,
-          QeranSpacing.s12,
-          QeranSpacing.s12,
-          QeranSpacing.s16,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Center(child: QeranSheetHandle()),
-            QeranSpacing.vs12,
-            _Row(
-              icon: Icons.flag_outlined,
-              label: LocaleKeys.report_action_report_user.t(context),
-              onTap: () => Navigator.of(context).pop(_SafetyAction.report),
-            ),
-            _Row(
-              icon: Icons.block_rounded,
-              label: LocaleKeys.block_action_block.t(context),
-              danger: true,
-              onTap: () => Navigator.of(context).pop(_SafetyAction.block),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool danger;
-  final VoidCallback onTap;
-
-  const _Row({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.danger = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = danger ? QeranColors.danger : QeranColors.wine;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: QeranRadii.cardR,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 22),
-            QeranSpacing.hs12,
-            Text(
-              label,
-              style: QeranTypography.body.copyWith(color: color),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

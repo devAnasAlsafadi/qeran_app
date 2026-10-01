@@ -7,12 +7,12 @@ import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../colleagues/presentation/widgets/matchmaker_colleague_open_chat_host.dart';
 import '../../../conversations/presentation/widgets/matchmaker_open_chat_host.dart';
 import '../../../home/presentation/home_shell_scope.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../blocs/matchmaker_cases_filter_cubit.dart';
 import '../blocs/matchmaker_cases_list_cubit.dart';
@@ -113,7 +113,7 @@ class _EmptyRefreshable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: false,
       onRefresh: onRefresh,
       onLoadMore: () async {},

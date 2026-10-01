@@ -13,6 +13,7 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/notifications/presentation/widgets/notification_inbox_tile.dart'
@@ -20,7 +21,6 @@ import 'package:qeran/features/notifications/presentation/widgets/notification_i
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../shared/data/matchmaker_notification_router.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/matchmaker_notification.dart';
 import '../blocs/matchmaker_notification_read_cubit.dart';
 import '../blocs/matchmaker_notifications_cubit.dart';
@@ -178,7 +178,7 @@ class _Body extends StatelessWidget {
           return _EmptyRefreshable(onRefresh: cubit.refresh);
         }
         final count = state.items.length;
-        return MatchmakerPaginatedList(
+        return PaginatedList(
           hasMore: state.hasMore,
           onRefresh: cubit.refresh,
           onLoadMore: cubit.loadMore,
@@ -201,7 +201,7 @@ class _Body extends StatelessWidget {
                     : const SizedBox.shrink(),
             itemBuilder: (context, index) {
               if (index >= count) {
-                return const MatchmakerLoadMoreFooter();
+                return const LoadMoreFooter();
               }
               final n = state.items[index];
               // Rebuilds once, when the stored watermark arrives from prefs.
@@ -231,7 +231,7 @@ class _EmptyRefreshable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: false,
       onRefresh: onRefresh,
       onLoadMore: () async {},

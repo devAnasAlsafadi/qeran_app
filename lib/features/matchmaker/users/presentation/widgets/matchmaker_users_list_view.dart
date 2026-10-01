@@ -10,11 +10,11 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
 import '../../../dashboard/presentation/blocs/matchmaker_dashboard_cubit.dart';
 import '../../../conversations/presentation/widgets/matchmaker_open_chat_host.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/matchmaker_user_row.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import '../blocs/matchmaker_users_list_cubit.dart';
@@ -136,7 +136,7 @@ class _ListBody extends StatelessWidget {
         message: LocaleKeys.matchmaker_users_empty_message.t(context),
       );
     }
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       key: const ValueKey('list'),
       hasMore: state.hasMore,
       onRefresh: cubit.refresh,
@@ -154,7 +154,7 @@ class _ListBody extends StatelessWidget {
             itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
               if (index >= state.items.length) {
-                return const MatchmakerLoadMoreFooter();
+                return const LoadMoreFooter();
               }
               final row = state.items[index];
               // Card body isn't tappable; actions live on the card's buttons.

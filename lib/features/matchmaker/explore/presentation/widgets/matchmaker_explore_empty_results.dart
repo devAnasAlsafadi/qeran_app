@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 
 /// No-results empty state that still scrolls, so pull-to-refresh works.
 ///
@@ -36,7 +36,7 @@ class MatchmakerExploreEmptyResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filtered = hasActiveFilters;
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: false,
       onRefresh: onRefresh,
       onLoadMore: () async {},

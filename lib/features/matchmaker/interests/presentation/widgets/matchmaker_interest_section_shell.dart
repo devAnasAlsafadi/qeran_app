@@ -7,8 +7,8 @@ import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../blocs/matchmaker_interests_state.dart';
 
 /// Loader / error / empty / content switch shared by all three interest tabs.
@@ -71,7 +71,7 @@ class MatchmakerInterestList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: false,
       onRefresh: onRefresh,
       onLoadMore: () async {},
@@ -128,7 +128,7 @@ class _EmptyRefreshable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: false,
       onRefresh: onRefresh,
       onLoadMore: () async {},

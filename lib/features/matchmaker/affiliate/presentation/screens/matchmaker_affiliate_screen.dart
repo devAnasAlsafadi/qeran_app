@@ -10,8 +10,8 @@ import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/affiliate_commission.dart';
 import '../../domain/entities/affiliate_summary.dart';
 import '../blocs/affiliate_commissions_cubit.dart';
@@ -108,7 +108,7 @@ class _LoadedDashboard extends StatelessWidget {
         final commissions = context.read<AffiliateCommissionsCubit>();
         final summaryCubit = context.read<AffiliateSummaryCubit>();
         final hasRows = ledger.items.isNotEmpty;
-        return MatchmakerPaginatedList(
+        return PaginatedList(
           hasMore: hasRows && ledger.hasMore,
           onRefresh: () async {
             await summaryCubit.load();
@@ -144,7 +144,7 @@ class _LoadedDashboard extends StatelessWidget {
               }
               final rowIndex = index - 1;
               if (rowIndex >= ledger.items.length) {
-                return const MatchmakerLoadMoreFooter();
+                return const LoadMoreFooter();
               }
               return Column(
                 children: [

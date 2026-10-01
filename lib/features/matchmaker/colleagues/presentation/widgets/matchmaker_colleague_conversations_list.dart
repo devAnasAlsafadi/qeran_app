@@ -12,11 +12,11 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../conversations/presentation/widgets/matchmaker_conversation_card.dart';
 import '../../../conversations/presentation/widgets/matchmaker_conversations_list_skeleton.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../blocs/matchmaker_colleague_conversations_cubit.dart';
 
 /// The Colleagues segment of the conversations tab: owns its
@@ -75,7 +75,7 @@ class _ListBody extends StatelessWidget {
         if (state.items.isEmpty) {
           return _EmptyRefreshable(onRefresh: cubit.refresh);
         }
-        return MatchmakerPaginatedList(
+        return PaginatedList(
           hasMore: state.hasMore,
           onRefresh: cubit.refresh,
           onLoadMore: cubit.loadMore,
@@ -92,7 +92,7 @@ class _ListBody extends StatelessWidget {
             itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
               if (index >= state.items.length) {
-                return const MatchmakerLoadMoreFooter();
+                return const LoadMoreFooter();
               }
               final conversation = state.items[index];
               return MatchmakerConversationCard(
@@ -126,7 +126,7 @@ class _EmptyRefreshable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: false,
       onRefresh: onRefresh,
       onLoadMore: () async {},

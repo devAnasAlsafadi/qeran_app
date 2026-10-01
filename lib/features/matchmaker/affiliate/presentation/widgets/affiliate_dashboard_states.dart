@@ -5,8 +5,8 @@ import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/affiliate_commission.dart';
 import '../blocs/affiliate_commissions_cubit.dart';
 
@@ -59,7 +59,7 @@ class AffiliateRefreshableCentered extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: false,
       onRefresh: onRefresh,
       onLoadMore: () async {},

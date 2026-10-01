@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_spacing.dart';
-import '../../../../../core/design_system/widgets/qeran_loader.dart';
+import '../design_system/tokens/qeran_colors.dart';
+import '../design_system/tokens/qeran_spacing.dart';
+import '../design_system/widgets/qeran_loader.dart';
 
-/// Pull-to-refresh + infinite-scroll wrapper for every Matchmaker
-/// paginated list. The caller owns the data and the cubit; this widget
-/// is purely a shell:
+/// Pull-to-refresh + infinite-scroll wrapper for every paginated list in
+/// the app (pairs with `PaginatedListState`). The caller owns the data and
+/// the cubit; this widget is purely a shell:
 ///   • [onRefresh] runs on pull-down (wine-tinted RefreshIndicator).
 ///   • [onLoadMore] fires once when the viewport approaches the end and
 ///     [hasMore] is true. Reentrancy guarded internally so a single
 ///     scroll never fires it twice.
 ///
-/// Pass the rendered list / grid as [child]. The caller decides whether
-/// to wrap it in a `Sliver*` (use [MatchmakerPaginatedList.scrollable])
-/// or render a non-scrollable widget (use the default constructor inside
-/// a `ListView` / `GridView`).
-class MatchmakerPaginatedList extends StatefulWidget {
-  const MatchmakerPaginatedList({
+/// Pass the rendered scrollable (`ListView`, `GridView`, `CustomScrollView`)
+/// as [child]; its scroll notifications drive [onLoadMore].
+class PaginatedList extends StatefulWidget {
+  const PaginatedList({
     super.key,
     required this.child,
     required this.onRefresh,
@@ -35,11 +33,10 @@ class MatchmakerPaginatedList extends StatefulWidget {
   final double loadMoreThreshold;
 
   @override
-  State<MatchmakerPaginatedList> createState() =>
-      _MatchmakerPaginatedListState();
+  State<PaginatedList> createState() => _PaginatedListState();
 }
 
-class _MatchmakerPaginatedListState extends State<MatchmakerPaginatedList> {
+class _PaginatedListState extends State<PaginatedList> {
   bool _loadingMoreInFlight = false;
 
   bool _onScrollNotification(ScrollNotification n) {
@@ -71,8 +68,8 @@ class _MatchmakerPaginatedListState extends State<MatchmakerPaginatedList> {
 
 /// Compact "loading more" footer for paginated lists. Drop in as the
 /// last item when the cubit reports `isLoadingMore: true`.
-class MatchmakerLoadMoreFooter extends StatelessWidget {
-  const MatchmakerLoadMoreFooter({super.key});
+class LoadMoreFooter extends StatelessWidget {
+  const LoadMoreFooter({super.key});
 
   @override
   Widget build(BuildContext context) {

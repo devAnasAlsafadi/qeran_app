@@ -9,9 +9,9 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cubit.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../../users/presentation/widgets/matchmaker_notes_sheet.dart';
 import '../../../users/presentation/matchmaker_user_profile_args.dart';
 import '../../domain/entities/matchmaker_explore_user.dart';
@@ -92,7 +92,7 @@ class _MatchmakerExploreListState extends State<MatchmakerExploreList> {
             onClearFilters: widget.onClearFilters,
           );
         }
-        return MatchmakerPaginatedList(
+        return PaginatedList(
           hasMore: state.hasMore,
           onRefresh: cubit.refresh,
           onLoadMore: cubit.loadMore,
@@ -109,7 +109,7 @@ class _MatchmakerExploreListState extends State<MatchmakerExploreList> {
             itemCount: state.items.length + (state.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
               if (index >= state.items.length) {
-                return const MatchmakerLoadMoreFooter();
+                return const LoadMoreFooter();
               }
               final user = state.items[index];
               return MatchmakerExploreCard(

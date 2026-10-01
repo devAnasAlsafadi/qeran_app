@@ -10,11 +10,11 @@ import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
+import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cubit.dart';
 import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../conversations/presentation/blocs/matchmaker_open_chat_cubit.dart';
-import '../../../shared/presentation/widgets/matchmaker_paginated_list.dart';
 import '../../domain/entities/case_user.dart';
 import '../../domain/entities/compatibility_case.dart';
 import '../../domain/entities/matchmaker_cases_filter.dart';
@@ -55,7 +55,7 @@ class MatchmakerCasesListView extends StatelessWidget {
         .watch<MatchmakerColleagueOpenChatCubit>()
         .state
         .openingUserId;
-    return MatchmakerPaginatedList(
+    return PaginatedList(
       hasMore: state.hasMore,
       onRefresh: cubit.refresh,
       onLoadMore: cubit.loadMore,
@@ -72,7 +72,7 @@ class MatchmakerCasesListView extends StatelessWidget {
         itemCount: visible.length + (state.isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= visible.length) {
-            return const MatchmakerLoadMoreFooter();
+            return const LoadMoreFooter();
           }
           final caseItem = visible[index];
           final chat = caseItem.chat;

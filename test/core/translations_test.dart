@@ -19,20 +19,48 @@ Map<String, dynamic> _load(String locale) =>
     jsonDecode(File('assets/translations/$locale.json').readAsStringSync())
         as Map<String, dynamic>;
 
+/// The categories a plural key's forms are named by (B1).
+const _pluralCategories = {'zero', 'one', 'two', 'few', 'many', 'other'};
+
+/// Whether [value] is a plural key: a map of forms, one per category.
+bool _isPlural(Object? value) =>
+    value is Map<String, dynamic> &&
+    value.isNotEmpty &&
+    value.keys.every(_pluralCategories.contains);
+
 /// Every LEAF key as a dotted path, matching how `LocaleKeys` names them.
 ///
 /// Recursive rather than two levels deep: most sections are flat, but
 /// `onboarding.essence.*` nests one further, and a two-level walk reports its
 /// leaves as missing while quietly adding a key (`onboarding.essence`) that
-/// does not exist.
+/// does not exist. A plural key is one leaf, as `LocaleKeys` has it: its
+/// forms differ by language (Arabic has six categories, English two), so
+/// they are compared by [_pluralForms], not here.
 Set<String> _flatten(Map<String, dynamic> json, [String prefix = '']) {
   final out = <String>{};
   json.forEach((key, value) {
     final path = prefix.isEmpty ? key : '$prefix.$key';
-    if (value is Map<String, dynamic>) {
+    if (value is Map<String, dynamic> && !_isPlural(value)) {
       out.addAll(_flatten(value, path));
     } else {
       out.add(path);
+    }
+  });
+  return out;
+}
+
+/// Every plural key in [json], with the categories it has forms for.
+Map<String, Set<String>> _pluralForms(
+  Map<String, dynamic> json, [
+  String prefix = '',
+]) {
+  final out = <String, Set<String>>{};
+  json.forEach((key, value) {
+    final path = prefix.isEmpty ? key : '$prefix.$key';
+    if (_isPlural(value)) {
+      out[path] = (value as Map<String, dynamic>).keys.toSet();
+    } else if (value is Map<String, dynamic>) {
+      out.addAll(_pluralForms(value, path));
     }
   });
   return out;
@@ -118,6 +146,23 @@ void main() {
     for (final key in _referenced()) {
       expect(ar, contains(key), reason: '$key read by lib/ but missing from ar');
       expect(en, contains(key), reason: '$key read by lib/ but missing from en');
+    }
+  });
+
+  // A form missing from a plural key falls back to `other`: an English key
+  // without `one` reads "View 1 replies". Every key needs `other` (the last
+  // resort in any language) and English needs `one`, the only other form
+  // its rule picks.
+  test('every plural key has the forms its language reaches', () {
+    final ar = _pluralForms(_load('ar'));
+    final en = _pluralForms(_load('en'));
+
+    expect(ar.keys.toSet(), en.keys.toSet());
+    for (final MapEntry(:key, value: forms) in ar.entries) {
+      expect(forms, contains('other'), reason: '$key in ar');
+    }
+    for (final MapEntry(:key, value: forms) in en.entries) {
+      expect(forms, containsAll(['one', 'other']), reason: '$key in en');
     }
   });
 }

@@ -35,6 +35,10 @@ void main() async {
       // launches.
       startLocale: const Locale('ar'),
       fallbackLocale: const Locale('ar'),
+      // B1: off by default, which reduces every language to zero / one /
+      // two / other — Arabic would never reach its few (3–10) and many
+      // (11–99) forms. See `String.tPlural`.
+      ignorePluralRules: false,
       path: AppAssets.translations,
       child: const QeranApp(),
     ),

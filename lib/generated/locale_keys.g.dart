@@ -216,6 +216,8 @@ abstract class  LocaleKeys {
   static const shell_chat_entry_a11y_unread = 'shell.chat_entry_a11y_unread';
   static const shell = 'shell';
   static const community_placeholder_body = 'community.placeholder_body';
+  static const community_view_replies = 'community.view_replies';
+  static const community_more_replies = 'community.more_replies';
   static const community = 'community';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';
@@ -230,7 +232,18 @@ abstract class  LocaleKeys {
   static const time_minute = 'time.minute';
   static const time_hour = 'time.hour';
   static const time_day = 'time.day';
+  static const time_just_now = 'time.just_now';
+  static const time_minutes_ago = 'time.minutes_ago';
+  static const time_hours_ago = 'time.hours_ago';
+  static const time_days_ago = 'time.days_ago';
+  static const time_weeks_ago = 'time.weeks_ago';
+  static const time_minutes_ago_compact = 'time.minutes_ago_compact';
+  static const time_hours_ago_compact = 'time.hours_ago_compact';
+  static const time_days_ago_compact = 'time.days_ago_compact';
+  static const time_weeks_ago_compact = 'time.weeks_ago_compact';
   static const time = 'time';
+  static const count_thousands = 'count.thousands';
+  static const count = 'count';
   static const discovery_privacy_message = 'discovery.privacy_message';
   static const discovery_empty_title = 'discovery.empty_title';
   static const discovery_empty_subtitle = 'discovery.empty_subtitle';

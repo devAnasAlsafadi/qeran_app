@@ -223,7 +223,15 @@
     "chat_entry_a11y_unread": "Your matchmaker, {name}. New message"
   },
   "community": {
-    "placeholder_body": "Community feed · designed in Phase 2"
+    "placeholder_body": "Community feed · designed in Phase 2",
+    "view_replies": {
+      "one": "View 1 reply",
+      "other": "View {n} replies"
+    },
+    "more_replies": {
+      "one": "View 1 more reply",
+      "other": "View {n} more replies"
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -239,7 +247,46 @@
     "now": "Now",
     "minute": "m",
     "hour": "h",
-    "day": "d"
+    "day": "d",
+    "just_now": "Just now",
+    "minutes_ago": {
+      "one": "1 minute ago",
+      "other": "{n} minutes ago"
+    },
+    "hours_ago": {
+      "one": "1 hour ago",
+      "other": "{n} hours ago"
+    },
+    "days_ago": {
+      "one": "Yesterday",
+      "other": "{n} days ago"
+    },
+    "weeks_ago": {
+      "one": "1 week ago",
+      "other": "{n} weeks ago"
+    },
+    "minutes_ago_compact": {
+      "one": "{n}m",
+      "other": "{n}m"
+    },
+    "hours_ago_compact": {
+      "one": "{n}h",
+      "other": "{n}h"
+    },
+    "days_ago_compact": {
+      "one": "{n}d",
+      "other": "{n}d"
+    },
+    "weeks_ago_compact": {
+      "one": "{n}w",
+      "other": "{n}w"
+    }
+  },
+  "count": {
+    "thousands": {
+      "one": "{n}K",
+      "other": "{n}K"
+    }
   },
   "discovery": {
     "privacy_message": "Photo available upon mutual interest",

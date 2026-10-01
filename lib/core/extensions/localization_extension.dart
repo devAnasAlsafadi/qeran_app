@@ -7,6 +7,19 @@ extension LocalizationExtension on String {
   String t(BuildContext context, {Map<String, String>? namedArgs}) =>
       context.tr(this, namedArgs: namedArgs);
 
+  /// The form of this plural key for [n] (B1), with `{n}` in it replaced by
+  /// [n]. The key holds one form per category its language uses — Arabic
+  /// zero / one / two / few (3–10) / many (11–99) / other (100+), English
+  /// one / other — and a missing category falls back to `other`.
+  ///
+  /// Whole numbers only: the package tests Arabic's ranges on the raw value,
+  /// so 3.5 would take the few form, where a fraction is always `other`.
+  String tPlural(
+    BuildContext context,
+    int n, {
+    Map<String, String>? namedArgs,
+  }) => context.plural(this, n, name: 'n', namedArgs: namedArgs);
+
   /// Translates only when this string is a locale KEY; otherwise returns it
   /// verbatim.
   ///

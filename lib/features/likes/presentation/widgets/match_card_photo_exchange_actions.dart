@@ -47,7 +47,8 @@ class MatchCardPhotoExchangeActions extends StatelessWidget {
   /// The gap between the two buttons when they share a row.
   static const double _gap = QeranSpacing.s8;
 
-  /// [QeranButton]'s own horizontal padding at [QeranButtonSize.xs], per side.
+  /// [QeranButton]'s own horizontal padding at [QeranButtonSize.compact], per
+  /// side.
   ///
   /// Mirrored here rather than read from the button, which does not export it.
   /// If that padding ever changes this measurement drifts silently, so
@@ -66,14 +67,14 @@ class MatchCardPhotoExchangeActions extends StatelessWidget {
       label: rejectLabel,
       onPressed: canReject ? onReject : null,
       variant: QeranButtonVariant.secondary,
-      size: QeranButtonSize.xs,
+      size: QeranButtonSize.compact,
       loading: isRejecting,
     );
     final accept = QeranButton(
       label: acceptLabel,
       onPressed: canAccept ? onAccept : null,
       variant: QeranButtonVariant.primary,
-      size: QeranButtonSize.xs,
+      size: QeranButtonSize.compact,
       loading: isAccepting,
     );
 

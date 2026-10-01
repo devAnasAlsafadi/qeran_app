@@ -14,11 +14,15 @@ import 'match_card_copy_harness.dart';
 /// that has no chip, and only a value measured on the old layout can say that
 /// — a with-vs-without comparison inside one run would pass just as happily
 /// if every card in the list had grown.
+///
+/// Sub-step 8 (Phase 1) added exactly 16 to each: this card's two buttons,
+/// «طلب تبادل الصور» and the inquiry, went from 40 to 48 pt. They were 292 /
+/// 292 / 266 / 270; nothing else on the card moved.
 const Map<String, double> kChiplessCardHeight = {
-  '320-ar': 292,
-  '320-en': 292,
-  '360-ar': 266,
-  '360-en': 270,
+  '320-ar': 308,
+  '320-en': 308,
+  '360-ar': 282,
+  '360-en': 286,
 };
 
 /// What the match-card header can hold at the narrowest width we support,

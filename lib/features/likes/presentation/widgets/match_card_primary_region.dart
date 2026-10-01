@@ -63,7 +63,7 @@ class MatchCardPrimaryRegion extends StatelessWidget {
             label: primaryLabel!,
             onPressed: onPrimaryPressed,
             variant: primaryVariant,
-            size: QeranButtonSize.xs,
+            size: QeranButtonSize.compact,
             loading: primaryLoading,
             trailingIcon: primaryTrailingIcon,
           ),

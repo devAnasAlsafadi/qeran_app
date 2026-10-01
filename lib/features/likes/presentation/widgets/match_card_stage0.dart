@@ -167,7 +167,7 @@ class MatchCardStage0 extends StatelessWidget {
       label: action.label,
       onPressed: onContactMatchmaker,
       variant: action.variant,
-      size: QeranButtonSize.xs,
+      size: QeranButtonSize.compact,
       trailingIcon: action.trailingIcon,
       loading: isInquirySending,
     );

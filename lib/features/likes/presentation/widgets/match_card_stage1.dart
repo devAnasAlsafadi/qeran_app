@@ -110,7 +110,7 @@ class MatchCardStage1 extends StatelessWidget {
             label: LocaleKeys.likes_matches_photo_view_show.t(context),
             onPressed: onOpenGallery,
             variant: QeranButtonVariant.ghost,
-            size: QeranButtonSize.xs,
+            size: QeranButtonSize.compact,
             leadingIcon: Icons.visibility_outlined,
             fullWidth: false,
           ),

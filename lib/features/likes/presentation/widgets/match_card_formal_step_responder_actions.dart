@@ -52,7 +52,7 @@ class MatchCardResponderActions extends StatelessWidget {
               ? () => onAccept?.call(pending.id)
               : null,
           variant: QeranButtonVariant.primary,
-          size: QeranButtonSize.xs,
+          size: QeranButtonSize.compact,
           loading: isAccepting,
         ),
         QeranSpacing.vs8,
@@ -62,7 +62,7 @@ class MatchCardResponderActions extends StatelessWidget {
               ? () => _confirmReject(context)
               : null,
           variant: QeranButtonVariant.secondary,
-          size: QeranButtonSize.xs,
+          size: QeranButtonSize.compact,
           loading: isRejecting,
         ),
       ],

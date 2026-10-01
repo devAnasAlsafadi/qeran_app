@@ -30,4 +30,22 @@ void main() {
       }, (_) => fail('Expected a failure'));
     },
   );
+
+  test("carries the error envelope's data to the failure", () async {
+    final result = await _RepositoryHarness().run<String>(
+      () async => throw CodedServerException(
+        message: 'slow down',
+        errorCode: 'RATE_LIMITED',
+        data: const {'retryAfterSeconds': 42},
+      ),
+    );
+
+    result.fold(
+      (failure) => expect(
+        (failure as CodedServerFailure).data,
+        const {'retryAfterSeconds': 42},
+      ),
+      (_) => fail('Expected a failure'),
+    );
+  });
 }

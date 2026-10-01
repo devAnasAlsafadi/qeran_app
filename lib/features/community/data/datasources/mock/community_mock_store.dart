@@ -7,10 +7,13 @@ import '../../error_codes.dart';
 import 'community_mock_records.dart';
 import 'community_mock_seed.dart';
 
-/// Throws what `HttpConsumer` throws for an enveloped error with [errorCode].
-Never throwCommunityMockError(String errorCode) => throw CodedServerException(
+/// Throws what `HttpConsumer` throws for an enveloped error with [errorCode]
+/// and the envelope's [data].
+Never throwCommunityMockError(String errorCode, {Object? data}) =>
+    throw CodedServerException(
       message: LocaleKeys.errors_generic,
       errorCode: errorCode,
+      data: data,
     );
 
 /// The mock's data, answered in the server's shapes and orders: the feed by

@@ -45,9 +45,25 @@ void main() {
       );
     });
 
-    test('no wait time is known yet (the consumer drops `data`)', () {
-      final outcome = classifyCommentFailure(coded('RATE_LIMITED'),
-          isReply: false) as CommentRateLimited;
+    test("the server's retryAfterSeconds becomes the wait", () {
+      final outcome = classifyCommentFailure(
+        const CodedServerFailure(
+          message: 'm',
+          errorCode: 'RATE_LIMITED',
+          statusCode: 429,
+          data: {'retryAfterSeconds': 42},
+        ),
+        isReply: false,
+      ) as CommentRateLimited;
+
+      expect(outcome.retryAfter, const Duration(seconds: 42));
+    });
+
+    test('a bare 429 has no wait time', () {
+      final outcome = classifyCommentFailure(
+        const ServerFailure(message: LocaleKeys.errors_too_many_requests),
+        isReply: false,
+      ) as CommentRateLimited;
 
       expect(outcome.retryAfter, isNull);
     });

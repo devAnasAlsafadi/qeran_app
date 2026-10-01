@@ -69,7 +69,11 @@ void main() {
         await ds.createComment(post, 'تعليق $i');
       }
       await expectLater(
-          ds.createComment(post, 'سادس'), throwsCoded('RATE_LIMITED'));
+        ds.createComment(post, 'سادس'),
+        throwsA(isA<CodedServerException>()
+            .having((e) => e.errorCode, 'errorCode', 'RATE_LIMITED')
+            .having((e) => e.data, 'data', {'retryAfterSeconds': 60})),
+      );
 
       clock.advance(const Duration(minutes: 1));
       expect((await ds.createComment(post, 'بعد دقيقة')).text, 'بعد دقيقة');

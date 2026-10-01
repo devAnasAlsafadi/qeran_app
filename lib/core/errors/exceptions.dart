@@ -36,10 +36,15 @@ class OfflineException implements Exception {
 /// subtype, not a replacement.
 class CodedServerException extends ServerException {
   final String? errorCode;
+
+  /// The envelope's `data` on an error, when the body had one — e.g.
+  /// `{ retryAfterSeconds }` on a `RATE_LIMITED` or `OTP_COOLDOWN` answer.
+  final Object? data;
   CodedServerException({
     required super.message,
     required this.errorCode,
     super.statusCode,
+    this.data,
   });
 }
 

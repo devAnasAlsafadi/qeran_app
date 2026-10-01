@@ -1,43 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/http_consumer.dart';
-import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/errors/exceptions.dart';
-import 'package:qeran/core/services/connectivity_service.dart';
-import 'package:qeran/core/services/language_service.dart';
-import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-class _MockStorage extends Mock implements StorageService {}
-
-class _MockLanguage extends Mock implements LanguageService {}
-
-class _MockConnectivity extends Mock implements ConnectivityService {}
-
-/// Answers every request with [status] + [body], or throws [error]; records
-/// the last request so its method, headers and body can be checked.
-class _ScriptedClient extends http.BaseClient {
-  int status = 200;
-  String body = '';
-  Object? error;
-  http.Request? last;
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    last = request as http.Request;
-    if (error case final Object e) throw e;
-    return http.StreamedResponse(
-      Stream.value(utf8.encode(body)),
-      status,
-      headers: const {'content-type': 'application/json; charset=utf-8'},
-    );
-  }
-}
+import 'http_test_rig.dart';
 
 Matcher coded({String? code, int? status, String? message}) =>
     isA<CodedServerException>()
@@ -46,31 +16,17 @@ Matcher coded({String? code, int? status, String? message}) =>
         .having((e) => e.message, 'message', message ?? anything);
 
 void main() {
-  late _ScriptedClient client;
-  late _MockConnectivity connectivity;
+  late ScriptedClient client;
+  late MockConnectivity connectivity;
   late HttpConsumer consumer;
 
   setUp(() {
-    client = _ScriptedClient();
-    final storage = _MockStorage();
-    final language = _MockLanguage();
-    connectivity = _MockConnectivity();
-    when(() => storage.get<String>(StorageKeys.token))
-        .thenAnswer((_) async => 'jwt-1');
-    when(() => language.currentLanguage).thenReturn('ar');
-    when(() => connectivity.isOnline).thenAnswer((_) async => true);
-    consumer = HttpConsumer(
-      client: client,
-      storage: storage,
-      languageService: language,
-      connectivity: connectivity,
-    );
+    client = ScriptedClient();
+    connectivity = MockConnectivity();
+    consumer = scriptedConsumer(client, connectivity: connectivity);
   });
 
-  void reply(int status, Object? json) {
-    client.status = status;
-    client.body = json is String ? json : jsonEncode(json);
-  }
+  void reply(int status, Object? json) => client.reply(status, json);
 
   group('enveloped verbs', () {
     test('status 1 returns the whole envelope; headers carry token and language',

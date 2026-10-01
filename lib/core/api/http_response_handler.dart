@@ -25,6 +25,7 @@ dynamic handleEnvelopedResponse(http.Response response) {
         throw CodedServerException(
           message: responseBody['message'] ?? "Operation Failed",
           errorCode: responseBody is Map ? responseBody['errorCode'] as String? : null,
+          data: responseBody is Map ? responseBody['data'] : null,
         );
       }
     } else {
@@ -54,6 +55,7 @@ dynamic handleEnvelopedResponse(http.Response response) {
       throw CodedServerException(
         message: errorMessage,
         errorCode: responseBody is Map ? responseBody['errorCode'] as String? : null,
+        data: responseBody is Map ? responseBody['data'] : null,
       );
     }
   } catch (e) {
@@ -96,6 +98,7 @@ dynamic handleRawResponse(http.Response response) {
     }
     var errorMessage = statusErrorMessage(response.statusCode);
     String? errorCode;
+    Object? data;
     if (body is Map) {
       final errors = body['errors'];
       if (errors is Map && errors.isNotEmpty) {
@@ -109,6 +112,7 @@ dynamic handleRawResponse(http.Response response) {
             errorMessage;
       }
       errorCode = body['errorCode'] as String?;
+      data = body['data'];
     }
     AppLogger.error(
       '${response.statusCode} (raw) ${response.request?.url}: $errorMessage',
@@ -120,6 +124,7 @@ dynamic handleRawResponse(http.Response response) {
       // Preserve the transport status so raw callers can branch on it
       // (e.g. affiliate maps 404 → not-enrolled).
       statusCode: response.statusCode,
+      data: data,
     );
   }
 
@@ -143,6 +148,7 @@ dynamic handleRawResponse(http.Response response) {
     throw CodedServerException(
       message: body['message'] as String? ?? 'Operation Failed',
       errorCode: body['errorCode'] as String?,
+      data: body['data'],
     );
   }
   // `status: 0` envelopes are NOT thrown here — data sources that

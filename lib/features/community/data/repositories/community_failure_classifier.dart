@@ -1,4 +1,5 @@
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/errors/retry_after.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/comment_submit_outcome.dart';
@@ -22,16 +23,16 @@ bool isCommunityRateLimited(Failure failure) {
 
 /// A comment or reply failure the member has a screen for, as a typed
 /// outcome; null leaves it a generic failure (`VALIDATION_ERROR` included —
-/// the app validates first, so the server's is a backstop).
-///
-/// The server's `retryAfterSeconds` can't be read yet: `HttpConsumer` keeps
-/// an error's code and status but not its `data`, so [CommentRateLimited]
-/// carries no wait time today.
+/// the app validates first, so the server's is a backstop). A rate limit
+/// carries the server's `retryAfterSeconds` when it sent one — the bare 429
+/// has none.
 CommentSubmitOutcome? classifyCommentFailure(
   Failure failure, {
   required bool isReply,
 }) {
-  if (isCommunityRateLimited(failure)) return const CommentRateLimited();
+  if (isCommunityRateLimited(failure)) {
+    return CommentRateLimited(retryAfter: retryAfterOf(failure));
+  }
   return switch (communityErrorCode(failure)) {
     CommunityErrorCodes.contentNotAllowed => const CommentFiltered(),
     CommunityErrorCodes.displayNameRequired => const CommentNameRequired(),

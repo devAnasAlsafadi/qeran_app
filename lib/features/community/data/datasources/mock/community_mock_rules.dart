@@ -27,8 +27,11 @@ class CommunityMockCommentGate {
     if (trimmed.isEmpty || trimmed.length > maxLength) {
       throwCommunityMockError(CommunityErrorCodes.validationError);
     }
-    if (_limiter.tryAcquire() != null) {
-      throwCommunityMockError(CommunityErrorCodes.rateLimited);
+    if (_limiter.tryAcquire() case final int wait) {
+      throwCommunityMockError(
+        CommunityErrorCodes.rateLimited,
+        data: {'retryAfterSeconds': wait},
+      );
     }
     if (!CommunityMockFilter.allows(trimmed)) {
       throwCommunityMockError(CommunityErrorCodes.contentNotAllowed);

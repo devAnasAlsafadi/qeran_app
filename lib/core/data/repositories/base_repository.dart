@@ -29,6 +29,7 @@ mixin BaseRepository {
           message: e.message,
           errorCode: e.errorCode,
           statusCode: e.statusCode,
+          data: e.data,
         ),
       );
     } on ServerException catch (e) {

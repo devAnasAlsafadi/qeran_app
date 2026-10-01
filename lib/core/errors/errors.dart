@@ -26,10 +26,16 @@ class CodedServerFailure extends ServerFailure {
   /// keep working; repos that map on transport status read it.
   final int? statusCode;
 
+  /// The error envelope's `data` (e.g. `{ retryAfterSeconds }`). Deliberately
+  /// not part of equality: it adds detail to a failure, it doesn't make it a
+  /// different one.
+  final Object? data;
+
   const CodedServerFailure({
     required super.message,
     required this.errorCode,
     this.statusCode,
+    this.data,
   });
 
   @override

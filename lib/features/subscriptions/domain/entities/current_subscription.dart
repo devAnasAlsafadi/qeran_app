@@ -37,8 +37,11 @@ class CurrentSubscription extends Equatable {
 
   final int likesUsed;
   final int likesRemaining;
-  final int seriousInterestsUsed;
-  final int seriousInterestsRemaining;
+
+  /// Both null once the server stops sending them (release day, with
+  /// [SubscriptionFeatures.seriousInterestsAllowed]).
+  final int? seriousInterestsUsed;
+  final int? seriousInterestsRemaining;
   final int photoExchangesUsed;
   final int photoExchangesRemaining;
 
@@ -52,8 +55,8 @@ class CurrentSubscription extends Equatable {
     required this.isActive,
     required this.likesUsed,
     required this.likesRemaining,
-    required this.seriousInterestsUsed,
-    required this.seriousInterestsRemaining,
+    this.seriousInterestsUsed,
+    this.seriousInterestsRemaining,
     required this.photoExchangesUsed,
     required this.photoExchangesRemaining,
   });

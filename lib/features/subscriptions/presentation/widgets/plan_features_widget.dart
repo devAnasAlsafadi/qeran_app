@@ -38,11 +38,13 @@ class PlanFeaturesWidget extends StatelessWidget {
         label: LocaleKeys.subscriptions_feature_likes_label.t(context),
         value: f.likesAllowed,
       ),
-      _FeatureCheckRow(
-        label: LocaleKeys.subscriptions_feature_serious_interests_label
-            .t(context),
-        value: f.seriousInterestsAllowed,
-      ),
+      // Drawn only while the server still sends the allowance.
+      if (f.seriousInterestsAllowed case final int allowed)
+        _FeatureCheckRow(
+          label: LocaleKeys.subscriptions_feature_serious_interests_label
+              .t(context),
+          value: allowed,
+        ),
       _FeatureCheckRow(
         label:
             LocaleKeys.subscriptions_feature_photo_exchanges_label.t(context),

@@ -109,11 +109,15 @@ class MySubscriptionCard extends StatelessWidget {
           allowed: f.likesAllowed,
           used: s.likesUsed,
           remaining: s.likesRemaining),
-      _metered(context, Icons.handshake_rounded,
-          LocaleKeys.subscriptions_feature_serious_interests_label.t(context),
-          allowed: f.seriousInterestsAllowed,
-          used: s.seriousInterestsUsed,
-          remaining: s.seriousInterestsRemaining),
+      // Drawn only while the server still sends all three counters.
+      if ((
+        f.seriousInterestsAllowed,
+        s.seriousInterestsUsed,
+        s.seriousInterestsRemaining,
+      ) case (final int allowed, final int used, final int remaining))
+        _metered(context, Icons.handshake_rounded,
+            LocaleKeys.subscriptions_feature_serious_interests_label.t(context),
+            allowed: allowed, used: used, remaining: remaining),
       _metered(context, Icons.photo_library_rounded,
           LocaleKeys.subscriptions_feature_photo_exchanges_label.t(context),
           allowed: f.photoExchangesAllowed,

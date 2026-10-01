@@ -19,8 +19,8 @@ class CurrentSubscriptionModel {
   final bool isActive;
   final int likesUsed;
   final int likesRemaining;
-  final int seriousInterestsUsed;
-  final int seriousInterestsRemaining;
+  final int? seriousInterestsUsed;
+  final int? seriousInterestsRemaining;
   final int photoExchangesUsed;
   final int photoExchangesRemaining;
 
@@ -34,8 +34,8 @@ class CurrentSubscriptionModel {
     required this.isActive,
     required this.likesUsed,
     required this.likesRemaining,
-    required this.seriousInterestsUsed,
-    required this.seriousInterestsRemaining,
+    this.seriousInterestsUsed,
+    this.seriousInterestsRemaining,
     required this.photoExchangesUsed,
     required this.photoExchangesRemaining,
   });
@@ -69,10 +69,10 @@ class CurrentSubscriptionModel {
       isActive: json['isActive'] as bool? ?? false,
       likesUsed: (json['likesUsed'] as num?)?.toInt() ?? 0,
       likesRemaining: (json['likesRemaining'] as num?)?.toInt() ?? 0,
-      seriousInterestsUsed:
-          (json['seriousInterestsUsed'] as num?)?.toInt() ?? 0,
+      // Absent stays null (release day removes both), never a fake 0.
+      seriousInterestsUsed: (json['seriousInterestsUsed'] as num?)?.toInt(),
       seriousInterestsRemaining:
-          (json['seriousInterestsRemaining'] as num?)?.toInt() ?? 0,
+          (json['seriousInterestsRemaining'] as num?)?.toInt(),
       photoExchangesUsed:
           (json['photoExchangesUsed'] as num?)?.toInt() ?? 0,
       photoExchangesRemaining:

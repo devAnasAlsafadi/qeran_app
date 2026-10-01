@@ -15,13 +15,17 @@ class SubscriptionFeatures extends Equatable {
   static const int unlimitedSentinel = -1;
 
   final int likesAllowed;
-  final int seriousInterestsAllowed;
+
+  /// Null when the server no longer sends it. The backend drops the field on
+  /// release day (nothing ever spent it), and the UI then omits its row
+  /// rather than show a fabricated 0.
+  final int? seriousInterestsAllowed;
   final int photoExchangesAllowed;
   final int dailyProfileViewsAllowed;
 
   const SubscriptionFeatures({
     required this.likesAllowed,
-    required this.seriousInterestsAllowed,
+    this.seriousInterestsAllowed,
     required this.photoExchangesAllowed,
     required this.dailyProfileViewsAllowed,
   });

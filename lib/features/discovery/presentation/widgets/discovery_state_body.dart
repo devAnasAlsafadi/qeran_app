@@ -132,9 +132,9 @@ class DiscoveryStateBody extends StatelessWidget {
             // it, an unreported filtered-empty deck would read as the generic
             // "no profiles right now".
             filtersMatchedNobody:
-                s.filtersMatchedNobody || cubit.hasActiveFilters,
+                s.filtersMatchedNobody || cubit.activeFilters.isActive,
             onRefresh: cubit.refresh,
-            onEditFilters: cubit.hasActiveFilters
+            onEditFilters: cubit.activeFilters.isActive
                 ? () => openDiscoveryFilters(context)
                 : null,
             onStartOver: cubit.resetSeen,

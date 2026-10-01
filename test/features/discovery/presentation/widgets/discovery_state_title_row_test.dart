@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/services/connectivity_service.dart';
+import 'package:qeran/features/discovery/domain/entities/discovery_active_filters.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_state.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_state_body.dart';
@@ -29,7 +30,7 @@ class _FakeCubit extends Fake implements DiscoveryCubit {
   @override
   Stream<DiscoveryState> get stream => const Stream.empty();
   @override
-  bool get hasActiveFilters => false;
+  DiscoveryActiveFilters get activeFilters => DiscoveryActiveFilters.none;
   @override
   void ensurePrefetch() {}
   @override

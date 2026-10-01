@@ -20,7 +20,7 @@ Future<void> openDiscoveryFilters(BuildContext context) async {
   final cubit = context.read<DiscoveryCubit>();
   final result = await showDiscoveryFilterSheet(
     context,
-    initialSelections: cubit.activeFilterSelections,
+    initialSelections: cubit.activeFilters.selections,
   );
   if (result == null) return;
   if (!context.mounted) return;

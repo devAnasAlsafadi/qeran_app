@@ -94,10 +94,10 @@ class _MatchmakerExploreTabState extends State<MatchmakerExploreTab> {
   ///
   /// Deliberately wider than the filter sheet: an empty result caused by a
   /// stale search term is just as much a dead end as one caused by a facet, and
-  /// the matchmaker should not have to work out which of the three did it. Named
-  /// to match the user app's `DiscoveryCubit.hasActiveFilters`, which plays the
-  /// same role there (that app has no search or gender, so the two definitions
-  /// coincide on everything it can express).
+  /// the matchmaker should not have to work out which of the three did it. The
+  /// user app's `DiscoveryActiveFilters.isActive` plays the same role there
+  /// (that app has no search or gender, so the two definitions coincide on
+  /// everything it can express).
   bool get _hasActiveFilters =>
       _filtersActive ||
       _searchController.text.trim().isNotEmpty ||

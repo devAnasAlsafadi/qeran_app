@@ -10,6 +10,7 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
+import '../../domain/entities/discovery_active_filters.dart';
 import '../../domain/entities/discovery_filter_selection.dart';
 import '../../domain/entities/like_outcome.dart';
 import '../../domain/usecases/fetch_discovery_page_usecase.dart';
@@ -51,33 +52,17 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
   /// only). Defaults to a no-op for test convenience.
   final VoidCallback _onLikeSuccess;
 
-  /// Flat query map currently constraining the deck. Threaded into
-  /// every page fetch — page 1 (loadInitial / refresh / applyFilters)
-  /// AND every prefetch — so pagination stays consistent with the
-  /// user's filter selection. `null` means unconstrained.
-  Map<String, String>? _activeFilters;
+  /// The filters narrowing the deck. Their query is threaded into every page
+  /// fetch — page 1 (loadInitial / refresh / applyFilters) AND every
+  /// prefetch — so pagination stays consistent with them.
+  DiscoveryActiveFilters _filters = DiscoveryActiveFilters.none;
 
   /// Monotonically increasing identity for the currently visible deck.
   /// Every page-1 reload invalidates older page and prefetch responses, even
   /// when both responses use the same page number.
   int _deckGeneration = 0;
 
-  /// Raw selections behind [_activeFilters], kept so the filter sheet can be
-  /// re-seeded with the currently-applied state when it reopens. The flat
-  /// [_activeFilters] map is lossy (it can't be rendered back into chips /
-  /// sliders), so the structured selections are held alongside it.
-  Map<int, DiscoveryFilterSelection> _activeSelections = const {};
-
-  /// The applied filter selections — used to seed the filter sheet on reopen
-  /// so previously-picked facets show as selected.
-  Map<int, DiscoveryFilterSelection> get activeFilterSelections =>
-      _activeSelections;
-
-  /// True while a filter is constraining the deck. Read off the QUERY, not the
-  /// selections, so it answers "is the server being narrowed?" rather than
-  /// "does the sheet have chips ticked". Lets the empty state tell "nobody left"
-  /// apart from "your filter matched nobody".
-  bool get hasActiveFilters => _activeFilters?.isNotEmpty ?? false;
+  DiscoveryActiveFilters get activeFilters => _filters;
 
   /// Blocks a second [like] from racing the first while the API call
   /// is in flight. Released in `like`'s `finally` block. `pass` does
@@ -148,15 +133,13 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
     Map<String, String>? filters, {
     Map<int, DiscoveryFilterSelection> selections = const {},
   }) {
-    final hasFilters = filters != null && filters.isNotEmpty;
-    _activeFilters = hasFilters ? Map.unmodifiable(filters) : null;
-    _activeSelections = Map.unmodifiable(selections);
+    _filters = DiscoveryActiveFilters(query: filters, selections: selections);
     return _loadFirstPage();
   }
 
   Future<void> _loadFirstPage() async {
     final generation = ++_deckGeneration;
-    final filters = _activeFilters;
+    final filters = _filters.query;
     // The bump above and this emit are load-bearing as a PAIR: `_prefetch`
     // relies on a superseded deck's state object being replaced here, which
     // is why it can return without resetting `isPrefetching` (see the note
@@ -532,7 +515,7 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
   Future<void> _prefetch(DiscoveryLoaded base) async {
     if (base.isPrefetching || !base.hasMore) return;
     final generation = _deckGeneration;
-    final filters = _activeFilters;
+    final filters = _filters.query;
     emit(base.copyWith(isPrefetching: true, resetPrefetchError: true));
     final nextPage = base.currentPage + 1;
     final result = await _fetchPage(

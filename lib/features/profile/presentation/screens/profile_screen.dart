@@ -30,7 +30,6 @@ import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_g
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_state.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
-import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/auth/presentation/widgets/change_password_sheet.dart';
 import 'package:qeran/features/profile/presentation/widgets/delete_account_sheet.dart';
 import 'package:qeran/features/settings/presentation/widgets/settings_language_sheet.dart';
@@ -40,7 +39,7 @@ import 'package:qeran/features/settings/presentation/widgets/settings_row.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Settings tab content. A wine hero (avatar + name + edit link), a unified
-/// card of action rows (subscription, language, notifications, support, terms,
+/// card of action rows (subscription, language, support, terms,
 /// change password, delete account), and a standalone logout card. Composes
 /// the shared settings kit (`SettingsProfileHero` / `SettingsRow` /
 /// `SettingsLogoutCard`) — the matchmaker account screen uses the same atoms.
@@ -295,14 +294,7 @@ class _SettingsCard extends StatelessWidget {
           ),
           const SettingsRowDivider(),
           SettingsRow(
-            icon: Icons.notifications_outlined,
-            title: LocaleKeys.settings_notifications_row.t(context),
-            subtitle: LocaleKeys.settings_notifications_sub.t(context),
-            onTap: () => openNotifications(context),
-          ),
-          const SettingsRowDivider(),
-          SettingsRow(
-            icon: Icons.chat_bubble_outline_rounded,
+            icon: Icons.help_outline_rounded,
             title: LocaleKeys.settings_support_row.t(context),
             subtitle: LocaleKeys.settings_support_sub.t(context),
             onTap: () => NavigationManager.navigateTo(
@@ -447,7 +439,6 @@ class _UpgradeTeaserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
       builder: (context, state) {
         // Show the upsell for everyone who can still upgrade — no subscription,
@@ -525,7 +516,7 @@ class _UpgradeTeaserCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  isArabic ? 'ارتقِ لعضوية التميز' : 'Upgrade to Premium',
+                                  LocaleKeys.profile_upsell_title.t(context),
                                   style: QeranTypography.subtitle.copyWith(
                                     color: QeranColors.paper,
                                     fontWeight: FontWeight.bold,
@@ -534,9 +525,7 @@ class _UpgradeTeaserCard extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  isArabic
-                                      ? 'افتح كافة ميزات قِران الفريدة وتعرّف على شريكك اليوم'
-                                      : 'Unlock premium features and find your match today',
+                                  LocaleKeys.profile_upsell_subtitle.t(context),
                                   style: QeranTypography.bodySm.copyWith(
                                     color: QeranColors.gold.withValues(alpha: 0.80),
                                     height: 1.4,
@@ -550,18 +539,14 @@ class _UpgradeTeaserCard extends StatelessWidget {
                       QeranSpacing.vs16,
                       // Teasers list
                       _TeaserRow(
-                        label: isArabic
-                            ? 'إعجابات وتواصل بلا حدود مع الطرف الآخر'
-                            : 'Unlimited likes and match connections',
+                        label: LocaleKeys.profile_upsell_teaser_1.t(context),
                       ),
                       _TeaserRow(
-                        label: isArabic
-                            ? 'تبادل الصور بأمان وسرية تامة'
-                            : 'Secure and private photo exchange',
+                        label: LocaleKeys.profile_upsell_teaser_2.t(context),
                       ),
                       const SizedBox(height: 18),
                       QeranButton(
-                        label: isArabic ? 'اكتشف الباقات' : 'See Plans',
+                        label: LocaleKeys.profile_upsell_cta.t(context),
                         onPressed: () => NavigationManager.navigateTo(
                           context,
                           RouteNames.packagesScreen,

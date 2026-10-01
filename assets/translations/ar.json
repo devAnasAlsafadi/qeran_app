@@ -529,6 +529,11 @@
     "vip_back_to_profile": "العودة إلى الملف الشخصي"
   },
   "profile": {
+    "upsell_title": "ارتقِ لعضوية التميز",
+    "upsell_subtitle": "افتح كافة ميزات قِران الفريدة وتعرّف على شريكك اليوم",
+    "upsell_teaser_1": "إعجابات وتواصل بلا حدود مع الطرف الآخر",
+    "upsell_teaser_2": "تبادل الصور بأمان وسرية تامة",
+    "upsell_cta": "اكتشف الباقات",
     "my_title": "بروفايلي",
     "name_age_format": "{name}، {age}",
     "name_row_title": "الاسم",

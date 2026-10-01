@@ -513,6 +513,11 @@ abstract class  LocaleKeys {
   static const subscriptions_vip_active_features = 'subscriptions.vip_active_features';
   static const subscriptions_vip_back_to_profile = 'subscriptions.vip_back_to_profile';
   static const subscriptions = 'subscriptions';
+  static const profile_upsell_title = 'profile.upsell_title';
+  static const profile_upsell_subtitle = 'profile.upsell_subtitle';
+  static const profile_upsell_teaser_1 = 'profile.upsell_teaser_1';
+  static const profile_upsell_teaser_2 = 'profile.upsell_teaser_2';
+  static const profile_upsell_cta = 'profile.upsell_cta';
   static const profile_my_title = 'profile.my_title';
   static const profile_name_age_format = 'profile.name_age_format';
   static const profile_name_row_title = 'profile.name_row_title';

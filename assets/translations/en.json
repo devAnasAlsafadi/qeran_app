@@ -529,6 +529,11 @@
     "vip_back_to_profile": "Back to Profile"
   },
   "profile": {
+    "upsell_title": "Upgrade to Premium",
+    "upsell_subtitle": "Unlock premium features and find your match today",
+    "upsell_teaser_1": "Unlimited likes and match connections",
+    "upsell_teaser_2": "Secure and private photo exchange",
+    "upsell_cta": "See Plans",
     "my_title": "My Profile",
     "name_age_format": "{name} · {age}",
     "name_row_title": "Name",

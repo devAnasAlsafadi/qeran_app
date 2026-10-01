@@ -99,12 +99,13 @@ class _DiscoveryProfilePageState extends State<DiscoveryProfilePage> {
         // screenful is padded out to.
         final viewportHeight = constraints.maxHeight;
         // Landscape has far less height to spend, so the photo takes a
-        // smaller share and the profile starts sooner.
-        final photoHeight =
-            viewportHeight *
-            (isLandscape
-                ? kDiscoveryPhotoFractionLandscape
-                : kDiscoveryPhotoFraction);
+        // smaller share and the profile starts sooner; a small phone held
+        // upright gets a fixed height instead of half.
+        final photoHeight = discoveryPhotoHeight(
+          context,
+          viewportHeight: viewportHeight,
+          isLandscape: isLandscape,
+        );
 
         // Zero left/right margins: the surface is the screen. The bottom
         // clearance lives INSIDE the scroll so content can travel past the

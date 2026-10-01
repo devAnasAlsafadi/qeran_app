@@ -14,11 +14,6 @@ import 'package:qeran/features/chat/domain/repositories/chat_repository.dart';
 import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
 import 'package:qeran/features/chat/domain/usecases/share_profile_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/share_with_matchmaker/share_with_matchmaker_cubit.dart';
-import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
-import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
-import 'package:qeran/features/badges/domain/usecases/get_badges_usecase.dart';
-import 'package:qeran/features/badges/domain/usecases/mark_tab_seen_usecase.dart';
-import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/profile/domain/entities/other_profile.dart';
 import 'package:qeran/features/profile/domain/entities/placement.dart'
     as profile_placement;
@@ -66,6 +61,7 @@ import 'package:qeran/features/discovery/presentation/widgets/discovery_frosted_
 import 'package:qeran/features/discovery/presentation/widgets/discovery_merged_profile_body.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_unified_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Discovery + Full Profile are ONE screen.
@@ -207,22 +203,6 @@ class _FakeCurrentSubCubit extends CurrentSubscriptionCubit {
   _FakeCurrentSubCubit() : super(getCurrent: _FakeGetCurrent());
 }
 
-class _FakeGetBadges extends Fake implements GetBadgesUseCase {}
-
-class _FakeMarkTabSeen extends Fake implements MarkTabSeenUseCase {}
-
-/// The bell reads its count straight off the badges cubit now, so the layout
-/// tests need one they can drive without a server.
-class _FakeBadgesCubit extends BadgesCubit {
-  _FakeBadgesCubit()
-    : super(getBadges: _FakeGetBadges(), markTabSeen: _FakeMarkTabSeen());
-  @override
-  Future<void> refresh() async {}
-
-  void setNotifications(int count) =>
-      applyUpdate(BadgeTabKeys.notifications, count);
-}
-
 /// The share CTA at the end of the merged scroll resolves its cubit from
 /// GetIt; this keeps it in its unresolved state without any network.
 class _FakeChatRepository extends Fake implements ChatRepository {
@@ -322,7 +302,6 @@ Future<_FakeProfileRepository> _pumpView(
       getProfileById: GetProfileByIdUseCase(profileRepo),
     ),
   );
-  sl.registerLazySingleton<BadgesCubit>(() => _FakeBadgesCubit());
   final chatRepo = _FakeChatRepository();
   sl.registerFactory<ShareWithMatchmakerCubit>(
     () => ShareWithMatchmakerCubit(
@@ -361,6 +340,15 @@ Future<_FakeProfileRepository> _pumpView(
   );
   await tester.pumpAndSettle();
   return profileRepo;
+}
+
+/// Sizes the screen as a phone would be: the layout AND what MediaQuery reports.
+/// `setSurfaceSize` changes only the first, and the photo's small-screen rule
+/// reads the second.
+void _setPhone(WidgetTester tester, Size size) {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────
@@ -421,8 +409,7 @@ void main() {
     setUp(() async => sl.reset());
 
     testWidgets('the photo starts BELOW the status bar', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -433,8 +420,7 @@ void main() {
     });
 
     testWidgets('the photo runs edge to edge horizontally', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -447,8 +433,7 @@ void main() {
     testWidgets('the photo takes half the viewport, not most of it', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -475,8 +460,7 @@ void main() {
     });
 
     testWidgets('landscape rotates without overflow', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(800, 400));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(800, 400));
 
       await _pumpView(tester, [_profile('a'), _profile('b')]);
 
@@ -485,7 +469,7 @@ void main() {
     });
   });
 
-  group('floating overlay icons', () {
+  group('the title row on the photo', () {
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
@@ -494,62 +478,75 @@ void main() {
 
     setUp(() async => sl.reset());
 
-    testWidgets('both icons render ON the photo, not in a title bar', (
+    Finder pill() => find.text(LocaleKeys.discovery_filter_button);
+    Finder title() => find.text(LocaleKeys.discovery_title);
+
+    testWidgets('the title and the pill sit on the photo; the bell is gone', (
       tester,
     ) async {
       await _pumpView(tester, [_profile('a')]);
 
-      // The screen-level DiscoveryTopBar (and its "استكشاف" title) is gone.
-      expect(find.byIcon(Icons.notifications_none_rounded), findsNothing);
-      expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.tune_rounded), findsOneWidget);
-
       final photo = tester.getRect(find.byType(DiscoveryImagePanel));
-      for (final icon in [Icons.notifications_outlined, Icons.tune_rounded]) {
-        expect(photo.contains(tester.getCenter(find.byIcon(icon))), isTrue);
-      }
+      expect(photo.contains(tester.getCenter(title())), isTrue);
+      expect(photo.contains(tester.getCenter(pill())), isTrue);
+      // The bell is the shell's top bar's now, in every state.
+      expect(find.byIcon(Icons.notifications_outlined), findsNothing);
+      expect(find.byIcon(Icons.notifications_none_rounded), findsNothing);
     });
 
-    testWidgets('the filter button is live, not the old inert placeholder', (
-      tester,
-    ) async {
+    testWidgets('the pill opens the filters', (tester) async {
       await _pumpView(tester, [_profile('a')]);
 
       final inkWell = tester.widget<InkWell>(
-        find
-            .ancestor(
-              of: find.byIcon(Icons.tune_rounded),
-              matching: find.byType(InkWell),
-            )
-            .first,
+        find.ancestor(of: pill(), matching: find.byType(InkWell)).first,
       );
       expect(inkWell.onTap, isNotNull);
     });
 
-    testWidgets('RTL puts the bell on the RIGHT and the filter on the LEFT', (
+    testWidgets('RTL puts the title on the RIGHT and the pill on the LEFT', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
-      final bell = tester.getCenter(find.byIcon(Icons.notifications_outlined));
-      final filter = tester.getCenter(find.byIcon(Icons.tune_rounded));
-      expect(bell.dx, greaterThan(200));
-      expect(filter.dx, lessThan(200));
+      expect(tester.getCenter(title()).dx, greaterThan(200));
+      expect(tester.getCenter(pill()).dx, lessThan(200));
     });
 
     testWidgets('LTR mirrors them', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')], direction: TextDirection.ltr);
 
-      final bell = tester.getCenter(find.byIcon(Icons.notifications_outlined));
-      final filter = tester.getCenter(find.byIcon(Icons.tune_rounded));
-      expect(bell.dx, lessThan(200));
-      expect(filter.dx, greaterThan(200));
+      expect(tester.getCenter(title()).dx, lessThan(200));
+      expect(tester.getCenter(pill()).dx, greaterThan(200));
+    });
+
+    testWidgets('it scrolls away with the photo', (tester) async {
+      _setPhone(tester, const Size(400, 800));
+
+      await _pumpView(tester, [_profile('a')]);
+      final before = tester.getTopLeft(title()).dy;
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -150));
+      await tester.pumpAndSettle();
+
+      expect(tester.getTopLeft(title()).dy, lessThan(before));
+    });
+
+    testWidgets('a small phone held upright gets a 280 pt photo', (
+      tester,
+    ) async {
+      _setPhone(tester, const Size(375, 667));
+
+      await _pumpView(tester, [_profile('a')]);
+
+      expect(
+        tester.getSize(find.byType(DiscoveryImagePanel)).height,
+        kDiscoveryPhotoHeightSmall,
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 
@@ -563,8 +560,7 @@ void main() {
     setUp(() async => sl.reset());
 
     testWidgets('the merged body is part of the same scroll', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -591,8 +587,7 @@ void main() {
     testWidgets('scrolling down brings the hydrated Q&A fully on screen', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -618,8 +613,7 @@ void main() {
       // tree the moment the scroll left the top. That tore down its render
       // object mid-pointer, cancelling the arena entry — so the very scroll
       // that closed the gate died on its first frame and the page never moved.
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
       final position = tester
@@ -636,8 +630,7 @@ void main() {
     testWidgets('at the top a horizontal swipe still ejects the card', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a'), _profile('b')]);
       expect(find.text('Name-a 25'), findsOneWidget);
@@ -655,8 +648,7 @@ void main() {
       // mid-read is unrecoverable, and a near-horizontal drag while reading is
       // far more likely to be a clumsy scroll than a deliberate swipe. The
       // action buttons stay live, so nothing becomes unreachable.
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a'), _profile('b')]);
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -700));
@@ -672,8 +664,7 @@ void main() {
     testWidgets('a failed hydrate degrades to the deck payload, silently', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')], hydrationFails: true);
 
@@ -705,8 +696,7 @@ void main() {
     setUp(() async => sl.reset());
 
     testWidgets('نبذة عني is fully visible on first open', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await pumpShort(tester);
 
@@ -720,8 +710,7 @@ void main() {
     testWidgets('the next profile section peeks above the fold', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await pumpShort(tester);
 
@@ -741,8 +730,7 @@ void main() {
     testWidgets('at rest the buttons sit over empty paper, not over text', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await pumpShort(tester);
 
@@ -765,8 +753,7 @@ void main() {
       // It used to be a fixed viewport-sized spacer, so the blank simply moved
       // down the page with the content and نبذة عن شريك الحياة stayed a screen
       // away no matter how far you scrolled.
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await pumpShort(tester);
 
@@ -787,8 +774,7 @@ void main() {
     testWidgets('once scrolled, the sections dock flush under the chips', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await pumpShort(tester);
 
@@ -816,8 +802,7 @@ void main() {
     setUp(() async => sl.reset());
 
     testWidgets('the hydrated text replaces the deck preview', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -828,8 +813,7 @@ void main() {
     });
 
     testWidgets('it runs to as many lines as it needs', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -849,55 +833,11 @@ void main() {
     testWidgets('a failed hydrate still shows the deck preview', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')], hydrationFails: true);
 
       expect(find.text(kAboutMeBody), findsOneWidget);
-    });
-  });
-
-  group('the bell dot follows the unread state', () {
-    setUpAll(() async {
-      TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
-      await EasyLocalization.ensureInitialized();
-    });
-
-    setUp(() async => sl.reset());
-
-    testWidgets('no badge when there is nothing unread', (tester) async {
-      // Regression: moving the bell onto the photo dropped the BlocBuilder and
-      // pinned the marker on unconditionally, so it claimed unread mail
-      // forever.
-      await _pumpView(tester, [_profile('a')]);
-
-      expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
-      expect(find.byType(QeranCountBadge), findsNothing);
-    });
-
-    testWidgets('the count appears when the server reports unread', (
-      tester,
-    ) async {
-      await _pumpView(tester, [_profile('a')]);
-
-      (sl<BadgesCubit>() as _FakeBadgesCubit).setNotifications(3);
-      await tester.pumpAndSettle();
-
-      expect(find.byType(QeranCountBadge), findsOneWidget);
-      expect(find.text('3'), findsOneWidget);
-    });
-
-    // A bell pools everything, so the number can run away. It is a nudge, not
-    // a figure to read precisely.
-    testWidgets('a runaway count is capped at 99+', (tester) async {
-      await _pumpView(tester, [_profile('a')]);
-
-      (sl<BadgesCubit>() as _FakeBadgesCubit).setNotifications(140);
-      await tester.pumpAndSettle();
-
-      expect(find.text('99+'), findsOneWidget);
     });
   });
 
@@ -913,8 +853,7 @@ void main() {
     testWidgets('absent on first open — and holding no space either', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -931,8 +870,7 @@ void main() {
     testWidgets('grows in as the user scrolls into the profile', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -951,8 +889,7 @@ void main() {
     testWidgets('the name climbs to make room; the chips stay put', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -992,8 +929,7 @@ void main() {
     testWidgets('the sheet does not slice through the job / nationality row', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -1018,8 +954,7 @@ void main() {
     testWidgets('outer buttons sit well inside the old 48dp inset', (
       tester,
     ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -1047,8 +982,7 @@ void main() {
         .opacity;
 
     testWidgets('no card at all at the top', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
 
@@ -1058,8 +992,7 @@ void main() {
     });
 
     testWidgets('fades in once content is behind the buttons', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
@@ -1069,8 +1002,7 @@ void main() {
     });
 
     testWidgets('it is a ramp, not a switch', (tester) async {
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+      _setPhone(tester, const Size(400, 800));
 
       await _pumpView(tester, [_profile('a')]);
       await tester.drag(find.byType(CustomScrollView), const Offset(0, -40));

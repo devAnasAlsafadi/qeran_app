@@ -9,6 +9,7 @@ import 'package:qeran/features/auth/presentation/blocs/user_session/user_session
 import '../blocs/discovery_cubit.dart';
 import '../blocs/discovery_hydration_cubit.dart';
 import '../blocs/discovery_state.dart';
+import 'discovery_card_skeleton.dart';
 import 'discovery_deck_animation_controller.dart';
 import 'discovery_feedback.dart';
 import 'discovery_floating_action_bar.dart';
@@ -114,8 +115,16 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
     if (_likeBurstInFlight) return;
     final overlay = Overlay.maybeOf(context);
     if (overlay == null) return;
-    final screen = MediaQuery.of(context).size;
-    final target = Offset(screen.width / 2, screen.height * 0.22);
+    // The photo's centre; the photo starts at the top of this area.
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return;
+    final size = box.size;
+    final photoHeight = discoveryPhotoHeight(
+      context,
+      viewportHeight: size.height,
+      isLandscape: size.width > size.height,
+    );
+    final target = box.localToGlobal(Offset(size.width / 2, photoHeight / 2));
 
     _likeBurstInFlight = true;
     late OverlayEntry entry;
@@ -164,8 +173,8 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
   }
 
   /// The photo starts below the shell's top bar, which owns the status-bar
-  /// inset; the SafeArea keeps the sides clear of a landscape notch. No title
-  /// bar: the two overlay buttons float on the photo itself.
+  /// inset; the SafeArea keeps the sides clear of a landscape notch. The
+  /// title row sits on the photo itself, not in a bar above it.
   Widget _buildBody(BuildContext context, DiscoveryState state) => SafeArea(
     bottom: false,
     child: DiscoveryStateBody(state: state, scrollOffset: _scrollOffset),

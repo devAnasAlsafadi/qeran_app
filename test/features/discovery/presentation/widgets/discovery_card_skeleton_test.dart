@@ -9,12 +9,20 @@ import 'package:qeran/features/discovery/presentation/widgets/discovery_card_ske
 /// shadow — the pre-merge look. The merged screen is full-bleed, so the
 /// shimmer snapped into a different shape the moment the deck arrived.
 
+/// Sizes the screen as a phone would be: the layout AND what MediaQuery reports.
+/// `setSurfaceSize` changes only the first, and the photo's small-screen rule
+/// reads the second.
+void _setPhone(WidgetTester tester, Size size) {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+}
+
 void main() {
   testWidgets('the shimmer fills the width — no floating-card inset', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    _setPhone(tester, const Size(400, 800));
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -38,8 +46,7 @@ void main() {
   testWidgets('the photo block matches the loaded photo fraction', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    _setPhone(tester, const Size(400, 800));
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -61,9 +68,21 @@ void main() {
     expect(photo.right, 400);
   });
 
+  testWidgets("a small phone held upright gets the loaded card's 280 pt", (
+    tester,
+  ) async {
+    _setPhone(tester, const Size(375, 667));
+
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: DiscoveryCardSkeleton())),
+    );
+
+    final photo = tester.getRect(find.byType(QeranSkeleton).first);
+    expect(photo.height, kDiscoveryPhotoHeightSmall);
+  });
+
   testWidgets('still renders the shimmer hints', (tester) async {
-    await tester.binding.setSurfaceSize(const Size(400, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    _setPhone(tester, const Size(400, 800));
 
     await tester.pumpWidget(
       const MaterialApp(
@@ -95,8 +114,7 @@ void main() {
   testWidgets('wraps detail hints when the viewport becomes short', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 350));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
+    _setPhone(tester, const Size(400, 350));
 
     await tester.pumpWidget(
       const MaterialApp(home: Scaffold(body: DiscoveryCardSkeleton())),

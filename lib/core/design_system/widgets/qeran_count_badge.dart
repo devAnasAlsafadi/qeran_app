@@ -9,9 +9,9 @@ import '../tokens/qeran_typography.dart';
 /// Gold on wine, never red: an unread notification is an invitation, not a
 /// fault, and red is reserved for danger in this identity.
 ///
-/// The paper ring is what keeps it readable wherever it lands — the user's
-/// bell sits on a photo, the matchmaker's on the app bar, and without a ring
-/// the pill dissolves into whichever one it is over.
+/// The paper ring is what keeps it readable wherever it lands — over the
+/// bell's wine glyph, or a darker surface — where without a ring the pill
+/// dissolves into whatever it is over.
 class QeranCountBadge extends StatelessWidget {
   const QeranCountBadge({
     super.key,

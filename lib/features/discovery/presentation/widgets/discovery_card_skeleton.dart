@@ -6,8 +6,9 @@ import 'package:qeran/core/design_system/widgets/qeran_skeleton.dart';
 
 /// First-load placeholder for the merged discovery screen.
 ///
-/// Mirrors the loaded geometry exactly: a full-bleed photo block taking the
-/// top half of the viewport, then the نبذة عني sheet running edge to edge. It
+/// Mirrors the loaded geometry exactly: a full-bleed photo block as tall as the
+/// loaded photo ([discoveryPhotoHeight]), then the نبذة عني sheet running edge
+/// to edge. It
 /// used to draw a floating rounded card with 18dp side margins and a shadow,
 /// which is what the screen looked like BEFORE the merge — so the shimmer
 /// promised one layout and the loaded state delivered another.
@@ -32,9 +33,13 @@ class DiscoveryCardSkeleton extends StatelessWidget {
             ? constraints.maxHeight
             : MediaQuery.sizeOf(context).height;
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
-        final fraction =
-            photoFraction ?? (isLandscape ? kDiscoveryPhotoFractionLandscape
-                : kDiscoveryPhotoFraction);
+        final photoHeight = photoFraction == null
+            ? discoveryPhotoHeight(
+                context,
+                viewportHeight: viewportHeight,
+                isLandscape: isLandscape,
+              )
+            : viewportHeight * photoFraction!;
 
         return SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -48,10 +53,7 @@ class DiscoveryCardSkeleton extends StatelessWidget {
                   children: [
                     // Full-bleed photo block — no side margins, no radius, no
                     // shadow. Same shape the real photo takes.
-                    QeranSkeleton.box(
-                      height: viewportHeight * fraction,
-                      radius: 0,
-                    ),
+                    QeranSkeleton.box(height: photoHeight, radius: 0),
                     Expanded(
                       child: _SkeletonSheet(isLandscape: isLandscape),
                     ),
@@ -70,6 +72,25 @@ class DiscoveryCardSkeleton extends StatelessWidget {
 /// shimmer and the loaded card can never drift apart.
 const double kDiscoveryPhotoFraction = 0.50;
 const double kDiscoveryPhotoFractionLandscape = 0.45;
+
+/// The photo's height on a small phone held upright: a screen this tall or
+/// less (an iPhone SE is 667) gets a fixed photo instead of half the viewport.
+const double kDiscoveryPhotoHeightSmall = 280;
+const double kDiscoveryPhotoSmallScreenMaxHeight = 700;
+
+/// The discovery photo's height, for the shimmer and the loaded card alike.
+double discoveryPhotoHeight(
+  BuildContext context, {
+  required double viewportHeight,
+  required bool isLandscape,
+}) {
+  if (isLandscape) return viewportHeight * kDiscoveryPhotoFractionLandscape;
+  final screenHeight = MediaQuery.sizeOf(context).height;
+  if (screenHeight <= kDiscoveryPhotoSmallScreenMaxHeight) {
+    return kDiscoveryPhotoHeightSmall;
+  }
+  return viewportHeight * kDiscoveryPhotoFraction;
+}
 
 /// The نبذة عني sheet placeholder: full width, rounded top only, paper fill.
 class _SkeletonSheet extends StatelessWidget {

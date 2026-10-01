@@ -255,6 +255,8 @@ abstract class  LocaleKeys {
   static const discovery_unit_year = 'discovery.unit_year';
   static const discovery_filter_title = 'discovery.filter_title';
   static const discovery_filter_subtitle = 'discovery.filter_subtitle';
+  static const discovery_title = 'discovery.title';
+  static const discovery_filter_button = 'discovery.filter_button';
   static const discovery_filter_hint_title = 'discovery.filter_hint_title';
   static const discovery_filter_hint_body = 'discovery.filter_hint_body';
   static const discovery_filter_hint_confirm = 'discovery.filter_hint_confirm';

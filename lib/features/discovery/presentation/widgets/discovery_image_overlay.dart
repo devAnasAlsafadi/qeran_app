@@ -2,12 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 import '../../domain/entities/placement_item.dart';
 import 'discovery_chips_above_image.dart';
+import 'discovery_name_age_row.dart';
 import 'discovery_privacy_message.dart';
 import 'discovery_revealing_match_pill.dart';
 
@@ -25,6 +24,7 @@ class DiscoveryImageOverlay extends StatelessWidget {
     required this.matchPillReveal,
     required this.aboveItems,
     required this.bottomContentInset,
+    this.topClearance = 0,
   });
 
   final String name;
@@ -33,6 +33,10 @@ class DiscoveryImageOverlay extends StatelessWidget {
   final ValueListenable<double>? matchPillReveal;
   final List<PlacementItem> aboveItems;
   final double bottomContentInset;
+
+  /// What covers the photo's top — the title row — which the privacy group
+  /// must stay clear of.
+  final double topClearance;
 
   static const double _compactHeight = 220;
   static const double _veryCompactHeight = 150;
@@ -63,7 +67,7 @@ class DiscoveryImageOverlay extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _NameAgeRow(name: name, age: age),
+              DiscoveryNameAgeRow(name: name, age: age),
               // Compatibility pill — directly under name+age, exactly where
               // the standalone full profile puts it. On the merged screen it
               // is a scroll reveal (see [matchPillReveal]) that takes up NO
@@ -83,36 +87,38 @@ class DiscoveryImageOverlay extends StatelessWidget {
         // On regular portrait cards the privacy group belongs to the visual
         // center of the whole photo. Previously it occupied the first half of
         // a Column, which made the lock and caption look noticeably too high.
-        // Compact landscape/split-screen layouts keep the collision-safe flex
-        // arrangement below because the identity block shares very little
-        // vertical space with the privacy message there.
+        // It keeps that centre line unless the title row above or the name
+        // below would touch it, as on a small phone's shorter photo; then it
+        // moves just enough. Compact landscape/split-screen layouts keep the
+        // collision-safe flex arrangement below because the identity block
+        // shares very little vertical space with the privacy message there.
         if (!isCompact) {
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  child: SizedBox(
-                    width: contentWidth,
-                    child: const DiscoveryPrivacyMessage(),
+          return Padding(
+            padding: EdgeInsetsDirectional.only(
+              start: horizontalPadding,
+              end: horizontalPadding,
+              top: topPadding,
+              bottom: bottomPadding,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: CustomSingleChildLayout(
+                    delegate: _OnPhotoCentre(
+                      centre: constraints.maxHeight / 2 - topPadding,
+                      minTop: topClearance - topPadding,
+                    ),
+                    child: SizedBox(
+                      width: contentWidth,
+                      child: const DiscoveryPrivacyMessage(),
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.only(
-                  start: horizontalPadding,
-                  end: horizontalPadding,
-                  top: topPadding,
-                  bottom: bottomPadding,
-                ),
-                child: Align(
-                  alignment: AlignmentDirectional.bottomStart,
-                  child: identity,
-                ),
-              ),
-            ],
+                QeranSpacing.vs8,
+                identity,
+              ],
+            ),
           );
         }
 
@@ -154,22 +160,29 @@ class DiscoveryImageOverlay extends StatelessWidget {
   }
 }
 
-class _NameAgeRow extends StatelessWidget {
-  final String name;
-  final int age;
+/// Puts its child's centre on [centre] (the photo's centre line, in this
+/// box's coordinates), moved down to [minTop] or up to the box's bottom when
+/// either edge would be crossed.
+class _OnPhotoCentre extends SingleChildLayoutDelegate {
+  const _OnPhotoCentre({required this.centre, required this.minTop});
 
-  const _NameAgeRow({required this.name, required this.age});
+  final double centre;
+  final double minTop;
 
   @override
-  Widget build(BuildContext context) {
-    return Text(
-      '$name $age',
-      style: QeranTypography.headline.copyWith(
-        color: QeranColors.paper,
-        fontWeight: FontWeight.w700,
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      constraints.loosen();
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) {
+    final maxTop = math.max(0.0, size.height - childSize.height);
+    final top = (centre - childSize.height / 2)
+        .clamp(math.min(math.max(0.0, minTop), maxTop), maxTop)
+        .toDouble();
+    return Offset((size.width - childSize.width) / 2, top);
   }
+
+  @override
+  bool shouldRelayout(_OnPhotoCentre old) =>
+      old.centre != centre || old.minTop != minTop;
 }

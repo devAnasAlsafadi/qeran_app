@@ -1,39 +1,28 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
-import 'package:qeran/core/di/injection_container.dart';
-import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
-import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
-import 'package:qeran/features/notifications/presentation/routing/open_notifications.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_photo_hero_motion.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/discovery_profile.dart';
 import '../../domain/entities/placement_code.dart';
 import '../../domain/entities/placement_item.dart';
-import '_image_overlay_button.dart';
 import 'discovery_blurred_image.dart';
 import 'discovery_image_overlay.dart';
+import 'discovery_title_row.dart';
 
 /// Full-bleed image panel for a single Discovery profile. Renders the blurred
-/// image with the notifications bell (top-start) and filter button (top-end)
-/// overlaid, the centered privacy lock + message, and at the bottom: name +
-/// age, the compatibility pill, and the above-image chips.
-///
-/// The overlay row is fully directional: in Arabic (RTL) the bell sits on the
-/// RIGHT and the filter on the LEFT, and it mirrors in English.
+/// image with the Suggestions title row across its top (the title at the
+/// start, «تعديل الفلترة» at the end, over a wine scrim), the centered privacy
+/// lock + message, and at the bottom: name + age, the compatibility pill, and
+/// the above-image chips. The row scrolls away with the photo.
 class DiscoveryImagePanel extends StatelessWidget {
   final DiscoveryProfile profile;
   final VoidCallback? onTap;
 
-  /// When `false`, the top notifications/filter overlay row is omitted.
-  final bool showOverlayActions;
+  /// When `false`, the title row and its scrim are omitted.
+  final bool showTitleRow;
 
-  /// Opens the discovery filter sheet. Null renders the button inert.
+  /// Opens the discovery filter sheet. Null renders the pill inert.
   final VoidCallback? onFilterTap;
 
   /// Fixed panel height. Null lets the panel fill its parent (the legacy
@@ -63,7 +52,7 @@ class DiscoveryImagePanel extends StatelessWidget {
     super.key,
     required this.profile,
     this.onTap,
-    this.showOverlayActions = true,
+    this.showTitleRow = true,
     this.onFilterTap,
     this.height,
     this.bottomContentInset = 0,
@@ -95,6 +84,14 @@ class DiscoveryImagePanel extends StatelessWidget {
             )
           else
             Container(color: QeranColors.creamSurface),
+          if (showTitleRow)
+            const Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: _TitleScrim.height,
+              child: _TitleScrim(),
+            ),
           // Identity + privacy overlays adapt independently when the available
           // height is reduced (small device, split screen, or a transient IME).
           // Each region scales down inside its own bounded flex slot, so neither
@@ -107,60 +104,21 @@ class DiscoveryImagePanel extends StatelessWidget {
               matchPillReveal: matchPillReveal,
               aboveItems: aboveItems,
               bottomContentInset: bottomContentInset,
+              topClearance: showTitleRow ? DiscoveryTitleRow.extent : 0,
             ),
           ),
-          if (showOverlayActions)
+          if (showTitleRow)
             Positioned(
               top: 0,
               left: 0,
               right: 0,
-              // SafeArea keeps both buttons clear of a landscape notch; the
-              // shell's top bar above already owns the status-bar inset.
+              // SafeArea keeps the row clear of a landscape notch; the shell's
+              // top bar above already owns the status-bar inset.
               child: SafeArea(
                 bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    QeranSpacing.s16,
-                    QeranSpacing.s8,
-                    QeranSpacing.s16,
-                    0,
-                  ),
-                  // Bell at the START, filter at the END — in Arabic that puts
-                  // the bell on the right and the filter on the left, and the
-                  // Row mirrors itself for English.
-                  child: Row(
-                    children: [
-                      // The badge is a STATE, not decoration: it appears only
-                      // while the server reports unread. It was pinned on
-                      // unconditionally when the bell moved onto the photo,
-                      // so it read as "you have mail" forever.
-                      //
-                      // A count, not a dot: the bell is the one surface where
-                      // the number is worth reading — the tabs each stand for
-                      // one thing, but the inbox pools everything.
-                      BlocBuilder<BadgesCubit, BadgeCounts>(
-                        bloc: sl<BadgesCubit>(),
-                        builder: (context, counts) => Semantics(
-                          label: LocaleKeys.notifications_bell_unread_a11y.t(
-                            context,
-                            namedArgs: {'count': '${counts.notifications}'},
-                          ),
-                          child: ImageOverlayButton(
-                            icon: Icons.notifications_outlined,
-                            onPressed: () => openNotifications(context),
-                            badge: counts.notifications > 0
-                                ? QeranCountBadge(count: counts.notifications)
-                                : null,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      ImageOverlayButton(
-                        icon: Icons.tune_rounded,
-                        onPressed: onFilterTap,
-                      ),
-                    ],
-                  ),
+                child: DiscoveryTitleRow(
+                  onPhoto: true,
+                  onEditFilters: onFilterTap,
                 ),
               ),
             ),
@@ -184,5 +142,31 @@ class DiscoveryImagePanel extends StatelessWidget {
       if (p.code == PlacementCode.aboveImage) return p.items;
     }
     return const <PlacementItem>[];
+  }
+}
+
+/// Wine fading to clear down the photo's top, so the title row's paper type
+/// reads on any photo.
+class _TitleScrim extends StatelessWidget {
+  const _TitleScrim();
+
+  static const double height = 150;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              QeranColors.overlayTintDark,
+              QeranColors.wine.withValues(alpha: 0),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

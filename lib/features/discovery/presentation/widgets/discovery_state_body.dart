@@ -11,12 +11,16 @@ import 'discovery_card_skeleton.dart';
 import 'discovery_daily_limit_view.dart';
 import 'discovery_empty_view.dart';
 import 'discovery_profile_page.dart';
+import 'discovery_title_row.dart';
 import 'open_discovery_filters.dart';
 
 /// Owns the pull-to-refresh + the state switch below the top bar. Loading /
 /// failure / empty states use always-scrollable containers so
 /// `RefreshIndicator` keeps working; the loaded state renders [DiscoveryProfilePage]
 /// (a fixed card whose data region scrolls internally).
+///
+/// The loaded card carries the title row on its photo; every other state keeps
+/// it in the same spot on the canvas, with its own content starting below.
 class DiscoveryStateBody extends StatelessWidget {
   final DiscoveryState state;
   final ValueNotifier<double> scrollOffset;
@@ -35,10 +39,38 @@ class DiscoveryStateBody extends StatelessWidget {
         !(state as DiscoveryLoaded).isExhausted) {
       return _buildContent(context);
     }
-    return RefreshIndicator(
-      color: QeranColors.wine,
-      onRefresh: () => context.read<DiscoveryCubit>().refresh(),
-      child: _buildContent(context),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: RefreshIndicator(
+            color: QeranColors.wine,
+            edgeOffset: DiscoveryTitleRow.extent,
+            onRefresh: () => context.read<DiscoveryCubit>().refresh(),
+            child: _buildContent(context),
+          ),
+        ),
+        PositionedDirectional(
+          top: 0,
+          start: 0,
+          end: 0,
+          child: _titleRow(context),
+        ),
+      ],
+    );
+  }
+
+  /// The pill shows wherever filters can help — loading, waiting for more, and
+  /// every empty deck — but not on an error or the daily limit. While the
+  /// first page loads it is there but inert.
+  Widget _titleRow(BuildContext context) {
+    final s = state;
+    final loading = s is DiscoveryInitial || s is DiscoveryLoading;
+    final failedMore =
+        s is DiscoveryLoaded && s.hasMore && s.prefetchError != null;
+    return DiscoveryTitleRow(
+      onPhoto: false,
+      showFilters: loading || (s is DiscoveryLoaded && !failedMore),
+      onEditFilters: loading ? null : () => openDiscoveryFilters(context),
     );
   }
 
@@ -87,18 +119,18 @@ class DiscoveryStateBody extends StatelessWidget {
           );
           return const DiscoveryCardSkeleton();
         }
-        // A filtered deck that came back empty is otherwise a dead end: the
-        // filter button lives on the card photo, and there is no card.
+        // The title row's pill reaches the filters from any empty deck; when
+        // filters are what emptied it, the view says so and offers its own way
+        // back to them too.
         final cubit = context.read<DiscoveryCubit>();
         return _ScrollableCenter(
           child: DiscoveryEmptyView(
             seenEveryone: s.hasSeenEveryone,
             // Server reason OR the client's own knowledge that a filter is
             // constraining the deck. Falling back to the local flag keeps the
-            // filter escape hatch alive on a backend that sends no reason at
-            // all — without it, an unreported filtered-empty deck would render
-            // the generic copy and no way out, the exact dead end this view
-            // exists to prevent.
+            // copy honest on a backend that sends no reason at all — without
+            // it, an unreported filtered-empty deck would read as the generic
+            // "no profiles right now".
             filtersMatchedNobody:
                 s.filtersMatchedNobody || cubit.hasActiveFilters,
             onRefresh: cubit.refresh,
@@ -113,7 +145,10 @@ class DiscoveryStateBody extends StatelessWidget {
       return DiscoveryProfilePage(loaded: s, scrollOffset: scrollOffset);
     }
     if (s is DiscoveryDailyLimit) {
-      return DiscoveryDailyLimitView(resetAt: s.resetAt);
+      return Padding(
+        padding: const EdgeInsets.only(top: DiscoveryTitleRow.extent),
+        child: DiscoveryDailyLimitView(resetAt: s.resetAt),
+      );
     }
     return const SizedBox.shrink();
   }
@@ -121,7 +156,7 @@ class DiscoveryStateBody extends StatelessWidget {
 
 /// Wraps a child in an always-scrollable view so `RefreshIndicator`
 /// works even when there is no real content to scroll (loading /
-/// empty / error states).
+/// empty / error states), centred in the space under the title row.
 class _ScrollableCenter extends StatelessWidget {
   final Widget child;
   const _ScrollableCenter({required this.child});
@@ -134,7 +169,10 @@ class _ScrollableCenter extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(child: child),
+            child: Padding(
+              padding: const EdgeInsets.only(top: DiscoveryTitleRow.extent),
+              child: Center(child: child),
+            ),
           ),
         );
       },

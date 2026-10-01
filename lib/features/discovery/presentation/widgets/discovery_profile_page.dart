@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 
 import '../../domain/entities/discovery_profile.dart';
+import '../blocs/discovery_cubit.dart';
 import '../blocs/discovery_hydration_cubit.dart';
 import '../blocs/discovery_state.dart';
 import 'discovery_blurred_image.dart';
@@ -117,6 +118,7 @@ class _DiscoveryProfilePageState extends State<DiscoveryProfilePage> {
           bottomInset: navClearance + _kActionZoneClearance,
           scrollOffset: widget.scrollOffset,
           onFilterTap: () => openDiscoveryFilters(context),
+          activeFilterCount: context.read<DiscoveryCubit>().activeFilters.count,
         );
       },
     );

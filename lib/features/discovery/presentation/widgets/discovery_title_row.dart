@@ -3,6 +3,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_count_badge.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -12,11 +13,13 @@ import 'package:qeran/generated/locale_keys.g.dart';
 /// ([onPhoto] — paper type over the photo's top scrim), on the canvas
 /// otherwise. The pill shows where filters can help, so not on an error or the
 /// daily limit ([showFilters]); with no [onEditFilters] it is drawn at half
-/// strength and does nothing, as while the first page loads.
+/// strength and does nothing, as while the first page loads. While filters
+/// narrow the deck, the pill carries their number ([activeFilterCount]).
 class DiscoveryTitleRow extends StatelessWidget {
   const DiscoveryTitleRow({
     super.key,
     required this.onPhoto,
+    required this.activeFilterCount,
     this.showFilters = true,
     this.onEditFilters,
   });
@@ -24,6 +27,9 @@ class DiscoveryTitleRow extends StatelessWidget {
   final bool onPhoto;
   final bool showFilters;
   final VoidCallback? onEditFilters;
+
+  /// How many filter questions narrow the deck; 0 draws no badge.
+  final int activeFilterCount;
 
   static const double _height = 48;
   static const double _pillMaxShare = 0.6;
@@ -75,7 +81,11 @@ class DiscoveryTitleRow extends StatelessWidget {
                   constraints: BoxConstraints(
                     maxWidth: constraints.maxWidth * _pillMaxShare,
                   ),
-                  child: _FiltersPill(onPhoto: onPhoto, onTap: onEditFilters),
+                  child: _FiltersPill(
+                    onPhoto: onPhoto,
+                    onTap: onEditFilters,
+                    activeCount: activeFilterCount,
+                  ),
                 ),
             ],
           ),
@@ -86,51 +96,85 @@ class DiscoveryTitleRow extends StatelessWidget {
 }
 
 /// «تعديل الفلترة»: dark wine glass on the photo, a raised paper pill on the
-/// canvas.
+/// canvas. The count rides its top-end corner, as the bell carries its own;
+/// the row's padding leaves room for it, so nothing that holds the row clips
+/// it.
 class _FiltersPill extends StatelessWidget {
-  const _FiltersPill({required this.onPhoto, required this.onTap});
+  const _FiltersPill({
+    required this.onPhoto,
+    required this.onTap,
+    required this.activeCount,
+  });
 
   final bool onPhoto;
   final VoidCallback? onTap;
+  final int activeCount;
 
   @override
   Widget build(BuildContext context) {
-    final ink = onPhoto ? QeranColors.paper : QeranColors.wine;
-    return Opacity(
-      opacity: onTap == null ? 0.5 : 1,
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          color: onPhoto ? QeranColors.overlayTintDark : QeranColors.paper,
-          shape: const StadiumBorder(),
-          shadows: onPhoto ? null : QeranShadows.e1,
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      onTap: onTap,
+      label: activeCount > 0
+          ? LocaleKeys.discovery_filter_button_active_a11y.t(
+              context,
+              namedArgs: {'count': '$activeCount'},
+            )
+          : LocaleKeys.discovery_filter_button.t(context),
+      excludeSemantics: true,
+      child: Opacity(
+        opacity: onTap == null ? 0.5 : 1,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            _pill(context),
+            if (activeCount > 0)
+              PositionedDirectional(
+                top: -QeranSpacing.s4,
+                end: -QeranSpacing.s4,
+                child: QeranCountBadge(count: activeCount),
+              ),
+          ],
         ),
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            onTap: onTap,
-            customBorder: const StadiumBorder(),
-            child: SizedBox(
-              height: 44,
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  start: QeranSpacing.s12,
-                  end: QeranSpacing.s16,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.tune_rounded, size: 18, color: ink),
-                    const SizedBox(width: QeranSpacing.s6),
-                    Flexible(
-                      child: Text(
-                        LocaleKeys.discovery_filter_button.t(context),
-                        style: QeranTypography.label.copyWith(color: ink),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+      ),
+    );
+  }
+
+  Widget _pill(BuildContext context) {
+    final ink = onPhoto ? QeranColors.paper : QeranColors.wine;
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: onPhoto ? QeranColors.overlayTintDark : QeranColors.paper,
+        shape: const StadiumBorder(),
+        shadows: onPhoto ? null : QeranShadows.e1,
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const StadiumBorder(),
+          child: SizedBox(
+            height: 44,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(
+                start: QeranSpacing.s12,
+                end: QeranSpacing.s16,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.tune_rounded, size: 18, color: ink),
+                  const SizedBox(width: QeranSpacing.s6),
+                  Flexible(
+                    child: Text(
+                      LocaleKeys.discovery_filter_button.t(context),
+                      style: QeranTypography.label.copyWith(color: ink),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

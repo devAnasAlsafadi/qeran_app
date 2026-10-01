@@ -39,6 +39,7 @@ class DiscoveryUnifiedCard extends StatefulWidget {
     required this.photoHeight,
     required this.bottomInset,
     required this.scrollOffset,
+    required this.activeFilterCount,
     this.onFilterTap,
   });
 
@@ -61,6 +62,7 @@ class DiscoveryUnifiedCard extends StatefulWidget {
   final ValueNotifier<double> scrollOffset;
 
   final VoidCallback? onFilterTap;
+  final int activeFilterCount;
 
   @override
   State<DiscoveryUnifiedCard> createState() => _DiscoveryUnifiedCardState();
@@ -130,6 +132,7 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
                         scrollOffset: widget.scrollOffset,
                         pillReveal: _pillReveal,
                         onFilterTap: widget.onFilterTap,
+                        activeFilterCount: widget.activeFilterCount,
                       ),
                     ),
                     SliverToBoxAdapter(

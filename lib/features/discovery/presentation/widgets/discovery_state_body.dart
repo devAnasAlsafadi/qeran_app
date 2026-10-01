@@ -71,6 +71,7 @@ class DiscoveryStateBody extends StatelessWidget {
       onPhoto: false,
       showFilters: loading || (s is DiscoveryLoaded && !failedMore),
       onEditFilters: loading ? null : () => openDiscoveryFilters(context),
+      activeFilterCount: context.read<DiscoveryCubit>().activeFilters.count,
     );
   }
 

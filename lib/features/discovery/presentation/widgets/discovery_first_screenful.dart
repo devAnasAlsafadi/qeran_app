@@ -44,6 +44,7 @@ class DiscoveryFirstScreenful extends StatelessWidget {
     required this.photoHeight,
     required this.scrollOffset,
     required this.pillReveal,
+    required this.activeFilterCount,
     this.onFilterTap,
   });
 
@@ -62,6 +63,7 @@ class DiscoveryFirstScreenful extends StatelessWidget {
   final ValueListenable<double> pillReveal;
 
   final VoidCallback? onFilterTap;
+  final int activeFilterCount;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +96,7 @@ class DiscoveryFirstScreenful extends StatelessWidget {
                 profile: profile,
                 height: photoHeight,
                 onFilterTap: onFilterTap,
+                activeFilterCount: activeFilterCount,
                 // The intro sheet slides up over the photo's bottom edge, so
                 // the chips have to clear that overlap — plus room to breathe
                 // — or the sheet slices through them.

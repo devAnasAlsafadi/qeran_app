@@ -1,3 +1,4 @@
+import '../filter_payload_builders.dart';
 import 'discovery_filter_selection.dart';
 
 /// The filters narrowing the Discovery deck: the [query] sent with every page
@@ -34,4 +35,9 @@ class DiscoveryActiveFilters {
   /// than "does the sheet have chips ticked". Lets the empty state tell
   /// "nobody left" apart from "your filter matched nobody".
   bool get isActive => query != null;
+
+  /// How many filter questions narrow the deck — the number on the
+  /// «تعديل الفلترة» pill. Read off the [query] like [isActive], so it is 0
+  /// exactly when nothing is active.
+  int get count => filteredQuestionCount(query ?? const {});
 }

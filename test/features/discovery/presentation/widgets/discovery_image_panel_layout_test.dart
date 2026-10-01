@@ -37,6 +37,7 @@ void main() {
               height: 140,
               child: DiscoveryImagePanel(
                 profile: _profile,
+                activeFilterCount: 0,
                 showTitleRow: false,
               ),
             ),
@@ -77,6 +78,7 @@ void main() {
                   child: DiscoveryImagePanel(
                     profile: _oneChip,
                     height: kDiscoveryPhotoHeightSmall,
+                    activeFilterCount: 0,
                     onFilterTap: () {},
                     // What the merged card reserves for its intro sheet.
                     bottomContentInset:

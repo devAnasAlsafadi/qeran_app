@@ -25,6 +25,9 @@ class DiscoveryImagePanel extends StatelessWidget {
   /// Opens the discovery filter sheet. Null renders the pill inert.
   final VoidCallback? onFilterTap;
 
+  /// The number on the filter pill; 0 draws none.
+  final int activeFilterCount;
+
   /// Fixed panel height. Null lets the panel fill its parent (the legacy
   /// flex-slot layout); the merged screen passes an explicit height because
   /// it lives inside a scroll, which has no bounded height to expand into.
@@ -51,6 +54,7 @@ class DiscoveryImagePanel extends StatelessWidget {
   const DiscoveryImagePanel({
     super.key,
     required this.profile,
+    required this.activeFilterCount,
     this.onTap,
     this.showTitleRow = true,
     this.onFilterTap,
@@ -119,6 +123,7 @@ class DiscoveryImagePanel extends StatelessWidget {
                 child: DiscoveryTitleRow(
                   onPhoto: true,
                   onEditFilters: onFilterTap,
+                  activeFilterCount: activeFilterCount,
                 ),
               ),
             ),

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_typography.dart';
 
-/// A small gold pill carrying an unread count, for the notifications bell in
-/// both shells.
+/// A small gold pill carrying a count: the notifications bell's unread in both
+/// shells, and the active filters on Suggestions' «تعديل الفلترة» pill.
 ///
 /// Gold on wine, never red: an unread notification is an invitation, not a
 /// fault, and red is reserved for danger in this identity.

@@ -51,6 +51,17 @@ Map<String, String> buildDiscoveryFilterPayload({
   return payload;
 }
 
+/// How many questions a [buildDiscoveryFilterPayload] map narrows: its keys
+/// grouped by the question id in their brackets, so a range's `RangeFrom[5]`
+/// and `RangeTo[5]` count once, as does a multi-select's comma-joined values.
+/// A key without an id counts on its own, so a non-empty map never counts 0.
+int filteredQuestionCount(Map<String, String> payload) => payload.keys
+    .map((key) => _questionIdInKey.firstMatch(key)?.group(1) ?? key)
+    .toSet()
+    .length;
+
+final _questionIdInKey = RegExp(r'\[(\d+)\]$');
+
 /// The matchmaker explore sheet's `{questionId: [values]}` shape, which its
 /// datasource turns into the same comma-joined `QuestionFilters[id]`. Pure and
 /// question-free so the explore screen can convert a returned selection map

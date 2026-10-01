@@ -19,7 +19,12 @@ enum QeranButtonVariant {
   destructive,
 }
 
-enum QeranButtonSize { lg, md, sm, xs }
+/// Heights: lg 54 · md 46 · compact 48 · xs 40 · sm 36.
+///
+/// [compact] is the dense-row size: the label type and tight padding long
+/// Arabic labels need, at the full 48 pt tap target. [xs] is the same at 40 pt,
+/// kept by the matchmaker app until its tap-target sweep (Phase 4).
+enum QeranButtonSize { lg, md, sm, xs, compact }
 
 class QeranButton extends StatelessWidget {
   const QeranButton({
@@ -100,6 +105,8 @@ class QeranButton extends StatelessWidget {
         QeranButtonSize.sm => 36,
         // Compact: dense two-button rows where labels need the width.
         QeranButtonSize.xs => 40,
+        // The same, at the full 48 pt tap target.
+        QeranButtonSize.compact => 48,
       };
 
   static double _hPad(QeranButtonSize s) => switch (s) {
@@ -107,7 +114,7 @@ class QeranButton extends StatelessWidget {
         QeranButtonSize.md => QeranSpacing.s20,
         QeranButtonSize.sm => QeranSpacing.s16,
         // Tight horizontal padding so long Arabic labels stay on one line.
-        QeranButtonSize.xs => QeranSpacing.s8,
+        QeranButtonSize.xs || QeranButtonSize.compact => QeranSpacing.s8,
       };
 
   static _Spec _spec(QeranButtonVariant v) => switch (v) {

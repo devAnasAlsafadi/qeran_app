@@ -4,10 +4,8 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
-import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
+import 'package:qeran/features/auth/presentation/session_image_headers.dart';
 
 import 'photo_view_access_host.dart';
 
@@ -19,10 +17,10 @@ import 'photo_view_access_host.dart';
 ///
 /// Profile image URLs on `/api/users/profile-images/...` require the
 /// Bearer token — without it the server returns 401 and we'd otherwise
-/// render the gray fallback icon. We pull the token from
-/// [UserSessionCubit] via `context.read`; if the cubit isn't in scope
-/// (widget tests) the request fires anonymously and the error widget
-/// shows the same gray fallback — never a crash.
+/// render the gray fallback icon. [sessionImageHeaders] attaches it, to our
+/// own server only; signed out (or in widget tests) the request fires
+/// anonymously and the error widget shows the same gray fallback — never a
+/// crash.
 ///
 /// When [size] is null, the widget fills its parent (use it inside a
 /// `SizedBox` / `GridView` cell). When non-null, the widget is a square
@@ -125,7 +123,7 @@ class LikeBlurredImage extends StatelessWidget {
       if (serverBlurred != null) {
         return CachedNetworkImage(
           imageUrl: serverBlurred,
-          httpHeaders: _authHeaders(context),
+          httpHeaders: sessionImageHeaders(context, serverBlurred),
           fit: fit,
           alignment: alignment,
           placeholder: (_, _) => _placeholder(),
@@ -142,7 +140,7 @@ class LikeBlurredImage extends StatelessWidget {
     // the honest last resort, since a client filter would need those bytes.
     if (shouldBlock) return _protectedFallback();
 
-    final headers = _authHeaders(context);
+    final headers = sessionImageHeaders(context, u);
     final useMemoryOnly = memoryOnly || (access?.memoryOnly ?? false);
     final forbidden = onAccessForbidden ?? access?.onImageForbidden;
     final img = useMemoryOnly
@@ -169,22 +167,6 @@ class LikeBlurredImage extends StatelessWidget {
       imageFilter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
       child: img,
     );
-  }
-
-  Map<String, String>? _authHeaders(BuildContext context) {
-    try {
-      final state = context.read<UserSessionCubit>().state;
-      if (state is UserSessionAuthenticated) {
-        final token = state.user.token;
-        if (token != null && token.isNotEmpty) {
-          return {'Authorization': 'Bearer $token'};
-        }
-      }
-    } catch (_) {
-      // No cubit in scope — happens in widget tests. Fall through to
-      // anonymous request; the errorWidget surfaces the gray fallback.
-    }
-    return null;
   }
 
   Widget _placeholder() {

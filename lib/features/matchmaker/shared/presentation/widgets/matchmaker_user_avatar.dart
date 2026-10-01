@@ -2,15 +2,14 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_monogram.dart';
-import '../../../../auth/presentation/blocs/user_session/user_session_cubit.dart';
-import '../../../../auth/presentation/blocs/user_session/user_session_state.dart';
+import '../../../../auth/presentation/session_image_headers.dart';
 
 /// The ONLY entry point for rendering a profile image inside the
-/// Matchmaker module. JWT-headered. It never reads the server `isBlurred`
+/// Matchmaker module. JWT-headered, to our own server only
+/// ([sessionImageHeaders]). It never reads the server `isBlurred`
 /// flag — the backend sends `isBlurred=false` for the moderator role, and by
 /// not reading it a server bug can never blur a moderator's view.
 ///
@@ -78,7 +77,7 @@ class MatchmakerUserAvatar extends StatelessWidget {
     if (u == null || u.isEmpty) return _fallback();
     return CachedNetworkImage(
       imageUrl: u,
-      httpHeaders: _authHeaders(context),
+      httpHeaders: sessionImageHeaders(context, u),
       fit: fit,
       alignment: alignment,
       placeholder: (_, _) => _placeholder(),
@@ -89,22 +88,6 @@ class MatchmakerUserAvatar extends StatelessWidget {
       // the cache entry so the next build re-downloads a clean image.
       errorListener: (_) => CachedNetworkImageProvider(u).evict(),
     );
-  }
-
-  Map<String, String>? _authHeaders(BuildContext context) {
-    try {
-      final state = context.read<UserSessionCubit>().state;
-      if (state is UserSessionAuthenticated) {
-        final token = state.user.token;
-        if (token != null && token.isNotEmpty) {
-          return {'Authorization': 'Bearer $token'};
-        }
-      }
-    } catch (_) {
-      // No cubit in scope (widget tests). Anonymous request → fallback
-      // surfaces if the server returns 401.
-    }
-    return null;
   }
 
   Widget _placeholder() {

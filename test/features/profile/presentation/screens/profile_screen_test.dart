@@ -2,18 +2,22 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_state.dart';
 import 'package:qeran/features/profile/presentation/screens/profile_screen.dart';
 import 'package:qeran/features/settings/presentation/widgets/settings_row.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../auth/presentation/fake_session.dart';
 
 /// The translation files the app ships, read straight from disk: the asset
 /// bundle's own loading never finishes under the test clock.
@@ -40,8 +44,9 @@ class _Session extends Fake implements UserSessionCubit {
 }
 
 class _Gate extends Fake implements ProfileGateCubit {
+  _Gate([this.state = const ProfileGateInitial()]);
   @override
-  ProfileGateState get state => const ProfileGateInitial();
+  final ProfileGateState state;
   @override
   Stream<ProfileGateState> get stream => const Stream.empty();
 }
@@ -56,7 +61,12 @@ class _Subscription extends Fake implements CurrentSubscriptionCubit {
   Future<void> refresh({bool force = false}) async {}
 }
 
-Future<void> _pump(WidgetTester tester, Locale locale) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Locale locale, {
+  UserSessionCubit? session,
+  ProfileGateState? gate,
+}) async {
   await tester.pumpWidget(
     EasyLocalization(
       supportedLocales: [locale],
@@ -69,8 +79,12 @@ Future<void> _pump(WidgetTester tester, Locale locale) async {
           localizationsDelegates: ctx.localizationDelegates,
           home: MultiBlocProvider(
             providers: [
-              BlocProvider<UserSessionCubit>.value(value: _Session()),
-              BlocProvider<ProfileGateCubit>.value(value: _Gate()),
+              BlocProvider<UserSessionCubit>.value(
+                value: session ?? _Session(),
+              ),
+              BlocProvider<ProfileGateCubit>.value(
+                value: gate == null ? _Gate() : _Gate(gate),
+              ),
               BlocProvider<CurrentSubscriptionCubit>.value(
                 value: _Subscription(),
               ),
@@ -148,6 +162,28 @@ void main() {
       for (final line in _upsell[lang]!) {
         expect(find.text(line), findsOneWidget, reason: line);
       }
+    });
+  }
+
+  // Security: the hero photo carries the session's token to our server only.
+  for (final (where, url, headers) in [
+    ('our server', ourImageUrl, fakeSessionBearer),
+    ('another host', foreignImageUrl, null),
+  ]) {
+    testWidgets('the hero photo on $where', (tester) async {
+      await _pump(
+        tester,
+        const Locale('en'),
+        session: FakeSession(),
+        gate: ProfileGateResolved(
+          ProfileStatus.visible,
+          name: 'Huda',
+          photoUrl: url,
+        ),
+      );
+
+      final hero = find.byType(CachedNetworkImage);
+      expect(tester.widget<CachedNetworkImage>(hero).httpHeaders, headers);
     });
   }
 }

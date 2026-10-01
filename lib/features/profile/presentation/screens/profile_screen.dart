@@ -22,6 +22,7 @@ import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
+import 'package:qeran/features/auth/presentation/session_image_headers.dart';
 import 'package:qeran/features/profile/presentation/default_name_banner_session.dart';
 import 'package:qeran/features/profile/presentation/widgets/default_name_banner.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
@@ -231,7 +232,7 @@ class _HeroAvatar extends StatelessWidget {
       child: ClipOval(
         child: CachedNetworkImage(
           imageUrl: photoUrl!,
-          httpHeaders: _authHeaders(context),
+          httpHeaders: sessionImageHeaders(context, photoUrl!),
           fit: BoxFit.cover,
           width: 58,
           height: 58,
@@ -240,18 +241,6 @@ class _HeroAvatar extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// Bearer token for the profile-image request, from the in-scope session.
-  Map<String, String>? _authHeaders(BuildContext context) {
-    final state = context.read<UserSessionCubit>().state;
-    if (state is UserSessionAuthenticated) {
-      final token = state.user.token;
-      if (token != null && token.isNotEmpty) {
-        return {'Authorization': 'Bearer $token'};
-      }
-    }
-    return null;
   }
 }
 

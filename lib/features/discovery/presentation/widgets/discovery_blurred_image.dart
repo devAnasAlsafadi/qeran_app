@@ -2,18 +2,16 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
-import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
+import 'package:qeran/features/auth/presentation/session_image_headers.dart';
 
 /// Renders the candidate's actual photo with a privacy-preserving soft blur,
 /// and the one-and-only design-system-approved bottom gradient.
 ///
 /// Attaches the session's Bearer token to the image request via
-/// `httpHeaders`. If the cubit isn't in scope (widget tests) or the user
-/// isn't authenticated, the request fires anonymously and the server's
-/// 401 produces an error widget — never a crash.
+/// `httpHeaders` — only when the photo is on our own server
+/// ([sessionImageHeaders]). Signed out, the request fires anonymously and the
+/// server's 401 produces an error widget — never a crash.
 class DiscoveryBlurredImage extends StatelessWidget {
   final String url;
   final Alignment alignment;
@@ -32,7 +30,7 @@ class DiscoveryBlurredImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headers = _discoveryImageAuthHeaders(context);
+    final headers = sessionImageHeaders(context, url);
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -72,27 +70,9 @@ Future<void> precacheDiscoveryPhoto(BuildContext context, String url) {
   final provider = ResizeImage.resizeIfNeeded(
     600,
     null,
-    CachedNetworkImageProvider(
-      url,
-      headers: _discoveryImageAuthHeaders(context),
-    ),
+    CachedNetworkImageProvider(url, headers: sessionImageHeaders(context, url)),
   );
   return precacheImage(provider, context, onError: (_, _) {});
-}
-
-Map<String, String>? _discoveryImageAuthHeaders(BuildContext context) {
-  try {
-    final state = context.read<UserSessionCubit>().state;
-    if (state is UserSessionAuthenticated) {
-      final token = state.user.token;
-      if (token != null && token.isNotEmpty) {
-        return {'Authorization': 'Bearer $token'};
-      }
-    }
-  } catch (_) {
-    // No cubit in scope — happens in widget tests. Fall through to anonymous.
-  }
-  return null;
 }
 
 class _BottomGradient extends StatelessWidget {

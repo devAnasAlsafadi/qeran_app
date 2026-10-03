@@ -28,11 +28,14 @@ Future<void> initShippedStrings() async {
 /// `main.dart` configures them (Arabic fallback, plural rules on), and
 /// returns a context inside. Without [settle] it pumps a few frames instead
 /// of settling — for a child that never settles (a skeleton's shimmer).
+/// [builder] wraps the navigator, as `MaterialApp.builder` does — for what
+/// pushed screens must find above them.
 Future<BuildContext> pumpShippedStrings(
   WidgetTester tester,
   Locale locale, {
   Widget child = const SizedBox(),
   bool settle = true,
+  TransitionBuilder? builder,
 }) async {
   late BuildContext inside;
   await tester.pumpWidget(
@@ -49,6 +52,7 @@ Future<BuildContext> pumpShippedStrings(
           locale: ctx.locale,
           supportedLocales: ctx.supportedLocales,
           localizationsDelegates: ctx.localizationDelegates,
+          builder: builder,
           home: Builder(
             builder: (c) {
               inside = c;

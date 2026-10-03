@@ -13,6 +13,7 @@ import '../../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.d
 import '../../../domain/entities/community_post.dart';
 import '../../blocs/feed/community_feed_cubit.dart';
 import '../../blocs/feed/community_feed_state.dart';
+import '../../screens/community_post_page.dart';
 import '../post_card/community_post_card.dart';
 import 'community_feed_footer.dart';
 import 'community_feed_skeleton.dart';
@@ -110,6 +111,8 @@ class CommunityFeedList extends StatelessWidget {
           post.id,
           readOnly: readOnly,
         ),
+        onOpenDiscussion: () =>
+            openCommunityPost(context, postId: post.id, post: post),
       );
     },
   );

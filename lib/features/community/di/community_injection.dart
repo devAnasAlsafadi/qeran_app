@@ -21,7 +21,10 @@ import '../domain/usecases/get_post_comments_usecase.dart';
 import '../domain/usecases/set_comment_like_usecase.dart';
 import '../domain/usecases/set_post_like_usecase.dart';
 import '../domain/usecases/watch_community_post_changes_usecase.dart';
+import '../domain/entities/community_post.dart';
+import '../presentation/blocs/comments/community_comments_cubit.dart';
 import '../presentation/blocs/feed/community_feed_cubit.dart';
+import '../presentation/blocs/post/community_post_cubit.dart';
 
 /// `--dart-define=COMMUNITY_MOCK=seeded|empty|errors|slow` (Q2). Read here
 /// only, and only outside release builds.
@@ -60,6 +63,25 @@ void initCommunityDependencies() {
       getFeed: sl(),
       setPostLike: sl(),
       watchChanges: sl(),
+    ),
+  );
+  // The post screen's pair: the post's id, and the feed's copy when there
+  // is one.
+  sl.registerFactoryParam<CommunityPostCubit, int, CommunityPost?>(
+    (postId, post) => CommunityPostCubit(
+      postId: postId,
+      post: post,
+      getPost: sl(),
+      setPostLike: sl(),
+      watchChanges: sl(),
+    ),
+  );
+  sl.registerFactoryParam<CommunityCommentsCubit, int, void>(
+    (postId, _) => CommunityCommentsCubit(
+      postId: postId,
+      getComments: sl(),
+      getReplies: sl(),
+      setCommentLike: sl(),
     ),
   );
 }

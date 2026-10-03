@@ -8,6 +8,10 @@ import 'package:qeran/features/community/data/datasources/mock/community_mock_mo
 import 'package:qeran/features/community/di/community_injection.dart';
 import 'package:qeran/features/community/domain/repositories/community_repository.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_feed_usecase.dart';
+import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/comments/community_comments_state.dart';
+import 'package:qeran/features/community/presentation/blocs/post/community_post_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/post/community_post_state.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
 
@@ -45,6 +49,19 @@ void main() {
       expect(identical(sl<CommunityRepository>(), sl<CommunityRepository>()),
           isTrue);
       expect(sl<GetCommunityFeedUseCase>(), isNotNull);
+    });
+
+    test('the post screen\'s cubits, for a post id — with or without the '
+        'feed\'s copy', () async {
+      initCommunityDependencies();
+
+      final post = sl<CommunityPostCubit>(param1: 7, param2: null);
+      final comments = sl<CommunityCommentsCubit>(param1: 7);
+
+      expect(post.state, const CommunityPostLoading());
+      expect(comments.state.status, CommunityCommentsStatus.loading);
+      await post.close();
+      await comments.close();
     });
   });
 }

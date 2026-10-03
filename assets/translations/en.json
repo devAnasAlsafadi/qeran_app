@@ -243,6 +243,16 @@
     "see_more": "See more",
     "image_failed": "Couldn’t load the image",
     "retry": "Try again",
+    "post_title": "Post",
+    "post_error_title": "Couldn’t load the post",
+    "more_comments": "View more comments",
+    "comments_empty_title": "No comments yet",
+    "comments_empty_body": "Be the first to start the discussion.",
+    "comments_empty_read_only": "Comments will appear here.",
+    "comments_error": "Couldn’t load comments",
+    "post_unavailable_title": "This post is no longer available",
+    "post_unavailable_body": "The post or comment you opened may have been removed.",
+    "back_to_community": "Back to Community",
     "view_replies": {
       "one": "View 1 reply",
       "other": "View {n} replies"

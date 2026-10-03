@@ -10,11 +10,19 @@ import '../../domain/entities/community_author.dart';
 
 /// Who wrote it, by name (A18): the display name in its own direction and
 /// script (D13), cut at its own end when it's long (B2) — and after a
-/// matchmaker's name the «خطّابة» chip, always whole.
+/// matchmaker's name the «خطّابة» chip, always whole. A comment row sets
+/// its smaller [style] and puts the time right after them ([trailing]).
 class CommunityAuthorName extends StatelessWidget {
-  const CommunityAuthorName({super.key, required this.author});
+  const CommunityAuthorName({
+    super.key,
+    required this.author,
+    this.style = QeranTypography.subtitle,
+    this.trailing,
+  });
 
   final CommunityAuthor author;
+  final TextStyle style;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +31,7 @@ class CommunityAuthorName extends StatelessWidget {
         Flexible(
           child: QeranOwnText(
             author.displayName,
-            style: QeranTypography.subtitle,
+            style: style,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             softWrap: false,
@@ -37,6 +45,10 @@ class CommunityAuthorName extends StatelessWidget {
             icon: Icons.verified_rounded,
             compact: true,
           ),
+        ],
+        if (trailing case final trailing?) ...[
+          const SizedBox(width: QeranSpacing.s6),
+          trailing,
         ],
       ],
     );

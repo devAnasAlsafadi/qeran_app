@@ -60,10 +60,23 @@ void main() {
     expect(find.text('See more'), findsNothing);
   });
 
-  testWidgets('in Arabic: «عرض المزيد»', (tester) async {
+  testWidgets("See more lines up with the text, at the UI's start", (
+    tester,
+  ) async {
+    await _pump(tester, longText);
+
+    final block = tester.getTopLeft(find.byType(PostCardText)).dx;
+    expect(tester.getTopLeft(find.text('See more')).dx, closeTo(block + 16, 1));
+  });
+
+  testWidgets('in Arabic: «عرض المزيد», at the right', (tester) async {
     await _pump(tester, longText, locale: const Locale('ar'));
 
-    expect(find.text('عرض المزيد'), findsOneWidget);
+    final block = tester.getTopRight(find.byType(PostCardText)).dx;
+    expect(
+      tester.getTopRight(find.text('عرض المزيد')).dx,
+      closeTo(block - 16, 1),
+    );
   });
 
   testWidgets('on the post screen: always whole', (tester) async {

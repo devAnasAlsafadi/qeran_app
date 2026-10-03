@@ -39,15 +39,20 @@ class _PageFailed extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s16),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: QeranSpacing.s4,
+      // A Row, not a Wrap: given the full width, the button would stretch and
+      // drop to its own line. A long message wraps in its own space.
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            LocaleKeys.community_feed_page_error.t(context),
-            style: QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
+          Flexible(
+            child: Text(
+              LocaleKeys.community_feed_page_error.t(context),
+              style: QeranTypography.bodySm.copyWith(
+                color: QeranColors.inkMuted,
+              ),
+            ),
           ),
+          QeranSpacing.hs4,
           QeranButton(
             label: LocaleKeys.community_feed_retry.t(context),
             onPressed: onRetry,

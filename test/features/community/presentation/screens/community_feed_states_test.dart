@@ -56,6 +56,11 @@ void main() {
     await h.cubit.loadMore();
     await pumpFeed(tester, h);
     expect(find.text('Couldn’t load more.'), findsOneWidget);
+    expect(
+      tester.getCenter(find.text('Retry')).dy,
+      closeTo(tester.getCenter(find.text('Couldn’t load more.')).dy, 2),
+      reason: "Retry stays on the message's line",
+    );
 
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();

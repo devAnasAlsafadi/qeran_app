@@ -24,6 +24,7 @@ class PostCardText extends StatefulWidget {
 
   static final TextStyle style = QeranTypography.body.copyWith(
     color: QeranColors.inkStrong,
+    height: QeranTypography.readingLineHeight,
   );
 
   @override

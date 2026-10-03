@@ -73,6 +73,17 @@ void main() {
     expect(find.text('See more'), findsNothing);
   });
 
+  // Long-form reading: more leading than the body style's 1.55, in the feed
+  // and on the post screen alike.
+  for (final collapsible in [true, false]) {
+    testWidgets('read at the reading line height, 1.75 '
+        '[${collapsible ? 'feed' : 'post screen'}]', (tester) async {
+      await _pump(tester, _short, collapsible: collapsible);
+
+      expect(_postText(tester, _short).style?.height, 1.75);
+    });
+  }
+
   group('its own direction and script (D13, A21)', () {
     testWidgets('an Arabic post in the English UI', (tester) async {
       await _pump(tester, _short);

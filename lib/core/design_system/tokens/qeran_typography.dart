@@ -17,6 +17,11 @@ class QeranTypography {
 
   static const String _montserrat = 'Montserrat';
 
+  /// Line height for long-form reading — a Community post, read paragraph
+  /// by paragraph. Arabic in Noto Kufi needs more leading than [body]'s
+  /// 1.55 there. Everything else, comments included, keeps its style's own.
+  static const double readingLineHeight = 1.75;
+
   static const TextStyle displayLg = TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.w800,

@@ -44,6 +44,9 @@ class CommunityCommentsState extends Equatable {
   /// The next page failed; its retry asks again.
   final bool pageFailed;
 
+  /// A pull to refresh is on its way; the comments stay until it lands.
+  final bool refreshing;
+
   final CommunityCommentsEvent event;
   final int eventVersion;
 
@@ -54,6 +57,7 @@ class CommunityCommentsState extends Equatable {
     this.hasMore = false,
     this.loadingMore = false,
     this.pageFailed = false,
+    this.refreshing = false,
     this.event = CommunityCommentsEvent.none,
     this.eventVersion = 0,
   });
@@ -65,6 +69,7 @@ class CommunityCommentsState extends Equatable {
     bool? hasMore,
     bool? loadingMore,
     bool? pageFailed,
+    bool? refreshing,
   }) => CommunityCommentsState(
     status: status ?? this.status,
     threads: threads ?? this.threads,
@@ -72,6 +77,7 @@ class CommunityCommentsState extends Equatable {
     hasMore: hasMore ?? this.hasMore,
     loadingMore: loadingMore ?? this.loadingMore,
     pageFailed: pageFailed ?? this.pageFailed,
+    refreshing: refreshing ?? this.refreshing,
     event: event,
     eventVersion: eventVersion,
   );
@@ -85,6 +91,7 @@ class CommunityCommentsState extends Equatable {
         hasMore: hasMore,
         loadingMore: loadingMore,
         pageFailed: pageFailed,
+        refreshing: refreshing,
         event: next,
         eventVersion: eventVersion + 1,
       );
@@ -97,6 +104,7 @@ class CommunityCommentsState extends Equatable {
     hasMore,
     loadingMore,
     pageFailed,
+    refreshing,
     event,
     eventVersion,
   ];

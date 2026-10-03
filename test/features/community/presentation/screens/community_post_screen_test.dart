@@ -115,4 +115,27 @@ void main() {
     expect(find.text('نسأل الله التيسير للجميع.'), findsOneWidget);
     expect(find.text('View more comments'), findsNothing);
   });
+
+  testWidgets('pull to refresh: the post read again, and the first page of '
+      'comments', (tester) async {
+    post.readAnswers(Right(testPost(commentCount: 15)));
+    await pumpPostScreen(tester, post, comments);
+
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, 400),
+      1000,
+    );
+    await tester.pumpAndSettle();
+
+    verify(() => post.getPost(1)).called(1);
+    verify(() => comments.getComments(1, page: 1)).called(2);
+    expect(
+      find.descendant(
+        of: find.byType(CommentsHeader),
+        matching: find.text('15'),
+      ),
+      findsOneWidget,
+    );
+  });
 }

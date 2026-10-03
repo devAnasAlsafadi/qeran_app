@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/state/safe_emit.dart';
+import '../../../domain/entities/community_comment.dart';
 import '../../../domain/entities/community_like_state.dart';
+import '../../../domain/entities/community_page.dart';
 import '../../../domain/usecases/get_comment_replies_usecase.dart';
 import '../../../domain/usecases/get_post_comments_usecase.dart';
 import '../../../domain/usecases/set_comment_like_usecase.dart';
@@ -44,20 +46,39 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     _loading = false;
     result.fold(
       (_) => emit(state.copyWith(status: CommunityCommentsStatus.failure)),
-      (page) {
-        final threads = appendNewThreads(const [], page.items);
-        emit(
-          state.copyWith(
-            status: threads.isEmpty
-                ? CommunityCommentsStatus.empty
-                : CommunityCommentsStatus.loaded,
-            threads: threads,
-            page: page.pageNumber,
-            hasMore: page.hasMore,
-            pageFailed: false,
-          ),
-        );
-      },
+      (page) => emit(_firstPage(page)),
+    );
+  }
+
+  /// Pull to refresh, as the feed's: the first page again, with the
+  /// comments on screen until it lands — and still there if it fails.
+  Future<void> refresh() async {
+    final s = state;
+    final settled =
+        s.status == CommunityCommentsStatus.loaded ||
+        s.status == CommunityCommentsStatus.empty;
+    if (!settled) return load();
+    if (s.refreshing) return;
+    emit(s.copyWith(refreshing: true));
+    final result = await _getComments(_postId, page: 1);
+    result.fold(
+      (_) => emit(state.copyWith(refreshing: false)),
+      (page) => emit(_firstPage(page)),
+    );
+  }
+
+  CommunityCommentsState _firstPage(CommunityPage<CommunityComment> page) {
+    final threads = appendNewThreads(const [], page.items);
+    return state.copyWith(
+      status: threads.isEmpty
+          ? CommunityCommentsStatus.empty
+          : CommunityCommentsStatus.loaded,
+      threads: threads,
+      page: page.pageNumber,
+      hasMore: page.hasMore,
+      loadingMore: false,
+      pageFailed: false,
+      refreshing: false,
     );
   }
 
@@ -65,7 +86,7 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
   Future<void> loadMore() async {
     final s = state;
     final ready = s.status == CommunityCommentsStatus.loaded && s.hasMore;
-    if (!ready || s.loadingMore) return;
+    if (!ready || s.loadingMore || s.refreshing) return;
     emit(s.copyWith(loadingMore: true, pageFailed: false));
     final result = await _getComments(_postId, page: s.page + 1);
     result.fold(

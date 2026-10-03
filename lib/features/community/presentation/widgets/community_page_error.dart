@@ -26,8 +26,7 @@ class CommunityPageError extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: padding,
-      // A Row, not a Wrap: given the full width, the button would stretch and
-      // drop to its own line. A long message wraps in its own space.
+      // One line: a long message wraps in its own space, beside the button.
       child: Row(
         mainAxisAlignment: alignment,
         children: [

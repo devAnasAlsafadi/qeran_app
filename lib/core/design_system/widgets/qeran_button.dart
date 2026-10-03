@@ -45,57 +45,83 @@ class QeranButton extends StatelessWidget {
   final QeranButtonSize size;
   final IconData? leadingIcon;
   final IconData? trailingIcon;
+
+  /// Fills the width it's given. Without it the button is as wide as its
+  /// label wherever it sits — a column, a wrap, an Align — and never
+  /// narrower than [minTapWidth].
   final bool fullWidth;
   final bool loading;
 
+  /// The narrowest a button that hugs its label gets: the tap target.
+  static const double minTapWidth = 48;
+
   @override
   Widget build(BuildContext context) {
-    final spec = _spec(variant);
-    final h = _height(size);
-    final hPad = _hPad(size);
+    final spec = _specOf(variant);
     final disabled = onPressed == null || loading;
-
-    final child = loading
-        ? QeranLoader(
-            size: 18,
-            strokeWidth: 2.2,
-            primary: spec.loaderPrimary ?? spec.fg,
-            accent: spec.loaderAccent ?? spec.fg,
-          )
-        : _Content(
-            label: label,
-            color: spec.fg,
-            leadingIcon: leadingIcon,
-            trailingIcon: trailingIcon,
-            size: size,
-          );
-
     return AnimatedOpacity(
       duration: QeranMotion.fast,
       opacity: disabled && !loading ? 0.5 : 1.0,
       child: SizedBox(
-        height: h,
+        height: _height(size),
         width: fullWidth ? double.infinity : null,
-        child: Material(
-          color: spec.bg,
-          shape: RoundedRectangleBorder(
-            borderRadius: QeranRadii.controlR,
-            side: spec.border == null
-                ? BorderSide.none
-                : BorderSide(color: spec.border!, width: 1.5),
-          ),
-          child: InkWell(
-            borderRadius: QeranRadii.controlR,
-            onTap: disabled ? null : onPressed,
-            splashColor: spec.fg.withValues(alpha: 0.08),
-            highlightColor: spec.fg.withValues(alpha: 0.04),
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: Center(child: child),
-            ),
-          ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: minTapWidth),
+          child: _surface(spec, disabled: disabled),
         ),
       ),
+    );
+  }
+
+  Widget _surface(_Spec spec, {required bool disabled}) => Material(
+    color: spec.bg,
+    shape: RoundedRectangleBorder(
+      borderRadius: QeranRadii.controlR,
+      side: spec.border == null
+          ? BorderSide.none
+          : BorderSide(color: spec.border!, width: 1.5),
+    ),
+    child: InkWell(
+      borderRadius: QeranRadii.controlR,
+      onTap: disabled ? null : onPressed,
+      splashColor: spec.fg.withValues(alpha: 0.08),
+      highlightColor: spec.fg.withValues(alpha: 0.04),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: _hPad(size)),
+        // A width factor of 1 sizes the button to its label instead of
+        // filling whatever width it's given.
+        child: Center(
+          widthFactor: fullWidth ? null : 1,
+          child: _child(spec),
+        ),
+      ),
+    ),
+  );
+
+  /// The label — or, loading, the loader. A button that hugs its label
+  /// keeps the label's width while it loads, so nothing around it moves.
+  Widget _child(_Spec spec) {
+    final content = _Content(
+      label: label,
+      color: spec.fg,
+      leadingIcon: leadingIcon,
+      trailingIcon: trailingIcon,
+      size: size,
+    );
+    if (!loading) return content;
+    final loader = QeranLoader(
+      size: 18,
+      strokeWidth: 2.2,
+      primary: spec.loaderPrimary ?? spec.fg,
+      accent: spec.loaderAccent ?? spec.fg,
+    );
+    if (fullWidth) return loader;
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Visibility.maintain(visible: false, child: content),
+        loader,
+      ],
     );
   }
 
@@ -115,61 +141,5 @@ class QeranButton extends StatelessWidget {
         QeranButtonSize.sm => QeranSpacing.s16,
         // Tight horizontal padding so long Arabic labels stay on one line.
         QeranButtonSize.xs || QeranButtonSize.compact => QeranSpacing.s8,
-      };
-
-  static _Spec _spec(QeranButtonVariant v) => switch (v) {
-        QeranButtonVariant.primary => const _Spec(
-            bg: QeranColors.gold,
-            fg: QeranColors.wine,
-            // On gold, wine carries the motion and the deeper gold gives the
-            // second arc without fighting the fill.
-            loaderPrimary: QeranColors.wine,
-            loaderAccent: QeranColors.goldDeep,
-          ),
-        // Solid gold with white label — pairs with [primaryWine] in the
-        // two-button match rows. Uses [goldDeep] (not the light brand
-        // gold) so white text stays legible.
-        QeranButtonVariant.primaryGold => const _Spec(
-            bg: QeranColors.goldDeep,
-            fg: QeranColors.paper,
-            loaderPrimary: QeranColors.paper,
-            loaderAccent: QeranColors.wine,
-          ),
-        // The login CTA. Wine-on-wine would be an invisible arc, so the brand
-        // pair reads as gold + paper here — the dual-arc motion survives,
-        // which is the point of the branded loader.
-        QeranButtonVariant.primaryWine => const _Spec(
-            bg: QeranColors.wine,
-            fg: QeranColors.paper,
-            loaderPrimary: QeranColors.gold,
-            loaderAccent: QeranColors.paper,
-          ),
-        // Light fills — the canonical wine + gold pair.
-        QeranButtonVariant.secondary => const _Spec(
-            bg: Colors.transparent,
-            fg: QeranColors.wine,
-            border: QeranColors.wine,
-            loaderPrimary: QeranColors.wine,
-            loaderAccent: QeranColors.goldDeep,
-          ),
-        QeranButtonVariant.ghost => const _Spec(
-            bg: Colors.transparent,
-            fg: QeranColors.wine,
-            loaderPrimary: QeranColors.wine,
-            loaderAccent: QeranColors.goldDeep,
-          ),
-        // Soft wine-tinted "chip" fill — the matchmaker card's secondary
-        // action buttons (a modern soft neutral, never cold grey).
-        QeranButtonVariant.neutral => const _Spec(
-            bg: QeranColors.softFill,
-            fg: QeranColors.wine,
-            loaderPrimary: QeranColors.wine,
-            loaderAccent: QeranColors.goldDeep,
-          ),
-        QeranButtonVariant.destructive => const _Spec(
-            bg: Colors.transparent,
-            fg: QeranColors.danger,
-            border: QeranColors.danger,
-          ),
       };
 }

@@ -4,10 +4,12 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/presentation/widgets/comments/comments_skeleton.dart';
 import 'package:qeran/features/community/presentation/widgets/feed/community_feed_skeleton.dart';
+import 'package:qeran/features/community/presentation/widgets/post_screen/community_post_unavailable.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 
 import '../../../../core/shipped_strings_rig.dart';
@@ -16,6 +18,14 @@ import '../../fixtures/community_post_fixtures.dart';
 import '../blocs/comments/comments_cubit_harness.dart';
 import '../blocs/post/post_cubit_harness.dart';
 import 'post_screen_rig.dart';
+
+/// The state's button is as wide as its label and side padding — not the
+/// whole column.
+void _expectButtonHugs(WidgetTester tester) {
+  final button = find.byType(QeranButton);
+  final label = find.descendant(of: button, matching: find.byType(Row));
+  expect(tester.getSize(button).width, tester.getSize(label).width + 2 * 24);
+}
 
 void main() {
   late PostHarness post;
@@ -71,6 +81,7 @@ void main() {
     await comments.cubit.load();
     await pumpPostScreen(tester, post, comments);
     expect(find.text('Couldn’t load comments'), findsOneWidget);
+    _expectButtonHugs(tester);
 
     comments.page(1, [testComment()]);
     await tester.tap(find.text('Try again'));
@@ -92,6 +103,20 @@ void main() {
     );
     expect(find.text('Back to Community'), findsOneWidget);
     expect(find.text(istikhara), findsNothing);
+  });
+
+  testWidgets('C7: its button hugs its label', (tester) async {
+    // At half size, so the test font's square glyphs leave the label room.
+    await pumpShippedStrings(
+      tester,
+      const Locale('en'),
+      child: MediaQuery(
+        data: const MediaQueryData(textScaler: TextScaler.linear(0.5)),
+        child: CommunityPostUnavailable(onBack: () {}),
+      ),
+    );
+
+    _expectButtonHugs(tester);
   });
 
   group('opened without a copy of the post', () {

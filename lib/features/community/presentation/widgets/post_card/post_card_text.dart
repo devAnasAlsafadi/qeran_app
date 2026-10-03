@@ -112,18 +112,12 @@ class _SeeMore extends StatelessWidget {
         start: QeranSpacing.s8,
         bottom: QeranSpacing.s4,
       ),
-      // In a Row, so the button hugs its label: given the column's width it
-      // would stretch across the card and centre it.
-      child: Row(
-        children: [
-          QeranButton(
-            label: LocaleKeys.community_see_more.t(context),
-            onPressed: onTap,
-            variant: QeranButtonVariant.ghost,
-            size: QeranButtonSize.compact,
-            fullWidth: false,
-          ),
-        ],
+      child: QeranButton(
+        label: LocaleKeys.community_see_more.t(context),
+        onPressed: onTap,
+        variant: QeranButtonVariant.ghost,
+        size: QeranButtonSize.compact,
+        fullWidth: false,
       ),
     );
   }

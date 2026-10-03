@@ -22,6 +22,63 @@ class _Spec {
   final Color? loaderAccent;
 }
 
+/// Each variant's fill, label colour, border and loader arcs.
+_Spec _specOf(QeranButtonVariant v) => switch (v) {
+      QeranButtonVariant.primary => const _Spec(
+          bg: QeranColors.gold,
+          fg: QeranColors.wine,
+          // On gold, wine carries the motion and the deeper gold gives the
+          // second arc without fighting the fill.
+          loaderPrimary: QeranColors.wine,
+          loaderAccent: QeranColors.goldDeep,
+        ),
+      // Solid gold with white label — pairs with [primaryWine] in the
+      // two-button match rows. Uses [goldDeep] (not the light brand
+      // gold) so white text stays legible.
+      QeranButtonVariant.primaryGold => const _Spec(
+          bg: QeranColors.goldDeep,
+          fg: QeranColors.paper,
+          loaderPrimary: QeranColors.paper,
+          loaderAccent: QeranColors.wine,
+        ),
+      // The login CTA. Wine-on-wine would be an invisible arc, so the brand
+      // pair reads as gold + paper here — the dual-arc motion survives,
+      // which is the point of the branded loader.
+      QeranButtonVariant.primaryWine => const _Spec(
+          bg: QeranColors.wine,
+          fg: QeranColors.paper,
+          loaderPrimary: QeranColors.gold,
+          loaderAccent: QeranColors.paper,
+        ),
+      // Light fills — the canonical wine + gold pair.
+      QeranButtonVariant.secondary => const _Spec(
+          bg: Colors.transparent,
+          fg: QeranColors.wine,
+          border: QeranColors.wine,
+          loaderPrimary: QeranColors.wine,
+          loaderAccent: QeranColors.goldDeep,
+        ),
+      QeranButtonVariant.ghost => const _Spec(
+          bg: Colors.transparent,
+          fg: QeranColors.wine,
+          loaderPrimary: QeranColors.wine,
+          loaderAccent: QeranColors.goldDeep,
+        ),
+      // Soft wine-tinted "chip" fill — the matchmaker card's secondary
+      // action buttons (a modern soft neutral, never cold grey).
+      QeranButtonVariant.neutral => const _Spec(
+          bg: QeranColors.softFill,
+          fg: QeranColors.wine,
+          loaderPrimary: QeranColors.wine,
+          loaderAccent: QeranColors.goldDeep,
+        ),
+      QeranButtonVariant.destructive => const _Spec(
+          bg: Colors.transparent,
+          fg: QeranColors.danger,
+          border: QeranColors.danger,
+        ),
+    };
+
 class _Content extends StatelessWidget {
   const _Content({
     required this.label,

@@ -32,18 +32,14 @@ class MoreCommentsFooter extends StatelessWidget {
     if (!state.hasMore) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s6),
-      // A Row, so the button hugs its label instead of filling the width.
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          QeranButton(
-            label: LocaleKeys.community_more_comments.t(context),
-            onPressed: onMore,
-            variant: QeranButtonVariant.secondary,
-            size: QeranButtonSize.compact,
-            fullWidth: false,
-          ),
-        ],
+      child: Center(
+        child: QeranButton(
+          label: LocaleKeys.community_more_comments.t(context),
+          onPressed: onMore,
+          variant: QeranButtonVariant.secondary,
+          size: QeranButtonSize.compact,
+          fullWidth: false,
+        ),
       ),
     );
   }

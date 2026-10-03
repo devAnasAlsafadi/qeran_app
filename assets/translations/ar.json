@@ -224,6 +224,13 @@
   },
   "community": {
     "placeholder_body": "موجز المجتمع · يُصمَّم في المرحلة الثانية",
+    "matchmaker_badge": "خطّابة",
+    "like": "إعجاب",
+    "discussion": "النقاش",
+    "discussion_start": "ابدأ النقاش",
+    "see_more": "عرض المزيد",
+    "image_failed": "تعذّر تحميل الصورة",
+    "retry": "حاول مرة أخرى",
     "view_replies": {
       "one": "عرض الردّ",
       "two": "عرض الردّين",

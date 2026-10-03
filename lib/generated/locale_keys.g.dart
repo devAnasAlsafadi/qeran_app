@@ -216,6 +216,13 @@ abstract class  LocaleKeys {
   static const shell_chat_entry_a11y_unread = 'shell.chat_entry_a11y_unread';
   static const shell = 'shell';
   static const community_placeholder_body = 'community.placeholder_body';
+  static const community_matchmaker_badge = 'community.matchmaker_badge';
+  static const community_like = 'community.like';
+  static const community_discussion = 'community.discussion';
+  static const community_discussion_start = 'community.discussion_start';
+  static const community_see_more = 'community.see_more';
+  static const community_image_failed = 'community.image_failed';
+  static const community_retry = 'community.retry';
   static const community_view_replies = 'community.view_replies';
   static const community_more_replies = 'community.more_replies';
   static const community = 'community';

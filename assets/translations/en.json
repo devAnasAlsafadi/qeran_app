@@ -224,6 +224,13 @@
   },
   "community": {
     "placeholder_body": "Community feed · designed in Phase 2",
+    "matchmaker_badge": "Matchmaker",
+    "like": "Like",
+    "discussion": "Discussion",
+    "discussion_start": "Discuss",
+    "see_more": "See more",
+    "image_failed": "Couldn’t load the image",
+    "retry": "Try again",
     "view_replies": {
       "one": "View 1 reply",
       "other": "View {n} replies"

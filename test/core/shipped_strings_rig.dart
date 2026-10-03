@@ -24,12 +24,14 @@ Future<void> initShippedStrings() async {
   await EasyLocalization.ensureInitialized();
 }
 
-/// Pumps [locale]'s shipped strings, configured as `main.dart` configures
-/// them (Arabic fallback, plural rules on), and returns a context inside.
+/// Pumps [child] in [locale] with the shipped strings, configured as
+/// `main.dart` configures them (Arabic fallback, plural rules on), and
+/// returns a context inside.
 Future<BuildContext> pumpShippedStrings(
   WidgetTester tester,
-  Locale locale,
-) async {
+  Locale locale, {
+  Widget child = const SizedBox(),
+}) async {
   late BuildContext inside;
   await tester.pumpWidget(
     EasyLocalization(
@@ -48,7 +50,7 @@ Future<BuildContext> pumpShippedStrings(
           home: Builder(
             builder: (c) {
               inside = c;
-              return const SizedBox();
+              return Scaffold(body: child);
             },
           ),
         ),

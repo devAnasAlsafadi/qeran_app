@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_composer.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -90,84 +88,16 @@ class _ChatInputBarState extends State<ChatInputBar> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              child: TextField(
+              child: QeranComposerField(
                 controller: _controller,
                 focusNode: _focus,
-                minLines: 1,
-                maxLines: 5,
                 maxLength: ChatInputBar.maxLength,
-                inputFormatters: [
-                  LengthLimitingTextInputFormatter(ChatInputBar.maxLength),
-                ],
-                textInputAction: TextInputAction.newline,
-                style: QeranTypography.body
-                    .copyWith(color: QeranColors.inkStrong),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: QeranColors.paper,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: QeranSpacing.s16,
-                    vertical: QeranSpacing.s12,
-                  ),
-                  hintText: LocaleKeys.chat_composer_placeholder.t(context),
-                  hintStyle: QeranTypography.body
-                      .copyWith(color: QeranColors.inkMuted),
-                  counterText: '',
-                  enabledBorder: const OutlineInputBorder(
-                    borderRadius: QeranRadii.pill,
-                    borderSide: BorderSide(color: QeranColors.wine08),
-                  ),
-                  border: const OutlineInputBorder(
-                    borderRadius: QeranRadii.pill,
-                    borderSide: BorderSide(color: QeranColors.wine08),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: QeranRadii.pill,
-                    borderSide: BorderSide(color: QeranColors.wine),
-                  ),
-                ),
+                hint: LocaleKeys.chat_composer_placeholder.t(context),
               ),
             ),
             QeranSpacing.hs8,
-            _SendButton(enabled: _canSend, onPressed: _handleSend),
+            QeranSendButton(enabled: _canSend, onPressed: _handleSend),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SendButton extends StatelessWidget {
-  final bool enabled;
-  final VoidCallback onPressed;
-  const _SendButton({required this.enabled, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    // No manual mirror here: `Icons.send_rounded` carries
-    // `matchTextDirection: true`, so Flutter already flips the paper plane to
-    // point at the end edge in RTL. Mirroring it again by hand is the
-    // double-flip the design rules forbid — it left the glyph pointing
-    // backwards in English while looking correct in Arabic.
-    return Material(
-      color: enabled
-          ? QeranColors.gold
-          : QeranColors.gold.withValues(alpha: 0.35),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: enabled ? onPressed : null,
-        customBorder: const CircleBorder(),
-        child: SizedBox(
-          width: 44,
-          height: 44,
-          child: const Center(
-            child: Icon(
-              Icons.send_rounded,
-              size: 20,
-              color: QeranColors.wine,
-            ),
-          ),
         ),
       ),
     );

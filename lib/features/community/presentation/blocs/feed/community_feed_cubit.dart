@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/errors/errors.dart';
 import '../../../../../core/state/safe_emit.dart';
-import '../../../data/error_codes.dart';
 import '../../../domain/entities/community_like_state.dart';
 import '../../../domain/entities/community_page.dart';
 import '../../../domain/entities/community_post.dart';
@@ -12,6 +11,7 @@ import '../../../domain/entities/community_post_change.dart';
 import '../../../domain/usecases/get_community_feed_usecase.dart';
 import '../../../domain/usecases/set_post_like_usecase.dart';
 import '../../../domain/usecases/watch_community_post_changes_usecase.dart';
+import '../likes.dart';
 import 'community_feed_state.dart';
 import 'feed_posts.dart';
 
@@ -144,8 +144,7 @@ class CommunityFeedCubit extends Cubit<CommunityFeedState>
       );
 
   static CommunityFeedEvent _likeFailureEvent(Failure failure) =>
-      failure is CodedServerFailure &&
-          failure.errorCode == CommunityErrorCodes.profileNotApproved
+      isNotApprovedFailure(failure)
       ? CommunityFeedEvent.readOnlyLike
       : CommunityFeedEvent.likeFailed;
 

@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection_container.dart';
-import '../../../../core/enum/snakebar_tybe.dart';
-import '../../../../core/extensions/localization_extension.dart';
-import '../../../../core/utils/app_snackbar.dart';
-import '../../../../generated/locale_keys.g.dart';
 import '../blocs/feed/community_feed_cubit.dart';
 import '../blocs/feed/community_feed_state.dart';
+import '../widgets/community_like_toast.dart';
 import '../widgets/feed/community_feed_list.dart';
 
 /// The Community tab — where the member's app lands. Its cubit lives as long
@@ -39,14 +36,9 @@ class CommunityFeedView extends StatelessWidget {
     );
   }
 
-  static void _onEvent(BuildContext context, CommunityFeedState state) {
-    final (key, type) = switch (state.event) {
-      CommunityFeedEvent.readOnlyLike => (
-        LocaleKeys.community_read_only_like,
-        SnackBarType.notice,
-      ),
-      _ => (LocaleKeys.community_like_failed, SnackBarType.error),
-    };
-    AppSnackBar.show(context, message: key.t(context), type: type);
-  }
+  static void _onEvent(BuildContext context, CommunityFeedState state) =>
+      showCommunityLikeToast(
+        context,
+        readOnly: state.event == CommunityFeedEvent.readOnlyLike,
+      );
 }

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/design_system/widgets/qeran_notice.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/profile_status.dart';
 import '../blocs/profile_gate/profile_gate_cubit.dart';
 import '../blocs/profile_gate/profile_gate_state.dart';
+import 'profile_gate_icon.dart';
 
 /// Inline "your profile is under review" notice shown on the gated screens
 /// (Discovery / Likes / Subscriptions) while the signed-in user's profile is
@@ -47,43 +46,17 @@ class _Banner extends StatelessWidget {
       ProfileStatus.rejected => LocaleKeys.profile_status_rejected,
       _ => LocaleKeys.profile_status_pending_review,
     };
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
         QeranSpacing.s16,
         QeranSpacing.s8,
         QeranSpacing.s16,
         QeranSpacing.s8,
       ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: QeranSpacing.s16,
-        vertical: QeranSpacing.s16,
-      ),
-      decoration: BoxDecoration(
-        color: QeranColors.gold12,
-        borderRadius: QeranRadii.controlR,
-        border: Border.all(color: QeranColors.gold40),
-      ),
-      // Center the icon against the (possibly wrapping) text; the text wraps
-      // freely inside the Expanded so it always stays within the card in both
-      // AR and EN, at any text scale.
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.hourglass_top_rounded,
-            size: 18,
-            color: QeranColors.goldDeep,
-          ),
-          QeranSpacing.hs8,
-          Expanded(
-            child: Text(
-              messageKey.t(context),
-              style: QeranTypography.bodySm.copyWith(color: QeranColors.inkBody),
-              softWrap: true,
-            ),
-          ),
-        ],
+      // The same notice, and the same icon per status, as Community's.
+      child: QeranNotice(
+        icon: profileGateIcon(status),
+        text: messageKey.t(context),
       ),
     );
   }

@@ -8,36 +8,10 @@ import 'package:qeran/features/community/presentation/blocs/feed/community_feed_
 import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
-import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_state.dart';
 
 import '../../../../core/shipped_strings_rig.dart';
+import '../../../profile/presentation/fake_profile_gate.dart';
 import '../blocs/feed/feed_cubit_harness.dart';
-
-/// The profile gate frozen at [status] (null: not known yet).
-class FakeGate extends Fake implements ProfileGateCubit {
-  FakeGate([this._status]);
-
-  final ProfileStatus? _status;
-
-  @override
-  ProfileGateState get state => _status == null
-      ? const ProfileGateInitial()
-      : ProfileGateResolved(_status);
-
-  @override
-  Stream<ProfileGateState> get stream => const Stream.empty();
-
-  @override
-  ProfileStatus? get status => _status;
-
-  @override
-  bool get isGated => switch (_status) {
-    ProfileStatus.pendingReview ||
-    ProfileStatus.hidden ||
-    ProfileStatus.rejected => true,
-    _ => false,
-  };
-}
 
 /// Always online: the error state reads the connection.
 class _Online implements ConnectivityService {

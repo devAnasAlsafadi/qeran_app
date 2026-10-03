@@ -8,6 +8,7 @@ import '../../../../../generated/locale_keys.g.dart';
 import '../../../../profile/domain/entities/profile_status.dart';
 import '../../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import '../../../../profile/presentation/blocs/profile_gate/profile_gate_state.dart';
+import '../../../../profile/presentation/widgets/profile_gate_icon.dart';
 
 /// Above the feed, while the member can read but not take part (B11, D9):
 /// why, in the words of their profile's status. Shown exactly when
@@ -22,16 +23,10 @@ class CommunityGateNotice extends StatelessWidget {
       builder: (context, _) {
         final gate = context.read<ProfileGateCubit>();
         if (!gate.isGated) return const SizedBox.shrink();
-        final (icon, key) = switch (gate.status) {
-          ProfileStatus.hidden => (
-            Icons.visibility_off_rounded,
-            LocaleKeys.community_gate_hidden,
-          ),
-          ProfileStatus.rejected => (
-            Icons.error_outline_rounded,
-            LocaleKeys.community_gate_rejected,
-          ),
-          _ => (Icons.hourglass_top_rounded, LocaleKeys.community_gate_pending),
+        final key = switch (gate.status) {
+          ProfileStatus.hidden => LocaleKeys.community_gate_hidden,
+          ProfileStatus.rejected => LocaleKeys.community_gate_rejected,
+          _ => LocaleKeys.community_gate_pending,
         };
         return Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -40,7 +35,10 @@ class CommunityGateNotice extends StatelessWidget {
             QeranSpacing.s16,
             QeranSpacing.s16,
           ),
-          child: QeranNotice(icon: icon, text: key.t(context)),
+          child: QeranNotice(
+            icon: profileGateIcon(gate.status),
+            text: key.t(context),
+          ),
         );
       },
     );

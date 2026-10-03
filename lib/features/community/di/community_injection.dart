@@ -23,6 +23,7 @@ import '../domain/usecases/set_post_like_usecase.dart';
 import '../domain/usecases/watch_community_post_changes_usecase.dart';
 import '../domain/entities/community_post.dart';
 import '../presentation/blocs/comments/community_comments_cubit.dart';
+import '../presentation/blocs/composer/community_composer_cubit.dart';
 import '../presentation/blocs/feed/community_feed_cubit.dart';
 import '../presentation/blocs/post/community_post_cubit.dart';
 
@@ -76,12 +77,20 @@ void initCommunityDependencies() {
       watchChanges: sl(),
     ),
   );
+  // The composer sends through the comments cubit of its screen.
+  sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
+    (send, retry) =>
+        CommunityComposerCubit(getConfig: sl(), send: send, retry: retry),
+  );
   sl.registerFactoryParam<CommunityCommentsCubit, int, void>(
     (postId, _) => CommunityCommentsCubit(
       postId: postId,
       getComments: sl(),
       getReplies: sl(),
       setCommentLike: sl(),
+      createComment: sl(),
+      createReply: sl(),
+      getPost: sl(),
     ),
   );
 }

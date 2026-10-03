@@ -47,6 +47,10 @@ class CommunityCommentsState extends Equatable {
   /// A pull to refresh is on its way; the comments stay until it lands.
   final bool refreshing;
 
+  /// What the member sent that isn't settled, by id: on its way, or failed.
+  /// Anything not here is posted.
+  final Map<int, CommentDelivery> delivery;
+
   final CommunityCommentsEvent event;
   final int eventVersion;
 
@@ -58,6 +62,7 @@ class CommunityCommentsState extends Equatable {
     this.loadingMore = false,
     this.pageFailed = false,
     this.refreshing = false,
+    this.delivery = const {},
     this.event = CommunityCommentsEvent.none,
     this.eventVersion = 0,
   });
@@ -70,6 +75,7 @@ class CommunityCommentsState extends Equatable {
     bool? loadingMore,
     bool? pageFailed,
     bool? refreshing,
+    Map<int, CommentDelivery>? delivery,
   }) => CommunityCommentsState(
     status: status ?? this.status,
     threads: threads ?? this.threads,
@@ -78,6 +84,7 @@ class CommunityCommentsState extends Equatable {
     loadingMore: loadingMore ?? this.loadingMore,
     pageFailed: pageFailed ?? this.pageFailed,
     refreshing: refreshing ?? this.refreshing,
+    delivery: delivery ?? this.delivery,
     event: event,
     eventVersion: eventVersion,
   );
@@ -92,6 +99,7 @@ class CommunityCommentsState extends Equatable {
         loadingMore: loadingMore,
         pageFailed: pageFailed,
         refreshing: refreshing,
+        delivery: delivery,
         event: next,
         eventVersion: eventVersion + 1,
       );
@@ -105,6 +113,7 @@ class CommunityCommentsState extends Equatable {
     loadingMore,
     pageFailed,
     refreshing,
+    delivery,
     event,
     eventVersion,
   ];

@@ -7,10 +7,13 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/extensions/localization_extension.dart';
 import '../../../../core/widgets/connectivity_banner_host.dart';
 import '../../../../generated/locale_keys.g.dart';
+import '../../domain/entities/comment_submit_outcome.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_viewer.dart';
 import '../blocs/comments/community_comments_cubit.dart';
+import '../blocs/composer/community_composer_cubit.dart';
 import '../blocs/post/community_post_cubit.dart';
+import 'community_me.dart';
 import 'community_post_screen.dart';
 
 /// Opens [postId]'s screen — from a feed card's discussion, with the card's
@@ -43,6 +46,15 @@ class CommunityPostPage extends StatelessWidget {
   final CommunityPost? post;
   final CommunityViewer viewer;
 
+  /// The composer sends through the comments, as this viewer.
+  CommunityComposerCubit _composer(BuildContext context) {
+    final comments = context.read<CommunityCommentsCubit>();
+    Future<CommentSubmitOutcome?> send(String text, {int? parentId}) => comments
+        .send(text, parentId: parentId, me: communityMe(context, viewer));
+    return sl<CommunityComposerCubit>(param1: send, param2: comments.retry)
+      ..loadConfig();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -54,6 +66,7 @@ class CommunityPostPage extends StatelessWidget {
         BlocProvider<CommunityCommentsCubit>(
           create: (_) => sl<CommunityCommentsCubit>(param1: postId)..load(),
         ),
+        BlocProvider<CommunityComposerCubit>(create: _composer),
       ],
       child: Scaffold(
         backgroundColor: QeranColors.creamCanvas,

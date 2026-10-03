@@ -57,11 +57,8 @@ class CommunityPostBody extends StatelessWidget {
     ),
     SliverToBoxAdapter(child: CommentsHeader(count: post.commentCount)),
     CommunityCommentsSliver(readOnly: readOnly),
-    SliverToBoxAdapter(
-      child: SizedBox(
-        height: MediaQuery.paddingOf(context).bottom + QeranSpacing.s24,
-      ),
-    ),
+    // The composer below takes the safe area.
+    const SliverToBoxAdapter(child: QeranSpacing.vs24),
   ];
 
   Widget _card(BuildContext context) => CommunityPostCard(

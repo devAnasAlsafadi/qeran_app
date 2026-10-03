@@ -6,10 +6,12 @@ import 'package:qeran/features/community/data/datasources/community_remote_datas
 import 'package:qeran/features/community/data/datasources/community_remote_datasource_impl.dart';
 import 'package:qeran/features/community/data/datasources/mock/community_mock_mode.dart';
 import 'package:qeran/features/community/di/community_injection.dart';
+import 'package:qeran/features/community/domain/entities/comment_submit_outcome.dart';
 import 'package:qeran/features/community/domain/repositories/community_repository.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_feed_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_state.dart';
+import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post/community_post_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post/community_post_state.dart';
 
@@ -58,10 +60,19 @@ void main() {
       final post = sl<CommunityPostCubit>(param1: 7, param2: null);
       final comments = sl<CommunityCommentsCubit>(param1: 7);
 
+      Future<CommentSubmitOutcome?> send(String text, {int? parentId}) async =>
+          null;
+      final composer = sl<CommunityComposerCubit>(
+        param1: send,
+        param2: comments.retry,
+      );
+
       expect(post.state, const CommunityPostLoading());
       expect(comments.state.status, CommunityCommentsStatus.loading);
+      expect(composer.state.replyTo, isNull);
       await post.close();
       await comments.close();
+      await composer.close();
     });
   });
 }

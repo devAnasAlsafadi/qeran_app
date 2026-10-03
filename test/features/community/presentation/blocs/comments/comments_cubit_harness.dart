@@ -1,22 +1,34 @@
 import 'package:dartz/dartz.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/community/domain/entities/comment_submit_outcome.dart';
 import 'package:qeran/features/community/domain/entities/community_comment.dart';
 import 'package:qeran/features/community/domain/entities/community_like_state.dart';
 import 'package:qeran/features/community/domain/entities/community_page.dart';
+import 'package:qeran/features/community/domain/usecases/create_community_comment_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/create_community_reply_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_comment_replies_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/get_community_post_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_post_comments_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/set_comment_like_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/comment_thread.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
 
 import '../../../fixtures/community_comment_fixtures.dart';
+import '../../../fixtures/community_post_fixtures.dart';
 
 class _MockGetComments extends Mock implements GetPostCommentsUseCase {}
 
 class _MockGetReplies extends Mock implements GetCommentRepliesUseCase {}
 
 class _MockSetLike extends Mock implements SetCommentLikeUseCase {}
+
+class _MockCreateComment extends Mock
+    implements CreateCommunityCommentUseCase {}
+
+class _MockCreateReply extends Mock implements CreateCommunityReplyUseCase {}
+
+class _MockGetPost extends Mock implements GetCommunityPostUseCase {}
 
 typedef CommentsAnswer = Either<Failure, CommunityPage<CommunityComment>>;
 
@@ -28,12 +40,19 @@ class CommentsHarness {
       getComments: getComments,
       getReplies: getReplies,
       setCommentLike: setLike,
+      createComment: createComment,
+      createReply: createReply,
+      getPost: getPost,
     );
+    when(() => getPost(1)).thenAnswer((_) async => Right(testPost()));
   }
 
   final getComments = _MockGetComments();
   final getReplies = _MockGetReplies();
   final setLike = _MockSetLike();
+  final createComment = _MockCreateComment();
+  final createReply = _MockCreateReply();
+  final getPost = _MockGetPost();
   late final CommunityCommentsCubit cubit;
 
   /// Page [page] of the comments answers with [items], of [totalPages].
@@ -74,6 +93,17 @@ class CommentsHarness {
       when(
         () => setLike(commentId, liked: any(named: 'liked')),
       ).thenAnswer((_) async => answer);
+
+  /// A comment on post 1 answers with [answer].
+  void commentAnswers(Either<Failure, CommentSubmitOutcome> answer) =>
+      when(() => createComment(1, any())).thenAnswer((_) async => answer);
+
+  /// A reply under [commentId] answers with [answer].
+  void replyAnswers(
+    int commentId,
+    Either<Failure, CommentSubmitOutcome> answer,
+  ) =>
+      when(() => createReply(commentId, any())).thenAnswer((_) async => answer);
 
   CommentThread thread(int commentId) =>
       cubit.state.threads.firstWhere((t) => t.id == commentId);

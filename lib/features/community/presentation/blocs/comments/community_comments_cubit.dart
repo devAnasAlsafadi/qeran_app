@@ -2,47 +2,57 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/state/safe_emit.dart';
 import '../../../domain/entities/community_comment.dart';
-import '../../../domain/entities/community_like_state.dart';
 import '../../../domain/entities/community_page.dart';
+import '../../../domain/usecases/create_community_comment_usecase.dart';
+import '../../../domain/usecases/create_community_reply_usecase.dart';
 import '../../../domain/usecases/get_comment_replies_usecase.dart';
+import '../../../domain/usecases/get_community_post_usecase.dart';
 import '../../../domain/usecases/get_post_comments_usecase.dart';
 import '../../../domain/usecases/set_comment_like_usecase.dart';
-import '../likes.dart';
+import 'comment_likes.dart';
+import 'comment_sending.dart';
 import 'comment_thread.dart';
 import 'comment_threads.dart';
 import 'community_comments_state.dart';
 
-/// A post's discussion (C1–C6): comments newest first, a page at a time
-/// on «عرض تعليقات أخرى», each comment's replies oldest first on «عرض
-/// الردود», and the optimistic like on a comment or a reply.
+/// A post's discussion (C1–C6, D5–D10): comments newest first, a page at a
+/// time on «عرض تعليقات أخرى», each comment's replies oldest first on «عرض
+/// الردود», the optimistic like ([CommentLikes]) and what the member sends
+/// ([CommentSending]).
 class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
-    with SafeEmit<CommunityCommentsState> {
+    with SafeEmit<CommunityCommentsState>, CommentLikes, CommentSending {
   CommunityCommentsCubit({
-    required int postId,
+    required this.postId,
     required GetPostCommentsUseCase getComments,
     required GetCommentRepliesUseCase getReplies,
-    required SetCommentLikeUseCase setCommentLike,
-  }) : _postId = postId,
-       _getComments = getComments,
+    required this.setCommentLike,
+    required this.createComment,
+    required this.createReply,
+    required this.getPost,
+  }) : _getComments = getComments,
        _getReplies = getReplies,
-       _setCommentLike = setCommentLike,
        super(const CommunityCommentsState());
 
-  final int _postId;
+  @override
+  final int postId;
+  @override
+  final SetCommentLikeUseCase setCommentLike;
+  @override
+  final CreateCommunityCommentUseCase createComment;
+  @override
+  final CreateCommunityReplyUseCase createReply;
+  @override
+  final GetCommunityPostUseCase getPost;
   final GetPostCommentsUseCase _getComments;
   final GetCommentRepliesUseCase _getReplies;
-  final SetCommentLikeUseCase _setCommentLike;
   bool _loading = false;
-
-  /// Comments and replies whose like is on its way: a second tap waits.
-  final Set<int> _liking = {};
 
   /// The first page — on opening, and from the error's retry (C6).
   Future<void> load() async {
     if (_loading) return;
     _loading = true;
     emit(state.copyWith(status: CommunityCommentsStatus.loading));
-    final result = await _getComments(_postId, page: 1);
+    final result = await _getComments(postId, page: 1);
     _loading = false;
     result.fold(
       (_) => emit(state.copyWith(status: CommunityCommentsStatus.failure)),
@@ -60,15 +70,20 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     if (!settled) return load();
     if (s.refreshing) return;
     emit(s.copyWith(refreshing: true));
-    final result = await _getComments(_postId, page: 1);
+    final result = await _getComments(postId, page: 1);
     result.fold(
       (_) => emit(state.copyWith(refreshing: false)),
       (page) => emit(_firstPage(page)),
     );
   }
 
+  /// The first page, keeping what the member sent that isn't settled.
   CommunityCommentsState _firstPage(CommunityPage<CommunityComment> page) {
-    final threads = appendNewThreads(const [], page.items);
+    final threads = keepUnsettled(
+      appendNewThreads(const [], page.items),
+      state.threads,
+      state.delivery.containsKey,
+    );
     return state.copyWith(
       status: threads.isEmpty
           ? CommunityCommentsStatus.empty
@@ -88,7 +103,7 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     final ready = s.status == CommunityCommentsStatus.loaded && s.hasMore;
     if (!ready || s.loadingMore || s.refreshing) return;
     emit(s.copyWith(loadingMore: true, pageFailed: false));
-    final result = await _getComments(_postId, page: s.page + 1);
+    final result = await _getComments(postId, page: s.page + 1);
     result.fold(
       (_) => emit(state.copyWith(loadingMore: false, pageFailed: true)),
       (page) => emit(
@@ -123,30 +138,6 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     );
   }
 
-  /// Like or unlike a comment or a reply at once, then settle on the
-  /// server's answer; on failure, take it back and say so. A [readOnly]
-  /// member is told why instead — and so is one the server turns away.
-  Future<void> toggleLike(int commentId, {bool readOnly = false}) async {
-    if (readOnly) {
-      return emit(state.withEvent(CommunityCommentsEvent.readOnlyLike));
-    }
-    final before = findComment(state.threads, commentId)?.like;
-    if (before == null || !_liking.add(commentId)) return;
-    _setLike(commentId, before.flipped);
-    final result = await _setCommentLike(commentId, liked: !before.likedByMe);
-    _liking.remove(commentId);
-    result.fold((failure) {
-      _setLike(commentId, before);
-      emit(
-        state.withEvent(
-          isNotApprovedFailure(failure)
-              ? CommunityCommentsEvent.readOnlyLike
-              : CommunityCommentsEvent.likeFailed,
-        ),
-      );
-    }, (like) => _setLike(commentId, like));
-  }
-
   CommentThread? _thread(int commentId) =>
       state.threads.where((t) => t.id == commentId).firstOrNull;
 
@@ -155,9 +146,5 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     CommentThread Function(CommentThread thread) update,
   ) => emit(
     state.copyWith(threads: updateThread(state.threads, commentId, update)),
-  );
-
-  void _setLike(int commentId, CommunityLikeState like) => emit(
-    state.copyWith(threads: withCommentLike(state.threads, commentId, like)),
   );
 }

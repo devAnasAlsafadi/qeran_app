@@ -253,6 +253,16 @@
     "post_unavailable_title": "This post is no longer available",
     "post_unavailable_body": "The post or comment you opened may have been removed.",
     "back_to_community": "Back to Community",
+    "reply": "Reply",
+    "composer_comment": "Write a comment…",
+    "composer_reply": "Write a reply…",
+    "replying_to": "Replying to",
+    "posting": "Posting…",
+    "not_posted": "Not posted · Tap to retry",
+    "filter_rejected": "This comment can’t be posted because it goes against the community guidelines. Edit it and try again.",
+    "rate_limited": "You’ve posted a lot in a short time. Wait a moment and try again.",
+    "read_only_comment": "You can comment and reply once your profile is approved.",
+    "content_gone": "This content is no longer available.",
     "view_replies": {
       "one": "View 1 reply",
       "other": "View {n} replies"

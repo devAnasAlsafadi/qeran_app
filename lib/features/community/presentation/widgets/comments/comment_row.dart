@@ -8,18 +8,25 @@ import '../../../../../core/utils/relative_time.dart';
 import '../../../domain/entities/community_comment.dart';
 import '../community_author_avatar.dart';
 import '../community_author_name.dart';
-import 'comment_like_button.dart';
+import '../../blocs/comments/comment_thread.dart';
+import 'comment_actions.dart';
+import 'comment_delivery_line.dart';
 
 /// A comment or a reply (C1, C2, I2): who wrote it — a matchmaker with her
 /// photo or ring and the «خطّابة» chip — how long ago (row form, Q6), the
-/// text in its own direction and script (D13), and its Like. A reply sits
-/// under its comment's text, its picture smaller.
+/// text in its own direction and script (D13), and its Like and Reply. A
+/// reply sits under its comment's text, its picture smaller. One the member
+/// sent that isn't settled ([delivery]) is dimmed, with how it stands in
+/// place of the actions (D5, D7).
 class CommentRow extends StatelessWidget {
   const CommentRow({
     super.key,
     required this.comment,
     this.readOnly = false,
+    this.delivery,
     this.onLike,
+    this.onReply,
+    this.onRetry,
     this.menu,
   });
 
@@ -27,7 +34,16 @@ class CommentRow extends StatelessWidget {
 
   /// A member who can read but not take part yet (D9): Like is dimmed.
   final bool readOnly;
+
+  /// On its way, or failed; null once posted.
+  final CommentDelivery? delivery;
   final VoidCallback? onLike;
+
+  /// Answer this comment; null where it can't be answered.
+  final VoidCallback? onReply;
+
+  /// Send a failed one again.
+  final VoidCallback? onRetry;
 
   /// The ⋮ button, built from the server's flags.
   final Widget? menu;
@@ -57,9 +73,7 @@ class CommentRow extends StatelessWidget {
             size: reply ? replyAvatarSize : avatarSize,
           ),
           QeranSpacing.hs12,
-          Expanded(
-            child: _Body(comment, readOnly: readOnly, onLike: onLike),
-          ),
+          Expanded(child: _Body(this)),
           ?menu,
         ],
       ),
@@ -67,16 +81,15 @@ class CommentRow extends StatelessWidget {
   }
 }
 
-/// Name, chip and time; the text; the Like.
+/// Name, chip and time; the text; the actions — or how it stands.
 class _Body extends StatelessWidget {
-  const _Body(this.comment, {required this.readOnly, this.onLike});
+  const _Body(this.row);
 
-  final CommunityComment comment;
-  final bool readOnly;
-  final VoidCallback? onLike;
+  final CommentRow row;
 
   @override
   Widget build(BuildContext context) {
+    final comment = row.comment;
     final time = QeranRelativeTime.ago(
       comment.createdAt,
       context,
@@ -94,12 +107,29 @@ class _Body extends StatelessWidget {
               : Text('· $time', style: QeranTypography.caption),
         ),
         const SizedBox(height: QeranSpacing.s2),
-        QeranOwnText(
-          comment.text,
-          style: QeranTypography.body.copyWith(color: QeranColors.inkStrong),
+        Opacity(
+          opacity: row.delivery == null ? 1 : 0.6,
+          child: QeranOwnText(
+            comment.text,
+            style: QeranTypography.body.copyWith(color: QeranColors.inkStrong),
+          ),
         ),
-        CommentLikeButton(comment: comment, dimmed: readOnly, onTap: onLike),
+        _under(),
       ],
     );
   }
+
+  /// The actions once posted; until then, how it stands.
+  Widget _under() => switch (row.delivery) {
+    final delivery? => CommentDeliveryLine(
+      delivery: delivery,
+      onRetry: row.onRetry ?? () {},
+    ),
+    null => CommentActions(
+      comment: row.comment,
+      dimmed: row.readOnly,
+      onLike: row.onLike,
+      onReply: row.onReply,
+    ),
+  };
 }

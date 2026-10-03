@@ -38,7 +38,9 @@ CommentThread withRepliesPage(
   CommentThread thread,
   CommunityPage<CommunityComment> page,
 ) {
-  final seen = {for (final reply in thread.replies) reply.id};
+  final seen = {
+    for (final reply in [...thread.replies, ...thread.mine]) reply.id,
+  };
   return thread.copyWith(
     replies: [
       ...thread.replies,
@@ -56,7 +58,7 @@ CommentThread withRepliesPage(
 CommunityComment? findComment(List<CommentThread> threads, int commentId) {
   for (final thread in threads) {
     if (thread.id == commentId) return thread.comment;
-    for (final reply in thread.replies) {
+    for (final reply in [...thread.replies, ...thread.mine]) {
       if (reply.id == commentId) return reply;
     }
   }
@@ -79,5 +81,87 @@ List<CommentThread> withCommentLike(
         for (final reply in thread.replies)
           reply.id == commentId ? reply.withLike(like) : reply,
       ],
+      mine: [
+        for (final reply in thread.mine)
+          reply.id == commentId ? reply.withLike(like) : reply,
+      ],
     ),
 ];
+
+/// [threads] with the member's new [comment] at the top (D5).
+List<CommentThread> withMyComment(
+  List<CommentThread> threads,
+  CommunityComment comment,
+) => [CommentThread(comment), ...threads];
+
+/// [threads] with the member's new [reply] under its comment, after the
+/// replies shown (D10).
+List<CommentThread> withMyReply(
+  List<CommentThread> threads,
+  CommunityComment reply,
+) => updateThread(
+  threads,
+  reply.parentCommentId!,
+  (t) => t.copyWith(mine: [...t.mine, reply]),
+);
+
+/// [threads] with [posted] — the server's copy — in place of the member's
+/// [localId]. A posted reply adds one to its comment's count.
+List<CommentThread> withPosted(
+  List<CommentThread> threads,
+  int localId,
+  CommunityComment posted,
+) => [
+  for (final thread in threads)
+    if (thread.id == localId)
+      CommentThread(posted)
+    else if (thread.mine.any((reply) => reply.id == localId))
+      thread.copyWith(
+        comment: thread.comment.withReplyCount(thread.comment.replyCount + 1),
+        repliesTotal: thread.repliesTotal == null
+            ? null
+            : thread.repliesTotal! + 1,
+        mine: [
+          for (final reply in thread.mine) reply.id == localId ? posted : reply,
+        ],
+      )
+    else
+      thread,
+];
+
+/// [threads] without the comment [commentId] (and its replies) or the
+/// member's reply [commentId].
+List<CommentThread> withoutComment(
+  List<CommentThread> threads,
+  int commentId,
+) => [
+  for (final thread in threads)
+    if (thread.id != commentId)
+      thread.copyWith(
+        mine: [
+          for (final reply in thread.mine)
+            if (reply.id != commentId) reply,
+        ],
+      ),
+];
+
+/// [fresh] — a first page read again — keeping what the member sent that
+/// isn't settled ([local]): comments on top, replies under their comment.
+List<CommentThread> keepUnsettled(
+  List<CommentThread> fresh,
+  List<CommentThread> old,
+  bool Function(int id) local,
+) {
+  final mine = {
+    for (final thread in old)
+      thread.id: [
+        for (final reply in thread.mine)
+          if (local(reply.id)) reply,
+      ],
+  };
+  return [
+    for (final thread in old)
+      if (local(thread.id)) thread,
+    for (final thread in fresh) thread.copyWith(mine: [...?mine[thread.id]]),
+  ];
+}

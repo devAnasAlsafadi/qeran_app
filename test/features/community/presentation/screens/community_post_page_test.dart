@@ -9,6 +9,7 @@ import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/connectivity_banner_host.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post/community_post_cubit.dart';
 import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
@@ -23,6 +24,7 @@ import '../../fixtures/community_post_fixtures.dart';
 import '../blocs/comments/comments_cubit_harness.dart';
 import '../blocs/feed/feed_cubit_harness.dart';
 import '../blocs/post/post_cubit_harness.dart';
+import 'post_screen_rig.dart';
 
 /// The post page's cubits, built by the container as the app builds them,
 /// over [post]'s and [comments]' scripted use cases.
@@ -42,7 +44,13 @@ void _register(PostHarness post, CommentsHarness comments) {
       getComments: comments.getComments,
       getReplies: comments.getReplies,
       setCommentLike: comments.setLike,
+      createComment: comments.createComment,
+      createReply: comments.createReply,
+      getPost: comments.getPost,
     ),
+  );
+  sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
+    (send, retry) => composerOver(comments),
   );
 }
 

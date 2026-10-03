@@ -50,18 +50,25 @@ extension CommunityCommentLike on CommunityComment {
       CommunityLikeState(likeCount: likeCount, likedByMe: likedByMe);
 
   /// This comment or reply with [like] in place of its own.
-  CommunityComment withLike(CommunityLikeState like) => CommunityComment(
-    id: id,
-    postId: postId,
-    parentCommentId: parentCommentId,
-    author: author,
-    text: text,
-    likeCount: like.likeCount,
-    likedByMe: like.likedByMe,
-    replyCount: replyCount,
-    createdAt: createdAt,
-    isMine: isMine,
-    canDelete: canDelete,
-    canBlock: canBlock,
-  );
+  CommunityComment withLike(CommunityLikeState like) =>
+      _copy(likeCount: like.likeCount, likedByMe: like.likedByMe);
+
+  /// This comment with [count] replies.
+  CommunityComment withReplyCount(int count) => _copy(replyCount: count);
+
+  CommunityComment _copy({int? likeCount, bool? likedByMe, int? replyCount}) =>
+      CommunityComment(
+        id: id,
+        postId: postId,
+        parentCommentId: parentCommentId,
+        author: author,
+        text: text,
+        likeCount: likeCount ?? this.likeCount,
+        likedByMe: likedByMe ?? this.likedByMe,
+        replyCount: replyCount ?? this.replyCount,
+        createdAt: createdAt,
+        isMine: isMine,
+        canDelete: canDelete,
+        canBlock: canBlock,
+      );
 }

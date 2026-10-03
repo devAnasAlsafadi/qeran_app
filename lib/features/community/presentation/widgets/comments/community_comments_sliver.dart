@@ -9,6 +9,7 @@ import '../../../domain/entities/community_comment.dart';
 import '../../blocs/comments/comment_thread.dart';
 import '../../blocs/comments/community_comments_cubit.dart';
 import '../../blocs/comments/community_comments_state.dart';
+import '../../blocs/composer/community_composer_cubit.dart';
 import 'comment_row.dart';
 import 'comments_skeleton.dart';
 import 'more_comments_footer.dart';
@@ -45,7 +46,8 @@ class CommunityCommentsSliver extends StatelessWidget {
           ),
           CommunityCommentsStatus.loaded => SliverList.list(
             children: [
-              for (final thread in state.threads) ..._thread(thread, cubit),
+              for (final thread in state.threads)
+                ..._thread(state, thread, cubit),
               MoreCommentsFooter(state: state, onMore: cubit.loadMore),
             ],
           ),
@@ -65,10 +67,16 @@ class CommunityCommentsSliver extends StatelessWidget {
             .t(context),
   );
 
-  /// A comment, the replies shown under it, and their link.
-  List<Widget> _thread(CommentThread thread, CommunityCommentsCubit cubit) => [
-    _row(thread.comment, cubit),
-    for (final reply in thread.replies) _row(reply, cubit),
+  /// A comment, the replies shown under it — the member's own last — and
+  /// their link.
+  List<Widget> _thread(
+    CommunityCommentsState state,
+    CommentThread thread,
+    CommunityCommentsCubit cubit,
+  ) => [
+    _item(state, thread.comment),
+    for (final reply in [...thread.replies, ...thread.mine])
+      _item(state, reply, parent: thread.comment),
     RepliesLink(
       key: ValueKey('replies-${thread.id}'),
       thread: thread,
@@ -76,11 +84,51 @@ class CommunityCommentsSliver extends StatelessWidget {
     ),
   ];
 
-  Widget _row(CommunityComment comment, CommunityCommentsCubit cubit) =>
-      CommentRow(
-        key: ValueKey('comment-${comment.id}'),
-        comment: comment,
+  Widget _item(
+    CommunityCommentsState state,
+    CommunityComment comment, {
+    CommunityComment? parent,
+  }) => _CommentItem(
+    key: ValueKey('comment-${comment.id}'),
+    comment: comment,
+    parent: parent,
+    delivery: state.delivery[comment.id],
+    readOnly: readOnly,
+  );
+}
+
+/// A row, wired: its like to the comments, its Reply and retry to the
+/// composer.
+class _CommentItem extends StatelessWidget {
+  const _CommentItem({
+    super.key,
+    required this.comment,
+    required this.readOnly,
+    this.parent,
+    this.delivery,
+  });
+
+  final CommunityComment comment;
+  final bool readOnly;
+
+  /// The comment a reply answers.
+  final CommunityComment? parent;
+  final CommentDelivery? delivery;
+
+  @override
+  Widget build(BuildContext context) {
+    final composer = context.read<CommunityComposerCubit>();
+    final answerable = !readOnly && !comment.isReply && delivery == null;
+    return CommentRow(
+      comment: comment,
+      readOnly: readOnly,
+      delivery: delivery,
+      onLike: () => context.read<CommunityCommentsCubit>().toggleLike(
+        comment.id,
         readOnly: readOnly,
-        onLike: () => cubit.toggleLike(comment.id, readOnly: readOnly),
-      );
+      ),
+      onReply: answerable ? () => composer.replyTo(comment) : null,
+      onRetry: () => composer.retry(comment.id, comment.text, parent: parent),
+    );
+  }
 }

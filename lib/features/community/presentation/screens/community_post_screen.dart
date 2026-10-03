@@ -13,6 +13,7 @@ import '../blocs/post/community_post_cubit.dart';
 import '../blocs/post/community_post_state.dart';
 import '../widgets/comments/comments_skeleton.dart';
 import '../widgets/community_like_toast.dart';
+import '../widgets/composer/community_composer.dart';
 import '../widgets/feed/community_feed_skeleton.dart';
 import '../widgets/post_screen/community_post_body.dart';
 import '../widgets/post_screen/community_post_unavailable.dart';
@@ -40,9 +41,13 @@ class CommunityPostScreen extends StatelessWidget {
   Widget _body(BuildContext context, CommunityPostState state, bool readOnly) =>
       switch (state) {
         CommunityPostLoading() => const _Loading(),
-        CommunityPostReady(:final post) => CommunityPostBody(
-          post: post,
-          readOnly: readOnly,
+        CommunityPostReady(:final post) => Column(
+          children: [
+            Expanded(
+              child: CommunityPostBody(post: post, readOnly: readOnly),
+            ),
+            CommunityComposer(readOnly: readOnly),
+          ],
         ),
         CommunityPostRemoved() => CommunityPostUnavailable(
           onBack: () => Navigator.of(context).maybePop(),

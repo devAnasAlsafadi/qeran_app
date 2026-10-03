@@ -1,10 +1,16 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/connectivity/connectivity_cubit.dart';
+import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/community/domain/entities/community_author.dart';
+import 'package:qeran/features/community/domain/entities/community_config.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
+import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post/community_post_cubit.dart';
 import 'package:qeran/features/community/presentation/screens/community_post_screen.dart';
 import 'package:qeran/features/community/presentation/widgets/post_card/community_post_card.dart';
@@ -47,12 +53,37 @@ Future<void> pumpPostScreen(
           ),
           BlocProvider<CommunityPostCubit>.value(value: post.cubit),
           BlocProvider<CommunityCommentsCubit>.value(value: comments.cubit),
+          BlocProvider<CommunityComposerCubit>(
+            create: (_) => composerOver(comments)..loadConfig(),
+          ),
         ],
         child: CommunityPostScreen(viewer: viewer),
       ),
     ),
   );
 }
+
+/// The member sending as [me].
+const me = CommunityAuthor(
+  id: 'member-9',
+  displayName: 'Dima Alsafadi',
+  isMatchmaker: false,
+);
+
+class _Config extends Fake implements GetCommunityConfigUseCase {
+  @override
+  Future<Either<Failure, CommunityConfig>> call() async =>
+      const Right(CommunityConfig(commentMaxLength: 500));
+}
+
+/// A composer that sends through [comments] as [me], under a 500 limit.
+CommunityComposerCubit composerOver(CommentsHarness comments) =>
+    CommunityComposerCubit(
+      getConfig: _Config(),
+      send: (text, {parentId}) =>
+          comments.cubit.send(text, parentId: parentId, me: me),
+      retry: comments.cubit.retry,
+    );
 
 /// The card's own Like (the rows have theirs).
 Finder get cardLike => find.descendant(

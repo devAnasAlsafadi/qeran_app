@@ -28,7 +28,6 @@ class PostVideoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final poster = video.posterUrl?.trim() ?? '';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s12),
       child: ClipRRect(
@@ -37,32 +36,33 @@ class PostVideoTile extends StatelessWidget {
           aspectRatio: clampedAspect(video.width, video.height),
           child: ColoredBox(
             color: QeranColors.wine,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (poster.isNotEmpty)
-                  CommunityNetworkImage(
-                    poster,
-                    fit: BoxFit.contain,
-                    placeholder: const SizedBox.shrink(),
-                    fallback: const SizedBox.shrink(),
-                  ),
-                const _BottomGradient(share: _gradientShare),
-                Center(child: _PlayDisc(onTap: onPlay)),
-                if (video.duration > Duration.zero)
-                  PositionedDirectional(
-                    bottom: QeranSpacing.s12,
-                    start: QeranSpacing.s12,
-                    child: QeranOverlayPill(
-                      formatVideoDuration(video.duration),
-                    ),
-                  ),
-              ],
-            ),
+            child: Stack(fit: StackFit.expand, children: _layers()),
           ),
         ),
       ),
     );
+  }
+
+  /// The poster, contained; the gradient; the play disc; the duration.
+  List<Widget> _layers() {
+    final poster = video.posterUrl?.trim() ?? '';
+    return [
+      if (poster.isNotEmpty)
+        CommunityNetworkImage(
+          poster,
+          fit: BoxFit.contain,
+          placeholder: const SizedBox.shrink(),
+          fallback: const SizedBox.shrink(),
+        ),
+      const _BottomGradient(share: _gradientShare),
+      Center(child: _PlayDisc(onTap: onPlay)),
+      if (video.duration > Duration.zero)
+        PositionedDirectional(
+          bottom: QeranSpacing.s12,
+          start: QeranSpacing.s12,
+          child: QeranOverlayPill(formatVideoDuration(video.duration)),
+        ),
+    ];
   }
 }
 

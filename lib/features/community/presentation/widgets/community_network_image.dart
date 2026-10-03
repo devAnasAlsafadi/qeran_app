@@ -94,18 +94,20 @@ class CommunityImageFailed extends StatelessWidget {
                   color: QeranColors.inkMuted,
                 ),
               ),
-              QeranButton(
-                label: LocaleKeys.community_retry.t(context),
-                onPressed: onRetry,
-                variant: QeranButtonVariant.ghost,
-                size: QeranButtonSize.compact,
-                leadingIcon: Icons.refresh_rounded,
-                fullWidth: false,
-              ),
+              _retry(context),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _retry(BuildContext context) => QeranButton(
+    label: LocaleKeys.community_retry.t(context),
+    onPressed: onRetry,
+    variant: QeranButtonVariant.ghost,
+    size: QeranButtonSize.compact,
+    leadingIcon: Icons.refresh_rounded,
+    fullWidth: false,
+  );
 }

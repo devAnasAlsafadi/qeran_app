@@ -22,23 +22,7 @@ class CommunityFeedSkeleton extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(QeranSpacing.s16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _Author(),
-                QeranSpacing.vs12,
-                const _Line(0.92),
-                QeranSpacing.vs12,
-                const _Line(0.76),
-                if (withMedia) ...[
-                  QeranSpacing.vs12,
-                  const QeranSkeleton.box(
-                    height: 200,
-                    radius: QeranRadii.control,
-                  ),
-                ],
-              ],
-            ),
+            child: _body(),
           ),
           const SizedBox(
             height: 1,
@@ -58,6 +42,22 @@ class CommunityFeedSkeleton extends StatelessWidget {
       ),
     );
   }
+
+  /// The author, two lines, and the photo when [withMedia].
+  Widget _body() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const _Author(),
+      QeranSpacing.vs12,
+      const _Line(0.92),
+      QeranSpacing.vs12,
+      const _Line(0.76),
+      if (withMedia) ...[
+        QeranSpacing.vs12,
+        const QeranSkeleton.box(height: 200, radius: QeranRadii.control),
+      ],
+    ],
+  );
 }
 
 class _Author extends StatelessWidget {

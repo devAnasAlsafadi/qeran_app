@@ -20,7 +20,6 @@ class PostCardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final time = QeranRelativeTime.ago(post.createdAt, context);
     return Padding(
       // The ⋮ button brings its own 44 pt tap area to the end edge.
       padding: EdgeInsetsDirectional.only(
@@ -33,22 +32,26 @@ class PostCardHeader extends StatelessWidget {
         children: [
           CommunityAuthorAvatar(author: post.author),
           QeranSpacing.hs12,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CommunityAuthorName(author: post.author),
-                if (time != null) ...[
-                  const SizedBox(height: QeranSpacing.s2),
-                  Text(time, style: QeranTypography.caption),
-                ],
-              ],
-            ),
-          ),
+          Expanded(child: _who(context)),
           ?menu,
         ],
       ),
+    );
+  }
+
+  /// The name and chip, and how long ago.
+  Widget _who(BuildContext context) {
+    final time = QeranRelativeTime.ago(post.createdAt, context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CommunityAuthorName(author: post.author),
+        if (time != null) ...[
+          const SizedBox(height: QeranSpacing.s2),
+          Text(time, style: QeranTypography.caption),
+        ],
+      ],
     );
   }
 }

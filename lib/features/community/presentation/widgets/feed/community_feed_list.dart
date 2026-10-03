@@ -54,8 +54,8 @@ class CommunityFeedList extends StatelessWidget {
 
   List<Widget> _content(BuildContext context, CommunityFeedCubit cubit) =>
       switch (state.status) {
-        CommunityFeedStatus.initial || CommunityFeedStatus.loading => [
-          const _Cards(
+        CommunityFeedStatus.initial || CommunityFeedStatus.loading => const [
+          _Cards(
             children: [
               CommunityFeedSkeleton(),
               CommunityFeedSkeleton(withMedia: true),
@@ -63,40 +63,41 @@ class CommunityFeedList extends StatelessWidget {
           ),
         ],
         CommunityFeedStatus.empty => [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: QeranEmptyState(
+          _fill(
+            QeranEmptyState(
               icon: Icons.auto_stories_rounded,
               title: LocaleKeys.community_feed_empty_title.t(context),
               message: LocaleKeys.community_feed_empty_body.t(context),
             ),
           ),
         ],
-        CommunityFeedStatus.failure => [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: QeranErrorState(
-              icon: Icons.cloud_off_rounded,
-              title: LocaleKeys.community_feed_error_title.t(context),
-              message: LocaleKeys.community_feed_error_body.t(context),
-              retryLabel: LocaleKeys.community_retry.t(context),
-              onRetry: cubit.load,
-            ),
-          ),
-        ],
-        CommunityFeedStatus.loaded => [
-          _Cards(children: [for (final post in state.posts) _card(post)]),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.only(top: QeranSpacing.s16),
-              child: CommunityFeedFooter(
-                state: state,
-                onRetry: cubit.retryPage,
-              ),
-            ),
-          ),
-        ],
+        CommunityFeedStatus.failure => [_fill(_error(context, cubit))],
+        CommunityFeedStatus.loaded => _loaded(cubit),
       };
+
+  /// [child] in the space left under the title.
+  static Widget _fill(Widget child) =>
+      SliverFillRemaining(hasScrollBody: false, child: child);
+
+  Widget _error(BuildContext context, CommunityFeedCubit cubit) =>
+      QeranErrorState(
+        icon: Icons.cloud_off_rounded,
+        title: LocaleKeys.community_feed_error_title.t(context),
+        message: LocaleKeys.community_feed_error_body.t(context),
+        retryLabel: LocaleKeys.community_retry.t(context),
+        onRetry: cubit.load,
+      );
+
+  /// The posts, then the footer.
+  List<Widget> _loaded(CommunityFeedCubit cubit) => [
+    _Cards(children: [for (final post in state.posts) _card(post)]),
+    SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.only(top: QeranSpacing.s16),
+        child: CommunityFeedFooter(state: state, onRetry: cubit.retryPage),
+      ),
+    ),
+  ];
 
   Widget _card(CommunityPost post) => Builder(
     builder: (context) {

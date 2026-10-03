@@ -40,20 +40,20 @@ class CommunityAuthorAvatar extends StatelessWidget {
       dimension: size,
       child: Stack(
         fit: StackFit.expand,
-        children: [
-          monogram,
-          Padding(
-            padding: const EdgeInsets.all(_ring),
-            child: ClipOval(
-              child: CommunityNetworkImage(
-                photo,
-                placeholder: const SizedBox.shrink(),
-                fallback: const SizedBox.shrink(),
-              ),
-            ),
-          ),
-        ],
+        children: [monogram, _photo(photo)],
       ),
     );
   }
+
+  /// [url] inside the monogram's gold ring.
+  static Widget _photo(String url) => Padding(
+    padding: const EdgeInsets.all(_ring),
+    child: ClipOval(
+      child: CommunityNetworkImage(
+        url,
+        placeholder: const SizedBox.shrink(),
+        fallback: const SizedBox.shrink(),
+      ),
+    ),
+  );
 }

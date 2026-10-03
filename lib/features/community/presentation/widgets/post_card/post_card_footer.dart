@@ -59,54 +59,72 @@ class PostCardFooter extends StatelessWidget {
   }
 
   Widget _like(BuildContext context) {
-    final liked = post.likedByMe;
-    final color = liked ? QeranColors.goldDeep : QeranColors.inkBody;
     final count = post.likeCount;
-    final label = LocaleKeys.community_like.t(context);
     return Semantics(
       button: true,
-      selected: liked,
-      label: label,
+      selected: post.likedByMe,
+      label: LocaleKeys.community_like.t(context),
       value: count > 0 ? '$count' : null,
       excludeSemantics: true,
       child: InkWell(
         onTap: onLike,
         child: Opacity(
           opacity: likeDimmed ? 0.4 : 1,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                size: 22,
-                color: color,
-              ),
-              const SizedBox(width: QeranSpacing.s6),
-              count > 0
-                  ? Text(
-                      formatCompactCount(count, context),
-                      style: _count(color),
-                    )
-                  : Text(
-                      label,
-                      style: QeranTypography.label.copyWith(color: color),
-                    ),
-            ],
-          ),
+          child: _likeRow(context),
         ),
       ),
     );
   }
 
+  /// The heart, then the count — or «إعجاب» / "Like" while there is none.
+  Widget _likeRow(BuildContext context) {
+    final liked = post.likedByMe;
+    final color = liked ? QeranColors.goldDeep : QeranColors.inkBody;
+    final count = post.likeCount;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+          size: 22,
+          color: color,
+        ),
+        const SizedBox(width: QeranSpacing.s6),
+        count > 0
+            ? Text(formatCompactCount(count, context), style: _count(color))
+            : Text(
+                LocaleKeys.community_like.t(context),
+                style: QeranTypography.label.copyWith(color: color),
+              ),
+      ],
+    );
+  }
+
   Widget _discussion(BuildContext context) {
+    final count = post.commentCount;
+    final label = _discussionLabel(context);
+    final row = _discussionRow(context, label);
+    return Semantics(
+      button: interactive,
+      label: label,
+      value: count > 0 ? '$count' : null,
+      excludeSemantics: true,
+      child: interactive ? InkWell(onTap: onDiscussion, child: row) : row,
+    );
+  }
+
+  String _discussionLabel(BuildContext context) =>
+      (interactive && post.commentCount == 0
+              ? LocaleKeys.community_discussion_start
+              : LocaleKeys.community_discussion)
+          .t(context);
+
+  /// The icon and [label], the count once there is one, and in the feed the
+  /// chevron that says it opens the post.
+  Widget _discussionRow(BuildContext context, String label) {
     final color = interactive ? QeranColors.wine : QeranColors.inkMuted;
     final count = post.commentCount;
-    final label =
-        (interactive && count == 0
-                ? LocaleKeys.community_discussion_start
-                : LocaleKeys.community_discussion)
-            .t(context);
-    final row = Padding(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -131,13 +149,6 @@ class PostCardFooter extends StatelessWidget {
             Icon(Icons.chevron_right_rounded, size: 18, color: color),
         ],
       ),
-    );
-    return Semantics(
-      button: interactive,
-      label: label,
-      value: count > 0 ? '$count' : null,
-      excludeSemantics: true,
-      child: interactive ? InkWell(onTap: onDiscussion, child: row) : row,
     );
   }
 

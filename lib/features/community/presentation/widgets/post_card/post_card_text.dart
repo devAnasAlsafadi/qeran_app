@@ -47,30 +47,34 @@ class _PostCardTextState extends State<PostCardText> {
           duration: QeranMotion.standard,
           curve: QeranCurves.standard,
           alignment: AlignmentDirectional.topStart,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(
-                  QeranSpacing.s16,
-                  0,
-                  QeranSpacing.s16,
-                  cut ? 0 : QeranSpacing.s12,
-                ),
-                child: QeranOwnText(
-                  widget.text,
-                  style: PostCardText.style,
-                  maxLines: cut ? PostCardText.collapsedLines : null,
-                  overflow: cut ? TextOverflow.ellipsis : null,
-                ),
-              ),
-              if (cut) _SeeMore(onTap: () => setState(() => _expanded = true)),
-            ],
-          ),
+          child: _body(cut: cut),
         );
       },
     );
   }
+
+  /// The text — cut at [PostCardText.collapsedLines] lines when [cut] —
+  /// and «عرض المزيد» under it.
+  Widget _body({required bool cut}) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(
+          QeranSpacing.s16,
+          0,
+          QeranSpacing.s16,
+          cut ? 0 : QeranSpacing.s12,
+        ),
+        child: QeranOwnText(
+          widget.text,
+          style: PostCardText.style,
+          maxLines: cut ? PostCardText.collapsedLines : null,
+          overflow: cut ? TextOverflow.ellipsis : null,
+        ),
+      ),
+      if (cut) _SeeMore(onTap: () => setState(() => _expanded = true)),
+    ],
+  );
 
   /// Whether [text], laid out as [QeranOwnText] lays it out, runs past
   /// [PostCardText.collapsedLines] lines at [width].

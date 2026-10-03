@@ -13,14 +13,17 @@ class QeranRelativeTime {
   static const int _maxWeeks = 4;
 
   /// Compact (now / Nm / Nh / Nd → short date) in both languages — the
-  /// style the notification inboxes use.
+  /// style the notification inboxes use. Under a day it counts minutes and
+  /// hours; from a day on, the days between the local calendar dates (as
+  /// [ago] does), and from seven of them the date.
   ///
   /// Returns `null` when [at] is null (callers omit the time line entirely
-  /// in that case).
-  static String? format(DateTime? at, BuildContext context) {
+  /// in that case). [now] is the device's clock unless a test sets it.
+  static String? format(DateTime? at, BuildContext context, {DateTime? now}) {
     if (at == null) return null;
     final local = at.toLocal();
-    final diff = DateTime.now().difference(local);
+    final to = (now ?? DateTime.now()).toLocal();
+    final diff = to.difference(local);
 
     if (diff.inMinutes < 1) {
       return LocaleKeys.time_now.t(context);
@@ -28,11 +31,12 @@ class QeranRelativeTime {
     if (diff.inMinutes < 60) {
       return '${diff.inMinutes}${LocaleKeys.time_minute.t(context)}';
     }
-    if (diff.inHours < 24) {
+    final days = _calendarDays(local, to);
+    if (diff.inHours < 24 || days < 1) {
       return '${diff.inHours}${LocaleKeys.time_hour.t(context)}';
     }
-    if (diff.inDays < 7) {
-      return '${diff.inDays}${LocaleKeys.time_day.t(context)}';
+    if (days < 7) {
+      return '$days${LocaleKeys.time_day.t(context)}';
     }
     return _date(local);
   }

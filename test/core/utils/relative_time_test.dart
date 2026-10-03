@@ -187,6 +187,37 @@ void main() {
     });
   });
 
+  group("the inboxes' short form counts calendar dates too", () {
+    // (posted, now) in the device's time → Arabic, English.
+    final cases = <(DateTime, DateTime), (String, String)>{
+      (DateTime(2026, 10, 3, 9), DateTime(2026, 10, 3, 9)): ('الآن', 'Now'),
+      (DateTime(2026, 10, 3, 8, 55), DateTime(2026, 10, 3, 9)): ('5د', '5m'),
+      // Under a day stays in hours, even across midnight.
+      (DateTime(2026, 10, 2, 22), DateTime(2026, 10, 3, 9)): ('11س', '11h'),
+      // 24 hours and a bit, one date back; 47 hours, two dates back.
+      (DateTime(2026, 10, 2, 8), DateTime(2026, 10, 3, 9)): ('1ي', '1d'),
+      (DateTime(2026, 10, 1, 10), DateTime(2026, 10, 3, 9)): ('2ي', '2d'),
+      // 6 days and 2 hours is 7 dates back: the date.
+      (DateTime(2026, 9, 26, 23), DateTime(2026, 10, 3, 1)): (
+        '2026/09/26',
+        '2026/09/26',
+      ),
+      (DateTime(2026, 9, 27, 1), DateTime(2026, 10, 3, 23)): ('6ي', '6d'),
+    };
+    for (final locale in ['ar', 'en']) {
+      testWidgets(locale, (tester) async {
+        final context = await pumpShippedStrings(tester, Locale(locale));
+        for (final MapEntry(key: (at, now), value: (ar, en)) in cases.entries) {
+          expect(
+            QeranRelativeTime.format(at, context, now: now),
+            locale == 'ar' ? ar : en,
+            reason: '$at → $now',
+          );
+        }
+      });
+    }
+  });
+
   testWidgets('no time, no line', (tester) async {
     final context = await pumpShippedStrings(tester, const Locale('en'));
     expect(QeranRelativeTime.ago(null, context), isNull);

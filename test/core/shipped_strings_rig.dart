@@ -26,11 +26,13 @@ Future<void> initShippedStrings() async {
 
 /// Pumps [child] in [locale] with the shipped strings, configured as
 /// `main.dart` configures them (Arabic fallback, plural rules on), and
-/// returns a context inside.
+/// returns a context inside. Without [settle] it pumps a few frames instead
+/// of settling — for a child that never settles (a skeleton's shimmer).
 Future<BuildContext> pumpShippedStrings(
   WidgetTester tester,
   Locale locale, {
   Widget child = const SizedBox(),
+  bool settle = true,
 }) async {
   late BuildContext inside;
   await tester.pumpWidget(
@@ -57,6 +59,12 @@ Future<BuildContext> pumpShippedStrings(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    for (var i = 0; i < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+  }
   return inside;
 }

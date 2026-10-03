@@ -1,0 +1,107 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/connectivity/connectivity_cubit.dart';
+import 'package:qeran/core/services/connectivity_service.dart';
+import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
+import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
+import 'package:qeran/features/profile/domain/entities/profile_status.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_state.dart';
+
+import '../../../../core/shipped_strings_rig.dart';
+import '../blocs/feed/feed_cubit_harness.dart';
+
+/// The profile gate frozen at [status] (null: not known yet).
+class FakeGate extends Fake implements ProfileGateCubit {
+  FakeGate([this._status]);
+
+  final ProfileStatus? _status;
+
+  @override
+  ProfileGateState get state => _status == null
+      ? const ProfileGateInitial()
+      : ProfileGateResolved(_status);
+
+  @override
+  Stream<ProfileGateState> get stream => const Stream.empty();
+
+  @override
+  ProfileStatus? get status => _status;
+
+  @override
+  bool get isGated => switch (_status) {
+    ProfileStatus.pendingReview ||
+    ProfileStatus.hidden ||
+    ProfileStatus.rejected => true,
+    _ => false,
+  };
+}
+
+/// Always online: the error state reads the connection.
+class _Online implements ConnectivityService {
+  @override
+  Future<bool> get isOnline async => true;
+  @override
+  Stream<bool> get onStatusChange => const Stream<bool>.empty();
+}
+
+/// Both UI languages, and what each one writes.
+final feedLocales = {
+  const Locale('ar'): (
+    title: 'المجتمع',
+    subtitle: 'إرشادات تنشرها خطّابات قِران',
+    end: 'لا توجد منشورات أخرى',
+    emptyTitle: 'لا توجد منشورات بعد',
+    errorTitle: 'تعذّر تحميل المنشورات',
+    retry: 'حاول مرة أخرى',
+    pageError: 'تعذّر تحميل المزيد.',
+    pageRetry: 'إعادة المحاولة',
+    like: 'إعجاب',
+  ),
+  const Locale('en'): (
+    title: 'Community',
+    subtitle: 'Guidance published by Qeran’s matchmakers',
+    end: 'No more posts',
+    emptyTitle: 'No posts yet',
+    errorTitle: 'Couldn’t load posts',
+    retry: 'Try again',
+    pageError: 'Couldn’t load more.',
+    pageRetry: 'Retry',
+    like: 'Like',
+  ),
+};
+
+/// The feed of [h]'s cubit, as the member at [gate] sees it, on a phone
+/// [size] (logical points), with the toast host.
+Future<void> pumpFeed(
+  WidgetTester tester,
+  FeedHarness h, {
+  Locale locale = const Locale('en'),
+  ProfileStatus? gate = ProfileStatus.visible,
+  Size size = const Size(390, 1200),
+  bool settle = true,
+}) {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = size;
+  addTearDown(tester.view.reset);
+  addTearDown(AppSnackBar.debugReset);
+  return pumpShippedStrings(
+    tester,
+    locale,
+    settle: settle,
+    child: AppSnackBarHost(
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<ProfileGateCubit>.value(value: FakeGate(gate)),
+          BlocProvider<ConnectivityCubit>(
+            create: (_) => ConnectivityCubit(service: _Online()),
+          ),
+          BlocProvider<CommunityFeedCubit>.value(value: h.cubit),
+        ],
+        child: const CommunityFeedView(),
+      ),
+    ),
+  );
+}

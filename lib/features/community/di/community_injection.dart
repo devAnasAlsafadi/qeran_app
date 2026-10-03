@@ -21,6 +21,7 @@ import '../domain/usecases/get_post_comments_usecase.dart';
 import '../domain/usecases/set_comment_like_usecase.dart';
 import '../domain/usecases/set_post_like_usecase.dart';
 import '../domain/usecases/watch_community_post_changes_usecase.dart';
+import '../presentation/blocs/feed/community_feed_cubit.dart';
 
 /// `--dart-define=COMMUNITY_MOCK=seeded|empty|errors|slow` (Q2). Read here
 /// only, and only outside release builds.
@@ -53,6 +54,14 @@ void initCommunityDependencies() {
   sl.registerLazySingleton(() => GetCommunityGuidelinesUseCase(sl()));
   sl.registerLazySingleton(() => AcceptCommunityGuidelinesUseCase(sl()));
   sl.registerLazySingleton(() => WatchCommunityPostChangesUseCase(sl()));
+
+  sl.registerFactory(
+    () => CommunityFeedCubit(
+      getFeed: sl(),
+      setPostLike: sl(),
+      watchChanges: sl(),
+    ),
+  );
 }
 
 CommunityRemoteDataSource _dataSource() {

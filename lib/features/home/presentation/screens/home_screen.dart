@@ -14,7 +14,7 @@ import 'package:qeran/features/chat/domain/ports/chat_realtime_port.dart';
 import 'package:qeran/features/chat/presentation/blocs/my_matchmaker_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
-import 'package:qeran/features/community/presentation/screens/community_placeholder_screen.dart';
+import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/features/home/presentation/home_push_routing.dart';
 import 'package:qeran/features/home/presentation/home_refresh_policy.dart';
@@ -112,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _tabBody(int index) => switch (index) {
-    HomeShellNavigator.communityTab => const CommunityPlaceholderScreen(),
+    HomeShellNavigator.communityTab => const CommunityFeedScreen(),
     HomeShellNavigator.discoveryTab => const DiscoveryView(),
     HomeShellNavigator.likesTab => const LikesScreen(),
     HomeShellNavigator.profileTab => const ProfileScreen(),

@@ -38,11 +38,13 @@ class QeranRelativeTime {
   }
 
   /// How long ago [at] was, as the Community boards write it (Q6): «الآن» /
-  /// "Just now" under a minute, then minutes, hours, days («أمس» /
-  /// "Yesterday" for one) and weeks up to four, each in its plural form
-  /// (B1); older than that, the date. Long by default ("2 hours ago", for
-  /// cards). [compact] is for tight rows, where each language picks its own
-  /// form: English shortens ("2h"), Arabic keeps the long one.
+  /// "Just now" under a minute, then minutes and hours up to a day; from a
+  /// day on, the days between the two local calendar dates («أمس» /
+  /// "Yesterday" for one, so a post from the 1st never reads "Yesterday" on
+  /// the 3rd) and weeks of them up to four, each in its plural form (B1);
+  /// older than that, the date. Long by default ("2 hours ago", for cards).
+  /// [compact] is for tight rows, where each language picks its own form:
+  /// English shortens ("2h"), Arabic keeps the long one.
   ///
   /// [now] defaults to the server's clock, so a phone whose clock is off
   /// still calls something posted a moment ago "Just now".
@@ -53,38 +55,54 @@ class QeranRelativeTime {
     DateTime? now,
   }) {
     if (at == null) return null;
-    final elapsed = (now ?? ServerClock.instance.now()).difference(at);
+    final to = now ?? ServerClock.instance.now();
+    final elapsed = to.difference(at);
     if (elapsed.inMinutes < 1) return LocaleKeys.time_just_now.t(context);
-    if (elapsed.inDays ~/ 7 > _maxWeeks) return _date(at.toLocal());
+    final days = _calendarDays(at.toLocal(), to.toLocal());
+    if (days ~/ 7 > _maxWeeks) return _date(at.toLocal());
 
-    final (n, long, short) = _unit(elapsed);
+    final (n, long, short) = unit(elapsed, days);
     return (compact ? short : long).tPlural(context, n);
   }
 
-  /// The largest whole unit in [elapsed] (a minute up to four weeks): the
-  /// count, and its long and compact keys.
-  static (int, String, String) _unit(Duration elapsed) => switch (elapsed) {
-    Duration(inHours: < 1) => (
-      elapsed.inMinutes,
-      LocaleKeys.time_minutes_ago,
-      LocaleKeys.time_minutes_ago_compact,
-    ),
-    Duration(inDays: < 1) => (
-      elapsed.inHours,
-      LocaleKeys.time_hours_ago,
-      LocaleKeys.time_hours_ago_compact,
-    ),
-    Duration(inDays: < 7) => (
-      elapsed.inDays,
-      LocaleKeys.time_days_ago,
-      LocaleKeys.time_days_ago_compact,
-    ),
-    _ => (
-      elapsed.inDays ~/ 7,
+  /// The unit for [elapsed] whose local dates are [days] apart: the count,
+  /// and its long and compact keys. Minutes, then hours while under a day —
+  /// or still the same date, which a 25-hour day of a clock change allows —
+  /// then calendar days, then weeks of them.
+  @visibleForTesting
+  static (int, String, String) unit(Duration elapsed, int days) {
+    if (elapsed.inHours < 1) {
+      return (
+        elapsed.inMinutes,
+        LocaleKeys.time_minutes_ago,
+        LocaleKeys.time_minutes_ago_compact,
+      );
+    }
+    if (elapsed.inDays < 1 || days < 1) {
+      return (
+        elapsed.inHours,
+        LocaleKeys.time_hours_ago,
+        LocaleKeys.time_hours_ago_compact,
+      );
+    }
+    if (days < 7) {
+      return (days, LocaleKeys.time_days_ago, LocaleKeys.time_days_ago_compact);
+    }
+    return (
+      days ~/ 7,
       LocaleKeys.time_weeks_ago,
       LocaleKeys.time_weeks_ago_compact,
-    ),
-  };
+    );
+  }
+
+  /// Whole calendar days from [from]'s date to [to]'s, whatever the hours.
+  /// Counted between UTC midnights, so a clock change's 23- or 25-hour day
+  /// still counts as one.
+  static int _calendarDays(DateTime from, DateTime to) => DateTime.utc(
+    to.year,
+    to.month,
+    to.day,
+  ).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
 
   /// `yyyy/mm/dd` of a local date.
   static String _date(DateTime local) {

@@ -50,23 +50,25 @@ class QeranComposerField extends StatelessWidget {
         color: QeranColors.inkStrong,
         fontFamily: fontFamily,
       ),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: QeranColors.paper,
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: QeranSpacing.s16,
-          vertical: QeranSpacing.s12,
-        ),
-        hintText: hint,
-        hintStyle: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
-        counterText: '',
-        enabledBorder: _edge(error ? QeranColors.danger : QeranColors.wine08),
-        border: _edge(error ? QeranColors.danger : QeranColors.wine08),
-        focusedBorder: _edge(error ? QeranColors.danger : QeranColors.wine),
-      ),
+      decoration: _decoration(),
     );
   }
+
+  InputDecoration _decoration() => InputDecoration(
+    filled: true,
+    fillColor: QeranColors.paper,
+    isDense: true,
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: QeranSpacing.s16,
+      vertical: QeranSpacing.s12,
+    ),
+    hintText: hint,
+    hintStyle: QeranTypography.body.copyWith(color: QeranColors.inkMuted),
+    counterText: '',
+    enabledBorder: _edge(error ? QeranColors.danger : QeranColors.wine08),
+    border: _edge(error ? QeranColors.danger : QeranColors.wine08),
+    focusedBorder: _edge(error ? QeranColors.danger : QeranColors.wine),
+  );
 
   static OutlineInputBorder _edge(Color color) => OutlineInputBorder(
     borderRadius: QeranRadii.pill,

@@ -33,6 +33,10 @@ class MyProfile extends Equatable {
   final List<OwnerImage> images;
   final List<Placement> placements;
 
+  /// The member has accepted the current Community guidelines (D7) — true
+  /// only for the version in force. Null when the payload didn't say.
+  final bool? communityGuidelinesAccepted;
+
   const MyProfile({
     required this.id,
     required this.name,
@@ -47,6 +51,7 @@ class MyProfile extends Equatable {
     required this.profileImage,
     required this.images,
     required this.placements,
+    this.communityGuidelinesAccepted,
   });
 
   @override
@@ -64,5 +69,6 @@ class MyProfile extends Equatable {
         profileImage,
         images,
         placements,
+        communityGuidelinesAccepted,
       ];
 }

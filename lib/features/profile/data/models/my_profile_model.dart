@@ -26,6 +26,10 @@ class MyProfileModel {
   final List<OwnerImageModel> images;
   final List<PlacementModel> placements;
 
+  /// The current Community guidelines are accepted (D7). Null when the
+  /// payload doesn't carry the flag — `PUT /api/profile`'s answer may not.
+  final bool? communityGuidelinesAccepted;
+
   const MyProfileModel({
     required this.userId,
     required this.name,
@@ -40,6 +44,7 @@ class MyProfileModel {
     required this.profileImage,
     required this.images,
     required this.placements,
+    this.communityGuidelinesAccepted,
   });
 
   factory MyProfileModel.fromJson(Map<String, dynamic> json) {
@@ -62,8 +67,12 @@ class MyProfileModel {
           : null,
       images: _listOf(json['images'], OwnerImageModel.fromJson),
       placements: _listOf(json['placements'], PlacementModel.fromJson),
+      communityGuidelinesAccepted: _flag(json['communityGuidelinesAccepted']),
     );
   }
+
+  /// [raw] as a bool, or null when the payload left it out.
+  static bool? _flag(Object? raw) => raw == null ? null : parseBool(raw);
 
   /// The maps in [raw] through [parse]; empty when it isn't a list.
   static List<T> _listOf<T>(
@@ -87,5 +96,6 @@ class MyProfileModel {
         profileImage: profileImage?.toEntity(),
         images: images.map((i) => i.toEntity()).toList(growable: false),
         placements: placements.map((p) => p.toEntity()).toList(growable: false),
+        communityGuidelinesAccepted: communityGuidelinesAccepted,
       );
 }

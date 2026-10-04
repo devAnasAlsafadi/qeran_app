@@ -34,12 +34,26 @@ final class ProfileGateResolved extends ProfileGateState {
   /// so the settings screen can prompt for a real one without its own fetch.
   final bool isDefaultName;
 
+  /// The current Community guidelines are accepted (D7). Null while no
+  /// payload has said — Community then leaves the question to the server.
+  final bool? communityGuidelinesAccepted;
+
   const ProfileGateResolved(
     this.status, {
     this.name,
     this.photoUrl,
     this.isDefaultName = false,
+    this.communityGuidelinesAccepted,
   });
+
+  /// This state, with the guidelines accepted.
+  ProfileGateResolved withGuidelinesAccepted() => ProfileGateResolved(
+    status,
+    name: name,
+    photoUrl: photoUrl,
+    isDefaultName: isDefaultName,
+    communityGuidelinesAccepted: true,
+  );
 }
 
 /// Fetch failed or the status was unrecognised — the gate FAILS OPEN

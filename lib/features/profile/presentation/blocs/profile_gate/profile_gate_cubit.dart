@@ -62,18 +62,47 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
   /// Publishes a profile the caller already holds — used after `PUT /api/profile`
   /// returns the complete updated profile, so the settings hero and the
   /// default-name banner refresh without a second `GET /api/profile`.
+  ///
+  /// A profile that doesn't say whether the guidelines are accepted keeps
+  /// what the gate already knew.
   void applyProfile(MyProfile profile) {
     // Claim the current request slot so an in-flight fetch started before this
     // write cannot land afterwards and reinstate the stale name.
     _requestVersion++;
-    emit(_resolved(profile));
+    final known = switch (state) {
+      ProfileGateResolved(:final communityGuidelinesAccepted) =>
+        communityGuidelinesAccepted,
+      _ => null,
+    };
+    emit(
+      _resolved(
+        profile,
+        guidelinesAccepted: profile.communityGuidelinesAccepted ?? known,
+      ),
+    );
   }
 
-  static ProfileGateResolved _resolved(MyProfile profile) => ProfileGateResolved(
+  /// The member just accepted the Community guidelines (D7): the composer
+  /// stops asking without a second `GET /api/profile`.
+  void markCommunityGuidelinesAccepted() {
+    final current = state;
+    if (current is ProfileGateResolved) {
+      // As in applyProfile: a read begun before the accept can't undo it.
+      _requestVersion++;
+      emit(current.withGuidelinesAccepted());
+    }
+  }
+
+  static ProfileGateResolved _resolved(
+    MyProfile profile, {
+    bool? guidelinesAccepted,
+  }) => ProfileGateResolved(
     profile.profileStatus,
     name: profile.name,
     photoUrl: _profilePhotoUrl(profile),
     isDefaultName: profile.isDefaultName,
+    communityGuidelinesAccepted:
+        guidelinesAccepted ?? profile.communityGuidelinesAccepted,
   );
 
   /// The photo to show for "my profile": the dedicated `profileImage`, else the

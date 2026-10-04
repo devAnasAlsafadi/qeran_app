@@ -124,24 +124,9 @@ class UserSessionCubit extends Cubit<UserSessionState>
   /// `hasAnsweredQuestions` on the current user without touching anything
   /// else. No-op when there's no authenticated user.
   void onQuestionsAnswered() {
-    final current = state;
-    if (current is! UserSessionAuthenticated) return;
-    final u = current.user;
-    emit(
-      UserSessionAuthenticated(
-        UserEntity(
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          phoneNumber: u.phoneNumber,
-          photoUrl: u.photoUrl,
-          token: u.token,
-          role: u.role,
-          isPhoneVerified: u.isPhoneVerified,
-          hasAnsweredQuestions: true,
-        ),
-      ),
-    );
+    final user = currentUser;
+    if (user == null) return;
+    emit(UserSessionAuthenticated(user.copyWith(hasAnsweredQuestions: true)));
   }
 
   /// Clears the persisted session and emits `Unauthenticated`. Reached from

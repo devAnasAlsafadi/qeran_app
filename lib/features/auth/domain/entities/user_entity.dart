@@ -30,6 +30,19 @@ class UserEntity extends Equatable {
   /// slightly differently in one place is a silent authorisation hole.
   bool get isMatchmaker => role?.toLowerCase() == 'moderator';
 
+  /// The same user with [hasAnsweredQuestions] set; every other field kept.
+  UserEntity copyWith({bool? hasAnsweredQuestions}) => UserEntity(
+    id: id,
+    name: name,
+    email: email,
+    phoneNumber: phoneNumber,
+    photoUrl: photoUrl,
+    token: token,
+    role: role,
+    isPhoneVerified: isPhoneVerified,
+    hasAnsweredQuestions: hasAnsweredQuestions ?? this.hasAnsweredQuestions,
+  );
+
   @override
   List<Object?> get props => [
     id,

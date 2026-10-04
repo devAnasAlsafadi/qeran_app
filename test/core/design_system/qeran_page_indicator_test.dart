@@ -42,6 +42,20 @@ void main() {
     ]);
   });
 
+  testWidgets('wine tone (the media viewer): a gold 18 × 6 pill, gold-40 '
+      '6 dp', (tester) async {
+    await _pump(
+      tester,
+      const QeranPageDots(count: 3, current: 2, tone: QeranPageDotsTone.wine),
+    );
+
+    expect(_dots(tester), [
+      (const Size(6, 6), QeranColors.gold40),
+      (const Size(6, 6), QeranColors.gold40),
+      (const Size(18, 6), QeranColors.gold),
+    ]);
+  });
+
   testWidgets('the counter and the overlay pill read left to right', (
     tester,
   ) async {

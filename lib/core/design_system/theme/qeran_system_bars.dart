@@ -13,4 +13,10 @@ class QeranSystemBars {
     statusBarIconBrightness: Brightness.dark, // Android
     statusBarBrightness: Brightness.light, // iOS
   );
+
+  /// Light status-bar icons over a dark surface (the wine media viewer).
+  static const SystemUiOverlayStyle lightIcons = SystemUiOverlayStyle(
+    statusBarIconBrightness: Brightness.light, // Android
+    statusBarBrightness: Brightness.dark, // iOS
+  );
 }

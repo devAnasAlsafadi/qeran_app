@@ -63,6 +63,10 @@ enum QeranPageDotsTone {
   /// A gold-deep 18 × 6 dp pill for the active dot, wine-20 6 dp dots —
   /// legible on paper, where cream dots would vanish (a Community post).
   paper,
+
+  /// A gold 18 × 6 dp pill for the active dot, gold-40 6 dp dots — on a
+  /// full-screen wine surface (Community's media viewer).
+  wine,
 }
 
 /// Page-position dots. Animates between states so a page swipe reads as a
@@ -85,6 +89,15 @@ class QeranPageDots extends StatelessWidget {
   /// Zero-based index of the visible page.
   final int current;
 
+  Color _colour(bool active) => switch ((tone, active)) {
+    (QeranPageDotsTone.photo, true) => QeranColors.gold,
+    (QeranPageDotsTone.photo, false) => QeranColors.creamSurface,
+    (QeranPageDotsTone.paper, true) => QeranColors.goldDeep,
+    (QeranPageDotsTone.paper, false) => QeranColors.wine20,
+    (QeranPageDotsTone.wine, true) => QeranColors.gold,
+    (QeranPageDotsTone.wine, false) => QeranColors.gold40,
+  };
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -92,21 +105,16 @@ class QeranPageDots extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(count, (i) {
         final isActive = i == current;
-        final paper = tone == QeranPageDotsTone.paper;
+        final pill = tone != QeranPageDotsTone.photo;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
-          width: isActive ? (paper ? 18 : 8) : 6,
-          height: isActive && !paper ? 8 : 6,
+          width: isActive ? (pill ? 18 : 8) : 6,
+          height: isActive && !pill ? 8 : 6,
           margin: const EdgeInsets.symmetric(horizontal: 3),
           decoration: BoxDecoration(
             borderRadius: QeranRadii.pill,
-            color: switch ((paper, isActive)) {
-              (false, true) => QeranColors.gold,
-              (false, false) => QeranColors.creamSurface,
-              (true, true) => QeranColors.goldDeep,
-              (true, false) => QeranColors.wine20,
-            },
+            color: _colour(isActive),
           ),
         );
       }),

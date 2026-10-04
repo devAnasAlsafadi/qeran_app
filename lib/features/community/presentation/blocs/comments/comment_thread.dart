@@ -30,6 +30,10 @@ class CommentThread extends Equatable {
   /// The server's replies, a page at a time, oldest first.
   final List<CommunityComment> replies;
 
+  /// What a landing (C8) shows before any page: the reply the notification
+  /// is about. The page that brings it puts it in [replies], in its place.
+  final List<CommunityComment> landed;
+
   /// The member's own replies sent from this screen, after the rest — on
   /// their way, failed, or posted.
   final List<CommunityComment> mine;
@@ -46,6 +50,7 @@ class CommentThread extends Equatable {
   const CommentThread(
     this.comment, {
     this.replies = const [],
+    this.landed = const [],
     this.mine = const [],
     this.repliesStatus = RepliesStatus.collapsed,
     this.repliesPage = 0,
@@ -60,7 +65,7 @@ class CommentThread extends Equatable {
   int get hiddenReplies {
     final posted = mine.where((reply) => reply.id > 0).length;
     final total = repliesTotal ?? comment.replyCount;
-    return max(total - replies.length - posted, 0);
+    return max(total - replies.length - landed.length - posted, 0);
   }
 
   /// Whether the link offers replies: any not shown yet — before the first
@@ -72,6 +77,7 @@ class CommentThread extends Equatable {
   CommentThread copyWith({
     CommunityComment? comment,
     List<CommunityComment>? replies,
+    List<CommunityComment>? landed,
     List<CommunityComment>? mine,
     RepliesStatus? repliesStatus,
     int? repliesPage,
@@ -80,6 +86,7 @@ class CommentThread extends Equatable {
   }) => CommentThread(
     comment ?? this.comment,
     replies: replies ?? this.replies,
+    landed: landed ?? this.landed,
     mine: mine ?? this.mine,
     repliesStatus: repliesStatus ?? this.repliesStatus,
     repliesPage: repliesPage ?? this.repliesPage,
@@ -91,6 +98,7 @@ class CommentThread extends Equatable {
   List<Object?> get props => [
     comment,
     replies,
+    landed,
     mine,
     repliesStatus,
     repliesPage,

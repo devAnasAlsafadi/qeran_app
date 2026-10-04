@@ -39,6 +39,7 @@ CommentThread _withoutReplies(
 ) {
   final taken =
       thread.replies.where(gone).length +
+      thread.landed.where(gone).length +
       thread.mine.where((r) => r.id > 0 && gone(r)).length;
   final total = thread.repliesTotal;
   return thread.copyWith(
@@ -48,6 +49,10 @@ CommentThread _withoutReplies(
     repliesTotal: total == null ? null : max(total - taken, 0),
     replies: [
       for (final r in thread.replies)
+        if (!gone(r)) r,
+    ],
+    landed: [
+      for (final r in thread.landed)
         if (!gone(r)) r,
     ],
     mine: [

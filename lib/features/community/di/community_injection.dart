@@ -27,6 +27,7 @@ import '../domain/usecases/report_community_content_usecase.dart';
 import '../domain/usecases/set_comment_like_usecase.dart';
 import '../domain/usecases/set_post_like_usecase.dart';
 import '../domain/usecases/watch_community_post_changes_usecase.dart';
+import '../domain/entities/community_landing.dart';
 import '../domain/entities/community_post.dart';
 import '../presentation/blocs/comments/community_comments_cubit.dart';
 import '../presentation/blocs/composer/community_composer_cubit.dart';
@@ -123,8 +124,8 @@ void initCommunityDependencies() {
       onAccepted: sl<ProfileGateCubit>().markCommunityGuidelinesAccepted,
     ),
   );
-  sl.registerFactoryParam<CommunityCommentsCubit, int, void>(
-    (postId, _) => CommunityCommentsCubit(
+  sl.registerFactoryParam<CommunityCommentsCubit, int, CommunityLanding?>(
+    (postId, landing) => CommunityCommentsCubit(
       postId: postId,
       getComments: sl(),
       getReplies: sl(),
@@ -133,6 +134,8 @@ void initCommunityDependencies() {
       createReply: sl(),
       deleteComment: sl(),
       getPost: sl(),
+      getComment: sl(),
+      landing: landing,
     ),
   );
 }

@@ -7,6 +7,8 @@ import '../../../../core/extensions/localization_extension.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import '../../domain/entities/community_viewer.dart';
+import '../blocs/comments/community_comments_cubit.dart';
+import '../blocs/comments/community_comments_state.dart';
 import '../blocs/post/community_post_cubit.dart';
 import '../blocs/post/community_post_state.dart';
 import '../widgets/comments/comments_skeleton.dart';
@@ -18,7 +20,8 @@ import 'community_post_listeners.dart';
 
 /// A post and its discussion, for the post and comments cubits in scope —
 /// shared by both apps. A member whose profile isn't approved reads only
-/// (D9); a matchmaker [viewer] is never gated.
+/// (D9); a matchmaker [viewer] is never gated. The post gone, or the comment
+/// a notification is about, and it is no longer available (C7).
 class CommunityPostScreen extends StatelessWidget {
   const CommunityPostScreen({super.key, this.viewer = CommunityViewer.member});
 
@@ -28,13 +31,21 @@ class CommunityPostScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final gated = context.select<ProfileGateCubit, bool>((g) => g.isGated);
     final readOnly = viewer == CommunityViewer.member && gated;
+    final targetGone = context.select<CommunityCommentsCubit, bool>(
+      (c) => c.state.status == CommunityCommentsStatus.targetGone,
+    );
     return MultiBlocListener(
       listeners: communityPostListeners,
       child: BlocBuilder<CommunityPostCubit, CommunityPostState>(
-        builder: (context, state) => _body(context, state, readOnly),
+        builder: (context, state) => targetGone
+            ? _unavailable(context)
+            : _body(context, state, readOnly),
       ),
     );
   }
+
+  Widget _unavailable(BuildContext context) =>
+      CommunityPostUnavailable(onBack: () => Navigator.of(context).maybePop());
 
   Widget _body(BuildContext context, CommunityPostState state, bool readOnly) =>
       switch (state) {
@@ -51,9 +62,7 @@ class CommunityPostScreen extends StatelessWidget {
             CommunityComposer(readOnly: readOnly),
           ],
         ),
-        CommunityPostRemoved() => CommunityPostUnavailable(
-          onBack: () => Navigator.of(context).maybePop(),
-        ),
+        CommunityPostRemoved() => _unavailable(context),
         CommunityPostFailed() => QeranErrorState(
           icon: Icons.cloud_off_rounded,
           title: LocaleKeys.community_post_error_title.t(context),

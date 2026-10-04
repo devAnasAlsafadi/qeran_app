@@ -22,6 +22,16 @@ List<CommentThread> appendNewThreads(
   ];
 }
 
+/// A landing's threads (C8, K11): [comment]'s first, whatever its age, with
+/// [reply] shown under it; then [page]'s, without it.
+List<CommentThread> landedThreads(
+  CommunityComment comment,
+  CommunityComment? reply,
+  CommunityPage<CommunityComment> page,
+) => appendNewThreads([
+  CommentThread(comment, landed: [?reply]),
+], page.items);
+
 /// [threads] with [commentId]'s thread replaced by what [update] makes of it.
 List<CommentThread> updateThread(
   List<CommentThread> threads,
@@ -33,7 +43,8 @@ List<CommentThread> updateThread(
 ];
 
 /// [thread] with [page]'s replies it doesn't have yet after its own, open,
-/// and what the page says about the rest.
+/// and what the page says about the rest. A landed reply the page brings
+/// takes its place among them.
 CommentThread withRepliesPage(
   CommentThread thread,
   CommunityPage<CommunityComment> page,
@@ -41,11 +52,16 @@ CommentThread withRepliesPage(
   final seen = {
     for (final reply in [...thread.replies, ...thread.mine]) reply.id,
   };
+  final paged = {for (final reply in page.items) reply.id};
   return thread.copyWith(
     replies: [
       ...thread.replies,
       for (final reply in page.items)
         if (seen.add(reply.id)) reply,
+    ],
+    landed: [
+      for (final reply in thread.landed)
+        if (!paged.contains(reply.id)) reply,
     ],
     repliesStatus: RepliesStatus.open,
     repliesPage: page.pageNumber,
@@ -58,7 +74,7 @@ CommentThread withRepliesPage(
 CommunityComment? findComment(List<CommentThread> threads, int commentId) {
   for (final thread in threads) {
     if (thread.id == commentId) return thread.comment;
-    for (final reply in [...thread.replies, ...thread.mine]) {
+    for (final reply in [...thread.replies, ...thread.landed, ...thread.mine]) {
       if (reply.id == commentId) return reply;
     }
   }
@@ -79,6 +95,10 @@ List<CommentThread> withCommentLike(
           : thread.comment,
       replies: [
         for (final reply in thread.replies)
+          reply.id == commentId ? reply.withLike(like) : reply,
+      ],
+      landed: [
+        for (final reply in thread.landed)
           reply.id == commentId ? reply.withLike(like) : reply,
       ],
       mine: [

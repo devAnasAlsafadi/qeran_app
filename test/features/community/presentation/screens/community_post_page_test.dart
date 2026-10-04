@@ -8,6 +8,7 @@ import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/connectivity_banner_host.dart';
+import 'package:qeran/features/community/domain/entities/community_landing.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
@@ -39,8 +40,8 @@ void _register(PostHarness post, CommentsHarness comments) {
       watchChanges: post.watch,
     ),
   );
-  sl.registerFactoryParam<CommunityCommentsCubit, int, void>(
-    (postId, _) => CommunityCommentsCubit(
+  sl.registerFactoryParam<CommunityCommentsCubit, int, CommunityLanding?>(
+    (postId, landing) => CommunityCommentsCubit(
       postId: postId,
       getComments: comments.getComments,
       getReplies: comments.getReplies,
@@ -49,6 +50,8 @@ void _register(PostHarness post, CommentsHarness comments) {
       createReply: comments.createReply,
       deleteComment: comments.delete,
       getPost: comments.getPost,
+      getComment: comments.getComment,
+      landing: landing,
     ),
   );
   sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(

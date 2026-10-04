@@ -11,9 +11,9 @@ import '../community_page_error.dart';
 import 'comment_row.dart';
 
 /// Under a comment and its replies (C2): «عرض الردود» before any are shown,
-/// «عرض ردود أخرى» while the server has more — counted in their plural
-/// forms (Q5) — a loader while a page comes, or the page error with its
-/// retry. Nothing once every reply is shown.
+/// «عرض ردود أخرى» while the server has more — or under a landing's reply
+/// (C8) — counted in their plural forms (Q5), a loader while a page comes,
+/// or the page error with its retry. Nothing once every reply is shown.
 class RepliesLink extends StatelessWidget {
   const RepliesLink({super.key, required this.thread, required this.onShow});
 
@@ -52,7 +52,7 @@ class RepliesLink extends StatelessWidget {
   }
 
   String _label(BuildContext context) =>
-      (thread.repliesPage == 0
+      (thread.repliesPage == 0 && thread.landed.isEmpty
               ? LocaleKeys.community_view_replies
               : LocaleKeys.community_more_replies)
           .tPlural(context, thread.hiddenReplies);

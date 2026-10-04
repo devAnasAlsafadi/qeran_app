@@ -14,6 +14,10 @@ enum CommunityCommentsStatus {
 
   /// The first page failed: the error with its retry (C6).
   failure,
+
+  /// The comment or reply a notification is about is gone — deleted, or
+  /// hidden by a block: the content is no longer available (C7).
+  targetGone,
 }
 
 /// One-shot messages for the post screen, told apart by
@@ -60,6 +64,9 @@ class CommunityCommentsState extends Equatable {
   /// Anything not here is posted.
   final Map<int, CommentDelivery> delivery;
 
+  /// The row a landing is about, in gold for a moment (C8, S7).
+  final int? highlightId;
+
   final CommunityCommentsEvent event;
   final int eventVersion;
 
@@ -72,6 +79,7 @@ class CommunityCommentsState extends Equatable {
     this.pageFailed = false,
     this.refreshing = false,
     this.delivery = const {},
+    this.highlightId,
     this.event = CommunityCommentsEvent.none,
     this.eventVersion = 0,
   });
@@ -94,6 +102,22 @@ class CommunityCommentsState extends Equatable {
     pageFailed: pageFailed ?? this.pageFailed,
     refreshing: refreshing ?? this.refreshing,
     delivery: delivery ?? this.delivery,
+    highlightId: highlightId,
+    event: event,
+    eventVersion: eventVersion,
+  );
+
+  /// This state with [id] highlighted, or nothing.
+  CommunityCommentsState withHighlight(int? id) => CommunityCommentsState(
+    status: status,
+    threads: threads,
+    page: page,
+    hasMore: hasMore,
+    loadingMore: loadingMore,
+    pageFailed: pageFailed,
+    refreshing: refreshing,
+    delivery: delivery,
+    highlightId: id,
     event: event,
     eventVersion: eventVersion,
   );
@@ -109,6 +133,7 @@ class CommunityCommentsState extends Equatable {
         pageFailed: pageFailed,
         refreshing: refreshing,
         delivery: delivery,
+        highlightId: highlightId,
         event: next,
         eventVersion: eventVersion + 1,
       );
@@ -123,6 +148,7 @@ class CommunityCommentsState extends Equatable {
     pageFailed,
     refreshing,
     delivery,
+    highlightId,
     event,
     eventVersion,
   ];

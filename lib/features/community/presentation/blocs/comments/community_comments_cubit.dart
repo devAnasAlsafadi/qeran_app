@@ -2,14 +2,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/state/safe_emit.dart';
 import '../../../domain/entities/community_comment.dart';
+import '../../../domain/entities/community_landing.dart';
 import '../../../domain/entities/community_page.dart';
 import '../../../domain/usecases/create_community_comment_usecase.dart';
 import '../../../domain/usecases/create_community_reply_usecase.dart';
 import '../../../domain/usecases/delete_community_comment_usecase.dart';
 import '../../../domain/usecases/get_comment_replies_usecase.dart';
+import '../../../domain/usecases/get_community_comment_usecase.dart';
 import '../../../domain/usecases/get_community_post_usecase.dart';
 import '../../../domain/usecases/get_post_comments_usecase.dart';
 import '../../../domain/usecases/set_comment_like_usecase.dart';
+import 'comment_landing.dart';
 import 'comment_likes.dart';
 import 'comment_removal.dart';
 import 'comment_sending.dart';
@@ -20,13 +23,15 @@ import 'community_comments_state.dart';
 /// A post's discussion (C1–C6, D5–D10): comments newest first, a page at a
 /// time on «عرض تعليقات أخرى», each comment's replies oldest first on «عرض
 /// الردود», the optimistic like ([CommentLikes]), what the member sends
-/// ([CommentSending]) and what leaves the list ([CommentRemoval]).
+/// ([CommentSending]) and what leaves the list ([CommentRemoval]). Opened from
+/// a notification, it lands on what that is about first ([CommentLanding]).
 class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     with
         SafeEmit<CommunityCommentsState>,
         CommentLikes,
         CommentSending,
-        CommentRemoval {
+        CommentRemoval,
+        CommentLanding {
   CommunityCommentsCubit({
     required this.postId,
     required GetPostCommentsUseCase getComments,
@@ -36,9 +41,13 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     required this.createReply,
     required this.deleteComment,
     required this.getPost,
+    required this.getComment,
+    CommunityLanding? landing,
   }) : _getComments = getComments,
        _getReplies = getReplies,
-       super(const CommunityCommentsState());
+       super(const CommunityCommentsState()) {
+    pendingLanding = landing;
+  }
 
   @override
   final int postId;
@@ -52,21 +61,28 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
   final DeleteCommunityCommentUseCase deleteComment;
   @override
   final GetCommunityPostUseCase getPost;
+  @override
+  final GetCommunityCommentUseCase getComment;
   final GetPostCommentsUseCase _getComments;
   final GetCommentRepliesUseCase _getReplies;
   bool _loading = false;
 
-  /// The first page — on opening, and from the error's retry (C6).
+  /// The first page — on opening, and from the error's retry (C6) — with
+  /// the landing's thread first until it has landed.
   Future<void> load() async {
     if (_loading) return;
     _loading = true;
     emit(state.copyWith(status: CommunityCommentsStatus.loading));
-    final result = await _getComments(postId, page: 1);
+    final firstPage = _getComments(postId, page: 1);
+    final landing = pendingLanding;
+    final next = landing != null
+        ? await landOn(landing, firstPage)
+        : (await firstPage).fold(
+            (_) => state.copyWith(status: CommunityCommentsStatus.failure),
+            _firstPage,
+          );
     _loading = false;
-    result.fold(
-      (_) => emit(state.copyWith(status: CommunityCommentsStatus.failure)),
-      (page) => emit(_firstPage(page)),
-    );
+    emit(next);
   }
 
   /// Pull to refresh, as the feed's: the first page again, with the

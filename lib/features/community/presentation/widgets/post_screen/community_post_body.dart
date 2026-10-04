@@ -10,6 +10,7 @@ import '../../blocs/post/community_post_cubit.dart';
 import '../../video/community_stale_refresh.dart';
 import '../../video/community_video_scope.dart';
 import '../comments/comments_header.dart';
+import '../comments/comments_landing_reveal.dart';
 import '../comments/community_comments_sliver.dart';
 import '../menus/community_post_menu.dart';
 import '../post_card/community_post_card.dart';
@@ -69,7 +70,11 @@ class CommunityPostBody extends StatelessWidget {
       ),
       sliver: SliverToBoxAdapter(child: _card(context)),
     ),
-    SliverToBoxAdapter(child: CommentsHeader(count: post.commentCount)),
+    SliverToBoxAdapter(
+      child: CommentsLandingReveal(
+        child: CommentsHeader(count: post.commentCount),
+      ),
+    ),
     CommunityCommentsSliver(readOnly: readOnly, viewer: viewer),
     // The composer below takes the safe area.
     const SliverToBoxAdapter(child: QeranSpacing.vs24),

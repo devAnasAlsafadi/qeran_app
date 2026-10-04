@@ -9,6 +9,7 @@ import '../../../../core/widgets/connectivity_banner_host.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../block/presentation/blocs/block_action_cubit.dart';
 import '../../domain/entities/comment_submit_outcome.dart';
+import '../../domain/entities/community_landing.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_viewer.dart';
 import '../blocs/comments/community_comments_cubit.dart';
@@ -18,18 +19,23 @@ import 'community_me.dart';
 import 'community_post_screen.dart';
 
 /// Opens [postId]'s screen — from a feed card's discussion, with the card's
-/// copy as [post] so it shows at once; from a notification, without one.
-/// Both apps open it here. A `MaterialPageRoute`, so iOS keeps its
-/// edge-swipe back.
+/// copy as [post] so it shows at once; from a notification, without one and
+/// at its [landing] (C8). Both apps open it here. A `MaterialPageRoute`, so
+/// iOS keeps its edge-swipe back.
 Future<void> openCommunityPost(
   BuildContext context, {
   required int postId,
   CommunityPost? post,
+  CommunityLanding? landing,
   CommunityViewer viewer = CommunityViewer.member,
 }) => Navigator.of(context).push(
   MaterialPageRoute<void>(
-    builder: (_) =>
-        CommunityPostPage(postId: postId, post: post, viewer: viewer),
+    builder: (_) => CommunityPostPage(
+      postId: postId,
+      post: post,
+      landing: landing,
+      viewer: viewer,
+    ),
   ),
 );
 
@@ -40,11 +46,15 @@ class CommunityPostPage extends StatelessWidget {
     super.key,
     required this.postId,
     this.post,
+    this.landing,
     this.viewer = CommunityViewer.member,
   });
 
   final int postId;
   final CommunityPost? post;
+
+  /// Where a notification lands in the discussion (C8).
+  final CommunityLanding? landing;
   final CommunityViewer viewer;
 
   /// The composer sends through the comments, as this viewer.
@@ -64,7 +74,8 @@ class CommunityPostPage extends StatelessWidget {
           sl<CommunityPostCubit>(param1: postId, param2: post)..load(),
     ),
     BlocProvider<CommunityCommentsCubit>(
-      create: (_) => sl<CommunityCommentsCubit>(param1: postId)..load(),
+      create: (_) =>
+          sl<CommunityCommentsCubit>(param1: postId, param2: landing)..load(),
     ),
     BlocProvider<CommunityComposerCubit>(create: _composer),
     BlocProvider<BlockActionCubit>(

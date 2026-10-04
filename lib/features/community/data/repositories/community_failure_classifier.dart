@@ -6,6 +6,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../domain/entities/comment_submit_outcome.dart';
 import '../../domain/entities/guidelines_acceptance.dart';
 import '../error_codes.dart';
+import '../models/community_comment_model.dart';
 
 /// The server's `errorCode` on a failure, when it sent one.
 String? communityErrorCode(Failure failure) =>
@@ -59,3 +60,16 @@ CommentSubmitOutcome? classifyCommentFailure(
     _ => null,
   };
 }
+
+/// A comment or reply's answer as the composer takes it: posted, an outcome
+/// the member has a screen for, or a plain failure.
+Either<Failure, CommentSubmitOutcome> commentSubmitOutcomeOf(
+  Either<Failure, CommunityCommentModel> result, {
+  required bool isReply,
+}) => result.fold(
+  (failure) => switch (classifyCommentFailure(failure, isReply: isReply)) {
+    final CommentSubmitOutcome outcome => Right(outcome),
+    null => Left(failure),
+  },
+  (model) => Right(CommentPosted(model.toEntity())),
+);

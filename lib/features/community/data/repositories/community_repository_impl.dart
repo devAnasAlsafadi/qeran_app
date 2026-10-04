@@ -17,7 +17,6 @@ import '../../domain/entities/community_post_change.dart';
 import '../../domain/repositories/community_repository.dart';
 import '../datasources/community_remote_datasource.dart';
 import '../error_codes.dart';
-import '../models/community_comment_model.dart';
 import 'community_failure_classifier.dart';
 
 class CommunityRepositoryImpl with BaseRepository implements CommunityRepository {
@@ -130,7 +129,7 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
       () => _dataSource.createComment(postId, text),
     );
     _announceGone(postId, result);
-    return _submitted(result, isReply: false);
+    return commentSubmitOutcomeOf(result, isReply: false);
   }
 
   @override
@@ -138,7 +137,7 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
     int commentId,
     String text,
   ) async =>
-      _submitted(
+      commentSubmitOutcomeOf(
         await executeApiCall(() => _dataSource.createReply(commentId, text)),
         isReply: true,
       );
@@ -168,18 +167,6 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
   ) async => guidelinesAcceptanceOf(
     await executeApiCall(() => _dataSource.acceptGuidelines(version)),
   );
-
-  Either<Failure, CommentSubmitOutcome> _submitted(
-    Either<Failure, CommunityCommentModel> result, {
-    required bool isReply,
-  }) =>
-      result.fold(
-        (failure) => switch (classifyCommentFailure(failure, isReply: isReply)) {
-          final CommentSubmitOutcome outcome => Right(outcome),
-          null => Left(failure),
-        },
-        (model) => Right(CommentPosted(model.toEntity())),
-      );
 
   void _announceGone<T>(int postId, Either<Failure, T> result) => result.fold(
         (failure) {

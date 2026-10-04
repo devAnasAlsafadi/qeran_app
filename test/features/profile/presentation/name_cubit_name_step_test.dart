@@ -78,9 +78,7 @@ void main() {
 
     await cubit.save(displayName: 'سارة');
 
-    verify(
-      () => updateProfile(displayName: 'سارة', realName: null),
-    ).called(1);
+    verify(() => updateProfile(displayName: 'سارة', realName: null)).called(1);
     await cubit.close();
   });
 
@@ -114,7 +112,10 @@ void main() {
     final cubit = await loaded();
     answer([
       const Left(
-        CodedServerFailure(message: 'اسم غير صالح', errorCode: 'VALIDATION_ERROR'),
+        CodedServerFailure(
+          message: 'اسم غير صالح',
+          errorCode: 'VALIDATION_ERROR',
+        ),
       ),
     ]);
 

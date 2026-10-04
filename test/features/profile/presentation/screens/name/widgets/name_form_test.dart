@@ -36,7 +36,8 @@ Future<void> _pump(
 Finder get _displayField => find.byType(TextField).first;
 
 bool _canSave(WidgetTester tester, String label) =>
-    tester.widget<QeranButton>(find.widgetWithText(QeranButton, label))
+    tester
+        .widget<QeranButton>(find.widgetWithText(QeranButton, label))
         .onPressed !=
     null;
 
@@ -65,9 +66,7 @@ void main() {
     );
   });
 
-  testWidgets('the placeholder is refused as it is typed [ar]', (
-    tester,
-  ) async {
+  testWidgets('the placeholder is refused as it is typed [ar]', (tester) async {
     await _pump(tester, _ar);
 
     await tester.enterText(_displayField, 'مُسْتَخْدَم');
@@ -78,9 +77,7 @@ void main() {
     expect(_canSave(tester, 'حفظ التغييرات'), isFalse);
   });
 
-  testWidgets('the placeholder is refused as it is typed [en]', (
-    tester,
-  ) async {
+  testWidgets('the placeholder is refused as it is typed [en]', (tester) async {
     await _pump(tester, _en);
 
     await tester.enterText(_displayField, 'مستخدم جديد');

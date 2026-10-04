@@ -21,6 +21,8 @@ class QeranComposerField extends StatelessWidget {
     this.error = false,
     this.textDirection,
     this.fontFamily,
+    this.readOnly = false,
+    this.onTap,
   });
 
   final TextEditingController controller;
@@ -34,12 +36,20 @@ class QeranComposerField extends StatelessWidget {
   final TextDirection? textDirection;
   final String? fontFamily;
 
+  /// A field that waits: it takes no focus and opens no keyboard, and a tap
+  /// only calls [onTap] — Community's composer while a step comes first.
+  final bool readOnly;
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final cap = maxLength;
     return TextField(
       controller: controller,
       focusNode: focusNode,
+      readOnly: readOnly,
+      canRequestFocus: !readOnly,
+      onTap: onTap,
       minLines: 1,
       maxLines: 5,
       maxLength: cap,

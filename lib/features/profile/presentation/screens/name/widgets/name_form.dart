@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_helper_line.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/validators.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+
+import 'display_name_field.dart';
 
 /// Both names in one form, saved by one action. Neither field is locked — the
 /// backend has no cooldown, so the only gates are "is it valid" and "did it
@@ -17,6 +20,7 @@ class NameForm extends StatefulWidget {
     required this.isDefaultName,
     required this.saving,
     required this.onSave,
+    this.filteredName,
   });
 
   /// The saved display name — the baseline the field is diffed against.
@@ -30,6 +34,10 @@ class NameForm extends StatefulWidget {
   /// a value the member never chose.
   final bool isDefaultName;
   final bool saving;
+
+  /// The display name the server's filter refused (Q10): said under the
+  /// field, and not offered for saving again.
+  final String? filteredName;
 
   /// Fires with the raw field text. Deciding what "unchanged", "cleared" and
   /// "set" mean for [realName] is the cubit's job, not the form's.
@@ -73,7 +81,8 @@ class _NameFormState extends State<NameForm> {
   /// a submit COULD succeed; the messages appear only once one is attempted.
   bool get _isValid =>
       Validators.validateDisplayName(_displayName.text) == null &&
-      Validators.validateRealName(_realName.text) == null;
+      Validators.validateRealName(_realName.text) == null &&
+      _displayName.text.trim() != widget.filteredName;
 
   void _submit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -107,14 +116,11 @@ class _NameFormState extends State<NameForm> {
     );
   }
 
-  Widget _displayNameField(BuildContext context) => QeranTextField(
+  Widget _displayNameField(BuildContext context) => DisplayNameField(
     controller: _displayName,
-    label: LocaleKeys.profile_name_display_label.t(context),
-    hint: LocaleKeys.profile_name_input_hint.t(context),
+    filteredName: widget.filteredName,
     enabled: !widget.saving,
-    maxLength: Validators.displayNameMax,
     textInputAction: TextInputAction.next,
-    validator: Validators.validateDisplayName,
     // Rebuild so Save tracks whether either name has actually changed.
     onChanged: (_) => setState(() {}),
   );
@@ -127,6 +133,10 @@ class _NameFormState extends State<NameForm> {
     maxLength: Validators.realNameMax,
     textInputAction: TextInputAction.done,
     validator: Validators.validateRealName,
+    helper: QeranHelperLine(
+      icon: Icons.lock_outline_rounded,
+      text: LocaleKeys.profile_name_real_help.t(context),
+    ),
     onChanged: (_) => setState(() {}),
     onSubmitted: (_) => _submit(),
   );

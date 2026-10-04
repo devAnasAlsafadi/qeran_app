@@ -62,3 +62,13 @@ class ProfileImageErrorCodes {
   static String? localeKeyFor(String? code) =>
       code == null ? null : _localeKeys[code];
 }
+
+/// `errorCode`s `PUT /api/profile` returns for the names.
+class ProfileNameErrorCodes {
+  const ProfileNameErrorCodes._();
+
+  /// The content filter refused the display name (Q10). The placeholders
+  /// come back as `VALIDATION_ERROR` instead — and the form's own check
+  /// stops them before a save.
+  static const String contentNotAllowed = 'CONTENT_NOT_ALLOWED';
+}

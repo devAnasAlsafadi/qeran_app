@@ -16,6 +16,7 @@ class NameState extends Equatable {
     this.event = NameEvent.none,
     this.eventVersion = 0,
     this.errorMessage,
+    this.filteredName,
   });
 
   final NameStatus status;
@@ -32,6 +33,10 @@ class NameState extends Equatable {
   /// The backend attributes a rejection to the call, not to a field, so this
   /// one envelope message carries every failure.
   final String? errorMessage;
+
+  /// The display name the server's filter refused (Q10). The form says so
+  /// under the field while that name is in it; null once a name is saved.
+  final String? filteredName;
 
   /// The saved display name — the baseline the form's field is diffed against.
   String get displayName => profile?.name ?? '';
@@ -51,6 +56,8 @@ class NameState extends Equatable {
     int? eventVersion,
     String? errorMessage,
     bool clearError = false,
+    String? filteredName,
+    bool clearFiltered = false,
   }) {
     return NameState(
       status: status ?? this.status,
@@ -60,6 +67,9 @@ class NameState extends Equatable {
       eventVersion: eventVersion ?? this.eventVersion,
       // A new attempt clears what the previous one reported.
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      filteredName: clearFiltered
+          ? null
+          : (filteredName ?? this.filteredName),
     );
   }
 
@@ -71,5 +81,6 @@ class NameState extends Equatable {
     event,
     eventVersion,
     errorMessage,
+    filteredName,
   ];
 }

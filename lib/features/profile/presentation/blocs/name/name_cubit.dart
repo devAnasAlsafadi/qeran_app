@@ -3,6 +3,7 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
+import '../../../data/error_codes.dart';
 import '../../../domain/entities/my_profile.dart';
 import '../../../domain/usecases/get_my_profile_usecase.dart';
 import '../../../domain/usecases/update_profile_usecase.dart';
@@ -49,7 +50,8 @@ class NameCubit extends Cubit<NameState>
   /// the default-name banner change without a second read.
   ///
   /// [displayName] is required by the backend on every call. [realName] is
-  /// resolved against the loaded baseline by [_realNamePayload].
+  /// resolved against the loaded baseline by [_realNamePayload]; left out —
+  /// Community's name step has no real-name field — it stays as it is.
   Future<void> save({required String displayName, String? realName}) async {
     final trimmedDisplayName = displayName.trim();
     if (state.saving || trimmedDisplayName.isEmpty) return;
@@ -68,7 +70,10 @@ class NameCubit extends Cubit<NameState>
       realName: realNamePayload,
     );
     if (isClosed) return;
-    result.fold(_onSaveFailure, _onSaveSuccess);
+    result.fold(
+      (failure) => _onSaveFailure(failure, trimmedDisplayName),
+      _onSaveSuccess,
+    );
   }
 
   /// What to send for `realName`, per the backend's three-way contract:
@@ -77,9 +82,11 @@ class NameCubit extends Cubit<NameState>
   ///
   /// Diffing against the loaded profile is what lets "the member never touched
   /// this field" and "the member emptied it" resolve differently without the
-  /// form having to track whether it was focused.
+  /// form having to track whether it was focused. No [input] at all — no
+  /// field for it — leaves it unchanged too.
   String? _realNamePayload(String? input) {
-    final current = input?.trim() ?? '';
+    if (input == null) return null;
+    final current = input.trim();
     // `state.realName` already trims and normalises blank to null, so an
     // absent name and an empty one compare equal here.
     final baseline = state.realName ?? '';
@@ -97,15 +104,22 @@ class NameCubit extends Cubit<NameState>
         event: NameEvent.saved,
         eventVersion: state.eventVersion + 1,
         clearError: true,
+        clearFiltered: true,
       ),
     );
   }
 
-  void _onSaveFailure(Failure failure) {
+  /// A refused [displayName] (Q10) stays in the form, which says why under
+  /// the field — no toast. Anything else is the server's word, as a toast.
+  void _onSaveFailure(Failure failure, String displayName) {
     AppLogger.warning(
       'Profile names save failed message="${failure.message}"',
       tag: 'PROFILE',
     );
+    if (failure is CodedServerFailure &&
+        failure.errorCode == ProfileNameErrorCodes.contentNotAllowed) {
+      return emit(state.copyWith(saving: false, filteredName: displayName));
+    }
     emit(
       state.copyWith(
         saving: false,

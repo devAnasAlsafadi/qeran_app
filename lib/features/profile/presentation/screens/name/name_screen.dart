@@ -99,6 +99,7 @@ class _Body extends StatelessWidget {
         currentRealName: state.realName,
         isDefaultName: state.profile?.isDefaultName ?? false,
         saving: state.saving,
+        filteredName: state.filteredName,
         onSave: ({required displayName, realName}) =>
             context.read<NameCubit>().save(
               displayName: displayName,

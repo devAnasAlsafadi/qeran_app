@@ -44,6 +44,21 @@ void main() {
 
       expect((thread.offersReplies, thread.hiddenReplies), (false, 0));
     });
+
+    test('the member\'s reply posted on a comment that had none: no link, '
+        'never «عرض 0 ردّ»', () {
+      final sent = withMyReply([
+        CommentThread(testComment()),
+      ], testReply(id: -1, isMine: true));
+
+      final thread = withPosted(sent, -1, testReply(id: 98, isMine: true));
+
+      expect(thread.single.comment.replyCount, 1);
+      expect(
+        (thread.single.offersReplies, thread.single.hiddenReplies),
+        (false, 0),
+      );
+    });
   });
 
   test('a like lands on the reply it\'s for, wherever it is', () {

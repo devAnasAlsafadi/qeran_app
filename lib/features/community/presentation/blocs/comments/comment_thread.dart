@@ -63,11 +63,11 @@ class CommentThread extends Equatable {
     return max(total - replies.length - posted, 0);
   }
 
-  /// Whether the link offers replies: any at all before the first page,
-  /// then more of them while the server has more.
-  bool get offersReplies => repliesPage == 0
-      ? comment.replyCount > 0
-      : hasMoreReplies && hiddenReplies > 0;
+  /// Whether the link offers replies: any not shown yet — before the first
+  /// page, then while the server has more. The member's own reply, posted
+  /// before any page, is counted and already shown.
+  bool get offersReplies =>
+      hiddenReplies > 0 && (repliesPage == 0 || hasMoreReplies);
 
   CommentThread copyWith({
     CommunityComment? comment,

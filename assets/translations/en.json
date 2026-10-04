@@ -263,6 +263,13 @@
     "rate_limited": "You’ve posted a lot in a short time. Wait a moment and try again.",
     "read_only_comment": "You can comment and reply once your profile is approved.",
     "content_gone": "This content is no longer available.",
+    "name_gate_header": "Your name in Community",
+    "name_gate_title": "Choose the name shown with your comments",
+    "name_gate_body": "Your display name is still the default “مستخدم” (User). Choose a name that identifies you before you join the discussion.",
+    "name_private": "Your real name is private and never shown.",
+    "name_gate_preview": "How your name will appear",
+    "name_gate_preview_text": "Your comment appears here",
+    "name_gate_save": "Save and continue",
     "view_replies": {
       "one": "View 1 reply",
       "other": "View {n} replies"

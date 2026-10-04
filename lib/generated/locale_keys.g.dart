@@ -255,6 +255,13 @@ abstract class  LocaleKeys {
   static const community_rate_limited = 'community.rate_limited';
   static const community_read_only_comment = 'community.read_only_comment';
   static const community_content_gone = 'community.content_gone';
+  static const community_name_gate_header = 'community.name_gate_header';
+  static const community_name_gate_title = 'community.name_gate_title';
+  static const community_name_gate_body = 'community.name_gate_body';
+  static const community_name_private = 'community.name_private';
+  static const community_name_gate_preview = 'community.name_gate_preview';
+  static const community_name_gate_preview_text = 'community.name_gate_preview_text';
+  static const community_name_gate_save = 'community.name_gate_save';
   static const community_view_replies = 'community.view_replies';
   static const community_more_replies = 'community.more_replies';
   static const community = 'community';

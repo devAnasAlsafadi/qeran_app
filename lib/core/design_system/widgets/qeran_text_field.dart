@@ -5,6 +5,7 @@ import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_shadows.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
+import 'qeran_helper_line.dart';
 
 part 'qeran_text_field_parts.dart';
 
@@ -42,6 +43,7 @@ class QeranTextField extends StatefulWidget {
     this.prefix,
     this.suffix,
     this.autofillHints,
+    this.helper,
   }) : assert(
          minLines == null || minLines <= maxLines,
          'minLines cannot exceed maxLines',
@@ -91,6 +93,12 @@ class QeranTextField extends StatefulWidget {
   /// built-in eye takes the slot).
   final Widget? suffix;
   final Iterable<String>? autofillHints;
+
+  /// A line of help under the field, beside the counter. A field with one
+  /// says what's wrong in the same shape — the error glyph and the text in
+  /// danger take the line's place — instead of a bare error text. Both a
+  /// [validator]'s message and [errorText] do.
+  final QeranHelperLine? helper;
 
   @override
   State<QeranTextField> createState() => _QeranTextFieldState();

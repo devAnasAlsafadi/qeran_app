@@ -31,6 +31,9 @@ extension _Field on _QeranTextFieldState {
       controller: widget.controller,
       focusNode: _focusNode,
       validator: widget.validator,
+      errorBuilder: widget.helper == null
+          ? null
+          : (_, error) => QeranHelperLine.error(error),
       obscureText: widget.obscureText && _obscured,
       keyboardType: widget.keyboardType,
       textInputAction: _inputAction,
@@ -76,7 +79,11 @@ extension _Field on _QeranTextFieldState {
       contentPadding: _contentPadding,
       hintText: widget.hint,
       hintStyle: QeranTypography.bodySm.copyWith(color: QeranColors.inkFaint),
-      errorText: widget.errorText,
+      helper: widget.helper,
+      // With a help line an error takes its shape: Material allows the
+      // widget or the text, never both.
+      errorText: widget.helper == null ? widget.errorText : null,
+      error: _errorLine(),
       errorStyle: QeranTypography.caption.copyWith(color: QeranColors.danger),
       counterStyle: QeranTypography.caption.copyWith(
         color: QeranColors.inkMuted,
@@ -91,6 +98,12 @@ extension _Field on _QeranTextFieldState {
       focusedErrorBorder: _border(_focusedErrorEdge),
     );
   }
+
+  /// [QeranTextField.errorText] as the help line's error, when there's one.
+  Widget? _errorLine() => switch (widget.errorText) {
+    final error? when widget.helper != null => QeranHelperLine.error(error),
+    _ => null,
+  };
 
   Widget? _suffix() {
     if (widget.obscureText && widget.showObscureToggle) {

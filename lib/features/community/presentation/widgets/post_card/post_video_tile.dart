@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
@@ -11,6 +10,7 @@ import '../../video/community_video_controller.dart';
 import '../../video/community_video_phase.dart';
 import '../../screens/community_media_viewer.dart';
 import '../../video/community_video_scope.dart';
+import '../../video/video_pause_rules.dart';
 import '../community_network_image.dart';
 import '../video/video_controls_bar.dart';
 import '../video/video_layers.dart';
@@ -34,14 +34,11 @@ class PostVideoTile extends StatefulWidget {
 }
 
 class _PostVideoTileState extends State<PostVideoTile>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, VideoPauseRules<PostVideoTile> {
   CommunityVideoController? _controller;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
+  CommunityVideoController? get pausable => _controller;
 
   @override
   void didUpdateWidget(PostVideoTile oldWidget) {
@@ -49,33 +46,8 @@ class _PostVideoTileState extends State<PostVideoTile>
     if (oldWidget.video != widget.video) _controller?.video = widget.video;
   }
 
-  /// A hidden tab or a route over this one pauses it.
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final shown =
-        TickerMode.valuesOf(context).enabled &&
-        (ModalRoute.of(context)?.isCurrent ?? true);
-    // Full screen, the viewer is over it on purpose: it keeps playing.
-    if (!shown && !(_controller?.handedOver ?? false)) _controller?.suspend();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (_leavesForeground(state)) _controller?.suspend();
-  }
-
-  /// Android leaves at `hidden` / `paused`; iOS already at `inactive` (D12,
-  /// the privacy shield's rule).
-  static bool _leavesForeground(AppLifecycleState state) =>
-      state == AppLifecycleState.paused ||
-      state == AppLifecycleState.hidden ||
-      (state == AppLifecycleState.inactive &&
-          defaultTargetPlatform == TargetPlatform.iOS);
-
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _controller?.dispose();
     super.dispose();
   }

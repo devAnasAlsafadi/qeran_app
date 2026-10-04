@@ -30,8 +30,51 @@ class DeviceRegistration {
        _sharedPrefs = sharedPrefs,
        _language = language;
 
+  /// A renewal under way ([renewToken]): token reads wait for it, so a
+  /// sign-in meanwhile never links the token being deleted.
+  Future<void> _renewal = Future<void>.value();
+
+  /// How long FCM gets to delete the token before the renewal stops there.
+  static const Duration _deleteWait = Duration(seconds: 10);
+
+  /// What says which token the server last saw — forgotten with the token.
+  static const List<String> _tokenKeys = [
+    StorageKeys.latestFcmToken,
+    StorageKeys.lastRegisteredFcm,
+    StorageKeys.deviceRegistered,
+  ];
+
   /// The cached token, or a fresh one from FCM (then cached).
   Future<String?> readOrFetchToken() async {
+    await _renewal;
+    return _readOrFetch();
+  }
+
+  /// Sign-out (A1): deletes this device's token with FCM, so nothing sent to
+  /// it arrives any more, whoever it was linked to; then registers a new one,
+  /// linked to no one until the next sign-in. Runs in the background and
+  /// never throws. If FCM can't be reached the token stays, its markers
+  /// forgotten: the next read registers it again.
+  void renewToken() => _renewal = _renew();
+
+  Future<void> _renew() async {
+    try {
+      final deleted = await _notifications
+          .deleteToken()
+          .then((_) => true)
+          .timeout(_deleteWait, onTimeout: () => false);
+      for (final key in _tokenKeys) {
+        await _sharedPrefs.remove(key);
+      }
+      if (!deleted) return;
+      final fresh = await _readOrFetch();
+      if (fresh != null) await registerIfNeeded(fresh);
+    } catch (e, s) {
+      AppLogger.error('renewToken failed', error: e, stack: s, tag: 'DEVICE');
+    }
+  }
+
+  Future<String?> _readOrFetch() async {
     final cached = await _sharedPrefs.get<String>(StorageKeys.latestFcmToken);
     if (cached != null && cached.isNotEmpty) return cached;
     final fresh = await _notifications.getToken();

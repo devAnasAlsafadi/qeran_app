@@ -35,20 +35,27 @@ class UserSessionCubit extends Cubit<UserSessionState>
   /// the account changes, so the next one starts from nothing.
   final AccountScope _accountScope;
 
+  /// Stops this device's push for the account signing out. Runs while the
+  /// token is still stored — the server's unlink needs it.
+  final Future<void> Function() _releasePush;
+
   /// [formMemo] defaults to the app-scoped instance; a test that has not booted
   /// the container gets an isolated one rather than a lookup crash. The app
-  /// passes its [accountScope]; a test that doesn't gets an empty one.
+  /// passes its [accountScope] and [releasePush]; a test that doesn't gets
+  /// an empty scope and no push to release.
   UserSessionCubit({
     required StorageService secureStorage,
     required SharedPrefService sharedPrefs,
     required GoogleSignInService googleSignIn,
     AuthFormMemo? formMemo,
     AccountScope? accountScope,
+    Future<void> Function()? releasePush,
   }) : _secureStorage = secureStorage,
        _sharedPrefs = sharedPrefs,
        _googleSignIn = googleSignIn,
        _formMemo = formMemo ?? resolveAuthFormMemo(),
        _accountScope = accountScope ?? AccountScope(),
+       _releasePush = releasePush ?? (() async {}),
        super(const UserSessionInitial());
 
   /// Synchronous accessor for call sites that can't await a stream.
@@ -135,9 +142,14 @@ class UserSessionCubit extends Cubit<UserSessionState>
   /// Forgets the whole account, as a delete does short of secure storage:
   /// the token, every account-level pref (a half-done questionnaire, the
   /// chosen gender and the read marks included), what the auth forms
-  /// remembered, and the app-scoped state ([_forgetAccount]).
+  /// remembered, and the app-scoped state ([_forgetAccount]). Push for the
+  /// account stops first ([_releasePush]); best effort — a failure never
+  /// stops the sign-out.
   Future<void> signOut() async {
     await _clearSocialSessions();
+    await Future.sync(_releasePush).catchError(
+      (Object e) => AppLogger.warning('Push release: $e', tag: 'SESSION'),
+    );
     await _secureStorage.remove(StorageKeys.token);
     await _forgetAccount();
     emit(const UserSessionUnauthenticated());

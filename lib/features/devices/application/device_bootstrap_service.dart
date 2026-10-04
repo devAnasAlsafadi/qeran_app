@@ -110,6 +110,30 @@ class DeviceBootstrapService {
     }
   }
 
+  /// Sign-out (A1): the account leaving stops reaching this phone. Called
+  /// while the account's token is still stored, since the server's unlink
+  /// needs it, and waits [_unlinkWait] at most: offline the unlink fails at
+  /// once, a slow one finishes on its own. Then the device's FCM token is
+  /// renewed in the background ([DeviceRegistration.renewToken]), which
+  /// holds even when the server never heard. Never throws.
+  Future<void> releasePush() async {
+    try {
+      final token = await _sharedPrefs.get<String>(StorageKeys.latestFcmToken);
+      if (token == null || token.isEmpty) return;
+      await _account
+          .unlink(token)
+          .timeout(_unlinkWait)
+          .catchError(
+            (Object e) => AppLogger.warning('unlink: $e', tag: 'DEVICE'),
+          );
+      _registration.renewToken();
+    } catch (e, s) {
+      AppLogger.error('releasePush failed', error: e, stack: s, tag: 'DEVICE');
+    }
+  }
+
+  static const Duration _unlinkWait = Duration(seconds: 3);
+
   /// Wired into FirebaseMessaging.onTokenRefresh.
   Future<void> onTokenRefreshed(String newToken) async {
     try {

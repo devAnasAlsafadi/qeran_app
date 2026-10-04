@@ -9,6 +9,7 @@ import '../../features/auth/presentation/blocs/user_session/user_session_cubit.d
 import '../../features/badges/di/badges_injection.dart';
 import '../../features/chat/di/chat_injection.dart';
 import '../../features/community/di/community_injection.dart';
+import '../../features/devices/application/device_bootstrap_service.dart';
 import '../../features/devices/di/devices_injection.dart';
 import '../../features/discovery/di/discovery_injection.dart';
 import '../../features/legal/di/legal_injection.dart';
@@ -136,6 +137,7 @@ Future<void> init() async {
       sharedPrefs: sl<SharedPrefService>(),
       googleSignIn: sl<GoogleSignInService>(),
       accountScope: sl(),
+      releasePush: () => sl<DeviceBootstrapService>().releasePush(),
     ),
   );
 

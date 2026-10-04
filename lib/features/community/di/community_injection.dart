@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../data/datasources/community_remote_datasource.dart';
 import '../data/datasources/community_remote_datasource_impl.dart';
@@ -25,6 +26,7 @@ import '../domain/entities/community_post.dart';
 import '../presentation/blocs/comments/community_comments_cubit.dart';
 import '../presentation/blocs/composer/community_composer_cubit.dart';
 import '../presentation/blocs/feed/community_feed_cubit.dart';
+import '../presentation/blocs/guidelines/community_guidelines_cubit.dart';
 import '../presentation/blocs/post/community_post_cubit.dart';
 
 /// `--dart-define=COMMUNITY_MOCK=seeded|empty|errors|slow` (Q2). Read here
@@ -81,6 +83,15 @@ void initCommunityDependencies() {
   sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
     (send, retry) =>
         CommunityComposerCubit(getConfig: sl(), send: send, retry: retry),
+  );
+  // The guidelines step tells the app's profile gate when they're accepted,
+  // so the composer stops asking (D7).
+  sl.registerFactory(
+    () => CommunityGuidelinesCubit(
+      getGuidelines: sl(),
+      accept: sl(),
+      onAccepted: sl<ProfileGateCubit>().markCommunityGuidelinesAccepted,
+    ),
   );
   sl.registerFactoryParam<CommunityCommentsCubit, int, void>(
     (postId, _) => CommunityCommentsCubit(

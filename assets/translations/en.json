@@ -270,6 +270,11 @@
     "name_gate_preview": "How your name will appear",
     "name_gate_preview_text": "Your comment appears here",
     "name_gate_save": "Save and continue",
+    "guidelines_title": "Community guidelines",
+    "guidelines_agree": "I agree, continue",
+    "guidelines_not_now": "Not now",
+    "guidelines_error": "Couldn't load the guidelines",
+    "guidelines_accept_failed": "Couldn't save your agreement. Try again.",
     "view_replies": {
       "one": "View 1 reply",
       "other": "View {n} replies"

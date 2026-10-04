@@ -1,12 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
-import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/community/presentation/screens/community_name_gate_page.dart';
 import 'package:qeran/features/profile/domain/entities/my_profile.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
@@ -15,8 +12,7 @@ import 'package:qeran/features/profile/domain/usecases/update_profile_usecase.da
 import 'package:qeran/features/profile/presentation/blocs/name/name_cubit.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
-import '../../../../core/shipped_strings_rig.dart';
-import '../../fixtures/community_mock_harness.dart';
+import 'pushed_step_rig.dart';
 
 class _MockGetMyProfile extends Mock implements GetMyProfileUseCase {}
 
@@ -78,34 +74,15 @@ class NameGateHarness {
   }
 }
 
-/// Opens the name step in [locale] on a phone [size], over a screen with
-/// one button, under what the app's root holds: the toasts and the
-/// connection.
+/// Opens the name step in [locale] on a phone [size], as the composer will.
 Future<void> openNameGate(
   WidgetTester tester,
   NameGateHarness harness, {
   Locale locale = const Locale('en'),
   Size size = const Size(390, 900),
-}) async {
-  tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = size;
-  addTearDown(tester.view.reset);
-  addTearDown(AppSnackBar.debugReset);
-  await pumpShippedStrings(
-    tester,
-    locale,
-    builder: (_, navigator) => BlocProvider<ConnectivityCubit>(
-      create: (_) => ConnectivityCubit(service: FakeConnectivity()),
-      child: AppSnackBarHost(child: navigator!),
-    ),
-    child: Builder(
-      builder: (context) => TextButton(
-        onPressed: () async =>
-            harness.result = await openCommunityNameGate(context),
-        child: const Text('open'),
-      ),
-    ),
-  );
-  await tester.tap(find.text('open'));
-  await tester.pumpAndSettle();
-}
+}) => openPushedStep(
+  tester,
+  (context) async => harness.result = await openCommunityNameGate(context),
+  locale: locale,
+  size: size,
+);

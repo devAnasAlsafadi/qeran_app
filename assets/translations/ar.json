@@ -270,6 +270,11 @@
     "name_gate_preview": "هكذا سيظهر اسمك",
     "name_gate_preview_text": "تعليقك يظهر هنا",
     "name_gate_save": "حفظ ومتابعة",
+    "guidelines_title": "إرشادات المجتمع",
+    "guidelines_agree": "أوافق وأتابع",
+    "guidelines_not_now": "ليس الآن",
+    "guidelines_error": "تعذّر تحميل الإرشادات",
+    "guidelines_accept_failed": "تعذّر حفظ موافقتك، حاول مرة أخرى.",
     "view_replies": {
       "one": "عرض الردّ",
       "two": "عرض الردّين",

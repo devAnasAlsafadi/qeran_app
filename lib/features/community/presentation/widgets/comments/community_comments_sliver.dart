@@ -6,10 +6,12 @@ import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../domain/entities/community_comment.dart';
+import '../../../domain/entities/community_viewer.dart';
 import '../../blocs/comments/comment_thread.dart';
 import '../../blocs/comments/community_comments_cubit.dart';
 import '../../blocs/comments/community_comments_state.dart';
 import '../../blocs/composer/community_composer_cubit.dart';
+import '../menus/community_comment_menu.dart';
 import 'comment_row.dart';
 import 'comments_skeleton.dart';
 import 'more_comments_footer.dart';
@@ -20,9 +22,16 @@ import 'replies_link.dart';
 /// yet — the error with its retry, or each comment with its replies and
 /// their link, then the footer.
 class CommunityCommentsSliver extends StatelessWidget {
-  const CommunityCommentsSliver({super.key, required this.readOnly});
+  const CommunityCommentsSliver({
+    super.key,
+    required this.readOnly,
+    required this.viewer,
+  });
 
   final bool readOnly;
+
+  /// Whose ⋮ options the rows offer (D40).
+  final CommunityViewer viewer;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +103,7 @@ class CommunityCommentsSliver extends StatelessWidget {
     parent: parent,
     delivery: state.delivery[comment.id],
     readOnly: readOnly,
+    viewer: viewer,
   );
 }
 
@@ -104,12 +114,14 @@ class _CommentItem extends StatelessWidget {
     super.key,
     required this.comment,
     required this.readOnly,
+    required this.viewer,
     this.parent,
     this.delivery,
   });
 
   final CommunityComment comment;
   final bool readOnly;
+  final CommunityViewer viewer;
 
   /// The comment a reply answers.
   final CommunityComment? parent;
@@ -129,6 +141,10 @@ class _CommentItem extends StatelessWidget {
       ),
       onReply: answerable ? () => composer.replyTo(comment) : null,
       onRetry: () => composer.retry(comment.id, comment.text, parent: parent),
+      // One on its way, or failed, has nothing to report or delete yet.
+      menu: delivery == null
+          ? communityCommentMenu(comment, viewer: viewer)
+          : null,
     );
   }
 }

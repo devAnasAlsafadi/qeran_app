@@ -76,7 +76,7 @@ class _GalleryGrid extends StatelessWidget {
                     color: QeranColors.wine,
                     size: 22,
                   ),
-                  onPressed: () => showReportSheet(context, targetUserId: id),
+                  onPressed: () => showUserReportSheet(context, id),
                 ),
         ),
       ],

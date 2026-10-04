@@ -1,6 +1,9 @@
 import 'package:qeran/core/api/api_consumer.dart';
+import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/report/domain/entities/report_reason.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
 
 import '../community_end_points.dart';
 import '../json_parsers.dart';
@@ -106,6 +109,24 @@ class CommunityRemoteDataSourceImpl implements CommunityRemoteDataSource {
         CommunityEndPoints.acceptGuidelines,
         body: {'version': version},
       );
+
+  @override
+  Future<void> reportContent(
+    ContentReportTarget target, {
+    required ReportReason reason,
+    String? note,
+  }) {
+    final trimmed = note?.trim();
+    return _api.post(
+      EndPoints.reports,
+      body: {
+        'targetContentType': target.apiType,
+        'targetContentId': '${target.id}',
+        'reason': reason.apiValue,
+        if (trimmed != null && trimmed.isNotEmpty) 'note': trimmed,
+      },
+    );
+  }
 
   Future<CommunityLikeStateModel> _like(String path, {required bool liked}) async {
     final body = liked ? await _api.put(path) : await _api.delete(path);

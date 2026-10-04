@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import 'package:qeran/features/report/domain/repositories/content_reporter.dart';
 
 import '../data/datasources/community_remote_datasource.dart';
 import '../data/datasources/community_remote_datasource_impl.dart';
@@ -20,6 +21,7 @@ import '../domain/usecases/get_community_feed_usecase.dart';
 import '../domain/usecases/get_community_guidelines_usecase.dart';
 import '../domain/usecases/get_community_post_usecase.dart';
 import '../domain/usecases/get_post_comments_usecase.dart';
+import '../domain/usecases/report_community_content_usecase.dart';
 import '../domain/usecases/set_comment_like_usecase.dart';
 import '../domain/usecases/set_post_like_usecase.dart';
 import '../domain/usecases/watch_community_post_changes_usecase.dart';
@@ -64,6 +66,11 @@ void initCommunityDependencies() {
   sl.registerLazySingleton(() => GetCommunityConfigUseCase(sl()));
   sl.registerLazySingleton(() => GetCommunityGuidelinesUseCase(sl()));
   sl.registerLazySingleton(() => AcceptCommunityGuidelinesUseCase(sl()));
+  // The report sheet's path for content (Q3): through Community's datasource,
+  // so the dev-flag mock's ids never reach the real endpoint.
+  sl.registerLazySingleton<ContentReporter>(
+    () => ReportCommunityContentUseCase(sl()),
+  );
   sl.registerLazySingleton(() => WatchCommunityPostChangesUseCase(sl()));
 
   sl.registerFactory(

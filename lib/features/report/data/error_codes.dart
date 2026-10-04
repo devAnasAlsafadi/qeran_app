@@ -9,4 +9,8 @@ class ReportErrorCodes {
   /// The reported user no longer exists (deleted / unavailable). Also returned
   /// neutrally when the target has blocked the reporter — never reveal that.
   static const String targetUserNotFound = 'TARGET_USER_NOT_FOUND';
+
+  /// The reported post, comment or reply is gone (deleted, or hidden by a
+  /// block) — contract §5.1.
+  static const String targetContentNotFound = 'TARGET_CONTENT_NOT_FOUND';
 }

@@ -13,17 +13,19 @@ import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/report_reason.dart';
+import '../../domain/entities/report_target.dart';
 import '../blocs/report_cubit.dart';
 import '../blocs/report_state.dart';
+import 'report_copy.dart';
 import 'report_reason_row.dart';
 
-/// The report sheet's content: the title, the reasons, an optional note,
-/// and Send / Cancel. Closes itself on success.
+/// The report sheet's content: the title and reasons for its [target], an
+/// optional note, and Send / Cancel. Closes itself on success, and when the
+/// content turns out to be gone (E7).
 class ReportSheetBody extends StatefulWidget {
-  const ReportSheetBody({super.key, this.targetUserId, this.targetContentId});
+  const ReportSheetBody({super.key, required this.target});
 
-  final String? targetUserId;
-  final String? targetContentId;
+  final ReportTarget target;
 
   @override
   State<ReportSheetBody> createState() => _ReportSheetBodyState();
@@ -39,25 +41,16 @@ class _ReportSheetBodyState extends State<ReportSheetBody> {
     super.dispose();
   }
 
-  String _label(BuildContext c, ReportReason r) => switch (r) {
-    ReportReason.inappropriateContent =>
-      LocaleKeys.report_reason_inappropriate.t(c),
-    ReportReason.impersonation => LocaleKeys.report_reason_impersonation.t(c),
-    ReportReason.harassment => LocaleKeys.report_reason_harassment.t(c),
-    ReportReason.scam => LocaleKeys.report_reason_scam.t(c),
-    ReportReason.falseInformation =>
-      LocaleKeys.report_reason_false_information.t(c),
-    ReportReason.other => LocaleKeys.report_reason_other.t(c),
-  };
-
   void _onOutcome(BuildContext context, ReportState state) {
     if (!context.mounted) return;
     switch (state.outcome) {
-      case ReportOutcome.success:
+      case ReportOutcome.success || ReportOutcome.gone:
         Navigator.of(context).pop();
         AppSnackBar.showOnRoot(
           message: (state.messageKey ?? LocaleKeys.report_success).t(context),
-          type: SnackBarType.success,
+          type: state.outcome == ReportOutcome.gone
+              ? SnackBarType.info
+              : SnackBarType.success,
         );
       case ReportOutcome.failure:
         AppSnackBar.show(
@@ -113,9 +106,9 @@ class _ReportSheetBodyState extends State<ReportSheetBody> {
   );
 
   Iterable<Widget> _reasons(BuildContext context, ReportState state) =>
-      ReportReason.values.map(
+      ReportReason.forTarget(widget.target).map(
         (r) => ReportReasonRow(
-          label: _label(context, r),
+          label: reportReasonKey(r, widget.target).t(context),
           selected: _selected == r,
           onTap: state.submitting ? null : () => setState(() => _selected = r),
         ),
@@ -136,7 +129,7 @@ class _ReportSheetBodyState extends State<ReportSheetBody> {
       QeranSpacing.hs8,
       Expanded(
         child: Text(
-          LocaleKeys.report_title.t(context),
+          reportTitleKey(widget.target).t(context),
           style: QeranTypography.title.copyWith(color: QeranColors.wine),
         ),
       ),
@@ -152,8 +145,6 @@ class _ReportSheetBodyState extends State<ReportSheetBody> {
       onPressed: (_selected == null || state.submitting)
           ? null
           : () => context.read<ReportCubit>().submit(
-              targetUserId: widget.targetUserId,
-              targetContentId: widget.targetContentId,
               reason: _selected!,
               note: _note.text,
             ),

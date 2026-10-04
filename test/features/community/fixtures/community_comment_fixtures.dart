@@ -33,6 +33,9 @@ CommunityComment testComment({
   bool likedByMe = false,
   int replyCount = 0,
   DateTime? createdAt,
+  bool isMine = false,
+  bool canDelete = false,
+  bool? canBlock,
 }) => CommunityComment(
   id: id,
   postId: postId,
@@ -43,9 +46,9 @@ CommunityComment testComment({
   likedByMe: likedByMe,
   replyCount: replyCount,
   createdAt: createdAt,
-  isMine: false,
-  canDelete: false,
-  canBlock: !author.isMatchmaker,
+  isMine: isMine,
+  canDelete: canDelete,
+  canBlock: canBlock ?? (!author.isMatchmaker && !isMine),
 );
 
 /// [id], a reply under comment [parentId] — Huda's, unless told otherwise.

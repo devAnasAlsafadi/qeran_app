@@ -44,7 +44,11 @@ class CommunityPostScreen extends StatelessWidget {
         CommunityPostReady(:final post) => Column(
           children: [
             Expanded(
-              child: CommunityPostBody(post: post, readOnly: readOnly),
+              child: CommunityPostBody(
+                post: post,
+                readOnly: readOnly,
+                viewer: viewer,
+              ),
             ),
             CommunityComposer(readOnly: readOnly),
           ],

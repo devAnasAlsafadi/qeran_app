@@ -1,5 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/report/domain/entities/report_reason.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
 
 import '../entities/comment_submit_outcome.dart';
 import '../entities/community_comment.dart';
@@ -77,6 +79,13 @@ abstract class CommunityRepository {
   /// §4.1 — a [version] that is no longer current is
   /// [GuidelinesAcceptance.outdated], on the Right.
   Future<Either<Failure, GuidelinesAcceptance>> acceptGuidelines(int version);
+
+  /// §5.1 — a post, comment or reply. Gone → `TARGET_CONTENT_NOT_FOUND`.
+  Future<Either<Failure, void>> reportContent(
+    ContentReportTarget target, {
+    required ReportReason reason,
+    String? note,
+  });
 
   Stream<CommunityPostChange> get postChanges;
 }

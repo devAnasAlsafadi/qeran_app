@@ -1,3 +1,6 @@
+import 'package:qeran/features/report/domain/entities/report_reason.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
+
 import '../models/community_comment_model.dart';
 import '../models/community_config_model.dart';
 import '../models/community_guidelines_model.dart';
@@ -50,4 +53,12 @@ abstract class CommunityRemoteDataSource {
   Future<CommunityGuidelinesModel> getGuidelines();
 
   Future<void> acceptGuidelines(int version);
+
+  /// `POST reports` with `targetContentType` (§5.1) — Community's own path,
+  /// so the dev-flag mock answers it in memory (Q3).
+  Future<void> reportContent(
+    ContentReportTarget target, {
+    required ReportReason reason,
+    String? note,
+  });
 }

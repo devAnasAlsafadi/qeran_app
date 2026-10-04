@@ -64,6 +64,7 @@ CommunityPost testPost({
   bool likedByMe = false,
   int commentCount = 0,
   DateTime? createdAt,
+  bool canDelete = false,
 }) => CommunityPost(
   id: id,
   author: author,
@@ -73,6 +74,6 @@ CommunityPost testPost({
   likedByMe: likedByMe,
   commentCount: commentCount,
   createdAt: createdAt,
-  canDelete: false,
+  canDelete: canDelete,
   status: CommunityPostStatus.published,
 );

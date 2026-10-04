@@ -1,5 +1,7 @@
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/core/services/connectivity_service.dart';
+import 'package:qeran/features/report/domain/entities/report_reason.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../error_codes.dart';
@@ -16,8 +18,8 @@ import 'community_mock_store.dart';
 
 /// Community in memory: the test fake, and the dev-flag states (Q2). It
 /// throws exactly what `HttpConsumer` would, and its JSON goes through the
-/// same models as the live API's. Report and block never reach it (or the
-/// network) in this sub-step — they join with their own steps (Q3).
+/// same models as the live API's. Reports stay in memory too: a made-up id
+/// never reaches the real endpoint (Q3).
 ///
 /// Gates run in the server's order (contract §4): an injected fault
 /// ([failNextCallWith] — `PROFILE_NOT_APPROVED`, `DISPLAY_NAME_REQUIRED`,
@@ -147,6 +149,13 @@ class CommunityMockDataSource implements CommunityRemoteDataSource {
         }
         _gate.guidelinesAccepted = true;
       });
+
+  @override
+  Future<void> reportContent(
+    ContentReportTarget target, {
+    required ReportReason reason,
+    String? note,
+  }) => _run(() => store.report(target));
 
   static int get _maxLength =>
       communityMockConfig()['commentMaxLength'] as int;

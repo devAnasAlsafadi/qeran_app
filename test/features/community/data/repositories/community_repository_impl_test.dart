@@ -8,6 +8,8 @@ import 'package:qeran/features/community/data/models/community_config_model.dart
 import 'package:qeran/features/community/data/repositories/community_repository_impl.dart';
 import 'package:qeran/features/community/domain/entities/comment_submit_outcome.dart';
 import 'package:qeran/features/community/domain/entities/community_post_change.dart';
+import 'package:qeran/features/report/domain/entities/report_reason.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
 
 import '../../fixtures/community_fixtures.dart';
 import '../../fixtures/community_mock_harness.dart';
@@ -110,6 +112,26 @@ void main() {
 
       expect(await repo.getConfig(), const Left(OfflineFailure()));
       expect(right(await repo.getConfig()).commentMaxLength, 500);
+    });
+  });
+
+  group('report', () {
+    test("sent through the datasource; gone keeps the server's code",
+        () async {
+      final sent = await repo.reportContent(
+        ContentReportTarget(ReportContentKind.post, postId),
+        reason: ReportReason.spam,
+      );
+      final gone = await repo.reportContent(
+        const ContentReportTarget(ReportContentKind.comment, 999999),
+        reason: ReportReason.other,
+      );
+
+      expect(sent.isRight(), isTrue);
+      expect(
+        gone.fold((f) => (f as CodedServerFailure).errorCode, (_) => null),
+        'TARGET_CONTENT_NOT_FOUND',
+      );
     });
   });
 }

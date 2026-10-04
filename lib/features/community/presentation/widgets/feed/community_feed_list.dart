@@ -14,6 +14,7 @@ import '../../../domain/entities/community_post.dart';
 import '../../blocs/feed/community_feed_cubit.dart';
 import '../../blocs/feed/community_feed_state.dart';
 import '../../screens/community_post_page.dart';
+import '../menus/community_post_menu.dart';
 import '../post_card/community_post_card.dart';
 import 'community_feed_footer.dart';
 import 'community_feed_skeleton.dart';
@@ -108,6 +109,7 @@ class CommunityFeedList extends StatelessWidget {
         key: ValueKey(post.id),
         post: post,
         readOnly: readOnly,
+        menu: communityPostMenu(post),
         onLike: () => context.read<CommunityFeedCubit>().toggleLike(
           post.id,
           readOnly: readOnly,

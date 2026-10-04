@@ -3,6 +3,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/features/community/data/datasources/community_remote_datasource_impl.dart';
+import 'package:qeran/features/report/domain/entities/report_reason.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../fixtures/community_fixtures.dart';
@@ -96,6 +98,35 @@ void main() {
         .called(1);
     verify(() => api.post('community/guidelines/accept', body: {'version': 3}))
         .called(1);
+  });
+
+  test('report: POST reports with the content type, the id as a string, '
+      'and a trimmed note only when there is one (§5.1)', () async {
+    when(() => api.post(any(), body: any(named: 'body')))
+        .thenAnswer((_) async => ok('r-1'));
+
+    await ds.reportContent(
+      const ContentReportTarget(ReportContentKind.reply, 456),
+      reason: ReportReason.contactDetails,
+      note: '  رقم هاتف  ',
+    );
+    await ds.reportContent(
+      const ContentReportTarget(ReportContentKind.post, 123),
+      reason: ReportReason.spam,
+      note: '   ',
+    );
+
+    verify(() => api.post('reports', body: {
+          'targetContentType': 'Comment',
+          'targetContentId': '456',
+          'reason': 'ContactDetails',
+          'note': 'رقم هاتف',
+        })).called(1);
+    verify(() => api.post('reports', body: {
+          'targetContentType': 'Post',
+          'targetContentId': '123',
+          'reason': 'Spam',
+        })).called(1);
   });
 
   test('delete: DELETE community/comments/{id}', () async {

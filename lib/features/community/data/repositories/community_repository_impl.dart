@@ -4,6 +4,8 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/data/account_cache.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/report/domain/entities/report_reason.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
 
 import '../../domain/entities/comment_submit_outcome.dart';
 import '../../domain/entities/community_comment.dart';
@@ -166,6 +168,15 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
     int version,
   ) async => guidelinesAcceptanceOf(
     await executeApiCall(() => _dataSource.acceptGuidelines(version)),
+  );
+
+  @override
+  Future<Either<Failure, void>> reportContent(
+    ContentReportTarget target, {
+    required ReportReason reason,
+    String? note,
+  }) => executeApiCall(
+    () => _dataSource.reportContent(target, reason: reason, note: note),
   );
 
   void _announceGone<T>(int postId, Either<Failure, T> result) => result.fold(

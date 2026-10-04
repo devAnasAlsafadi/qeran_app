@@ -2,8 +2,9 @@ import 'package:equatable/equatable.dart';
 
 /// One-shot outcome of a report submission. [eventVersion] increments on every
 /// terminal emit so a `BlocListener` fires once per attempt (mirrors the
-/// delete-account cubit pattern).
-enum ReportOutcome { none, success, failure }
+/// delete-account cubit pattern). [gone]: the content was removed before the
+/// report arrived, so the sheet closes with a notice.
+enum ReportOutcome { none, success, gone, failure }
 
 class ReportState extends Equatable {
   final bool submitting;

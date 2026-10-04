@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/report/domain/entities/report_target.dart';
 
 import '../../error_codes.dart';
 import 'community_mock_records.dart';
@@ -27,6 +28,7 @@ class CommunityMockStore {
   final DateTime Function() now;
   final List<MockPost> _posts;
   final List<MockComment> _comments;
+  final List<ContentReportTarget> _reports = [];
   int _nextCommentId = 9000;
 
   CommunityMockStore({
@@ -105,6 +107,27 @@ class CommunityMockStore {
       throwCommunityMockError(CommunityErrorCodes.unauthorized);
     }
     _comments.removeWhere((x) => x.id == commentId || x.parentId == commentId);
+  }
+
+  /// What was reported, oldest first — for tests and the dev build.
+  List<ContentReportTarget> get reports => List.unmodifiable(_reports);
+
+  /// A report on content (§5.1): gone → `TARGET_CONTENT_NOT_FOUND`; the
+  /// viewer's own comment → `VALIDATION_ERROR`. A repeat is accepted.
+  void report(ContentReportTarget target) {
+    final ownComment = switch (target.kind) {
+      ReportContentKind.post =>
+        _posts.any((p) => p.id == target.id) ? false : null,
+      _ => _comments
+          .where((c) => c.id == target.id)
+          .map((c) => c.authorId == viewer.id)
+          .firstOrNull,
+    };
+    if (ownComment == null) {
+      throwCommunityMockError(CommunityErrorCodes.targetContentNotFound);
+    }
+    if (ownComment) throwCommunityMockError(CommunityErrorCodes.validationError);
+    _reports.add(target);
   }
 
   MockPost requirePost(int postId) =>

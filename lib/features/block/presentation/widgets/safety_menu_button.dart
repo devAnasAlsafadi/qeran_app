@@ -19,7 +19,7 @@ enum _SafetyAction { report, block }
 /// A circular ⋮ button (mirrors the profile back-button style) that opens a
 /// Report / Block menu for [targetUserId]. On a successful block it pops the
 /// enclosing route returning the blocked userId (so a list/deck can tear the
-/// user down) and toasts on root. Report is delegated to [showReportSheet].
+/// user down) and toasts on root. Report opens [showUserReportSheet].
 class SafetyMenuButton extends StatelessWidget {
   final String targetUserId;
 
@@ -106,7 +106,7 @@ class _SafetyMenuButtonView extends StatelessWidget {
 
     switch (action) {
       case _SafetyAction.report:
-        await showReportSheet(context, targetUserId: targetUserId);
+        await showUserReportSheet(context, targetUserId);
       case _SafetyAction.block:
         final ok = await confirmBlockMember(context);
         if (ok && context.mounted) cubit.block(targetUserId);

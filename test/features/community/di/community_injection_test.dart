@@ -10,6 +10,7 @@ import 'package:qeran/features/community/di/community_injection.dart';
 import 'package:qeran/features/community/domain/entities/comment_submit_outcome.dart';
 import 'package:qeran/features/community/domain/repositories/community_repository.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_feed_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/report_community_content_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_state.dart';
 import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
@@ -20,6 +21,7 @@ import 'package:qeran/features/profile/domain/entities/my_profile.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 import 'package:qeran/features/profile/domain/usecases/get_my_profile_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import 'package:qeran/features/report/domain/repositories/content_reporter.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
 
@@ -67,6 +69,12 @@ void main() {
       expect(identical(sl<CommunityRepository>(), sl<CommunityRepository>()),
           isTrue);
       expect(sl<GetCommunityFeedUseCase>(), isNotNull);
+    });
+
+    test("the report sheet's content path is Community's (Q3)", () {
+      initCommunityDependencies();
+
+      expect(sl<ContentReporter>(), isA<ReportCommunityContentUseCase>());
     });
 
     test('the post screen\'s cubits, for a post id — with or without the '

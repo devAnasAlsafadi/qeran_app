@@ -27,6 +27,10 @@ const _wire = {
   'profile_approved': NotificationAction.profileApproved,
   'profile_rejected': NotificationAction.profileRejected,
   'compatibility_case_updated': NotificationAction.compatibilityCaseUpdated,
+  // Community (contract §7.2), as built — 2026-10-01.
+  'community_reply': NotificationAction.communityReply,
+  'community_comment': NotificationAction.communityComment,
+  'community_report': NotificationAction.communityReport,
 };
 
 void main() {

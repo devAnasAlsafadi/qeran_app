@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/features/notifications/domain/entities/notification_action.dart';
 import 'package:qeran/features/notifications/domain/entities/notification_type.dart';
 import 'package:qeran/features/notifications/presentation/widgets/notification_tile_visuals.dart';
@@ -114,6 +115,48 @@ void main() {
         ),
       ),
     );
+  });
+
+  // H1, H2: the board's community tone (wine tint) and its glyphs — the
+  // reply arrow, the comment bubble — plus the report menu's flag.
+  group('Community', () {
+    const expected = {
+      NotificationAction.communityReply: Icons.reply_rounded,
+      NotificationAction.communityComment: Icons.mode_comment_outlined,
+      NotificationAction.communityReport: Icons.flag_outlined,
+    };
+
+    for (final entry in expected.entries) {
+      test('${entry.key.name}: its glyph on the wine tint', () {
+        final style = NotificationTileVisuals.of(
+          NotificationType.community,
+          entry.key,
+        );
+        expect(style.icon, entry.value);
+        expect(style.background, QeranColors.wine08);
+        expect(style.foreground, QeranColors.wine);
+      });
+    }
+
+    test('an unrecognised Community event claims nothing', () {
+      expect(
+        _icon(NotificationType.community, NotificationAction.none),
+        _icon(NotificationType.unknown, NotificationAction.none),
+      );
+    });
+
+    test('the wire type', () {
+      expect(NotificationType.fromWire('Community'), NotificationType.community);
+    });
+
+    // Her inbox has no Community type until Phase 3: her tiles map her type
+    // by name, so a Community event still reaches them as unknown.
+    test('a Community action under an unknown type claims nothing', () {
+      expect(
+        _icon(NotificationType.unknown, NotificationAction.communityComment),
+        Icons.notifications_none_rounded,
+      );
+    });
   });
 
   // Profile is the other overloaded type, and its rule is the stricter one:

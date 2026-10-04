@@ -49,6 +49,16 @@ enum NotificationAction {
   profileApproved,
   profileRejected,
   compatibilityCaseUpdated,
+
+  /// A reply to my comment (D20, D31) — reaches a member or a matchmaker.
+  communityReply,
+
+  /// A new top-level comment on her post (D20). The matchmaker's only.
+  communityComment,
+
+  /// The report that opened a flag on a comment or reply on her post (D24,
+  /// D32). The matchmaker's only.
+  communityReport,
   none;
 
   static NotificationAction fromWire(String? raw) {
@@ -77,6 +87,12 @@ enum NotificationAction {
         return NotificationAction.profileRejected;
       case 'compatibility_case_updated':
         return NotificationAction.compatibilityCaseUpdated;
+      case 'community_reply':
+        return NotificationAction.communityReply;
+      case 'community_comment':
+        return NotificationAction.communityComment;
+      case 'community_report':
+        return NotificationAction.communityReport;
       default:
         return NotificationAction.none;
     }

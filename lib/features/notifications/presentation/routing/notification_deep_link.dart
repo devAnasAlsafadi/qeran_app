@@ -81,6 +81,7 @@ class NotificationDeepLinkRouter {
         NotificationType.announcement ||
         NotificationType.offer ||
         NotificationType.general ||
+        NotificationType.community ||
         NotificationType.unknown =>
           const NoDeepLink(),
       };

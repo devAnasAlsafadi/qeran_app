@@ -23,9 +23,10 @@ class NotificationTileStyle {
 /// overloaded `Match` / `Profile` types) to a [NotificationTileStyle].
 ///
 /// Tone families: Match = solid gold (the hero); Chat + Offer = soft gold;
-/// Profile + Announcement + General (+ unknown) = wine tint. Within `Match`
-/// the glyph tells the specific story; profile approve/reject stay calm —
-/// rejection never wears red (respectful matrimony app).
+/// Profile + Announcement + General + Community (+ unknown) = wine tint.
+/// Within `Match` and `Community` the glyph tells the specific story; profile
+/// approve/reject stay calm — rejection never wears red (respectful
+/// matrimony app).
 class NotificationTileVisuals {
   const NotificationTileVisuals._();
 
@@ -50,6 +51,7 @@ class NotificationTileVisuals {
         NotificationType.profile ||
         NotificationType.announcement ||
         NotificationType.general ||
+        NotificationType.community ||
         NotificationType.unknown =>
           (QeranColors.wine08, QeranColors.wine),
       };
@@ -66,6 +68,8 @@ class NotificationTileVisuals {
         return _profileIcon(action);
       case NotificationType.announcement:
         return Icons.campaign_outlined;
+      case NotificationType.community:
+        return _communityIcon(action);
       case NotificationType.general:
       case NotificationType.unknown:
         return Icons.notifications_none_rounded;
@@ -112,8 +116,21 @@ class NotificationTileVisuals {
         NotificationAction.compatibilityCaseUpdated => Icons.handshake_rounded,
         NotificationAction.none ||
         NotificationAction.profileApproved ||
-        NotificationAction.profileRejected =>
+        NotificationAction.profileRejected ||
+        NotificationAction.communityReply ||
+        NotificationAction.communityComment ||
+        NotificationAction.communityReport =>
           Icons.notifications_none_rounded,
+      };
+
+  /// Community (H1, H2): the board's reply arrow for a reply to my comment and
+  /// its comment bubble for a new comment on her post; a report wears the
+  /// report menu's flag. Any other action claims nothing, as in `Match`.
+  static IconData _communityIcon(NotificationAction action) => switch (action) {
+        NotificationAction.communityReply => Icons.reply_rounded,
+        NotificationAction.communityComment => Icons.mode_comment_outlined,
+        NotificationAction.communityReport => Icons.flag_outlined,
+        _ => Icons.notifications_none_rounded,
       };
 
   /// Profile approve/reject — both calm; rejection never wears red. Approval

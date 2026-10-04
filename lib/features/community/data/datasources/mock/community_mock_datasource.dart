@@ -11,10 +11,7 @@ import '../../models/community_page_model.dart';
 import '../../models/community_post_model.dart';
 import '../community_remote_datasource.dart';
 import 'community_mock_documents.dart';
-import 'community_mock_mode.dart';
-import 'community_mock_records.dart';
 import 'community_mock_rules.dart';
-import 'community_mock_seed.dart';
 import 'community_mock_store.dart';
 
 /// Community in memory: the test fake, and the dev-flag states (Q2). It
@@ -47,31 +44,6 @@ class CommunityMockDataSource implements CommunityRemoteDataSource {
         );
 
   bool get guidelinesAccepted => _gate.guidelinesAccepted;
-
-  static const devViewer =
-      CommunityMockViewer(id: 'mock-me', displayName: 'Dima Alsafadi');
-
-  /// The dev-flag build: 500 ms per call (3 s for [CommunityMockMode.slow]),
-  /// offline when the device is.
-  factory CommunityMockDataSource.devFlag(
-    CommunityMockMode mode, {
-    required ConnectivityService connectivity,
-  }) {
-    DateTime now() => DateTime.now().toUtc();
-    return CommunityMockDataSource(
-      store: CommunityMockStore(
-        viewer: devViewer,
-        now: now,
-        seed: CommunityMockSeed.build(now(),
-            viewer: devViewer, empty: mode == CommunityMockMode.empty),
-      ),
-      latency: mode == CommunityMockMode.slow
-          ? const Duration(seconds: 3)
-          : const Duration(milliseconds: 500),
-      connectivity: connectivity,
-      failEverything: mode == CommunityMockMode.errors,
-    );
-  }
 
   /// The next call — whatever it is — fails with [errorCode].
   void failNextCallWith(String errorCode) => _faults.add(errorCode);

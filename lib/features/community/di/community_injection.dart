@@ -5,7 +5,7 @@ import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_g
 
 import '../data/datasources/community_remote_datasource.dart';
 import '../data/datasources/community_remote_datasource_impl.dart';
-import '../data/datasources/mock/community_mock_datasource.dart';
+import '../data/datasources/mock/community_mock_dev_flag.dart';
 import '../data/datasources/mock/community_mock_mode.dart';
 import '../data/repositories/community_repository_impl.dart';
 import '../domain/repositories/community_repository.dart';
@@ -123,5 +123,5 @@ CommunityRemoteDataSource _dataSource() {
   if (kReleaseMode) return CommunityRemoteDataSourceImpl(apiConsumer: sl());
   final mode = CommunityMockMode.fromFlag(_mockFlag);
   if (mode == null) return CommunityRemoteDataSourceImpl(apiConsumer: sl());
-  return CommunityMockDataSource.devFlag(mode, connectivity: sl());
+  return communityMockDevFlag(mode, connectivity: sl());
 }

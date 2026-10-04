@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/core/services/connectivity_service.dart';
 import 'package:qeran/features/community/data/datasources/mock/community_mock_datasource.dart';
+import 'package:qeran/features/community/data/datasources/mock/community_mock_dev_flag.dart';
 import 'package:qeran/features/community/data/datasources/mock/community_mock_records.dart';
 import 'package:qeran/features/community/data/datasources/mock/community_mock_seed.dart';
 import 'package:qeran/features/community/data/datasources/mock/community_mock_store.dart';
@@ -23,7 +24,7 @@ class FakeConnectivity implements ConnectivityService {
   Stream<bool> get onStatusChange => const Stream.empty();
 }
 
-const me = CommunityMockDataSource.devViewer;
+const me = communityMockDevViewer;
 
 /// The seeded mock with no latency, as the tests' fake.
 CommunityMockDataSource seededMock({

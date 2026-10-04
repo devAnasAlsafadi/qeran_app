@@ -161,8 +161,8 @@ class UserSessionCubit extends Cubit<UserSessionState>
   /// `device_registered`, `last_registered_fcm`, `last_registered_lang`, and
   /// easy_localization's `__locale__` (the user's language).
   ///
-  /// ⚠️ Keep in sync: a NEW account-level key in [StorageKeys] must be added to
-  /// [_accountPrefKeys] below (see the note in StorageKeys).
+  /// The account-level keys are [StorageKeys.accountKeys], kept beside the
+  /// keys themselves so a new one is listed where it is declared.
   Future<void> wipeAllLocalData() async {
     await _clearSocialSessions();
     // Secure: only the JWT (+ any sensitive auth) — safe to clear wholesale.
@@ -171,7 +171,7 @@ class UserSessionCubit extends Cubit<UserSessionState>
     // the account still being on the device after the member asked for it to
     // be gone.
     _formMemo.clear();
-    for (final key in _accountPrefKeys) {
+    for (final key in StorageKeys.accountKeys) {
       await _sharedPrefs.remove(key);
     }
     AppLogger.info('Local data wiped (account deletion)', tag: 'SESSION');
@@ -186,33 +186,4 @@ class UserSessionCubit extends Cubit<UserSessionState>
       AppLogger.warning('Social sign-out error: $e', tag: 'SESSION');
     }
   }
-
-  /// Account/session shared-prefs keys removed on a permanent delete. Device-
-  /// level keys are intentionally absent here (preserved across the delete).
-  static const List<String> _accountPrefKeys = [
-    // Session / identity
-    StorageKeys.userId,
-    StorageKeys.userName,
-    StorageKeys.userEmail,
-    StorageKeys.userRole,
-    StorageKeys.firebaseUid,
-    // Account state / profile
-    StorageKeys.isWhatsappVerified,
-    StorageKeys.finishedQuestions,
-    StorageKeys.gender,
-    StorageKeys.signedOath,
-    StorageKeys.questionnaireDraft,
-    StorageKeys.uploadedPhotos,
-    StorageKeys.pendingUserId,
-    // Notification read-state heuristics (account-level)
-    StorageKeys.notifReadWatermark,
-    StorageKeys.notifReadIds,
-    // Was missed when the matchmaker read watermark was added: without it the
-    // next matchmaker to sign in on this device inherits the previous one's
-    // read rows.
-    StorageKeys.matchmakerNotifReadWatermark,
-    // Account-LINK marker only — the device REGISTRATION markers are preserved
-    // so the next login re-links cleanly without a redundant re-register.
-    StorageKeys.lastLinkedFcm,
-  ];
 }

@@ -1,5 +1,5 @@
-/// ⚠️ When adding an ACCOUNT-level key here, also add it to
-/// `UserSessionCubit.wipeAllLocalData()` (the permanent-delete wipe list).
+/// ⚠️ When adding an ACCOUNT-level key here, also add it to [accountKeys]
+/// (the permanent-delete wipe list, at the bottom).
 /// DEVICE-level keys (FCM registration markers, onboarding, OS-permission,
 /// and easy_localization's locale) are intentionally PRESERVED across a delete.
 class StorageKeys {
@@ -60,4 +60,33 @@ class StorageKeys {
   /// the first response that can recalibrate. Survives logout deliberately —
   /// it describes the DEVICE, not the account.
   static const String serverClockSkewMs = 'server_clock_skew_ms';
+
+  /// Account/session shared-prefs keys removed on a permanent delete. Device-
+  /// level keys are intentionally absent here (preserved across the delete).
+  static const List<String> accountKeys = [
+    // Session / identity
+    userId,
+    userName,
+    userEmail,
+    userRole,
+    firebaseUid,
+    // Account state / profile
+    isWhatsappVerified,
+    finishedQuestions,
+    gender,
+    signedOath,
+    questionnaireDraft,
+    uploadedPhotos,
+    pendingUserId,
+    // Notification read-state heuristics (account-level)
+    notifReadWatermark,
+    notifReadIds,
+    // Was missed when the matchmaker read watermark was added: without it the
+    // next matchmaker to sign in on this device inherits the previous one's
+    // read rows.
+    matchmakerNotifReadWatermark,
+    // Account-LINK marker only — the device REGISTRATION markers are preserved
+    // so the next login re-links cleanly without a redundant re-register.
+    lastLinkedFcm,
+  ];
 }

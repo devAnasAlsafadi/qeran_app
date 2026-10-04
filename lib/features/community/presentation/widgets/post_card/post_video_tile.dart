@@ -1,30 +1,91 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_radii.dart';
-import '../../../../../core/design_system/tokens/qeran_shadows.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_page_indicator.dart';
 import '../../../domain/entities/community_media.dart';
 import '../../formatting/video_duration.dart';
+import '../../video/community_video_controller.dart';
+import '../../video/community_video_phase.dart';
+import '../../video/community_video_scope.dart';
 import '../community_network_image.dart';
+import '../video/video_controls_bar.dart';
+import '../video/video_layers.dart';
 import 'media_geometry.dart';
 
-/// A video post's frame before playback (A9; BA-B1–B3 in the feed, BA-C1–C3
-/// on the post screen). The frame takes the video's own ratio clamped between
-/// 4:5 and 16:9 (16:9 without a size); the poster is contained in it on wine,
-/// never cropped, so a vertical video gets wine bars at its sides. A wine
-/// gradient over the lower part, the gold play disc, and the length pill sit
-/// on the frame. The poster is a signed link: it loads without our token.
-/// Playback arrives in sub-step 11 through [onPlay].
-class PostVideoTile extends StatelessWidget {
-  const PostVideoTile({super.key, required this.video, this.onPlay});
+/// A video post's frame (A9–A14; BA-B1–B4 in the feed, BA-C1–C3 on the post
+/// screen). The frame takes the video's own ratio clamped between 4:5 and
+/// 16:9 (16:9 without a size), and the poster, then the video, is contained
+/// in it on wine — never cropped. The poster and the video are signed links,
+/// loaded without our token. A tap on the disc plays it, through the
+/// screen's [CommunityVideoScope]; it pauses when another video starts, its
+/// tab is hidden, a route covers it, or the app leaves the foreground (Q9).
+class PostVideoTile extends StatefulWidget {
+  const PostVideoTile({super.key, required this.postId, required this.video});
 
+  final int postId;
   final CommunityVideo video;
-  final VoidCallback? onPlay;
 
-  /// The share of the frame, from the bottom, the gradient covers.
-  static const double _gradientShare = 0.55;
+  @override
+  State<PostVideoTile> createState() => _PostVideoTileState();
+}
+
+class _PostVideoTileState extends State<PostVideoTile>
+    with WidgetsBindingObserver {
+  CommunityVideoController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didUpdateWidget(PostVideoTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.video != widget.video) _controller?.video = widget.video;
+  }
+
+  /// A hidden tab or a route over this one pauses it.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final shown =
+        TickerMode.valuesOf(context).enabled &&
+        (ModalRoute.of(context)?.isCurrent ?? true);
+    if (!shown) _controller?.suspend();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_leavesForeground(state)) _controller?.suspend();
+  }
+
+  /// Android leaves at `hidden` / `paused`; iOS already at `inactive` (D12,
+  /// the privacy shield's rule).
+  static bool _leavesForeground(AppLifecycleState state) =>
+      state == AppLifecycleState.paused ||
+      state == AppLifecycleState.hidden ||
+      (state == AppLifecycleState.inactive &&
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  CommunityVideoController? _ensure() {
+    final scope = CommunityVideoScope.maybeOf(context);
+    if (scope == null) return null;
+    return _controller ??= scope.controllerFor(widget.postId, widget.video)
+      ..addListener(_changed);
+  }
+
+  void _changed() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -33,94 +94,88 @@ class PostVideoTile extends StatelessWidget {
       child: ClipRRect(
         borderRadius: QeranRadii.controlR,
         child: AspectRatio(
-          aspectRatio: clampedAspect(video.width, video.height),
+          aspectRatio: clampedAspect(widget.video.width, widget.video.height),
           child: ColoredBox(
             color: QeranColors.wine,
-            child: Stack(fit: StackFit.expand, children: _layers()),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// The poster, contained; the gradient; the play disc; the duration.
-  List<Widget> _layers() {
-    final poster = video.posterUrl?.trim() ?? '';
-    return [
-      if (poster.isNotEmpty)
-        CommunityNetworkImage(
-          poster,
-          fit: BoxFit.contain,
-          placeholder: const SizedBox.shrink(),
-          fallback: const SizedBox.shrink(),
-        ),
-      const _BottomGradient(share: _gradientShare),
-      Center(child: _PlayDisc(onTap: onPlay)),
-      if (video.duration > Duration.zero)
-        PositionedDirectional(
-          bottom: QeranSpacing.s12,
-          start: QeranSpacing.s12,
-          child: QeranOverlayPill(formatVideoDuration(video.duration)),
-        ),
-    ];
-  }
-}
-
-class _BottomGradient extends StatelessWidget {
-  const _BottomGradient({required this.share});
-
-  final double share;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: FractionallySizedBox(
-        widthFactor: 1,
-        heightFactor: share,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                QeranColors.wine.withValues(alpha: 0),
-                QeranColors.wine60,
-              ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _controller?.tapPicture(),
+              child: Stack(fit: StackFit.expand, children: _layers()),
             ),
           ),
         ),
       ),
     );
   }
-}
 
-/// The gold play disc in the middle of the frame.
-class _PlayDisc extends StatelessWidget {
-  const _PlayDisc({required this.onTap});
-
-  final VoidCallback? onTap;
-
-  static const double _size = 60;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: _size,
-        height: _size,
-        decoration: const BoxDecoration(
-          color: QeranColors.gold,
-          shape: BoxShape.circle,
-          boxShadow: QeranShadows.e3,
+  List<Widget> _layers() {
+    final c = _controller;
+    final phase = c?.phase ?? CommunityVideoPhase.idle;
+    final dimmed = const {
+      CommunityVideoPhase.buffering,
+      CommunityVideoPhase.ended,
+      CommunityVideoPhase.error,
+    }.contains(phase);
+    return [
+      _picture(c),
+      const VideoBottomGradient(),
+      if (dimmed) const VideoDim(),
+      Center(child: _centre(c, phase)),
+      if (phase == CommunityVideoPhase.idle &&
+          widget.video.duration > Duration.zero)
+        PositionedDirectional(
+          bottom: QeranSpacing.s12,
+          start: QeranSpacing.s12,
+          child: QeranOverlayPill(formatVideoDuration(widget.video.duration)),
         ),
-        child: const Icon(
-          Icons.play_arrow_rounded,
-          size: 34,
-          color: QeranColors.wine,
+      if (c != null && c.controlsShown)
+        PositionedDirectional(
+          start: 0,
+          end: 0,
+          bottom: 0,
+          child: VideoControlsBar(controller: c),
         ),
-      ),
+    ];
+  }
+
+  /// The video once it has a picture, contained at its own ratio; the
+  /// poster until then.
+  Widget _picture(CommunityVideoController? c) {
+    final player = c?.player;
+    if (player != null && player.value.value.initialized) {
+      return Center(
+        child: AspectRatio(aspectRatio: _videoRatio, child: player.view()),
+      );
+    }
+    final poster = widget.video.posterUrl?.trim() ?? '';
+    if (poster.isEmpty) return const SizedBox.shrink();
+    return CommunityNetworkImage(
+      poster,
+      fit: BoxFit.contain,
+      placeholder: const SizedBox.shrink(),
+      fallback: const SizedBox.shrink(),
     );
   }
+
+  double get _videoRatio {
+    final (w, h) = (widget.video.width, widget.video.height);
+    return w > 0 && h > 0 ? w / h : 16 / 9;
+  }
+
+  Widget? _centre(CommunityVideoController? c, CommunityVideoPhase phase) =>
+      switch (phase) {
+        CommunityVideoPhase.idle || CommunityVideoPhase.paused => VideoPlayDisc(
+          onTap: _playable ? () => _ensure()?.play() : null,
+        ),
+        CommunityVideoPhase.ended => VideoPlayDisc(
+          replay: true,
+          onTap: c?.play,
+        ),
+        CommunityVideoPhase.buffering => const VideoBufferingDisc(),
+        CommunityVideoPhase.error => VideoFailed(onRetry: () => c?.retry()),
+        CommunityVideoPhase.playing => null,
+      };
+
+  /// Only its author ever sees one that isn't ready (no link yet).
+  bool get _playable => (widget.video.url?.trim() ?? '').isNotEmpty;
 }

@@ -8,9 +8,12 @@ import '../../../domain/entities/community_like_state.dart';
 import '../../../domain/entities/community_page.dart';
 import '../../../domain/entities/community_post.dart';
 import '../../../domain/entities/community_post_change.dart';
+import '../../../domain/entities/community_media.dart';
 import '../../../domain/usecases/get_community_feed_usecase.dart';
+import '../../../domain/usecases/get_community_post_usecase.dart';
 import '../../../domain/usecases/set_post_like_usecase.dart';
 import '../../../domain/usecases/watch_community_post_changes_usecase.dart';
+import '../../video/post_video.dart';
 import '../likes.dart';
 import 'community_feed_state.dart';
 import 'feed_posts.dart';
@@ -24,15 +27,18 @@ class CommunityFeedCubit extends Cubit<CommunityFeedState>
     with SafeEmit<CommunityFeedState> {
   CommunityFeedCubit({
     required GetCommunityFeedUseCase getFeed,
+    required GetCommunityPostUseCase getPost,
     required SetPostLikeUseCase setPostLike,
     required WatchCommunityPostChangesUseCase watchChanges,
   }) : _getFeed = getFeed,
+       _getPost = getPost,
        _setPostLike = setPostLike,
        super(const CommunityFeedState()) {
     _changes = watchChanges().listen(_onChange);
   }
 
   final GetCommunityFeedUseCase _getFeed;
+  final GetCommunityPostUseCase _getPost;
   final SetPostLikeUseCase _setPostLike;
   late final StreamSubscription<CommunityPostChange> _changes;
 
@@ -164,6 +170,11 @@ class CommunityFeedCubit extends Cubit<CommunityFeedState>
       ),
     );
   }
+
+  /// [postId]'s video read again, for a lapsed link (S19); the card's copy
+  /// is patched through the repository's stream as well.
+  Future<CommunityVideo?> freshVideo(int postId) async =>
+      (await _getPost(postId)).fold((_) => null, videoOf);
 
   @override
   Future<void> close() async {

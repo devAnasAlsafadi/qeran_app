@@ -32,7 +32,6 @@ class CommunityPostCard extends StatelessWidget {
     this.onLike,
     this.onOpenDiscussion,
     this.onImageTap,
-    this.onPlayVideo,
     this.menu,
   });
 
@@ -44,7 +43,6 @@ class CommunityPostCard extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onOpenDiscussion;
   final ValueChanged<int>? onImageTap;
-  final VoidCallback? onPlayVideo;
   final Widget? menu;
 
   @override
@@ -83,8 +81,8 @@ class CommunityPostCard extends StatelessWidget {
       onTap: onImageTap,
     ),
     CommunitySingleVideo(:final video) => PostVideoTile(
+      postId: post.id,
       video: video,
-      onPlay: onPlayVideo,
     ),
   };
 }

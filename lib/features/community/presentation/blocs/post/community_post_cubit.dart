@@ -6,11 +6,13 @@ import '../../../../../core/errors/errors.dart';
 import '../../../../../core/state/safe_emit.dart';
 import '../../../data/error_codes.dart';
 import '../../../domain/entities/community_like_state.dart';
+import '../../../domain/entities/community_media.dart';
 import '../../../domain/entities/community_post.dart';
 import '../../../domain/entities/community_post_change.dart';
 import '../../../domain/usecases/get_community_post_usecase.dart';
 import '../../../domain/usecases/set_post_like_usecase.dart';
 import '../../../domain/usecases/watch_community_post_changes_usecase.dart';
+import '../../video/post_video.dart';
 import '../likes.dart';
 import 'community_post_state.dart';
 
@@ -57,6 +59,14 @@ class CommunityPostCubit extends Cubit<CommunityPostState>
       if (_isGone(failure)) return emit(const CommunityPostRemoved());
       if (!shown) emit(const CommunityPostFailed());
     }, _show);
+  }
+
+  /// The post's video read again, for a lapsed link (S19). A copy that
+  /// couldn't be read leaves the old one, and its player says so.
+  Future<CommunityVideo?> freshVideo() async {
+    await load();
+    final s = state;
+    return s is CommunityPostReady ? videoOf(s.post) : null;
   }
 
   /// Like or unlike the post at once, then settle on the server's answer;

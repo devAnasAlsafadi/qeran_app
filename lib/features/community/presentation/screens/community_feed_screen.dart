@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection_container.dart';
 import '../blocs/feed/community_feed_cubit.dart';
 import '../blocs/feed/community_feed_state.dart';
+import '../video/community_stale_refresh.dart';
+import '../video/community_video_scope.dart';
 import '../widgets/community_like_toast.dart';
 import '../widgets/feed/community_feed_list.dart';
 
@@ -21,18 +23,27 @@ class CommunityFeedScreen extends StatelessWidget {
   }
 }
 
-/// The feed for the cubit in scope, and its toasts (B12, B13).
+/// The feed for the cubit in scope, and its toasts (B12, B13). Its videos
+/// take turns, and a feed kept past their links' 6 h reads itself again
+/// (Q9, S19).
 class CommunityFeedView extends StatelessWidget {
   const CommunityFeedView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CommunityFeedCubit, CommunityFeedState>(
-      listenWhen: (previous, current) =>
-          previous.eventVersion != current.eventVersion &&
-          current.event != CommunityFeedEvent.none,
-      listener: _onEvent,
-      builder: (context, state) => CommunityFeedList(state: state),
+    final cubit = context.read<CommunityFeedCubit>();
+    return CommunityStaleRefresh(
+      onStale: cubit.refresh,
+      child: CommunityVideoScope(
+        freshVideo: cubit.freshVideo,
+        child: BlocConsumer<CommunityFeedCubit, CommunityFeedState>(
+          listenWhen: (previous, current) =>
+              previous.eventVersion != current.eventVersion &&
+              current.event != CommunityFeedEvent.none,
+          listener: _onEvent,
+          builder: (context, state) => CommunityFeedList(state: state),
+        ),
+      ),
     );
   }
 

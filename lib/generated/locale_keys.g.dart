@@ -234,6 +234,14 @@ abstract class  LocaleKeys {
   static const community_discussion_start = 'community.discussion_start';
   static const community_see_more = 'community.see_more';
   static const community_image_failed = 'community.image_failed';
+  static const community_video_failed = 'community.video_failed';
+  static const community_video_play = 'community.video_play';
+  static const community_video_pause = 'community.video_pause';
+  static const community_video_replay = 'community.video_replay';
+  static const community_video_mute = 'community.video_mute';
+  static const community_video_unmute = 'community.video_unmute';
+  static const community_video_seek = 'community.video_seek';
+  static const community_video_full_screen = 'community.video_full_screen';
   static const community_retry = 'community.retry';
   static const community_post_title = 'community.post_title';
   static const community_post_error_title = 'community.post_error_title';

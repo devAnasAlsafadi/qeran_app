@@ -8,6 +8,7 @@ import 'package:qeran/features/community/domain/entities/community_page.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_post_change.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_feed_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/get_community_post_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/set_post_like_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/watch_community_post_changes_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
@@ -18,6 +19,8 @@ class _MockGetFeed extends Mock implements GetCommunityFeedUseCase {}
 
 class _MockSetLike extends Mock implements SetPostLikeUseCase {}
 
+class _MockGetPost extends Mock implements GetCommunityPostUseCase {}
+
 class _MockWatch extends Mock implements WatchCommunityPostChangesUseCase {}
 
 /// A feed cubit over scripted use cases, and the repository's change stream.
@@ -26,12 +29,14 @@ class FeedHarness {
     when(() => watch()).thenAnswer((_) => changes.stream);
     cubit = CommunityFeedCubit(
       getFeed: getFeed,
+      getPost: getPost,
       setPostLike: setLike,
       watchChanges: watch,
     );
   }
 
   final getFeed = _MockGetFeed();
+  final getPost = _MockGetPost();
   final setLike = _MockSetLike();
   final watch = _MockWatch();
   final changes = StreamController<CommunityPostChange>.broadcast();

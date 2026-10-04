@@ -34,6 +34,8 @@ import '../presentation/blocs/composer/community_gate.dart';
 import '../presentation/blocs/feed/community_feed_cubit.dart';
 import '../presentation/blocs/guidelines/community_guidelines_cubit.dart';
 import '../presentation/blocs/post/community_post_cubit.dart';
+import '../presentation/video/community_video_player.dart';
+import '../presentation/video/video_player_adapter.dart';
 
 /// `--dart-define=COMMUNITY_MOCK=seeded|empty|errors|slow` (Q2). Read here
 /// only, and only outside release builds.
@@ -73,6 +75,10 @@ void initCommunityDependencies() {
   sl.registerLazySingleton<ContentReporter>(
     () => ReportCommunityContentUseCase(sl()),
   );
+  // The card's video player: `video_player`, swapped for a fake in tests.
+  sl.registerLazySingleton<CommunityVideoPlayerFactory>(
+    () => VideoPlayerAdapter.new,
+  );
   // And the block cubit's, for a comment's author.
   sl.registerLazySingleton<CommunityMemberBlocker>(
     () => BlockCommunityMemberUseCase(sl()),
@@ -82,6 +88,7 @@ void initCommunityDependencies() {
   sl.registerFactory(
     () => CommunityFeedCubit(
       getFeed: sl(),
+      getPost: sl(),
       setPostLike: sl(),
       watchChanges: sl(),
     ),

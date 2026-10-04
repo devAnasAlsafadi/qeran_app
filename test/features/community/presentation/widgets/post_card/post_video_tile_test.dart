@@ -5,6 +5,7 @@ import 'package:qeran/core/design_system/widgets/qeran_page_indicator.dart';
 import 'package:qeran/features/community/domain/entities/community_media.dart';
 import 'package:qeran/features/community/presentation/widgets/post_card/post_video_tile.dart';
 
+import '../../../../../core/shipped_strings_rig.dart';
 import '../../../../auth/presentation/fake_session.dart';
 import '../../../fixtures/community_post_fixtures.dart';
 
@@ -15,17 +16,14 @@ Future<void> _pump(
   WidgetTester tester,
   CommunityVideo video, {
   TextDirection direction = TextDirection.ltr,
-  VoidCallback? onPlay,
-}) => tester.pumpWidget(
-  withSession(
-    MaterialApp(
-      builder: (_, child) =>
-          Directionality(textDirection: direction, child: child!),
-      home: Center(
-        child: SizedBox(
-          width: 358,
-          child: PostVideoTile(video: video, onPlay: onPlay),
-        ),
+}) => pumpShippedStrings(
+  tester,
+  direction == TextDirection.ltr ? const Locale('en') : const Locale('ar'),
+  child: withSession(
+    Center(
+      child: SizedBox(
+        width: 358,
+        child: PostVideoTile(postId: 1, video: video),
       ),
     ),
   ),
@@ -34,6 +32,8 @@ Future<void> _pump(
 Size _frame(WidgetTester tester) => tester.getSize(find.byType(AspectRatio));
 
 void main() {
+  setUpAll(initShippedStrings);
+
   group('the frame: its own ratio, clamped 4:5 – 16:9 (BA-B1–B3)', () {
     const cases = {
       (1080, 1920): 0.8, // vertical: wine bars at the sides
@@ -78,6 +78,8 @@ void main() {
     tester,
   ) async {
     for (final direction in TextDirection.values) {
+      // A fresh tree, so the language (and its direction) starts anew.
+      await tester.pumpWidget(const SizedBox());
       await _pump(tester, testVideo(), direction: direction);
 
       final pill = tester.getCenter(find.byType(QeranOverlayPill));
@@ -95,14 +97,5 @@ void main() {
     await _pump(tester, testVideo(duration: Duration.zero));
 
     expect(find.byType(QeranOverlayPill), findsNothing);
-  });
-
-  testWidgets('the play disc hands the tap on', (tester) async {
-    var plays = 0;
-    await _pump(tester, testVideo(), onPlay: () => plays++);
-
-    await tester.tap(find.byIcon(Icons.play_arrow_rounded));
-
-    expect(plays, 1);
   });
 }

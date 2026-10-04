@@ -41,14 +41,18 @@ CommunityImage testImage({
 }) => CommunityImage(url: url, width: width, height: height);
 
 const signedPoster = 'https://vz-abc.b-cdn.net/v-1/thumbnail.jpg?token=x';
+const signedVideo = 'https://vz-abc.b-cdn.net/v-1/play_720p.mp4?token=x';
 
 CommunityVideo testVideo({
   int width = 1080,
   int height = 1920,
   Duration duration = const Duration(seconds: 52),
   String? posterUrl = signedPoster,
+  String? url = signedVideo,
+  DateTime? urlExpiresAt,
 }) => CommunityVideo(
-  url: 'https://vz-abc.b-cdn.net/v-1/play_720p.mp4?token=x',
+  url: url,
+  urlExpiresAt: urlExpiresAt,
   posterUrl: posterUrl,
   duration: duration,
   width: width,

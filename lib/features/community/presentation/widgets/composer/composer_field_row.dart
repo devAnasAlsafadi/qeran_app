@@ -14,7 +14,8 @@ import '../../blocs/composer/community_composer_state.dart';
 /// typed text's own direction and script (Q8); from 80 % of the server's
 /// limit a counter shows under it (S3), and past the limit the edge and the
 /// counter turn danger and sending stops. Sending also rests after a rate
-/// limit (D9).
+/// limit (D9). While a step is owed the field waits: a tap opens the step
+/// ([onWaitingTap]), and nothing is sent.
 class ComposerFieldRow extends StatelessWidget {
   const ComposerFieldRow({
     super.key,
@@ -22,12 +23,14 @@ class ComposerFieldRow extends StatelessWidget {
     required this.focusNode,
     required this.state,
     required this.onSend,
+    required this.onWaitingTap,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final CommunityComposerState state;
   final VoidCallback onSend;
+  final VoidCallback onWaitingTap;
 
   /// The counter's line, which the send button rises above.
   static const double _counterHeight = 18;
@@ -38,7 +41,7 @@ class ComposerFieldRow extends StatelessWidget {
     final over = state.tooLong(text);
     final from = state.counterFrom;
     final counted = from != null && text.trim().length >= from;
-    final canSend = text.trim().isNotEmpty && !over && !state.coolingDown;
+    final canSend = _canSend(text, over: over);
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: QeranSpacing.s12,
@@ -63,6 +66,13 @@ class ComposerFieldRow extends StatelessWidget {
     );
   }
 
+  /// Text to send, within the limit, not resting (D9) and no step owed.
+  bool _canSend(String text, {required bool over}) =>
+      text.trim().isNotEmpty &&
+      !over &&
+      !state.coolingDown &&
+      state.owes == null;
+
   /// In line with the field, above the counter when it shows.
   Widget _send({required bool counted, required bool enabled}) => Padding(
     padding: EdgeInsets.only(bottom: counted ? _counterHeight : 0),
@@ -81,6 +91,8 @@ class ComposerFieldRow extends StatelessWidget {
       error: error,
       textDirection: ownTextDirection(text),
       fontFamily: QeranOwnText.fontFamilyFor(text),
+      readOnly: state.owes != null,
+      onTap: state.owes == null ? null : onWaitingTap,
     );
   }
 }

@@ -9,6 +9,8 @@ import '../../../../../core/widgets/bottom_chrome_inset.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../blocs/composer/community_composer_cubit.dart';
 import '../../blocs/composer/community_composer_state.dart';
+import '../../screens/community_guidelines_page.dart';
+import '../../screens/community_name_gate_page.dart';
 import 'composer_field_row.dart';
 import 'composer_notices.dart';
 import 'composer_reply_strip.dart';
@@ -17,7 +19,8 @@ import 'composer_reply_strip.dart';
 /// — or, answering a comment, the reply strip above it — and the filter's
 /// banner after a refusal. A member who can't take part yet ([readOnly])
 /// sees why instead of a field. It sits on the safe area or right on the
-/// keyboard, and toasts stand clear of it.
+/// keyboard, and toasts stand clear of it. The name and guidelines steps
+/// open over it when the member owes them (F1–F7).
 class CommunityComposer extends StatefulWidget {
   const CommunityComposer({super.key, required this.readOnly});
 
@@ -96,6 +99,7 @@ class _CommunityComposerState extends State<CommunityComposer> {
           focusNode: _focus,
           state: state,
           onSend: _send,
+          onWaitingTap: cubit.startWriting,
         ),
       ],
     );
@@ -103,10 +107,27 @@ class _CommunityComposerState extends State<CommunityComposer> {
 
   void _onEvent(BuildContext context, CommunityComposerState state) {
     if (state.event == CommunityComposerEvent.focus) {
-      return _focus.requestFocus();
+      // After this frame: the field may only now have stopped waiting.
+      return WidgetsBinding.instance.addPostFrameCallback(
+        (_) => mounted ? _focus.requestFocus() : null,
+      );
     }
     _giveBack(state.restore);
-    final toast = switch (state.event) {
+    final step = switch (state.event) {
+      CommunityComposerEvent.openNameGate => openCommunityNameGate,
+      CommunityComposerEvent.openGuidelines => openCommunityGuidelines,
+      _ => null,
+    };
+    if (step != null) {
+      _take(step);
+      return;
+    }
+    _toastFor(state.event);
+  }
+
+  /// What a refusal says, when it says something.
+  void _toastFor(CommunityComposerEvent event) {
+    final toast = switch (event) {
       CommunityComposerEvent.rateLimited => LocaleKeys.community_rate_limited,
       CommunityComposerEvent.notApproved =>
         LocaleKeys.community_read_only_comment,
@@ -119,6 +140,13 @@ class _CommunityComposerState extends State<CommunityComposer> {
       message: toast.t(context),
       type: SnackBarType.notice,
     );
+  }
+
+  /// Opens [step] over the post screen, and tells the composer how it went.
+  Future<void> _take(Future<bool> Function(BuildContext) step) async {
+    final cubit = context.read<CommunityComposerCubit>();
+    final done = await step(context);
+    if (mounted) cubit.stepClosed(done: done);
   }
 
   /// [text] back in the field — unless the member has started another.

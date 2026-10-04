@@ -25,6 +25,7 @@ import '../domain/usecases/watch_community_post_changes_usecase.dart';
 import '../domain/entities/community_post.dart';
 import '../presentation/blocs/comments/community_comments_cubit.dart';
 import '../presentation/blocs/composer/community_composer_cubit.dart';
+import '../presentation/blocs/composer/community_gate.dart';
 import '../presentation/blocs/feed/community_feed_cubit.dart';
 import '../presentation/blocs/guidelines/community_guidelines_cubit.dart';
 import '../presentation/blocs/post/community_post_cubit.dart';
@@ -79,10 +80,15 @@ void initCommunityDependencies() {
       watchChanges: sl(),
     ),
   );
-  // The composer sends through the comments cubit of its screen.
+  // The composer sends through the comments cubit of its screen, and asks
+  // the app's profile gate which steps the member still owes (D17, D7).
   sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
-    (send, retry) =>
-        CommunityComposerCubit(getConfig: sl(), send: send, retry: retry),
+    (send, retry) => CommunityComposerCubit(
+      getConfig: sl(),
+      send: send,
+      retry: retry,
+      owed: () => communityGateOf(sl<ProfileGateCubit>().state),
+    ),
   );
   // The guidelines step tells the app's profile gate when they're accepted,
   // so the composer stops asking (D7).

@@ -7,6 +7,7 @@ import '../../../domain/entities/comment_submit_outcome.dart';
 import '../../../domain/entities/community_comment.dart';
 import '../../../domain/usecases/get_community_config_usecase.dart';
 import 'community_composer_state.dart';
+import 'community_gate.dart';
 
 /// Sends [text] — a reply under [parentId], or a comment — and answers with
 /// what came of it (the comments cubit's `send`).
@@ -16,26 +17,41 @@ typedef CommentSend =
 /// Sends the failed [localId] again (the comments cubit's `retry`).
 typedef CommentRetry = Future<CommentSubmitOutcome?> Function(int localId);
 
+/// The step the member owes before writing, as the app last read it.
+typedef OwedGate = CommunityGate? Function();
+
 /// The comment field (D1–D10): comment or reply, the server's limit, and
 /// what happens to the text when a send doesn't go through — back in the
 /// field, with the filter's banner (D8), the rate limit's rest (D9), a
 /// gate to run first (S5), or the answered comment gone (S9). Sending
 /// itself, and the rows, are the comments cubit's.
+///
+/// A member who owes a step — a real name, the guidelines — takes it before
+/// the field opens: tapping the field or Reply runs the steps one at a time,
+/// then the field takes the focus (F6); a step left undone leaves it (F7).
 class CommunityComposerCubit extends Cubit<CommunityComposerState>
     with SafeEmit<CommunityComposerState> {
   CommunityComposerCubit({
     required GetCommunityConfigUseCase getConfig,
     required CommentSend send,
     required CommentRetry retry,
+    OwedGate owed = _nothingOwed,
     this.defaultCooldown = const Duration(seconds: 30),
   }) : _getConfig = getConfig,
        _send = send,
        _retry = retry,
-       super(const CommunityComposerState());
+       _owed = owed,
+       super(CommunityComposerState(owes: owed()));
 
   final GetCommunityConfigUseCase _getConfig;
   final CommentSend _send;
   final CommentRetry _retry;
+  final OwedGate _owed;
+
+  /// The comment whose Reply was tapped while a step was owed.
+  CommunityComment? _answering;
+
+  static CommunityGate? _nothingOwed() => null;
 
   /// The rest after a rate limit that didn't say how long (a bare 429).
   final Duration defaultCooldown;
@@ -50,12 +66,46 @@ class CommunityComposerCubit extends Cubit<CommunityComposerState>
     );
   }
 
-  /// Reply to [comment]: the strip shows, the field takes the focus (D2).
-  void replyTo(CommunityComment comment) => emit(
-    state
-        .copyWith(replyTo: () => comment, filtered: false)
-        .withEvent(CommunityComposerEvent.focus),
-  );
+  /// Reply to [comment]: the strip shows, the field takes the focus (D2) —
+  /// once the steps owed are taken.
+  void replyTo(CommunityComment comment) {
+    _answering = comment;
+    _askNext();
+  }
+
+  /// The waiting field was tapped: the steps owed come first.
+  void startWriting() => _askNext();
+
+  /// A step came back. Taken ([done]): the next one, or the field (F6) —
+  /// a step the app still sees as owed isn't asked twice; the server
+  /// checks on send (S5). Left: nothing more (F7).
+  void stepClosed({required bool done}) {
+    if (!done) {
+      _answering = null;
+      return;
+    }
+    final closed = state.owes;
+    final next = _owed();
+    emit(state.copyWith(owes: () => next == closed ? null : next));
+    _askNext();
+  }
+
+  /// The next step owed, or — none left — the field, answering the comment
+  /// whose Reply was tapped.
+  void _askNext() {
+    final gate = state.owes;
+    if (gate != null) return emit(state.withEvent(openingOf(gate)));
+    final answering = _answering;
+    _answering = null;
+    emit(
+      state
+          .copyWith(
+            replyTo: answering == null ? null : () => answering,
+            filtered: false,
+          )
+          .withEvent(CommunityComposerEvent.focus),
+    );
+  }
 
   void cancelReply() => emit(state.copyWith(replyTo: () => null));
 
@@ -101,10 +151,18 @@ class CommunityComposerCubit extends Cubit<CommunityComposerState>
             replyTo: () => answering,
             filtered: outcome is CommentFiltered,
             restore: () => text,
+            owes: () => _owedAfter(outcome),
           )
           .withEvent(event),
     );
   }
+
+  /// The server's word on a step beats the app's (S5).
+  CommunityGate? _owedAfter(CommentSubmitOutcome? outcome) => switch (outcome) {
+    CommentNameRequired() => CommunityGate.name,
+    CommentGuidelinesRequired() => CommunityGate.guidelines,
+    _ => state.owes,
+  };
 
   CommunityComposerEvent _restAfter(Duration? retryAfter) {
     final wait = retryAfter ?? defaultCooldown;

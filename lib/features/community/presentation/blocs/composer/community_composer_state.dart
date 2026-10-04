@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../domain/entities/community_comment.dart';
+import 'community_gate.dart';
 
 /// One-shot messages for the composer, told apart by
 /// [CommunityComposerState.eventVersion]. All but [focus] come with the
@@ -30,6 +31,12 @@ enum CommunityComposerEvent {
   openGuidelines,
 }
 
+/// The event that opens [gate].
+CommunityComposerEvent openingOf(CommunityGate gate) => switch (gate) {
+  CommunityGate.name => CommunityComposerEvent.openNameGate,
+  CommunityGate.guidelines => CommunityComposerEvent.openGuidelines,
+};
+
 class CommunityComposerState extends Equatable {
   /// The comment being answered; null while writing a comment (D2).
   final CommunityComment? replyTo;
@@ -45,6 +52,10 @@ class CommunityComposerState extends Equatable {
 
   /// Text to give back to the field — if the member hasn't started another.
   final String? restore;
+
+  /// The step the member owes before writing (D17, D7); while there is one
+  /// the field waits, and a tap opens it.
+  final CommunityGate? owes;
   final CommunityComposerEvent event;
   final int eventVersion;
 
@@ -54,6 +65,7 @@ class CommunityComposerState extends Equatable {
     this.filtered = false,
     this.cooldownUntil,
     this.restore,
+    this.owes,
     this.event = CommunityComposerEvent.none,
     this.eventVersion = 0,
   });
@@ -78,12 +90,14 @@ class CommunityComposerState extends Equatable {
     bool? filtered,
     DateTime? Function()? cooldownUntil,
     String? Function()? restore,
+    CommunityGate? Function()? owes,
   }) => CommunityComposerState(
     replyTo: replyTo == null ? this.replyTo : replyTo(),
     maxLength: maxLength ?? this.maxLength,
     filtered: filtered ?? this.filtered,
     cooldownUntil: cooldownUntil == null ? this.cooldownUntil : cooldownUntil(),
     restore: restore == null ? this.restore : restore(),
+    owes: owes == null ? this.owes : owes(),
     event: event,
     eventVersion: eventVersion,
   );
@@ -96,6 +110,7 @@ class CommunityComposerState extends Equatable {
         filtered: filtered,
         cooldownUntil: cooldownUntil,
         restore: restore,
+        owes: owes,
         event: next,
         eventVersion: eventVersion + 1,
       );
@@ -107,6 +122,7 @@ class CommunityComposerState extends Equatable {
     filtered,
     cooldownUntil,
     restore,
+    owes,
     event,
     eventVersion,
   ];

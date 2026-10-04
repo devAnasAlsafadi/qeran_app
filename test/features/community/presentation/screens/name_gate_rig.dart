@@ -18,8 +18,13 @@ class _MockGetMyProfile extends Mock implements GetMyProfileUseCase {}
 
 class _MockUpdateProfile extends Mock implements UpdateProfileUseCase {}
 
-/// The member's profile: the placeholder name unless [name] says otherwise.
-MyProfile gateProfile({String name = 'مستخدم', String? realName}) => MyProfile(
+/// The member's profile: the placeholder name unless [name] says otherwise,
+/// and the guidelines as [accepted] says — or silent, as `PUT` answers.
+MyProfile gateProfile({
+  String name = 'مستخدم',
+  String? realName,
+  bool? accepted,
+}) => MyProfile(
   id: 'u-1',
   name: name,
   realName: realName,
@@ -33,6 +38,7 @@ MyProfile gateProfile({String name = 'مستخدم', String? realName}) => MyPro
   profileImage: null,
   images: const [],
   placements: const [],
+  communityGuidelinesAccepted: accepted,
 );
 
 /// The name step's use cases, scripted, behind the container's NameCubit —

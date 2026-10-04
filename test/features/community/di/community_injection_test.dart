@@ -12,10 +12,17 @@ import 'package:qeran/features/community/domain/usecases/get_community_feed_usec
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_state.dart';
 import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/composer/community_gate.dart';
 import 'package:qeran/features/community/presentation/blocs/post/community_post_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post/community_post_state.dart';
+import 'package:qeran/features/profile/domain/entities/my_profile.dart';
+import 'package:qeran/features/profile/domain/entities/profile_status.dart';
+import 'package:qeran/features/profile/domain/usecases/get_my_profile_usecase.dart';
+import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
+
+class _MockGetMyProfile extends Mock implements GetMyProfileUseCase {}
 
 void main() {
   group('CommunityMockMode.fromFlag', () {
@@ -33,7 +40,13 @@ void main() {
   });
 
   group('initCommunityDependencies', () {
-    setUp(() => sl.registerSingleton<ApiConsumer>(_MockApiConsumer()));
+    // The app's profile gate, registered by the profile feature.
+    setUp(() {
+      sl.registerSingleton<ApiConsumer>(_MockApiConsumer());
+      sl.registerLazySingleton(
+        () => ProfileGateCubit(getMyProfile: _MockGetMyProfile()),
+      );
+    });
     tearDown(sl.reset);
 
     // Tests run without --dart-define, as a release build always does in
@@ -72,6 +85,34 @@ void main() {
       expect(composer.state.replyTo, isNull);
       await post.close();
       await comments.close();
+      await composer.close();
+    });
+
+    test("the composer asks the app's profile gate what is owed", () async {
+      initCommunityDependencies();
+      sl<ProfileGateCubit>().applyProfile(
+        const MyProfile(
+          id: 'u-1',
+          name: 'مستخدم',
+          isDefaultName: true,
+          email: null,
+          gender: 'Female',
+          birthDate: null,
+          age: 28,
+          profileStatus: ProfileStatus.visible,
+          hasAnsweredQuestions: true,
+          profileImage: null,
+          images: [],
+          placements: [],
+        ),
+      );
+      Future<CommentSubmitOutcome?> send(String text, {int? parentId}) async =>
+          null;
+      Future<CommentSubmitOutcome?> retry(int id) async => null;
+
+      final composer = sl<CommunityComposerCubit>(param1: send, param2: retry);
+
+      expect(composer.state.owes, CommunityGate.name);
       await composer.close();
     });
   });

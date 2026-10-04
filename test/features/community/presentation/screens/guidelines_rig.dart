@@ -29,15 +29,19 @@ CommunityGuidelines seedGuidelines({int version = 1, String? introEn}) =>
     }).toEntity();
 
 /// The guidelines step's use cases, scripted, behind the container's
-/// cubit — the one the page asks for.
+/// cubit — the one the page asks for. An agreement is counted, and passed
+/// on to [onAccepted] (the app's profile gate, in the app).
 class GuidelinesHarness {
-  GuidelinesHarness() {
+  GuidelinesHarness({void Function()? onAccepted}) {
     reads([Right(seedGuidelines())]);
     sl.registerFactory<CommunityGuidelinesCubit>(
       () => CommunityGuidelinesCubit(
         getGuidelines: getGuidelines,
         accept: accept,
-        onAccepted: () => acceptedCalls++,
+        onAccepted: () {
+          acceptedCalls++;
+          onAccepted?.call();
+        },
       ),
     );
   }

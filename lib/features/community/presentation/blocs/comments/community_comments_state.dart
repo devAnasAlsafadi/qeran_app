@@ -14,10 +14,6 @@ enum CommunityCommentsStatus {
 
   /// The first page failed: the error with its retry (C6).
   failure,
-
-  /// The comment or reply a notification is about is gone — deleted, or
-  /// hidden by a block: the content is no longer available (C7).
-  targetGone,
 }
 
 /// One-shot messages for the post screen, told apart by
@@ -39,6 +35,10 @@ enum CommunityCommentsEvent {
 
   /// A delete didn't go through; the row stays (E10).
   deleteFailed,
+
+  /// The comment or reply a notification is about is gone — deleted, or
+  /// hidden by a block (C8).
+  contentGone,
 }
 
 class CommunityCommentsState extends Equatable {

@@ -66,8 +66,6 @@ class CommunityCommentsSliver extends StatelessWidget {
           MoreCommentsFooter(state: state, onMore: cubit.loadMore),
         ],
       ),
-      // The screen says the content is no longer available instead (C7).
-      CommunityCommentsStatus.targetGone => const SliverToBoxAdapter(),
     };
   }
 

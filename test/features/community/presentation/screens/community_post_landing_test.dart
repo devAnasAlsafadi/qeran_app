@@ -5,6 +5,8 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/community/domain/entities/community_landing.dart';
 import 'package:qeran/features/community/presentation/widgets/comments/comments_header.dart';
+import 'package:qeran/features/community/presentation/widgets/post_card/community_post_card.dart';
+import 'package:qeran/features/community/presentation/widgets/post_screen/community_post_unavailable.dart';
 
 import '../../../../core/shipped_strings_rig.dart';
 import '../../fixtures/community_comment_fixtures.dart';
@@ -14,15 +16,15 @@ import '../blocs/post/post_cubit_harness.dart';
 import 'post_screen_rig.dart';
 
 /// Both UI languages: what the replies link says under the landed reply,
-/// and C7's title.
+/// and the word that the content is gone.
 final _copy = {
   const Locale('ar'): (
     more: 'عرض ردّين آخرين',
-    gone: 'هذا المنشور لم يعد متاحاً',
+    gone: 'هذا المحتوى لم يعد متاحاً.',
   ),
   const Locale('en'): (
     more: 'View 2 more replies',
-    gone: 'This post is no longer available',
+    gone: 'This content is no longer available.',
   ),
 };
 
@@ -120,19 +122,33 @@ void main() {
   });
 
   for (final MapEntry(key: locale, value: copy) in _copy.entries) {
-    testWidgets('${locale.languageCode}: the reply gone — C7, not the '
-        'post', (tester) async {
+    testWidgets('${locale.languageCode}: the reply gone — the post as it '
+        'is, no gold, and the word that it\'s gone', (tester) async {
       discussion.single(
         203,
         const Left(
           CodedServerFailure(message: 'x', errorCode: 'COMMENT_NOT_FOUND'),
         ),
       );
+      await pump(tester, locale, settle: false);
       await discussion.cubit.load();
-      await pump(tester, locale);
+      await tester.pump();
+      await tester.pump();
 
       expect(find.text(copy.gone), findsOneWidget);
-      expect(find.text(istikhara), findsNothing);
+      expect(find.byType(CommunityPostCard), findsOneWidget);
+      expect(find.byType(CommunityPostUnavailable), findsNothing);
+      expect(find.text(myText), findsNothing, reason: 'no pin');
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is AnimatedContainer &&
+              (w.decoration as BoxDecoration?)?.color == QeranColors.gold12,
+        ),
+        findsNothing,
+        reason: 'no gold',
+      );
+      await tester.pump(const Duration(seconds: 5));
     });
   }
 }

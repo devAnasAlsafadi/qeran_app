@@ -20,14 +20,19 @@ mixin CommentLanding on Cubit<CommunityCommentsState> {
   @protected
   GetCommunityCommentUseCase get getComment;
 
+  /// The discussion from [page] as it is, without a landing.
+  @protected
+  CommunityCommentsState firstPageState(CommunityPage<CommunityComment> page);
+
   /// Where to land, until it has: the error's retry lands again.
   @protected
   CommunityLanding? pendingLanding;
 
   /// [target]'s comment and reply, read beside the first page; the threads
   /// with them first. Either gone — deleted, or hidden by a block — and the
-  /// content is no longer available (C7); anything else that fails is the
-  /// error with its retry.
+  /// discussion opens as it is, saying the content is no longer available
+  /// (Anas: C7 is for a post that's gone, which the post's own read shows).
+  /// Anything else that fails is the error, whose retry lands again.
   @protected
   Future<CommunityCommentsState> landOn(
     CommunityLanding target,
@@ -38,22 +43,21 @@ mixin CommentLanding on Cubit<CommunityCommentsState> {
       _replyOf(target.replyId),
       firstPage,
     ).wait;
-    final failures = [
-      _failureOf(comment),
-      _failureOf(reply),
-      _failureOf(page),
-    ].nonNulls;
-    if (failures.any(_isGone)) {
-      return state.copyWith(status: CommunityCommentsStatus.targetGone);
-    }
-    if (failures.isNotEmpty) {
+    final shown = _valueOf(page);
+    final failures = [_failureOf(comment), _failureOf(reply)].nonNulls;
+    if (shown == null || (failures.isNotEmpty && !failures.any(_isGone))) {
       return state.copyWith(status: CommunityCommentsStatus.failure);
     }
     pendingLanding = null;
+    if (failures.isNotEmpty) {
+      return firstPageState(
+        shown,
+      ).withEvent(CommunityCommentsEvent.contentGone);
+    }
     return _landed(
       _valueOf(comment)!,
       _valueOf<CommunityComment?>(reply),
-      _valueOf(page)!,
+      shown,
     );
   }
 

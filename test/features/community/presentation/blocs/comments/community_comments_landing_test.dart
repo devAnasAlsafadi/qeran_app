@@ -14,8 +14,8 @@ const _commentNotFound = CodedServerFailure(
 );
 
 /// Opened from "New reply to your comment" (C8, S7): the comment first, the
-/// reply under it in gold — or, either gone, the content no longer
-/// available (C7).
+/// reply under it in gold — or, either gone, the discussion as it is and a
+/// word that the content is no longer available.
 void main() {
   final mine = testComment(id: 20, replyCount: 3, isMine: true);
   final reply = testReply(id: 203, parentId: 20, author: fahad);
@@ -55,16 +55,38 @@ void main() {
   });
 
   for (final gone in [20, 203]) {
-    test('${gone == 20 ? 'the comment' : 'the reply'} gone: no longer '
-        'available', () async {
+    test('${gone == 20 ? 'the comment' : 'the reply'} gone: the discussion '
+        'as it is — no pin, no gold — and the word that it\'s gone', () async {
       landingAt(const CommunityLanding(commentId: 20, replyId: 203));
       h.single(gone, const Left(_commentNotFound));
 
       await h.cubit.load();
 
-      expect(h.cubit.state.status, CommunityCommentsStatus.targetGone);
+      final state = h.cubit.state;
+      expect(state.status, CommunityCommentsStatus.loaded);
+      expect(h.ids, [30, 31, 32]);
+      expect(state.highlightId, isNull);
+      expect(state.event, CommunityCommentsEvent.contentGone);
     });
   }
+
+  test(
+    'the post gone: the error here; the post\'s own read shows C7',
+    () async {
+      landingAt(const CommunityLanding(commentId: 20, replyId: 203));
+      h.single(20, const Left(_commentNotFound));
+      when(() => h.getComments(1, page: 1)).thenAnswer(
+        (_) async => const Left(
+          CodedServerFailure(message: 'x', errorCode: 'POST_NOT_FOUND'),
+        ),
+      );
+
+      await h.cubit.load();
+
+      expect(h.cubit.state.status, CommunityCommentsStatus.failure);
+      expect(h.cubit.state.event, CommunityCommentsEvent.none);
+    },
+  );
 
   test('offline: the error, and its retry lands again', () async {
     landingAt(const CommunityLanding(commentId: 20, replyId: 203));

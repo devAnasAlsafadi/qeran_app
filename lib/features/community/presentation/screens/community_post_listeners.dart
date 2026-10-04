@@ -14,8 +14,8 @@ import '../blocs/post/community_post_state.dart';
 import '../widgets/community_like_toast.dart';
 
 /// What the post screen says once: a like that didn't go through (B13,
-/// D9), a delete (E9, E10), and a block — whose rows leave the list while
-/// the screen stays (E12).
+/// D9), a delete (E9, E10), a landing on content that's gone (C8), and a
+/// block — whose rows leave the list while the screen stays (E12).
 List<BlocListener> get communityPostListeners => [
   BlocListener<CommunityPostCubit, CommunityPostState>(
     listenWhen: _postEvent,
@@ -60,6 +60,10 @@ void _commentsToast(BuildContext context, CommunityCommentsEvent event) {
     CommunityCommentsEvent.deleteFailed => (
       LocaleKeys.community_delete_failed,
       SnackBarType.error,
+    ),
+    CommunityCommentsEvent.contentGone => (
+      LocaleKeys.community_content_gone,
+      SnackBarType.info,
     ),
     _ => (null, null),
   };

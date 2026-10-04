@@ -79,7 +79,7 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
         ? await landOn(landing, firstPage)
         : (await firstPage).fold(
             (_) => state.copyWith(status: CommunityCommentsStatus.failure),
-            _firstPage,
+            firstPageState,
           );
     _loading = false;
     emit(next);
@@ -98,12 +98,13 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     final result = await _getComments(postId, page: 1);
     result.fold(
       (_) => emit(state.copyWith(refreshing: false)),
-      (page) => emit(_firstPage(page)),
+      (page) => emit(firstPageState(page)),
     );
   }
 
   /// The first page, keeping what the member sent that isn't settled.
-  CommunityCommentsState _firstPage(CommunityPage<CommunityComment> page) {
+  @override
+  CommunityCommentsState firstPageState(CommunityPage<CommunityComment> page) {
     final threads = keepUnsettled(
       appendNewThreads(const [], page.items),
       state.threads,

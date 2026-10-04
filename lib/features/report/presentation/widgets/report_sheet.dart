@@ -7,16 +7,19 @@ import 'package:qeran/core/di/injection_container.dart';
 
 import '../../domain/entities/report_target.dart';
 import '../blocs/report_cubit.dart';
+import '../blocs/report_state.dart';
 import 'report_sheet_body.dart';
 
 /// Opens the report sheet for [target] — a profile, or a post, comment or
 /// reply. On success the sheet closes and a confirmation toast shows on the
 /// root (survives the pop); content that's gone closes it with a notice.
-Future<void> showReportSheet(
+/// Completes with how it closed: [ReportOutcome.success],
+/// [ReportOutcome.gone], or null when the member closed it.
+Future<ReportOutcome?> showReportSheet(
   BuildContext context, {
   required ReportTarget target,
 }) {
-  return showModalBottomSheet<void>(
+  return showModalBottomSheet<ReportOutcome>(
     context: context,
     isScrollControlled: true,
     backgroundColor: QeranColors.paper,
@@ -29,5 +32,8 @@ Future<void> showReportSheet(
 }
 
 /// The sheet for a member's profile.
-Future<void> showUserReportSheet(BuildContext context, String userId) =>
+Future<ReportOutcome?> showUserReportSheet(
+  BuildContext context,
+  String userId,
+) =>
     showReportSheet(context, target: UserReportTarget(userId));

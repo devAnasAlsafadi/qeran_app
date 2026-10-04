@@ -45,7 +45,7 @@ class _ReportSheetBodyState extends State<ReportSheetBody> {
     if (!context.mounted) return;
     switch (state.outcome) {
       case ReportOutcome.success || ReportOutcome.gone:
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(state.outcome);
         AppSnackBar.showOnRoot(
           message: (state.messageKey ?? LocaleKeys.report_success).t(context),
           type: state.outcome == ReportOutcome.gone

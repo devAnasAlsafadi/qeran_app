@@ -12,7 +12,8 @@ import 'comment_threads.dart';
 import 'community_comments_state.dart';
 
 /// The comments cubit's removals: the member deleting their own comment or
-/// reply (E8–E10), and a blocked member's rows going (E12).
+/// reply (E8–E10), a reported one found gone (E7), and a blocked member's
+/// rows going (E12).
 mixin CommentRemoval on Cubit<CommunityCommentsState> {
   @protected
   int get postId;
@@ -44,6 +45,15 @@ mixin CommentRemoval on Cubit<CommunityCommentsState> {
             ),
     );
   }
+
+  /// [comment] already gone from the server — a report found it so (E7): it
+  /// leaves the list as a deleted one does, with no word of its own (the
+  /// report said it), and the post's counts are read again.
+  void removeGone(CommunityComment comment) => _remove(
+    comment.isReply
+        ? withoutReply(state.threads, comment)
+        : withoutComment(state.threads, comment.id),
+  );
 
   /// [authorId]'s comments and replies gone, after the member blocked them
   /// (E12). The screen stays.

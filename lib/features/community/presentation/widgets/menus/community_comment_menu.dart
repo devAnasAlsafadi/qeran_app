@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/features/block/presentation/widgets/confirm_block_dialog.dart';
 import 'package:qeran/features/report/domain/entities/report_target.dart';
+import 'package:qeran/features/report/presentation/blocs/report_state.dart';
 import 'package:qeran/features/report/presentation/widgets/report_sheet.dart';
 
 import '../../../domain/entities/community_comment.dart';
@@ -26,14 +27,26 @@ Widget? communityCommentMenu(
     actions: actions,
     kind: kind,
     onSelected: (context, action) => switch (action) {
-      CommunityMenuAction.report => showReportSheet(
-        context,
-        target: ContentReportTarget(kind, comment.id),
-      ),
+      CommunityMenuAction.report => _report(context, comment, kind),
       CommunityMenuAction.delete => _delete(context, comment, kind),
       CommunityMenuAction.block => _block(context, comment),
     },
   );
+}
+
+/// A report that finds it gone (E7) takes the row away too, as a delete
+/// that finds it gone does.
+Future<void> _report(
+  BuildContext context,
+  CommunityComment comment,
+  ReportContentKind kind,
+) async {
+  final comments = context.read<CommunityCommentsCubit>();
+  final outcome = await showReportSheet(
+    context,
+    target: ContentReportTarget(kind, comment.id),
+  );
+  if (outcome == ReportOutcome.gone) comments.removeGone(comment);
 }
 
 Future<void> _delete(

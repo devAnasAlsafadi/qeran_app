@@ -1,17 +1,14 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/community/presentation/widgets/menus/community_menu_button.dart';
 import 'package:qeran/features/community/presentation/widgets/post_card/community_post_card.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
-import 'package:qeran/features/report/di/report_injection.dart';
-import 'package:qeran/features/report/domain/entities/report_reason.dart';
 import 'package:qeran/features/report/domain/entities/report_target.dart';
-import 'package:qeran/features/report/domain/repositories/content_reporter.dart';
-import 'package:qeran/features/report/presentation/blocs/report_cubit.dart';
 
 import '../../../../core/shipped_strings_rig.dart';
 import '../../fixtures/community_comment_fixtures.dart';
@@ -21,20 +18,7 @@ import '../blocs/feed/feed_cubit_harness.dart';
 import '../blocs/post/post_cubit_harness.dart';
 import 'feed_screen_rig.dart';
 import 'post_screen_rig.dart';
-
-class _Reporter implements ContentReporter {
-  final reported = <ContentReportTarget>[];
-
-  @override
-  Future<Either<Failure, void>> report(
-    ContentReportTarget target, {
-    required ReportReason reason,
-    String? note,
-  }) async {
-    reported.add(target);
-    return const Right(null);
-  }
-}
+import 'report_rig.dart';
 
 /// Reporting from the post screen's ⋮ (E1–E6): the post, someone's comment,
 /// a reply — each named in the menu and the sheet, each sent through
@@ -42,15 +26,12 @@ class _Reporter implements ContentReporter {
 void main() {
   late PostHarness post;
   late CommentsHarness comments;
-  late _Reporter community;
+  late FakeReporter community;
 
   setUpAll(initShippedStrings);
   setUp(() async {
-    community = _Reporter();
-    sl.registerSingleton<ContentReporter>(community);
-    sl.registerFactoryParam<ReportCubit, ReportTarget, void>(
-      (target, _) => ReportCubit(send: reportCallFor(target)),
-    );
+    community = FakeReporter();
+    registerReporting(community);
     post = PostHarness(post: testPost(commentCount: 3));
     comments = CommentsHarness();
     comments.page(1, [
@@ -124,6 +105,34 @@ void main() {
       ContentReportTarget(ReportContentKind.reply, 100),
     ]);
   });
+
+  for (final (kind, id, staying) in [
+    ('comment', 10, [11]),
+    ('reply', 100, [10, 11]),
+  ]) {
+    testWidgets('E7: a $kind found gone — its row leaves, as on a delete', (
+      tester,
+    ) async {
+      community.answer = const Left(
+        CodedServerFailure(message: 'x', errorCode: 'TARGET_CONTENT_NOT_FOUND'),
+      );
+      await pumpPostScreen(tester, post, comments);
+
+      await reportThrough(
+        tester,
+        menuOf(row(id)),
+        'Report $kind',
+        'Something else',
+        'Submit report',
+      );
+
+      expect(row(id), findsNothing);
+      for (final other in staying) {
+        expect(row(other), findsOneWidget);
+      }
+      verify(() => comments.getPost(1)).called(1);
+    });
+  }
 
   testWidgets('the menu and the sheet name the comment [ar]', (tester) async {
     await pumpPostScreen(tester, post, comments, locale: const Locale('ar'));

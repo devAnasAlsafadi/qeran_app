@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qeran/core/data/account_cache.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
@@ -16,44 +17,23 @@ class SubscriptionsRepositoryImpl
     implements SubscriptionsRepository {
   final SubscriptionsRemoteDataSource _dataSource;
 
-  // Plans are dashboard-defined and effectively static within a session, so
-  // the first successful fetch is cached in memory for the app's lifetime.
-  // `_inflightPlans` coalesces concurrent callers onto a single request;
-  // `_cachedPlans` then serves every later call without touching the network.
-  // (No mutable state can live behind a const constructor — hence non-const.)
-  List<SubscriptionPlan>? _cachedPlans;
-  Future<Either<Failure, List<SubscriptionPlan>>>? _inflightPlans;
+  /// Plans are dashboard-defined and effectively static within a session, so
+  /// the first successful read is served from memory — until the account
+  /// changes, since the next account may not be offered the same plans.
+  final AccountCache<List<SubscriptionPlan>> _plans = AccountCache();
 
   SubscriptionsRepositoryImpl(this._dataSource);
 
   @override
-  Future<Either<Failure, List<SubscriptionPlan>>> getPlans() {
-    final cached = _cachedPlans;
-    if (cached != null) return Future.value(Right(cached));
-
-    final existing = _inflightPlans;
-    if (existing != null) return existing;
-
-    final task = executeApiCall(() async {
+  Future<Either<Failure, List<SubscriptionPlan>>> getPlans() => _plans.get(
+    () => executeApiCall(() async {
       final models = await _dataSource.getPlans();
       return models.map((m) => m.toEntity()).toList();
-    }).then((result) {
-      // Cache only on success — a failure must not poison the cache; the next
-      // call retries.
-      result.fold((_) {}, (plans) {
-        _cachedPlans = plans;
-      });
-      return result;
-    });
+    }),
+  );
 
-    _inflightPlans = task;
-    task.whenComplete(() => _inflightPlans = null);
-    return task;
-  }
-
-  /// Drops the cached plans so the next [getPlans] refetches. Defensive hook
-  /// for a future plans-mutation event; not called anywhere yet.
-  void invalidatePlansCache() => _cachedPlans = null;
+  /// The account changed: the next [getPlans] reads the plans again.
+  void forgetAccount() => _plans.forget();
 
   @override
   Future<Either<Failure, CurrentSubscription?>> getCurrent() {

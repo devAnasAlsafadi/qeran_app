@@ -188,16 +188,13 @@ void main() {
   });
 
   group('signOut', () {
-    test('clears the 7 session keys and emits Unauthenticated', () async {
+    test('clears the token and every account key', () async {
       await cubit.signOut();
 
       verify(() => secure.remove(StorageKeys.token)).called(1);
-      verify(() => prefs.remove(StorageKeys.userId)).called(1);
-      verify(() => prefs.remove(StorageKeys.userName)).called(1);
-      verify(() => prefs.remove(StorageKeys.userEmail)).called(1);
-      verify(() => prefs.remove(StorageKeys.userRole)).called(1);
-      verify(() => prefs.remove(StorageKeys.isWhatsappVerified)).called(1);
-      verify(() => prefs.remove(StorageKeys.finishedQuestions)).called(1);
+      for (final key in StorageKeys.accountKeys) {
+        verify(() => prefs.remove(key)).called(1);
+      }
       expect(cubit.state, isA<UserSessionUnauthenticated>());
     });
   });

@@ -36,6 +36,10 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with Safe
   /// opening in the same frame fire two HTTP requests.
   Future<void>? _inflight;
 
+  /// Bumped by [clear]: a fetch begun before it belongs to the previous
+  /// account, and its answer is dropped.
+  int _generation = 0;
+
   /// Synchronous accessor for `state.subscription` (null when the user
   /// isn't subscribed or hasn't hydrated yet).
   CurrentSubscription? get subscription {
@@ -68,11 +72,12 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with Safe
     try {
       await task;
     } finally {
-      _inflight = null;
+      if (identical(_inflight, task)) _inflight = null;
     }
   }
 
   Future<void> _fetch() async {
+    final generation = _generation;
     // Preserve any previous payload so `Failure` can carry it as
     // `lastKnown` — UI can fall back rather than blanking out.
     final previous = state is CurrentSubscriptionLoaded
@@ -85,7 +90,7 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with Safe
     }
 
     final result = await _getCurrent();
-    if (isClosed) return;
+    if (isClosed || generation != _generation) return;
     result.fold(
       (failure) => emit(CurrentSubscriptionFailure(
         message: failure.message,
@@ -122,9 +127,10 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with Safe
   /// re-read once the webhook has granted the entitlement.
   void invalidateCache() => _lastSyncAt = null;
 
-  /// Clears the cached state — call this from `signOut` so a future
-  /// sign-in sees a fresh hydration cycle.
+  /// Clears the cached state when the account changes (the session's
+  /// AccountScope), so the next account sees a fresh hydration cycle.
   void clear() {
+    _generation++;
     _lastSyncAt = null;
     _inflight = null;
     emit(const CurrentSubscriptionInitial());

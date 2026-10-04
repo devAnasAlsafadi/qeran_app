@@ -1,4 +1,5 @@
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 
 import '../data/datasources/subscriptions_remote_datasource.dart';
 import '../data/repositories/purchase_repository_impl.dart';
@@ -24,7 +25,10 @@ void initSubscriptionDependencies() {
 
   //! Repository
   sl.registerLazySingleton<SubscriptionsRepository>(
-    () => SubscriptionsRepositoryImpl(sl()),
+    () => sl<AccountScope>().hold<SubscriptionsRepositoryImpl>(
+      SubscriptionsRepositoryImpl(sl()),
+      (repo) => repo.forgetAccount(),
+    ),
   );
   sl.registerLazySingleton<PurchaseRepository>(
     () => PurchaseRepositoryImpl(sl()),
@@ -45,7 +49,10 @@ void initSubscriptionDependencies() {
   // single screen because /current is the SOT for paywall, profile
   // status block, and any future feature gating.
   sl.registerLazySingleton<CurrentSubscriptionCubit>(
-    () => CurrentSubscriptionCubit(getCurrent: sl()),
+    () => sl<AccountScope>().hold(
+      CurrentSubscriptionCubit(getCurrent: sl()),
+      (cubit) => cubit.clear(),
+    ),
   );
 
   //! Plans cubit — screen-scoped factory.

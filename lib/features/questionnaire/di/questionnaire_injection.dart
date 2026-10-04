@@ -1,5 +1,6 @@
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 import '../data/datasources/questionnaire_remote_datasource.dart';
 import '../data/repositories/questionnaire_repository_impl.dart';
 import '../domain/repositories/questionnaire_repository.dart';
@@ -17,7 +18,10 @@ void initQuestionnaireDependencies() {
 
   //! Repositories
   sl.registerLazySingleton<QuestionnaireRepository>(
-    () => QuestionnaireRepositoryImpl(sl()),
+    () => sl<AccountScope>().hold<QuestionnaireRepositoryImpl>(
+      QuestionnaireRepositoryImpl(sl()),
+      (repo) => repo.forgetAccount(),
+    ),
   );
 
   //! UseCases

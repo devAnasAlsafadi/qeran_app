@@ -20,8 +20,6 @@ import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/di/injection_container.dart';
-import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
-import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
 import 'package:qeran/features/auth/presentation/session_image_headers.dart';
 import 'package:qeran/features/profile/presentation/default_name_banner_session.dart';
 import 'package:qeran/features/profile/presentation/widgets/default_name_banner.dart';
@@ -182,19 +180,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Resolve the copy BEFORE the sign-out + route replacement — this context
     // is gone by the time the toast is shown.
     final message = LocaleKeys.common_logout_success.t(context);
+    // Signing out forgets everything app-scoped that was this account's
+    // (subscription, profile gate, badges, banner, caches): AccountScope.
     await context.read<UserSessionCubit>().signOut();
-    // Drop the cached subscription so a future sign-in re-hydrates
-    // cleanly. The bloc lives at the app root so the same instance
-    // survives across login sessions.
-    if (context.mounted) {
-      context.read<CurrentSubscriptionCubit>().clear();
-    }
-    // Per-run holders, not per-account — clear them so the next sign-in
-    // starts from its own state rather than inheriting this one's.
-    sl<DefaultNameBannerSession>().reset();
-    sl<AuthFormMemo>().clear();
-    // Badge counts belong to the account that earned them.
-    sl<BadgesCubit>().clear();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(
       context,

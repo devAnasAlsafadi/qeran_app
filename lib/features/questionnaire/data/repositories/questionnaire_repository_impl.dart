@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:qeran/core/data/account_cache.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/errors/errors.dart';
@@ -13,14 +14,10 @@ class QuestionnaireRepositoryImpl
     implements QuestionnaireRepository {
   final QuestionnaireRemoteDataSource _dataSource;
 
-  // The edit-form schema is effectively static within a session, so the first
-  // successful fetch is cached in memory for the app's lifetime.
-  // `_inflightEditForm` coalesces concurrent callers onto a single request;
-  // `_cachedEditForm` then serves later calls without touching the network. It
-  // is invalidated the moment the user submits new answers (see submitAnswers).
-  // (No mutable state can live behind a const constructor — hence non-const.)
-  List<EditableCategory>? _cachedEditForm;
-  Future<Either<Failure, List<EditableCategory>>>? _inflightEditForm;
+  /// The edit form: the questions plus MY current answers, read once and then
+  /// served from memory. Dropped when the member submits new answers, and
+  /// when the account changes — it is the account's own answers.
+  final AccountCache<List<EditableCategory>> _editForm = AccountCache();
 
   QuestionnaireRepositoryImpl(this._dataSource);
 
@@ -35,33 +32,20 @@ class QuestionnaireRepositoryImpl
   }
 
   @override
-  Future<Either<Failure, List<EditableCategory>>> fetchEditForm() {
-    final cached = _cachedEditForm;
-    if (cached != null) return Future.value(Right(cached));
-
-    final existing = _inflightEditForm;
-    if (existing != null) return existing;
-
-    final task = executeApiCall(() async {
-      final models = await _dataSource.fetchEditForm();
-      return models.map((m) => m.toEntity()).toList();
-    }).then((result) {
-      // Cache only on success — a failure must not poison the cache; the next
-      // call retries.
-      result.fold((_) {}, (form) {
-        _cachedEditForm = form;
-      });
-      return result;
-    });
-
-    _inflightEditForm = task;
-    task.whenComplete(() => _inflightEditForm = null);
-    return task;
-  }
+  Future<Either<Failure, List<EditableCategory>>> fetchEditForm() =>
+      _editForm.get(
+        () => executeApiCall(() async {
+          final models = await _dataSource.fetchEditForm();
+          return models.map((m) => m.toEntity()).toList();
+        }),
+      );
 
   /// Drops the cached edit-form so the next [fetchEditForm] refetches. Called
   /// on a successful [submitAnswers] (the user just changed their answers).
-  void invalidateEditFormCache() => _cachedEditForm = null;
+  void invalidateEditFormCache() => _editForm.forget();
+
+  /// The account changed: the next account reads its own answers.
+  void forgetAccount() => _editForm.forget();
 
   @override
   Future<Either<Failure, SuccessResponse>> submitAnswers({

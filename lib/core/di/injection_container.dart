@@ -36,6 +36,7 @@ import '../services/language_service.dart';
 import '../services/notification_service.dart';
 import '../services/revenuecat_service.dart';
 import '../services/storage_service.dart';
+import '../state/account_scope.dart';
 import '../utils/server_clock.dart';
 
 final sl = GetIt.instance;
@@ -126,11 +127,15 @@ Future<void> init() async {
   // BlocProvider.value. A factory would either yield a new instance per
   // `sl()` call (breaking state continuity) or require manual instance
   // reuse plumbing. Lazy singleton is the correct fit here.
+  // What every app-scoped holder forgets when the account changes; the
+  // session drives it (sign-out, delete, a different account signing in).
+  sl.registerLazySingleton(AccountScope.new);
   sl.registerLazySingleton<UserSessionCubit>(
     () => UserSessionCubit(
       secureStorage: sl<StorageService>(),
       sharedPrefs: sl<SharedPrefService>(),
       googleSignIn: sl<GoogleSignInService>(),
+      accountScope: sl(),
     ),
   );
 

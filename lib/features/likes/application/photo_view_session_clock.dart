@@ -25,6 +25,9 @@ class PhotoViewSessionClock {
   }
 
   void remove(int photoExchangeId) => _windows.remove(photoExchangeId);
+
+  /// The account changed: its open windows aren't the next account's.
+  void clear() => _windows.clear();
 }
 
 class _WindowClock {

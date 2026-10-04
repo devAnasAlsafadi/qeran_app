@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../data/datasources/community_remote_datasource.dart';
@@ -43,7 +44,10 @@ void initCommunityDependencies() {
 
   //! Repository
   sl.registerLazySingleton<CommunityRepository>(
-    () => CommunityRepositoryImpl(sl()),
+    () => sl<AccountScope>().hold<CommunityRepositoryImpl>(
+      CommunityRepositoryImpl(sl()),
+      (repo) => repo.forgetAccount(),
+    ),
   );
 
   //! UseCases

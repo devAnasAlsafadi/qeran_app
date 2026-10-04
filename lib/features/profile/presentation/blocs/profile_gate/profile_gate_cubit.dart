@@ -93,6 +93,14 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
     }
   }
 
+  /// The account changed (sign-out, sign-in): back to not known, and a read
+  /// still in flight for the previous account lands nowhere. The next shell
+  /// reads the new account's profile.
+  void reset() {
+    _requestVersion++;
+    emit(const ProfileGateInitial());
+  }
+
   static ProfileGateResolved _resolved(
     MyProfile profile, {
     bool? guidelinesAccepted,

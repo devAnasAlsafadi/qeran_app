@@ -6,6 +6,7 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/core/services/google_sign_in_service.dart';
+import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
 import 'user_session_state.dart';
@@ -30,17 +31,24 @@ class UserSessionCubit extends Cubit<UserSessionState>
   /// screens, so tearing the session down has to reach it explicitly.
   final AuthFormMemo _formMemo;
 
+  /// Everything app-scoped that belongs to the account: forgotten whenever
+  /// the account changes, so the next one starts from nothing.
+  final AccountScope _accountScope;
+
   /// [formMemo] defaults to the app-scoped instance; a test that has not booted
-  /// the container gets an isolated one rather than a lookup crash.
+  /// the container gets an isolated one rather than a lookup crash. The app
+  /// passes its [accountScope]; a test that doesn't gets an empty one.
   UserSessionCubit({
     required StorageService secureStorage,
     required SharedPrefService sharedPrefs,
     required GoogleSignInService googleSignIn,
     AuthFormMemo? formMemo,
+    AccountScope? accountScope,
   }) : _secureStorage = secureStorage,
        _sharedPrefs = sharedPrefs,
        _googleSignIn = googleSignIn,
        _formMemo = formMemo ?? resolveAuthFormMemo(),
+       _accountScope = accountScope ?? AccountScope(),
        super(const UserSessionInitial());
 
   /// Synchronous accessor for call sites that can't await a stream.
@@ -102,7 +110,13 @@ class UserSessionCubit extends Cubit<UserSessionState>
 
   /// Called by auth blocs after a sign-in succeeds. Tolerates an empty
   /// token — `register-new` returns a partial user without one.
+  ///
+  /// A different account than the one held (or the first since the app
+  /// opened) forgets the app-scoped state first: nothing the previous account
+  /// left can reach the new one. The same account confirmed again (the OTP
+  /// step after registration) keeps it.
   void onAuthenticated(UserEntity user) {
+    if (currentUser?.id != user.id) _accountScope.forgetAccount();
     emit(UserSessionAuthenticated(user));
   }
 
@@ -133,49 +147,44 @@ class UserSessionCubit extends Cubit<UserSessionState>
   /// Clears the persisted session and emits `Unauthenticated`. Reached from
   /// the logout action on `ProfileScreen` and `MatchmakerAccountScreen`.
   ///
-  /// Also drops what the auth forms remembered. The memo is app-scoped and
-  /// survives the screens that filled it, so without this the NEXT person to
-  /// open login on the device is greeted by the previous account's email.
+  /// Forgets the whole account, as a delete does short of secure storage:
+  /// the token, every account-level pref (a half-done questionnaire, the
+  /// chosen gender and the read marks included), what the auth forms
+  /// remembered, and the app-scoped state ([_forgetAccount]).
   Future<void> signOut() async {
     await _clearSocialSessions();
-    _formMemo.clear();
     await _secureStorage.remove(StorageKeys.token);
-    await _sharedPrefs.remove(StorageKeys.userId);
-    await _sharedPrefs.remove(StorageKeys.userName);
-    await _sharedPrefs.remove(StorageKeys.userEmail);
-    await _sharedPrefs.remove(StorageKeys.userRole);
-    await _sharedPrefs.remove(StorageKeys.isWhatsappVerified);
-    await _sharedPrefs.remove(StorageKeys.finishedQuestions);
+    await _forgetAccount();
     emit(const UserSessionUnauthenticated());
   }
 
-  /// Full local wipe for a PERMANENT account deletion — stronger than
-  /// [signOut]. Clears every account/session value, then emits
-  /// `Unauthenticated`. Used by the delete-account flow after the server
-  /// `DELETE /api/Profile` succeeds.
-  ///
-  /// Secure storage is cleared wholesale (only sensitive auth lives there).
-  /// Shared-prefs are wiped by an EXPLICIT account-key list (Approach A) so
-  /// DEVICE-level keys survive the delete and are deliberately PRESERVED:
-  /// `seen_onboarding`, `notif_permission_asked`, `latest_fcm_token`,
-  /// `device_registered`, `last_registered_fcm`, `last_registered_lang`, and
-  /// easy_localization's `__locale__` (the user's language).
-  ///
-  /// The account-level keys are [StorageKeys.accountKeys], kept beside the
-  /// keys themselves so a new one is listed where it is declared.
+  /// Full local wipe for a PERMANENT account deletion, after the server's
+  /// `DELETE /api/Profile` succeeds: [signOut], with secure storage cleared
+  /// wholesale (only sensitive auth lives there). DEVICE-level prefs survive
+  /// both — onboarding, the notification permission, the FCM registration
+  /// markers and the language; [StorageKeys.accountKeys] lists what goes.
   Future<void> wipeAllLocalData() async {
     await _clearSocialSessions();
     // Secure: only the JWT (+ any sensitive auth) — safe to clear wholesale.
     await _secureStorage.clear();
-    // Sharper here than on sign-out: an email outliving a PERMANENT delete is
-    // the account still being on the device after the member asked for it to
-    // be gone.
+    await _forgetAccount();
+    AppLogger.info('Local data wiped (account deletion)', tag: 'SESSION');
+    emit(const UserSessionUnauthenticated());
+  }
+
+  /// Everything of the account outside secure storage. Runs after the token
+  /// is gone, so a screen that reloads on the way out asks as nobody; a
+  /// request already in flight is dropped by its holder when it lands.
+  ///
+  /// The auth-form memo goes too: it is app-scoped and outlives the screens
+  /// that filled it, so the NEXT person to open login would otherwise be
+  /// greeted by the previous account's email.
+  Future<void> _forgetAccount() async {
     _formMemo.clear();
     for (final key in StorageKeys.accountKeys) {
       await _sharedPrefs.remove(key);
     }
-    AppLogger.info('Local data wiped (account deletion)', tag: 'SESSION');
-    emit(const UserSessionUnauthenticated());
+    _accountScope.forgetAccount();
   }
 
   Future<void> _clearSocialSessions() async {

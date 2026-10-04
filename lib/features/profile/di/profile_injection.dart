@@ -1,5 +1,6 @@
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/core/services/storage_service.dart';
 
 import '../../auth/presentation/blocs/user_session/user_session_cubit.dart';
@@ -51,7 +52,12 @@ void initProfileDependencies() {
   sl.registerLazySingleton(() => SetMainProfileImageUseCase(sl()));
   // App-scoped approval gate (app-lifetime state → lazy singleton, not a
   // factory; provided at the app root, loaded when the user shell mounts).
-  sl.registerLazySingleton(() => ProfileGateCubit(getMyProfile: sl()));
+  sl.registerLazySingleton(
+    () => sl<AccountScope>().hold(
+      ProfileGateCubit(getMyProfile: sl()),
+      (gate) => gate.reset(),
+    ),
+  );
   sl.registerLazySingleton(() => GetProfileByIdUseCase(sl()));
   sl.registerLazySingleton(() => GetBasicUserUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
@@ -79,7 +85,12 @@ void initProfileDependencies() {
   );
   // In-memory only, by design — the default-name prompt must return on the
   // next app run if the name is still the placeholder.
-  sl.registerLazySingleton(() => DefaultNameBannerSession());
+  sl.registerLazySingleton(
+    () => sl<AccountScope>().hold(
+      DefaultNameBannerSession(),
+      (session) => session.reset(),
+    ),
+  );
   // One instance per mount; the caller passes the mode via param1 so the
   // same cubit serves registration and profile edit.
   sl.registerFactoryParam<PhotoManagerCubit, PhotoManagerMode, void>(

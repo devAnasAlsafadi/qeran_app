@@ -37,6 +37,10 @@ class NotificationReadCubit extends Cubit<NotificationReadState>
     emit(NotificationReadState(watermark: watermark, readIds: ids));
   }
 
+  /// The account changed: nothing is read for the next one. The stored
+  /// watermark and ids go with the session's account keys.
+  void reset() => emit(const NotificationReadState());
+
   /// Marks ONE notification read — what tapping a row does.
   Future<void> markRead(int id) async {
     if (state.isRead(id)) return;

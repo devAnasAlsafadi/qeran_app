@@ -1,7 +1,7 @@
 /// ⚠️ When adding an ACCOUNT-level key here, also add it to [accountKeys]
-/// (the permanent-delete wipe list, at the bottom).
+/// (what sign-out and a permanent delete remove, at the bottom).
 /// DEVICE-level keys (FCM registration markers, onboarding, OS-permission,
-/// and easy_localization's locale) are intentionally PRESERVED across a delete.
+/// and easy_localization's locale) are intentionally PRESERVED across both.
 class StorageKeys {
   static const String token = 'token';
   static const String userId = 'user_id';
@@ -61,8 +61,9 @@ class StorageKeys {
   /// it describes the DEVICE, not the account.
   static const String serverClockSkewMs = 'server_clock_skew_ms';
 
-  /// Account/session shared-prefs keys removed on a permanent delete. Device-
-  /// level keys are intentionally absent here (preserved across the delete).
+  /// Account/session shared-prefs keys, removed on sign-out and on a permanent
+  /// delete so the next account on this phone inherits none of them. Device-
+  /// level keys are intentionally absent here (preserved across both).
   static const List<String> accountKeys = [
     // Session / identity
     userId,

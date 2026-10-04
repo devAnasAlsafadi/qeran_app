@@ -1,4 +1,5 @@
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 
 import '../application/photo_view_session_clock.dart';
@@ -77,7 +78,12 @@ void initLikesDependencies() {
   sl.registerLazySingleton(() => CancelCaseUseCase(sl()));
   sl.registerLazySingleton(() => GetPhotoViewPermissionUseCase(sl()));
   sl.registerLazySingleton(() => BeginPhotoViewUseCase(sl()));
-  sl.registerLazySingleton(PhotoViewSessionClock.new);
+  sl.registerLazySingleton(
+    () => sl<AccountScope>().hold(
+      PhotoViewSessionClock(),
+      (clock) => clock.clear(),
+    ),
+  );
 
   sl.registerFactoryParam<PhotoViewCubit, String, void>(
     (targetUserId, _) => PhotoViewCubit(

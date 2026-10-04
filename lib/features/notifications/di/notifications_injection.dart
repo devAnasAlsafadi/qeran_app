@@ -1,4 +1,5 @@
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 
 import '../data/datasources/notifications_remote_datasource.dart';
 import '../data/repositories/notifications_repository_impl.dart';
@@ -21,5 +22,10 @@ void initNotificationsDependencies() {
   sl.registerFactory(() => NotificationsCubit(getNotifications: sl()));
   // Local read-state for the inbox rows (separate from the bell, whose unread
   // count is the server's). Singleton so the styling survives re-entering.
-  sl.registerLazySingleton(() => NotificationReadCubit(prefs: sl()));
+  sl.registerLazySingleton(
+    () => sl<AccountScope>().hold(
+      NotificationReadCubit(prefs: sl()),
+      (cubit) => cubit.reset(),
+    ),
+  );
 }

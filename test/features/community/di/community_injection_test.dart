@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/community/data/datasources/community_remote_datasource.dart';
 import 'package:qeran/features/community/data/datasources/community_remote_datasource_impl.dart';
 import 'package:qeran/features/community/data/datasources/mock/community_mock_mode.dart';
@@ -40,9 +41,11 @@ void main() {
   });
 
   group('initCommunityDependencies', () {
-    // The app's profile gate, registered by the profile feature.
+    // The app's profile gate, registered by the profile feature, and the
+    // account scope the repository joins, registered by the container.
     setUp(() {
       sl.registerSingleton<ApiConsumer>(_MockApiConsumer());
+      sl.registerSingleton(AccountScope());
       sl.registerLazySingleton(
         () => ProfileGateCubit(getMyProfile: _MockGetMyProfile()),
       );

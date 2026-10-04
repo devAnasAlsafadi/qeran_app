@@ -1,4 +1,5 @@
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 
 import '../data/datasources/badges_remote_datasource.dart';
 import '../data/repositories/badges_repository_impl.dart';
@@ -19,6 +20,9 @@ void initBadgesDependencies() {
   // App-scoped: the counts outlive every screen that reads them, and both the
   // nav bar and the bell must see the same instance.
   sl.registerLazySingleton(
-    () => BadgesCubit(getBadges: sl(), markTabSeen: sl()),
+    () => sl<AccountScope>().hold(
+      BadgesCubit(getBadges: sl(), markTabSeen: sl()),
+      (cubit) => cubit.clear(),
+    ),
   );
 }

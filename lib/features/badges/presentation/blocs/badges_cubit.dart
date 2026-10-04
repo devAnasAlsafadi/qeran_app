@@ -34,6 +34,9 @@ class BadgesCubit extends Cubit<BadgeCounts> with SafeEmit<BadgeCounts> {
   /// `CurrentSubscriptionCubit`.)
   Future<void>? _inflight;
 
+  /// Bumped by [clear]: counts fetched for the previous account are dropped.
+  int _generation = 0;
+
   /// Pulls the authoritative counts. Hung off the hooks that already exist —
   /// shell mount, app resume, socket reconnect — rather than a schedule of its
   /// own.
@@ -45,12 +48,16 @@ class BadgesCubit extends Cubit<BadgeCounts> with SafeEmit<BadgeCounts> {
     if (existing != null) return existing;
     final task = _refresh();
     _inflight = task;
-    task.whenComplete(() => _inflight = null);
+    task.whenComplete(() {
+      if (identical(_inflight, task)) _inflight = null;
+    });
     return task;
   }
 
   Future<void> _refresh() async {
+    final generation = _generation;
     final result = await _getBadges();
+    if (generation != _generation) return;
     result.fold(
       (failure) => AppLogger.warning(
         'BADGES — refresh failed raw="${failure.message}"',
@@ -91,10 +98,15 @@ class BadgesCubit extends Cubit<BadgeCounts> with SafeEmit<BadgeCounts> {
     );
   }
 
-  /// Drops every count. Called on sign-out so the next account cannot inherit
+  /// Drops every count. Called when the account changes (the session's
+  /// AccountScope) and on shell mount, so the next account cannot inherit
   /// the previous one's dots — this cubit is a lazy singleton and outlives the
   /// session that filled it.
   void clear() {
+    // A fetch still in flight is the previous account's: its counts are
+    // dropped, and the next refresh asks afresh.
+    _generation++;
+    _inflight = null;
     if (state == const BadgeCounts.empty()) return;
     emit(const BadgeCounts.empty());
   }

@@ -19,7 +19,6 @@ import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/profile/presentation/blocs/delete_account/delete_account_cubit.dart';
 import 'package:qeran/features/profile/presentation/blocs/delete_account/delete_account_state.dart';
 import 'package:qeran/features/profile/presentation/widgets/delete_consequence_line.dart';
-import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Confirms PERMANENT account deletion: consequence list (incl. an active-
@@ -108,8 +107,8 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
     if (!context.mounted) return;
     switch (state.outcome) {
       case DeleteAccountOutcome.success:
-        // Clear sub cache, stack→login, then toast on root (survives the pop).
-        context.read<CurrentSubscriptionCubit>().clear();
+        // The wipe already forgot the account (AccountScope): stack→login,
+        // then toast on root (survives the pop).
         NavigationManager.pushNamedAndRemoveUntil(
             context, RouteNames.loginScreen);
         AppSnackBar.showOnRoot(

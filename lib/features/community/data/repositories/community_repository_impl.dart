@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:qeran/core/data/account_cache.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 
@@ -25,9 +26,9 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
   /// App-lifetime, like the repository: never closed.
   final _changes = StreamController<CommunityPostChange>.broadcast();
 
-  /// The limits, once per app session (S15). A failure isn't kept, so the
-  /// next screen tries again.
-  CommunityConfig? _config;
+  /// The limits, once per account (S15). A failure isn't kept, so the next
+  /// screen tries again.
+  final AccountCache<CommunityConfig> _config = AccountCache();
 
   CommunityRepositoryImpl(this._dataSource);
 
@@ -150,14 +151,12 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
       });
 
   @override
-  Future<Either<Failure, CommunityConfig>> getConfig() async {
-    if (_config case final CommunityConfig cached) return Right(cached);
-    final result = await executeApiCall(
-      () async => (await _dataSource.getConfig()).toEntity(),
-    );
-    result.fold((_) {}, (config) => _config = config);
-    return result;
-  }
+  Future<Either<Failure, CommunityConfig>> getConfig() => _config.get(
+    () => executeApiCall(() async => (await _dataSource.getConfig()).toEntity()),
+  );
+
+  /// The account changed: the next account reads the limits again.
+  void forgetAccount() => _config.forget();
 
   @override
   Future<Either<Failure, CommunityGuidelines>> getGuidelines() =>

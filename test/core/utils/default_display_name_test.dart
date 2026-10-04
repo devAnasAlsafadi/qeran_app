@@ -33,6 +33,11 @@ void main() {
       expect(validate('مُسْتَخْدِمٌ جَدِيدٌ'), defaultError);
     });
 
+    test('nor does a stretched word (tatweel)', () {
+      expect(validate('مـستخدم'), defaultError);
+      expect(validate('مــســتــخــدم جـديـد'), defaultError);
+    });
+
     test('nor does the spacing', () {
       expect(validate('  مستخدم  '), defaultError);
       expect(validate('مستخدم   جديد'), defaultError);

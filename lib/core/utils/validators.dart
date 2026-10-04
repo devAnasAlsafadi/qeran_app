@@ -47,8 +47,9 @@ class Validators {
     'مستخدم جديد',
   ];
 
-  /// Arabic short vowels and the other marks above or below a letter.
-  static final RegExp _arabicMarks = RegExp('[ً-ٰٟ]');
+  /// Arabic short vowels and the other marks above or below a letter, and
+  /// the tatweel (ـ) that stretches a word without changing it.
+  static final RegExp _arabicMarks = RegExp('[\u0640\u064B-\u065F\u0670]');
   static final RegExp _spaces = RegExp(r'\s+');
 
   /// Whether [name] is still a placeholder (D17) — whatever marks it

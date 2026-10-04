@@ -33,7 +33,13 @@ mixin CommentRemoval on Cubit<CommunityCommentsState> {
     final result = await deleteComment(comment.id);
     _deleting.remove(comment.id);
     result.fold(
-      (_) => emit(state.withEvent(CommunityCommentsEvent.deleteFailed)),
+      (_) => emit(
+        state.withEvent(
+          comment.isReply
+              ? CommunityCommentsEvent.deleteReplyFailed
+              : CommunityCommentsEvent.deleteFailed,
+        ),
+      ),
       (_) => comment.isReply
           ? _remove(
               withoutReply(state.threads, comment),

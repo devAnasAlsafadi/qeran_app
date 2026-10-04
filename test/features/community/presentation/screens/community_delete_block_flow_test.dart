@@ -131,23 +131,33 @@ void main() {
     verifyNever(() => comments.delete(any()));
   });
 
-  testWidgets('E10: a failed delete keeps the row and says so', (tester) async {
-    when(
-      () => comments.delete(11),
-    ).thenAnswer((_) async => const Left(OfflineFailure()));
-    await pump(tester);
+  // A failed delete, by the menu row chosen: a reply's in its own words
+  // (Anas, 2026-10-04), in English and Arabic.
+  const failures = {
+    'Delete comment': 'Couldn’t delete the comment. Please try again.',
+    'Delete reply': "Couldn't delete the reply. Please try again.",
+    'حذف الرد': 'تعذّر حذف الرد، حاول مرة أخرى.',
+  };
+  for (final MapEntry(key: option, value: said) in failures.entries) {
+    final id = option == 'Delete comment' ? 11 : 100;
+    final arabic = option == 'حذف الرد';
+    testWidgets('E10: a failed delete keeps the row and says so — $option', (
+      tester,
+    ) async {
+      when(
+        () => comments.delete(id),
+      ).thenAnswer((_) async => const Left(OfflineFailure()));
+      await pump(tester, locale: Locale(arabic ? 'ar' : 'en'));
 
-    await choose(tester, 11, 'Delete comment');
-    await tester.tap(find.text('Delete'));
-    await tester.pumpAndSettle();
+      await choose(tester, id, option);
+      await tester.tap(find.text(arabic ? 'حذف' : 'Delete'));
+      await tester.pumpAndSettle();
 
-    expect(row(11), findsOneWidget);
-    expect(
-      find.text('Couldn’t delete the comment. Please try again.'),
-      findsOneWidget,
-    );
-    await toastDone(tester);
-  });
+      expect(row(id), findsOneWidget);
+      expect(find.text(said), findsOneWidget);
+      await toastDone(tester);
+    });
+  }
 
   testWidgets('E11, E12: Block asks, then every row of theirs goes and the '
       'screen stays', (tester) async {

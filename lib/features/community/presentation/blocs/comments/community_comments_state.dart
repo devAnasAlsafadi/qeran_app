@@ -36,6 +36,9 @@ enum CommunityCommentsEvent {
   /// A delete didn't go through; the row stays (E10).
   deleteFailed,
 
+  /// The member's reply couldn't be deleted; it stays (E10, S14).
+  deleteReplyFailed,
+
   /// The comment or reply a notification is about is gone — deleted, or
   /// hidden by a block (C8).
   contentGone,

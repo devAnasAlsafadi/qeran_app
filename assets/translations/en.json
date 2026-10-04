@@ -286,6 +286,7 @@
     "deleted": "Comment deleted.",
     "deleted_reply": "Reply deleted.",
     "delete_failed": "Couldn’t delete the comment. Please try again.",
+    "delete_reply_failed": "Couldn't delete the reply. Please try again.",
     "name_gate_header": "Your name in Community",
     "name_gate_title": "Choose the name shown with your comments",
     "name_gate_body": "Your display name is still the default “مستخدم” (User). Choose a name that identifies you before you join the discussion.",

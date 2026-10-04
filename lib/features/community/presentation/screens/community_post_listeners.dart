@@ -61,6 +61,10 @@ void _commentsToast(BuildContext context, CommunityCommentsEvent event) {
       LocaleKeys.community_delete_failed,
       SnackBarType.error,
     ),
+    CommunityCommentsEvent.deleteReplyFailed => (
+      LocaleKeys.community_delete_reply_failed,
+      SnackBarType.error,
+    ),
     CommunityCommentsEvent.contentGone => (
       LocaleKeys.community_content_gone,
       SnackBarType.info,

@@ -7,16 +7,14 @@ import '../../../../core/extensions/localization_extension.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import '../../domain/entities/community_viewer.dart';
-import '../blocs/comments/community_comments_cubit.dart';
-import '../blocs/comments/community_comments_state.dart';
 import '../blocs/post/community_post_cubit.dart';
 import '../blocs/post/community_post_state.dart';
 import '../widgets/comments/comments_skeleton.dart';
-import '../widgets/community_like_toast.dart';
 import '../widgets/composer/community_composer.dart';
 import '../widgets/feed/community_feed_skeleton.dart';
 import '../widgets/post_screen/community_post_body.dart';
 import '../widgets/post_screen/community_post_unavailable.dart';
+import 'community_post_listeners.dart';
 
 /// A post and its discussion, for the post and comments cubits in scope —
 /// shared by both apps. A member whose profile isn't approved reads only
@@ -31,7 +29,7 @@ class CommunityPostScreen extends StatelessWidget {
     final gated = context.select<ProfileGateCubit, bool>((g) => g.isGated);
     final readOnly = viewer == CommunityViewer.member && gated;
     return MultiBlocListener(
-      listeners: _likeToasts,
+      listeners: communityPostListeners,
       child: BlocBuilder<CommunityPostCubit, CommunityPostState>(
         builder: (context, state) => _body(context, state, readOnly),
       ),
@@ -63,38 +61,6 @@ class CommunityPostScreen extends StatelessWidget {
           onRetry: context.read<CommunityPostCubit>().load,
         ),
       };
-
-  /// A like that didn't go through, on the post or on a comment.
-  static List<BlocListener> get _likeToasts => [
-    BlocListener<CommunityPostCubit, CommunityPostState>(
-      listenWhen: _postEvent,
-      listener: (context, state) => showCommunityLikeToast(
-        context,
-        readOnly:
-            (state as CommunityPostReady).event ==
-            CommunityPostEvent.readOnlyLike,
-      ),
-    ),
-    BlocListener<CommunityCommentsCubit, CommunityCommentsState>(
-      listenWhen: (previous, current) =>
-          previous.eventVersion != current.eventVersion &&
-          current.event != CommunityCommentsEvent.none,
-      listener: (context, state) => showCommunityLikeToast(
-        context,
-        readOnly: state.event == CommunityCommentsEvent.readOnlyLike,
-      ),
-    ),
-  ];
-
-  static bool _postEvent(
-    CommunityPostState previous,
-    CommunityPostState current,
-  ) {
-    if (current is! CommunityPostReady) return false;
-    if (current.event == CommunityPostEvent.none) return false;
-    return previous is! CommunityPostReady ||
-        previous.eventVersion != current.eventVersion;
-  }
 }
 
 /// Opened without a copy of the post: a card's shape and three rows'.

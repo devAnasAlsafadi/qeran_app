@@ -87,5 +87,8 @@ abstract class CommunityRepository {
     String? note,
   });
 
+  /// D6 — the same block as a profile's; hides both ways (D23).
+  Future<Either<Failure, void>> blockMember(String userId);
+
   Stream<CommunityPostChange> get postChanges;
 }

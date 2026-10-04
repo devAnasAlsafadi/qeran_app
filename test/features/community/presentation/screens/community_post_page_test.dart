@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
@@ -46,7 +47,13 @@ void _register(PostHarness post, CommentsHarness comments) {
       setCommentLike: comments.setLike,
       createComment: comments.createComment,
       createReply: comments.createReply,
+      deleteComment: comments.delete,
       getPost: comments.getPost,
+    ),
+  );
+  sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(
+    (origin, _) => BlockActionCubit(
+      block: (_) => throw StateError('no block in these tests: $origin'),
     ),
   );
   sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(

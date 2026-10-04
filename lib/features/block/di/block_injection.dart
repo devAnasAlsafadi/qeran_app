@@ -3,6 +3,7 @@ import 'package:qeran/core/di/injection_container.dart';
 import '../data/datasources/block_remote_datasource.dart';
 import '../data/repositories/block_repository_impl.dart';
 import '../domain/repositories/block_repository.dart';
+import '../domain/repositories/community_member_blocker.dart';
 import '../domain/usecases/block_user_usecase.dart';
 import '../domain/usecases/get_blocked_users_usecase.dart';
 import '../domain/usecases/unblock_user_usecase.dart';
@@ -21,7 +22,17 @@ void initBlockDependencies() {
   sl.registerLazySingleton(() => BlockUserUseCase(sl()));
   sl.registerLazySingleton(() => UnblockUserUseCase(sl()));
   sl.registerLazySingleton(() => GetBlockedUsersUseCase(sl()));
-  // Screen-scoped cubits.
-  sl.registerFactory(() => BlockActionCubit(blockUser: sl()));
+  // Screen-scoped cubits; a block's call depends on where it starts.
+  sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(
+    (origin, _) => BlockActionCubit(block: blockCallFor(origin)),
+  );
   sl.registerFactory(() => BlockedListCubit(getBlocked: sl(), unblock: sl()));
 }
+
+/// A profile's block goes through this feature's `POST block`; a Community
+/// comment's through Community's [CommunityMemberBlocker] (Q3), never this
+/// feature's datasource.
+BlockCall blockCallFor(BlockOrigin origin) => switch (origin) {
+  BlockOrigin.profile => sl<BlockUserUseCase>().call,
+  BlockOrigin.community => sl<CommunityMemberBlocker>().block,
+};

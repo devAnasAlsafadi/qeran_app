@@ -128,6 +128,10 @@ class CommunityRemoteDataSourceImpl implements CommunityRemoteDataSource {
     );
   }
 
+  @override
+  Future<void> blockMember(String userId) =>
+      _api.post(EndPoints.block, body: {'targetUserId': userId});
+
   Future<CommunityLikeStateModel> _like(String path, {required bool liked}) async {
     final body = liked ? await _api.put(path) : await _api.delete(path);
     return CommunityLikeStateModel.fromJson(_data(body));

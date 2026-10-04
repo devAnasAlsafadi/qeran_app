@@ -134,4 +134,19 @@ void main() {
       );
     });
   });
+
+  group('delete', () {
+    test('a comment already gone counts as deleted', () async {
+      expect(await repo.deleteComment(999999), const Right(unit));
+    });
+
+    test('any other failure stays one', () async {
+      final ds = _MockDataSource();
+      when(() => ds.deleteComment(7)).thenThrow(const OfflineException());
+
+      final result = await CommunityRepositoryImpl(ds).deleteComment(7);
+
+      expect(result, const Left(OfflineFailure()));
+    });
+  });
 }

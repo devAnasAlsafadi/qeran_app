@@ -10,7 +10,7 @@ extension _Json on CommunityMockStore {
     'media': p.media,
     'likeCount': p.likeCount,
     'likedByMe': p.likedByMe,
-    'commentCount': _comments.where((c) => c.postId == p.id).length,
+    'commentCount': _visible.where((c) => c.postId == p.id).length,
     'createdAt': p.publishedAt.toUtc().toIso8601String(),
     'canDelete': p.authorId == viewer.id,
     'status': 'Published',

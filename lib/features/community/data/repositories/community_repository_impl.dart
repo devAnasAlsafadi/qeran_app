@@ -145,11 +145,11 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
       );
 
   @override
-  Future<Either<Failure, Unit>> deleteComment(int commentId) =>
-      executeApiCall(() async {
+  Future<Either<Failure, Unit>> deleteComment(int commentId) async =>
+      goneCountsAsDeleted(await executeApiCall(() async {
         await _dataSource.deleteComment(commentId);
         return unit;
-      });
+      }));
 
   @override
   Future<Either<Failure, CommunityConfig>> getConfig() => _config.get(
@@ -178,6 +178,10 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
   }) => executeApiCall(
     () => _dataSource.reportContent(target, reason: reason, note: note),
   );
+
+  @override
+  Future<Either<Failure, void>> blockMember(String userId) =>
+      executeApiCall(() => _dataSource.blockMember(userId));
 
   void _announceGone<T>(int postId, Either<Failure, T> result) => result.fold(
         (failure) {

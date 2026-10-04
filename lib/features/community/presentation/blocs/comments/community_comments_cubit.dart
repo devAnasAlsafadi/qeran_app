@@ -5,11 +5,13 @@ import '../../../domain/entities/community_comment.dart';
 import '../../../domain/entities/community_page.dart';
 import '../../../domain/usecases/create_community_comment_usecase.dart';
 import '../../../domain/usecases/create_community_reply_usecase.dart';
+import '../../../domain/usecases/delete_community_comment_usecase.dart';
 import '../../../domain/usecases/get_comment_replies_usecase.dart';
 import '../../../domain/usecases/get_community_post_usecase.dart';
 import '../../../domain/usecases/get_post_comments_usecase.dart';
 import '../../../domain/usecases/set_comment_like_usecase.dart';
 import 'comment_likes.dart';
+import 'comment_removal.dart';
 import 'comment_sending.dart';
 import 'comment_thread.dart';
 import 'comment_threads.dart';
@@ -17,10 +19,14 @@ import 'community_comments_state.dart';
 
 /// A post's discussion (C1–C6, D5–D10): comments newest first, a page at a
 /// time on «عرض تعليقات أخرى», each comment's replies oldest first on «عرض
-/// الردود», the optimistic like ([CommentLikes]) and what the member sends
-/// ([CommentSending]).
+/// الردود», the optimistic like ([CommentLikes]), what the member sends
+/// ([CommentSending]) and what leaves the list ([CommentRemoval]).
 class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
-    with SafeEmit<CommunityCommentsState>, CommentLikes, CommentSending {
+    with
+        SafeEmit<CommunityCommentsState>,
+        CommentLikes,
+        CommentSending,
+        CommentRemoval {
   CommunityCommentsCubit({
     required this.postId,
     required GetPostCommentsUseCase getComments,
@@ -28,6 +34,7 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     required this.setCommentLike,
     required this.createComment,
     required this.createReply,
+    required this.deleteComment,
     required this.getPost,
   }) : _getComments = getComments,
        _getReplies = getReplies,
@@ -41,6 +48,8 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
   final CreateCommunityCommentUseCase createComment;
   @override
   final CreateCommunityReplyUseCase createReply;
+  @override
+  final DeleteCommunityCommentUseCase deleteComment;
   @override
   final GetCommunityPostUseCase getPost;
   final GetPostCommentsUseCase _getComments;

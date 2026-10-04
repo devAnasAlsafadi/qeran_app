@@ -129,6 +129,15 @@ void main() {
         })).called(1);
   });
 
+  test('block: the same POST block as a profile (D6)', () async {
+    when(() => api.post(any(), body: any(named: 'body')))
+        .thenAnswer((_) async => ok(null));
+
+    await ds.blockMember('u-5');
+
+    verify(() => api.post('block', body: {'targetUserId': 'u-5'})).called(1);
+  });
+
   test('delete: DELETE community/comments/{id}', () async {
     when(() => api.delete(any())).thenAnswer((_) async => ok(null));
 

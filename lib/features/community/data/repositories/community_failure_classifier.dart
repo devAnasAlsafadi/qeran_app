@@ -73,3 +73,14 @@ Either<Failure, CommentSubmitOutcome> commentSubmitOutcomeOf(
   },
   (model) => Right(CommentPosted(model.toEntity())),
 );
+
+/// A delete's answer: `COMMENT_NOT_FOUND` — already deleted with its
+/// comment, or hidden by a block — is what the member asked for.
+Either<Failure, Unit> goneCountsAsDeleted(Either<Failure, Unit> result) =>
+    result.fold(
+      (failure) =>
+          communityErrorCode(failure) == CommunityErrorCodes.commentNotFound
+          ? const Right(unit)
+          : Left(failure),
+      Right.new,
+    );

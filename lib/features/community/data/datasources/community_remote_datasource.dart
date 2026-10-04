@@ -61,4 +61,8 @@ abstract class CommunityRemoteDataSource {
     required ReportReason reason,
     String? note,
   });
+
+  /// The same `POST block` as a profile's (D6), through Community so the
+  /// mock answers it in memory (Q3). Hides both ways (D23).
+  Future<void> blockMember(String userId);
 }

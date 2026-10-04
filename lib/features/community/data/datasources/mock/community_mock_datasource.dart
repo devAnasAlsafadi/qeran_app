@@ -157,6 +157,9 @@ class CommunityMockDataSource implements CommunityRemoteDataSource {
     String? note,
   }) => _run(() => store.report(target));
 
+  @override
+  Future<void> blockMember(String userId) => _run(() => store.block(userId));
+
   static int get _maxLength =>
       communityMockConfig()['commentMaxLength'] as int;
 

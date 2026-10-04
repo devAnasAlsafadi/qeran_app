@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import 'package:qeran/features/block/domain/repositories/community_member_blocker.dart';
 import 'package:qeran/features/report/domain/repositories/content_reporter.dart';
 
 import '../data/datasources/community_remote_datasource.dart';
@@ -11,6 +12,7 @@ import '../data/datasources/mock/community_mock_mode.dart';
 import '../data/repositories/community_repository_impl.dart';
 import '../domain/repositories/community_repository.dart';
 import '../domain/usecases/accept_community_guidelines_usecase.dart';
+import '../domain/usecases/block_community_member_usecase.dart';
 import '../domain/usecases/create_community_comment_usecase.dart';
 import '../domain/usecases/create_community_reply_usecase.dart';
 import '../domain/usecases/delete_community_comment_usecase.dart';
@@ -71,6 +73,10 @@ void initCommunityDependencies() {
   sl.registerLazySingleton<ContentReporter>(
     () => ReportCommunityContentUseCase(sl()),
   );
+  // And the block cubit's, for a comment's author.
+  sl.registerLazySingleton<CommunityMemberBlocker>(
+    () => BlockCommunityMemberUseCase(sl()),
+  );
   sl.registerLazySingleton(() => WatchCommunityPostChangesUseCase(sl()));
 
   sl.registerFactory(
@@ -118,6 +124,7 @@ void initCommunityDependencies() {
       setCommentLike: sl(),
       createComment: sl(),
       createReply: sl(),
+      deleteComment: sl(),
       getPost: sl(),
     ),
   );

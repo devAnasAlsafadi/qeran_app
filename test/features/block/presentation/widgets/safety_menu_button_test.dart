@@ -3,8 +3,15 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/services/google_sign_in_service.dart';
+import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/features/auth/domain/entities/user_entity.dart';
+import 'package:qeran/features/auth/presentation/auth_form_memo.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/block/domain/usecases/block_user_usecase.dart';
 import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/features/block/presentation/widgets/safety_menu_button.dart';
@@ -12,6 +19,26 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockBlockUser extends Mock implements BlockUserUseCase {}
+
+class _MockStorage extends Mock implements StorageService {}
+
+class _MockPrefs extends Mock implements SharedPrefService {}
+
+class _MockGoogle extends Mock implements GoogleSignInService {}
+
+/// A profile's block never goes through Community's call.
+Future<Either<Failure, void>> _wrongPath(String _) =>
+    throw StateError('a profile blocked through Community');
+
+/// The app's session, signed in as [user].
+void _signIn(UserEntity user) => sl.registerSingleton<UserSessionCubit>(
+  UserSessionCubit(
+    secureStorage: _MockStorage(),
+    sharedPrefs: _MockPrefs(),
+    googleSignIn: _MockGoogle(),
+    formMemo: AuthFormMemo(),
+  )..onAuthenticated(user),
+);
 
 /// Keys come back as their own text, so rows are found by key.
 class _KeysLoader extends AssetLoader {
@@ -67,7 +94,11 @@ void main() {
 
   setUp(() {
     blockUser = _MockBlockUser();
-    sl.registerFactory(() => BlockActionCubit(blockUser: blockUser));
+    sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(
+      (origin, _) => BlockActionCubit(
+        block: origin == BlockOrigin.profile ? blockUser.call : _wrongPath,
+      ),
+    );
   });
   tearDown(sl.reset);
 
@@ -111,5 +142,26 @@ void main() {
     verify(() => blockUser('user-9')).called(1);
     expect(result, 'user-9');
     await tester.pump(const Duration(seconds: 5)); // the toast's timers
+  });
+
+  testWidgets('a matchmaker gets Report only — never Block (D40, §0.4)', (
+    tester,
+  ) async {
+    _signIn(
+      const UserEntity(id: 'mm-1', name: 'هدى', email: '', role: 'Moderator'),
+    );
+
+    await _pumpProfile(tester, popped: (_) {});
+
+    expect(find.text(LocaleKeys.report_action_report_user), findsOneWidget);
+    expect(find.text(LocaleKeys.block_action_block), findsNothing);
+  });
+
+  testWidgets('a member still gets both', (tester) async {
+    _signIn(const UserEntity(id: 'u-1', name: 'ديما', email: '', role: 'User'));
+
+    await _pumpProfile(tester, popped: (_) {});
+
+    expect(find.text(LocaleKeys.block_action_block), findsOneWidget);
   });
 }

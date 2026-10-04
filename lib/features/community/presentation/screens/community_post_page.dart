@@ -7,6 +7,7 @@ import '../../../../core/di/injection_container.dart';
 import '../../../../core/extensions/localization_extension.dart';
 import '../../../../core/widgets/connectivity_banner_host.dart';
 import '../../../../generated/locale_keys.g.dart';
+import '../../../block/presentation/blocs/block_action_cubit.dart';
 import '../../domain/entities/comment_submit_outcome.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_viewer.dart';
@@ -55,19 +56,26 @@ class CommunityPostPage extends StatelessWidget {
       ..loadConfig();
   }
 
+  /// The post, its comments, the composer and — for a comment's Block —
+  /// the block cubit, through Community (Q3).
+  List<BlocProvider> get _providers => [
+    BlocProvider<CommunityPostCubit>(
+      create: (_) =>
+          sl<CommunityPostCubit>(param1: postId, param2: post)..load(),
+    ),
+    BlocProvider<CommunityCommentsCubit>(
+      create: (_) => sl<CommunityCommentsCubit>(param1: postId)..load(),
+    ),
+    BlocProvider<CommunityComposerCubit>(create: _composer),
+    BlocProvider<BlockActionCubit>(
+      create: (_) => sl<BlockActionCubit>(param1: BlockOrigin.community),
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [
-        BlocProvider<CommunityPostCubit>(
-          create: (_) =>
-              sl<CommunityPostCubit>(param1: postId, param2: post)..load(),
-        ),
-        BlocProvider<CommunityCommentsCubit>(
-          create: (_) => sl<CommunityCommentsCubit>(param1: postId)..load(),
-        ),
-        BlocProvider<CommunityComposerCubit>(create: _composer),
-      ],
+      providers: _providers,
       child: Scaffold(
         backgroundColor: QeranColors.creamCanvas,
         appBar: QeranAppBar(

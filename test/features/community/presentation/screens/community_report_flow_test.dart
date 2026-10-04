@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
-import 'package:qeran/features/community/presentation/widgets/comments/comment_row.dart';
 import 'package:qeran/features/community/presentation/widgets/menus/community_menu_button.dart';
 import 'package:qeran/features/community/presentation/widgets/post_card/community_post_card.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
@@ -139,11 +138,16 @@ void main() {
     expect(find.text('مشاركة معلومات تواصل'), findsOneWidget);
   });
 
-  testWidgets('my own comment has nothing to report', (tester) async {
+  testWidgets('my own comment offers Delete, never Report (E3)', (
+    tester,
+  ) async {
     await pumpPostScreen(tester, post, comments);
 
-    expect(find.byType(CommentRow), findsNWidgets(3));
-    expect(menuOf(row(11)), findsNothing);
+    await tester.tap(menuOf(row(11)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete comment'), findsOneWidget);
+    expect(find.text('Report comment'), findsNothing);
   });
 
   testWidgets('a feed card has the same ⋮ (E1), even for a member who '

@@ -7,6 +7,7 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/report/presentation/widgets/report_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -17,7 +18,7 @@ import 'confirm_block_dialog.dart';
 enum _SafetyAction { report, block }
 
 /// A circular ⋮ button (mirrors the profile back-button style) that opens a
-/// Report / Block menu for [targetUserId]. On a successful block it pops the
+/// Report / Block menu for [targetUserId] — Report only for a matchmaker. On a successful block it pops the
 /// enclosing route returning the blocked userId (so a list/deck can tear the
 /// user down) and toasts on root. Report opens [showUserReportSheet].
 class SafetyMenuButton extends StatelessWidget {
@@ -28,7 +29,7 @@ class SafetyMenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<BlockActionCubit>(
-      create: (_) => sl<BlockActionCubit>(),
+      create: (_) => sl<BlockActionCubit>(param1: BlockOrigin.profile),
       child: _SafetyMenuButtonView(targetUserId: targetUserId),
     );
   }
@@ -88,19 +89,7 @@ class _SafetyMenuButtonView extends StatelessWidget {
     final cubit = context.read<BlockActionCubit>();
     final action = await QeranOptionsSheet.show<_SafetyAction>(
       context,
-      options: [
-        QeranOption(
-          icon: Icons.flag_outlined,
-          label: LocaleKeys.report_action_report_user.t(context),
-          value: _SafetyAction.report,
-        ),
-        QeranOption(
-          icon: Icons.block_rounded,
-          label: LocaleKeys.block_action_block.t(context),
-          value: _SafetyAction.block,
-          danger: true,
-        ),
-      ],
+      options: _options(context),
     );
     if (action == null || !context.mounted) return;
 
@@ -112,4 +101,27 @@ class _SafetyMenuButtonView extends StatelessWidget {
         if (ok && context.mounted) cubit.block(targetUserId);
     }
   }
+
+  /// Report, and Block — never for a matchmaker (D40): she doesn't block a
+  /// member; she reports, and admin decides.
+  List<QeranOption<_SafetyAction>> _options(BuildContext context) => [
+    QeranOption(
+      icon: Icons.flag_outlined,
+      label: LocaleKeys.report_action_report_user.t(context),
+      value: _SafetyAction.report,
+    ),
+    if (!_viewerIsMatchmaker)
+      QeranOption(
+        icon: Icons.block_rounded,
+        label: LocaleKeys.block_action_block.t(context),
+        value: _SafetyAction.block,
+        danger: true,
+      ),
+  ];
+
+  /// The signed-in account is a matchmaker — she reaches a member's profile
+  /// from a shared card in her chat (§0.4).
+  static bool get _viewerIsMatchmaker =>
+      sl.isRegistered<UserSessionCubit>() &&
+      (sl<UserSessionCubit>().currentUser?.isMatchmaker ?? false);
 }

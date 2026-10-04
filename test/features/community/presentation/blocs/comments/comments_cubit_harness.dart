@@ -7,6 +7,7 @@ import 'package:qeran/features/community/domain/entities/community_like_state.da
 import 'package:qeran/features/community/domain/entities/community_page.dart';
 import 'package:qeran/features/community/domain/usecases/create_community_comment_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/create_community_reply_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/delete_community_comment_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_comment_replies_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_post_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_post_comments_usecase.dart';
@@ -30,6 +31,8 @@ class _MockCreateReply extends Mock implements CreateCommunityReplyUseCase {}
 
 class _MockGetPost extends Mock implements GetCommunityPostUseCase {}
 
+class _MockDelete extends Mock implements DeleteCommunityCommentUseCase {}
+
 typedef CommentsAnswer = Either<Failure, CommunityPage<CommunityComment>>;
 
 /// A comments cubit for post 1 over scripted use cases.
@@ -42,6 +45,7 @@ class CommentsHarness {
       setCommentLike: setLike,
       createComment: createComment,
       createReply: createReply,
+      deleteComment: delete,
       getPost: getPost,
     );
     when(() => getPost(1)).thenAnswer((_) async => Right(testPost()));
@@ -53,6 +57,7 @@ class CommentsHarness {
   final createComment = _MockCreateComment();
   final createReply = _MockCreateReply();
   final getPost = _MockGetPost();
+  final delete = _MockDelete();
   late final CommunityCommentsCubit cubit;
 
   /// Page [page] of the comments answers with [items], of [totalPages].

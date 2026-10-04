@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/block/data/error_codes.dart';
 import 'package:qeran/features/report/domain/entities/report_target.dart';
 
 import '../../error_codes.dart';
@@ -29,6 +30,7 @@ class CommunityMockStore {
   final List<MockPost> _posts;
   final List<MockComment> _comments;
   final List<ContentReportTarget> _reports = [];
+  final Set<String> _blocked = {};
   int _nextCommentId = 9000;
 
   CommunityMockStore({
@@ -66,7 +68,7 @@ class CommunityMockStore {
 
   Map<String, dynamic> commentsPage(int postId, int page, int pageSize) {
     requirePost(postId);
-    final top = _comments
+    final top = _visible
         .where((c) => c.postId == postId && c.parentId == null)
         .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -118,7 +120,7 @@ class CommunityMockStore {
     final ownComment = switch (target.kind) {
       ReportContentKind.post =>
         _posts.any((p) => p.id == target.id) ? false : null,
-      _ => _comments
+      _ => _visible
           .where((c) => c.id == target.id)
           .map((c) => c.authorId == viewer.id)
           .firstOrNull,
@@ -135,10 +137,36 @@ class CommunityMockStore {
       throwCommunityMockError(CommunityErrorCodes.postNotFound);
 
   MockComment requireComment(int commentId) =>
-      _comments.where((c) => c.id == commentId).firstOrNull ??
+      _visible.where((c) => c.id == commentId).firstOrNull ??
       throwCommunityMockError(CommunityErrorCodes.commentNotFound);
 
-  List<MockComment> _repliesOf(int commentId) => _comments
+  /// D6: the viewer blocks [userId], whose comments and replies are gone
+  /// for them from then on (D23). A matchmaker can't be blocked (D18) and
+  /// doesn't block (D40); an unknown id is the neutral not-found.
+  void block(String userId) {
+    final theirs = _comments.where((c) => c.authorId == userId).firstOrNull;
+    if (theirs == null) {
+      throwCommunityMockError(BlockErrorCodes.targetUserNotFound);
+    }
+    if (theirs.authorIsMatchmaker || viewer.isMatchmaker) {
+      throwCommunityMockError(CommunityErrorCodes.blockNotAllowed);
+    }
+    _blocked.add(userId);
+  }
+
+  /// What the viewer sees: nothing by a member they blocked, nor the
+  /// replies under a comment of theirs — that thread is gone.
+  Iterable<MockComment> get _visible {
+    final gone = {
+      for (final c in _comments)
+        if (_blocked.contains(c.authorId)) c.id,
+    };
+    return _comments.where(
+      (c) => !gone.contains(c.id) && !gone.contains(c.parentId),
+    );
+  }
+
+  List<MockComment> _repliesOf(int commentId) => _visible
       .where((c) => c.parentId == commentId)
       .toList()
     ..sort((a, b) => a.createdAt.compareTo(b.createdAt));

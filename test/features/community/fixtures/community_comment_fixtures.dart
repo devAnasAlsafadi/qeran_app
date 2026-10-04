@@ -59,6 +59,7 @@ CommunityComment testReply({
   String text = hudaReply,
   int likeCount = 0,
   bool likedByMe = false,
+  bool isMine = false,
 }) => testComment(
   id: id,
   parentId: parentId,
@@ -66,6 +67,8 @@ CommunityComment testReply({
   text: text,
   likeCount: likeCount,
   likedByMe: likedByMe,
+  isMine: isMine,
+  canDelete: isMine,
 );
 
 /// Comments [from]..[to], newest first.

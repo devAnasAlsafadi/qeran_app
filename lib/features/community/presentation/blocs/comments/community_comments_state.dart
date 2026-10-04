@@ -26,6 +26,15 @@ enum CommunityCommentsEvent {
 
   /// A member who can't take part yet tapped Like on a comment (D9).
   readOnlyLike,
+
+  /// The member's comment — with its replies — is deleted (E9).
+  deleted,
+
+  /// The member's reply is deleted (E9, S14).
+  deletedReply,
+
+  /// A delete didn't go through; the row stays (E10).
+  deleteFailed,
 }
 
 class CommunityCommentsState extends Equatable {

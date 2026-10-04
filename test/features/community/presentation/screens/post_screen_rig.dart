@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/features/community/domain/entities/community_author.dart';
 import 'package:qeran/features/community/domain/entities/community_config.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
@@ -25,11 +26,12 @@ import '../blocs/post/post_cubit_harness.dart';
 
 /// The post screen over [post]'s and [comments]' cubits, as the [viewer]
 /// at [gate] sees it, on a phone [size] (logical points), with the toast
-/// host.
+/// host. A Block goes through [block] (none answers by default).
 Future<void> pumpPostScreen(
   WidgetTester tester,
   PostHarness post,
   CommentsHarness comments, {
+  BlockCall? block,
   Locale locale = const Locale('en'),
   ProfileStatus? gate = ProfileStatus.visible,
   CommunityViewer viewer = CommunityViewer.member,
@@ -56,12 +58,18 @@ Future<void> pumpPostScreen(
           BlocProvider<CommunityComposerCubit>(
             create: (_) => composerOver(comments)..loadConfig(),
           ),
+          BlocProvider<BlockActionCubit>(
+            create: (_) => BlockActionCubit(block: block ?? _noBlock),
+          ),
         ],
         child: CommunityPostScreen(viewer: viewer),
       ),
     ),
   );
 }
+
+Future<Either<Failure, void>> _noBlock(String _) =>
+    throw StateError('nothing blocks in this test');
 
 /// The member sending as [me].
 const me = CommunityAuthor(

@@ -43,20 +43,6 @@ class MyProfileModel {
   });
 
   factory MyProfileModel.fromJson(Map<String, dynamic> json) {
-    final rawImages = json['images'];
-    final images = rawImages is List
-        ? rawImages
-            .whereType<Map<String, dynamic>>()
-            .map(OwnerImageModel.fromJson)
-            .toList(growable: false)
-        : const <OwnerImageModel>[];
-    final rawPlacements = json['placements'];
-    final placements = rawPlacements is List
-        ? rawPlacements
-            .whereType<Map<String, dynamic>>()
-            .map(PlacementModel.fromJson)
-            .toList(growable: false)
-        : const <PlacementModel>[];
     final pImage = json['profileImage'];
     return MyProfileModel(
       // Backend ships `userId` here; accept `id` as a forward-compat
@@ -74,10 +60,18 @@ class MyProfileModel {
       profileImage: pImage is Map<String, dynamic>
           ? OwnerImageModel.fromJson(pImage)
           : null,
-      images: images,
-      placements: placements,
+      images: _listOf(json['images'], OwnerImageModel.fromJson),
+      placements: _listOf(json['placements'], PlacementModel.fromJson),
     );
   }
+
+  /// The maps in [raw] through [parse]; empty when it isn't a list.
+  static List<T> _listOf<T>(
+    Object? raw,
+    T Function(Map<String, dynamic>) parse,
+  ) => raw is List
+      ? raw.whereType<Map<String, dynamic>>().map(parse).toList(growable: false)
+      : List<T>.empty();
 
   MyProfile toEntity() => MyProfile(
         id: userId,

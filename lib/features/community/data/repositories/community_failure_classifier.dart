@@ -1,13 +1,27 @@
+import 'package:dartz/dartz.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/retry_after.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/comment_submit_outcome.dart';
+import '../../domain/entities/guidelines_acceptance.dart';
 import '../error_codes.dart';
 
 /// The server's `errorCode` on a failure, when it sent one.
 String? communityErrorCode(Failure failure) =>
     failure is CodedServerFailure ? failure.errorCode : null;
+
+/// An accept's answer (§4.1). A version that is no longer current comes
+/// back as `VALIDATION_ERROR` — the one validation the call can fail.
+Either<Failure, GuidelinesAcceptance> guidelinesAcceptanceOf(
+  Either<Failure, void> result,
+) => result.fold(
+  (failure) =>
+      communityErrorCode(failure) == CommunityErrorCodes.validationError
+      ? const Right(GuidelinesAcceptance.outdated)
+      : Left(failure),
+  (_) => const Right(GuidelinesAcceptance.accepted),
+);
 
 /// Both shapes of "too many": the comment limit's `RATE_LIMITED` envelope
 /// (HTTP 429), and a bare 429 — which `HttpConsumer` turns into the

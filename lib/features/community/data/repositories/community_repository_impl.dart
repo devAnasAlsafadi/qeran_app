@@ -8,6 +8,7 @@ import '../../domain/entities/comment_submit_outcome.dart';
 import '../../domain/entities/community_comment.dart';
 import '../../domain/entities/community_config.dart';
 import '../../domain/entities/community_guidelines.dart';
+import '../../domain/entities/guidelines_acceptance.dart';
 import '../../domain/entities/community_like_state.dart';
 import '../../domain/entities/community_page.dart';
 import '../../domain/entities/community_post.dart';
@@ -163,11 +164,11 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
       executeApiCall(() async => (await _dataSource.getGuidelines()).toEntity());
 
   @override
-  Future<Either<Failure, Unit>> acceptGuidelines(int version) =>
-      executeApiCall(() async {
-        await _dataSource.acceptGuidelines(version);
-        return unit;
-      });
+  Future<Either<Failure, GuidelinesAcceptance>> acceptGuidelines(
+    int version,
+  ) async => guidelinesAcceptanceOf(
+    await executeApiCall(() => _dataSource.acceptGuidelines(version)),
+  );
 
   Either<Failure, CommentSubmitOutcome> _submitted(
     Either<Failure, CommunityCommentModel> result, {

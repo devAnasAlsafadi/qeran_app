@@ -5,6 +5,7 @@ import '../entities/comment_submit_outcome.dart';
 import '../entities/community_comment.dart';
 import '../entities/community_config.dart';
 import '../entities/community_guidelines.dart';
+import '../entities/guidelines_acceptance.dart';
 import '../entities/community_like_state.dart';
 import '../entities/community_page.dart';
 import '../entities/community_post.dart';
@@ -73,8 +74,9 @@ abstract class CommunityRepository {
   /// §4.1 — the member or the matchmaker text, by token.
   Future<Either<Failure, CommunityGuidelines>> getGuidelines();
 
-  /// §4.1 — a stale [version] is refused (`VALIDATION_ERROR`).
-  Future<Either<Failure, Unit>> acceptGuidelines(int version);
+  /// §4.1 — a [version] that is no longer current is
+  /// [GuidelinesAcceptance.outdated], on the Right.
+  Future<Either<Failure, GuidelinesAcceptance>> acceptGuidelines(int version);
 
   Stream<CommunityPostChange> get postChanges;
 }

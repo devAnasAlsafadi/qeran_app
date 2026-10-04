@@ -250,6 +250,8 @@
     "video_unmute": "تشغيل الصوت",
     "video_seek": "موضع التشغيل",
     "video_full_screen": "ملء الشاشة",
+    "video_rotate": "تدوير الشاشة",
+    "viewer_close": "إغلاق",
     "retry": "حاول مرة أخرى",
     "post_title": "المنشور",
     "post_error_title": "تعذّر تحميل المنشور",

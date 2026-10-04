@@ -45,10 +45,22 @@ class CommunityVideoController extends ChangeNotifier {
   bool _failed = false;
   bool _controlsShown = true;
   bool _muted = false;
+  bool _handedOver = false;
+  bool _disposed = false;
   Timer? _fade;
 
   CommunityVideoPlayer? get player => _player;
   bool get muted => _muted;
+
+  /// Shown full screen (S20): the viewer has the picture, and the card
+  /// keeps its poster until it comes back.
+  bool get handedOver => _handedOver;
+
+  set handedOver(bool value) {
+    if (_disposed) return;
+    _handedOver = value;
+    notifyListeners();
+  }
   CommunityPlayerValue get _value =>
       _player?.value.value ?? const CommunityPlayerValue();
 
@@ -178,6 +190,7 @@ class CommunityVideoController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     _fade?.cancel();
     _coordinator.release(this);
     unawaited(_drop());

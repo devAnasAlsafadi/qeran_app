@@ -9,6 +9,7 @@ import '../../../domain/entities/community_media.dart';
 import '../../formatting/video_duration.dart';
 import '../../video/community_video_controller.dart';
 import '../../video/community_video_phase.dart';
+import '../../screens/community_media_viewer.dart';
 import '../../video/community_video_scope.dart';
 import '../community_network_image.dart';
 import '../video/video_controls_bar.dart';
@@ -55,7 +56,8 @@ class _PostVideoTileState extends State<PostVideoTile>
     final shown =
         TickerMode.valuesOf(context).enabled &&
         (ModalRoute.of(context)?.isCurrent ?? true);
-    if (!shown) _controller?.suspend();
+    // Full screen, the viewer is over it on purpose: it keeps playing.
+    if (!shown && !(_controller?.handedOver ?? false)) _controller?.suspend();
   }
 
   @override
@@ -123,26 +125,35 @@ class _PostVideoTileState extends State<PostVideoTile>
       Center(child: _centre(c, phase)),
       if (phase == CommunityVideoPhase.idle &&
           widget.video.duration > Duration.zero)
-        PositionedDirectional(
-          bottom: QeranSpacing.s12,
-          start: QeranSpacing.s12,
-          child: QeranOverlayPill(formatVideoDuration(widget.video.duration)),
-        ),
-      if (c != null && c.controlsShown)
-        PositionedDirectional(
-          start: 0,
-          end: 0,
-          bottom: 0,
-          child: VideoControlsBar(controller: c),
-        ),
+        _length(),
+      if (c != null && c.controlsShown) _controls(c),
     ];
   }
+
+  /// The bar along the bottom, with full screen (A11, G4).
+  Widget _controls(CommunityVideoController c) => PositionedDirectional(
+    start: 0,
+    end: 0,
+    bottom: 0,
+    child: VideoControlsBar(
+      controller: c,
+      onFullScreen: () =>
+          openCommunityVideo(context, controller: c, video: widget.video),
+    ),
+  );
+
+  /// The length, at the bottom start, before it plays (A9).
+  Widget _length() => PositionedDirectional(
+    bottom: QeranSpacing.s12,
+    start: QeranSpacing.s12,
+    child: QeranOverlayPill(formatVideoDuration(widget.video.duration)),
+  );
 
   /// The video once it has a picture, contained at its own ratio; the
   /// poster until then.
   Widget _picture(CommunityVideoController? c) {
     final player = c?.player;
-    if (player != null && player.value.value.initialized) {
+    if (player != null && player.value.value.initialized && !c!.handedOver) {
       return Center(
         child: AspectRatio(aspectRatio: _videoRatio, child: player.view()),
       );

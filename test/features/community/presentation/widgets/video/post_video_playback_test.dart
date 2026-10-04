@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/community/presentation/widgets/video/video_controls_bar.dart';
 import 'package:qeran/features/community/presentation/widgets/video/video_layers.dart';
+import 'package:qeran/features/community/presentation/widgets/video/video_timeline.dart';
 
 import '../../../../../core/shipped_strings_rig.dart';
 import '../../../fixtures/community_post_fixtures.dart';
@@ -116,8 +117,7 @@ void main() {
     expect(players.single.volume, 0);
     expect(find.byIcon(Icons.volume_off_rounded), findsOneWidget);
 
-    final bar = tester.getRect(find.byType(VideoControlsBar));
-    await tester.tapAt(Offset(bar.center.dx, bar.center.dy));
+    await tester.tap(find.byType(VideoTimeline));
     await tester.pump();
     expect(players.single.calls.last, startsWith('seek '));
     await tester.pump(const Duration(seconds: 3));

@@ -242,6 +242,8 @@ abstract class  LocaleKeys {
   static const community_video_unmute = 'community.video_unmute';
   static const community_video_seek = 'community.video_seek';
   static const community_video_full_screen = 'community.video_full_screen';
+  static const community_video_rotate = 'community.video_rotate';
+  static const community_viewer_close = 'community.viewer_close';
   static const community_retry = 'community.retry';
   static const community_post_title = 'community.post_title';
   static const community_post_error_title = 'community.post_error_title';

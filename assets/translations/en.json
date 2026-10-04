@@ -250,6 +250,8 @@
     "video_unmute": "Unmute",
     "video_seek": "Playback position",
     "video_full_screen": "Full screen",
+    "video_rotate": "Rotate the screen",
+    "viewer_close": "Close",
     "retry": "Try again",
     "post_title": "Post",
     "post_error_title": "Couldn’t load the post",

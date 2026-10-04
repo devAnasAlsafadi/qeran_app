@@ -4,6 +4,7 @@ import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../domain/entities/community_media.dart';
 import '../../../domain/entities/community_post.dart';
+import '../../screens/community_media_viewer.dart';
 import 'post_card_footer.dart';
 import 'post_card_header.dart';
 import 'post_card_text.dart';
@@ -48,7 +49,7 @@ class CommunityPostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final feed = mode == CommunityPostCardMode.feed;
-    final media = _media();
+    final media = _media(context);
     return QeranCard(
       padding: EdgeInsets.zero,
       // Ink from the footer's halves paints on the card, clipped to it.
@@ -74,11 +75,16 @@ class CommunityPostCard extends StatelessWidget {
     );
   }
 
-  Widget? _media() => switch (post.media) {
+  /// A photo tapped opens the viewer at it (G1), unless [onImageTap] says
+  /// otherwise.
+  Widget? _media(BuildContext context) => switch (post.media) {
     CommunityNoMedia() => null,
     CommunityImageSet(:final images) => PostImageSet(
       images: images,
-      onTap: onImageTap,
+      onTap:
+          onImageTap ??
+          (index) =>
+              openCommunityImages(context, images: images, index: index),
     ),
     CommunitySingleVideo(:final video) => PostVideoTile(
       postId: post.id,

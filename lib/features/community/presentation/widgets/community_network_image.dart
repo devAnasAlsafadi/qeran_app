@@ -27,12 +27,16 @@ class CommunityNetworkImage extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.placeholder,
     this.fallback,
+    this.onWine = false,
   });
 
   final String url;
   final BoxFit fit;
   final Widget? placeholder;
   final Widget? fallback;
+
+  /// On the viewer's wine: the failure in its dark look (G3).
+  final bool onWine;
 
   @override
   State<CommunityNetworkImage> createState() => _CommunityNetworkImageState();
@@ -45,7 +49,9 @@ class _CommunityNetworkImageState extends State<CommunityNetworkImage> {
 
   void _retry() => setState(() => _attempt++);
 
-  Widget _failed() => widget.fallback ?? CommunityImageFailed(onRetry: _retry);
+  Widget _failed() =>
+      widget.fallback ??
+      CommunityImageFailed(onRetry: _retry, onWine: widget.onWine);
 
   @override
   Widget build(BuildContext context) {
@@ -68,32 +74,39 @@ class _CommunityNetworkImageState extends State<CommunityNetworkImage> {
 /// A8: the image couldn't load — say so, and offer to try again. Cream, with
 /// the message scaled down rather than overflowing a small frame.
 class CommunityImageFailed extends StatelessWidget {
-  const CommunityImageFailed({super.key, required this.onRetry});
+  const CommunityImageFailed({
+    super.key,
+    required this.onRetry,
+    this.onWine = false,
+  });
 
   final VoidCallback onRetry;
 
+  /// G3: wine, a gold icon, paper text and the gold retry.
+  final bool onWine;
+
   @override
   Widget build(BuildContext context) {
+    final ink = onWine ? QeranColors.paper : QeranColors.inkMuted;
     return ColoredBox(
-      color: QeranColors.creamSurface,
+      color: onWine ? QeranColors.wine : QeranColors.creamSurface,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.broken_image_rounded,
-                size: 30,
-                color: QeranColors.inkMuted,
+                size: onWine ? 36 : 30,
+                color: onWine ? QeranColors.gold : QeranColors.inkMuted,
               ),
               const SizedBox(height: QeranSpacing.s6),
               Text(
                 LocaleKeys.community_image_failed.t(context),
-                style: QeranTypography.bodySm.copyWith(
-                  color: QeranColors.inkMuted,
-                ),
+                style: QeranTypography.bodySm.copyWith(color: ink),
               ),
+              if (onWine) QeranSpacing.vs8,
               _retry(context),
             ],
           ),
@@ -105,7 +118,9 @@ class CommunityImageFailed extends StatelessWidget {
   Widget _retry(BuildContext context) => QeranButton(
     label: LocaleKeys.community_retry.t(context),
     onPressed: onRetry,
-    variant: QeranButtonVariant.ghost,
+    variant: onWine
+        ? QeranButtonVariant.primaryGold
+        : QeranButtonVariant.ghost,
     size: QeranButtonSize.compact,
     leadingIcon: Icons.refresh_rounded,
     fullWidth: false,

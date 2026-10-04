@@ -44,8 +44,10 @@ class CommunityPostScreen extends StatelessWidget {
     );
   }
 
-  Widget _unavailable(BuildContext context) =>
-      CommunityPostUnavailable(onBack: () => Navigator.of(context).maybePop());
+  /// «العودة إلى المجتمع» closes the post saying so (Q12).
+  Widget _unavailable(BuildContext context) => CommunityPostUnavailable(
+    onBack: () => Navigator.of(context).maybePop(true),
+  );
 
   Widget _body(BuildContext context, CommunityPostState state, bool readOnly) =>
       switch (state) {

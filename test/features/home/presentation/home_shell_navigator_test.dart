@@ -1,47 +1,19 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/home/presentation/home_back_trail.dart';
 import 'package:qeran/features/home/presentation/home_shell_navigator.dart';
-import 'package:qeran/features/home/presentation/home_tab_switcher.dart';
 import 'package:qeran/features/notifications/presentation/routing/notification_deep_link.dart';
+
+import 'home_shell_rig.dart';
 
 const _community = HomeShellNavigator.communityTab;
 const _likes = HomeShellNavigator.likesTab;
 const _profile = HomeShellNavigator.profileTab;
 
-class _Shell {
-  _Shell(WidgetTester tester) {
-    tabs = HomeTabSwitcher(vsync: tester, initialTab: _community);
-    navigator = HomeShellNavigator(
-      tabs: tabs,
-      markTabSeen: seen.add,
-      openInbox: () {
-        inboxOpens++;
-        inbox = Completer<Object?>();
-        return inbox.future;
-      },
-      openChat: () => chatOpens++,
-    );
-    addTearDown(() {
-      navigator.dispose();
-      tabs.dispose();
-    });
-  }
-
-  late final HomeTabSwitcher tabs;
-  late final HomeShellNavigator navigator;
-  final List<int> seen = [];
-  int inboxOpens = 0;
-  int chatOpens = 0;
-  late Completer<Object?> inbox;
-}
-
 void main() {
   testWidgets('a notification opens its tab with a way back to the inbox', (
     tester,
   ) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
 
     shell.navigator.openFromNotification(const OpenLikesTab());
     await tester.pumpAndSettle();
@@ -55,7 +27,7 @@ void main() {
   testWidgets('the trail is raised even when the tab is already showing', (
     tester,
   ) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
     shell.navigator.onNavTap(_likes);
     await tester.pumpAndSettle();
 
@@ -68,7 +40,7 @@ void main() {
   testWidgets('a notification with nowhere to go changes nothing', (
     tester,
   ) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
 
     shell.navigator.openFromNotification(const NoDeepLink());
 
@@ -77,7 +49,7 @@ void main() {
   });
 
   testWidgets('a nav tap ends the trail', (tester) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
     shell.navigator.openFromNotification(const OpenProfileTab());
     await tester.pumpAndSettle();
 
@@ -90,7 +62,7 @@ void main() {
   testWidgets('following the notifications trail reopens the inbox once', (
     tester,
   ) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
     shell.navigator.openFromNotification(const OpenLikesTab());
     await tester.pumpAndSettle();
 
@@ -101,7 +73,7 @@ void main() {
   });
 
   testWidgets('a row tapped in the reopened inbox is applied', (tester) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
     shell.navigator.openFromNotification(const OpenLikesTab());
     await tester.pumpAndSettle();
     shell.navigator.followBackTrail();
@@ -116,7 +88,7 @@ void main() {
   testWidgets('closing the reopened inbox leaves an ordinary tab', (
     tester,
   ) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
     shell.navigator.openFromNotification(const OpenLikesTab());
     await tester.pumpAndSettle();
     shell.navigator.followBackTrail();
@@ -133,7 +105,7 @@ void main() {
   testWidgets('a chat notification pushes the chat and leaves no trail', (
     tester,
   ) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
 
     shell.navigator.openFromNotification(const OpenMatchmakerChat());
     await tester.pumpAndSettle();
@@ -149,7 +121,7 @@ void main() {
   testWidgets('a tap acknowledges the badge even on the tab showing', (
     tester,
   ) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
 
     shell.navigator.onNavTap(_community);
 
@@ -157,7 +129,7 @@ void main() {
   });
 
   testWidgets('with no trail, back does nothing', (tester) async {
-    final shell = _Shell(tester);
+    final shell = ShellRig(tester);
 
     shell.navigator.followBackTrail();
 

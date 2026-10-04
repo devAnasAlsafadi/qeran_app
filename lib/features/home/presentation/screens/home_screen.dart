@@ -16,6 +16,7 @@ import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page
 import 'package:qeran/features/chat/presentation/widgets/chat_realtime_host.dart';
 import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
+import 'package:qeran/features/home/presentation/home_community_post.dart';
 import 'package:qeran/features/home/presentation/home_push_routing.dart';
 import 'package:qeran/features/home/presentation/home_refresh_policy.dart';
 import 'package:qeran/features/home/presentation/home_shell_navigator.dart';
@@ -52,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen>
     markTabSeen: _markTabSeen,
     openInbox: () => Navigator.of(context).pushNamed(RouteNames.notifications),
     openChat: () => openMatchmakerChat(context),
+    openPost: (link) => openPostOverShell(context, link),
   );
 
   late final HomePushRouting _push = HomePushRouting(

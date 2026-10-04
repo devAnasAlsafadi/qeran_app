@@ -3,17 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/core/widgets/connectivity_banner_host.dart';
-import 'package:qeran/features/community/domain/entities/community_landing.dart';
-import 'package:qeran/features/community/domain/entities/community_post.dart';
-import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
-import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
-import 'package:qeran/features/community/presentation/blocs/post/community_post_cubit.dart';
 import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
@@ -27,42 +21,6 @@ import '../blocs/comments/comments_cubit_harness.dart';
 import '../blocs/feed/feed_cubit_harness.dart';
 import '../blocs/post/post_cubit_harness.dart';
 import 'post_screen_rig.dart';
-
-/// The post page's cubits, built by the container as the app builds them,
-/// over [post]'s and [comments]' scripted use cases.
-void _register(PostHarness post, CommentsHarness comments) {
-  sl.registerFactoryParam<CommunityPostCubit, int, CommunityPost?>(
-    (postId, copy) => CommunityPostCubit(
-      postId: postId,
-      post: copy,
-      getPost: post.getPost,
-      setPostLike: post.setLike,
-      watchChanges: post.watch,
-    ),
-  );
-  sl.registerFactoryParam<CommunityCommentsCubit, int, CommunityLanding?>(
-    (postId, landing) => CommunityCommentsCubit(
-      postId: postId,
-      getComments: comments.getComments,
-      getReplies: comments.getReplies,
-      setCommentLike: comments.setLike,
-      createComment: comments.createComment,
-      createReply: comments.createReply,
-      deleteComment: comments.delete,
-      getPost: comments.getPost,
-      getComment: comments.getComment,
-      landing: landing,
-    ),
-  );
-  sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(
-    (origin, _) => BlockActionCubit(
-      block: (_) => throw StateError('no block in these tests: $origin'),
-    ),
-  );
-  sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
-    (send, retry) => composerOver(comments),
-  );
-}
 
 /// The feed of [feed]'s cubit, under the app's own layers: the gate, the
 /// connection — [offline] or not — and the toasts.
@@ -112,7 +70,7 @@ void main() {
     post.readAnswers(Right(testPost(commentCount: 1)));
     comments = CommentsHarness();
     comments.page(1, [testComment()]);
-    _register(post, comments);
+    registerPostPage(post, comments);
   });
   tearDown(() async {
     await sl.reset();

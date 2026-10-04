@@ -40,15 +40,16 @@ NotificationItem _item(int id) => NotificationItem(
 );
 
 class _FakeRepo extends Fake implements NotificationsRepository {
+  _FakeRepo(this.items);
+
+  final List<NotificationItem> items;
+
   @override
   Future<Either<Failure, NotificationsPage>> getNotifications({
     required int page,
     required int pageSize,
   }) async => Right(
-    NotificationsPage(
-      items: page == 1 ? [_item(3), _item(2), _item(1)] : const [],
-      hasMore: false,
-    ),
+    NotificationsPage(items: page == 1 ? items : const [], hasMore: false),
   );
 }
 
@@ -70,12 +71,21 @@ class SpyBadgesCubit extends BadgesCubit {
 /// The inbox's badge spy, from the last [pumpInbox].
 late SpyBadgesCubit inboxBadges;
 
-/// The inbox over three unread rows. With [offline] set, under the banner
-/// host too.
-Future<void> pumpInbox(WidgetTester tester, {bool? offline}) async {
+/// The inbox over three unread rows, or [items]. With [offline] set, under
+/// the banner host too; [wrap] puts more above the navigator, and [home]
+/// stands in for the inbox as the first screen.
+Future<void> pumpInbox(
+  WidgetTester tester, {
+  bool? offline,
+  List<NotificationItem>? items,
+  Widget Function(Widget navigator)? wrap,
+  Widget home = const NotificationsScreen(),
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = SharedPrefService(await SharedPreferences.getInstance());
-  final usecase = GetNotificationsUseCase(_FakeRepo());
+  final usecase = GetNotificationsUseCase(
+    _FakeRepo(items ?? [_item(3), _item(2), _item(1)]),
+  );
 
   inboxBadges = SpyBadgesCubit();
   sl.registerFactory<NotificationsCubit>(
@@ -96,11 +106,13 @@ Future<void> pumpInbox(WidgetTester tester, {bool? offline}) async {
           locale: ctx.locale,
           supportedLocales: ctx.supportedLocales,
           localizationsDelegates: ctx.localizationDelegates,
-          builder: offline == null
-              ? null
-              : (_, child) =>
-                    ConnectivityBannerHost(offline: offline, child: child!),
-          home: const NotificationsScreen(),
+          builder: (_, child) {
+            final navigator = offline == null
+                ? child!
+                : ConnectivityBannerHost(offline: offline, child: child!);
+            return wrap == null ? navigator : wrap(navigator);
+          },
+          home: home,
         ),
       ),
     ),

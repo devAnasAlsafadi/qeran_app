@@ -21,23 +21,27 @@ import 'community_post_screen.dart';
 /// Opens [postId]'s screen — from a feed card's discussion, with the card's
 /// copy as [post] so it shows at once; from a notification, without one and
 /// at its [landing] (C8). Both apps open it here. A `MaterialPageRoute`, so
-/// iOS keeps its edge-swipe back.
-Future<void> openCommunityPost(
+/// iOS keeps its edge-swipe back. True when it closed on «العودة إلى المجتمع»
+/// (C7, Q12): whoever opened it from a notification goes back to Community.
+Future<bool> openCommunityPost(
   BuildContext context, {
   required int postId,
   CommunityPost? post,
   CommunityLanding? landing,
   CommunityViewer viewer = CommunityViewer.member,
-}) => Navigator.of(context).push(
-  MaterialPageRoute<void>(
-    builder: (_) => CommunityPostPage(
-      postId: postId,
-      post: post,
-      landing: landing,
-      viewer: viewer,
+}) async {
+  final back = await Navigator.of(context).push(
+    MaterialPageRoute<bool>(
+      builder: (_) => CommunityPostPage(
+        postId: postId,
+        post: post,
+        landing: landing,
+        viewer: viewer,
+      ),
     ),
-  ),
-);
+  );
+  return back ?? false;
+}
 
 /// The pushed post screen: «المنشور» on paper, and — offline — the banner
 /// under it instead of over it (C11).

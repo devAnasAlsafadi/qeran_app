@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/features/community/domain/entities/community_author.dart';
+import 'package:qeran/features/community/domain/entities/community_landing.dart';
+import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_config.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
@@ -97,4 +100,54 @@ CommunityComposerCubit composerOver(CommentsHarness comments) =>
 Finder get cardLike => find.descendant(
   of: find.byType(CommunityPostCard),
   matching: find.text('Like'),
+);
+
+/// The post page's cubits, built by the container as the app builds them,
+/// over [post]'s and [comments]' scripted use cases.
+void registerPostPage(PostHarness post, CommentsHarness comments) {
+  sl.registerFactoryParam<CommunityPostCubit, int, CommunityPost?>(
+    (postId, copy) => CommunityPostCubit(
+      postId: postId,
+      post: copy,
+      getPost: post.getPost,
+      setPostLike: post.setLike,
+      watchChanges: post.watch,
+    ),
+  );
+  sl.registerFactoryParam<CommunityCommentsCubit, int, CommunityLanding?>(
+    (postId, landing) => CommunityCommentsCubit(
+      postId: postId,
+      getComments: comments.getComments,
+      getReplies: comments.getReplies,
+      setCommentLike: comments.setLike,
+      createComment: comments.createComment,
+      createReply: comments.createReply,
+      deleteComment: comments.delete,
+      getPost: comments.getPost,
+      getComment: comments.getComment,
+      landing: landing,
+    ),
+  );
+  sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(
+    (origin, _) => BlockActionCubit(
+      block: (_) => throw StateError('no block in these tests: $origin'),
+    ),
+  );
+  sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
+    (send, retry) => composerOver(comments),
+  );
+}
+
+/// The app's layers a pushed post screen reads, above [navigator]: the gate
+/// (approved), the connection and the toasts.
+Widget postScreenLayers(Widget navigator) => MultiBlocProvider(
+  providers: [
+    BlocProvider<ProfileGateCubit>.value(
+      value: FakeGate(ProfileStatus.visible),
+    ),
+    BlocProvider<ConnectivityCubit>(
+      create: (_) => ConnectivityCubit(service: FakeConnectivity()),
+    ),
+  ],
+  child: AppSnackBarHost(child: navigator),
 );

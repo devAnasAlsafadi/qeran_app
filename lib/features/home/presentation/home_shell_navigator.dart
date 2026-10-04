@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../notifications/presentation/routing/notification_deep_link.dart';
@@ -13,6 +15,7 @@ class HomeShellNavigator extends ChangeNotifier {
     required this.markTabSeen,
     required this.openInbox,
     required this.openChat,
+    required this.openPost,
   });
 
   static const int communityTab = 0;
@@ -30,6 +33,10 @@ class HomeShellNavigator extends ChangeNotifier {
 
   /// Pushes the chat with the matchmaker.
   final VoidCallback openChat;
+
+  /// Pushes a Community post; completes true when it closed on «العودة إلى
+  /// المجتمع» (Q12), with everything above the shell popped.
+  final Future<bool> Function(OpenCommunityPost link) openPost;
 
   HomeBackTrail? _backTrail;
   bool _disposed = false;
@@ -49,14 +56,18 @@ class HomeShellNavigator extends ChangeNotifier {
   /// where the control matters most — nothing else on screen changes, so it is
   /// the only sign the tap did anything.
   ///
-  /// A chat link raises no trail: the chat is pushed, so its own back returns
-  /// to whatever it covered.
+  /// A chat or post link raises no trail: the screen is pushed, so its own
+  /// back returns to whatever it covered.
   void openFromNotification(NotificationDeepLink link) {
     switch (link) {
       case NoDeepLink():
         return;
       case OpenMatchmakerChat():
         openChat();
+      case OpenCommunityPost():
+        unawaited(_openPost(link));
+      case OpenCommunityTab():
+        _backToCommunity();
       case OpenLikesTab():
         _setTrail(HomeBackTrail.notifications);
         openLikesTab();
@@ -75,6 +86,8 @@ class HomeShellNavigator extends ChangeNotifier {
   }
 
   void openLikesTab() => _selectTab(likesTab);
+
+  void openCommunityTab() => _selectTab(communityTab);
 
   void openProfileTab() => _selectTab(profileTab);
 
@@ -102,6 +115,16 @@ class HomeShellNavigator extends ChangeNotifier {
     final result = await openInbox();
     if (_disposed || result is! NotificationDeepLink) return;
     openFromNotification(result);
+  }
+
+  Future<void> _openPost(OpenCommunityPost link) async {
+    if (await openPost(link) && !_disposed) _backToCommunity();
+  }
+
+  /// «العودة إلى المجتمع» (Q12): Community, and any trail is spent.
+  void _backToCommunity() {
+    _clearTrail();
+    openCommunityTab();
   }
 
   /// Opening a tab acknowledges its badge. Ahead of the switch's early return

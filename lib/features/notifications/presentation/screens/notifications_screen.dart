@@ -10,6 +10,7 @@ import 'package:qeran/core/widgets/connectivity_banner_host.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
+import 'package:qeran/features/community/presentation/screens/community_post_page.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/notification_item.dart';
@@ -21,9 +22,10 @@ import '../widgets/notifications_inbox_body.dart';
 
 /// The user-app notification inbox. A paginated list backed by
 /// `GET /api/notifications`. A row tap resolves a [NotificationDeepLink]:
-/// a chat link PUSHES the conversation on top of this screen (QER-26, so back
-/// returns here); Likes / Profile links pop back to [openNotifications], which
-/// switches the home tab; rows with no destination ([NoDeepLink]) don't move.
+/// a chat or post link PUSHES its screen on top of this one (QER-26, H1, so
+/// back returns here); Likes / Profile links pop back to [openNotifications],
+/// which switches the home tab; rows with no destination ([NoDeepLink]) don't
+/// move.
 ///
 /// Two separate ideas, and they no longer share a source:
 /// * **seen** clears the bell — a server-side count, cleared through
@@ -89,13 +91,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       // (QER-16).
       case OpenMatchmakerChat():
         openMatchmakerChat(context);
+      case OpenCommunityPost():
+        _openPost(link);
       // Likes and Profile are bottom-nav TABS, not routes — they are still
       // handed back to `openNotifications` to switch the tab. Pushing a tab
       // body as a route would detach it from the shell it reads state from.
       case OpenLikesTab():
       case OpenProfileTab():
+      case OpenCommunityTab():
         Navigator.of(context).pop(link);
     }
+  }
+
+  /// The post, over the inbox. Gone, its «العودة إلى المجتمع» leaves the
+  /// inbox too, for the Community tab (Q12).
+  Future<void> _openPost(OpenCommunityPost link) async {
+    final back = await openCommunityPost(
+      context,
+      postId: link.postId,
+      landing: link.landing,
+    );
+    if (back && mounted) Navigator.of(context).pop(const OpenCommunityTab());
   }
 
   @override

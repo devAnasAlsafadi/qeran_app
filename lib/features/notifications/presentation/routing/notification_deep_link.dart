@@ -1,3 +1,6 @@
+import 'package:equatable/equatable.dart';
+
+import '../../../community/domain/entities/community_landing.dart';
 import '../../domain/entities/notification_item.dart';
 import '../../domain/entities/notification_type.dart';
 
@@ -30,6 +33,26 @@ class OpenProfileTab extends NotificationDeepLink {
   const OpenProfileTab();
 }
 
+/// A Community post, pushed over whatever is showing — like the chat — at
+/// the comment and reply the notification is about (H1, C8).
+class OpenCommunityPost extends NotificationDeepLink with EquatableMixin {
+  const OpenCommunityPost({required this.postId, this.landing});
+
+  final int postId;
+
+  /// Where in its discussion; none when the payload names no comment.
+  final CommunityLanding? landing;
+
+  @override
+  List<Object?> get props => [postId, landing];
+}
+
+/// Community tab — never parsed from a payload: the post a notification
+/// opened is gone, and «العودة إلى المجتمع» goes back to Community (Q12).
+class OpenCommunityTab extends NotificationDeepLink {
+  const OpenCommunityTab();
+}
+
 /// No actionable destination (General / Announcement / Offer, or an unknown
 /// screen) — tapping the row does nothing; the user stays on the inbox.
 class NoDeepLink extends NotificationDeepLink {
@@ -40,7 +63,8 @@ class NoDeepLink extends NotificationDeepLink {
 ///
 /// `data.screen` drives routing (the documented contract). When `screen` is
 /// missing or unrecognised, it falls back to the typed [NotificationType] so a
-/// payload that omits `screen` still lands somewhere sensible.
+/// payload that omits `screen` still lands somewhere sensible. Community ids
+/// arrive as strings in a push and may be numbers in the inbox: both read.
 class NotificationDeepLinkRouter {
   const NotificationDeepLinkRouter._();
 
@@ -69,20 +93,41 @@ class NotificationDeepLinkRouter {
         return const OpenMatchmakerChat();
       case 'profile':
         return const OpenProfileTab();
+      case 'community_post':
+        return _communityPost(data);
     }
-    return _fromType(fallbackType);
+    return _fromType(fallbackType, data);
   }
 
   /// Fallback when `screen` is absent/unknown — route by notification type.
-  static NotificationDeepLink _fromType(NotificationType type) => switch (type) {
+  static NotificationDeepLink _fromType(
+    NotificationType type,
+    Map<String, dynamic> data,
+  ) => switch (type) {
         NotificationType.match => const OpenLikesTab(),
         NotificationType.chat => const OpenMatchmakerChat(),
         NotificationType.profile => const OpenProfileTab(),
+        NotificationType.community => _communityPost(data),
         NotificationType.announcement ||
         NotificationType.offer ||
         NotificationType.general ||
-        NotificationType.community ||
         NotificationType.unknown =>
           const NoDeepLink(),
       };
+
+  /// The post (contract §7.2), at `commentId` and `replyId` when they're
+  /// there; nowhere without a post.
+  static NotificationDeepLink _communityPost(Map<String, dynamic> data) {
+    final postId = _id(data['postId']);
+    if (postId == null) return const NoDeepLink();
+    final commentId = _id(data['commentId']);
+    return OpenCommunityPost(
+      postId: postId,
+      landing: commentId == null
+          ? null
+          : CommunityLanding(commentId: commentId, replyId: _id(data['replyId'])),
+    );
+  }
+
+  static int? _id(Object? raw) => int.tryParse(raw?.toString().trim() ?? '');
 }

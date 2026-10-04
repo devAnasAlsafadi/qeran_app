@@ -628,6 +628,7 @@
     "name_input_hint": "Enter your display name",
     "name_real_label": "Real name",
     "name_real_hint": "Add your real name",
+    "name_default_error": "Choose a name other than “مستخدم”.",
     "name_save_success": "Name updated",
     "name_save_failed": "Couldn't update your name, please try again",
     "name_load_failed": "Couldn't load your name details",

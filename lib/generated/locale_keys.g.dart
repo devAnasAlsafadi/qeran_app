@@ -578,6 +578,7 @@ abstract class  LocaleKeys {
   static const profile_name_input_hint = 'profile.name_input_hint';
   static const profile_name_real_label = 'profile.name_real_label';
   static const profile_name_real_hint = 'profile.name_real_hint';
+  static const profile_name_default_error = 'profile.name_default_error';
   static const profile_name_save_success = 'profile.name_save_success';
   static const profile_name_save_failed = 'profile.name_save_failed';
   static const profile_name_load_failed = 'profile.name_load_failed';

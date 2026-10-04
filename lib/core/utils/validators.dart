@@ -1,5 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 
+import '../data/display_name.dart';
+
 class Validators {
   static final RegExp emailPattern = RegExp(
     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
@@ -34,7 +36,29 @@ class Validators {
     final value = val?.trim() ?? '';
     if (value.isEmpty) return tr('validators.field_required');
     if (value.length < displayNameMin) return tr('validators.name_too_short');
+    if (isDefaultDisplayName(value)) return tr('profile.name_default_error');
     return _nameLimits(value, displayNameMax);
+  }
+
+  /// The names a user without one is given, which the server refuses as a
+  /// chosen one: [kDefaultDisplayName] and «مستخدم جديد».
+  static const List<String> _defaultDisplayNames = [
+    kDefaultDisplayName,
+    'مستخدم جديد',
+  ];
+
+  /// Arabic short vowels and the other marks above or below a letter.
+  static final RegExp _arabicMarks = RegExp('[ً-ٰٟ]');
+  static final RegExp _spaces = RegExp(r'\s+');
+
+  /// Whether [name] is still a placeholder (D17) — whatever marks it
+  /// carries, and however it's spaced — as `PUT /api/profile` judges it.
+  static bool isDefaultDisplayName(String name) {
+    final bare = name
+        .replaceAll(_arabicMarks, '')
+        .trim()
+        .replaceAll(_spaces, ' ');
+    return _defaultDisplayNames.contains(bare);
   }
 
   /// The legal name, collected for the formal-agreement stage. OPTIONAL —

@@ -93,18 +93,31 @@ void main() {
     await toastDone(tester);
   });
 
-  testWidgets('E8b: my reply, in its own words', (tester) async {
+  testWidgets('E8b, S14: my reply, in its own words', (tester) async {
     when(() => comments.delete(100)).thenAnswer((_) async => const Right(unit));
     await pump(tester);
 
     await choose(tester, 100, 'Delete reply');
-    expect(find.text('Your comment will be deleted permanently.'), findsOne);
+    expect(find.text('Delete reply?'), findsOne);
+    expect(find.text('Your reply will be deleted permanently.'), findsOne);
     await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
 
     expect(row(100), findsNothing);
     expect(find.text('Reply deleted.'), findsOneWidget);
     await toastDone(tester);
+  });
+
+  testWidgets("S14: a reply's dialog says «الرد» [ar]", (tester) async {
+    await pump(tester, locale: const Locale('ar'));
+
+    await choose(tester, 100, 'حذف الرد');
+    expect(find.text('حذف الرد؟'), findsOneWidget);
+    expect(find.text('سيُحذف ردّك نهائياً ولا يمكن استعادته.'), findsOneWidget);
+    expect(find.text('حذف التعليق؟'), findsNothing);
+    await tester.tap(find.text('إلغاء'));
+    await tester.pumpAndSettle();
+    verifyNever(() => comments.delete(any()));
   });
 
   testWidgets('cancelled: nothing is deleted', (tester) async {

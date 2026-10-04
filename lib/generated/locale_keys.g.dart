@@ -272,6 +272,7 @@ abstract class  LocaleKeys {
   static const community_menu_delete = 'community.menu_delete';
   static const community_menu_delete_reply = 'community.menu_delete_reply';
   static const community_delete_title = 'community.delete_title';
+  static const community_delete_reply_title = 'community.delete_reply_title';
   static const community_delete_body = 'community.delete_body';
   static const community_delete_reply_body = 'community.delete_reply_body';
   static const community_deleted = 'community.deleted';

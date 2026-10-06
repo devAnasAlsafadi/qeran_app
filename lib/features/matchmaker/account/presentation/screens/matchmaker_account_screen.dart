@@ -8,7 +8,6 @@ import 'package:qeran/features/auth/presentation/blocs/user_session/user_session
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
 import '../../../../../core/di/injection_container.dart';
-import '../../../../badges/presentation/blocs/badges_cubit.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/routes/navigation_manager.dart';
 import '../../../../../core/routes/route_name.dart';
@@ -181,9 +180,9 @@ class _AccountView extends StatelessWidget {
     // Resolve the copy BEFORE the sign-out + route replacement — this context
     // is gone by the time the toast is shown.
     final message = LocaleKeys.common_logout_success.t(context);
+    // Signing out forgets everything app-scoped that was hers (the badge
+    // counts among it): AccountScope.
     await context.read<UserSessionCubit>().signOut();
-    // Badge counts belong to the account that earned them.
-    sl<BadgesCubit>().clear();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
     // showOnRoot (not show) so the confirmation survives the route removal —
@@ -200,8 +199,6 @@ class _AccountView extends StatelessWidget {
   }) async {
     final message = successKey.t(context);
     await context.read<UserSessionCubit>().signOut();
-    // Badge counts belong to the account that earned them.
-    sl<BadgesCubit>().clear();
     if (!context.mounted) return;
     NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
     await AppSnackBar.showOnRoot(message: message, type: SnackBarType.success);

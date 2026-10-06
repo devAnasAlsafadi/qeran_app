@@ -69,6 +69,26 @@ void main() {
     expectNothingOfTheMember();
   });
 
+  test('a matchmaker signs out: her counts go with the session alone, as '
+      'her account screen no longer clears them', () async {
+    rig.buildHolders();
+    rig.session.onAuthenticated(matchmaker);
+    when(() => rig.getBadges()).thenAnswer(
+      (_) async => const Right(
+        BadgeCounts({
+          'communityCommentsUnread': 2,
+          'communityReportsPending': 1,
+        }),
+      ),
+    );
+    await rig.badges.refresh();
+    expect(rig.badges.state, isNot(const BadgeCounts.empty()));
+
+    await rig.session.signOut();
+
+    expect(rig.badges.state, const BadgeCounts.empty());
+  });
+
   test('the account is deleted: nothing of it is left', () async {
     await memberWasHere();
 

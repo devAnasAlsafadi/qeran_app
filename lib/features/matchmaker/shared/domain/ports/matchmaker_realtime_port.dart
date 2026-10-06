@@ -1,3 +1,4 @@
+import '../entities/community_post_status_change.dart';
 import '../entities/compatibility_case_update.dart';
 import '../entities/matchmaker_realtime_status.dart';
 import '../entities/received_chat_message.dart';
@@ -30,6 +31,10 @@ abstract class MatchmakerRealtimePort {
   /// matchmaker's conversations arrives here while connected, with no open
   /// chat screen required. Consumed by the conversations-list cubit (4c-2).
   Stream<ReceivedChatMessage> get incomingMessages;
+
+  /// `CommunityPostStatusChanged`: one of her posts left `Processing`
+  /// (contract §6). Her «منشوراتي» reads that post again.
+  Stream<CommunityPostStatusChange> get postStatusChanges;
 
   /// Idempotent — disconnects an existing session first. The access
   /// token is read fresh on every connect AND reconnect, so a rotated

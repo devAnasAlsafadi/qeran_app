@@ -10,6 +10,7 @@ import 'package:qeran/features/matchmaker/shared/domain/entities/compatibility_c
 import 'package:qeran/features/matchmaker/shared/domain/entities/matchmaker_realtime_status.dart';
 import 'package:qeran/features/matchmaker/shared/domain/entities/received_chat_message.dart';
 import 'package:qeran/features/matchmaker/shared/domain/ports/matchmaker_realtime_port.dart';
+import 'package:qeran/features/matchmaker/shared/domain/entities/community_post_status_change.dart';
 
 MatchmakerConversation _conv(int id, {int unread = 0}) => MatchmakerConversation(
       userId: 'u$id',
@@ -52,6 +53,10 @@ class _FakePort implements MatchmakerRealtimePort {
   Stream<CompatibilityCaseUpdate> get caseUpdates => const Stream.empty();
   @override
   Stream<ReceivedChatMessage> get incomingMessages => const Stream.empty();
+
+  @override
+  Stream<CommunityPostStatusChange> get postStatusChanges =>
+      const Stream.empty();
   @override
   Future<void> connect() async {}
   @override

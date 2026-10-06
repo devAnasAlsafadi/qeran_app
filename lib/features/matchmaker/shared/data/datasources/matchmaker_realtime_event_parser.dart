@@ -1,5 +1,7 @@
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/features/community/domain/entities/community_post.dart';
 
+import '../../domain/entities/community_post_status_change.dart';
 import '../../domain/entities/compatibility_case_update.dart';
 import '../../domain/entities/received_chat_message.dart';
 import '../json_parsers.dart';
@@ -57,6 +59,26 @@ class MatchmakerRealtimeEventParser {
       );
       return null;
     }
+  }
+
+  /// Parses a `CommunityPostStatusChanged` payload (`{ postId, status }`),
+  /// or returns `null` without a usable post id.
+  static CommunityPostStatusChange? parsePostStatusChanged(
+    List<Object?>? args,
+  ) {
+    final map = _firstMap(args);
+    final postId = parseInt(map?['postId']);
+    if (map == null || postId <= 0) {
+      AppLogger.warning(
+        'MM-RT — CommunityPostStatusChanged: missing or malformed args',
+        tag: 'MM-RT',
+      );
+      return null;
+    }
+    return CommunityPostStatusChange(
+      postId: postId,
+      status: CommunityPostStatus.fromWire(parseNullableString(map['status'])),
+    );
   }
 
   /// Coerces `args[0]` into `Map<String, dynamic>` (SignalR may hand us a

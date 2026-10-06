@@ -133,6 +133,25 @@ void main() {
         'TARGET_CONTENT_NOT_FOUND',
       );
     });
+
+    test('a post found gone is announced gone — the feed drops its card, '
+        'its screen shows C7 — and nothing else is', () async {
+      final changes = <CommunityPostChange>[];
+      final listening = repo.postChanges.listen(changes.add);
+      addTearDown(listening.cancel);
+
+      for (final target in [
+        const ContentReportTarget(ReportContentKind.post, 999999),
+        const ContentReportTarget(ReportContentKind.comment, 999998),
+        ContentReportTarget(ReportContentKind.post, postId),
+      ]) {
+        await repo.reportContent(target, reason: ReportReason.other);
+      }
+      await Future<void>.delayed(Duration.zero);
+
+      expect(changes, hasLength(1));
+      expect((changes.single as CommunityPostGone).postId, 999999);
+    });
   });
 
   group('delete', () {

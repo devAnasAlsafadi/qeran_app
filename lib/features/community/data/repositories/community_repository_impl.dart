@@ -16,6 +16,7 @@ import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_post_change.dart';
 import '../../domain/repositories/community_repository.dart';
 import '../datasources/community_remote_datasource.dart';
+import '../error_codes.dart';
 import 'community_failure_classifier.dart';
 import 'community_post_changes.dart';
 
@@ -167,14 +168,26 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
     await executeApiCall(() => _dataSource.acceptGuidelines(version)),
   );
 
+  /// A post the report finds gone is gone: its card leaves the feed and its
+  /// screen shows C7 (Anas, 2026-10-06).
   @override
   Future<Either<Failure, void>> reportContent(
     ContentReportTarget target, {
     required ReportReason reason,
     String? note,
-  }) => executeApiCall(
-    () => _dataSource.reportContent(target, reason: reason, note: note),
-  );
+  }) async {
+    final result = await executeApiCall(
+      () => _dataSource.reportContent(target, reason: reason, note: note),
+    );
+    if (target.kind == ReportContentKind.post) {
+      _changes.goneIf(
+        target.id,
+        result,
+        code: CommunityErrorCodes.targetContentNotFound,
+      );
+    }
+    return result;
+  }
 
   @override
   Future<Either<Failure, void>> blockMember(String userId) =>

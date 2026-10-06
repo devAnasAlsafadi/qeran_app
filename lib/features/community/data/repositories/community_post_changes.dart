@@ -17,12 +17,13 @@ class CommunityPostChanges {
 
   void add(CommunityPostChange change) => _changes.add(change);
 
-  /// [postId] gone, when [result] is the server saying so
-  /// (`POST_NOT_FOUND`).
-  void goneIf<T>(int postId, Either<Failure, T> result) =>
-      result.fold((failure) {
-        if (communityErrorCode(failure) == CommunityErrorCodes.postNotFound) {
-          add(CommunityPostGone(postId));
-        }
-      }, (_) {});
+  /// [postId] gone, when [result] is the server saying so: [code] — a
+  /// post's own `POST_NOT_FOUND`, or a report on it that finds it gone.
+  void goneIf<T>(
+    int postId,
+    Either<Failure, T> result, {
+    String code = CommunityErrorCodes.postNotFound,
+  }) => result.fold((failure) {
+    if (communityErrorCode(failure) == code) add(CommunityPostGone(postId));
+  }, (_) {});
 }

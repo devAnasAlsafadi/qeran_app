@@ -1,0 +1,26 @@
+import '../models/community_flagged_item_model.dart';
+import '../models/community_page_model.dart';
+import '../models/community_post_model.dart';
+
+/// The post author's transport (contract §5.3, §6): her posts, deleting one,
+/// and the flags on comments under them. Throws only what `HttpConsumer`
+/// throws; the repository classifies. Only the matchmaker app calls it.
+abstract class CommunityAuthorRemoteDataSource {
+  /// 6.1 — her posts in every status, newest first.
+  Future<CommunityPageModel<CommunityPostModel>> getMyPosts({
+    required int page,
+    required int pageSize,
+  });
+
+  /// 6.3 — the post and everything under it.
+  Future<void> deletePost(int postId);
+
+  /// 5.3 — open flags on her posts, newest report first.
+  Future<CommunityPageModel<CommunityFlaggedItemModel>> getFlags({
+    required int page,
+    required int pageSize,
+  });
+
+  /// 5.3 — keep the item: the flag clears for her only.
+  Future<void> dismissFlag(int flagId);
+}

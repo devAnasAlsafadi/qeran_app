@@ -38,6 +38,7 @@ import '../presentation/blocs/guidelines/community_guidelines_cubit.dart';
 import '../presentation/blocs/post/community_post_cubit.dart';
 import '../presentation/video/community_video_player.dart';
 import '../presentation/video/video_player_adapter.dart';
+import 'community_author_injection.dart';
 
 /// `--dart-define=COMMUNITY_MOCK=seeded|empty|errors|slow` (Q2). Read here
 /// only, and only outside release builds.
@@ -140,6 +141,8 @@ void initCommunityDependencies() {
       landing: landing,
     ),
   );
+
+  initCommunityAuthorDependencies();
 }
 
 CommunityRemoteDataSource _dataSource() {

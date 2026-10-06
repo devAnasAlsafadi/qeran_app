@@ -1,18 +1,16 @@
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
-import 'package:qeran/core/errors/exceptions.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/features/report/domain/entities/report_reason.dart';
 import 'package:qeran/features/report/domain/entities/report_target.dart';
 
 import '../community_end_points.dart';
-import '../json_parsers.dart';
 import '../models/community_comment_model.dart';
 import '../models/community_config_model.dart';
 import '../models/community_guidelines_model.dart';
 import '../models/community_like_state_model.dart';
 import '../models/community_page_model.dart';
 import '../models/community_post_model.dart';
+import 'community_envelope.dart';
 import 'community_remote_datasource.dart';
 
 /// The live API. Every path is enveloped (`{ status, message, errorCode,
@@ -155,9 +153,6 @@ class CommunityRemoteDataSourceImpl implements CommunityRemoteDataSource {
         _data(await _api.post(path, body: {'text': text})),
       );
 
-  /// The envelope's `data` object. A success with no object in it is a
-  /// server fault, surfaced as an error rather than an empty post or comment.
   static Map<String, dynamic> _data(dynamic body) =>
-      parseNullableMap(body is Map ? body['data'] : null) ??
-      (throw ServerException(message: LocaleKeys.errors_unexpected));
+      communityEnvelopeData(body);
 }

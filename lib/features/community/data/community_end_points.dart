@@ -1,4 +1,4 @@
-/// Community paths (`03-api-contract.md` §3, §4.1), relative to
+/// Community paths (`03-api-contract.md` §3–§6), relative to
 /// `EndPoints.baseUrl` like every other path. Kept in the feature because
 /// `core/api/end_points.dart` is past the 200-line limit.
 abstract final class CommunityEndPoints {
@@ -12,6 +12,11 @@ abstract final class CommunityEndPoints {
       'community/comments/$commentId/like';
   static String commentReplies(int commentId) =>
       'community/comments/$commentId/replies';
+
+  // The post's author (contract §5.3, §6).
+  static const String myPosts = 'community/my-posts';
+  static const String myPostFlags = 'community/my-posts/flags';
+  static String dismissFlag(int flagId) => 'community/flags/$flagId/dismiss';
 
   static const String config = 'community/config';
   static const String guidelines = 'community/guidelines';

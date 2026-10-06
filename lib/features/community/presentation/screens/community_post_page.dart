@@ -15,8 +15,10 @@ import '../../domain/entities/community_viewer.dart';
 import '../blocs/comments/community_comments_cubit.dart';
 import '../blocs/composer/community_composer_cubit.dart';
 import '../blocs/post/community_post_cubit.dart';
+import '../blocs/post_delete/post_delete_cubit.dart';
 import 'community_me.dart';
 import 'community_post_screen.dart';
+import 'post_delete_listener.dart';
 
 /// Opens [postId]'s screen — from a feed card's discussion, with the card's
 /// copy as [post] so it shows at once; from a notification, without one and
@@ -89,27 +91,31 @@ class CommunityPostPage extends StatelessWidget {
     BlocProvider<BlockActionCubit>(
       create: (_) => sl<BlockActionCubit>(param1: BlockOrigin.community),
     ),
+    // Her own post's ⋮ (B6); a member never has one to delete.
+    BlocProvider<PostDeleteCubit>(create: (_) => sl<PostDeleteCubit>()),
   ];
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: _providers,
-      child: Scaffold(
-        backgroundColor: QeranColors.creamCanvas,
-        appBar: QeranAppBar(
-          title: LocaleKeys.community_post_title.t(context),
-          background: QeranColors.paper,
-        ),
-        body: AttachedConnectivityBanner(
-          child: Column(
-            children: [
-              const ConnectivityBannerSlot(),
-              Expanded(child: CommunityPostScreen(viewer: viewer)),
-            ],
-          ),
-        ),
-      ),
+      child: PostDeleteListener(leaves: true, child: _scaffold(context)),
     );
   }
+
+  Widget _scaffold(BuildContext context) => Scaffold(
+    backgroundColor: QeranColors.creamCanvas,
+    appBar: QeranAppBar(
+      title: LocaleKeys.community_post_title.t(context),
+      background: QeranColors.paper,
+    ),
+    body: AttachedConnectivityBanner(
+      child: Column(
+        children: [
+          const ConnectivityBannerSlot(),
+          Expanded(child: CommunityPostScreen(viewer: viewer)),
+        ],
+      ),
+    ),
+  );
 }

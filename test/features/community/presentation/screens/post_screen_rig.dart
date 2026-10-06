@@ -12,10 +12,12 @@ import 'package:qeran/features/community/domain/entities/community_landing.dart'
 import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_config.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
+import 'package:qeran/features/community/domain/usecases/delete_community_post_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/comments/community_comments_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/composer/community_composer_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post/community_post_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/post_delete/post_delete_cubit.dart';
 import 'package:qeran/features/community/presentation/screens/community_post_screen.dart';
 import 'package:qeran/features/community/presentation/widgets/post_card/community_post_card.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
@@ -36,6 +38,7 @@ Future<void> pumpPostScreen(
   PostHarness post,
   CommentsHarness comments, {
   BlockCall? block,
+  DeleteCommunityPostUseCase? deletePost,
   Locale locale = const Locale('en'),
   ProfileStatus? gate = ProfileStatus.visible,
   ProfileGateCubit? gateCubit,
@@ -68,6 +71,9 @@ Future<void> pumpPostScreen(
           BlocProvider<BlockActionCubit>(
             create: (_) => BlockActionCubit(block: block ?? _noBlock),
           ),
+          BlocProvider<PostDeleteCubit>(
+            create: (_) => PostDeleteCubit(deletePost: deletePost ?? _noDelete),
+          ),
         ],
         child: CommunityPostScreen(viewer: viewer),
       ),
@@ -77,6 +83,11 @@ Future<void> pumpPostScreen(
 
 Future<Either<Failure, void>> _noBlock(String _) =>
     throw StateError('nothing blocks in this test');
+
+/// A post's delete that no test expects.
+class _NoDelete extends Fake implements DeleteCommunityPostUseCase {}
+
+final _noDelete = _NoDelete();
 
 /// The member sending as [me].
 const me = CommunityAuthor(
@@ -108,7 +119,11 @@ Finder get cardLike => find.descendant(
 
 /// The post page's cubits, built by the container as the app builds them,
 /// over [post]'s and [comments]' scripted use cases.
-void registerPostPage(PostHarness post, CommentsHarness comments) {
+void registerPostPage(
+  PostHarness post,
+  CommentsHarness comments, {
+  DeleteCommunityPostUseCase? deletePost,
+}) {
   sl.registerFactoryParam<CommunityPostCubit, int, CommunityPost?>(
     (postId, copy) => CommunityPostCubit(
       postId: postId,
@@ -140,6 +155,12 @@ void registerPostPage(PostHarness post, CommentsHarness comments) {
   sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
     (send, retry) => composerOver(comments),
   );
+  // Her Community screen's own, when it registered one.
+  if (!sl.isRegistered<PostDeleteCubit>()) {
+    sl.registerFactory<PostDeleteCubit>(
+      () => PostDeleteCubit(deletePost: deletePost ?? _noDelete),
+    );
+  }
   // Hers, as the app registers it beside the member's.
   sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
     (send, retry) => composerOver(comments),

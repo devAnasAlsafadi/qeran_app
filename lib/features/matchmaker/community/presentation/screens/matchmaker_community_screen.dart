@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/post_delete/post_delete_cubit.dart';
 import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
+import 'package:qeran/features/community/presentation/screens/post_delete_listener.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
@@ -49,6 +51,9 @@ class MatchmakerCommunityScreen extends StatefulWidget {
 class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen> {
   late final CommunityFeedCubit _all = sl<CommunityFeedCubit>()..load();
   late final MyPostsCubit _mine = sl<MyPostsCubit>();
+
+  /// Her own post's ⋮ on either list (B6–B9).
+  late final PostDeleteCubit _deleting = sl<PostDeleteCubit>();
   late MatchmakerCommunityTab _tab = widget.initialTab;
 
   /// «منشوراتي» is built, and read, only once she opens it.
@@ -79,6 +84,7 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen> {
   void dispose() {
     _all.close();
     _mine.close();
+    _deleting.close();
     super.dispose();
   }
 
@@ -105,7 +111,12 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen> {
                 ),
               ],
             ),
-            Expanded(child: _segments(context)),
+            Expanded(
+              child: BlocProvider<PostDeleteCubit>.value(
+                value: _deleting,
+                child: PostDeleteListener(child: _segments(context)),
+              ),
+            ),
           ],
         ),
       ),

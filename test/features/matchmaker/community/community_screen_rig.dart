@@ -9,8 +9,11 @@ import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/community/domain/entities/community_page.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
+import 'package:qeran/features/community/domain/entities/community_post_change.dart';
+import 'package:qeran/features/community/domain/usecases/delete_community_post_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_my_community_posts_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
+import 'package:qeran/features/community/presentation/blocs/post_delete/post_delete_cubit.dart';
 import 'package:qeran/features/matchmaker/community/presentation/blocs/my_posts/my_posts_cubit.dart';
 
 import '../../../core/shipped_strings_rig.dart';
@@ -19,6 +22,8 @@ import '../../community/fixtures/community_mock_harness.dart';
 import '../../community/presentation/blocs/feed/feed_cubit_harness.dart';
 
 class _MockGetMyPosts extends Mock implements GetMyCommunityPostsUseCase {}
+
+class _MockDeletePost extends Mock implements DeleteCommunityPostUseCase {}
 
 /// Her Community screen's two lists over scripted sources: «كل المنشورات»
 /// reads [all]'s use cases; «منشوراتي» is a [MyPostsCubit] over [getMyPosts],
@@ -36,10 +41,14 @@ class CommunityScreenHarness {
       ),
     );
     sl.registerFactory<MyPostsCubit>(_newMine);
+    sl.registerFactory<PostDeleteCubit>(
+      () => PostDeleteCubit(deletePost: deletePost),
+    );
   }
 
   final all = FeedHarness();
   final getMyPosts = _MockGetMyPosts();
+  final deletePost = _MockDeletePost();
   int seen = 0;
   MyPostsCubit? _mine;
 
@@ -66,6 +75,15 @@ class CommunityScreenHarness {
           ),
         ),
       );
+
+  /// Deleting [postId] succeeds — and, as the repository does, announces it
+  /// gone — or fails offline.
+  void deleteAnswers(int postId, {bool ok = true}) =>
+      when(() => deletePost(postId)).thenAnswer((_) async {
+        if (!ok) return const Left(OfflineFailure());
+        all.changes.add(CommunityPostGone(postId));
+        return const Right(unit);
+      });
 
   /// Her posts' first page fails.
   void myPageFails() => when(() => getMyPosts(page: 1)).thenAnswer(

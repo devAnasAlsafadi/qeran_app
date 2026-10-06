@@ -311,6 +311,11 @@ abstract class  LocaleKeys {
   static const community_delete_others_body = 'community.delete_others_body';
   static const community_delete_others_reply_body = 'community.delete_others_reply_body';
   static const community_posting_guidelines_title = 'community.posting_guidelines_title';
+  static const community_menu_delete_post = 'community.menu_delete_post';
+  static const community_delete_post_title = 'community.delete_post_title';
+  static const community_delete_post_body = 'community.delete_post_body';
+  static const community_post_deleted = 'community.post_deleted';
+  static const community_delete_post_failed = 'community.delete_post_failed';
   static const community = 'community';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';

@@ -11,10 +11,10 @@ import '../../../domain/entities/community_viewer.dart';
 /// What a ⋮ can offer on a post, a comment or a reply.
 enum CommunityMenuAction { delete, report, block }
 
-/// A post's options (S13): Report, unless the viewer may delete it — her own
-/// post, whose Delete comes with her composer (Phase 3).
-List<CommunityMenuAction> postMenuActions(CommunityPost post) =>
-    post.canDelete ? const [] : const [CommunityMenuAction.report];
+/// A post's options (S13): Report — or, on her own post, Delete only (B6).
+List<CommunityMenuAction> postMenuActions(CommunityPost post) => post.canDelete
+    ? const [CommunityMenuAction.delete]
+    : const [CommunityMenuAction.report];
 
 /// A comment's or reply's options, from the server's flags, in the board's
 /// order (E2–E4, I1): Delete when [CommunityComment.canDelete], Report when
@@ -42,11 +42,11 @@ QeranOption<CommunityMenuAction> communityMenuOption(
 ) => switch (action) {
   CommunityMenuAction.delete => QeranOption(
     icon: Icons.delete_outline_rounded,
-    label:
-        (kind == ReportContentKind.reply
-                ? LocaleKeys.community_menu_delete_reply
-                : LocaleKeys.community_menu_delete)
-            .t(context),
+    label: switch (kind) {
+      ReportContentKind.post => LocaleKeys.community_menu_delete_post,
+      ReportContentKind.comment => LocaleKeys.community_menu_delete,
+      ReportContentKind.reply => LocaleKeys.community_menu_delete_reply,
+    }.t(context),
     value: action,
     danger: true,
   ),

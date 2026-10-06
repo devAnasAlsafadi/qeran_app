@@ -29,6 +29,17 @@ Future<bool> confirmCommunityDelete(
   );
 }
 
+/// Deleting her post asks first (B7, BA-A3): everything under it goes too.
+/// True when she confirms.
+Future<bool> confirmPostDelete(BuildContext context) => QeranConfirmDialog.show(
+  context,
+  title: LocaleKeys.community_delete_post_title.t(context),
+  message: LocaleKeys.community_delete_post_body.t(context),
+  confirmLabel: LocaleKeys.common_delete.t(context),
+  cancelLabel: LocaleKeys.common_cancel.t(context),
+  icon: Icons.delete_outline_rounded,
+);
+
 String _body({required bool reply, required bool mine}) =>
     switch ((reply, mine)) {
       (false, true) => LocaleKeys.community_delete_body,

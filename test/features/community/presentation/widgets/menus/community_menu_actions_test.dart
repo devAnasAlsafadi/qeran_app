@@ -15,9 +15,9 @@ void main() {
   const report = CommunityMenuAction.report;
   const block = CommunityMenuAction.block;
 
-  test('E1: a post offers Report — none when the viewer may delete it', () {
+  test('E1: a post offers Report — her own post, Delete only (B6)', () {
     expect(postMenuActions(testPost()), [report]);
-    expect(postMenuActions(testPost(canDelete: true)), isEmpty);
+    expect(postMenuActions(testPost(canDelete: true)), [delete]);
   });
 
   test("E2: someone's comment — Report, then Block", () {

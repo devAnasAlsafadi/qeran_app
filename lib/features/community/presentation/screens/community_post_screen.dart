@@ -10,6 +10,7 @@ import '../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart
 import '../../domain/entities/community_viewer.dart';
 import '../blocs/post/community_post_cubit.dart';
 import '../blocs/post/community_post_state.dart';
+import '../blocs/post_delete/post_delete_cubit.dart';
 import '../widgets/comments/comments_skeleton.dart';
 import '../widgets/composer/community_composer.dart';
 import '../widgets/feed/community_feed_skeleton.dart';
@@ -35,6 +36,11 @@ class CommunityPostScreen extends StatelessWidget {
     return MultiBlocListener(
       listeners: communityPostListeners,
       child: BlocBuilder<CommunityPostCubit, CommunityPostState>(
+        // Her own delete closes the screen: it never shows her post as gone
+        // on the way out (S8).
+        buildWhen: (_, current) =>
+            current is! CommunityPostRemoved ||
+            !context.read<PostDeleteCubit>().state.leaving,
         builder: (context, state) => _body(context, state, readOnly),
       ),
     );

@@ -325,7 +325,12 @@
     },
     "delete_others_body": "This comment and all its replies will be deleted permanently.",
     "delete_others_reply_body": "This reply will be deleted permanently.",
-    "posting_guidelines_title": "Posting guidelines"
+    "posting_guidelines_title": "Posting guidelines",
+    "menu_delete_post": "Delete post",
+    "delete_post_title": "Delete post?",
+    "delete_post_body": "The post and all its comments and replies will be deleted permanently.",
+    "post_deleted": "Post deleted.",
+    "delete_post_failed": "Couldn’t delete the post. Please try again."
   },
   "notifications": {
     "title": "Notifications",

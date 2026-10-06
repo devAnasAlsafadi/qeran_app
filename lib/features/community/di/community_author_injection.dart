@@ -12,6 +12,7 @@ import '../domain/usecases/delete_community_post_usecase.dart';
 import '../domain/usecases/dismiss_community_flag_usecase.dart';
 import '../domain/usecases/get_community_flags_usecase.dart';
 import '../domain/usecases/get_my_community_posts_usecase.dart';
+import '../presentation/blocs/post_delete/post_delete_cubit.dart';
 
 /// The post author's side of Community (the matchmaker app): her posts, a
 /// post's delete, the flags. Registered with the member's side, which owns
@@ -27,6 +28,9 @@ void initCommunityAuthorDependencies() {
   sl.registerLazySingleton(() => DeleteCommunityPostUseCase(sl()));
   sl.registerLazySingleton(() => GetCommunityFlagsUseCase(sl()));
   sl.registerLazySingleton(() => DismissCommunityFlagUseCase(sl()));
+
+  // Deleting her post, on her lists and on its own screen.
+  sl.registerFactory(() => PostDeleteCubit(deletePost: sl()));
 }
 
 /// The live API — unless the member's side is the dev-flag mock, whose post

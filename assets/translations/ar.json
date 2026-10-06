@@ -331,7 +331,12 @@
     },
     "delete_others_body": "سيُحذف هذا التعليق وكل الردود عليه نهائياً ولا يمكن استعادته.",
     "delete_others_reply_body": "سيُحذف هذا الرد نهائياً ولا يمكن استعادته.",
-    "posting_guidelines_title": "إرشادات النشر"
+    "posting_guidelines_title": "إرشادات النشر",
+    "menu_delete_post": "حذف المنشور",
+    "delete_post_title": "حذف المنشور؟",
+    "delete_post_body": "سيُحذف المنشور وكل التعليقات والردود عليه نهائياً ولا يمكن استعادته.",
+    "post_deleted": "تم حذف المنشور.",
+    "delete_post_failed": "تعذّر حذف المنشور، حاولي مرة أخرى."
   },
   "notifications": {
     "title": "الإشعارات",

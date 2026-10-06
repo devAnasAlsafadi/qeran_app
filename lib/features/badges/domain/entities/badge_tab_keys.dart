@@ -24,6 +24,14 @@ class BadgeTabKeys {
   static const String cases = 'casesUnread';
   static const String conversations = 'conversationsUnread';
 
+  /// Other people's comments and replies on her Community posts since she
+  /// last opened «منشوراتي» (contract §7.3, D33): cleared by mark-seen.
+  static const String communityComments = 'communityCommentsUnread';
+
+  /// Her open flags (D34): a queue of work, never cleared by mark-seen — it
+  /// drops when she keeps or deletes a flagged item.
+  static const String communityReports = 'communityReportsPending';
+
   /// Documented by the backend as permanently zero for BOTH roles, and
   /// deliberately not rendered anywhere — a tab that can never light must not
   /// carry a badge. Named here only so the parser's intent is legible and

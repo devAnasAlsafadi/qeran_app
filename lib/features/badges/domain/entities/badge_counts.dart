@@ -34,6 +34,8 @@ class BadgeCounts extends Equatable {
   int get users => of(BadgeTabKeys.users);
   int get cases => of(BadgeTabKeys.cases);
   int get conversations => of(BadgeTabKeys.conversations);
+  int get communityComments => of(BadgeTabKeys.communityComments);
+  int get communityReports => of(BadgeTabKeys.communityReports);
 
   /// Replaces one tab's count. Assignment, never addition: `BadgeUpdated`
   /// carries the absolute value, so adding would double-count every event

@@ -4,7 +4,8 @@ import 'matchmaker_me_image_model.dart';
 
 /// Wire model for `GET /matchmaker/me` →
 /// `{ userId, name, email, phoneNumber, gender, isActive, isPhoneVerified,
-///   createdAt, profileImage:{id,url,isProfile} }`.
+///   createdAt, profileImage:{id,url,isProfile}, referralCode,
+///   communityGuidelinesAccepted }`.
 class MatchmakerMeModel {
   final String userId;
   final String name;
@@ -16,6 +17,7 @@ class MatchmakerMeModel {
   final DateTime? createdAt;
   final MatchmakerMeImageModel? image;
   final String? referralCode;
+  final bool? communityGuidelinesAccepted;
 
   const MatchmakerMeModel({
     required this.userId,
@@ -28,6 +30,7 @@ class MatchmakerMeModel {
     required this.createdAt,
     required this.image,
     required this.referralCode,
+    this.communityGuidelinesAccepted,
   });
 
   factory MatchmakerMeModel.fromJson(Map<String, dynamic> json) =>
@@ -42,7 +45,11 @@ class MatchmakerMeModel {
         createdAt: parseNullableDateTime(json['createdAt']),
         image: _parseImage(json['profileImage']),
         referralCode: parseNullableString(json['referralCode']),
+        communityGuidelinesAccepted: _flag(json['communityGuidelinesAccepted']),
       );
+
+  /// [raw] as a bool, or null when the payload left it out.
+  static bool? _flag(Object? raw) => raw == null ? null : parseBool(raw);
 
   static MatchmakerMeImageModel? _parseImage(Object? raw) {
     final map = parseNullableMap(raw);
@@ -60,5 +67,6 @@ class MatchmakerMeModel {
         createdAt: createdAt,
         image: image?.toEntity(),
         referralCode: referralCode,
+        communityGuidelinesAccepted: communityGuidelinesAccepted,
       );
 }

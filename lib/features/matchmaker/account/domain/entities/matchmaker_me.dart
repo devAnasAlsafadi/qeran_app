@@ -22,6 +22,10 @@ class MatchmakerMe extends Equatable {
   /// the backend on first read). Null when the account has none yet.
   final String? referralCode;
 
+  /// She has accepted the current posting guidelines (D7, contract §4.1) —
+  /// true only for the version in force. Null when the payload didn't say.
+  final bool? communityGuidelinesAccepted;
+
   const MatchmakerMe({
     required this.userId,
     required this.name,
@@ -33,6 +37,7 @@ class MatchmakerMe extends Equatable {
     required this.createdAt,
     required this.image,
     required this.referralCode,
+    this.communityGuidelinesAccepted,
   });
 
   /// Optimistic update after a successful name change / photo upload (the PUT
@@ -49,6 +54,7 @@ class MatchmakerMe extends Equatable {
       createdAt: createdAt,
       image: image ?? this.image,
       referralCode: referralCode,
+      communityGuidelinesAccepted: communityGuidelinesAccepted,
     );
   }
 
@@ -64,5 +70,6 @@ class MatchmakerMe extends Equatable {
         createdAt,
         image,
         referralCode,
+        communityGuidelinesAccepted,
       ];
 }

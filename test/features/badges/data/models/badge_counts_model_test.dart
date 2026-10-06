@@ -67,6 +67,17 @@ void main() {
       expect(counts.likes, 1);
     });
 
+    test("her two Community keys, by the server's names (§7.3)", () {
+      final counts = BadgeCountsModel.fromJson({
+        'communityCommentsUnread': 4,
+        'communityReportsPending': 1,
+      });
+
+      expect(counts.communityComments, 4);
+      expect(counts.communityReports, 1);
+      expect(BadgeCountsModel.fromJson(const {}).communityReports, 0);
+    });
+
     test('numeric strings and doubles are read as counts', () {
       final counts = BadgeCountsModel.fromJson({
         BadgeTabKeys.likes: '3',

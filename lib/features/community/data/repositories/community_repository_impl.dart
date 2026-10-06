@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/data/account_cache.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
@@ -18,14 +16,13 @@ import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_post_change.dart';
 import '../../domain/repositories/community_repository.dart';
 import '../datasources/community_remote_datasource.dart';
-import '../error_codes.dart';
 import 'community_failure_classifier.dart';
+import 'community_post_changes.dart';
 
 class CommunityRepositoryImpl with BaseRepository implements CommunityRepository {
   final CommunityRemoteDataSource _dataSource;
 
-  /// App-lifetime, like the repository: never closed.
-  final _changes = StreamController<CommunityPostChange>.broadcast();
+  final _changes = CommunityPostChanges();
 
   /// The limits, once per account (S15). A failure isn't kept, so the next
   /// screen tries again.
@@ -51,7 +48,7 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
     final result = await executeApiCall(
       () async => (await _dataSource.getPost(postId)).toEntity(),
     );
-    _announceGone(postId, result);
+    _changes.goneIf(postId, result);
     result.fold((_) {}, (post) => _changes.add(CommunityPostUpdated(post)));
     return result;
   }
@@ -65,7 +62,7 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
       () async =>
           (await _dataSource.setPostLike(postId, liked: liked)).toEntity(),
     );
-    _announceGone(postId, result);
+    _changes.goneIf(postId, result);
     result.fold(
       (_) {},
       (like) => _changes.add(CommunityPostLikeChanged(postId, like)),
@@ -97,7 +94,7 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
       );
       return model.toEntity((m) => m.toEntity());
     });
-    _announceGone(postId, result);
+    _changes.goneIf(postId, result);
     return result;
   }
 
@@ -130,7 +127,7 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
     final result = await executeApiCall(
       () => _dataSource.createComment(postId, text),
     );
-    _announceGone(postId, result);
+    _changes.goneIf(postId, result);
     return commentSubmitOutcomeOf(result, isReply: false);
   }
 
@@ -182,13 +179,4 @@ class CommunityRepositoryImpl with BaseRepository implements CommunityRepository
   @override
   Future<Either<Failure, void>> blockMember(String userId) =>
       executeApiCall(() => _dataSource.blockMember(userId));
-
-  void _announceGone<T>(int postId, Either<Failure, T> result) => result.fold(
-        (failure) {
-          if (communityErrorCode(failure) == CommunityErrorCodes.postNotFound) {
-            _changes.add(CommunityPostGone(postId));
-          }
-        },
-        (_) {},
-      );
 }

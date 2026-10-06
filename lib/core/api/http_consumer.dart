@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:qeran/core/constants/storage_keys.dart';
 import '../app_logger.dart';
 import '../errors/exceptions.dart';
 import '../services/connectivity_service.dart';
@@ -12,6 +11,7 @@ import 'api_consumer.dart';
 import 'end_points.dart';
 import 'http_errors.dart';
 import 'http_multipart.dart';
+import 'http_request_context.dart';
 import 'http_response_handler.dart';
 
 class HttpConsumer extends ApiConsumer {
@@ -30,24 +30,16 @@ class HttpConsumer extends ApiConsumer {
     required this.connectivity,
   });
 
-  /// Offline pre-flight — throws [OfflineException] BEFORE a request fires
-  /// when the device reports no connectivity, so callers fast-fail instead of
-  /// waiting out the 30s timeout. Placed at the top of each verb's `try` so a
-  /// thrown [OfflineException] is rethrown by that verb's catch and bubbles to
-  /// the repository as `OfflineFailure`.
-  Future<void> _ensureOnline() async {
-    if (!await connectivity.isOnline) throw const OfflineException();
-  }
+  /// The offline pre-flight and our headers, shared with the uploader.
+  late final HttpRequestContext _context = HttpRequestContext(
+    storage: storage,
+    languageService: languageService,
+    connectivity: connectivity,
+  );
 
-  Future<Map<String, String>> _getHeaders() async {
-    final token = await storage.get<String>(StorageKeys.token);
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Accept-Language': languageService.currentLanguage,
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
+  Future<void> _ensureOnline() => _context.ensureOnline();
+
+  Future<Map<String, String>> _getHeaders() => _context.headers();
 
   Map<String, String>? _convertQueryParams(Map<String, dynamic>? params) {
     return params?.map((key, value) => MapEntry(key, value.toString()));

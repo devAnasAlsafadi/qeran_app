@@ -9,6 +9,7 @@ import '../video/community_stale_refresh.dart';
 import '../video/community_video_scope.dart';
 import '../widgets/community_like_toast.dart';
 import '../widgets/feed/community_feed_list.dart';
+import '../widgets/feed/community_feed_states.dart';
 
 /// The Community tab — where the member's app lands. Its cubit lives as long
 /// as the tab, so the feed keeps its place across tab switches.
@@ -26,17 +27,22 @@ class CommunityFeedScreen extends StatelessWidget {
 
 /// The feed for the cubit in scope, and its toasts (B12, B13). Its videos
 /// take turns, and a feed kept past their links' 6 h reads itself again
-/// (Q9, S19). Her «كل المنشورات» shows it as a matchmaker [viewer], over
-/// her own [bottomClearance] (Phase 3).
+/// (Q9, S19). Her «كل المنشورات» and «منشوراتي» show it as a matchmaker
+/// [viewer], over her own [bottomClearance] — «منشوراتي» with its own
+/// [empty] and [error] (Phase 3).
 class CommunityFeedView extends StatelessWidget {
   const CommunityFeedView({
     super.key,
     this.viewer = CommunityViewer.member,
     this.bottomClearance,
+    this.empty = communityFeedEmpty,
+    this.error = communityFeedError,
   });
 
   final CommunityViewer viewer;
   final double? bottomClearance;
+  final CommunityListEmpty empty;
+  final CommunityListError error;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +60,8 @@ class CommunityFeedView extends StatelessWidget {
             state: state,
             viewer: viewer,
             bottomClearance: bottomClearance,
+            empty: empty,
+            error: error,
           ),
         ),
       ),

@@ -27,17 +27,21 @@ import 'community_gate_notice.dart';
 ///
 /// A matchmaker [viewer] (her «كل المنشورات», Phase 3) gets no title and no
 /// gate notice — her screen has its own header — is never read-only, and
-/// opens posts as herself.
+/// opens posts as herself. Her «منشوراتي» brings its own [empty] and [error].
 class CommunityFeedList extends StatelessWidget {
   const CommunityFeedList({
     super.key,
     required this.state,
     this.viewer = CommunityViewer.member,
     this.bottomClearance,
+    this.empty = communityFeedEmpty,
+    this.error = communityFeedError,
   });
 
   final CommunityFeedState state;
   final CommunityViewer viewer;
+  final CommunityListEmpty empty;
+  final CommunityListError error;
 
   /// The space kept free under the last card: the bottom nav's by default.
   final double? bottomClearance;
@@ -83,10 +87,8 @@ class CommunityFeedList extends StatelessWidget {
             ],
           ),
         ],
-        CommunityFeedStatus.empty => [_fill(communityFeedEmpty(context))],
-        CommunityFeedStatus.failure => [
-          _fill(communityFeedError(context, cubit.load)),
-        ],
+        CommunityFeedStatus.empty => [_fill(empty(context))],
+        CommunityFeedStatus.failure => [_fill(error(context, cubit.load))],
         CommunityFeedStatus.loaded => _loaded(cubit),
       };
 

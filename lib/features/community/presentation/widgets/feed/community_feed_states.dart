@@ -6,6 +6,13 @@ import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 
+/// What a list of posts shows with none — the feed's by default.
+typedef CommunityListEmpty = Widget Function(BuildContext context);
+
+/// What a list of posts shows when its first page fails; [retry] asks again.
+typedef CommunityListError =
+    Widget Function(BuildContext context, VoidCallback retry);
+
 /// The feed with no posts at all (B4).
 Widget communityFeedEmpty(BuildContext context) => QeranEmptyState(
   icon: Icons.auto_stories_rounded,

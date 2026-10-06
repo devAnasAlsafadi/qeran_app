@@ -92,7 +92,7 @@ void initCommunityDependencies() {
 
   sl.registerFactory(
     () => CommunityFeedCubit(
-      getFeed: sl(),
+      getFeed: sl<GetCommunityFeedUseCase>().call,
       getPost: sl(),
       setPostLike: sl(),
       watchChanges: sl(),

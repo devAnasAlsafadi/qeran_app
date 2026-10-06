@@ -28,7 +28,7 @@ class FeedHarness {
   FeedHarness() {
     when(() => watch()).thenAnswer((_) => changes.stream);
     cubit = CommunityFeedCubit(
-      getFeed: getFeed,
+      getFeed: getFeed.call,
       getPost: getPost,
       setPostLike: setLike,
       watchChanges: watch,

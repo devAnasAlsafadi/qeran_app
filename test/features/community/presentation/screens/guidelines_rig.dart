@@ -33,7 +33,8 @@ CommunityGuidelines seedGuidelines({int version = 1, String? introEn}) =>
 /// cubit — the one the page asks for. An agreement is counted, and passed
 /// on to [onAccepted] (the app's profile gate, in the app).
 class GuidelinesHarness {
-  GuidelinesHarness({void Function()? onAccepted}) {
+  /// [instanceName]: her own (`matchmaker`), as her DI registers it.
+  GuidelinesHarness({void Function()? onAccepted, String? instanceName}) {
     reads([Right(seedGuidelines())]);
     sl.registerFactory<CommunityGuidelinesCubit>(
       () => CommunityGuidelinesCubit(
@@ -44,6 +45,7 @@ class GuidelinesHarness {
           onAccepted?.call();
         },
       ),
+      instanceName: instanceName,
     );
   }
 

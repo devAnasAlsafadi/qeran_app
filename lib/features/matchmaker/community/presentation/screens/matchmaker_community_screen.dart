@@ -7,15 +7,19 @@ import 'package:qeran/features/community/presentation/screens/community_feed_scr
 import 'package:qeran/features/community/presentation/screens/post_delete_listener.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
+import '../../../../../core/design_system/widgets/qeran_floating_button.dart';
+import '../../../../../core/enum/snakebar_tybe.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
+import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../core/widgets/connectivity_banner_host.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_segmented_tabs.dart';
 import '../blocs/my_posts/my_posts_cubit.dart';
+import '../widgets/community_new_post_button.dart';
 import '../widgets/my_posts_states.dart';
+import 'start_new_post.dart';
 
 /// Her Community screen's two segments.
 enum MatchmakerCommunityTab { all, mine }
@@ -90,6 +94,19 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
     _mine.seen();
   }
 
+  /// «منشور جديد» (B1, B4): once published she lands on «منشوراتي», her
+  /// post first (Q7, D5).
+  Future<void> _newPost() async {
+    final post = await startNewPost(context);
+    if (post == null || !mounted) return;
+    _select(MatchmakerCommunityTab.mine.index);
+    AppSnackBar.show(
+      context,
+      message: LocaleKeys.matchmaker_community_published.t(context),
+      type: SnackBarType.success,
+    );
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -105,6 +122,11 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
       backgroundColor: QeranColors.creamCanvas,
       appBar: QeranAppBar(
         title: LocaleKeys.matchmaker_community_title.t(context),
+      ),
+      floatingActionButton: CommunityNewPostButton(
+        mine: _mine,
+        onMine: _tab == MatchmakerCommunityTab.mine,
+        onPressed: _newPost,
       ),
       body: AttachedConnectivityBanner(
         child: Column(
@@ -135,7 +157,7 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
   }
 
   Widget _segments(BuildContext context) {
-    final clearance = MediaQuery.paddingOf(context).bottom + QeranSpacing.s24;
+    final clearance = QeranFloatingButton.clearance(context);
     return IndexedStack(
       index: _tab.index,
       sizing: StackFit.expand,
@@ -153,7 +175,7 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
             child: CommunityFeedView(
               viewer: CommunityViewer.matchmaker,
               bottomClearance: clearance,
-              empty: myPostsEmpty,
+              empty: myPostsEmpty(_newPost),
               error: myPostsError,
             ),
           )

@@ -5,15 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_floating_button.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/community/domain/entities/community_page.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
+import 'package:qeran/features/community/domain/entities/post_publish_outcome.dart';
 import 'package:qeran/features/community/presentation/widgets/feed/community_feed_skeleton.dart';
 import 'package:qeran/features/matchmaker/community/presentation/screens/matchmaker_community_screen.dart';
+import 'package:qeran/features/matchmaker/community/presentation/screens/post_composer_screen.dart';
 
 import '../../../../core/shipped_strings_rig.dart';
 import '../../../community/fixtures/community_post_fixtures.dart';
 import '../community_screen_rig.dart';
+import '../composer_rig.dart';
 
 const _ar = Locale('ar');
 const _en = Locale('en');
@@ -145,5 +150,49 @@ void main() {
 
     expect(find.text('Mine'), findsOneWidget);
     expect(h.seen, 1);
+  });
+
+  group('«منشور جديد»', () {
+    late ComposerHarness composer;
+    setUp(() => composer = ComposerHarness());
+
+    testWidgets('B1: floats on All posts; published, she lands on «منشوراتي» '
+        'with her post first and «تم نشر منشورك.» (Q7, D5)', (tester) async {
+      composer.publishes(Right(PostPublished(testPost(id: 31))));
+      h.myPage(1, [
+        testPost(id: 31, text: 'Just now'),
+        testPost(id: 5, text: 'Mine'),
+      ]);
+      await open(tester, locale: _ar);
+      expect(find.byType(QeranFloatingButton), findsOneWidget);
+
+      await tester.tap(find.text('منشور جديد'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'إرشاد');
+      await tester.pump();
+      await tester.tap(find.text('نشر'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PostComposerScreen), findsNothing);
+      expect(find.text('Just now'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('Just now')).dy,
+        lessThan(tester.getTopLeft(find.text('Mine')).dy),
+      );
+      expect(find.text('تم نشر منشورك.'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+    });
+
+    testWidgets('B4: an empty «منشوراتي» has its own button, not the floating '
+        'one', (tester) async {
+      h.myPage(1, const []);
+      await open(tester, tab: MatchmakerCommunityTab.mine);
+
+      expect(find.byType(QeranFloatingButton), findsNothing);
+      await tester.tap(find.widgetWithText(QeranButton, 'New post'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PostComposerScreen), findsOneWidget);
+    });
   });
 }

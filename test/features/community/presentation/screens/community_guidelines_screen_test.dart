@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
+import 'package:qeran/features/community/presentation/blocs/guidelines/community_guidelines_cubit.dart';
 import 'package:qeran/features/community/presentation/widgets/guidelines/guidelines_action_bar.dart';
 import 'package:qeran/features/community/presentation/widgets/guidelines/guidelines_text.dart';
 
@@ -61,6 +63,15 @@ void main() {
   ]) {
     testWidgets('G1: before her first post, her title over the same text '
         '[${locale.languageCode}]', (tester) async {
+      // Hers, as her DI registers it beside the member's.
+      sl.registerFactory<CommunityGuidelinesCubit>(
+        () => CommunityGuidelinesCubit(
+          getGuidelines: harness.getGuidelines,
+          accept: harness.accept,
+          onAccepted: () {},
+        ),
+        instanceName: CommunityViewer.matchmaker.name,
+      );
       await openGuidelines(
         tester,
         harness,

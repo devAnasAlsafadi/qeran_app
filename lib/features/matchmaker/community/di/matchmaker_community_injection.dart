@@ -1,15 +1,42 @@
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
+import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/domain/usecases/get_my_community_posts_usecase.dart';
+import 'package:qeran/features/community/presentation/blocs/guidelines/community_guidelines_cubit.dart';
 
 import '../../shared/domain/ports/matchmaker_realtime_port.dart';
+import '../presentation/blocs/composer/post_draft_cubit.dart';
+import '../presentation/blocs/composer/post_publish_cubit.dart';
+import '../presentation/blocs/guidelines/matchmaker_guidelines_status.dart';
 import '../presentation/blocs/my_posts/my_posts_cubit.dart';
 
 /// Her Community screens (Phase 3). Their data and domain are Community's,
 /// registered with it; these are her cubits. Called by
 /// `initMatchmakerDependencies`.
 void initMatchmakerCommunityDependencies() {
+  // Whether she still owes the posting guidelines; forgotten with her
+  // account.
+  sl.registerLazySingleton(
+    () => sl<AccountScope>().hold(
+      MatchmakerGuidelinesStatus(getMe: sl()),
+      (status) => status.forget(),
+    ),
+  );
+  // «إرشادات النشر»: agreeing tells her status, not the member's gate.
+  sl.registerFactory<CommunityGuidelinesCubit>(
+    () => CommunityGuidelinesCubit(
+      getGuidelines: sl(),
+      accept: sl(),
+      onAccepted: sl<MatchmakerGuidelinesStatus>().markAccepted,
+    ),
+    instanceName: CommunityViewer.matchmaker.name,
+  );
+  // Her composer: the draft against fresh limits, and its publishing.
+  sl.registerFactory(() => PostDraftCubit(getConfig: sl()));
+  sl.registerFactory(() => PostPublishCubit(createPost: sl()));
+
   // One per Community screen; opening «منشوراتي» clears her comments badge,
   // and her processing posts are watched until they're done.
   sl.registerFactory(

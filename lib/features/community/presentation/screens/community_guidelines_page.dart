@@ -37,7 +37,10 @@ class CommunityGuidelinesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<CommunityGuidelinesCubit>(
-      create: (_) => sl<CommunityGuidelinesCubit>()..load(),
+      // Hers tells her app, not the member's profile gate (her DI).
+      create: (_) => sl<CommunityGuidelinesCubit>(
+        instanceName: viewer == CommunityViewer.matchmaker ? viewer.name : null,
+      )..load(),
       child: Scaffold(
         backgroundColor: QeranColors.creamCanvas,
         appBar: QeranAppBar(

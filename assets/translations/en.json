@@ -1098,7 +1098,20 @@
       "my_posts": "My posts",
       "mine_empty_title": "You have no posts right now",
       "mine_empty_body": "Share guidance with members as text, images or a video.",
-      "mine_error_title": "Couldn’t load your posts"
+      "mine_error_title": "Couldn’t load your posts",
+      "new_post": "New post",
+      "publish": "Publish",
+      "composer_hint": "Write guidance for members…",
+      "audience": "Visible to all members and matchmakers",
+      "text_too_long": "The text is longer than allowed.",
+      "upload_failed": "Couldn’t upload your post. Check your connection.",
+      "retry": "Retry",
+      "discard_title": "Discard this post?",
+      "discard_body": "What you’ve written or added won’t be saved.",
+      "discard": "Discard",
+      "keep_writing": "Keep writing",
+      "rejected": "This post can’t be published because it goes against the posting guidelines. Edit it and try again.",
+      "published": "Your post is published."
     }
   },
   "settings": {

@@ -40,4 +40,41 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(tester.getSize(find.byType(QeranNotice)).height, greaterThan(60));
   });
+
+  testWidgets('the danger tone: danger ground, edge, icon and text', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 240,
+            child: QeranNotice(
+              icon: Icons.block_rounded,
+              text: _long,
+              tone: QeranNoticeTone.danger,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final box = tester.widget<DecoratedBox>(
+      find.descendant(
+        of: find.byType(QeranNotice),
+        matching: find.byType(DecoratedBox),
+      ),
+    );
+    final decoration = box.decoration as BoxDecoration;
+    expect(decoration.color, QeranColors.danger12);
+    expect(decoration.border, Border.all(color: QeranColors.danger40));
+    expect(
+      tester.widget<Icon>(find.byIcon(Icons.block_rounded)).color,
+      QeranColors.danger,
+    );
+    expect(
+      tester.widget<Text>(find.text(_long)).style?.color,
+      QeranColors.danger,
+    );
+  });
 }

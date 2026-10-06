@@ -117,4 +117,26 @@ void main() {
       reason: 'the pushed screen has the only chevron',
     );
   });
+
+  testWidgets('a draft screen closes with a ×, which runs onBack', (
+    tester,
+  ) async {
+    var closed = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: QeranAppBar(
+            title: 'New post',
+            close: true,
+            onBack: () => closed++,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_left_rounded), findsNothing);
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    expect(closed, 1);
+  });
 }

@@ -4,7 +4,8 @@ import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_typography.dart';
 
 /// Cream-aware app bar with wine title + icons and a branded back
-/// button. Caller owns navigation; this widget never pops on its own.
+/// button — or, for a screen that is a draft, a close × ([close]). Caller
+/// owns navigation; this widget never pops on its own.
 class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
   const QeranAppBar({
     super.key,
@@ -13,6 +14,7 @@ class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions = const [],
     this.background = QeranColors.creamCanvas,
     this.centerTitle = true,
+    this.close = false,
   });
 
   final String? title;
@@ -20,6 +22,10 @@ class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget> actions;
   final Color background;
   final bool centerTitle;
+
+  /// A × where the back chevron would be: the screen closes rather than
+  /// goes back (a composer).
+  final bool close;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -41,11 +47,7 @@ class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       iconTheme: const IconThemeData(color: QeranColors.wine),
       actionsIconTheme: const IconThemeData(color: QeranColors.wine),
-      leading: canPop
-          ? QeranBackButton(
-              onTap: onBack ?? () => Navigator.of(context).maybePop(),
-            )
-          : null,
+      leading: canPop ? _leading(context) : null,
       title: title == null
           ? null
           : Text(
@@ -55,6 +57,16 @@ class QeranAppBar extends StatelessWidget implements PreferredSizeWidget {
               overflow: TextOverflow.ellipsis,
             ),
       actions: actions,
+    );
+  }
+
+  Widget _leading(BuildContext context) {
+    final tap = onBack ?? () => Navigator.of(context).maybePop();
+    if (!close) return QeranBackButton(onTap: tap);
+    return IconButton(
+      icon: const Icon(Icons.close_rounded, color: QeranColors.wine, size: 26),
+      onPressed: tap,
+      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
     );
   }
 }

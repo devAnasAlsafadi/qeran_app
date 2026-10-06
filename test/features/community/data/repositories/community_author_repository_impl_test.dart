@@ -14,6 +14,7 @@ import 'package:qeran/features/community/data/repositories/community_post_change
 import 'package:qeran/features/community/data/repositories/community_repository_impl.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_post_change.dart';
+import 'package:qeran/features/community/domain/entities/post_publish_outcome.dart';
 
 import '../../fixtures/community_fixtures.dart';
 import '../../fixtures/community_mock_harness.dart';
@@ -149,5 +150,50 @@ void main() {
     await repo.deletePost(5);
 
     expect((await next).postId, 5);
+  });
+
+  group('publish (6.2)', () {
+    Future<Either<Failure, PostPublishOutcome>> publish() =>
+        repo.createPost(text: 'إرشاد', clientRequestId: 'req-1');
+
+    test('made: the post, announced to every list', () async {
+      when(
+        () => ds.createPost(text: 'إرشاد', clientRequestId: 'req-1'),
+      ).thenAnswer((_) async => CommunityPostModel.fromJson(post(id: 31)));
+
+      final outcome = _right(await publish());
+      await settle();
+
+      expect((outcome as PostPublished).post.id, 31);
+      expect(heard.single, isA<CommunityPostCreated>());
+    });
+
+    test('the filter, and new guidelines, are outcomes; nothing is '
+        'announced', () async {
+      when(
+        () => ds.createPost(text: 'إرشاد', clientRequestId: 'req-1'),
+      ).thenThrow(_coded('CONTENT_NOT_ALLOWED'));
+      expect(_right(await publish()), isA<PostRejected>());
+
+      when(
+        () => ds.createPost(text: 'إرشاد', clientRequestId: 'req-1'),
+      ).thenThrow(_coded('COMMUNITY_GUIDELINES_NOT_ACCEPTED'));
+      expect(_right(await publish()), isA<PostGuidelinesRequired>());
+      await settle();
+
+      expect(heard, isEmpty);
+    });
+
+    test('offline, or any other code: a failure (the failed strip)', () async {
+      when(
+        () => ds.createPost(text: 'إرشاد', clientRequestId: 'req-1'),
+      ).thenThrow(OfflineException());
+      expect(await publish(), const Left(OfflineFailure()));
+
+      when(
+        () => ds.createPost(text: 'إرشاد', clientRequestId: 'req-1'),
+      ).thenThrow(_coded('VALIDATION_ERROR'));
+      expect((await publish()).isLeft(), isTrue);
+    });
   });
 }

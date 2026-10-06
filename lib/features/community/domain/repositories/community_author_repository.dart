@@ -4,6 +4,7 @@ import 'package:qeran/core/errors/errors.dart';
 import '../entities/community_flagged_item.dart';
 import '../entities/community_page.dart';
 import '../entities/community_post.dart';
+import '../entities/post_publish_outcome.dart';
 
 /// What the post's author does that members can't (contract §5.3, §6): her
 /// own posts, deleting one, and the flags on comments under them. Its post
@@ -13,6 +14,13 @@ abstract class CommunityAuthorRepository {
   Future<Either<Failure, CommunityPage<CommunityPost>>> getMyPosts({
     required int page,
     required int pageSize,
+  });
+
+  /// 6.2 — announces the post she made (`CommunityPostCreated`); the
+  /// filter's refusal and the guidelines' are outcomes, not failures.
+  Future<Either<Failure, PostPublishOutcome>> createPost({
+    required String text,
+    required String clientRequestId,
   });
 
   /// 6.3 — announces the post gone. One already gone counts as deleted.

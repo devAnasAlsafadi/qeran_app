@@ -8,6 +8,7 @@ import '../data/datasources/community_remote_datasource.dart';
 import '../data/datasources/community_remote_datasource_impl.dart';
 import '../data/repositories/community_author_repository_impl.dart';
 import '../domain/repositories/community_author_repository.dart';
+import '../domain/usecases/create_community_post_usecase.dart';
 import '../domain/usecases/delete_community_post_usecase.dart';
 import '../domain/usecases/dismiss_community_flag_usecase.dart';
 import '../domain/usecases/get_community_flags_usecase.dart';
@@ -25,6 +26,7 @@ void initCommunityAuthorDependencies() {
   );
 
   sl.registerLazySingleton(() => GetMyCommunityPostsUseCase(sl()));
+  sl.registerLazySingleton(() => CreateCommunityPostUseCase(sl()));
   sl.registerLazySingleton(() => DeleteCommunityPostUseCase(sl()));
   sl.registerLazySingleton(() => GetCommunityFlagsUseCase(sl()));
   sl.registerLazySingleton(() => DismissCommunityFlagUseCase(sl()));

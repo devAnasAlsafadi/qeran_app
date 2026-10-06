@@ -6,11 +6,13 @@ import '../../domain/entities/community_flagged_item.dart';
 import '../../domain/entities/community_page.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_post_change.dart';
+import '../../domain/entities/post_publish_outcome.dart';
 import '../../domain/repositories/community_author_repository.dart';
 import '../datasources/community_author_remote_datasource.dart';
 import '../error_codes.dart';
 import 'community_failure_classifier.dart';
 import 'community_post_changes.dart';
+import 'post_publish_classifier.dart';
 
 class CommunityAuthorRepositoryImpl
     with BaseRepository
@@ -33,6 +35,21 @@ class CommunityAuthorRepositoryImpl
     final model = await _dataSource.getMyPosts(page: page, pageSize: pageSize);
     return model.toEntity((m) => m.toEntity());
   });
+
+  @override
+  Future<Either<Failure, PostPublishOutcome>> createPost({
+    required String text,
+    required String clientRequestId,
+  }) async {
+    final result = await executeApiCall(
+      () async => (await _dataSource.createPost(
+        text: text,
+        clientRequestId: clientRequestId,
+      )).toEntity(),
+    );
+    result.fold((_) {}, (post) => _changes.add(CommunityPostCreated(post)));
+    return postPublishOutcomeOf(result);
+  }
 
   /// Gone already (`POST_NOT_FOUND`) is what she asked for: either way the
   /// post leaves every list and an open post screen.

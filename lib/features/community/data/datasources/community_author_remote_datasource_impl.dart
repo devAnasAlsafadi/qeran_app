@@ -25,6 +25,19 @@ class CommunityAuthorRemoteDataSourceImpl
   );
 
   @override
+  Future<CommunityPostModel> createPost({
+    required String text,
+    required String clientRequestId,
+  }) async => CommunityPostModel.fromJson(
+    communityEnvelopeData(
+      await _api.post(
+        CommunityEndPoints.posts,
+        body: {'text': text, 'clientRequestId': clientRequestId},
+      ),
+    ),
+  );
+
+  @override
   Future<void> deletePost(int postId) =>
       _api.delete(CommunityEndPoints.post(postId));
 

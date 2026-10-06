@@ -65,6 +65,23 @@ void main() {
     expect(page.totalCount, 26);
   });
 
+  test('publish: POST community/posts with the text and the request id; '
+      'the post comes back', () async {
+    when(
+      () => api.post(any(), body: any(named: 'body')),
+    ).thenAnswer((_) async => _ok(post(id: 31)));
+
+    final made = await ds.createPost(text: 'إرشاد', clientRequestId: 'req-1');
+
+    verify(
+      () => api.post(
+        'community/posts',
+        body: {'text': 'إرشاد', 'clientRequestId': 'req-1'},
+      ),
+    ).called(1);
+    expect(made.id, 31);
+  });
+
   test('delete: DELETE community/posts/{id}', () async {
     when(() => api.delete(any())).thenAnswer((_) async => _ok(null));
 

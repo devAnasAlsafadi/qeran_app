@@ -12,6 +12,13 @@ abstract class CommunityAuthorRemoteDataSource {
     required int pageSize,
   });
 
+  /// 6.2 — her post: its text, and [clientRequestId], which makes a repeat
+  /// of the same request return the same post instead of a second one.
+  Future<CommunityPostModel> createPost({
+    required String text,
+    required String clientRequestId,
+  });
+
   /// 6.3 — the post and everything under it.
   Future<void> deletePost(int postId);
 

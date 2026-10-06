@@ -9,6 +9,7 @@ import '../data/datasources/community_remote_datasource.dart';
 import '../data/datasources/community_remote_datasource_impl.dart';
 import '../data/datasources/mock/community_mock_dev_flag.dart';
 import '../data/datasources/mock/community_mock_mode.dart';
+import '../data/repositories/community_post_changes.dart';
 import '../data/repositories/community_repository_impl.dart';
 import '../domain/repositories/community_repository.dart';
 import '../domain/usecases/accept_community_guidelines_usecase.dart';
@@ -49,10 +50,11 @@ void initCommunityDependencies() {
   //! DataSource — the live API, or the dev-flag mock.
   sl.registerLazySingleton<CommunityRemoteDataSource>(_dataSource);
 
-  //! Repository
+  //! Repository — and the post changes it shares with the author's.
+  sl.registerLazySingleton(CommunityPostChanges.new);
   sl.registerLazySingleton<CommunityRepository>(
     () => sl<AccountScope>().hold<CommunityRepositoryImpl>(
-      CommunityRepositoryImpl(sl()),
+      CommunityRepositoryImpl(sl(), changes: sl()),
       (repo) => repo.forgetAccount(),
     ),
   );

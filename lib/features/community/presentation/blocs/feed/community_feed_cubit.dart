@@ -160,16 +160,22 @@ class CommunityFeedCubit extends Cubit<CommunityFeedState>
       CommunityPostLikeChanged(:final postId, :final like) =>
         _liking.contains(postId) ? null : withLike(state.posts, postId, like),
       CommunityPostGone(:final postId) => withoutPost(state.posts, postId),
+      CommunityPostCreated(:final post) =>
+        _settled ? withCreatedPost(state.posts, post) : null,
     };
     if (posts == null) return;
-    final emptied = posts.isEmpty && state.status == CommunityFeedStatus.loaded;
-    emit(
-      state.copyWith(
-        posts: posts,
-        status: emptied ? CommunityFeedStatus.empty : null,
-      ),
-    );
+    emit(state.copyWith(posts: posts, status: _statusWith(posts)));
   }
+
+  /// Loaded ↔ empty as [posts] empties or fills; anything else unchanged.
+  CommunityFeedStatus? _statusWith(List<CommunityPost> posts) =>
+      switch (state.status) {
+        CommunityFeedStatus.loaded when posts.isEmpty =>
+          CommunityFeedStatus.empty,
+        CommunityFeedStatus.empty when posts.isNotEmpty =>
+          CommunityFeedStatus.loaded,
+        _ => null,
+      };
 
   /// [postId]'s video read again, for a lapsed link (S19); the card's copy
   /// is patched through the repository's stream as well.

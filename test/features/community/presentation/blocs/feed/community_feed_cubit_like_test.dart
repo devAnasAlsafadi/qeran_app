@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/community/domain/entities/community_like_state.dart';
+import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_post_change.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_state.dart';
 
@@ -114,6 +115,29 @@ void main() {
 
       await announce(const CommunityPostGone(2));
       expect(h.cubit.state.status, CommunityFeedStatus.empty);
+    });
+
+    test('a post she just published goes first; one still processing '
+        "doesn't join", () async {
+      await announce(
+        CommunityPostCreated(
+          testPost(id: 9, status: CommunityPostStatus.processing),
+        ),
+      );
+      expect([for (final p in h.cubit.state.posts) p.id], [1, 2]);
+
+      await announce(CommunityPostCreated(testPost(id: 9)));
+      expect([for (final p in h.cubit.state.posts) p.id], [9, 1, 2]);
+    });
+
+    test('an empty feed shows the post she published', () async {
+      await announce(const CommunityPostGone(1));
+      await announce(const CommunityPostGone(2));
+
+      await announce(CommunityPostCreated(testPost(id: 9)));
+
+      expect(h.cubit.state.status, CommunityFeedStatus.loaded);
+      expect([for (final p in h.cubit.state.posts) p.id], [9]);
     });
 
     test('closing the feed stops listening', () async {

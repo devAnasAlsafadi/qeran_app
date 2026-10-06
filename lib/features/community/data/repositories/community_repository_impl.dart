@@ -24,7 +24,9 @@ class CommunityRepositoryImpl
     implements CommunityRepository {
   final CommunityRemoteDataSource _dataSource;
 
-  final _changes = CommunityPostChanges();
+  /// Shared with the author's repository (Phase 3), so a post she deletes
+  /// or publishes reaches every list and screen.
+  final CommunityPostChanges _changes;
 
   @override
   CommunityRemoteDataSource get dataSource => _dataSource;
@@ -36,7 +38,8 @@ class CommunityRepositoryImpl
   /// screen tries again.
   final AccountCache<CommunityConfig> _config = AccountCache();
 
-  CommunityRepositoryImpl(this._dataSource);
+  CommunityRepositoryImpl(this._dataSource, {CommunityPostChanges? changes})
+    : _changes = changes ?? CommunityPostChanges();
 
   @override
   Stream<CommunityPostChange> get postChanges => _changes.stream;

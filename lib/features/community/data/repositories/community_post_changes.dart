@@ -7,9 +7,10 @@ import '../../domain/entities/community_post_change.dart';
 import '../error_codes.dart';
 import 'community_failure_classifier.dart';
 
-/// What the repository tells every screen about a post — read again, its like
-/// changed, or gone — so the feed and an open post screen agree. App-lifetime,
-/// like the repository: never closed.
+/// What the repositories tell every screen about a post — read again, its
+/// like changed, published or gone — so the feed, her posts and an open post
+/// screen agree. One for the app (DI), shared by the member's repository and
+/// the author's; app-lifetime, never closed.
 class CommunityPostChanges {
   final _changes = StreamController<CommunityPostChange>.broadcast();
 

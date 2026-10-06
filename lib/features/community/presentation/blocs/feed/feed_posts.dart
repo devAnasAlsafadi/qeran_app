@@ -31,6 +31,19 @@ List<CommunityPost> replacePost(
   CommunityPost updated,
 ) => [for (final post in posts) post.id == updated.id ? updated : post];
 
+/// [posts] with [created] first — a post she just published, newest of all
+/// (S15) — or in its place if the list has it. Null for a post members can't
+/// see yet (`Processing`): the feed shows published posts only.
+List<CommunityPost>? withCreatedPost(
+  List<CommunityPost> posts,
+  CommunityPost created,
+) {
+  if (created.status != CommunityPostStatus.published) return null;
+  return posts.any((post) => post.id == created.id)
+      ? replacePost(posts, created)
+      : [created, ...posts];
+}
+
 /// [posts] with [postId]'s like set to [like].
 List<CommunityPost> withLike(
   List<CommunityPost> posts,

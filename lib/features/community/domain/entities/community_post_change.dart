@@ -27,6 +27,16 @@ final class CommunityPostLikeChanged extends CommunityPostChange {
   const CommunityPostLikeChanged(this.postId, this.like);
 }
 
+/// A post the author just published (6.2), in the status the server gave it:
+/// `Published` for text or images, `Processing` for a video.
+final class CommunityPostCreated extends CommunityPostChange {
+  final CommunityPost post;
+  const CommunityPostCreated(this.post);
+
+  @override
+  int get postId => post.id;
+}
+
 /// `POST_NOT_FOUND` — deleted, or no longer visible to this viewer.
 final class CommunityPostGone extends CommunityPostChange {
   @override

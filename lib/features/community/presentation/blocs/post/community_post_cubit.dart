@@ -119,6 +119,9 @@ class CommunityPostCubit extends Cubit<CommunityPostState>
         _show(post);
       case CommunityPostLikeChanged(:final like):
         if (!_liking) _applyLike(like);
+      case CommunityPostCreated():
+        // A new post has no screen open yet.
+        break;
     }
   }
 

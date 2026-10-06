@@ -69,6 +69,7 @@ CommunityPost testPost({
   int commentCount = 0,
   DateTime? createdAt,
   bool canDelete = false,
+  CommunityPostStatus status = CommunityPostStatus.published,
 }) => CommunityPost(
   id: id,
   author: author,
@@ -79,5 +80,5 @@ CommunityPost testPost({
   commentCount: commentCount,
   createdAt: createdAt,
   canDelete: canDelete,
-  status: CommunityPostStatus.published,
+  status: status,
 );

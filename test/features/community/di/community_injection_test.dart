@@ -6,7 +6,9 @@ import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/community/data/datasources/community_remote_datasource.dart';
 import 'package:qeran/features/community/data/datasources/community_remote_datasource_impl.dart';
 import 'package:qeran/features/community/data/datasources/mock/community_mock_mode.dart';
+import 'package:qeran/features/community/data/repositories/community_post_changes.dart';
 import 'package:qeran/features/community/di/community_injection.dart';
+import 'package:qeran/features/community/domain/entities/community_post_change.dart';
 import 'package:qeran/features/community/domain/entities/comment_submit_outcome.dart';
 import 'package:qeran/features/community/domain/repositories/community_repository.dart';
 import 'package:qeran/features/community/domain/usecases/block_community_member_usecase.dart';
@@ -71,6 +73,23 @@ void main() {
       expect(identical(sl<CommunityRepository>(), sl<CommunityRepository>()),
           isTrue);
       expect(sl<GetCommunityFeedUseCase>(), isNotNull);
+    });
+
+    test("the repository speaks on the app's one change stream, which the "
+        "author's repository shares", () async {
+      initCommunityDependencies();
+      final heard = sl<CommunityRepository>().postChanges.first;
+
+      sl<CommunityPostChanges>().add(const CommunityPostGone(5));
+
+      expect(
+        await heard,
+        isA<CommunityPostGone>().having((c) => c.postId, 'postId', 5),
+      );
+      expect(
+        identical(sl<CommunityPostChanges>(), sl<CommunityPostChanges>()),
+        isTrue,
+      );
     });
 
     test("the report and block paths for content are Community's (Q3)", () {

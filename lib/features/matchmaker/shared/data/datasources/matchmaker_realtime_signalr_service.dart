@@ -6,11 +6,9 @@ import 'package:signalr_netcore/signalr_client.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 
-import '../../domain/entities/compatibility_case_update.dart';
 import '../../domain/entities/matchmaker_realtime_status.dart';
-import '../../domain/entities/received_chat_message.dart';
 import '../../domain/ports/matchmaker_realtime_port.dart';
-import 'matchmaker_realtime_event_parser.dart';
+import 'matchmaker_realtime_events.dart';
 
 /// Matchmaker-owned `MatchmakerRealtimePort` backed by `signalr_netcore`.
 ///
@@ -23,7 +21,9 @@ import 'matchmaker_realtime_event_parser.dart';
 /// `ReceiveMessage` (list liveness) is deferred to 4c-2. Auth:
 /// `accessTokenFactory` is queried on every connect AND every reconnect
 /// (`withAutomaticReconnect`) so a rotated JWT is picked up automatically.
-class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
+class MatchmakerRealtimeSignalRService
+    with MatchmakerRealtimeEvents
+    implements MatchmakerRealtimePort {
   final Future<String?> Function() _accessTokenProvider;
 
   /// Override in tests to avoid spinning up a real hub. The default
@@ -36,10 +36,6 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
 
   final StreamController<MatchmakerRealtimeStatus> _statusController =
       StreamController<MatchmakerRealtimeStatus>.broadcast();
-  final StreamController<CompatibilityCaseUpdate> _caseUpdatesController =
-      StreamController<CompatibilityCaseUpdate>.broadcast();
-  final StreamController<ReceivedChatMessage> _incomingController =
-      StreamController<ReceivedChatMessage>.broadcast();
 
   MatchmakerRealtimeSignalRService({
     required Future<String?> Function() accessTokenProvider,
@@ -65,14 +61,6 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
 
   @override
   Stream<MatchmakerRealtimeStatus> get statusStream => _statusController.stream;
-
-  @override
-  Stream<CompatibilityCaseUpdate> get caseUpdates =>
-      _caseUpdatesController.stream;
-
-  @override
-  Stream<ReceivedChatMessage> get incomingMessages =>
-      _incomingController.stream;
 
   // ── Lifecycle serialization ────────────────────────────────────────
   // Every connect()/disconnect() runs through this single-slot queue, so
@@ -100,8 +88,7 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
     final connection = _connectionFactory(EndPoints.chatHubUrl, _tokenFactory);
     _connection = connection;
 
-    connection.on('CompatibilityCaseUpdated', _onCaseUpdated);
-    connection.on('ReceiveMessage', _onMessage);
+    listenToEvents(connection);
     _wireLifecycleCallbacks(connection);
     await _start(connection);
   }
@@ -182,28 +169,7 @@ class MatchmakerRealtimeSignalRService implements MatchmakerRealtimePort {
   Future<void> dispose() async {
     await disconnect();
     await _statusController.close();
-    await _caseUpdatesController.close();
-    await _incomingController.close();
-  }
-
-  @visibleForTesting
-  void onCaseUpdatedForTest(List<Object?>? args) => _onCaseUpdated(args);
-
-  @visibleForTesting
-  void onMessageForTest(List<Object?>? args) => _onMessage(args);
-
-  void _onCaseUpdated(List<Object?>? args) {
-    final update = MatchmakerRealtimeEventParser.parseCaseUpdated(args);
-    if (update == null) return;
-    if (_caseUpdatesController.isClosed) return;
-    _caseUpdatesController.add(update);
-  }
-
-  void _onMessage(List<Object?>? args) {
-    final message = MatchmakerRealtimeEventParser.parseReceivedMessage(args);
-    if (message == null) return;
-    if (_incomingController.isClosed) return;
-    _incomingController.add(message);
+    await closeEventStreams();
   }
 
   void _setStatus(MatchmakerRealtimeStatus s) {

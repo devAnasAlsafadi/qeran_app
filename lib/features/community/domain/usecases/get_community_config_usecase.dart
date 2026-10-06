@@ -8,5 +8,6 @@ class GetCommunityConfigUseCase {
   final CommunityRepository _repository;
   const GetCommunityConfigUseCase(this._repository);
 
-  Future<Either<Failure, CommunityConfig>> call() => _repository.getConfig();
+  Future<Either<Failure, CommunityConfig>> call({bool fresh = false}) =>
+      _repository.getConfig(fresh: fresh);
 }

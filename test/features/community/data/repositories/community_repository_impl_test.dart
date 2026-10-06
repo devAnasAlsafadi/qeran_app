@@ -113,6 +113,21 @@ void main() {
       expect(await repo.getConfig(), const Left(OfflineFailure()));
       expect(right(await repo.getConfig()).commentMaxLength, 500);
     });
+
+    test('her composer reads it fresh each time, and the cache is left as '
+        'it was', () async {
+      when(() => ds.getConfig()).thenAnswer(
+        (_) async => CommunityConfigModel.fromJson(config()),
+      );
+      final repo = CommunityRepositoryImpl(ds);
+
+      await repo.getConfig();
+      await repo.getConfig(fresh: true);
+      await repo.getConfig(fresh: true);
+      await repo.getConfig();
+
+      verify(() => ds.getConfig()).called(3);
+    });
   });
 
   group('report', () {

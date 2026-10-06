@@ -98,7 +98,7 @@ const me = CommunityAuthor(
 
 class _Config extends Fake implements GetCommunityConfigUseCase {
   @override
-  Future<Either<Failure, CommunityConfig>> call() async =>
+  Future<Either<Failure, CommunityConfig>> call({bool fresh = false}) async =>
       const Right(CommunityConfig(commentMaxLength: 500));
 }
 

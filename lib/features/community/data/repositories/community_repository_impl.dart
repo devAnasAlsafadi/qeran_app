@@ -81,10 +81,14 @@ class CommunityRepositoryImpl
     return result;
   }
 
+  /// Once per account — or [fresh], straight from the server, kept nowhere.
   @override
-  Future<Either<Failure, CommunityConfig>> getConfig() => _config.get(
-    () => executeApiCall(() async => (await _dataSource.getConfig()).toEntity()),
-  );
+  Future<Either<Failure, CommunityConfig>> getConfig({bool fresh = false}) {
+    Future<Either<Failure, CommunityConfig>> read() => executeApiCall(
+      () async => (await _dataSource.getConfig()).toEntity(),
+    );
+    return fresh ? read() : _config.get(read);
+  }
 
   /// The account changed: the next account reads the limits again.
   void forgetAccount() => _config.forget();

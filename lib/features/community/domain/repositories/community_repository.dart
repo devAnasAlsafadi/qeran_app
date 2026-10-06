@@ -71,7 +71,8 @@ abstract class CommunityRepository {
   Future<Either<Failure, Unit>> deleteComment(int commentId);
 
   /// 3.11 — fetched once per app session; a failure is retried next time.
-  Future<Either<Failure, CommunityConfig>> getConfig();
+  /// [fresh] reads it now — her composer, on every opening (contract §8).
+  Future<Either<Failure, CommunityConfig>> getConfig({bool fresh = false});
 
   /// §4.1 — the member or the matchmaker text, by token.
   Future<Either<Failure, CommunityGuidelines>> getGuidelines();

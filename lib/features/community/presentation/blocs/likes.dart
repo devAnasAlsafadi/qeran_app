@@ -70,5 +70,6 @@ extension CommunityCommentLike on CommunityComment {
         isMine: isMine,
         canDelete: canDelete,
         canBlock: canBlock,
+        flag: flag,
       );
 }

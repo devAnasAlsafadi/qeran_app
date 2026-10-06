@@ -17,6 +17,16 @@ enum ReportReason {
   final String apiValue;
   const ReportReason(this.apiValue);
 
+  /// The five a report on a post, a comment or a reply offers (D30), in the
+  /// sheet's order.
+  static const content = [
+    harassment,
+    inappropriateContent,
+    contactDetails,
+    spam,
+    other,
+  ];
+
   /// The reasons a report on [target] offers, in the sheet's order.
   static List<ReportReason> forTarget(ReportTarget target) => switch (target) {
     UserReportTarget() => const [
@@ -27,12 +37,6 @@ enum ReportReason {
       falseInformation,
       other,
     ],
-    ContentReportTarget() => const [
-      harassment,
-      inappropriateContent,
-      contactDetails,
-      spam,
-      other,
-    ],
+    ContentReportTarget() => content,
   };
 }

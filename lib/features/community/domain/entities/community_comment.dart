@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'community_author.dart';
+import 'community_flag.dart';
 
 /// A comment or a reply — one shape for both (contract §2.4). A reply has a
 /// [parentCommentId]; comments and replies share one id space.
@@ -8,7 +9,7 @@ import 'community_author.dart';
 /// The menu is built from the server's flags: [canDelete] (own item, or any
 /// item on the viewer's own post) and [canBlock] (false for a matchmaker
 /// author, for oneself, and — D40 — whenever the viewer is a matchmaker).
-/// The author-only `flag` is parsed in Phase 3; members never receive it.
+/// [flag] is the post's author's only; members never receive it.
 class CommunityComment extends Equatable {
   final int id;
   final int postId;
@@ -28,6 +29,10 @@ class CommunityComment extends Equatable {
   final bool canDelete;
   final bool canBlock;
 
+  /// An open report on this item, for the post's author (§5.3); null for
+  /// everyone else, and once she keeps or deletes it.
+  final CommunityFlag? flag;
+
   const CommunityComment({
     required this.id,
     required this.postId,
@@ -41,6 +46,7 @@ class CommunityComment extends Equatable {
     required this.isMine,
     required this.canDelete,
     required this.canBlock,
+    this.flag,
   });
 
   bool get isReply => parentCommentId != null;
@@ -59,5 +65,6 @@ class CommunityComment extends Equatable {
         isMine,
         canDelete,
         canBlock,
+        flag,
       ];
 }

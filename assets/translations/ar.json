@@ -1112,7 +1112,15 @@
     "empty_notifications_title": "لا توجد إشعارات",
     "empty_notifications_message": "ستظهر هنا الإشعارات الجديدة الخاصة بعملكِ كخطّابة.",
     "empty_account_title": "حسابي",
-    "empty_account_message": "بياناتك الشخصية وإعدادات حسابك ستظهر هنا قريباً."
+    "empty_account_message": "بياناتك الشخصية وإعدادات حسابك ستظهر هنا قريباً.",
+    "community": {
+      "title": "المجتمع",
+      "all_posts": "كل المنشورات",
+      "my_posts": "منشوراتي",
+      "mine_empty_title": "ليس لديكِ منشورات الآن",
+      "mine_empty_body": "شاركي إرشاداً للأعضاء بنص أو صور أو فيديو.",
+      "mine_error_title": "تعذّر تحميل منشوراتك"
+    }
   },
   "settings": {
     "account_management": "إدارة الحساب",

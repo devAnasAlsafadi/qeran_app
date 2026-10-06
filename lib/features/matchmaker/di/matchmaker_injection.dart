@@ -2,6 +2,7 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/services/storage_service.dart';
 
+import '../community/di/matchmaker_community_injection.dart';
 import '../dashboard/data/datasources/matchmaker_dashboard_remote_datasource.dart';
 import '../dashboard/data/repositories/matchmaker_dashboard_repository_impl.dart';
 import '../dashboard/domain/repositories/matchmaker_dashboard_repository.dart';
@@ -58,4 +59,5 @@ Future<void> initMatchmakerDependencies() async {
   initMatchmakerConversationsDependencies();
   initMatchmakerExploreDependencies();
   initMatchmakerAccountDependencies();
+  initMatchmakerCommunityDependencies();
 }

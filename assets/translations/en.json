@@ -1083,7 +1083,15 @@
     "empty_notifications_title": "No notifications yet",
     "empty_notifications_message": "Notifications relevant to your matchmaker work will appear here.",
     "empty_account_title": "Your account",
-    "empty_account_message": "Your profile and account settings will appear here soon."
+    "empty_account_message": "Your profile and account settings will appear here soon.",
+    "community": {
+      "title": "Community",
+      "all_posts": "All posts",
+      "my_posts": "My posts",
+      "mine_empty_title": "You have no posts right now",
+      "mine_empty_body": "Share guidance with members as text, images or a video.",
+      "mine_error_title": "Couldn’t load your posts"
+    }
   },
   "settings": {
     "account_management": "Account management",

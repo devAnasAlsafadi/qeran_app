@@ -8,13 +8,15 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/routes/route_name.dart';
 import '../../../../badges/domain/entities/badge_counts.dart';
 import '../../../../badges/presentation/blocs/badges_cubit.dart';
+import '../../../community/presentation/widgets/community_header_action.dart';
 import '../../../home/presentation/home_shell_scope.dart';
 import '../../data/matchmaker_notification_router.dart';
 
 /// App bar for every Matchmaker shell screen.
 ///
-/// Composes the design-system [QeranAppBar] and adds the two top-level
+/// Composes the design-system [QeranAppBar] and adds the top-level
 /// destinations that aren't bottom-nav tabs:
+///   • Community (with its dot) → her Community screen (Phase 3, D26)
 ///   • notifications (bell)  → `RouteNames.matchmakerNotifications`
 ///   • account / settings    → `RouteNames.matchmakerAccount`
 ///
@@ -42,6 +44,7 @@ class MatchmakerAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: title,
       onBack: onBack,
       actions: [
+        const CommunityHeaderAction(),
         const _BellAction(),
         IconButton(
           icon: const Icon(Icons.settings_outlined, size: 24),

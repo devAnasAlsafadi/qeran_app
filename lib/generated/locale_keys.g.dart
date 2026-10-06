@@ -296,28 +296,21 @@ abstract class  LocaleKeys {
   static const community_her_feed_empty_body = 'community.her.feed_empty_body';
   static const community_her_feed_error_body = 'community.her.feed_error_body';
   static const community_her_like_failed = 'community.her.like_failed';
-  static const community_her_discussion_start =
-      'community.her.discussion_start';
+  static const community_her_discussion_start = 'community.her.discussion_start';
   static const community_her_retry = 'community.her.retry';
-  static const community_her_comments_empty_body =
-      'community.her.comments_empty_body';
-  static const community_her_composer_comment =
-      'community.her.composer_comment';
+  static const community_her_comments_empty_body = 'community.her.comments_empty_body';
+  static const community_her_composer_comment = 'community.her.composer_comment';
   static const community_her_composer_reply = 'community.her.composer_reply';
   static const community_her_not_posted = 'community.her.not_posted';
   static const community_her_filter_rejected = 'community.her.filter_rejected';
   static const community_her_rate_limited = 'community.her.rate_limited';
   static const community_her_delete_failed = 'community.her.delete_failed';
-  static const community_her_delete_reply_failed =
-      'community.her.delete_reply_failed';
-  static const community_her_guidelines_accept_failed =
-      'community.her.guidelines_accept_failed';
+  static const community_her_delete_reply_failed = 'community.her.delete_reply_failed';
+  static const community_her_guidelines_accept_failed = 'community.her.guidelines_accept_failed';
   static const community_her = 'community.her';
   static const community_delete_others_body = 'community.delete_others_body';
-  static const community_delete_others_reply_body =
-      'community.delete_others_reply_body';
-  static const community_posting_guidelines_title =
-      'community.posting_guidelines_title';
+  static const community_delete_others_reply_body = 'community.delete_others_reply_body';
+  static const community_posting_guidelines_title = 'community.posting_guidelines_title';
   static const community = 'community';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';
@@ -1038,6 +1031,13 @@ abstract class  LocaleKeys {
   static const matchmaker_empty_notifications_message = 'matchmaker.empty_notifications_message';
   static const matchmaker_empty_account_title = 'matchmaker.empty_account_title';
   static const matchmaker_empty_account_message = 'matchmaker.empty_account_message';
+  static const matchmaker_community_title = 'matchmaker.community.title';
+  static const matchmaker_community_all_posts = 'matchmaker.community.all_posts';
+  static const matchmaker_community_my_posts = 'matchmaker.community.my_posts';
+  static const matchmaker_community_mine_empty_title = 'matchmaker.community.mine_empty_title';
+  static const matchmaker_community_mine_empty_body = 'matchmaker.community.mine_empty_body';
+  static const matchmaker_community_mine_error_title = 'matchmaker.community.mine_error_title';
+  static const matchmaker_community = 'matchmaker.community';
   static const matchmaker = 'matchmaker';
   static const settings_account_management = 'settings.account_management';
   static const settings_change_password_title = 'settings.change_password_title';

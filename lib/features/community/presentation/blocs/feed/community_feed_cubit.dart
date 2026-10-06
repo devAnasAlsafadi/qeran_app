@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/errors/errors.dart';
 import '../../../../../core/state/safe_emit.dart';
-import '../../../domain/entities/community_like_state.dart';
 import '../../../domain/entities/community_page.dart';
 import '../../../domain/entities/community_post.dart';
 import '../../../domain/entities/community_post_change.dart';
@@ -14,8 +12,8 @@ import '../../../domain/usecases/get_community_post_usecase.dart';
 import '../../../domain/usecases/set_post_like_usecase.dart';
 import '../../../domain/usecases/watch_community_post_changes_usecase.dart';
 import '../../video/post_video.dart';
-import '../likes.dart';
 import 'community_feed_state.dart';
+import 'feed_likes.dart';
 import 'feed_posts.dart';
 
 /// The Community feed (B1–B13): pages newest first with each post once, a
@@ -24,7 +22,7 @@ import 'feed_posts.dart';
 /// (a like or a comment on the post screen, a post gone) arrive on the
 /// repository's stream and patch the list.
 class CommunityFeedCubit extends Cubit<CommunityFeedState>
-    with SafeEmit<CommunityFeedState> {
+    with SafeEmit<CommunityFeedState>, FeedLikes {
   CommunityFeedCubit({
     required GetCommunityFeedUseCase getFeed,
     required GetCommunityPostUseCase getPost,
@@ -40,10 +38,10 @@ class CommunityFeedCubit extends Cubit<CommunityFeedState>
   final GetCommunityFeedUseCase _getFeed;
   final GetCommunityPostUseCase _getPost;
   final SetPostLikeUseCase _setPostLike;
-  late final StreamSubscription<CommunityPostChange> _changes;
 
-  /// Posts whose like is on its way: a second tap waits for the answer.
-  final Set<int> _liking = {};
+  @override
+  SetPostLikeUseCase get setPostLike => _setPostLike;
+  late final StreamSubscription<CommunityPostChange> _changes;
 
   /// The first page — on opening, and from the error state's retry (B5).
   Future<void> load() async {
@@ -94,28 +92,6 @@ class CommunityFeedCubit extends Cubit<CommunityFeedState>
     return loadMore();
   }
 
-  /// Like or unlike [postId] at once, then settle on the server's answer;
-  /// on failure, take it back and say so (B13). A [readOnly] member is told
-  /// why instead (B12) — and so is one the server turns away.
-  Future<void> toggleLike(int postId, {bool readOnly = false}) async {
-    if (readOnly) return emit(state.withEvent(CommunityFeedEvent.readOnlyLike));
-    final before = _post(postId);
-    if (before == null || !_liking.add(postId)) return;
-    final optimistic = flippedLike(before);
-    emit(state.copyWith(posts: withLike(state.posts, postId, optimistic)));
-    final result = await _setPostLike(postId, liked: optimistic.likedByMe);
-    _liking.remove(postId);
-    result.fold(
-      (failure) => emit(
-        state
-            .copyWith(posts: _restoreLike(postId, before))
-            .withEvent(_likeFailureEvent(failure)),
-      ),
-      (like) =>
-          emit(state.copyWith(posts: withLike(state.posts, postId, like))),
-    );
-  }
-
   bool get _settled =>
       state.status == CommunityFeedStatus.loaded ||
       state.status == CommunityFeedStatus.empty;
@@ -135,30 +111,11 @@ class CommunityFeedCubit extends Cubit<CommunityFeedState>
     );
   }
 
-  CommunityPost? _post(int postId) =>
-      state.posts.where((post) => post.id == postId).firstOrNull;
-
-  /// [postId]'s like back as it was before the tap.
-  List<CommunityPost> _restoreLike(int postId, CommunityPost before) =>
-      withLike(
-        state.posts,
-        postId,
-        CommunityLikeState(
-          likeCount: before.likeCount,
-          likedByMe: before.likedByMe,
-        ),
-      );
-
-  static CommunityFeedEvent _likeFailureEvent(Failure failure) =>
-      isNotApprovedFailure(failure)
-      ? CommunityFeedEvent.readOnlyLike
-      : CommunityFeedEvent.likeFailed;
-
   void _onChange(CommunityPostChange change) {
     final posts = switch (change) {
       CommunityPostUpdated(:final post) => replacePost(state.posts, post),
       CommunityPostLikeChanged(:final postId, :final like) =>
-        _liking.contains(postId) ? null : withLike(state.posts, postId, like),
+        liking.contains(postId) ? null : withLike(state.posts, postId, like),
       CommunityPostGone(:final postId) => withoutPost(state.posts, postId),
       CommunityPostCreated(:final post) =>
         _settled ? withCreatedPost(state.posts, post) : null,

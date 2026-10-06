@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_nav.dart';
-import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
-import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_section_header.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../core/widgets/paginated_list.dart';
@@ -20,6 +17,7 @@ import '../menus/community_post_menu.dart';
 import '../post_card/community_post_card.dart';
 import 'community_feed_footer.dart';
 import 'community_feed_skeleton.dart';
+import 'community_feed_states.dart';
 import 'community_gate_notice.dart';
 
 /// The feed as one scroll (B1–B10): the title and its subtitle, the gate
@@ -85,37 +83,16 @@ class CommunityFeedList extends StatelessWidget {
             ],
           ),
         ],
-        CommunityFeedStatus.empty => [
-          _fill(
-            QeranEmptyState(
-              icon: Icons.auto_stories_rounded,
-              title: LocaleKeys.community_feed_empty_title.t(context),
-              message: LocaleKeys.community_feed_empty_body
-                  .forReader(her: LocaleKeys.community_her_feed_empty_body)
-                  .t(context),
-            ),
-          ),
+        CommunityFeedStatus.empty => [_fill(communityFeedEmpty(context))],
+        CommunityFeedStatus.failure => [
+          _fill(communityFeedError(context, cubit.load)),
         ],
-        CommunityFeedStatus.failure => [_fill(_error(context, cubit))],
         CommunityFeedStatus.loaded => _loaded(cubit),
       };
 
   /// [child] in the space left under the title.
   static Widget _fill(Widget child) =>
       SliverFillRemaining(hasScrollBody: false, child: child);
-
-  Widget _error(BuildContext context, CommunityFeedCubit cubit) =>
-      QeranErrorState(
-        icon: Icons.cloud_off_rounded,
-        title: LocaleKeys.community_feed_error_title.t(context),
-        message: LocaleKeys.community_feed_error_body
-            .forReader(her: LocaleKeys.community_her_feed_error_body)
-            .t(context),
-        retryLabel: LocaleKeys.community_retry
-            .forReader(her: LocaleKeys.community_her_retry)
-            .t(context),
-        onRetry: cubit.load,
-      );
 
   /// The posts, then the footer.
   List<Widget> _loaded(CommunityFeedCubit cubit) => [

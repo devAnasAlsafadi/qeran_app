@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/services/connectivity_service.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
 import 'package:qeran/features/community/presentation/screens/community_feed_screen.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
@@ -47,13 +48,16 @@ final feedLocales = {
   ),
 };
 
-/// The feed of [h]'s cubit, as the member at [gate] sees it, on a phone
-/// [size] (logical points), with the toast host.
+/// The feed of [h]'s cubit, as the [viewer] at [gate] sees it, on a phone
+/// [size] (logical points), with the toast host. [gateCubit] replaces the
+/// gate at [gate] — e.g. one that fails if it's ever read.
 Future<void> pumpFeed(
   WidgetTester tester,
   FeedHarness h, {
   Locale locale = const Locale('en'),
   ProfileStatus? gate = ProfileStatus.visible,
+  ProfileGateCubit? gateCubit,
+  CommunityViewer viewer = CommunityViewer.member,
   Size size = const Size(390, 1200),
   bool settle = true,
 }) {
@@ -68,13 +72,15 @@ Future<void> pumpFeed(
     child: AppSnackBarHost(
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<ProfileGateCubit>.value(value: FakeGate(gate)),
+          BlocProvider<ProfileGateCubit>.value(
+            value: gateCubit ?? FakeGate(gate),
+          ),
           BlocProvider<ConnectivityCubit>(
             create: (_) => ConnectivityCubit(service: _Online()),
           ),
           BlocProvider<CommunityFeedCubit>.value(value: h.cubit),
         ],
-        child: const CommunityFeedView(),
+        child: CommunityFeedView(viewer: viewer),
       ),
     ),
   );

@@ -11,6 +11,7 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../domain/entities/report_reason.dart';
 import '../../domain/entities/report_target.dart';
@@ -116,8 +117,12 @@ class _ReportSheetBodyState extends State<ReportSheetBody> {
 
   Widget _noteField(BuildContext context, ReportState state) => QeranTextField(
     controller: _note,
-    label: LocaleKeys.report_note_label.t(context),
-    hint: LocaleKeys.report_note_hint.t(context),
+    label: LocaleKeys.report_note_label
+        .forReader(her: LocaleKeys.report_her_note_label)
+        .t(context),
+    hint: LocaleKeys.report_note_hint
+        .forReader(her: LocaleKeys.report_her_note_hint)
+        .t(context),
     maxLines: 3,
     maxLength: 500,
     enabled: !state.submitting,

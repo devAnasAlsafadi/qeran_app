@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_motion.dart';
@@ -56,7 +57,9 @@ class CommunityCommentsSliver extends StatelessWidget {
         child: QeranErrorState(
           icon: Icons.cloud_off_rounded,
           title: LocaleKeys.community_comments_error.t(context),
-          retryLabel: LocaleKeys.community_retry.t(context),
+          retryLabel: LocaleKeys.community_retry
+              .forReader(her: LocaleKeys.community_her_retry)
+              .t(context),
           onRetry: cubit.load,
         ),
       ),
@@ -76,7 +79,9 @@ class CommunityCommentsSliver extends StatelessWidget {
     message:
         (readOnly
                 ? LocaleKeys.community_comments_empty_read_only
-                : LocaleKeys.community_comments_empty_body)
+                : LocaleKeys.community_comments_empty_body.forReader(
+                    her: LocaleKeys.community_her_comments_empty_body,
+                  ))
             .t(context),
   );
 

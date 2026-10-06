@@ -7,9 +7,9 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
-import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/report/presentation/widgets/report_sheet.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../blocs/block_action_cubit.dart';
 import '../blocs/block_action_state.dart';
@@ -121,7 +121,5 @@ class _SafetyMenuButtonView extends StatelessWidget {
 
   /// The signed-in account is a matchmaker — she reaches a member's profile
   /// from a shared card in her chat (§0.4).
-  static bool get _viewerIsMatchmaker =>
-      sl.isRegistered<UserSessionCubit>() &&
-      (sl<UserSessionCubit>().currentUser?.isMatchmaker ?? false);
+  static bool get _viewerIsMatchmaker => signedInAsMatchmaker;
 }

@@ -12,6 +12,7 @@ import 'package:qeran/features/community/domain/usecases/accept_community_guidel
 import 'package:qeran/features/community/domain/usecases/get_community_guidelines_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/guidelines/community_guidelines_cubit.dart';
 import 'package:qeran/features/community/presentation/screens/community_guidelines_page.dart';
+import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 
 import 'pushed_step_rig.dart';
 
@@ -64,15 +65,18 @@ class GuidelinesHarness {
   Future<void> dispose() => sl.reset();
 }
 
-/// Opens the guidelines in [locale] on a phone [size], as the composer will.
+/// Opens the guidelines in [locale] on a phone [size] for [viewer], as the
+/// composer will.
 Future<void> openGuidelines(
   WidgetTester tester,
   GuidelinesHarness harness, {
   Locale locale = const Locale('en'),
   Size size = const Size(390, 900),
+  CommunityViewer viewer = CommunityViewer.member,
 }) => openPushedStep(
   tester,
-  (context) async => harness.result = await openCommunityGuidelines(context),
+  (context) async =>
+      harness.result = await openCommunityGuidelines(context, viewer: viewer),
   locale: locale,
   size: size,
 );

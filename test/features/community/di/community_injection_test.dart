@@ -9,6 +9,7 @@ import 'package:qeran/features/community/data/datasources/mock/community_mock_mo
 import 'package:qeran/features/community/data/repositories/community_post_changes.dart';
 import 'package:qeran/features/community/di/community_injection.dart';
 import 'package:qeran/features/community/domain/entities/community_post_change.dart';
+import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/domain/entities/comment_submit_outcome.dart';
 import 'package:qeran/features/community/domain/repositories/community_repository.dart';
 import 'package:qeran/features/community/domain/usecases/block_community_member_usecase.dart';
@@ -149,6 +150,38 @@ void main() {
       final composer = sl<CommunityComposerCubit>(param1: send, param2: retry);
 
       expect(composer.state.owes, CommunityGate.name);
+      await composer.close();
+    });
+
+    test('hers owes nothing, whatever the member gate says (K21)', () async {
+      initCommunityDependencies();
+      sl<ProfileGateCubit>().applyProfile(
+        const MyProfile(
+          id: 'u-1',
+          name: 'مستخدم',
+          isDefaultName: true,
+          email: null,
+          gender: 'Female',
+          birthDate: null,
+          age: 28,
+          profileStatus: ProfileStatus.pendingReview,
+          hasAnsweredQuestions: true,
+          profileImage: null,
+          images: [],
+          placements: [],
+        ),
+      );
+      Future<CommentSubmitOutcome?> send(String text, {int? parentId}) async =>
+          null;
+      Future<CommentSubmitOutcome?> retry(int id) async => null;
+
+      final composer = sl<CommunityComposerCubit>(
+        param1: send,
+        param2: retry,
+        instanceName: CommunityViewer.matchmaker.name,
+      );
+
+      expect(composer.state.owes, isNull);
       await composer.close();
     });
   });

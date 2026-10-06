@@ -306,7 +306,26 @@
     "more_replies": {
       "one": "View 1 more reply",
       "other": "View {n} more replies"
-    }
+    },
+    "her": {
+      "feed_empty_body": "Qeran’s matchmakers will share guidance on engagement and marriage here. Check back soon.",
+      "feed_error_body": "Check your connection and try again.",
+      "like_failed": "Couldn’t save your like. Please try again.",
+      "discussion_start": "Discuss",
+      "retry": "Try again",
+      "comments_empty_body": "Be the first to start the discussion.",
+      "composer_comment": "Write a comment…",
+      "composer_reply": "Write a reply…",
+      "not_posted": "Not posted · Tap to retry",
+      "filter_rejected": "This comment can’t be posted because it goes against the community guidelines. Edit it and try again.",
+      "rate_limited": "You’ve posted a lot in a short time. Wait a moment and try again.",
+      "delete_failed": "Couldn’t delete the comment. Please try again.",
+      "delete_reply_failed": "Couldn't delete the reply. Please try again.",
+      "guidelines_accept_failed": "Couldn't save your agreement. Try again."
+    },
+    "delete_others_body": "This comment and all its replies will be deleted permanently.",
+    "delete_others_reply_body": "This reply will be deleted permanently.",
+    "posting_guidelines_title": "Posting guidelines"
   },
   "notifications": {
     "title": "Notifications",
@@ -1150,7 +1169,11 @@
     "success": "Thank you. Your report was received and will be reviewed.",
     "error_validation": "Please choose a reason and try again.",
     "error_target_unavailable": "This user is no longer available.",
-    "content_gone": "This content is no longer available."
+    "content_gone": "This content is no longer available.",
+    "her": {
+      "note_label": "Add a note (optional)",
+      "note_hint": "Describe the problem…"
+    }
   },
   "block": {
     "action_block": "Block user",

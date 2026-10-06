@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../core/api/end_points.dart';
 import '../../../../core/design_system/tokens/qeran_colors.dart';
@@ -116,7 +117,9 @@ class CommunityImageFailed extends StatelessWidget {
   }
 
   Widget _retry(BuildContext context) => QeranButton(
-    label: LocaleKeys.community_retry.t(context),
+    label: LocaleKeys.community_retry
+        .forReader(her: LocaleKeys.community_her_retry)
+        .t(context),
     onPressed: onRetry,
     variant: onWine
         ? QeranButtonVariant.primaryGold

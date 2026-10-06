@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_nav.dart';
@@ -11,6 +12,7 @@ import '../../../../../core/widgets/paginated_list.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import '../../../domain/entities/community_post.dart';
+import '../../../domain/entities/community_viewer.dart';
 import '../../blocs/feed/community_feed_cubit.dart';
 import '../../blocs/feed/community_feed_state.dart';
 import '../../screens/community_post_page.dart';
@@ -24,10 +26,25 @@ import 'community_gate_notice.dart';
 /// notice, then the posts and their footer — or the skeleton, the empty
 /// state or the error state under the same title. Pull to refresh works in
 /// every state; the end of the list asks for the next page.
+///
+/// A matchmaker [viewer] (her «كل المنشورات», Phase 3) gets no title and no
+/// gate notice — her screen has its own header — is never read-only, and
+/// opens posts as herself.
 class CommunityFeedList extends StatelessWidget {
-  const CommunityFeedList({super.key, required this.state});
+  const CommunityFeedList({
+    super.key,
+    required this.state,
+    this.viewer = CommunityViewer.member,
+    this.bottomClearance,
+  });
 
   final CommunityFeedState state;
+  final CommunityViewer viewer;
+
+  /// The space kept free under the last card: the bottom nav's by default.
+  final double? bottomClearance;
+
+  bool get _member => viewer == CommunityViewer.member;
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +59,16 @@ class CommunityFeedList extends StatelessWidget {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          const SliverToBoxAdapter(child: _Header()),
-          const SliverToBoxAdapter(child: CommunityGateNotice()),
+          if (_member) ...const [
+            SliverToBoxAdapter(child: _Header()),
+            SliverToBoxAdapter(child: CommunityGateNotice()),
+          ],
           ..._content(context, cubit),
           SliverToBoxAdapter(
-            child: SizedBox(height: QeranBottomNav.contentClearance(context)),
+            child: SizedBox(
+              height:
+                  bottomClearance ?? QeranBottomNav.contentClearance(context),
+            ),
           ),
         ],
       ),
@@ -68,7 +90,9 @@ class CommunityFeedList extends StatelessWidget {
             QeranEmptyState(
               icon: Icons.auto_stories_rounded,
               title: LocaleKeys.community_feed_empty_title.t(context),
-              message: LocaleKeys.community_feed_empty_body.t(context),
+              message: LocaleKeys.community_feed_empty_body
+                  .forReader(her: LocaleKeys.community_her_feed_empty_body)
+                  .t(context),
             ),
           ),
         ],
@@ -84,8 +108,12 @@ class CommunityFeedList extends StatelessWidget {
       QeranErrorState(
         icon: Icons.cloud_off_rounded,
         title: LocaleKeys.community_feed_error_title.t(context),
-        message: LocaleKeys.community_feed_error_body.t(context),
-        retryLabel: LocaleKeys.community_retry.t(context),
+        message: LocaleKeys.community_feed_error_body
+            .forReader(her: LocaleKeys.community_her_feed_error_body)
+            .t(context),
+        retryLabel: LocaleKeys.community_retry
+            .forReader(her: LocaleKeys.community_her_retry)
+            .t(context),
         onRetry: cubit.load,
       );
 
@@ -102,9 +130,10 @@ class CommunityFeedList extends StatelessWidget {
 
   Widget _card(CommunityPost post) => Builder(
     builder: (context) {
-      final readOnly = context.select<ProfileGateCubit, bool>(
-        (gate) => gate.isGated,
-      );
+      // Only a member can be gated; hers is never read.
+      final readOnly =
+          _member &&
+          context.select<ProfileGateCubit, bool>((gate) => gate.isGated);
       return CommunityPostCard(
         key: ValueKey(post.id),
         post: post,
@@ -114,8 +143,12 @@ class CommunityFeedList extends StatelessWidget {
           post.id,
           readOnly: readOnly,
         ),
-        onOpenDiscussion: () =>
-            openCommunityPost(context, postId: post.id, post: post),
+        onOpenDiscussion: () => openCommunityPost(
+          context,
+          postId: post.id,
+          post: post,
+          viewer: viewer,
+        ),
       );
     },
   );

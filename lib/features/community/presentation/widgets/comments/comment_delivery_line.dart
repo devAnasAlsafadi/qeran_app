@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
@@ -37,7 +38,9 @@ class CommentDeliveryLine extends StatelessWidget {
           height: 44,
           child: _Line(
             icon: Icons.error_outline_rounded,
-            text: LocaleKeys.community_not_posted.t(context),
+            text: LocaleKeys.community_not_posted
+                .forReader(her: LocaleKeys.community_her_not_posted)
+                .t(context),
             style: QeranTypography.label.copyWith(color: QeranColors.danger),
           ),
         ),

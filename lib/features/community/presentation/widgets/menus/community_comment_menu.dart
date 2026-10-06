@@ -55,7 +55,7 @@ Future<void> _delete(
   ReportContentKind kind,
 ) async {
   final comments = context.read<CommunityCommentsCubit>();
-  if (await confirmCommunityDelete(context, kind)) {
+  if (await confirmCommunityDelete(context, kind, mine: comment.isMine)) {
     await comments.delete(comment);
   }
 }

@@ -61,13 +61,17 @@ class CommunityPostPage extends StatelessWidget {
   final CommunityLanding? landing;
   final CommunityViewer viewer;
 
-  /// The composer sends through the comments, as this viewer.
+  /// The composer sends through the comments, as this viewer — hers owes
+  /// none of the member's steps.
   CommunityComposerCubit _composer(BuildContext context) {
     final comments = context.read<CommunityCommentsCubit>();
     Future<CommentSubmitOutcome?> send(String text, {int? parentId}) => comments
         .send(text, parentId: parentId, me: communityMe(context, viewer));
-    return sl<CommunityComposerCubit>(param1: send, param2: comments.retry)
-      ..loadConfig();
+    return sl<CommunityComposerCubit>(
+      param1: send,
+      param2: comments.retry,
+      instanceName: viewer == CommunityViewer.matchmaker ? viewer.name : null,
+    )..loadConfig();
   }
 
   /// The post, its comments, the composer and — for a comment's Block —

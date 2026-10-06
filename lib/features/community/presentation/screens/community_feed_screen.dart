@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection_container.dart';
+import '../../domain/entities/community_viewer.dart';
 import '../blocs/feed/community_feed_cubit.dart';
 import '../blocs/feed/community_feed_state.dart';
 import '../video/community_stale_refresh.dart';
@@ -25,9 +26,17 @@ class CommunityFeedScreen extends StatelessWidget {
 
 /// The feed for the cubit in scope, and its toasts (B12, B13). Its videos
 /// take turns, and a feed kept past their links' 6 h reads itself again
-/// (Q9, S19).
+/// (Q9, S19). Her «كل المنشورات» shows it as a matchmaker [viewer], over
+/// her own [bottomClearance] (Phase 3).
 class CommunityFeedView extends StatelessWidget {
-  const CommunityFeedView({super.key});
+  const CommunityFeedView({
+    super.key,
+    this.viewer = CommunityViewer.member,
+    this.bottomClearance,
+  });
+
+  final CommunityViewer viewer;
+  final double? bottomClearance;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +50,11 @@ class CommunityFeedView extends StatelessWidget {
               previous.eventVersion != current.eventVersion &&
               current.event != CommunityFeedEvent.none,
           listener: _onEvent,
-          builder: (context, state) => CommunityFeedList(state: state),
+          builder: (context, state) => CommunityFeedList(
+            state: state,
+            viewer: viewer,
+            bottomClearance: bottomClearance,
+          ),
         ),
       ),
     );

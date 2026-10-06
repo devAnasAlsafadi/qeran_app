@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../core/design_system/widgets/qeran_error_state.dart';
@@ -27,8 +28,10 @@ class CommunityPostScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gated = context.select<ProfileGateCubit, bool>((g) => g.isGated);
-    final readOnly = viewer == CommunityViewer.member && gated;
+    // Only a member can be gated; hers is never read.
+    final readOnly =
+        viewer == CommunityViewer.member &&
+        context.select<ProfileGateCubit, bool>((g) => g.isGated);
     return MultiBlocListener(
       listeners: communityPostListeners,
       child: BlocBuilder<CommunityPostCubit, CommunityPostState>(
@@ -61,7 +64,9 @@ class CommunityPostScreen extends StatelessWidget {
         CommunityPostFailed() => QeranErrorState(
           icon: Icons.cloud_off_rounded,
           title: LocaleKeys.community_post_error_title.t(context),
-          retryLabel: LocaleKeys.community_retry.t(context),
+          retryLabel: LocaleKeys.community_retry
+              .forReader(her: LocaleKeys.community_her_retry)
+              .t(context),
           onRetry: context.read<CommunityPostCubit>().load,
         ),
       };

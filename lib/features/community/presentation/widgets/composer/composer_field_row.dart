@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
@@ -82,8 +83,12 @@ class ComposerFieldRow extends StatelessWidget {
   Widget _field(BuildContext context, {required bool error}) {
     final text = controller.text;
     final hint = state.replyTo == null
-        ? LocaleKeys.community_composer_comment
-        : LocaleKeys.community_composer_reply;
+        ? LocaleKeys.community_composer_comment.forReader(
+            her: LocaleKeys.community_her_composer_comment,
+          )
+        : LocaleKeys.community_composer_reply.forReader(
+            her: LocaleKeys.community_her_composer_reply,
+          );
     return QeranComposerField(
       controller: controller,
       focusNode: focusNode,

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/features/block/presentation/blocs/block_action_state.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../core/enum/snakebar_tybe.dart';
 import '../../../../core/extensions/localization_extension.dart';
@@ -58,11 +59,15 @@ void _commentsToast(BuildContext context, CommunityCommentsEvent event) {
       SnackBarType.success,
     ),
     CommunityCommentsEvent.deleteFailed => (
-      LocaleKeys.community_delete_failed,
+      LocaleKeys.community_delete_failed.forReader(
+        her: LocaleKeys.community_her_delete_failed,
+      ),
       SnackBarType.error,
     ),
     CommunityCommentsEvent.deleteReplyFailed => (
-      LocaleKeys.community_delete_reply_failed,
+      LocaleKeys.community_delete_reply_failed.forReader(
+        her: LocaleKeys.community_her_delete_reply_failed,
+      ),
       SnackBarType.error,
     ),
     CommunityCommentsEvent.contentGone => (

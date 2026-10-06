@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/enum/snakebar_tybe.dart';
@@ -128,7 +129,10 @@ class _CommunityComposerState extends State<CommunityComposer> {
   /// What a refusal says, when it says something.
   void _toastFor(CommunityComposerEvent event) {
     final toast = switch (event) {
-      CommunityComposerEvent.rateLimited => LocaleKeys.community_rate_limited,
+      CommunityComposerEvent.rateLimited =>
+        LocaleKeys.community_rate_limited.forReader(
+          her: LocaleKeys.community_her_rate_limited,
+        ),
       CommunityComposerEvent.notApproved =>
         LocaleKeys.community_read_only_comment,
       CommunityComposerEvent.contentGone => LocaleKeys.community_content_gone,

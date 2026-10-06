@@ -28,3 +28,16 @@ class FakeGate extends Fake implements ProfileGateCubit {
     _ => false,
   };
 }
+
+/// A gate that fails the test if anything reads it — for a viewer who is
+/// never gated.
+class UnreadGate extends Fake implements ProfileGateCubit {
+  @override
+  ProfileGateState get state => throw StateError('the gate was read');
+
+  @override
+  Stream<ProfileGateState> get stream => throw StateError('the gate was read');
+
+  @override
+  bool get isGated => throw StateError('the gate was read');
+}

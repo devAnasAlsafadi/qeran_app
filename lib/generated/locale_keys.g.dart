@@ -293,6 +293,31 @@ abstract class  LocaleKeys {
   static const community_guidelines_accept_failed = 'community.guidelines_accept_failed';
   static const community_view_replies = 'community.view_replies';
   static const community_more_replies = 'community.more_replies';
+  static const community_her_feed_empty_body = 'community.her.feed_empty_body';
+  static const community_her_feed_error_body = 'community.her.feed_error_body';
+  static const community_her_like_failed = 'community.her.like_failed';
+  static const community_her_discussion_start =
+      'community.her.discussion_start';
+  static const community_her_retry = 'community.her.retry';
+  static const community_her_comments_empty_body =
+      'community.her.comments_empty_body';
+  static const community_her_composer_comment =
+      'community.her.composer_comment';
+  static const community_her_composer_reply = 'community.her.composer_reply';
+  static const community_her_not_posted = 'community.her.not_posted';
+  static const community_her_filter_rejected = 'community.her.filter_rejected';
+  static const community_her_rate_limited = 'community.her.rate_limited';
+  static const community_her_delete_failed = 'community.her.delete_failed';
+  static const community_her_delete_reply_failed =
+      'community.her.delete_reply_failed';
+  static const community_her_guidelines_accept_failed =
+      'community.her.guidelines_accept_failed';
+  static const community_her = 'community.her';
+  static const community_delete_others_body = 'community.delete_others_body';
+  static const community_delete_others_reply_body =
+      'community.delete_others_reply_body';
+  static const community_posting_guidelines_title =
+      'community.posting_guidelines_title';
   static const community = 'community';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';
@@ -1096,6 +1121,9 @@ abstract class  LocaleKeys {
   static const report_error_validation = 'report.error_validation';
   static const report_error_target_unavailable = 'report.error_target_unavailable';
   static const report_content_gone = 'report.content_gone';
+  static const report_her_note_label = 'report.her.note_label';
+  static const report_her_note_hint = 'report.her.note_hint';
+  static const report_her = 'report.her';
   static const report = 'report';
   static const block_action_block = 'block.action_block';
   static const block_action_unblock = 'block.action_unblock';

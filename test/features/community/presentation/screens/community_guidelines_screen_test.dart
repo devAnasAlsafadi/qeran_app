@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/presentation/widgets/guidelines/guidelines_action_bar.dart';
 import 'package:qeran/features/community/presentation/widgets/guidelines/guidelines_text.dart';
 
@@ -53,6 +54,23 @@ void main() {
     expect(_enabled(tester, 'I agree, continue'), isTrue);
     expect(_enabled(tester, 'Not now'), isTrue);
   });
+
+  for (final (locale, title) in [
+    (_ar, 'إرشادات النشر'),
+    (_en, 'Posting guidelines'),
+  ]) {
+    testWidgets('G1: before her first post, her title over the same text '
+        '[${locale.languageCode}]', (tester) async {
+      await openGuidelines(
+        tester,
+        harness,
+        locale: locale,
+        viewer: CommunityViewer.matchmaker,
+      );
+
+      expect(find.text(title), findsOneWidget);
+    });
+  }
 
   for (final locale in [_ar, _en]) {
     testWidgets('J3 · iPhone SE: the text scrolls under a pinned choice '

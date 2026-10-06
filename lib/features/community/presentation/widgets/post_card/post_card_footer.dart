@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
@@ -115,7 +116,9 @@ class PostCardFooter extends StatelessWidget {
 
   String _discussionLabel(BuildContext context) =>
       (interactive && post.commentCount == 0
-              ? LocaleKeys.community_discussion_start
+              ? LocaleKeys.community_discussion_start.forReader(
+                  her: LocaleKeys.community_her_discussion_start,
+                )
               : LocaleKeys.community_discussion)
           .t(context);
 

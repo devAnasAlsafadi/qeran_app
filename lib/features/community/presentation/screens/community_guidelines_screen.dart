@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../core/design_system/widgets/qeran_loader.dart';
@@ -43,7 +44,9 @@ class CommunityGuidelinesScreen extends StatelessWidget {
         CommunityGuidelinesStatus.loading => const Center(child: QeranLoader()),
         CommunityGuidelinesStatus.failed => QeranErrorState(
           title: LocaleKeys.community_guidelines_error.t(context),
-          retryLabel: LocaleKeys.community_retry.t(context),
+          retryLabel: LocaleKeys.community_retry
+              .forReader(her: LocaleKeys.community_her_retry)
+              .t(context),
           onRetry: () => context.read<CommunityGuidelinesCubit>().load(),
         ),
         CommunityGuidelinesStatus.ready => GuidelinesText(
@@ -58,7 +61,9 @@ class CommunityGuidelinesScreen extends StatelessWidget {
       case CommunityGuidelinesEvent.acceptFailed:
         AppSnackBar.show(
           context,
-          message: LocaleKeys.community_guidelines_accept_failed.t(context),
+          message: LocaleKeys.community_guidelines_accept_failed
+              .forReader(her: LocaleKeys.community_her_guidelines_accept_failed)
+              .t(context),
           type: SnackBarType.error,
         );
       case CommunityGuidelinesEvent.none:

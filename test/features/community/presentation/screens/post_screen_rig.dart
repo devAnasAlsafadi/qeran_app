@@ -30,6 +30,7 @@ import '../blocs/post/post_cubit_harness.dart';
 /// The post screen over [post]'s and [comments]' cubits, as the [viewer]
 /// at [gate] sees it, on a phone [size] (logical points), with the toast
 /// host. A Block goes through [block] (none answers by default).
+/// [gateCubit] replaces the gate at [gate].
 Future<void> pumpPostScreen(
   WidgetTester tester,
   PostHarness post,
@@ -37,6 +38,7 @@ Future<void> pumpPostScreen(
   BlockCall? block,
   Locale locale = const Locale('en'),
   ProfileStatus? gate = ProfileStatus.visible,
+  ProfileGateCubit? gateCubit,
   CommunityViewer viewer = CommunityViewer.member,
   Size size = const Size(390, 1600),
   bool settle = true,
@@ -52,7 +54,9 @@ Future<void> pumpPostScreen(
     child: AppSnackBarHost(
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<ProfileGateCubit>.value(value: FakeGate(gate)),
+          BlocProvider<ProfileGateCubit>.value(
+            value: gateCubit ?? FakeGate(gate),
+          ),
           BlocProvider<ConnectivityCubit>(
             create: (_) => ConnectivityCubit(service: FakeConnectivity()),
           ),
@@ -135,6 +139,11 @@ void registerPostPage(PostHarness post, CommentsHarness comments) {
   );
   sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
     (send, retry) => composerOver(comments),
+  );
+  // Hers, as the app registers it beside the member's.
+  sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
+    (send, retry) => composerOver(comments),
+    instanceName: CommunityViewer.matchmaker.name,
   );
 }
 

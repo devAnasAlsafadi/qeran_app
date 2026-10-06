@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_radii.dart';
@@ -41,7 +42,9 @@ class ComposerRejectedBanner extends StatelessWidget {
       QeranSpacing.hs8,
       Expanded(
         child: Text(
-          LocaleKeys.community_filter_rejected.t(context),
+          LocaleKeys.community_filter_rejected
+              .forReader(her: LocaleKeys.community_her_filter_rejected)
+              .t(context),
           style: QeranTypography.bodySm.copyWith(color: QeranColors.danger),
         ),
       ),

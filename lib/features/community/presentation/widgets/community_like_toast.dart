@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../core/enum/snakebar_tybe.dart';
 import '../../../../core/extensions/localization_extension.dart';
@@ -11,6 +12,11 @@ import '../../../../generated/locale_keys.g.dart';
 void showCommunityLikeToast(BuildContext context, {required bool readOnly}) {
   final (key, type) = readOnly
       ? (LocaleKeys.community_read_only_like, SnackBarType.notice)
-      : (LocaleKeys.community_like_failed, SnackBarType.error);
+      : (
+          LocaleKeys.community_like_failed.forReader(
+            her: LocaleKeys.community_her_like_failed,
+          ),
+          SnackBarType.error,
+        );
   AppSnackBar.show(context, message: key.t(context), type: type);
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/tokens/qeran_shadows.dart';
@@ -137,7 +138,9 @@ class VideoFailed extends StatelessWidget {
           ),
           QeranSpacing.vs8,
           QeranButton(
-            label: LocaleKeys.community_retry.t(context),
+            label: LocaleKeys.community_retry
+                .forReader(her: LocaleKeys.community_her_retry)
+                .t(context),
             onPressed: onRetry,
             variant: QeranButtonVariant.primaryGold,
             size: QeranButtonSize.compact,

@@ -30,6 +30,7 @@ import '../domain/usecases/set_post_like_usecase.dart';
 import '../domain/usecases/watch_community_post_changes_usecase.dart';
 import '../domain/entities/community_landing.dart';
 import '../domain/entities/community_post.dart';
+import '../domain/entities/community_viewer.dart';
 import '../presentation/blocs/comments/community_comments_cubit.dart';
 import '../presentation/blocs/composer/community_composer_cubit.dart';
 import '../presentation/blocs/composer/community_gate.dart';
@@ -117,6 +118,16 @@ void initCommunityDependencies() {
       retry: retry,
       owed: () => communityGateOf(sl<ProfileGateCubit>().state),
     ),
+  );
+  // Hers owes nothing: the member's steps aren't a matchmaker's (04 §3.4).
+  sl.registerFactoryParam<CommunityComposerCubit, CommentSend, CommentRetry>(
+    (send, retry) => CommunityComposerCubit(
+      getConfig: sl(),
+      send: send,
+      retry: retry,
+      owed: () => null,
+    ),
+    instanceName: CommunityViewer.matchmaker.name,
   );
   // The guidelines step tells the app's profile gate when they're accepted,
   // so the composer stops asking (D7).

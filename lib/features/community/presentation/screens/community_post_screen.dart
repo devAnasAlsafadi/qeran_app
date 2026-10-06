@@ -7,6 +7,7 @@ import '../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../core/extensions/localization_extension.dart';
 import '../../../../generated/locale_keys.g.dart';
 import '../../../profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
+import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_viewer.dart';
 import '../blocs/post/community_post_cubit.dart';
 import '../blocs/post/community_post_state.dart';
@@ -63,7 +64,9 @@ class CommunityPostScreen extends StatelessWidget {
                 viewer: viewer,
               ),
             ),
-            CommunityComposer(readOnly: readOnly),
+            // Nobody can join the discussion of a post that failed (BA-A2).
+            if (post.status != CommunityPostStatus.failed)
+              CommunityComposer(readOnly: readOnly),
           ],
         ),
         CommunityPostRemoved() => _unavailable(context),

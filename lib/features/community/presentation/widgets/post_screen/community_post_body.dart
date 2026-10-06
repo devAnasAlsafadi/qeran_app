@@ -60,6 +60,10 @@ class CommunityPostBody extends StatelessWidget {
     context.read<CommunityCommentsCubit>().refresh(),
   ]);
 
+  /// Her post that failed processing: the card alone — no discussion, as
+  /// members never saw it (BA-A2).
+  bool get _failed => post.status == CommunityPostStatus.failed;
+
   List<Widget> _slivers(BuildContext context) => [
     SliverPadding(
       padding: const EdgeInsets.fromLTRB(
@@ -70,12 +74,14 @@ class CommunityPostBody extends StatelessWidget {
       ),
       sliver: SliverToBoxAdapter(child: _card(context)),
     ),
-    SliverToBoxAdapter(
-      child: CommentsLandingReveal(
-        child: CommentsHeader(count: post.commentCount),
+    if (!_failed) ...[
+      SliverToBoxAdapter(
+        child: CommentsLandingReveal(
+          child: CommentsHeader(count: post.commentCount),
+        ),
       ),
-    ),
-    CommunityCommentsSliver(readOnly: readOnly, viewer: viewer),
+      CommunityCommentsSliver(readOnly: readOnly, viewer: viewer),
+    ],
     // The composer below takes the safe area.
     const SliverToBoxAdapter(child: QeranSpacing.vs24),
   ];

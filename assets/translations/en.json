@@ -330,7 +330,10 @@
     "delete_post_title": "Delete post?",
     "delete_post_body": "The post and all its comments and replies will be deleted permanently.",
     "post_deleted": "Post deleted.",
-    "delete_post_failed": "Couldn’t delete the post. Please try again."
+    "delete_post_failed": "Couldn’t delete the post. Please try again.",
+    "status_processing": "Processing · shown to members when ready",
+    "status_failed": "Couldn’t process the video",
+    "status_failed_body": "Members can’t see it. Delete it and publish again."
   },
   "notifications": {
     "title": "Notifications",

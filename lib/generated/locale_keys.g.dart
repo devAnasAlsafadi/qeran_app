@@ -316,6 +316,9 @@ abstract class  LocaleKeys {
   static const community_delete_post_body = 'community.delete_post_body';
   static const community_post_deleted = 'community.post_deleted';
   static const community_delete_post_failed = 'community.delete_post_failed';
+  static const community_status_processing = 'community.status_processing';
+  static const community_status_failed = 'community.status_failed';
+  static const community_status_failed_body = 'community.status_failed_body';
   static const community = 'community';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';

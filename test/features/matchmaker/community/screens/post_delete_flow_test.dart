@@ -2,6 +2,9 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/features/community/domain/entities/community_media.dart';
+import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_post_change.dart';
 import 'package:qeran/features/community/presentation/screens/community_post_page.dart';
 import 'package:qeran/features/community/presentation/widgets/menus/community_menu_button.dart';
@@ -177,6 +180,33 @@ void main() {
     expect(find.byType(CommunityPostPage), findsNothing);
     expect(find.text('Mine'), findsNothing);
     expect(find.text('Post deleted.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets("BA-A3: a failed post's «حذف» asks the same question, then "
+      'deletes it', (tester) async {
+    h.myPage(1, [
+      testPost(
+        id: 5,
+        text: 'Mine',
+        canDelete: true,
+        status: CommunityPostStatus.failed,
+        media: CommunitySingleVideo(testVideo(url: null)),
+      ),
+    ]);
+    h.deleteAnswers(5);
+    await openMine(tester, _ar);
+
+    await tester.tap(find.widgetWithText(QeranButton, 'حذف'));
+    await tester.pumpAndSettle();
+    expect(find.text('حذف المنشور؟'), findsOneWidget);
+    await tester.tap(
+      find.descendant(of: find.byType(Dialog), matching: find.text('حذف')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mine'), findsNothing);
+    expect(find.text('تم حذف المنشور.'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
   });
 }

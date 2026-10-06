@@ -23,15 +23,16 @@ Widget? communityPostMenu(CommunityPost post) {
         context,
         target: ContentReportTarget(ReportContentKind.post, post.id),
       ),
-      CommunityMenuAction.delete => _delete(context, post),
+      CommunityMenuAction.delete => deleteOwnPost(context, post),
       // Never on a post.
       CommunityMenuAction.block => null,
     },
   );
 }
 
-/// Asks first (B7), then deletes through the screen's [PostDeleteCubit].
-Future<void> _delete(BuildContext context, CommunityPost post) async {
+/// Her own post's delete — from its ⋮, or the Failed banner's «حذف»: asks
+/// first (B7, BA-A3), then deletes through the screen's [PostDeleteCubit].
+Future<void> deleteOwnPost(BuildContext context, CommunityPost post) async {
   final deleting = context.read<PostDeleteCubit>();
   if (await confirmPostDelete(context)) await deleting.delete(post.id);
 }

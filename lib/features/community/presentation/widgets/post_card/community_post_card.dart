@@ -7,6 +7,7 @@ import '../../../domain/entities/community_post.dart';
 import '../../screens/community_media_viewer.dart';
 import 'post_card_footer.dart';
 import 'post_card_header.dart';
+import 'post_card_status_banner.dart';
 import 'post_card_text.dart';
 import 'post_image_set.dart';
 import 'post_video_tile.dart';
@@ -23,7 +24,8 @@ enum CommunityPostCardMode {
 /// A matchmaker's post as a card (A1–A21), shared by both apps (P3): header,
 /// text, photos or a video, and the Like / discussion footer. The card itself
 /// isn't a tap target (S1) — the discussion half, the photos and «عرض
-/// المزيد» each do one thing.
+/// المزيد» each do one thing. Her post that members can't see yet opens with
+/// its status (D4, BA-A1); a failed one has no footer — nobody saw it.
 class CommunityPostCard extends StatelessWidget {
   const CommunityPostCard({
     super.key,
@@ -58,22 +60,26 @@ class CommunityPostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            PostCardStatusBanner(post: post),
             PostCardHeader(post: post, menu: menu),
             if (post.text.trim().isNotEmpty)
               PostCardText(post.text, collapsible: feed),
             if (media != null) ...[media, QeranSpacing.vs12],
-            PostCardFooter(
-              post: post,
-              interactive: feed,
-              likeDimmed: readOnly,
-              onLike: onLike,
-              onDiscussion: onOpenDiscussion,
-            ),
+            if (!_failed)
+              PostCardFooter(
+                post: post,
+                interactive: feed,
+                likeDimmed: readOnly,
+                onLike: onLike,
+                onDiscussion: onOpenDiscussion,
+              ),
           ],
         ),
       ),
     );
   }
+
+  bool get _failed => post.status == CommunityPostStatus.failed;
 
   /// A photo tapped opens the viewer at it (G1), unless [onImageTap] says
   /// otherwise.
@@ -89,6 +95,7 @@ class CommunityPostCard extends StatelessWidget {
     CommunitySingleVideo(:final video) => PostVideoTile(
       postId: post.id,
       video: video,
+      failed: _failed,
     ),
   };
 }

@@ -23,11 +23,19 @@ import 'media_geometry.dart';
 /// loaded without our token. A tap on the disc plays it, through the
 /// screen's [CommunityVideoScope]; it pauses when another video starts, its
 /// tab is hidden, a route covers it, or the app leaves the foreground (Q9).
+/// Her video still processing has no link yet: its frame shows no play disc
+/// (Q5); one that [failed] shows why instead (BA-A1).
 class PostVideoTile extends StatefulWidget {
-  const PostVideoTile({super.key, required this.postId, required this.video});
+  const PostVideoTile({
+    super.key,
+    required this.postId,
+    required this.video,
+    this.failed = false,
+  });
 
   final int postId;
   final CommunityVideo video;
+  final bool failed;
 
   @override
   State<PostVideoTile> createState() => _PostVideoTileState();
@@ -83,6 +91,9 @@ class _PostVideoTileState extends State<PostVideoTile>
   }
 
   List<Widget> _layers() {
+    if (widget.failed) {
+      return const [VideoDim(), Center(child: VideoProcessingFailed())];
+    }
     final c = _controller;
     final phase = c?.phase ?? CommunityVideoPhase.idle;
     final dimmed = const {
@@ -147,9 +158,8 @@ class _PostVideoTileState extends State<PostVideoTile>
 
   Widget? _centre(CommunityVideoController? c, CommunityVideoPhase phase) =>
       switch (phase) {
-        CommunityVideoPhase.idle || CommunityVideoPhase.paused => VideoPlayDisc(
-          onTap: _playable ? () => _ensure()?.play() : null,
-        ),
+        CommunityVideoPhase.idle || CommunityVideoPhase.paused =>
+          _playable ? VideoPlayDisc(onTap: () => _ensure()?.play()) : null,
         CommunityVideoPhase.ended => VideoPlayDisc(
           replay: true,
           onTap: c?.play,

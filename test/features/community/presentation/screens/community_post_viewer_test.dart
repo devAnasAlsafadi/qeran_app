@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/features/community/domain/entities/community_media.dart';
+import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/presentation/widgets/menus/community_menu_button.dart';
 import 'package:qeran/features/profile/domain/entities/profile_status.dart';
@@ -121,5 +123,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('أضيفي ملاحظة (اختياري)'), findsOneWidget);
+  });
+
+  testWidgets('BA-A2: her post that failed — the card alone: no «النقاش», no '
+      'comments, no field', (tester) async {
+    final unused = post;
+    addTearDown(unused.dispose);
+    post = PostHarness(
+      post: testPost(
+        canDelete: true,
+        status: CommunityPostStatus.failed,
+        media: CommunitySingleVideo(testVideo(url: null)),
+      ),
+    );
+    comments.page(1, [testComment(id: 10)]);
+    await comments.cubit.load();
+    await pumpHers(tester);
+
+    expect(find.text('تعذّرت معالجة الفيديو'), findsWidgets);
+    expect(find.text('النقاش'), findsNothing);
+    expect(find.text(saraText), findsNothing);
+    expect(find.text('اكتبي تعليقاً…'), findsNothing);
   });
 }

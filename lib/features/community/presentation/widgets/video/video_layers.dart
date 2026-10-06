@@ -152,3 +152,28 @@ class VideoFailed extends StatelessWidget {
     );
   }
 }
+
+/// Her video that couldn't be processed, in its frame (BA-A1).
+class VideoProcessingFailed extends StatelessWidget {
+  const VideoProcessingFailed({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(
+          Icons.videocam_off_rounded,
+          size: 32,
+          color: QeranColors.gold,
+        ),
+        QeranSpacing.vs4,
+        Text(
+          LocaleKeys.community_status_failed.t(context),
+          textAlign: TextAlign.center,
+          style: QeranTypography.label.copyWith(color: QeranColors.paper),
+        ),
+      ],
+    );
+  }
+}

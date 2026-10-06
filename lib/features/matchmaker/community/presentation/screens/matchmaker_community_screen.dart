@@ -48,7 +48,8 @@ class MatchmakerCommunityScreen extends StatefulWidget {
       _MatchmakerCommunityScreenState();
 }
 
-class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen> {
+class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
+    with WidgetsBindingObserver {
   late final CommunityFeedCubit _all = sl<CommunityFeedCubit>()..load();
   late final MyPostsCubit _mine = sl<MyPostsCubit>();
 
@@ -62,7 +63,16 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (_tab == MatchmakerCommunityTab.mine) _openMine();
+  }
+
+  /// Back in front: whatever finished processing meanwhile shows now.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _mineOpened) {
+      _mine.checkProcessing();
+    }
   }
 
   void _select(int index) {
@@ -82,6 +92,7 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _all.close();
     _mine.close();
     _deleting.close();

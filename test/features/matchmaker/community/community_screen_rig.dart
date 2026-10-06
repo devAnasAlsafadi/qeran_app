@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +17,7 @@ import 'package:qeran/features/community/domain/usecases/get_my_community_posts_
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post_delete/post_delete_cubit.dart';
 import 'package:qeran/features/matchmaker/community/presentation/blocs/my_posts/my_posts_cubit.dart';
+import 'package:qeran/features/matchmaker/shared/domain/entities/community_post_status_change.dart';
 
 import '../../../core/shipped_strings_rig.dart';
 import '../../auth/presentation/fake_session.dart';
@@ -24,6 +27,26 @@ import '../../community/presentation/blocs/feed/feed_cubit_harness.dart';
 class _MockGetMyPosts extends Mock implements GetMyCommunityPostsUseCase {}
 
 class _MockDeletePost extends Mock implements DeleteCommunityPostUseCase {}
+
+/// A timer the test fires by hand; cancelling it stops the ticks.
+class _FakeTimer implements Timer {
+  _FakeTimer({this.onCancel});
+
+  final void Function()? onCancel;
+  bool _active = true;
+
+  @override
+  void cancel() {
+    _active = false;
+    onCancel?.call();
+  }
+
+  @override
+  bool get isActive => _active;
+
+  @override
+  int get tick => 0;
+}
 
 /// Her Community screen's two lists over scripted sources: «كل المنشورات»
 /// reads [all]'s use cases; «منشوراتي» is a [MyPostsCubit] over [getMyPosts],
@@ -54,12 +77,29 @@ class CommunityScreenHarness {
 
   MyPostsCubit get mine => _mine ??= _newMine();
 
+  /// The hub's `CommunityPostStatusChanged`, as her port would hand it on.
+  final statusChanges = StreamController<CommunityPostStatusChange>.broadcast();
+
+  /// The poll's timer, driven by hand: [tick] fires it.
+  final ticks = <void Function(Timer)>[];
+
+  void tick() {
+    for (final fire in List.of(ticks)) {
+      fire(_FakeTimer());
+    }
+  }
+
   MyPostsCubit _newMine() => MyPostsCubit(
     getMyPosts: getMyPosts,
     getPost: all.getPost,
     setPostLike: all.setLike,
     watchChanges: all.watch,
     markCommentsSeen: () async => seen++,
+    statusChanges: statusChanges.stream,
+    startTimer: (every, fire) {
+      ticks.add(fire);
+      return _FakeTimer(onCancel: () => ticks.remove(fire));
+    },
   );
 
   /// Her posts' [page] answers with [posts].
@@ -93,6 +133,7 @@ class CommunityScreenHarness {
 
   Future<void> dispose() async {
     await _mine?.close();
+    await statusChanges.close();
     await all.dispose();
     await sl.reset();
   }

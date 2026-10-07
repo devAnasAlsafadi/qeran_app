@@ -98,7 +98,8 @@ class _PostComposerScreenState extends State<PostComposerScreen> {
           PublishStatus.compressing ||
           PublishStatus.uploading ||
           PublishStatus.publishing ||
-          PublishStatus.failed:
+          PublishStatus.failed ||
+          PublishStatus.videoUnavailable:
         break;
     }
   }

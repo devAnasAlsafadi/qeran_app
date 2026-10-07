@@ -105,16 +105,29 @@ void main() {
     }
   });
 
-  test(
-    'a draft with a video waits for its upload (sub-step 13): no «نشر»',
-    () async {
-      await limits(_video);
-      draft.edit('إرشاد');
-      await draft.addVideo('clip.mp4');
+  test('a video never stands in for text: «نشر» once there is some', () async {
+    await limits(_video);
+    await draft.addVideo('clip.mp4');
+    expect(draft.state.canPublish, isFalse);
 
-      expect(draft.state.canPublish, isFalse);
-    },
-  );
+    draft.edit('إرشاد');
+    expect(draft.state.canPublish, isTrue);
+  });
+
+  test('the server’s own length check (MEDIA_TOO_LONG on 6.8): BA-A9 with '
+      'her video’s length; it leaves the draft', () async {
+    await limits(_video);
+    compressor.infos['edge.mp4'] = clip(seconds: 60.4);
+    await draft.addVideo('edge.mp4');
+
+    draft.mediaRefused(path: 'edge.mp4', refusal: MediaRefusal.tooLong);
+
+    expect(draft.state.video, isNull);
+    expect(
+      draft.state.notice,
+      const VideoTooLong(seconds: 60, maxSeconds: 60),
+    );
+  });
 
   test('Q3: her video over the size once prepared leaves the draft, with the '
       'size of what would have gone up; another refusal is C10', () async {

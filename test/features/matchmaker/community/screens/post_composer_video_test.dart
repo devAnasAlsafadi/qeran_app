@@ -155,8 +155,8 @@ void main() {
     expect(opacityOf(tester, 'Video'), 0.4);
   });
 
-  testWidgets('× on the video removes it; «Publish» waits for sub-step 13 '
-      'while it is there', (tester) async {
+  testWidgets('with text and a video, «Publish» is on; × on the video removes '
+      'it', (tester) async {
     h.picker.video = 'clip.mp4';
     await startComposer(tester, h);
     await tester.enterText(find.byType(TextField), 'إرشاد');
@@ -168,7 +168,7 @@ void main() {
             .widget<QeranButton>(find.widgetWithText(QeranButton, 'Publish'))
             .onPressed !=
         null;
-    expect(publishOn(), isFalse);
+    expect(publishOn(), isTrue);
 
     await tester.tap(find.bySemanticsLabel('Remove video'));
     await tester.pumpAndSettle();

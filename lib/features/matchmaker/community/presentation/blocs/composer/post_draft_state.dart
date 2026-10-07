@@ -98,9 +98,8 @@ class PostDraftState extends Equatable {
   bool get tooLong => length > (maxLength ?? length);
 
   /// «نشر» turns on: some text, within the limit. Media never stands in for
-  /// text (contract §6.2). A draft with a video waits for its upload, which
-  /// arrives in sub-step 13.
-  bool get canPublish => length > 0 && !tooLong && video == null;
+  /// text (contract §6.2).
+  bool get canPublish => length > 0 && !tooLong;
 
   /// Nothing to lose: × closes at once (C11).
   bool get isEmpty => length == 0 && images.isEmpty && video == null;

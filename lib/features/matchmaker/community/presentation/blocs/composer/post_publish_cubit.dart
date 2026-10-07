@@ -117,9 +117,9 @@ class PostPublishCubit extends Cubit<PostPublishState>
       PostGuidelinesRequired() => at(PublishStatus.guidelinesRequired),
       PostMediaRefused(:final refusal) => _refused(attempt, refusal),
       PostTextInvalid() => at(PublishStatus.textInvalid),
-      // Lost media is sent again on Retry; the video service is sub-step
-      // 13's (an image post never meets it).
-      PostMediaLost() || PostVideoUnavailable() => at(PublishStatus.failed),
+      // Lost media is sent again on Retry.
+      PostMediaLost() => at(PublishStatus.failed),
+      PostVideoUnavailable() => at(PublishStatus.videoUnavailable),
     };
   }
 

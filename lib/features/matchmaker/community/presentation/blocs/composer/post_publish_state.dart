@@ -23,6 +23,9 @@ enum PublishStatus {
   /// Didn't get through: the failed strip with its retry (D3).
   failed,
 
+  /// The video service is down (BA-A6): its own strip, with the retry.
+  videoUnavailable,
+
   /// The filter refused the text (BA-A7).
   rejected,
 

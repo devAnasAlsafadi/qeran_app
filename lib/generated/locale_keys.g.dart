@@ -1098,6 +1098,8 @@ abstract class  LocaleKeys {
   static const matchmaker_community_remove_video = 'matchmaker.community.remove_video';
   static const matchmaker_community_preparing_video = 'matchmaker.community.preparing_video';
   static const matchmaker_community_video_too_large = 'matchmaker.community.video_too_large';
+  static const matchmaker_community_video_unavailable = 'matchmaker.community.video_unavailable';
+  static const matchmaker_community_published_processing = 'matchmaker.community.published_processing';
   static const matchmaker_community = 'matchmaker.community';
   static const matchmaker = 'matchmaker';
   static const settings_account_management = 'settings.account_management';

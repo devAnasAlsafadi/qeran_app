@@ -9,12 +9,20 @@ import '../../../../../../core/extensions/localization_extension.dart';
 import '../../../../../../generated/locale_keys.g.dart';
 
 /// The strip under the composer's header when publishing didn't get through
-/// (D3): «تعذّر رفع المنشور. تحقّقي من اتصالك.» and «إعادة المحاولة». The
-/// draft stays as it was.
+/// (D3): «تعذّر رفع المنشور. تحقّقي من اتصالك.» and «إعادة المحاولة»; with
+/// the video service down (BA-A6), «خدمة الفيديو غير متاحة حالياً…» instead
+/// ([message]). The draft stays as it was.
 class PublishStrip extends StatelessWidget {
-  const PublishStrip({super.key, required this.onRetry});
+  const PublishStrip({
+    super.key,
+    required this.onRetry,
+    this.message = LocaleKeys.matchmaker_community_upload_failed,
+  });
 
   final VoidCallback onRetry;
+
+  /// Its text's key.
+  final String message;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +35,7 @@ class PublishStrip extends StatelessWidget {
         color: QeranColors.danger,
       ),
       body: Text(
-        LocaleKeys.matchmaker_community_upload_failed.t(context),
+        message.t(context),
         style: QeranTypography.label.copyWith(color: QeranColors.danger),
       ),
       action: _StripAction(

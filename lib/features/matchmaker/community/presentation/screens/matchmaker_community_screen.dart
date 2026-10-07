@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post_delete/post_delete_cubit.dart';
@@ -95,14 +96,19 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
   }
 
   /// «منشور جديد» (B1, B4): once published she lands on «منشوراتي», her
-  /// post first (Q7, D5).
+  /// post first (Q7, D5); a video's says it shows once processed (D4).
   Future<void> _newPost() async {
     final post = await startNewPost(context);
     if (post == null || !mounted) return;
     _select(MatchmakerCommunityTab.mine.index);
+    final processing = post.status == CommunityPostStatus.processing;
     AppSnackBar.show(
       context,
-      message: LocaleKeys.matchmaker_community_published.t(context),
+      message:
+          (processing
+                  ? LocaleKeys.matchmaker_community_published_processing
+                  : LocaleKeys.matchmaker_community_published)
+              .t(context),
       type: SnackBarType.success,
     );
   }

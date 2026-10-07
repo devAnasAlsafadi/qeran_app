@@ -124,13 +124,23 @@ class PostDraftCubit extends Cubit<PostDraftState>
   }
 
   void _videoRefused(MediaRefusal refusal, int sizeBytes) {
-    final max = state.config?.maxVideoSizeBytes;
+    final video = state.video!;
+    final maxBytes = state.config?.maxVideoSizeBytes;
+    final maxSeconds = state.maxVideoSeconds;
     emit(
       state.copyWith(
         video: () => null,
-        notice: () => refusal == MediaRefusal.tooLarge && max != null
-            ? VideoTooLarge(sizeBytes: sizeBytes, maxBytes: max)
-            : const UnsupportedFile(),
+        notice: () => switch (refusal) {
+          MediaRefusal.tooLarge when maxBytes != null => VideoTooLarge(
+            sizeBytes: sizeBytes,
+            maxBytes: maxBytes,
+          ),
+          MediaRefusal.tooLong when maxSeconds != null => VideoTooLong(
+            seconds: video.durationSeconds,
+            maxSeconds: maxSeconds,
+          ),
+          _ => const UnsupportedFile(),
+        },
       ),
     );
   }

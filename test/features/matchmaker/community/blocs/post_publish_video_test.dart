@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/community/domain/entities/community_post.dart';
+import 'package:qeran/features/community/domain/entities/media_upload_outcome.dart';
 import 'package:qeran/features/community/domain/entities/media_refusal.dart';
 import 'package:qeran/features/community/domain/entities/picked_video.dart';
 import 'package:qeran/features/community/domain/entities/post_draft.dart';
@@ -17,7 +18,7 @@ import '../../../community/fixtures/community_post_fixtures.dart';
 const _mb = 1024 * 1024;
 const _processing = CommunityPostStatus.processing;
 
-/// Publishing her video: D1, D2, D4, Q3.
+/// Publishing her video: D1, D2, D4, BA-A6, Q3.
 void main() {
   late PublishRig rig;
   late PostPublishCubit publish;
@@ -66,6 +67,20 @@ void main() {
     expect(states.where((s) => s.busy && s.cancellable).length, 6);
     expect(publish.state.post?.status, _processing);
     expect(rig.lastVideoId(), 'v-1');
+  });
+
+  test('BA-A6: the video service down — its own status, not busy; Retry '
+      'goes on', () async {
+    rig.video.grants(const Right(MediaVideoUnavailable()));
+    await publish.publish(draft());
+    expect(publish.state.status, PublishStatus.videoUnavailable);
+    expect(publish.state.busy, isFalse);
+
+    rig
+      ..video.grants()
+      ..creates(Right(PostPublished(testPost(id: 31))));
+    await publish.publish(draft());
+    expect(publish.state.status, PublishStatus.published);
   });
 
   test('a retry with the copy ready doesn\'t start at «تجهيز»', () async {

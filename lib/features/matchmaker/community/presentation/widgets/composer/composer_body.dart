@@ -15,7 +15,7 @@ import 'composer_toolbar.dart';
 import 'composer_video.dart';
 import 'publish_strip.dart';
 
-/// Under the composer's header: the strip when there is one (D1–D3), her
+/// Under the composer's header: the strip when there is one (D1–D3, BA-A6), her
 /// draft — dimmed to 50 % and locked while her video is prepared or her
 /// media goes up (D1, D2) — and the toolbar on the keyboard.
 class ComposerBody extends StatelessWidget {
@@ -70,6 +70,10 @@ class ComposerBody extends StatelessWidget {
       switch (publish.status) {
         PublishStatus.failed ||
         PublishStatus.textInvalid => PublishStrip(onRetry: onRetry),
+        PublishStatus.videoUnavailable => PublishStrip(
+          onRetry: onRetry,
+          message: LocaleKeys.matchmaker_community_video_unavailable,
+        ),
         PublishStatus.compressing => UploadStrip(
           progress: publish.progress ?? 0,
           onCancel: context.read<PostPublishCubit>().cancel,

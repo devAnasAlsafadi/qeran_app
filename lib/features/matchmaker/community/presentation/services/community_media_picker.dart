@@ -21,6 +21,14 @@ abstract class CommunityMediaPicker {
 
   /// One photo from the camera, or null when she backs out.
   Future<String?> captureImage();
+
+  /// One video from her gallery, or null when she backs out.
+  Future<String?> pickVideo();
+
+  /// One recording, the camera told to stop at [maxDuration] (some camera
+  /// apps ignore it, so the file is checked anyway, BA-A9); null when she
+  /// backs out.
+  Future<String?> recordVideo({Duration? maxDuration});
 }
 
 /// [CommunityMediaPicker] over `image_picker`. Every image is re-encoded at
@@ -56,6 +64,21 @@ class ImagePickerCommunityMediaPicker implements CommunityMediaPicker {
   @override
   Future<String?> captureImage() =>
       _guard(() => _single(ImageSource.camera), fallback: null);
+
+  @override
+  Future<String?> pickVideo() => _guard(
+    () async => (await _picker.pickVideo(source: ImageSource.gallery))?.path,
+    fallback: null,
+  );
+
+  @override
+  Future<String?> recordVideo({Duration? maxDuration}) => _guard(
+    () async => (await _picker.pickVideo(
+      source: ImageSource.camera,
+      maxDuration: maxDuration,
+    ))?.path,
+    fallback: null,
+  );
 
   Future<String?> _single(ImageSource source) async => (await _picker.pickImage(
     source: source,

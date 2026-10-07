@@ -2,6 +2,7 @@ import 'package:qeran/core/domain/upload.dart';
 import 'package:qeran/features/community/domain/entities/picked_image.dart';
 import 'package:qeran/features/community/domain/entities/picked_video.dart';
 import 'package:qeran/features/community/domain/ports/media_inspector.dart';
+import 'package:qeran/features/community/domain/ports/video_compressor.dart';
 import 'package:qeran/features/matchmaker/community/presentation/services/community_media_picker.dart';
 
 /// Every file is a 100-byte JPEG unless [files] says otherwise (null: not
@@ -52,4 +53,53 @@ class FakePicker implements CommunityMediaPicker {
     if (refuses case final refusal?) throw refusal;
     return camera;
   }
+
+  String? video;
+  String? recording;
+
+  /// Each recording's cap.
+  final caps = <Duration?>[];
+
+  @override
+  Future<String?> pickVideo() async {
+    if (refuses case final refusal?) throw refusal;
+    return video;
+  }
+
+  @override
+  Future<String?> recordVideo({Duration? maxDuration}) async {
+    caps.add(maxDuration);
+    if (refuses case final refusal?) throw refusal;
+    return recording;
+  }
 }
+
+/// A vertical 30 s clip of 10 MB, unless [infos] says otherwise (null: it
+/// can't be read).
+class FakeCompressor implements VideoCompressor {
+  final infos = <String, VideoFileInfo?>{};
+
+  @override
+  Future<VideoFileInfo?> inspect(String path) async =>
+      infos.containsKey(path) ? infos[path] : clip();
+
+  @override
+  Future<CompressedVideo?> compress(
+    String path, {
+    void Function(double progress)? onProgress,
+    UploadCancel? cancel,
+  }) async => null;
+}
+
+/// A clip's facts: [seconds] long, [width] × [height], [bytes] big.
+VideoFileInfo clip({
+  double seconds = 30,
+  int width = 1080,
+  int height = 1920,
+  int bytes = 10 * 1024 * 1024,
+}) => VideoFileInfo(
+  duration: Duration(milliseconds: (seconds * 1000).round()),
+  width: width,
+  height: height,
+  sizeBytes: bytes,
+);

@@ -103,4 +103,28 @@ void main() {
 
     expect(await picker.captureImage(), isNull);
   });
+
+  test('a video from the gallery, as picked', () async {
+    when(
+      () => images.pickVideo(source: ImageSource.gallery),
+    ).thenAnswer((_) async => XFile('/clip.mp4'));
+
+    expect(await picker.pickVideo(), '/clip.mp4');
+  });
+
+  test('recording: the camera is told the cap; a refusal says so', () async {
+    const cap = Duration(seconds: 60);
+    when(
+      () => images.pickVideo(source: ImageSource.camera, maxDuration: cap),
+    ).thenAnswer((_) async => XFile('/rec.mp4'));
+    expect(await picker.recordVideo(maxDuration: cap), '/rec.mp4');
+
+    when(
+      () => images.pickVideo(source: ImageSource.camera, maxDuration: cap),
+    ).thenThrow(PlatformException(code: 'camera_access_denied'));
+    await expectLater(
+      picker.recordVideo(maxDuration: cap),
+      throwsA(isA<MediaAccessDenied>()),
+    );
+  });
 }

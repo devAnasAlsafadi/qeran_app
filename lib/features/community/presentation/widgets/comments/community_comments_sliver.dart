@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/features/auth/presentation/reader_copy.dart';
 
-import '../../../../../core/design_system/tokens/qeran_colors.dart';
-import '../../../../../core/design_system/tokens/qeran_motion.dart';
 import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/extensions/localization_extension.dart';
@@ -13,9 +11,7 @@ import '../../../domain/entities/community_viewer.dart';
 import '../../blocs/comments/comment_thread.dart';
 import '../../blocs/comments/community_comments_cubit.dart';
 import '../../blocs/comments/community_comments_state.dart';
-import '../../blocs/composer/community_composer_cubit.dart';
-import '../menus/community_comment_menu.dart';
-import 'comment_row.dart';
+import 'community_comment_item.dart';
 import 'comments_skeleton.dart';
 import 'more_comments_footer.dart';
 import 'replies_link.dart';
@@ -106,7 +102,7 @@ class CommunityCommentsSliver extends StatelessWidget {
     CommunityCommentsState state,
     CommunityComment comment, {
     CommunityComment? parent,
-  }) => _CommentItem(
+  }) => CommunityCommentItem(
     key: ValueKey('comment-${comment.id}'),
     comment: comment,
     parent: parent,
@@ -115,60 +111,4 @@ class CommunityCommentsSliver extends StatelessWidget {
     readOnly: readOnly,
     viewer: viewer,
   );
-}
-
-/// A row, wired: its like to the comments, its Reply and retry to the
-/// composer.
-class _CommentItem extends StatelessWidget {
-  const _CommentItem({
-    super.key,
-    required this.comment,
-    required this.readOnly,
-    required this.viewer,
-    this.parent,
-    this.delivery,
-    this.highlighted = false,
-  });
-
-  final CommunityComment comment;
-  final bool readOnly;
-  final CommunityViewer viewer;
-
-  /// The comment a reply answers.
-  final CommunityComment? parent;
-  final CommentDelivery? delivery;
-
-  /// The row a landing is about (C8); it fades when that's over.
-  final bool highlighted;
-
-  static final Color _faded = QeranColors.gold12.withValues(alpha: 0);
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: QeranMotion.gentle,
-      color: highlighted ? QeranColors.gold12 : _faded,
-      child: _row(context),
-    );
-  }
-
-  Widget _row(BuildContext context) {
-    final composer = context.read<CommunityComposerCubit>();
-    final answerable = !readOnly && !comment.isReply && delivery == null;
-    return CommentRow(
-      comment: comment,
-      readOnly: readOnly,
-      delivery: delivery,
-      onLike: () => context.read<CommunityCommentsCubit>().toggleLike(
-        comment.id,
-        readOnly: readOnly,
-      ),
-      onReply: answerable ? () => composer.replyTo(comment) : null,
-      onRetry: () => composer.retry(comment.id, comment.text, parent: parent),
-      // One on its way, or failed, has nothing to report or delete yet.
-      menu: delivery == null
-          ? communityCommentMenu(comment, viewer: viewer)
-          : null,
-    );
-  }
 }

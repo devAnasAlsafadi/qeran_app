@@ -30,38 +30,38 @@ class ComposerTextArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = controller.text;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s20),
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            readOnly: locked,
-            autofocus: true,
-            minLines: 4,
-            maxLines: null,
-            keyboardType: TextInputType.multiline,
-            textDirection: ownTextDirection(text),
-            style: QeranTypography.body.copyWith(
-              color: QeranColors.inkStrong,
-              fontFamily: QeranOwnText.fontFamilyFor(text),
-            ),
-            cursorColor: QeranColors.goldDeep,
-            decoration: InputDecoration.collapsed(
-              hintText: LocaleKeys.matchmaker_community_composer_hint.t(
-                context,
-              ),
-              hintStyle: QeranTypography.body.copyWith(
-                color: QeranColors.inkFaint,
-              ),
-            ),
-          ),
+          child: _field(context),
         ),
         _CounterLine(draft: draft),
       ],
+    );
+  }
+
+  Widget _field(BuildContext context) {
+    final text = controller.text;
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      readOnly: locked,
+      autofocus: true,
+      minLines: 4,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      textDirection: ownTextDirection(text),
+      style: QeranTypography.body.copyWith(
+        color: QeranColors.inkStrong,
+        fontFamily: QeranOwnText.fontFamilyFor(text),
+      ),
+      cursorColor: QeranColors.goldDeep,
+      decoration: InputDecoration.collapsed(
+        hintText: LocaleKeys.matchmaker_community_composer_hint.t(context),
+        hintStyle: QeranTypography.body.copyWith(color: QeranColors.inkFaint),
+      ),
     );
   }
 }
@@ -72,30 +72,22 @@ class _CounterLine extends StatelessWidget {
 
   final PostDraftState draft;
 
+  static const _padding = EdgeInsets.fromLTRB(
+    QeranSpacing.s20,
+    QeranSpacing.s6,
+    QeranSpacing.s20,
+    QeranSpacing.s12,
+  );
+
   @override
   Widget build(BuildContext context) {
     final limit = draft.maxLength;
     final over = draft.tooLong;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        QeranSpacing.s20,
-        QeranSpacing.s6,
-        QeranSpacing.s20,
-        QeranSpacing.s12,
-      ),
+      padding: _padding,
       child: Row(
         children: [
-          Expanded(
-            child: over
-                ? Text(
-                    LocaleKeys.matchmaker_community_text_too_long.t(context),
-                    style: QeranTypography.caption.copyWith(
-                      color: QeranColors.danger,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
+          Expanded(child: over ? _tooLong(context) : const SizedBox.shrink()),
           const SizedBox(width: QeranSpacing.s8),
           if (limit != null)
             Text(
@@ -110,4 +102,12 @@ class _CounterLine extends StatelessWidget {
       ),
     );
   }
+
+  Widget _tooLong(BuildContext context) => Text(
+    LocaleKeys.matchmaker_community_text_too_long.t(context),
+    style: QeranTypography.caption.copyWith(
+      color: QeranColors.danger,
+      fontWeight: FontWeight.w700,
+    ),
+  );
 }

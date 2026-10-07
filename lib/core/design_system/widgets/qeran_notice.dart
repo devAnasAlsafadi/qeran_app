@@ -45,26 +45,29 @@ class QeranNotice extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(QeranSpacing.s12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: _danger ? QeranColors.danger : QeranColors.goldDeep,
-            ),
-            QeranSpacing.hs12,
-            Expanded(
-              child: Text(
-                text,
-                style: QeranTypography.bodySm.copyWith(
-                  color: _danger ? QeranColors.danger : QeranColors.inkStrong,
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: _content(),
       ),
     );
   }
+
+  /// The icon at the first line, then the text.
+  Widget _content() => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(
+        icon,
+        size: 20,
+        color: _danger ? QeranColors.danger : QeranColors.goldDeep,
+      ),
+      QeranSpacing.hs12,
+      Expanded(
+        child: Text(
+          text,
+          style: QeranTypography.bodySm.copyWith(
+            color: _danger ? QeranColors.danger : QeranColors.inkStrong,
+          ),
+        ),
+      ),
+    ],
+  );
 }

@@ -116,6 +116,11 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
     super.dispose();
   }
 
+  static const _segmentLabels = [
+    MatchmakerSegment(labelKey: LocaleKeys.matchmaker_community_all_posts),
+    MatchmakerSegment(labelKey: LocaleKeys.matchmaker_community_my_posts),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,26 +140,20 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
             MatchmakerSegmentedTabs(
               activeIndex: _tab.index,
               onChanged: _select,
-              segments: const [
-                MatchmakerSegment(
-                  labelKey: LocaleKeys.matchmaker_community_all_posts,
-                ),
-                MatchmakerSegment(
-                  labelKey: LocaleKeys.matchmaker_community_my_posts,
-                ),
-              ],
+              segments: _segmentLabels,
             ),
-            Expanded(
-              child: BlocProvider<PostDeleteCubit>.value(
-                value: _deleting,
-                child: PostDeleteListener(child: _segments(context)),
-              ),
-            ),
+            Expanded(child: _deletable(context)),
           ],
         ),
       ),
     );
   }
+
+  /// Her deletes, from either segment, speak through one cubit (B6–B9).
+  Widget _deletable(BuildContext context) => BlocProvider.value(
+    value: _deleting,
+    child: PostDeleteListener(child: _segments(context)),
+  );
 
   Widget _segments(BuildContext context) {
     final clearance = QeranFloatingButton.clearance(context);

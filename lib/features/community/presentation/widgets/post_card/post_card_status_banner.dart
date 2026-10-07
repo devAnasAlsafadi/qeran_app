@@ -50,18 +50,16 @@ class _Processing extends StatelessWidget {
             color: QeranColors.goldDeep,
           ),
           const SizedBox(width: QeranSpacing.s6),
-          Expanded(
-            child: Text(
-              LocaleKeys.community_status_processing.t(context),
-              style: QeranTypography.label.copyWith(
-                color: QeranColors.goldDeep,
-              ),
-            ),
-          ),
+          Expanded(child: _text(context)),
         ],
       ),
     );
   }
+
+  Widget _text(BuildContext context) => Text(
+    LocaleKeys.community_status_processing.t(context),
+    style: QeranTypography.label.copyWith(color: QeranColors.goldDeep),
+  );
 }
 
 class _Failed extends StatelessWidget {

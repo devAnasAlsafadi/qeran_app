@@ -49,7 +49,19 @@ bool _postEvent(CommunityPostState previous, CommunityPostState current) {
 }
 
 void _commentsToast(BuildContext context, CommunityCommentsEvent event) {
-  final (key, type) = switch (event) {
+  final (key, type) = _commentsToastOf(event);
+  if (key == null || type == null) {
+    return showCommunityLikeToast(
+      context,
+      readOnly: event == CommunityCommentsEvent.readOnlyLike,
+    );
+  }
+  AppSnackBar.show(context, message: key.t(context), type: type);
+}
+
+/// A comments event's toast and tone; none for the like events.
+(String?, SnackBarType?) _commentsToastOf(CommunityCommentsEvent event) =>
+    switch (event) {
     CommunityCommentsEvent.deleted => (
       LocaleKeys.community_deleted,
       SnackBarType.success,
@@ -76,14 +88,6 @@ void _commentsToast(BuildContext context, CommunityCommentsEvent event) {
     ),
     _ => (null, null),
   };
-  if (key == null || type == null) {
-    return showCommunityLikeToast(
-      context,
-      readOnly: event == CommunityCommentsEvent.readOnlyLike,
-    );
-  }
-  AppSnackBar.show(context, message: key.t(context), type: type);
-}
 
 /// Blocked (or gone — the same, never told apart): their rows go.
 void _blocked(BuildContext context, BlockActionState state) {

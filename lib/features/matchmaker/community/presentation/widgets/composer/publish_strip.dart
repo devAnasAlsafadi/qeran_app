@@ -41,12 +41,21 @@ class PublishStrip extends StatelessWidget {
 
 /// Her media going up (D2): «جارٍ رفع المنشور… {p}٪» over the bar, and
 /// «إلغاء» while it can still stop ([onCancel] null once the post is being
-/// made).
+/// made). Her video being prepared (D1) says «جارٍ تجهيز الفيديو… {p}٪»
+/// instead ([label]).
 class UploadStrip extends StatelessWidget {
-  const UploadStrip({super.key, required this.progress, this.onCancel});
+  const UploadStrip({
+    super.key,
+    required this.progress,
+    this.onCancel,
+    this.label = LocaleKeys.matchmaker_community_uploading,
+  });
 
   final double progress;
   final VoidCallback? onCancel;
+
+  /// Its text's key, with `{p}` for the percent.
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +69,7 @@ class UploadStrip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            LocaleKeys.matchmaker_community_uploading.t(
-              context,
-              namedArgs: {'p': '$percent'},
-            ),
+            label.t(context, namedArgs: {'p': '$percent'}),
             style: QeranTypography.label.copyWith(color: QeranColors.inkStrong),
           ),
           const SizedBox(height: QeranSpacing.s6),

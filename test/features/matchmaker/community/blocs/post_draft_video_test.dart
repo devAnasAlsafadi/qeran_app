@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/features/community/domain/entities/community_config.dart';
+import 'package:qeran/features/community/domain/entities/media_refusal.dart';
 import 'package:qeran/features/community/domain/entities/picked_video.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/inspect_picked_image_usecase.dart';
@@ -114,4 +115,28 @@ void main() {
       expect(draft.state.canPublish, isFalse);
     },
   );
+
+  test('Q3: her video over the size once prepared leaves the draft, with the '
+      'size of what would have gone up; another refusal is C10', () async {
+    await limits(
+      const CommunityConfig(videoEnabled: true, maxVideoSizeBytes: 300),
+    );
+    await draft.addVideo('clip.mp4');
+
+    draft.mediaRefused(
+      path: 'clip.mp4',
+      refusal: MediaRefusal.tooLarge,
+      sizeBytes: 320,
+    );
+    expect(draft.state.video, isNull);
+    expect(
+      draft.state.notice,
+      const VideoTooLarge(sizeBytes: 320, maxBytes: 300),
+    );
+
+    await draft.addVideo('clip.mp4');
+    draft.mediaRefused(path: 'clip.mp4', refusal: MediaRefusal.invalidType);
+    expect(draft.state.video, isNull);
+    expect(draft.state.notice, const UnsupportedFile());
+  });
 }

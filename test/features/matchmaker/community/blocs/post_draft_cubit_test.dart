@@ -141,7 +141,7 @@ void main() {
     inspector.files['b.jpg'] = jpeg('b.jpg', size: 10);
     await draft.addImages(['a.jpg', 'b.jpg']);
 
-    draft.imageRefused(path: 'a.jpg', refusal: MediaRefusal.tooLarge);
+    draft.mediaRefused(path: 'a.jpg', refusal: MediaRefusal.tooLarge);
     expect(paths(), ['b.jpg']);
     expect(
       draft.state.notice,
@@ -152,7 +152,7 @@ void main() {
   test('the server refused one of a type it no longer takes: C10', () async {
     await draft.addImages(['a.jpg']);
 
-    draft.imageRefused(path: 'a.jpg', refusal: MediaRefusal.invalidType);
+    draft.mediaRefused(path: 'a.jpg', refusal: MediaRefusal.invalidType);
 
     expect(draft.state.images, isEmpty);
     expect(draft.state.notice, const UnsupportedFile());

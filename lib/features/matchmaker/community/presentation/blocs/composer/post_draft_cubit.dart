@@ -98,9 +98,18 @@ class PostDraftCubit extends Cubit<PostDraftState>
     emit(state.copyWith(images: images));
   }
 
-  /// The server refused an image after the app's own check: it leaves the
-  /// draft, and the notice says why (Q3, C10).
-  void imageRefused({required String? path, required MediaRefusal refusal}) {
+  /// Her media was refused after the app's checks at pick — by the server,
+  /// or her video by its size once prepared: it leaves the draft, and the
+  /// notice says why (Q3, C10). [sizeBytes] is the video file's.
+  void mediaRefused({
+    required String? path,
+    required MediaRefusal refusal,
+    int? sizeBytes,
+  }) {
+    final video = state.video;
+    if (video != null && video.path == path) {
+      return _videoRefused(refusal, sizeBytes ?? video.info.sizeBytes);
+    }
     final image = state.images.where((i) => i.path == path).firstOrNull;
     final max = state.config?.maxImageSizeBytes;
     emit(
@@ -109,6 +118,18 @@ class PostDraftCubit extends Cubit<PostDraftState>
         notice: () =>
             refusal == MediaRefusal.tooLarge && image != null && max != null
             ? ImageTooLarge(sizeBytes: image.sizeBytes, maxBytes: max)
+            : const UnsupportedFile(),
+      ),
+    );
+  }
+
+  void _videoRefused(MediaRefusal refusal, int sizeBytes) {
+    final max = state.config?.maxVideoSizeBytes;
+    emit(
+      state.copyWith(
+        video: () => null,
+        notice: () => refusal == MediaRefusal.tooLarge && max != null
+            ? VideoTooLarge(sizeBytes: sizeBytes, maxBytes: max)
             : const UnsupportedFile(),
       ),
     );

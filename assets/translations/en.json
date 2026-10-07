@@ -1161,7 +1161,9 @@
       "hint_no_video_with_images": "A video can’t be added with images",
       "hint_no_images_with_video": "Images can’t be added with a video",
       "images_only": "Only images can be added for now",
-      "remove_video": "Remove video"
+      "remove_video": "Remove video",
+      "preparing_video": "Preparing your video… {p}%",
+      "video_too_large": "This video is {size}, over the {max} limit. Choose a shorter video."
     }
   },
   "settings": {

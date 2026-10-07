@@ -53,6 +53,17 @@ final class VideoTooLong extends DraftNotice {
   List<Object?> get props => [seconds, maxSeconds];
 }
 
+/// Over config's `maxVideoSizeBytes` (Q3): the file that would have gone
+/// up, compressed or not.
+final class VideoTooLarge extends DraftNotice {
+  final int sizeBytes;
+  final int maxBytes;
+  const VideoTooLarge({required this.sizeBytes, required this.maxBytes});
+
+  @override
+  List<Object?> get props => [sizeBytes, maxBytes];
+}
+
 /// Her draft as it stands (C1–C11, BA-A7).
 class PostDraftState extends Equatable {
   const PostDraftState({

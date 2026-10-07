@@ -23,36 +23,60 @@ class ComposerDraftNotice extends StatelessWidget {
   );
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: _padding,
-    child: switch (draft.notice!) {
-      TooManyImages(:final added, :final picked, :final limit) => QeranNotice(
-        icon: Icons.info_rounded,
-        text: _tooMany(context, added, picked, limit),
-      ),
-      UnsupportedFile() => _danger(Icons.block_rounded, _unsupported(context)),
-      ImageTooLarge(:final sizeBytes, :final maxBytes) => _danger(
-        Icons.block_rounded,
-        LocaleKeys.matchmaker_community_image_too_large.t(
-          context,
-          namedArgs: {
-            'size': megabytesText(context, sizeBytes),
-            'max': megabytesText(context, maxBytes),
-          },
-        ),
-      ),
-      VideoTooLong(:final seconds, :final maxSeconds) => _danger(
+  Widget build(BuildContext context) =>
+      Padding(padding: _padding, child: _notice(context, draft.notice!));
+
+  Widget _notice(BuildContext context, DraftNotice notice) => switch (notice) {
+    TooManyImages(:final added, :final picked, :final limit) => QeranNotice(
+      icon: Icons.info_rounded,
+      text: _tooMany(context, added, picked, limit),
+    ),
+    UnsupportedFile() => _danger(Icons.block_rounded, _unsupported(context)),
+    ImageTooLarge(:final sizeBytes, :final maxBytes) => _tooLarge(
+      context,
+      LocaleKeys.matchmaker_community_image_too_large,
+      sizeBytes,
+      maxBytes,
+    ),
+    VideoTooLarge(:final sizeBytes, :final maxBytes) => _tooLarge(
+      context,
+      LocaleKeys.matchmaker_community_video_too_large,
+      sizeBytes,
+      maxBytes,
+    ),
+    VideoTooLong(:final seconds, :final maxSeconds) => _tooLong(
+      context,
+      seconds,
+      maxSeconds,
+    ),
+  };
+
+  /// Q3: both sizes in MB.
+  static QeranNotice _tooLarge(
+    BuildContext context,
+    String key,
+    int sizeBytes,
+    int maxBytes,
+  ) => _danger(
+    Icons.block_rounded,
+    key.t(
+      context,
+      namedArgs: {
+        'size': megabytesText(context, sizeBytes),
+        'max': megabytesText(context, maxBytes),
+      },
+    ),
+  );
+
+  /// BA-A9: both lengths in m:ss.
+  static QeranNotice _tooLong(BuildContext context, int seconds, int max) =>
+      _danger(
         Icons.timer_off_rounded,
         LocaleKeys.matchmaker_community_video_too_long.t(
           context,
-          namedArgs: {
-            'd': secondsText(seconds),
-            'max': secondsText(maxSeconds),
-          },
+          namedArgs: {'d': secondsText(seconds), 'max': secondsText(max)},
         ),
-      ),
-    },
-  );
+      );
 
   /// C10 names both lists once video is offered; images only until then.
   String _unsupported(BuildContext context) {
@@ -85,6 +109,6 @@ class ComposerDraftNotice extends StatelessWidget {
     return '$first $max';
   }
 
-  QeranNotice _danger(IconData icon, String text) =>
+  static QeranNotice _danger(IconData icon, String text) =>
       QeranNotice(icon: icon, tone: QeranNoticeTone.danger, text: text);
 }

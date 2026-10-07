@@ -45,7 +45,12 @@ class _PostComposerScreenState extends State<PostComposerScreen> {
     final draft = context.read<PostDraftCubit>().state;
     if (!draft.canPublish) return;
     context.read<PostPublishCubit>().publish(
-      PostDraft(text: _text.text, images: draft.images),
+      PostDraft(
+        text: _text.text,
+        images: draft.images,
+        video: draft.video,
+        maxVideoBytes: draft.config?.maxVideoSizeBytes,
+      ),
     );
   }
 
@@ -82,7 +87,11 @@ class _PostComposerScreenState extends State<PostComposerScreen> {
           viewer: CommunityViewer.matchmaker,
         );
       case PublishStatus.refused:
-        draft.imageRefused(path: state.refusedPath, refusal: state.refusal!);
+        draft.mediaRefused(
+          path: state.refusedPath,
+          refusal: state.refusal!,
+          sizeBytes: state.refusedBytes,
+        );
       case PublishStatus.textInvalid:
         await draft.loadConfig();
       case PublishStatus.idle ||

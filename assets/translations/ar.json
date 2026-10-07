@@ -1202,7 +1202,9 @@
       "hint_no_video_with_images": "لا يمكن إضافة فيديو مع الصور",
       "hint_no_images_with_video": "لا يمكن إضافة صور مع الفيديو",
       "images_only": "يمكن إضافة صور فقط حالياً",
-      "remove_video": "إزالة الفيديو"
+      "remove_video": "إزالة الفيديو",
+      "preparing_video": "جارٍ تجهيز الفيديو… {p}٪",
+      "video_too_large": "حجم هذا الفيديو {size}، وهو أكبر من الحد المسموح ({max}). اختاري فيديو أقصر."
     }
   },
   "settings": {

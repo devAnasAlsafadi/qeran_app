@@ -8,6 +8,7 @@ import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../blocs/composer/post_draft_cubit.dart';
 import '../blocs/composer/post_publish_cubit.dart';
 import '../widgets/composer/add_composer_images.dart';
+import '../widgets/composer/add_composer_video.dart';
 import '../widgets/composer/composer_app_bar.dart';
 import '../widgets/composer/composer_body.dart';
 import '../widgets/composer/composer_dialogs.dart';
@@ -120,6 +121,7 @@ class _PostComposerScreenState extends State<PostComposerScreen> {
             focusNode: _focus,
             onRetry: _publish,
             onAddImages: () => addComposerImages(context),
+            onAddVideo: () => addComposerVideo(context),
           ),
         ),
       ),

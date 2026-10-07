@@ -11,7 +11,9 @@ import 'package:qeran/features/community/domain/entities/guidelines_acceptance.d
 import 'package:qeran/features/community/domain/entities/post_publish_outcome.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/inspect_picked_image_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/inspect_picked_video_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/publish_community_post_usecase.dart';
+import 'package:qeran/features/community/presentation/video/community_video_player.dart';
 import 'package:qeran/features/matchmaker/account/domain/usecases/get_me_usecase.dart';
 import 'package:qeran/features/matchmaker/community/presentation/blocs/composer/post_draft_cubit.dart';
 import 'package:qeran/features/matchmaker/community/presentation/blocs/composer/post_publish_cubit.dart';
@@ -21,6 +23,7 @@ import 'package:qeran/features/matchmaker/community/presentation/services/commun
 
 import '../../community/domain/publish_rig.dart';
 import '../../community/presentation/screens/guidelines_rig.dart';
+import '../../community/presentation/widgets/video/video_rig.dart';
 import '../account/matchmaker_me_fixtures.dart';
 import 'community_screen_rig.dart';
 import 'composer_media_fakes.dart';
@@ -41,8 +44,10 @@ class ComposerHarness {
       () => PostDraftCubit(
         getConfig: config,
         inspectImage: InspectPickedImageUseCase(inspector),
+        inspectVideo: InspectPickedVideoUseCase(inspector, compressor),
       ),
     );
+    sl.registerSingleton<CommunityLocalVideoPlayerFactory>(_player);
     sl.registerFactory<PostPublishCubit>(
       () => PostPublishCubit(
         publish: PublishCommunityPostUseCase(publishing.repository),
@@ -58,6 +63,16 @@ class ComposerHarness {
   final getMe = _MockGetMe();
   final publishing = PublishRig();
   final inspector = FakeInspector();
+  final compressor = FakeCompressor();
+
+  /// Every preview's player, in order.
+  final players = <FakePlayer>[];
+  CommunityVideoPlayer _player(String path) {
+    final player = FakePlayer(Uri.file(path));
+    players.add(player);
+    return player;
+  }
+
   final picker = FakePicker();
   late final status = MatchmakerGuidelinesStatus(getMe: getMe);
   late final guidelines = GuidelinesHarness(

@@ -57,3 +57,8 @@ abstract class CommunityVideoPlayer {
 /// Makes a player for a video's signed link. A plain request: the link is
 /// signed, and our token never goes to the video's host (W5).
 typedef CommunityVideoPlayerFactory = CommunityVideoPlayer Function(Uri url);
+
+/// Makes a player for a file on the phone: her video in the composer, before
+/// anything is sent (BA-D).
+typedef CommunityLocalVideoPlayerFactory =
+    CommunityVideoPlayer Function(String path);

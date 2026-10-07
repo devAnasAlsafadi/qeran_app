@@ -8,6 +8,7 @@ import '../../../../../../core/design_system/widgets/qeran_dashed_ring.dart';
 import '../../../../../../core/extensions/localization_extension.dart';
 import '../../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../../generated/locale_keys.g.dart';
+import 'composer_remove_button.dart';
 
 /// The side of a composer thumbnail and of the add tile (C5).
 const double composerTileSide = 104;
@@ -32,7 +33,10 @@ class ComposerImageTile extends StatelessWidget {
             PositionedDirectional(
               top: 0,
               end: 0,
-              child: _RemoveButton(onTap: onRemove!),
+              child: ComposerRemoveButton(
+                label: LocaleKeys.matchmaker_community_remove_image.t(context),
+                onTap: onRemove!,
+              ),
             ),
         ],
       ),
@@ -53,43 +57,6 @@ class ComposerImageTile extends StatelessWidget {
       ),
     ),
   );
-}
-
-class _RemoveButton extends StatelessWidget {
-  const _RemoveButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: LocaleKeys.matchmaker_community_remove_image.t(context),
-      child: InkResponse(
-        onTap: onTap,
-        radius: 24,
-        child: const SizedBox.square(
-          dimension: 48,
-          child: Center(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: QeranColors.overlayTintDark,
-                shape: BoxShape.circle,
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(5),
-                child: Icon(
-                  Icons.close_rounded,
-                  size: 16,
-                  color: QeranColors.paper,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// «إضافة» after her images while more fit: a dashed square (C5).

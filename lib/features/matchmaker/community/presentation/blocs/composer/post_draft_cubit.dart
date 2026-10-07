@@ -2,26 +2,31 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/features/community/domain/entities/media_refusal.dart';
 import 'package:qeran/features/community/domain/entities/picked_image.dart';
+import 'package:qeran/features/community/domain/entities/picked_video.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/inspect_picked_image_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/inspect_picked_video_usecase.dart';
 
 import 'post_draft_state.dart';
 
 export 'post_draft_state.dart';
 
-/// Her draft (C1–C11): the text, her images, and the limits both are
-/// checked against.
+/// Her draft (C1–C11): the text, her images or video, and the limits they
+/// are checked against.
 class PostDraftCubit extends Cubit<PostDraftState>
     with SafeEmit<PostDraftState> {
   PostDraftCubit({
     required GetCommunityConfigUseCase getConfig,
     required InspectPickedImageUseCase inspectImage,
+    required InspectPickedVideoUseCase inspectVideo,
   }) : _getConfig = getConfig,
        _inspectImage = inspectImage,
+       _inspectVideo = inspectVideo,
        super(const PostDraftState());
 
   final GetCommunityConfigUseCase _getConfig;
   final InspectPickedImageUseCase _inspectImage;
+  final InspectPickedVideoUseCase _inspectVideo;
 
   /// The limits as the server has them now.
   Future<void> loadConfig() async {
@@ -62,6 +67,23 @@ class PostDraftCubit extends Cubit<PostDraftState>
     );
   }
 
+  /// Her video, read from the file before anything is sent: a type the
+  /// server wouldn't take (C10) or a length over the limit (BA-A9) stays
+  /// out, and the notice says why.
+  Future<void> addVideo(String path) async {
+    final video = await _inspectVideo(path);
+    final problem = _videoProblem(video);
+    emit(
+      state.copyWith(
+        video: () => problem == null ? video : state.video,
+        notice: () => problem,
+      ),
+    );
+  }
+
+  void removeVideo() =>
+      emit(state.copyWith(video: () => null, notice: () => null));
+
   void removeImage(int index) => emit(
     state.copyWith(
       images: [...state.images]..removeAt(index),
@@ -90,6 +112,19 @@ class PostDraftCubit extends Cubit<PostDraftState>
             : const UnsupportedFile(),
       ),
     );
+  }
+
+  DraftNotice? _videoProblem(PickedVideo? video) {
+    final types = state.config?.allowedVideoTypes ?? const [];
+    if (video == null ||
+        (types.isNotEmpty && !video.container.allowedBy(types))) {
+      return const UnsupportedFile();
+    }
+    final max = state.maxVideoSeconds;
+    if (max != null && video.durationSeconds > max) {
+      return VideoTooLong(seconds: video.durationSeconds, maxSeconds: max);
+    }
+    return null;
   }
 
   DraftNotice? _problemWith(PickedImage? image) {

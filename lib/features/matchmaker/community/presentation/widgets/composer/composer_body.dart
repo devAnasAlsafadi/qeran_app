@@ -12,6 +12,7 @@ import 'composer_draft_notice.dart';
 import 'composer_images.dart';
 import 'composer_text_area.dart';
 import 'composer_toolbar.dart';
+import 'composer_video.dart';
 import 'publish_strip.dart';
 
 /// Under the composer's header: the strip when there is one (D2, D3), her
@@ -24,12 +25,14 @@ class ComposerBody extends StatelessWidget {
     required this.focusNode,
     required this.onRetry,
     required this.onAddImages,
+    required this.onAddVideo,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final VoidCallback onRetry;
   final VoidCallback onAddImages;
+  final VoidCallback onAddVideo;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +56,9 @@ class ComposerBody extends StatelessWidget {
           child: AbsorbPointer(
             absorbing: publish.busy,
             child: ComposerToolbar(
-              onImages: draft.imagesFull ? null : onAddImages,
+              draft: draft,
+              onImages: onAddImages,
+              onVideo: onAddVideo,
             ),
           ),
         ),
@@ -88,12 +93,14 @@ class ComposerBody extends StatelessWidget {
             locked: locked,
           ),
           if (draft.rejected) const _Rejected(),
-          if (draft.notice case final DraftNotice notice)
-            ComposerDraftNotice(
-              notice: notice,
-              imageTypes: draft.config?.allowedImageTypes ?? const [],
-            ),
+          if (draft.notice != null) ComposerDraftNotice(draft: draft),
           if (draft.images.isNotEmpty) _images(cubit, draft, locked),
+          if (draft.video case final video?)
+            ComposerVideo(
+              video: video,
+              maxSeconds: draft.maxVideoSeconds,
+              onRemove: locked ? null : cubit.removeVideo,
+            ),
         ],
       ),
     );

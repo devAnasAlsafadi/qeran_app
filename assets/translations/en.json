@@ -1144,7 +1144,24 @@
       "cancel_upload": "Cancel upload",
       "keep_uploading": "Keep uploading",
       "camera_denied": "The camera can’t open without your permission. You can turn it on in the phone’s settings.",
-      "photos_denied": "Your photos can’t open without your permission. You can turn it on in the phone’s settings."
+      "photos_denied": "Your photos can’t open without your permission. You can turn it on in the phone’s settings.",
+      "video": "Video",
+      "video_sheet_title": "Add a video",
+      "record_video": "Record a video",
+      "video_note": "Up to {duration}, checked when recording and when picking. The video is compressed on the phone before upload.",
+      "video_note_compressed": "The video is compressed on the phone before upload.",
+      "minutes": {
+        "one": "1 minute",
+        "other": "{n} minutes"
+      },
+      "max_duration": "Max {d}",
+      "video_too_long": "This video is {d}, longer than the {max} limit. Choose a shorter video or trim it first.",
+      "unsupported_media": "This file type isn’t supported. Use {images} images, or a video in {videos}.",
+      "hint_either": "Several images or one video",
+      "hint_no_video_with_images": "A video can’t be added with images",
+      "hint_no_images_with_video": "Images can’t be added with a video",
+      "images_only": "Only images can be added for now",
+      "remove_video": "Remove video"
     }
   },
   "settings": {

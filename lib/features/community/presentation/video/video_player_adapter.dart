@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:video_player/video_player.dart';
 
@@ -8,6 +10,12 @@ import 'community_video_player.dart';
 class VideoPlayerAdapter implements CommunityVideoPlayer {
   VideoPlayerAdapter(Uri url)
     : _controller = VideoPlayerController.networkUrl(url) {
+    _controller.addListener(_sync);
+  }
+
+  /// Her own file, in the composer's preview (BA-D).
+  VideoPlayerAdapter.file(String path)
+    : _controller = VideoPlayerController.file(File(path)) {
     _controller.addListener(_sync);
   }
 

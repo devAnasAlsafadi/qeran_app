@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:qeran/features/community/domain/entities/community_config.dart';
 import 'package:qeran/features/community/domain/entities/picked_image.dart';
+import 'package:qeran/features/community/domain/entities/picked_video.dart';
 
 /// Why her last media pick didn't all go in; it stands until her next one.
 sealed class DraftNotice extends Equatable {
@@ -41,6 +42,17 @@ final class ImageTooLarge extends DraftNotice {
   List<Object?> get props => [sizeBytes, maxBytes];
 }
 
+/// Longer than config's `maxVideoDurationSeconds` (BA-A9), checked on the
+/// file before anything is compressed or sent.
+final class VideoTooLong extends DraftNotice {
+  final int seconds;
+  final int maxSeconds;
+  const VideoTooLong({required this.seconds, required this.maxSeconds});
+
+  @override
+  List<Object?> get props => [seconds, maxSeconds];
+}
+
 /// Her draft as it stands (C1–C11, BA-A7).
 class PostDraftState extends Equatable {
   const PostDraftState({
@@ -48,6 +60,7 @@ class PostDraftState extends Equatable {
     this.config,
     this.rejected = false,
     this.images = const [],
+    this.video,
     this.notice,
   });
 
@@ -61,8 +74,9 @@ class PostDraftState extends Equatable {
   /// The filter refused the text as it stands (BA-A7); gone once she edits.
   final bool rejected;
 
-  /// Her images in her order (C5).
+  /// Her images in her order (C5), or one video (C6): never both (D11).
   final List<PickedImage> images;
+  final PickedVideo? video;
   final DraftNotice? notice;
 
   int? get maxLength => config?.postTextMaxLength;
@@ -73,11 +87,23 @@ class PostDraftState extends Equatable {
   bool get tooLong => length > (maxLength ?? length);
 
   /// «نشر» turns on: some text, within the limit. Media never stands in for
-  /// text (contract §6.2).
-  bool get canPublish => length > 0 && !tooLong;
+  /// text (contract §6.2). A draft with a video waits for its upload, which
+  /// arrives in sub-step 13.
+  bool get canPublish => length > 0 && !tooLong && video == null;
 
   /// Nothing to lose: × closes at once (C11).
-  bool get isEmpty => length == 0 && images.isEmpty;
+  bool get isEmpty => length == 0 && images.isEmpty && video == null;
+
+  /// The server offers video now (BA-A4): read fresh, false unless it says.
+  bool get videoOffered => config?.videoEnabled ?? false;
+
+  int? get maxVideoSeconds => config?.maxVideoDurationSeconds;
+
+  /// Images while there's no video and room for more (C5, C6).
+  bool get canAddImages => video == null && !imagesFull;
+
+  /// One video, offered, on a draft with no media yet (C5, C6, D11).
+  bool get canAddVideo => videoOffered && video == null && images.isEmpty;
 
   int? get maxImages => config?.maxImagesPerPost;
 
@@ -95,15 +121,17 @@ class PostDraftState extends Equatable {
     CommunityConfig? config,
     bool? rejected,
     List<PickedImage>? images,
+    PickedVideo? Function()? video,
     DraftNotice? Function()? notice,
   }) => PostDraftState(
     text: text ?? this.text,
     config: config ?? this.config,
     rejected: rejected ?? this.rejected,
     images: images ?? this.images,
+    video: video == null ? this.video : video(),
     notice: notice == null ? this.notice : notice(),
   );
 
   @override
-  List<Object?> get props => [text, config, rejected, images, notice];
+  List<Object?> get props => [text, config, rejected, images, video, notice];
 }

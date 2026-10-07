@@ -59,9 +59,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>نحتاج الوصول للكاميرا لالتقاط صورة الملف الشخصي وصور منشورات المجتمع</string>
+	<string>نحتاج الوصول للكاميرا لالتقاط صورة الملف الشخصي وصور منشورات المجتمع وفيديوهاتها</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>نحتاج الوصول للميكروفون لتسجيل صوت فيديو منشورات المجتمع</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>نحتاج الوصول لمعرض الصور لاختيار صور الملف الشخصي وصور منشورات المجتمع</string>
+	<string>نحتاج الوصول لمعرض الصور لاختيار صور الملف الشخصي وصور منشورات المجتمع وفيديوهاتها</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

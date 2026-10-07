@@ -6,6 +6,7 @@ import 'package:qeran/features/community/domain/entities/community_config.dart';
 import 'package:qeran/features/community/domain/entities/media_refusal.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/inspect_picked_image_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/inspect_picked_video_usecase.dart';
 import 'package:qeran/features/matchmaker/community/presentation/blocs/composer/post_draft_cubit.dart';
 
 import '../composer_media_fakes.dart';
@@ -22,6 +23,7 @@ void main() {
     draft = PostDraftCubit(
       getConfig: config,
       inspectImage: InspectPickedImageUseCase(inspector),
+      inspectVideo: InspectPickedVideoUseCase(inspector, FakeCompressor()),
     );
   });
   tearDown(() => draft.close());

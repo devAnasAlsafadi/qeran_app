@@ -6,17 +6,26 @@ import '../../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../../core/extensions/localization_extension.dart';
 import '../../../../../../generated/locale_keys.g.dart';
+import '../../blocs/composer/post_draft_state.dart';
 
-/// The composer's toolbar, which sits on the keyboard (C1, C2): «صور» for
-/// now; the video button and the either-or hint come with video.
+/// The composer's toolbar, which sits on the keyboard (C1, C2): «صور», and
+/// «فيديو» while the server offers video (BA-A4), each dimmed to 40 % when
+/// it can't add (C5, C6, D11), with the hint that says why at the end.
 class ComposerToolbar extends StatelessWidget {
-  const ComposerToolbar({super.key, required this.onImages});
+  const ComposerToolbar({
+    super.key,
+    required this.draft,
+    required this.onImages,
+    required this.onVideo,
+  });
 
-  /// Null when no more images fit: the button dims to 40 % (C5).
-  final VoidCallback? onImages;
+  final PostDraftState draft;
+  final VoidCallback onImages;
+  final VoidCallback onVideo;
 
   @override
   Widget build(BuildContext context) {
+    final hint = _hint(draft);
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: QeranColors.paper,
@@ -30,11 +39,9 @@ class ComposerToolbar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: QeranSpacing.s12),
             child: Row(
               children: [
-                _ToolButton(
-                  icon: Icons.photo_library_rounded,
-                  label: LocaleKeys.matchmaker_community_images.t(context),
-                  onTap: onImages,
-                ),
+                ..._buttons(context),
+                const SizedBox(width: QeranSpacing.s8),
+                Expanded(child: hint == null ? const SizedBox() : _Hint(hint)),
               ],
             ),
           ),
@@ -42,6 +49,54 @@ class ComposerToolbar extends StatelessWidget {
       ),
     );
   }
+
+  List<Widget> _buttons(BuildContext context) => [
+    _ToolButton(
+      icon: Icons.photo_library_rounded,
+      label: LocaleKeys.matchmaker_community_images.t(context),
+      onTap: draft.canAddImages ? onImages : null,
+    ),
+    if (draft.videoOffered) ...[
+      const SizedBox(width: QeranSpacing.s8),
+      _ToolButton(
+        icon: Icons.videocam_rounded,
+        label: LocaleKeys.matchmaker_community_video.t(context),
+        onTap: draft.canAddVideo ? onVideo : null,
+      ),
+    ],
+  ];
+
+  /// Images only for now (BA-A4, A5); one or the other when both are there
+  /// (D11). Nothing while the limits haven't been read: nothing is known.
+  static String? _hint(PostDraftState draft) {
+    if (draft.config == null) return null;
+    if (!draft.videoOffered) return LocaleKeys.matchmaker_community_images_only;
+    if (draft.images.isNotEmpty) {
+      return LocaleKeys.matchmaker_community_hint_no_video_with_images;
+    }
+    if (draft.video != null) {
+      return LocaleKeys.matchmaker_community_hint_no_images_with_video;
+    }
+    return LocaleKeys.matchmaker_community_hint_either;
+  }
+}
+
+class _Hint extends StatelessWidget {
+  const _Hint(this.keyName);
+
+  final String keyName;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    keyName.t(context),
+    textAlign: TextAlign.end,
+    maxLines: 2,
+    overflow: TextOverflow.ellipsis,
+    style: QeranTypography.caption.copyWith(
+      color: QeranColors.inkMuted,
+      fontWeight: FontWeight.w600,
+    ),
+  );
 }
 
 /// A soft-filled tool, wine icon and label, 48 high.

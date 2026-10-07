@@ -5,6 +5,8 @@ import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/domain/usecases/get_my_community_posts_usecase.dart';
 import 'package:qeran/features/community/presentation/blocs/guidelines/community_guidelines_cubit.dart';
+import 'package:qeran/features/community/presentation/video/community_video_player.dart';
+import 'package:qeran/features/community/presentation/video/video_player_adapter.dart';
 
 import '../../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../presentation/blocs/composer/post_draft_cubit.dart';
@@ -54,11 +56,24 @@ void _initPosting() {
     ),
     instanceName: CommunityViewer.matchmaker.name,
   );
-  // Her composer: the phone's picker and camera, the draft against fresh
-  // limits, and its publishing.
+  _initComposer();
+}
+
+/// Her composer: the phone's picker and camera, her video's preview, the
+/// draft against fresh limits, and its publishing.
+void _initComposer() {
   sl.registerLazySingleton<CommunityMediaPicker>(
     ImagePickerCommunityMediaPicker.new,
   );
-  sl.registerFactory(() => PostDraftCubit(getConfig: sl(), inspectImage: sl()));
+  sl.registerLazySingleton<CommunityLocalVideoPlayerFactory>(
+    () => VideoPlayerAdapter.file,
+  );
+  sl.registerFactory(
+    () => PostDraftCubit(
+      getConfig: sl(),
+      inspectImage: sl(),
+      inspectVideo: sl(),
+    ),
+  );
   sl.registerFactory(() => PostPublishCubit(publish: sl()));
 }

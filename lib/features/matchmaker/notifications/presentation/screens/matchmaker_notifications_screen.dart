@@ -6,17 +6,15 @@ import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
-import '../../../../../core/routes/navigation_manager.dart';
-import '../../../../../core/routes/route_name.dart';
 import '../../../../../core/state/paginated_list_state.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import '../../../../../generated/locale_keys.g.dart';
-import '../../../conversations/domain/entities/matchmaker_conversation.dart';
 import '../../../shared/data/matchmaker_notification_router.dart';
 import '../../domain/entities/matchmaker_notification.dart';
 import '../blocs/matchmaker_notification_read_cubit.dart';
 import '../blocs/matchmaker_notifications_cubit.dart';
+import '../routing/open_notified.dart';
 import '../widgets/matchmaker_notifications_list.dart';
 
 /// The matchmaker notification inbox (F5). Paginated list backed by
@@ -94,20 +92,8 @@ class _MatchmakerNotificationsScreenState
         return;
       case IgnoreDeepLink():
         return;
-      case OpenUserChat(:final conversationId, :final senderName):
-        NavigationManager.navigateTo(
-          context,
-          RouteNames.matchmakerUserChat,
-          arguments: MatchmakerConversation(
-            userId: '',
-            fullName: senderName,
-            profileImageUrl: null,
-            conversationId: conversationId,
-            lastMessageAt: null,
-            lastMessagePreview: null,
-            unreadCount: 0,
-          ),
-        );
+      case OpenUserChat():
+        openNotifiedChat(context, link);
     }
   }
 
@@ -124,23 +110,19 @@ class _MatchmakerNotificationsScreenState
         appBar: QeranAppBar(
           title: LocaleKeys.matchmaker_notifications_title.t(context),
         ),
-        body: SafeArea(
-          top: false,
-          child:
-              BlocListener<
-                MatchmakerNotificationsCubit,
-                PaginatedListState<MatchmakerNotification>
-              >(
-                listenWhen: (prev, curr) =>
-                    prev.items.length != curr.items.length,
-                listener: (_, state) => _rememberNewest(state.items),
-                child: MatchmakerNotificationsList(
-                  isArabic: isArabic,
-                  onTap: _onTap,
-                ),
-              ),
-        ),
+        body: SafeArea(top: false, child: _rows(isArabic)),
       ),
     );
   }
+
+  /// The rows, remembering the newest loaded for the way out.
+  Widget _rows(bool isArabic) =>
+      BlocListener<
+        MatchmakerNotificationsCubit,
+        PaginatedListState<MatchmakerNotification>
+      >(
+        listenWhen: (prev, curr) => prev.items.length != curr.items.length,
+        listener: (_, state) => _rememberNewest(state.items),
+        child: MatchmakerNotificationsList(isArabic: isArabic, onTap: _onTap),
+      );
 }

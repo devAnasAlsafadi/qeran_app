@@ -17,17 +17,20 @@ import '../../../../../community/presentation/widgets/post_card/media_geometry.d
 import '../../../../../community/presentation/widgets/video/video_layers.dart';
 import 'composer_remove_button.dart';
 
-/// The height of the composer's video frame, unless it's wider than tall.
+/// The composer's video frame's height, while that fits the width.
 const double composerPreviewHeight = 260;
 
-/// BA-D: the feed's clamp (4:5 to 16:9) at [composerPreviewHeight], centred;
-/// a frame wider than tall takes the full width instead. The ratio is the
-/// local file's, after rotation — never the server's (K19).
+/// BA-D: the feed's clamp (4:5 to 16:9) at [composerPreviewHeight], centred,
+/// so the text stays in view above it; the full width at its ratio once that
+/// would be wider than there is room for, and always at 16:9 (D3). The ratio
+/// is the local file's, after rotation — never the server's (K19).
 Size composerPreviewSize(double maxWidth, int width, int height) {
   final aspect = clampedAspect(width, height);
-  if (aspect > 1) return Size(maxWidth, maxWidth / aspect);
-  final side = composerPreviewHeight * aspect;
-  return Size(math.min(side, maxWidth), composerPreviewHeight);
+  final wide = composerPreviewHeight * aspect;
+  if (aspect < kWidestMediaAspect && wide <= maxWidth) {
+    return Size(wide, composerPreviewHeight);
+  }
+  return Size(maxWidth, maxWidth / aspect);
 }
 
 /// Her picked video (C6, BA-D1–D3): its first frame contained on wine, the

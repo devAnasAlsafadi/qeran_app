@@ -1176,7 +1176,16 @@
       "preparing_video": "Preparing your video… {p}%",
       "video_too_large": "This video is {size}, over the {max} limit. Choose a shorter video.",
       "video_unavailable": "The video service is unavailable right now. Try again in a moment.",
-      "published_processing": "Uploaded. Members will see it once the video finishes processing."
+      "published_processing": "Uploaded. Members will see it once the video finishes processing.",
+      "reports_title": "Reports",
+      "reports_intro": "Reports on comments and replies in your posts. Keep the item or delete it; either way the flag is cleared.",
+      "report_kind_comment": "Comment",
+      "report_kind_reply": "Reply",
+      "report_on": "On: {snippet}",
+      "report_keep": "Keep",
+      "reports_empty_title": "No reports waiting for you",
+      "reports_empty_body": "Reports on comments and replies in your posts will appear here.",
+      "reports_error": "Couldn’t load reports"
     }
   },
   "settings": {

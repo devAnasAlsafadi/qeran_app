@@ -20,11 +20,13 @@ const commentFlagDecoration = BoxDecoration(
 
 /// «تم الإبلاغ · {n} · {reason}» over a reported row (E1, E2): the count in
 /// B1 forms and the reason reported most. A reason this build doesn't know
-/// leaves the count alone (S18).
+/// leaves the count alone (S18). «البلاغات» puts the time at its end
+/// ([trailing], Q10).
 class CommentFlagLine extends StatelessWidget {
-  const CommentFlagLine({super.key, required this.flag});
+  const CommentFlagLine({super.key, required this.flag, this.trailing});
 
   final CommunityFlag flag;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,7 @@ class CommentFlagLine extends StatelessWidget {
             ),
           ),
         ),
+        ?trailing,
       ],
     );
   }

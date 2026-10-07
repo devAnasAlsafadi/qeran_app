@@ -1108,6 +1108,15 @@ abstract class  LocaleKeys {
   static const matchmaker_community_video_too_large = 'matchmaker.community.video_too_large';
   static const matchmaker_community_video_unavailable = 'matchmaker.community.video_unavailable';
   static const matchmaker_community_published_processing = 'matchmaker.community.published_processing';
+  static const matchmaker_community_reports_title = 'matchmaker.community.reports_title';
+  static const matchmaker_community_reports_intro = 'matchmaker.community.reports_intro';
+  static const matchmaker_community_report_kind_comment = 'matchmaker.community.report_kind_comment';
+  static const matchmaker_community_report_kind_reply = 'matchmaker.community.report_kind_reply';
+  static const matchmaker_community_report_on = 'matchmaker.community.report_on';
+  static const matchmaker_community_report_keep = 'matchmaker.community.report_keep';
+  static const matchmaker_community_reports_empty_title = 'matchmaker.community.reports_empty_title';
+  static const matchmaker_community_reports_empty_body = 'matchmaker.community.reports_empty_body';
+  static const matchmaker_community_reports_error = 'matchmaker.community.reports_error';
   static const matchmaker_community = 'matchmaker.community';
   static const matchmaker = 'matchmaker';
   static const settings_account_management = 'settings.account_management';

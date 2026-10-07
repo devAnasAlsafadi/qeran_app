@@ -13,6 +13,7 @@ import '../presentation/blocs/composer/post_draft_cubit.dart';
 import '../presentation/blocs/composer/post_publish_cubit.dart';
 import '../presentation/blocs/guidelines/matchmaker_guidelines_status.dart';
 import '../presentation/blocs/my_posts/my_posts_cubit.dart';
+import '../presentation/blocs/reports/community_reports_cubit.dart';
 import '../presentation/services/community_media_picker.dart';
 
 /// Her Community screens (Phase 3). Their data and domain are Community's,
@@ -20,6 +21,7 @@ import '../presentation/services/community_media_picker.dart';
 /// `initMatchmakerDependencies`.
 void initMatchmakerCommunityDependencies() {
   _initPosting();
+  _initReports();
 
   // One per Community screen; opening «منشوراتي» clears her comments badge,
   // and her processing posts are watched until they're done.
@@ -33,6 +35,19 @@ void initMatchmakerCommunityDependencies() {
           sl<BadgesCubit>().markSeen(BadgeTabKeys.communityComments),
       // Her shell keeps the connection for as long as she's signed in.
       statusChanges: sl<MatchmakerRealtimePort>().postStatusChanges,
+    ),
+  );
+}
+
+/// «البلاغات»: one per opening; what she keeps or deletes reads her badges
+/// again (S16).
+void _initReports() {
+  sl.registerFactory(
+    () => CommunityReportsCubit(
+      getFlags: sl(),
+      dismissFlag: sl(),
+      deleteComment: sl(),
+      onFlagCleared: () => sl<BadgesCubit>().refresh(),
     ),
   );
 }

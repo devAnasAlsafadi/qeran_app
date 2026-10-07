@@ -6,12 +6,15 @@ import 'package:qeran/core/domain/upload.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/features/community/data/datasources/community_author_refusing_datasource.dart';
 import 'package:qeran/features/community/data/datasources/community_author_remote_datasource_impl.dart';
+import 'package:qeran/features/community/domain/ports/resumable_uploader.dart';
 
 import '../../fixtures/community_fixtures.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
 
 class _MockUploader extends Mock implements ProgressUploader {}
+
+class _MockVideoUploader extends Mock implements ResumableUploader {}
 
 const _file = UploadFile(
   path: '/tmp/scaled_IMG.heic',
@@ -32,6 +35,7 @@ void main() {
     ds = CommunityAuthorRemoteDataSourceImpl(
       apiConsumer: api,
       uploader: uploader,
+      videoUploader: _MockVideoUploader(),
     );
   });
 

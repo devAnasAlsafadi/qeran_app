@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/progress_uploader.dart';
@@ -34,6 +36,9 @@ void main() {
       'and her four use cases', () {
     sl.registerSingleton<ApiConsumer>(_MockApiConsumer());
     sl.registerSingleton<ProgressUploader>(_MockUploader());
+    sl.registerSingleton<http.Client>(
+      MockClient((_) async => http.Response('', 404)),
+    );
     sl.registerSingleton(AccountScope());
     sl.registerLazySingleton(
       () => ProfileGateCubit(getMyProfile: _MockGetMyProfile()),

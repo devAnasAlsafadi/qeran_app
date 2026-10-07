@@ -7,9 +7,11 @@ import '../data/datasources/community_author_remote_datasource_impl.dart';
 import '../data/datasources/community_remote_datasource.dart';
 import '../data/datasources/community_remote_datasource_impl.dart';
 import '../data/media/file_media_inspector.dart';
+import '../data/media/tus_uploader.dart';
 import '../data/media/video_compress_adapter.dart';
 import '../data/repositories/community_author_repository_impl.dart';
 import '../domain/ports/media_inspector.dart';
+import '../domain/ports/resumable_uploader.dart';
 import '../domain/ports/video_compressor.dart';
 import '../domain/repositories/community_author_repository.dart';
 import '../domain/usecases/delete_community_post_usecase.dart';
@@ -36,8 +38,9 @@ void initCommunityAuthorDependencies() {
   sl.registerLazySingleton(() => GetCommunityFlagsUseCase(sl()));
   sl.registerLazySingleton(() => DismissCommunityFlagUseCase(sl()));
 
-  // Her composer's media: what a picked file really is, and the phone's
-  // video compressor.
+  // Her composer's media: what a picked file really is, the phone's video
+  // compressor, and the tus client that sends her video to Bunny.
+  sl.registerLazySingleton<ResumableUploader>(() => TusUploader(client: sl()));
   sl.registerLazySingleton<MediaInspector>(() => const FileMediaInspector());
   sl.registerLazySingleton<VideoCompressor>(VideoCompressAdapter.new);
   sl.registerLazySingleton(() => InspectPickedImageUseCase(sl()));
@@ -55,5 +58,9 @@ CommunityAuthorRemoteDataSource _dataSource() {
       !kReleaseMode &&
       sl<CommunityRemoteDataSource>() is! CommunityRemoteDataSourceImpl;
   if (mock) return const CommunityAuthorRefusingDataSource();
-  return CommunityAuthorRemoteDataSourceImpl(apiConsumer: sl(), uploader: sl());
+  return CommunityAuthorRemoteDataSourceImpl(
+    apiConsumer: sl(),
+    uploader: sl(),
+    videoUploader: sl(),
+  );
 }

@@ -20,6 +20,7 @@ abstract final class CommunityEndPoints {
 
   // Her media, uploaded before the post is made (contract §6.7–6.9).
   static const String mediaImages = 'community/media/images';
+  static const String mediaVideos = 'community/media/videos';
   static String media(String mediaId) => 'community/media/$mediaId';
 
   static const String config = 'community/config';

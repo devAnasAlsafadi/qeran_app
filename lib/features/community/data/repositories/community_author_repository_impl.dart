@@ -8,7 +8,9 @@ import '../../domain/entities/community_page.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_post_change.dart';
 import '../../domain/entities/media_upload_outcome.dart';
+import '../../domain/entities/picked_video.dart';
 import '../../domain/entities/post_publish_outcome.dart';
+import '../../domain/entities/video_upload_grant.dart';
 import '../../domain/repositories/community_author_repository.dart';
 import '../datasources/community_author_remote_datasource.dart';
 import '../error_codes.dart';
@@ -43,12 +45,14 @@ class CommunityAuthorRepositoryImpl
     required String text,
     required String clientRequestId,
     List<String> imageMediaIds = const [],
+    String? videoMediaId,
   }) async {
     final result = await executeApiCall(
       () async => (await _dataSource.createPost(
         text: text,
         clientRequestId: clientRequestId,
         imageMediaIds: imageMediaIds,
+        videoMediaId: videoMediaId,
       )).toEntity(),
     );
     result.fold((_) {}, (post) => _changes.add(CommunityPostCreated(post)));
@@ -84,6 +88,44 @@ class CommunityAuthorRepositoryImpl
           _dataSource.uploadImage(file, onProgress: onProgress, cancel: cancel),
     ),
   );
+
+  @override
+  Future<Either<Failure, MediaUploadOutcome<VideoUploadGrant>>>
+  requestVideoUpload(PickedVideo file, {required int durationSeconds}) async =>
+      mediaUploadOutcomeOf(
+        await executeApiCall(
+          () async => (await _dataSource.requestVideoUpload(
+            sizeBytes: file.info.sizeBytes,
+            durationSeconds: durationSeconds,
+            contentType: file.container.mimeType,
+            width: file.info.width,
+            height: file.info.height,
+          )).toEntity(),
+        ),
+      );
+
+  @override
+  Future<Either<Failure, Unit>> uploadVideo(
+    VideoUploadGrant grant,
+    PickedVideo file, {
+    Uri? resumeAt,
+    void Function(Uri uploadUrl)? onCreated,
+    UploadProgress? onProgress,
+    UploadCancel? cancel,
+  }) => executeApiCall(() async {
+    await _dataSource.uploadVideo(
+      path: file.path,
+      length: file.info.sizeBytes,
+      endpoint: grant.endpoint,
+      headers: grant.headers,
+      metadata: grant.metadata,
+      resumeAt: resumeAt,
+      onCreated: onCreated,
+      onProgress: onProgress,
+      cancel: cancel,
+    );
+    return unit;
+  });
 
   @override
   Future<Either<Failure, Unit>> deleteMedia(String mediaId) =>

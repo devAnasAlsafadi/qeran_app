@@ -11,6 +11,7 @@ import '../presentation/blocs/composer/post_draft_cubit.dart';
 import '../presentation/blocs/composer/post_publish_cubit.dart';
 import '../presentation/blocs/guidelines/matchmaker_guidelines_status.dart';
 import '../presentation/blocs/my_posts/my_posts_cubit.dart';
+import '../presentation/services/community_media_picker.dart';
 
 /// Her Community screens (Phase 3). Their data and domain are Community's,
 /// registered with it; these are her cubits. Called by
@@ -33,7 +34,11 @@ void initMatchmakerCommunityDependencies() {
     ),
     instanceName: CommunityViewer.matchmaker.name,
   );
-  // Her composer: the draft against fresh limits, and its publishing.
+  // Her composer: the phone's picker and camera, the draft against fresh
+  // limits, and its publishing.
+  sl.registerLazySingleton<CommunityMediaPicker>(
+    ImagePickerCommunityMediaPicker.new,
+  );
   sl.registerFactory(() => PostDraftCubit(getConfig: sl()));
   sl.registerFactory(() => PostPublishCubit(createPost: sl()));
 

@@ -1,5 +1,6 @@
 import 'package:qeran/core/domain/upload.dart';
 import 'package:qeran/features/community/domain/entities/picked_image.dart';
+import 'package:qeran/features/community/domain/entities/picked_video.dart';
 import 'package:qeran/features/community/domain/ports/media_inspector.dart';
 import 'package:qeran/features/matchmaker/community/presentation/services/community_media_picker.dart';
 
@@ -11,6 +12,13 @@ class FakeInspector implements MediaInspector {
   @override
   Future<PickedImage?> inspectImage(String path) async =>
       files.containsKey(path) ? files[path] : jpeg(path);
+
+  /// Every video is an MP4 unless [videos] says otherwise.
+  final videos = <String, VideoContainer?>{};
+
+  @override
+  Future<VideoContainer?> videoContainerOf(String path) async =>
+      videos.containsKey(path) ? videos[path] : VideoContainer.mp4;
 }
 
 /// A picked JPEG at [path], [size] bytes.

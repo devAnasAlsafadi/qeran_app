@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -11,6 +12,10 @@
          pre-13 SAF fallback only. -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+    <!-- video_compress declares a storage write it never needs: it writes only to
+         the app's own external files folder, which needs no permission. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:node="remove" />
     <!-- Google Play Billing — required by RevenueCat for in-app purchases. -->
     <uses-permission android:name="com.android.vending.BILLING" />
 

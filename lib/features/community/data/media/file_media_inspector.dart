@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:qeran/core/domain/upload.dart';
 
 import '../../domain/entities/picked_image.dart';
+import '../../domain/entities/picked_video.dart';
 import '../../domain/ports/media_inspector.dart';
 
 /// [MediaInspector] over the file itself: its first eight bytes say what it
@@ -30,9 +31,18 @@ class FileMediaInspector implements MediaInspector {
     }
   }
 
-  Future<List<int>> _head(File file) async {
+  @override
+  Future<VideoContainer?> videoContainerOf(String path) async {
+    try {
+      return videoContainerFrom(await _head(File(path), 12));
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  Future<List<int>> _head(File file, [int length = 8]) async {
     final bytes = <int>[];
-    await for (final chunk in file.openRead(0, 8)) {
+    await for (final chunk in file.openRead(0, length)) {
       bytes.addAll(chunk);
     }
     return bytes;
@@ -51,4 +61,16 @@ ImageFormat? imageFormatOf(List<int> head) {
   if (startsWith(_jpeg)) return ImageFormat.jpeg;
   if (startsWith(_png)) return ImageFormat.png;
   return null;
+}
+
+/// An ISO media file's `ftyp` box names its brand at bytes 8–11: `qt  ` is
+/// QuickTime (a MOV); 3GP brands are refused; any other brand (`isom`,
+/// `mp42`, `avc1`…) is MP4. No `ftyp` at bytes 4–7: not a video we take.
+VideoContainer? videoContainerFrom(List<int> head) {
+  if (head.length < 12) return null;
+  if (String.fromCharCodes(head.sublist(4, 8)) != 'ftyp') return null;
+  final brand = String.fromCharCodes(head.sublist(8, 12));
+  if (brand == 'qt  ') return VideoContainer.quickTime;
+  if (brand.startsWith('3g')) return null;
+  return VideoContainer.mp4;
 }

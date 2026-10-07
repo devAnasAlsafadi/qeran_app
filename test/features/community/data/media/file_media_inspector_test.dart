@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/community/data/media/file_media_inspector.dart';
 import 'package:qeran/features/community/domain/entities/picked_image.dart';
+import 'package:qeran/features/community/domain/entities/picked_video.dart';
 
 void main() {
   late Directory dir;
@@ -57,5 +58,44 @@ void main() {
     expect(ImageFormat.jpeg.allowedBy(['png']), isFalse);
     expect(ImageFormat.png.allowedBy(['jpg', 'jpeg']), isFalse);
     expect(ImageFormat.png.allowedBy(['png']), isTrue);
+  });
+
+  List<int> box(String brand) => [0, 0, 0, 32, ...'ftyp$brand'.codeUnits, 0];
+
+  test('the container of a video by its ftyp brand, whatever its name: MP4 or '
+      'QuickTime', () async {
+    final mp4 = write('clip.mov', box('isom'));
+    final mov = write('clip.mp4', box('qt  '));
+    final avc = write('clip', box('mp42'));
+
+    expect(await inspector.videoContainerOf(mp4), VideoContainer.mp4);
+    expect(await inspector.videoContainerOf(mov), VideoContainer.quickTime);
+    expect(await inspector.videoContainerOf(avc), VideoContainer.mp4);
+  });
+
+  test(
+    '3GP, no ftyp box, too short, or missing: not a video we take',
+    () async {
+      expect(
+        await inspector.videoContainerOf(write('a.3gp', box('3gp4'))),
+        isNull,
+      );
+      expect(
+        await inspector.videoContainerOf(
+          write('a.jpg', [0xFF, 0xD8, 0xFF, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        ),
+        isNull,
+      );
+      expect(
+        await inspector.videoContainerOf(write('short.mp4', [0, 0, 0])),
+        isNull,
+      );
+      expect(await inspector.videoContainerOf('${dir.path}/gone.mp4'), isNull);
+    },
+  );
+
+  test('the video types config allows', () {
+    expect(VideoContainer.mp4.allowedBy(['mp4', 'mov']), isTrue);
+    expect(VideoContainer.quickTime.allowedBy(['mp4']), isFalse);
   });
 }

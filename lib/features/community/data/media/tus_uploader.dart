@@ -1,12 +1,12 @@
 import 'package:http/http.dart' as http;
 import 'package:qeran/core/api/http_errors.dart';
+import 'package:qeran/core/api/upload_abort.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/domain/upload.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 
 import '../../domain/ports/resumable_uploader.dart';
 import 'tus_upload.dart';
-import 'upload_abort.dart';
 
 /// [ResumableUploader] over `http`: our own small tus 1.0.0 client rather
 /// than `tus_client_dart`, which builds its own `http.Client` and was last

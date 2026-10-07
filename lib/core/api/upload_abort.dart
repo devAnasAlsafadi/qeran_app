@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:qeran/core/domain/upload.dart';
-import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../domain/upload.dart';
+import '../errors/exceptions.dart';
+
 /// One upload's way to stop: her cancel, or nothing moving for the stall
-/// time. Once it fired, it explains whatever the client threw. The same as
-/// `HttpProgressUploader`'s, which is private to its file (one copy should
-/// move to `core/api` when that file is next touched), except that a cancel
+/// time. Once it fired, it explains whatever the client threw. A cancel
 /// made before the upload started has already fired: `whenCancelled` would
-/// only say so after the first request went out.
+/// only say so after the first request went out. Shared by
+/// `HttpProgressUploader` and the tus client.
 class UploadAbort {
   UploadAbort(UploadCancel? cancel, this._stall) {
     if (cancel?.isCancelled ?? false) _fire(cancelled: true);

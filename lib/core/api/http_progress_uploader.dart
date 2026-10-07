@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:http/http.dart' as http;
-import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../app_logger.dart';
 import '../domain/upload.dart';
@@ -12,6 +9,7 @@ import 'http_errors.dart';
 import 'http_request_context.dart';
 import 'http_response_handler.dart';
 import 'progress_uploader.dart';
+import 'upload_abort.dart';
 
 /// [ProgressUploader] over `http`: the multipart body is streamed through a
 /// byte counter, and stops on her cancel or when nothing moves for
@@ -40,10 +38,10 @@ class HttpProgressUploader implements ProgressUploader {
   }) async {
     final uri = Uri.parse('${EndPoints.baseUrl}$path');
     AppLogger.info('POST (upload) $uri', tag: 'HTTP');
-    final abort = _UploadAbort(cancel, stallTimeout);
+    final abort = UploadAbort(cancel, stallTimeout);
     try {
       await context.ensureOnline();
-      if (cancel?.isCancelled ?? false) throw const UploadCancelledException();
+      abort.throwIfFired();
       final request = await _request(uri, fieldName, file, abort, onProgress);
       final response = await http.Response.fromStream(
         await client.send(request),
@@ -62,7 +60,7 @@ class HttpProgressUploader implements ProgressUploader {
     Uri uri,
     String fieldName,
     UploadFile file,
-    _UploadAbort abort,
+    UploadAbort abort,
     UploadProgress? onProgress,
   ) async {
     final multipart = http.MultipartRequest('POST', uri)
@@ -103,44 +101,4 @@ class HttpProgressUploader implements ProgressUploader {
     AppLogger.error('POST (upload) $uri failed', error: e, tag: 'HTTP');
     return ServerException(message: transportErrorMessage(e));
   }
-}
-
-/// One upload's way to stop: her cancel, or nothing moving for the stall
-/// time. Once it fired, it explains whatever the client threw.
-class _UploadAbort {
-  _UploadAbort(UploadCancel? cancel, this._stall) {
-    cancel?.whenCancelled.then((_) => _fire(cancelled: true));
-    alive();
-  }
-
-  final Duration _stall;
-  final _trigger = Completer<void>();
-  Timer? _timer;
-  bool _cancelled = false;
-
-  Future<void> get trigger => _trigger.future;
-
-  /// Something moved: the stall clock starts again.
-  void alive() {
-    if (_trigger.isCompleted) return;
-    _timer?.cancel();
-    _timer = Timer(_stall, () => _fire(cancelled: false));
-  }
-
-  void _fire({required bool cancelled}) {
-    if (_trigger.isCompleted) return;
-    _cancelled = cancelled;
-    _timer?.cancel();
-    _trigger.complete();
-  }
-
-  /// Her cancel, or a stall's timeout; null while it hasn't fired.
-  Exception? explain() {
-    if (!_trigger.isCompleted) return null;
-    return _cancelled
-        ? const UploadCancelledException()
-        : ServerException(message: LocaleKeys.errors_timeout);
-  }
-
-  void dispose() => _timer?.cancel();
 }

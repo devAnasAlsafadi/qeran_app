@@ -11,39 +11,52 @@ mixin BaseRepository {
     try {
       final result = await apiCall();
       return Right(result);
-    } on DailyViewsExceededException catch (e) {
-      // Typed daily-view cap — must map before the generic ServerException
-      // catch (it's a subtype) so the resetAt survives to the cubit.
-      AppLogger.info('Daily views exceeded', tag: 'REPO');
-      return Left(DailyViewsExceededFailure(resetAt: e.resetAt));
-    } on OfflineException {
-      AppLogger.warning('Offline request', tag: 'REPO');
-      return const Left(OfflineFailure());
-    } on UploadCancelledException {
-      AppLogger.info('Upload cancelled', tag: 'REPO');
-      return const Left(UploadCancelledFailure());
-    } on CodedServerException catch (e) {
-      // The backend commonly reports business failures inside an HTTP 200
-      // envelope. Preserve its machine-readable code so feature cubits can
-      // distinguish e.g. UNAUTHORIZED from a generic server failure.
-      AppLogger.error('Coded server error', error: e, tag: 'REPO');
-      return Left(
-        CodedServerFailure(
-          message: e.message,
-          errorCode: e.errorCode,
-          statusCode: e.statusCode,
-          data: e.data,
-        ),
-      );
-    } on ServerException catch (e) {
-      AppLogger.error('Server error', error: e, tag: 'REPO');
-      return Left(ServerFailure(message: e.message));
-    } on AuthException catch (e) {
-      AppLogger.error('Auth error', error: e, tag: 'REPO');
-      return Left(AuthFailure(message: e.message));
     } catch (e) {
-      AppLogger.error('Unexpected error', error: e, tag: 'REPO');
-      return Left(ServerFailure(message: LocaleKeys.errors_unexpected));
+      return Left(_failureOf(e));
     }
   }
+}
+
+/// What a call threw, as the failure the cubits branch on — logged.
+Failure _failureOf(Object e) {
+  if (e is DailyViewsExceededException) {
+    // Typed daily-view cap — must map before the generic ServerException
+    // (it's a subtype) so the resetAt survives to the cubit.
+    AppLogger.info('Daily views exceeded', tag: 'REPO');
+    return DailyViewsExceededFailure(resetAt: e.resetAt);
+  }
+  if (e is OfflineException) {
+    AppLogger.warning('Offline request', tag: 'REPO');
+    return const OfflineFailure();
+  }
+  if (e is UploadCancelledException) {
+    AppLogger.info('Upload cancelled', tag: 'REPO');
+    return const UploadCancelledFailure();
+  }
+  return _serverFailureOf(e);
+}
+
+Failure _serverFailureOf(Object e) {
+  if (e is CodedServerException) {
+    // The backend commonly reports business failures inside an HTTP 200
+    // envelope. Preserve its machine-readable code so feature cubits can
+    // distinguish e.g. UNAUTHORIZED from a generic server failure.
+    AppLogger.error('Coded server error', error: e, tag: 'REPO');
+    return CodedServerFailure(
+      message: e.message,
+      errorCode: e.errorCode,
+      statusCode: e.statusCode,
+      data: e.data,
+    );
+  }
+  if (e is ServerException) {
+    AppLogger.error('Server error', error: e, tag: 'REPO');
+    return ServerFailure(message: e.message);
+  }
+  if (e is AuthException) {
+    AppLogger.error('Auth error', error: e, tag: 'REPO');
+    return AuthFailure(message: e.message);
+  }
+  AppLogger.error('Unexpected error', error: e, tag: 'REPO');
+  return ServerFailure(message: LocaleKeys.errors_unexpected);
 }

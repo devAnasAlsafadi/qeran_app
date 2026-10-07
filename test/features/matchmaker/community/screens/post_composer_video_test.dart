@@ -92,10 +92,14 @@ void main() {
         'recording is told the cap', (tester) async {
       await startComposer(tester, h, locale: locale);
       expect(find.text(t.either), findsOneWidget);
+      // The boards' outlined glyphs (sweep 18.9).
+      expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.videocam_outlined), findsOneWidget);
 
       await tapAndSettle(tester, t.video);
       expect(find.text(t.sheet), findsOneWidget);
       expect(find.text(t.gallery), findsOneWidget);
+      expect(find.byIcon(Icons.video_library_outlined), findsOneWidget);
       expect(find.text(t.note), findsOneWidget);
       await tapAndSettle(tester, t.record);
 

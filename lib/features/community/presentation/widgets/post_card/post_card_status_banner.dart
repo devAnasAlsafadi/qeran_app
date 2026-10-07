@@ -80,7 +80,11 @@ class _Failed extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_rounded, size: 20, color: QeranColors.danger),
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 20,
+            color: QeranColors.danger,
+          ),
           QeranSpacing.hs8,
           Expanded(child: _words(context)),
           QeranButton(

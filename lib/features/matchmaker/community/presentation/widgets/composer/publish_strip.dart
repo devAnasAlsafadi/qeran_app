@@ -30,7 +30,7 @@ class PublishStrip extends StatelessWidget {
       ground: QeranColors.danger08,
       edge: QeranColors.danger40,
       leading: const Icon(
-        Icons.error_rounded,
+        Icons.error_outline_rounded,
         size: 22,
         color: QeranColors.danger,
       ),

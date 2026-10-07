@@ -23,12 +23,12 @@ Future<ComposerMediaSource?> chooseMediaSource(
   note: note,
   options: [
     QeranOption(
-      icon: video ? Icons.video_library_rounded : Icons.photo_library_rounded,
+      icon: video ? Icons.video_library_outlined : Icons.photo_library_outlined,
       label: LocaleKeys.matchmaker_community_from_gallery.t(context),
       value: ComposerMediaSource.gallery,
     ),
     QeranOption(
-      icon: video ? Icons.videocam_rounded : Icons.photo_camera_rounded,
+      icon: video ? Icons.videocam_outlined : Icons.photo_camera_outlined,
       label: cameraLabel,
       value: ComposerMediaSource.camera,
     ),

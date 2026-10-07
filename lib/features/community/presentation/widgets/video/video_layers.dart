@@ -163,7 +163,7 @@ class VideoProcessingFailed extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const Icon(
-          Icons.videocam_off_rounded,
+          Icons.videocam_off_outlined,
           size: 32,
           color: QeranColors.gold,
         ),

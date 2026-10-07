@@ -74,7 +74,9 @@ void main() {
       expect(find.text(t.failed), findsNWidgets(2));
       expect(find.text(t.failedBody), findsOneWidget);
       expect(find.text(t.delete), findsOneWidget);
-      expect(find.byIcon(Icons.videocam_off_rounded), findsOneWidget);
+      // The boards' outlined glyphs (sweep 18.9).
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.videocam_off_outlined), findsOneWidget);
       expect(find.byType(VideoPlayDisc), findsNothing);
       expect(find.text(t.like), findsNothing);
     });

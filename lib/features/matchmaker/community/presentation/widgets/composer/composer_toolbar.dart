@@ -52,14 +52,14 @@ class ComposerToolbar extends StatelessWidget {
 
   List<Widget> _buttons(BuildContext context) => [
     _ToolButton(
-      icon: Icons.photo_library_rounded,
+      icon: Icons.photo_library_outlined,
       label: LocaleKeys.matchmaker_community_images.t(context),
       onTap: draft.canAddImages ? onImages : null,
     ),
     if (draft.videoOffered) ...[
       const SizedBox(width: QeranSpacing.s8),
       _ToolButton(
-        icon: Icons.videocam_rounded,
+        icon: Icons.videocam_outlined,
         label: LocaleKeys.matchmaker_community_video.t(context),
         onTap: draft.canAddVideo ? onVideo : null,
       ),

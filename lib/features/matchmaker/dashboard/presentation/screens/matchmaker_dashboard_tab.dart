@@ -13,6 +13,7 @@ import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../blocs/matchmaker_dashboard_cubit.dart';
 import '../blocs/matchmaker_dashboard_state.dart';
 import '../widgets/matchmaker_dashboard_body.dart';
+import '../widgets/matchmaker_dashboard_skeleton.dart';
 
 /// Dashboard tab — six quick-stat counters from `GET /matchmaker/dashboard`.
 /// Each card is a tappable shortcut to its related tab.

@@ -48,4 +48,15 @@ void main() {
       (_) => fail('Expected a failure'),
     );
   });
+
+  test(
+    'an upload she cancelled is its own failure, not a server one',
+    () async {
+      final result = await _RepositoryHarness().run<String>(
+        () async => throw const UploadCancelledException(),
+      );
+
+      expect(result, const Left<Failure, String>(UploadCancelledFailure()));
+    },
+  );
 }

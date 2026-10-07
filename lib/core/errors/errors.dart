@@ -69,6 +69,12 @@ class OfflineFailure extends Failure {
   const OfflineFailure({super.message = LocaleKeys.errors_offline});
 }
 
+/// An upload she cancelled. Nothing to show: the screen already went back
+/// to where she was, so [message] is never surfaced.
+class UploadCancelledFailure extends Failure {
+  const UploadCancelledFailure({super.message = LocaleKeys.errors_generic});
+}
+
 // ─── Purchase / store failures (RevenueCat) ──────────────────────────────
 // Typed outcomes of a store purchase, mapped from `PurchasesErrorCode` in
 // `purchase_error_mapper.dart`. Kept here alongside the rest of the hierarchy.

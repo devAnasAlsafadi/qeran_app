@@ -29,6 +29,14 @@ class OfflineException implements Exception {
   String toString() => message;
 }
 
+/// Thrown by an upload once its `UploadCancel` fired: she stopped it
+/// herself. Standalone like [OfflineException], so it reaches
+/// `BaseRepository.executeApiCall` as itself and maps to
+/// `UploadCancelledFailure`.
+class UploadCancelledException implements Exception {
+  const UploadCancelledException();
+}
+
 /// `ServerException` enriched with a machine-readable `errorCode` from
 /// the backend envelope (e.g. `SUBSCRIPTION_REQUIRED`, `LIKE_EXPIRED`).
 /// Data-source classifiers prefer this over Arabic message matching.

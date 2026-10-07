@@ -19,6 +19,9 @@ mixin BaseRepository {
     } on OfflineException {
       AppLogger.warning('Offline request', tag: 'REPO');
       return const Left(OfflineFailure());
+    } on UploadCancelledException {
+      AppLogger.info('Upload cancelled', tag: 'REPO');
+      return const Left(UploadCancelledFailure());
     } on CodedServerException catch (e) {
       // The backend commonly reports business failures inside an HTTP 200
       // envelope. Preserve its machine-readable code so feature cubits can

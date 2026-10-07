@@ -35,6 +35,7 @@ final _copy = {
     emptyTitle: 'لا توجد بلاغات بانتظارك',
     emptyBody: 'ستظهر هنا البلاغات على التعليقات والردود في منشوراتك.',
     error: 'تعذّر تحميل البلاغات',
+    errorBody: 'تحقّقي من اتصالك بالإنترنت وحاولي مرة أخرى.',
     retry: 'حاولي مرة أخرى',
   ),
   'en': (
@@ -55,6 +56,7 @@ final _copy = {
     emptyBody:
         'Reports on comments and replies in your posts will appear here.',
     error: 'Couldn’t load reports',
+    errorBody: 'Check your connection and try again.',
     retry: 'Try again',
   ),
 };
@@ -122,11 +124,12 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
     });
 
-    testWidgets('E9, E10 [$language]: «${t.emptyTitle}»; «${t.error}» and '
-        'its retry', (tester) async {
+    testWidgets('E9, E10 [$language]: «${t.emptyTitle}»; «${t.error}», what '
+        'to do, and its retry', (tester) async {
       h.pageFails(1);
       await pump(tester, language);
       expect(find.text(t.error), findsOneWidget);
+      expect(find.text(t.errorBody), findsOneWidget);
 
       h.page(1, const []);
       await tester.tap(find.text(t.retry));

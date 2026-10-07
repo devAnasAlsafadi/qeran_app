@@ -32,6 +32,7 @@ class ReportsBody extends StatelessWidget {
       CommunityReportsStatus.failure => QeranErrorState(
         icon: Icons.cloud_off_rounded,
         title: LocaleKeys.matchmaker_community_reports_error.t(context),
+        message: LocaleKeys.community_her_feed_error_body.t(context),
         retryLabel: LocaleKeys.community_her_retry.t(context),
         onRetry: cubit.load,
       ),

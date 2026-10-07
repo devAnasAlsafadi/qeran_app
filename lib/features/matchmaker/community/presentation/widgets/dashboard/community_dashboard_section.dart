@@ -29,7 +29,7 @@ class CommunityDashboardSection extends StatelessWidget {
 
   static const _padding = EdgeInsets.fromLTRB(
     QeranSpacing.s16,
-    QeranSpacing.s4,
+    QeranSpacing.s6,
     QeranSpacing.s16,
     QeranSpacing.s16,
   );

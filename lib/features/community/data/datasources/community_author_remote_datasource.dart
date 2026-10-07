@@ -1,3 +1,5 @@
+import 'package:qeran/core/domain/upload.dart';
+
 import '../models/community_flagged_item_model.dart';
 import '../models/community_page_model.dart';
 import '../models/community_post_model.dart';
@@ -21,6 +23,17 @@ abstract class CommunityAuthorRemoteDataSource {
 
   /// 6.3 — the post and everything under it.
   Future<void> deletePost(int postId);
+
+  /// 6.7 — one image, before the post is made: its `mediaId` for 6.2.
+  /// [file] is named and typed by its bytes.
+  Future<String> uploadImage(
+    UploadFile file, {
+    UploadProgress? onProgress,
+    UploadCancel? cancel,
+  });
+
+  /// 6.9 — media she uploaded for a post she then cancelled.
+  Future<void> deleteMedia(String mediaId);
 
   /// 5.3 — open flags on her posts, newest report first.
   Future<CommunityPageModel<CommunityFlaggedItemModel>> getFlags({

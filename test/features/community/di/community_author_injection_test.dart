@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/api_consumer.dart';
+import 'package:qeran/core/api/progress_uploader.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/community/data/datasources/community_author_refusing_datasource.dart';
@@ -22,6 +23,8 @@ import '../fixtures/community_mock_harness.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
 
+class _MockUploader extends Mock implements ProgressUploader {}
+
 class _MockGetMyProfile extends Mock implements GetMyProfileUseCase {}
 
 void main() {
@@ -30,6 +33,7 @@ void main() {
   test('registered with the member side: the live API, the repository '
       'and her four use cases', () {
     sl.registerSingleton<ApiConsumer>(_MockApiConsumer());
+    sl.registerSingleton<ProgressUploader>(_MockUploader());
     sl.registerSingleton(AccountScope());
     sl.registerLazySingleton(
       () => ProfileGateCubit(getMyProfile: _MockGetMyProfile()),

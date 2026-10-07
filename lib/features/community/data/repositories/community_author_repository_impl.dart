@@ -1,11 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
+import 'package:qeran/core/domain/upload.dart';
 import 'package:qeran/core/errors/errors.dart';
 
 import '../../domain/entities/community_flagged_item.dart';
 import '../../domain/entities/community_page.dart';
 import '../../domain/entities/community_post.dart';
 import '../../domain/entities/community_post_change.dart';
+import '../../domain/entities/media_upload_outcome.dart';
 import '../../domain/entities/post_publish_outcome.dart';
 import '../../domain/repositories/community_author_repository.dart';
 import '../datasources/community_author_remote_datasource.dart';
@@ -68,6 +70,25 @@ class CommunityAuthorRepositoryImpl
     _changes.add(CommunityPostGone(postId));
     return const Right(unit);
   }
+
+  @override
+  Future<Either<Failure, MediaUploadOutcome<String>>> uploadImage(
+    UploadFile file, {
+    UploadProgress? onProgress,
+    UploadCancel? cancel,
+  }) async => mediaUploadOutcomeOf(
+    await executeApiCall(
+      () =>
+          _dataSource.uploadImage(file, onProgress: onProgress, cancel: cancel),
+    ),
+  );
+
+  @override
+  Future<Either<Failure, Unit>> deleteMedia(String mediaId) =>
+      executeApiCall(() async {
+        await _dataSource.deleteMedia(mediaId);
+        return unit;
+      });
 
   /// A row with no flag at all has nothing to keep or delete: left out.
   @override

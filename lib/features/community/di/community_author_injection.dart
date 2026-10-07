@@ -38,10 +38,9 @@ void initCommunityAuthorDependencies() {
 /// The live API — unless the member's side is the dev-flag mock, whose post
 /// ids must never reach the live server (a delete could hit a real post).
 CommunityAuthorRemoteDataSource _dataSource() {
-  final live = CommunityAuthorRemoteDataSourceImpl(apiConsumer: sl());
-  if (kReleaseMode) return live;
-  final memberSide = sl<CommunityRemoteDataSource>();
-  return memberSide is CommunityRemoteDataSourceImpl
-      ? live
-      : const CommunityAuthorRefusingDataSource();
+  final mock =
+      !kReleaseMode &&
+      sl<CommunityRemoteDataSource>() is! CommunityRemoteDataSourceImpl;
+  if (mock) return const CommunityAuthorRefusingDataSource();
+  return CommunityAuthorRemoteDataSourceImpl(apiConsumer: sl(), uploader: sl());
 }

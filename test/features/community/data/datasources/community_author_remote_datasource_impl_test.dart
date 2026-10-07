@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/api/api_consumer.dart';
+import 'package:qeran/core/api/progress_uploader.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/features/community/data/datasources/community_author_refusing_datasource.dart';
 import 'package:qeran/features/community/data/datasources/community_author_remote_datasource_impl.dart';
@@ -9,6 +10,8 @@ import 'package:qeran/features/report/domain/entities/report_reason.dart';
 import '../../fixtures/community_fixtures.dart';
 
 class _MockApiConsumer extends Mock implements ApiConsumer {}
+
+class _MockUploader extends Mock implements ProgressUploader {}
 
 Map<String, dynamic> _ok(Object? data) => {
   'status': 1,
@@ -37,7 +40,10 @@ void main() {
 
   setUp(() {
     api = _MockApiConsumer();
-    ds = CommunityAuthorRemoteDataSourceImpl(apiConsumer: api);
+    ds = CommunityAuthorRemoteDataSourceImpl(
+      apiConsumer: api,
+      uploader: _MockUploader(),
+    );
   });
 
   void answerGet(Object? data) => when(

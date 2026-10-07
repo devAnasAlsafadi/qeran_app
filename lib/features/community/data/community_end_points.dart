@@ -18,6 +18,10 @@ abstract final class CommunityEndPoints {
   static const String myPostFlags = 'community/my-posts/flags';
   static String dismissFlag(int flagId) => 'community/flags/$flagId/dismiss';
 
+  // Her media, uploaded before the post is made (contract §6.7–6.9).
+  static const String mediaImages = 'community/media/images';
+  static String media(String mediaId) => 'community/media/$mediaId';
+
   static const String config = 'community/config';
   static const String guidelines = 'community/guidelines';
   static const String acceptGuidelines = 'community/guidelines/accept';

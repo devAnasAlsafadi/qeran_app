@@ -101,5 +101,15 @@ class PostPublishCubit extends Cubit<PostPublishState>
           status: PublishStatus.guidelinesRequired,
           attempt: attempt,
         ),
+        // A text post's server backstop, and media outcomes a text post
+        // can't get: the failed strip, as before (their own states come
+        // with the media sub-steps).
+        PostTextInvalid() ||
+        PostVideoUnavailable() ||
+        PostMediaRefused() ||
+        PostMediaLost() => PostPublishState(
+          status: PublishStatus.failed,
+          attempt: attempt,
+        ),
       };
 }

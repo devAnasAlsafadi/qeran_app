@@ -192,7 +192,7 @@ void main() {
 
       when(
         () => ds.createPost(text: 'إرشاد', clientRequestId: 'req-1'),
-      ).thenThrow(_coded('VALIDATION_ERROR'));
+      ).thenThrow(_coded('MEDIA_LIMIT_REACHED'));
       expect((await publish()).isLeft(), isTrue);
     });
   });

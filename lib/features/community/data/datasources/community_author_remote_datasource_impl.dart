@@ -39,11 +39,16 @@ class CommunityAuthorRemoteDataSourceImpl
   Future<CommunityPostModel> createPost({
     required String text,
     required String clientRequestId,
+    List<String> imageMediaIds = const [],
   }) async => CommunityPostModel.fromJson(
     communityEnvelopeData(
       await _api.post(
         CommunityEndPoints.posts,
-        body: {'text': text, 'clientRequestId': clientRequestId},
+        body: {
+          'text': text,
+          if (imageMediaIds.isNotEmpty) 'imageMediaIds': imageMediaIds,
+          'clientRequestId': clientRequestId,
+        },
       ),
     ),
   );

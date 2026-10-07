@@ -7,6 +7,8 @@ import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/features/community/data/datasources/community_author_refusing_datasource.dart';
 import 'package:qeran/features/community/data/datasources/community_author_remote_datasource_impl.dart';
 
+import '../../fixtures/community_fixtures.dart';
+
 class _MockApiConsumer extends Mock implements ApiConsumer {}
 
 class _MockUploader extends Mock implements ProgressUploader {}
@@ -91,5 +93,28 @@ void main() {
 
     expect(refusing.uploadImage(_file), throwsA(isA<ServerException>()));
     expect(refusing.deleteMedia('m-1'), throwsA(isA<ServerException>()));
+  });
+
+  test('6.2 with images: imageMediaIds in her order', () async {
+    when(
+      () => api.post(any(), body: any(named: 'body')),
+    ).thenAnswer((_) async => {'status': 1, 'data': post(id: 31)});
+
+    await ds.createPost(
+      text: 'إرشاد',
+      clientRequestId: 'req-1',
+      imageMediaIds: ['m-2', 'm-1'],
+    );
+
+    verify(
+      () => api.post(
+        'community/posts',
+        body: {
+          'text': 'إرشاد',
+          'imageMediaIds': ['m-2', 'm-1'],
+          'clientRequestId': 'req-1',
+        },
+      ),
+    ).called(1);
   });
 }

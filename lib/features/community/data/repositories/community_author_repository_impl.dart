@@ -42,11 +42,13 @@ class CommunityAuthorRepositoryImpl
   Future<Either<Failure, PostPublishOutcome>> createPost({
     required String text,
     required String clientRequestId,
+    List<String> imageMediaIds = const [],
   }) async {
     final result = await executeApiCall(
       () async => (await _dataSource.createPost(
         text: text,
         clientRequestId: clientRequestId,
+        imageMediaIds: imageMediaIds,
       )).toEntity(),
     );
     result.fold((_) {}, (post) => _changes.add(CommunityPostCreated(post)));

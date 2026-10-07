@@ -1,0 +1,45 @@
+import 'package:qeran/core/errors/errors.dart';
+
+import 'media_refusal.dart';
+import 'post_publish_outcome.dart';
+
+/// What one publish attempt reports, in order (plan §3.4): progress while
+/// her media goes up, then exactly one ending.
+sealed class PublishEvent {
+  const PublishEvent();
+}
+
+/// Her media going up: [progress] from 0 to 1, by bytes across all of it.
+final class PublishUploading extends PublishEvent {
+  final double progress;
+  const PublishUploading(this.progress);
+}
+
+/// Her media is up and the post is being made: too late to cancel.
+final class PublishCreating extends PublishEvent {
+  const PublishCreating();
+}
+
+/// The server's answer to 6.2 (or to 6.8 for the video), as an outcome.
+final class PublishAnswered extends PublishEvent {
+  final PostPublishOutcome outcome;
+  const PublishAnswered(this.outcome);
+}
+
+/// The server's own check refused one image (6.7): it leaves the draft.
+final class PublishImageRefused extends PublishEvent {
+  final String path;
+  final MediaRefusal refusal;
+  const PublishImageRefused({required this.path, required this.refusal});
+}
+
+/// It didn't get through (D3): Retry goes on from where it stopped.
+final class PublishFailed extends PublishEvent {
+  final Failure failure;
+  const PublishFailed(this.failure);
+}
+
+/// She cancelled: the draft is hers to edit again (D2).
+final class PublishCancelled extends PublishEvent {
+  const PublishCancelled();
+}

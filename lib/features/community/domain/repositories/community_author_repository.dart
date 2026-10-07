@@ -19,10 +19,12 @@ abstract class CommunityAuthorRepository {
   });
 
   /// 6.2 — announces the post she made (`CommunityPostCreated`); the
-  /// filter's refusal and the guidelines' are outcomes, not failures.
+  /// filter's refusal, the guidelines' and the media codes are outcomes,
+  /// not failures. [imageMediaIds] in her order.
   Future<Either<Failure, PostPublishOutcome>> createPost({
     required String text,
     required String clientRequestId,
+    List<String> imageMediaIds = const [],
   });
 
   /// 6.3 — announces the post gone. One already gone counts as deleted.

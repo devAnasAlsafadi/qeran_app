@@ -29,13 +29,15 @@ Future<void> initShippedStrings() async {
 /// returns a context inside. Without [settle] it pumps a few frames instead
 /// of settling — for a child that never settles (a skeleton's shimmer).
 /// [builder] wraps the navigator, as `MaterialApp.builder` does — for what
-/// pushed screens must find above them.
+/// pushed screens must find above them; [onGenerateRoute] answers named
+/// routes.
 Future<BuildContext> pumpShippedStrings(
   WidgetTester tester,
   Locale locale, {
   Widget child = const SizedBox(),
   bool settle = true,
   TransitionBuilder? builder,
+  RouteFactory? onGenerateRoute,
 }) async {
   late BuildContext inside;
   await tester.pumpWidget(
@@ -53,6 +55,7 @@ Future<BuildContext> pumpShippedStrings(
           supportedLocales: ctx.supportedLocales,
           localizationsDelegates: ctx.localizationDelegates,
           builder: builder,
+          onGenerateRoute: onGenerateRoute,
           home: Builder(
             builder: (c) {
               inside = c;

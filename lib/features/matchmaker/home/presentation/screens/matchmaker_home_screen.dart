@@ -27,6 +27,7 @@ import '../../../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../../../users/domain/entities/matchmaker_users_list.dart';
 import '../../../users/presentation/screens/matchmaker_users_tab.dart';
 import '../home_shell_scope.dart';
+import '../matchmaker_push_taps.dart';
 import '../widgets/matchmaker_bottom_nav.dart';
 
 /// Matchmaker (role=Moderator) shell. Shares the user `HomeScreen`'s shell
@@ -37,7 +38,10 @@ import '../widgets/matchmaker_bottom_nav.dart';
 /// dashboard cubit is provided here (above the stack) so both the
 /// Dashboard tab and the Users tab's pending badge read the same stats.
 class MatchmakerHomeScreen extends StatefulWidget {
-  const MatchmakerHomeScreen({super.key});
+  const MatchmakerHomeScreen({super.key, this.pushTaps});
+
+  /// Where her tapped pushes come from; Firebase's when null.
+  final MatchmakerPushTaps? pushTaps;
 
   @override
   State<MatchmakerHomeScreen> createState() => _MatchmakerHomeScreenState();
@@ -82,8 +86,9 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen>
     sl<BadgesCubit>().clear();
     unawaited(sl<BadgesCubit>().refresh());
     // Background-tap (app alive) + terminated/cold-start (launched by tap).
-    _notifTapSub = FirebaseMessaging.onMessageOpenedApp.listen(_route);
-    FirebaseMessaging.instance.getInitialMessage().then((m) {
+    final taps = widget.pushTaps ?? MatchmakerPushTaps.firebase();
+    _notifTapSub = taps.opened.listen(_route);
+    taps.initial().then((m) {
       if (m != null) _route(m);
     });
   }

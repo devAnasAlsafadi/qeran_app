@@ -17,6 +17,26 @@ import '../presentation/services/community_media_picker.dart';
 /// registered with it; these are her cubits. Called by
 /// `initMatchmakerDependencies`.
 void initMatchmakerCommunityDependencies() {
+  _initPosting();
+
+  // One per Community screen; opening «منشوراتي» clears her comments badge,
+  // and her processing posts are watched until they're done.
+  sl.registerFactory(
+    () => MyPostsCubit(
+      getMyPosts: sl<GetMyCommunityPostsUseCase>(),
+      getPost: sl(),
+      setPostLike: sl(),
+      watchChanges: sl(),
+      markCommentsSeen: () =>
+          sl<BadgesCubit>().markSeen(BadgeTabKeys.communityComments),
+      // Her shell keeps the connection for as long as she's signed in.
+      statusChanges: sl<MatchmakerRealtimePort>().postStatusChanges,
+    ),
+  );
+}
+
+/// The guidelines step and her composer.
+void _initPosting() {
   // Whether she still owes the posting guidelines; forgotten with her
   // account.
   sl.registerLazySingleton(
@@ -39,21 +59,6 @@ void initMatchmakerCommunityDependencies() {
   sl.registerLazySingleton<CommunityMediaPicker>(
     ImagePickerCommunityMediaPicker.new,
   );
-  sl.registerFactory(() => PostDraftCubit(getConfig: sl()));
-  sl.registerFactory(() => PostPublishCubit(createPost: sl()));
-
-  // One per Community screen; opening «منشوراتي» clears her comments badge,
-  // and her processing posts are watched until they're done.
-  sl.registerFactory(
-    () => MyPostsCubit(
-      getMyPosts: sl<GetMyCommunityPostsUseCase>(),
-      getPost: sl(),
-      setPostLike: sl(),
-      watchChanges: sl(),
-      markCommentsSeen: () =>
-          sl<BadgesCubit>().markSeen(BadgeTabKeys.communityComments),
-      // Her shell keeps the connection for as long as she's signed in.
-      statusChanges: sl<MatchmakerRealtimePort>().postStatusChanges,
-    ),
-  );
+  sl.registerFactory(() => PostDraftCubit(getConfig: sl(), inspectImage: sl()));
+  sl.registerFactory(() => PostPublishCubit(publish: sl()));
 }

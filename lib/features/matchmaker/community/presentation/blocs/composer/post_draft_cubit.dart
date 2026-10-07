@@ -1,72 +1,116 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
-import 'package:qeran/features/community/domain/entities/community_config.dart';
+import 'package:qeran/features/community/domain/entities/media_refusal.dart';
+import 'package:qeran/features/community/domain/entities/picked_image.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_config_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/inspect_picked_image_usecase.dart';
 
-/// Her draft as it stands (C1, C2, C7, BA-A7).
-class PostDraftState extends Equatable {
-  const PostDraftState({this.text = '', this.config, this.rejected = false});
+import 'post_draft_state.dart';
 
-  final String text;
+export 'post_draft_state.dart';
 
-  /// The server's limits, read fresh when the composer opens (K20); null
-  /// until then, or when they couldn't be read — the server checks then
-  /// (S19).
-  final CommunityConfig? config;
-
-  /// The filter refused the text as it stands (BA-A7); gone once she edits.
-  final bool rejected;
-
-  int? get maxLength => config?.postTextMaxLength;
-
-  /// UTF-16 code units after trimming, as the server counts (contract §6.2).
-  int get length => text.trim().length;
-
-  bool get tooLong => length > (maxLength ?? length);
-
-  /// «نشر» turns on: some text, within the limit.
-  bool get canPublish => length > 0 && !tooLong;
-
-  /// Nothing to lose: × closes at once (C11).
-  bool get isEmpty => length == 0;
-
-  @override
-  List<Object?> get props => [text, config, rejected];
-}
-
-/// Her draft (C1–C11): the text and the limits it's checked against.
+/// Her draft (C1–C11): the text, her images, and the limits both are
+/// checked against.
 class PostDraftCubit extends Cubit<PostDraftState>
     with SafeEmit<PostDraftState> {
-  PostDraftCubit({required GetCommunityConfigUseCase getConfig})
-    : _getConfig = getConfig,
-      super(const PostDraftState());
+  PostDraftCubit({
+    required GetCommunityConfigUseCase getConfig,
+    required InspectPickedImageUseCase inspectImage,
+  }) : _getConfig = getConfig,
+       _inspectImage = inspectImage,
+       super(const PostDraftState());
 
   final GetCommunityConfigUseCase _getConfig;
+  final InspectPickedImageUseCase _inspectImage;
 
   /// The limits as the server has them now.
   Future<void> loadConfig() async {
     final result = await _getConfig(fresh: true);
-    result.fold(
-      (_) {},
-      (config) => emit(
-        PostDraftState(
-          text: state.text,
-          config: config,
-          rejected: state.rejected,
-        ),
-      ),
-    );
+    result.fold((_) {}, (config) => emit(state.copyWith(config: config)));
   }
 
   /// She typed: a refusal no longer applies to what's there.
   void edit(String text) {
     if (text == state.text) return;
-    emit(PostDraftState(text: text, config: state.config));
+    emit(state.copyWith(text: text, rejected: false));
   }
 
   /// The filter refused the text (BA-A7).
-  void refused() => emit(
-    PostDraftState(text: state.text, config: state.config, rejected: true),
+  void refused() => emit(state.copyWith(rejected: true));
+
+  /// What she picked, in her order: each file checked by its bytes and
+  /// config's types and size, then as many as fit (C8, C10, Q3).
+  Future<void> addImages(List<String> paths) async {
+    if (paths.isEmpty) return;
+    final inspected = await Future.wait(paths.map(_inspectImage.call));
+    final accepted = <PickedImage>[];
+    DraftNotice? refusal;
+    for (final image in inspected) {
+      final problem = _problemWith(image);
+      if (problem == null) {
+        accepted.add(image!);
+      } else {
+        refusal ??= problem;
+      }
+    }
+    final free = state.freeImageSlots ?? accepted.length;
+    emit(
+      state.copyWith(
+        images: [...state.images, ...accepted.take(free)],
+        notice: () => refusal ?? _tooMany(accepted.length, free, paths.length),
+      ),
+    );
+  }
+
+  void removeImage(int index) => emit(
+    state.copyWith(
+      images: [...state.images]..removeAt(index),
+      notice: () => null,
+    ),
   );
+
+  /// Her new order: the image at [from] now sits at [to].
+  void moveImage(int from, int to) {
+    final images = [...state.images];
+    images.insert(to, images.removeAt(from));
+    emit(state.copyWith(images: images));
+  }
+
+  /// The server refused an image after the app's own check: it leaves the
+  /// draft, and the notice says why (Q3, C10).
+  void imageRefused({required String? path, required MediaRefusal refusal}) {
+    final image = state.images.where((i) => i.path == path).firstOrNull;
+    final max = state.config?.maxImageSizeBytes;
+    emit(
+      state.copyWith(
+        images: [...state.images]..remove(image),
+        notice: () =>
+            refusal == MediaRefusal.tooLarge && image != null && max != null
+            ? ImageTooLarge(sizeBytes: image.sizeBytes, maxBytes: max)
+            : const UnsupportedFile(),
+      ),
+    );
+  }
+
+  DraftNotice? _problemWith(PickedImage? image) {
+    final config = state.config;
+    final types = config?.allowedImageTypes ?? const [];
+    if (image == null || (types.isNotEmpty && !image.format.allowedBy(types))) {
+      return const UnsupportedFile();
+    }
+    final max = config?.maxImageSizeBytes;
+    if (max != null && image.sizeBytes > max) {
+      return ImageTooLarge(sizeBytes: image.sizeBytes, maxBytes: max);
+    }
+    return null;
+  }
+
+  /// C8: more fit than were free. It names the post's limit.
+  DraftNotice? _tooMany(int accepted, int free, int picked) => accepted > free
+      ? TooManyImages(
+          added: free,
+          picked: picked,
+          limit: state.maxImages ?? free,
+        )
+      : null;
 }

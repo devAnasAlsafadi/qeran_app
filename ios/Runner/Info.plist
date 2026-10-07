@@ -59,9 +59,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>نحتاج الوصول للكاميرا لالتقاط صورة الملف الشخصي</string>
+	<string>نحتاج الوصول للكاميرا لالتقاط صورة الملف الشخصي وصور منشورات المجتمع</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>نحتاج الوصول لمعرض الصور لاختيار صور الملف الشخصي</string>
+	<string>نحتاج الوصول لمعرض الصور لاختيار صور الملف الشخصي وصور منشورات المجتمع</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

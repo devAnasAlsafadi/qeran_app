@@ -2,7 +2,7 @@
 
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Camera: profile-photo capture via image_picker. -->
+    <!-- Camera: profile-photo and Community post capture via image_picker. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- Gallery picking uses the Android system Photo Picker (image_picker on
          API 33+), which needs NO media-read permission — so READ_MEDIA_IMAGES is

@@ -1111,7 +1111,40 @@
       "discard": "Discard",
       "keep_writing": "Keep writing",
       "rejected": "This post can’t be published because it goes against the posting guidelines. Edit it and try again.",
-      "published": "Your post is published."
+      "published": "Your post is published.",
+      "images": "Images",
+      "add_image": "Add",
+      "reorder_hint": "Drag to reorder",
+      "remove_image": "Remove image",
+      "images_sheet_title": "Add images",
+      "from_gallery": "Choose from gallery",
+      "take_photo": "Take a photo",
+      "images_limit": {
+        "one": "Up to 1 image per post.",
+        "other": "Up to {n} images per post."
+      },
+      "camera_note": "Opens the phone’s own camera.",
+      "too_many_added": {
+        "one": "The first of the {m} images you picked was added.",
+        "other": "The first {n} of the {m} images you picked were added."
+      },
+      "too_many_limit": {
+        "one": "A post can have up to 1 image.",
+        "other": "A post can have up to {n} images."
+      },
+      "unsupported_images": "This file type isn’t supported. Use {types} images.",
+      "image_too_large": "This image is {size}, over the {max} limit. Choose another image.",
+      "megabytes": "{n} MB",
+      "types_separator": ", ",
+      "types_last_separator": " or ",
+      "uploading": "Uploading your post… {p}%",
+      "cancel": "Cancel",
+      "cancel_upload_title": "Cancel upload?",
+      "cancel_upload_body": "The upload stops and your post goes back to a draft you can edit or discard.",
+      "cancel_upload": "Cancel upload",
+      "keep_uploading": "Keep uploading",
+      "camera_denied": "The camera can’t open without your permission. You can turn it on in the phone’s settings.",
+      "photos_denied": "Your photos can’t open without your permission. You can turn it on in the phone’s settings."
     }
   },
   "settings": {

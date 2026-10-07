@@ -24,10 +24,6 @@ import '../../features/onboarding/presentation/cubit/onboarding_cubit.dart';
 import '../../features/splash/presentation/blocs/splash_cubit.dart';
 import '../../features/subscriptions/di/subscriptions_injection.dart';
 import '../../features/support/di/support_injection.dart';
-import '../api/api_consumer.dart';
-import '../api/http_consumer.dart';
-import '../services/connectivity_service.dart';
-import '../services/connectivity_service_impl.dart';
 import '../datasources/shared_pref_service.dart';
 import '../datasources/secure_storage_service.dart';
 import '../services/device_info_service.dart';
@@ -38,6 +34,7 @@ import '../services/notification_service.dart';
 import '../services/revenuecat_service.dart';
 import '../services/storage_service.dart';
 import '../state/account_scope.dart';
+import 'network_injection.dart';
 import '../utils/server_clock.dart';
 
 final sl = GetIt.instance;
@@ -94,19 +91,7 @@ Future<void> init() async {
   await ServerClock.instance.restore(sl<SharedPrefService>());
 
   //! Network
-  // Connectivity signal — registered before ApiConsumer, which will consume it
-  // for the offline pre-flight in a later sub-step.
-  sl.registerLazySingleton<ConnectivityService>(
-    () => ConnectivityServiceImpl(),
-  );
-  sl.registerLazySingleton<ApiConsumer>(
-    () => HttpConsumer(
-      client: sl(),
-      storage: sl(),
-      languageService: sl(),
-      connectivity: sl(),
-    ),
-  );
+  initNetworkDependencies();
 
   //! Devices / FCM infrastructure
   sl.registerLazySingleton<NotificationService>(() => NotificationService());

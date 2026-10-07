@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../community/domain/entities/community_landing.dart';
+import '../../domain/entities/community_post_target.dart';
 import '../../domain/entities/notification_item.dart';
 import '../../domain/entities/notification_type.dart';
 
@@ -117,17 +118,12 @@ class NotificationDeepLinkRouter {
 
   /// The post (contract §7.2), at `commentId` and `replyId` when they're
   /// there; nowhere without a post.
-  static NotificationDeepLink _communityPost(Map<String, dynamic> data) {
-    final postId = _id(data['postId']);
-    if (postId == null) return const NoDeepLink();
-    final commentId = _id(data['commentId']);
-    return OpenCommunityPost(
-      postId: postId,
-      landing: commentId == null
-          ? null
-          : CommunityLanding(commentId: commentId, replyId: _id(data['replyId'])),
-    );
-  }
-
-  static int? _id(Object? raw) => int.tryParse(raw?.toString().trim() ?? '');
+  static NotificationDeepLink _communityPost(Map<String, dynamic> data) =>
+      switch (CommunityPostTarget.fromData(data)) {
+        final target? => OpenCommunityPost(
+          postId: target.postId,
+          landing: target.landing,
+        ),
+        null => const NoDeepLink(),
+      };
 }

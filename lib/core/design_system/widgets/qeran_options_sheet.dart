@@ -26,24 +26,30 @@ class QeranOption<T> {
 /// The options menu behind a ⋮ button — a bottom sheet with a handle and one
 /// row per option. Resolves to the tapped option's value, or null when it's
 /// dismissed. The rows are the caller's, so a profile and a Community post
-/// share one look and each offers only what the server allows.
+/// share one look and each offers only what the server allows. An optional
+/// [title] heads the rows («إضافة صور») and an optional [note] follows them
+/// (the limits that apply); a ⋮ menu has neither.
 abstract final class QeranOptionsSheet {
   static Future<T?> show<T>(
     BuildContext context, {
     required List<QeranOption<T>> options,
-  }) =>
-      showModalBottomSheet<T>(
-        context: context,
-        backgroundColor: QeranColors.paper,
-        shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
-        builder: (_) => _QeranOptionsSheetBody<T>(options: options),
-      );
+    String? title,
+    String? note,
+  }) => showModalBottomSheet<T>(
+    context: context,
+    backgroundColor: QeranColors.paper,
+    shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
+    builder: (_) =>
+        _QeranOptionsSheetBody<T>(options: options, title: title, note: note),
+  );
 }
 
 class _QeranOptionsSheetBody<T> extends StatelessWidget {
   final List<QeranOption<T>> options;
+  final String? title;
+  final String? note;
 
-  const _QeranOptionsSheetBody({required this.options});
+  const _QeranOptionsSheetBody({required this.options, this.title, this.note});
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +67,14 @@ class _QeranOptionsSheetBody<T> extends StatelessWidget {
           children: [
             const Center(child: QeranSheetHandle()),
             QeranSpacing.vs12,
+            if (title case final String heading)
+              _SheetText(
+                heading,
+                style: QeranTypography.title.copyWith(
+                  color: QeranColors.inkStrong,
+                ),
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+              ),
             for (final option in options)
               QeranOptionRow(
                 icon: option.icon,
@@ -68,8 +82,36 @@ class _QeranOptionsSheetBody<T> extends StatelessWidget {
                 danger: option.danger,
                 onTap: () => Navigator.of(context).pop(option.value),
               ),
+            if (note case final String limits)
+              _SheetText(
+                limits,
+                style: QeranTypography.label.copyWith(
+                  color: QeranColors.inkMuted,
+                ),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The sheet's title or note: full width, from the start edge.
+class _SheetText extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final EdgeInsets padding;
+
+  const _SheetText(this.text, {required this.style, required this.padding});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(text, style: style),
       ),
     );
   }

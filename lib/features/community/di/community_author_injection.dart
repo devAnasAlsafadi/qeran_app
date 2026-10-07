@@ -6,13 +6,16 @@ import '../data/datasources/community_author_remote_datasource.dart';
 import '../data/datasources/community_author_remote_datasource_impl.dart';
 import '../data/datasources/community_remote_datasource.dart';
 import '../data/datasources/community_remote_datasource_impl.dart';
+import '../data/media/file_media_inspector.dart';
 import '../data/repositories/community_author_repository_impl.dart';
+import '../domain/ports/media_inspector.dart';
 import '../domain/repositories/community_author_repository.dart';
 import '../domain/usecases/create_community_post_usecase.dart';
 import '../domain/usecases/delete_community_post_usecase.dart';
 import '../domain/usecases/dismiss_community_flag_usecase.dart';
 import '../domain/usecases/get_community_flags_usecase.dart';
 import '../domain/usecases/get_my_community_posts_usecase.dart';
+import '../domain/usecases/inspect_picked_image_usecase.dart';
 import '../presentation/blocs/post_delete/post_delete_cubit.dart';
 
 /// The post author's side of Community (the matchmaker app): her posts, a
@@ -30,6 +33,10 @@ void initCommunityAuthorDependencies() {
   sl.registerLazySingleton(() => DeleteCommunityPostUseCase(sl()));
   sl.registerLazySingleton(() => GetCommunityFlagsUseCase(sl()));
   sl.registerLazySingleton(() => DismissCommunityFlagUseCase(sl()));
+
+  // Her composer's media: what a picked file really is.
+  sl.registerLazySingleton<MediaInspector>(() => const FileMediaInspector());
+  sl.registerLazySingleton(() => InspectPickedImageUseCase(sl()));
 
   // Deleting her post, on her lists and on its own screen.
   sl.registerFactory(() => PostDeleteCubit(deletePost: sl()));

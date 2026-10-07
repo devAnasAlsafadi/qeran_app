@@ -4,13 +4,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/community/domain/entities/media_refusal.dart';
 import 'package:qeran/features/community/domain/entities/media_upload_outcome.dart';
-import 'package:qeran/features/community/domain/entities/picked_video.dart';
 import 'package:qeran/features/community/domain/entities/post_draft.dart';
 import 'package:qeran/features/community/domain/entities/post_publish_outcome.dart';
 import 'package:qeran/features/community/domain/usecases/publish_community_post_usecase.dart';
 
 import '../fixtures/community_post_fixtures.dart';
-import 'fake_video_compressor.dart';
 import 'publish_rig.dart';
 
 void main() {
@@ -160,21 +158,6 @@ void main() {
 
     expect(rig.cancels.toSet().length, 1);
     expect(rig.cancels.first, isNotNull);
-  });
-
-  test('a video is made ready first (D1); until sub-step 13 uploads it, '
-      'the attempt ends as BA-A6, with no post', () async {
-    final video = PickedVideo(
-      path: 'v.mov',
-      container: VideoContainer.quickTime,
-      info: clip(),
-    );
-
-    expect(await run(PostDraft(text: 'إرشاد', video: video)), [
-      'prep 0', 'prep 50', 'prep 100', //
-      'answered PostVideoUnavailable',
-    ]);
-    expect(rig.requestIds, isEmpty);
   });
 
   test('the composer closed: its compressed copies are deleted', () async {

@@ -11,6 +11,9 @@ import 'package:qeran/features/community/domain/entities/publish_session.dart';
 import 'package:qeran/features/community/domain/repositories/community_author_repository.dart';
 
 import 'fake_video_compressor.dart';
+import 'video_publish_rig.dart';
+
+export 'video_publish_rig.dart';
 
 class MockAuthorRepository extends Mock implements CommunityAuthorRepository {}
 
@@ -31,14 +34,20 @@ PickedImage pickedImage(String path, {int size = 100}) => PickedImage(
 class PublishRig {
   PublishRig() {
     registerFallbackValue(pickedImage('fallback').file);
+    registerFallbackValue(videoGrant('fallback'));
+    registerFallbackValue(pickedVideo('fallback'));
     when(
       () => repository.deleteMedia(any()),
     ).thenAnswer((_) async => const Right(unit));
     creates(const Left(OfflineFailure()));
+    video = VideoScript(repository);
   }
 
   final repository = MockAuthorRepository();
   final compressor = FakeCompressor();
+
+  /// 6.8 and tus, scripted.
+  late final VideoScript video;
   final sent = <String>[];
   final requestIds = <String>[];
   final cancels = <UploadCancel?>[];
@@ -71,6 +80,7 @@ class PublishRig {
           text: any(named: 'text'),
           clientRequestId: any(named: 'clientRequestId'),
           imageMediaIds: any(named: 'imageMediaIds'),
+          videoMediaId: any(named: 'videoMediaId'),
         ),
       ).thenAnswer((call) async {
         requestIds.add(call.namedArguments[#clientRequestId] as String);
@@ -84,9 +94,22 @@ class PublishRig {
               text: any(named: 'text'),
               clientRequestId: any(named: 'clientRequestId'),
               imageMediaIds: captureAny(named: 'imageMediaIds'),
+              videoMediaId: any(named: 'videoMediaId'),
             ),
           ).captured.last
           as List<String>;
+
+  /// The video id the last 6.2 carried.
+  String? lastVideoId() =>
+      verify(
+            () => repository.createPost(
+              text: any(named: 'text'),
+              clientRequestId: any(named: 'clientRequestId'),
+              imageMediaIds: any(named: 'imageMediaIds'),
+              videoMediaId: captureAny(named: 'videoMediaId'),
+            ),
+          ).captured.last
+          as String?;
 }
 
 Matcher _atPath(String path) =>
@@ -101,8 +124,8 @@ List<String> describe(List<PublishEvent> events) => [
       PublishCreating() => 'creating',
       PublishAnswered(:final outcome) => 'answered ${outcome.runtimeType}',
       PublishImageRefused(:final path) => 'refused $path',
-      PublishVideoRefused(:final path, :final sizeBytes) =>
-        'refused $path $sizeBytes',
+      PublishVideoRefused(:final path, :final refusal, :final sizeBytes) =>
+        'refused $path ${refusal.name} $sizeBytes',
       PublishFailed() => 'failed',
       PublishCancelled() => 'cancelled',
     },

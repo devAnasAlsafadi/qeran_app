@@ -90,12 +90,12 @@ void main() {
     expect(await prepare(_video('a.mov'), maxBytes: 4 * _mb), isNotNull);
     events.clear();
     expect(await prepare(_video('a.mov'), maxBytes: 4 * _mb - 1), isNull);
-    expect(describe(events), ['refused a.mov ${4 * _mb}']);
+    expect(describe(events), ['refused a.mov tooLarge ${4 * _mb}']);
 
     compressor.answer = (_) => null;
     events.clear();
     expect(await prepare(_video('b.mov'), maxBytes: 5 * _mb), isNull);
-    expect(describe(events).last, 'refused b.mov ${10 * _mb}');
+    expect(describe(events).last, 'refused b.mov tooLarge ${10 * _mb}');
   });
 
   test('no size from config: the server checks alone (S19)', () async {

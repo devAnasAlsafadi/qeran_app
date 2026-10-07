@@ -1,15 +1,18 @@
 import 'package:qeran/core/domain/upload.dart';
 
+import 'picked_video.dart';
 import 'post_draft.dart';
 
 /// One composer's publishing across its attempts (plan §3.4): the request
-/// id, the images already uploaded, and the cancel of the attempt in flight.
+/// id, the images already uploaded, her video made ready, and the cancel of
+/// the attempt in flight.
 class PublishSession {
   PublishSession({required String Function() newRequestId})
     : _newRequestId = newRequestId;
 
   final String Function() _newRequestId;
   final _uploaded = <String, String>{};
+  final _prepared = <String, PickedVideo>{};
   String? _requestKey;
   String? _requestId;
   UploadCancel? _cancel;
@@ -41,4 +44,11 @@ class PublishSession {
 
   /// Uploads to send again from the start (lost, cancelled, or used).
   void forgetUploads() => _uploaded.clear();
+
+  /// Her video at [path] made ready as [file] (compressed, or the original
+  /// when it couldn't be, Q2): a retry doesn't compress it again.
+  void rememberPrepared(String path, PickedVideo file) =>
+      _prepared[path] = file;
+
+  PickedVideo? preparedVideo(String path) => _prepared[path];
 }

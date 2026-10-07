@@ -86,6 +86,7 @@ class _PostComposerScreenState extends State<PostComposerScreen> {
       case PublishStatus.textInvalid:
         await draft.loadConfig();
       case PublishStatus.idle ||
+          PublishStatus.compressing ||
           PublishStatus.uploading ||
           PublishStatus.publishing ||
           PublishStatus.failed:

@@ -50,7 +50,7 @@ class ComposerHarness {
     sl.registerSingleton<CommunityLocalVideoPlayerFactory>(_player);
     sl.registerFactory<PostPublishCubit>(
       () => PostPublishCubit(
-        publish: PublishCommunityPostUseCase(publishing.repository),
+        publish: PublishCommunityPostUseCase(publishing.repository, compressor),
         newRequestId: _nextId,
       ),
     );
@@ -63,7 +63,7 @@ class ComposerHarness {
   final getMe = _MockGetMe();
   final publishing = PublishRig();
   final inspector = FakeInspector();
-  final compressor = FakeCompressor();
+  late final compressor = publishing.compressor;
 
   /// Every preview's player, in order.
   final players = <FakePlayer>[];

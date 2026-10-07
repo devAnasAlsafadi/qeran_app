@@ -54,4 +54,8 @@ abstract class VideoCompressor {
     void Function(double progress)? onProgress,
     UploadCancel? cancel,
   });
+
+  /// Deletes every copy [compress] made, once a compression still running
+  /// has ended. Best effort: it never throws.
+  Future<void> deleteCopies();
 }

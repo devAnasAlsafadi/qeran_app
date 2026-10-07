@@ -42,7 +42,7 @@ void initCommunityAuthorDependencies() {
   sl.registerLazySingleton<VideoCompressor>(VideoCompressAdapter.new);
   sl.registerLazySingleton(() => InspectPickedImageUseCase(sl()));
   sl.registerLazySingleton(() => InspectPickedVideoUseCase(sl(), sl()));
-  sl.registerLazySingleton(() => PublishCommunityPostUseCase(sl()));
+  sl.registerLazySingleton(() => PublishCommunityPostUseCase(sl(), sl()));
 
   // Deleting her post, on her lists and on its own screen.
   sl.registerFactory(() => PostDeleteCubit(deletePost: sl()));

@@ -63,6 +63,24 @@ class VideoCompressAdapter implements VideoCompressor {
     return _copyOf(answer);
   }
 
+  /// The package's folder of copies, emptied after the phone's last
+  /// compression: Android's external files `video_compress`, iOS's
+  /// temporary `video_compress`. Each is made again by the next one.
+  @override
+  Future<void> deleteCopies() {
+    final job = _phone.then((_) => _deleteAll());
+    _phone = job;
+    return job;
+  }
+
+  static Future<void> _deleteAll() async {
+    try {
+      await VideoCompress.deleteAllCache();
+    } catch (e) {
+      AppLogger.warning('Video copies not deleted: $e', tag: 'VIDEO');
+    }
+  }
+
   /// One compression, from its start to the phone's answer. It never
   /// throws: a failure is null. Her cancel stops the phone only while it
   /// works, because on iOS a cancel with nothing running marks the next

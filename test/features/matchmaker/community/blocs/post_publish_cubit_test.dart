@@ -23,7 +23,7 @@ void main() {
     ids = 0;
     rig = PublishRig();
     publish = PostPublishCubit(
-      publish: PublishCommunityPostUseCase(rig.repository),
+      publish: PublishCommunityPostUseCase(rig.repository, rig.compressor),
       newRequestId: () => 'req-${++ids}',
     );
   });

@@ -145,4 +145,18 @@ void main() {
 
     expect(seen, isEmpty);
   });
+
+  test('the copies are deleted once the compression in progress has '
+      'answered, never under it', () async {
+    final running = adapter.compress(rig.file('a.mp4', 10));
+    await pumpEventQueue();
+    final deleting = adapter.deleteCopies();
+    await pumpEventQueue();
+    expect(rig.methods, isNot(contains('deleteAllCache')));
+
+    rig.finish(null);
+    await running;
+    await deleting;
+    expect(rig.methods.last, 'deleteAllCache');
+  });
 }

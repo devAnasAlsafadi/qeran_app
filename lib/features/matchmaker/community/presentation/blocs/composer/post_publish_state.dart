@@ -5,6 +5,10 @@ import 'package:qeran/features/community/domain/entities/media_refusal.dart';
 enum PublishStatus {
   idle,
 
+  /// Her video being made ready on the phone (D1): the strip with its
+  /// progress and «إلغاء»; the draft dimmed and locked.
+  compressing,
+
   /// Her media going up (D2): the strip with its progress and «إلغاء»; the
   /// draft dimmed and locked.
   uploading,
@@ -41,6 +45,7 @@ class PostPublishState extends Equatable {
     this.progress,
     this.refusal,
     this.refusedPath,
+    this.refusedBytes,
   });
 
   final PublishStatus status;
@@ -54,15 +59,18 @@ class PostPublishState extends Equatable {
   final double? progress;
 
   /// What was refused, once [PublishStatus.refused]; [refusedPath] is the
-  /// image, when the server said which.
+  /// image or the video, when it's known which. [refusedBytes] is the size
+  /// of the video file that would have gone up (Q3).
   final MediaRefusal? refusal;
   final String? refusedPath;
+  final int? refusedBytes;
 
-  bool get busy =>
-      status == PublishStatus.uploading || status == PublishStatus.publishing;
+  bool get busy => cancellable || status == PublishStatus.publishing;
 
-  /// Her media is still going up: «إلغاء» and × can stop it (D2, D2b).
-  bool get cancellable => status == PublishStatus.uploading;
+  /// Her video is still being prepared or her media is still going up:
+  /// «إلغاء» and × can stop it (D1, D2, D2b).
+  bool get cancellable =>
+      status == PublishStatus.compressing || status == PublishStatus.uploading;
 
   @override
   List<Object?> get props => [
@@ -72,5 +80,6 @@ class PostPublishState extends Equatable {
     progress,
     refusal,
     refusedPath,
+    refusedBytes,
   ];
 }

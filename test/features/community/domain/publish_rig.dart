@@ -10,6 +10,8 @@ import 'package:qeran/features/community/domain/entities/publish_event.dart';
 import 'package:qeran/features/community/domain/entities/publish_session.dart';
 import 'package:qeran/features/community/domain/repositories/community_author_repository.dart';
 
+import 'fake_video_compressor.dart';
+
 class MockAuthorRepository extends Mock implements CommunityAuthorRepository {}
 
 /// A picked JPEG at [path] of [size] bytes.
@@ -36,6 +38,7 @@ class PublishRig {
   }
 
   final repository = MockAuthorRepository();
+  final compressor = FakeCompressor();
   final sent = <String>[];
   final requestIds = <String>[];
   final cancels = <UploadCancel?>[];
@@ -93,10 +96,13 @@ Matcher _atPath(String path) =>
 List<String> describe(List<PublishEvent> events) => [
   for (final e in events)
     switch (e) {
+      PublishCompressing(:final progress) => 'prep ${(progress * 100).round()}',
       PublishUploading(:final progress) => 'up ${(progress * 100).round()}',
       PublishCreating() => 'creating',
       PublishAnswered(:final outcome) => 'answered ${outcome.runtimeType}',
       PublishImageRefused(:final path) => 'refused $path',
+      PublishVideoRefused(:final path, :final sizeBytes) =>
+        'refused $path $sizeBytes',
       PublishFailed() => 'failed',
       PublishCancelled() => 'cancelled',
     },

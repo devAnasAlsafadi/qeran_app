@@ -12,13 +12,21 @@ import '../../../../../generated/locale_keys.g.dart';
 
 /// A post's text in its own direction and script (D13, A21). When
 /// [collapsible] (the feed), a text longer than [collapsedLines] lines is cut
-/// there with «عرض المزيد», which opens it in place (A2, A3); on the post
-/// screen it is always whole.
+/// there with «عرض المزيد», which opens it in place (A2, A3); once open,
+/// «عرض أقل» at its end folds it back. On the post screen it is always whole.
 class PostCardText extends StatefulWidget {
-  const PostCardText(this.text, {super.key, this.collapsible = true});
+  const PostCardText(
+    this.text, {
+    super.key,
+    this.collapsible = true,
+    this.onFolded,
+  });
 
   final String text;
   final bool collapsible;
+
+  /// «عرض أقل» folded the text back: the card brings its top into view.
+  final VoidCallback? onFolded;
 
   static const int collapsedLines = 4;
 
@@ -39,41 +47,50 @@ class _PostCardTextState extends State<PostCardText> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth - 2 * QeranSpacing.s16;
-        final cut =
-            widget.collapsible &&
-            !_expanded &&
-            _exceeds(context, widget.text, width);
+        final long =
+            widget.collapsible && _exceeds(context, widget.text, width);
         return AnimatedSize(
           duration: QeranMotion.standard,
           curve: QeranCurves.standard,
           alignment: AlignmentDirectional.topStart,
-          child: _body(cut: cut),
+          child: _body(long: long),
         );
       },
     );
   }
 
-  /// The text — cut at [PostCardText.collapsedLines] lines when [cut] —
-  /// and «عرض المزيد» under it.
-  Widget _body({required bool cut}) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(
-          QeranSpacing.s16,
-          0,
-          QeranSpacing.s16,
-          cut ? 0 : QeranSpacing.s12,
+  /// The text — a [long] one cut at [PostCardText.collapsedLines] lines
+  /// with «عرض المزيد» under it, or whole with «عرض أقل».
+  Widget _body({required bool long}) {
+    final cut = long && !_expanded;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(
+            QeranSpacing.s16,
+            0,
+            QeranSpacing.s16,
+            long ? 0 : QeranSpacing.s12,
+          ),
+          child: QeranOwnText(
+            widget.text,
+            style: PostCardText.style,
+            maxLines: cut ? PostCardText.collapsedLines : null,
+            overflow: cut ? TextOverflow.ellipsis : null,
+          ),
         ),
-        child: QeranOwnText(
-          widget.text,
-          style: PostCardText.style,
-          maxLines: cut ? PostCardText.collapsedLines : null,
-          overflow: cut ? TextOverflow.ellipsis : null,
-        ),
-      ),
-      if (cut) _SeeMore(onTap: () => setState(() => _expanded = true)),
-    ],
+        if (long) _toggle(cut),
+      ],
+    );
+  }
+
+  Widget _toggle(bool cut) => _SeeToggle(
+    label: cut ? LocaleKeys.community_see_more : LocaleKeys.community_see_less,
+    onTap: () {
+      setState(() => _expanded = cut);
+      if (!cut) widget.onFolded?.call();
+    },
   );
 
   /// Whether [text], laid out as [QeranOwnText] lays it out, runs past
@@ -98,10 +115,13 @@ class _PostCardTextState extends State<PostCardText> {
   }
 }
 
-/// «عرض المزيد» — lined up under the text's start, on the UI's side.
-class _SeeMore extends StatelessWidget {
-  const _SeeMore({required this.onTap});
+/// «عرض المزيد» or «عرض أقل» — lined up under the text's start, on the UI's
+/// side.
+class _SeeToggle extends StatelessWidget {
+  const _SeeToggle({required this.label, required this.onTap});
 
+  /// The key of its label.
+  final String label;
   final VoidCallback onTap;
 
   @override
@@ -113,7 +133,7 @@ class _SeeMore extends StatelessWidget {
         bottom: QeranSpacing.s4,
       ),
       child: QeranButton(
-        label: LocaleKeys.community_see_more.t(context),
+        label: label.t(context),
         onPressed: onTap,
         variant: QeranButtonVariant.ghost,
         size: QeranButtonSize.compact,

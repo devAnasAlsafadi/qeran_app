@@ -233,6 +233,7 @@ abstract class  LocaleKeys {
   static const community_discussion = 'community.discussion';
   static const community_discussion_start = 'community.discussion_start';
   static const community_see_more = 'community.see_more';
+  static const community_see_less = 'community.see_less';
   static const community_image_failed = 'community.image_failed';
   static const community_video_failed = 'community.video_failed';
   static const community_video_play = 'community.video_play';

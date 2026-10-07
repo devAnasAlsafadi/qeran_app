@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../../../../core/design_system/tokens/qeran_motion.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_card.dart';
 import '../../../domain/entities/community_media.dart';
@@ -23,9 +26,10 @@ enum CommunityPostCardMode {
 
 /// A matchmaker's post as a card (A1–A21), shared by both apps (P3): header,
 /// text, photos or a video, and the Like / discussion footer. The card itself
-/// isn't a tap target (S1) — the discussion half, the photos and «عرض
-/// المزيد» each do one thing. Her post that members can't see yet opens with
-/// its status (D4, BA-A1); a failed one has no footer — nobody saw it.
+/// isn't a tap target (S1) — the discussion half, the photos, «عرض المزيد»
+/// and «عرض أقل» each do one thing. Her post that members can't see yet
+/// opens with its status (D4, BA-A1); a failed one has no footer — nobody
+/// saw it.
 class CommunityPostCard extends StatelessWidget {
   const CommunityPostCard({
     super.key,
@@ -63,16 +67,13 @@ class CommunityPostCard extends StatelessWidget {
             PostCardStatusBanner(post: post),
             PostCardHeader(post: post, menu: menu),
             if (post.text.trim().isNotEmpty)
-              PostCardText(post.text, collapsible: feed),
-            if (media != null) ...[media, QeranSpacing.vs12],
-            if (!_failed)
-              PostCardFooter(
-                post: post,
-                interactive: feed,
-                likeDimmed: readOnly,
-                onLike: onLike,
-                onDiscussion: onOpenDiscussion,
+              PostCardText(
+                post.text,
+                collapsible: feed,
+                onFolded: () => _showTop(context),
               ),
+            if (media != null) ...[media, QeranSpacing.vs12],
+            if (!_failed) _footer(feed),
           ],
         ),
       ),
@@ -80,6 +81,30 @@ class CommunityPostCard extends StatelessWidget {
   }
 
   bool get _failed => post.status == CommunityPostStatus.failed;
+
+  Widget _footer(bool feed) => PostCardFooter(
+    post: post,
+    interactive: feed,
+    likeDimmed: readOnly,
+    onLike: onLike,
+    onDiscussion: onOpenDiscussion,
+  );
+
+  /// After «عرض أقل»: when the card's top has gone above the screen, the list
+  /// scrolls back to it; otherwise nothing moves. Only the list it sits in.
+  static void _showTop(BuildContext card) {
+    final list = Scrollable.maybeOf(card, axis: Axis.vertical)?.position;
+    final box = card.findRenderObject();
+    if (list == null || box == null) return;
+    unawaited(
+      list.ensureVisible(
+        box,
+        duration: QeranMotion.standard,
+        curve: QeranCurves.standard,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      ),
+    );
+  }
 
   /// A photo tapped opens the viewer at it (G1), unless [onImageTap] says
   /// otherwise.

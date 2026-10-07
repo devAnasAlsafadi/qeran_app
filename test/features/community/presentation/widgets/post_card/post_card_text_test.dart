@@ -12,6 +12,7 @@ Future<void> _pump(
   String text, {
   Locale locale = const Locale('en'),
   bool collapsible = true,
+  VoidCallback? onFolded,
 }) => pumpShippedStrings(
   tester,
   locale,
@@ -20,7 +21,7 @@ Future<void> _pump(
     child: Center(
       child: SizedBox(
         width: 358,
-        child: PostCardText(text, collapsible: collapsible),
+        child: PostCardText(text, collapsible: collapsible, onFolded: onFolded),
       ),
     ),
   ),
@@ -58,6 +59,37 @@ void main() {
 
     expect(_postText(tester, longText).maxLines, isNull);
     expect(find.text('See more'), findsNothing);
+  });
+
+  for (final (locale, more, less) in [
+    (const Locale('en'), 'See more', 'See less'),
+    (const Locale('ar'), 'عرض المزيد', 'عرض أقل'),
+  ]) {
+    testWidgets('opened, «$less» at its end folds it back to four lines '
+        'and tells the card [${locale.languageCode}]', (tester) async {
+      var folded = 0;
+      await _pump(tester, longText, locale: locale, onFolded: () => folded++);
+
+      await tester.tap(find.text(more));
+      await tester.pumpAndSettle();
+      expect(find.text(less), findsOneWidget);
+      final text = tester.getBottomLeft(find.text(longText)).dy;
+      expect(tester.getTopLeft(find.text(less)).dy, greaterThan(text));
+
+      await tester.ensureVisible(find.text(less));
+      await tester.tap(find.text(less));
+      await tester.pumpAndSettle();
+      expect(_postText(tester, longText).maxLines, PostCardText.collapsedLines);
+      expect(find.text(more), findsOneWidget);
+      expect(find.text(less), findsNothing);
+      expect(folded, 1);
+    });
+  }
+
+  testWidgets('a short text never offers See less', (tester) async {
+    await _pump(tester, _short);
+
+    expect(find.text('See less'), findsNothing);
   });
 
   testWidgets("See more lines up with the text, at the UI's start", (

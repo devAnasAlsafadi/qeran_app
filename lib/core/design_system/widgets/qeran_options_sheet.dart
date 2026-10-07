@@ -51,30 +51,25 @@ class _QeranOptionsSheetBody<T> extends StatelessWidget {
 
   const _QeranOptionsSheetBody({required this.options, this.title, this.note});
 
+  static const _padding = EdgeInsets.fromLTRB(
+    QeranSpacing.s12,
+    QeranSpacing.s12,
+    QeranSpacing.s12,
+    QeranSpacing.s16,
+  );
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          QeranSpacing.s12,
-          QeranSpacing.s12,
-          QeranSpacing.s12,
-          QeranSpacing.s16,
-        ),
+        padding: _padding,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Center(child: QeranSheetHandle()),
             QeranSpacing.vs12,
-            if (title case final String heading)
-              _SheetText(
-                heading,
-                style: QeranTypography.title.copyWith(
-                  color: QeranColors.inkStrong,
-                ),
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
-              ),
+            if (title case final String heading) _SheetText.title(heading),
             for (final option in options)
               QeranOptionRow(
                 icon: option.icon,
@@ -82,14 +77,7 @@ class _QeranOptionsSheetBody<T> extends StatelessWidget {
                 danger: option.danger,
                 onTap: () => Navigator.of(context).pop(option.value),
               ),
-            if (note case final String limits)
-              _SheetText(
-                limits,
-                style: QeranTypography.label.copyWith(
-                  color: QeranColors.inkMuted,
-                ),
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              ),
+            if (note case final String limits) _SheetText.note(limits),
           ],
         ),
       ),
@@ -103,7 +91,13 @@ class _SheetText extends StatelessWidget {
   final TextStyle style;
   final EdgeInsets padding;
 
-  const _SheetText(this.text, {required this.style, required this.padding});
+  _SheetText.title(this.text)
+    : style = QeranTypography.title.copyWith(color: QeranColors.inkStrong),
+      padding = const EdgeInsets.fromLTRB(8, 4, 8, 8);
+
+  _SheetText.note(this.text)
+    : style = QeranTypography.label.copyWith(color: QeranColors.inkMuted),
+      padding = const EdgeInsets.fromLTRB(8, 8, 8, 0);
 
   @override
   Widget build(BuildContext context) {

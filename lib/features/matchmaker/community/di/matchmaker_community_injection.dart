@@ -10,6 +10,7 @@ import 'package:qeran/features/community/presentation/video/video_player_adapter
 
 import '../../shared/domain/ports/matchmaker_realtime_port.dart';
 import '../presentation/blocs/composer/post_draft_cubit.dart';
+import '../presentation/blocs/dashboard/community_dashboard_cubit.dart';
 import '../presentation/blocs/composer/post_publish_cubit.dart';
 import '../presentation/blocs/guidelines/matchmaker_guidelines_status.dart';
 import '../presentation/blocs/my_posts/my_posts_cubit.dart';
@@ -40,7 +41,7 @@ void initMatchmakerCommunityDependencies() {
 }
 
 /// «البلاغات»: one per opening; what she keeps or deletes reads her badges
-/// again (S16).
+/// again (S16). And the Dashboard's section, one per Dashboard.
 void _initReports() {
   sl.registerFactory(
     () => CommunityReportsCubit(
@@ -49,6 +50,10 @@ void _initReports() {
       deleteComment: sl(),
       onFlagCleared: () => sl<BadgesCubit>().refresh(),
     ),
+  );
+  // Her Dashboard's Community section: whether she has posts now (D35).
+  sl.registerFactory(
+    () => CommunityDashboardCubit(hasPosts: sl(), watchChanges: sl()),
   );
 }
 

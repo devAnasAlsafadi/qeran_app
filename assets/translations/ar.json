@@ -1230,6 +1230,12 @@
       "reports_empty_title": "لا توجد بلاغات بانتظارك",
       "reports_empty_body": "ستظهر هنا البلاغات على التعليقات والردود في منشوراتك.",
       "reports_error": "تعذّر تحميل البلاغات"
+    },
+    "dashboard": {
+      "community_subtitle": "منشوراتك وما يحتاج قرارك فيها",
+      "community_comments": "تعليقات جديدة على منشوراتك",
+      "community_reports": "بلاغات بانتظار قرارك",
+      "community_no_posts": "ليس لديكِ منشورات الآن. شاركي إرشاداً مع الأعضاء."
     }
   },
   "settings": {

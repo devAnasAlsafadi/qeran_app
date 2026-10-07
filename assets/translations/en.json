@@ -1186,6 +1186,12 @@
       "reports_empty_title": "No reports waiting for you",
       "reports_empty_body": "Reports on comments and replies in your posts will appear here.",
       "reports_error": "Couldn’t load reports"
+    },
+    "dashboard": {
+      "community_subtitle": "Your posts and what needs your decision",
+      "community_comments": "New comments on your posts",
+      "community_reports": "Reports awaiting your decision",
+      "community_no_posts": "You have no posts right now. Share guidance with members."
     }
   },
   "settings": {

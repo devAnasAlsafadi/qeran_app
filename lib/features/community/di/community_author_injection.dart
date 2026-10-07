@@ -18,6 +18,7 @@ import '../domain/usecases/delete_community_post_usecase.dart';
 import '../domain/usecases/dismiss_community_flag_usecase.dart';
 import '../domain/usecases/get_community_flags_usecase.dart';
 import '../domain/usecases/get_my_community_posts_usecase.dart';
+import '../domain/usecases/has_my_community_posts_usecase.dart';
 import '../domain/usecases/inspect_picked_image_usecase.dart';
 import '../domain/usecases/inspect_picked_video_usecase.dart';
 import '../domain/usecases/publish_community_post_usecase.dart';
@@ -34,6 +35,7 @@ void initCommunityAuthorDependencies() {
   );
 
   sl.registerLazySingleton(() => GetMyCommunityPostsUseCase(sl()));
+  sl.registerLazySingleton(() => HasMyCommunityPostsUseCase(sl()));
   sl.registerLazySingleton(() => DeleteCommunityPostUseCase(sl()));
   sl.registerLazySingleton(() => GetCommunityFlagsUseCase(sl()));
   sl.registerLazySingleton(() => DismissCommunityFlagUseCase(sl()));

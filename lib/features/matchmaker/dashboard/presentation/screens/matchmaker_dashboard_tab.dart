@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,7 +9,9 @@ import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import '../../../../../generated/locale_keys.g.dart';
+import '../../../../badges/presentation/blocs/badges_cubit.dart';
 import '../../../account/presentation/blocs/matchmaker_account_cubit.dart';
+import '../../../community/presentation/blocs/dashboard/community_dashboard_cubit.dart';
 import '../../../home/presentation/home_shell_scope.dart';
 import '../../../shared/presentation/widgets/matchmaker_app_bar.dart';
 import '../blocs/matchmaker_dashboard_cubit.dart';
@@ -30,8 +34,16 @@ class MatchmakerDashboardTab extends StatelessWidget {
     // payload carries no name, so `userName` is never persisted). Source it
     // from the authoritative `/matchmaker/me` via a screen-scoped account
     // cubit; fall back to any session name while it loads / on failure.
-    return BlocProvider<MatchmakerAccountCubit>(
-      create: (_) => sl<MatchmakerAccountCubit>()..load(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<MatchmakerAccountCubit>(
+          create: (_) => sl<MatchmakerAccountCubit>()..load(),
+        ),
+        // Her Community section's "no posts now" read (D35).
+        BlocProvider<CommunityDashboardCubit>(
+          create: (_) => sl<CommunityDashboardCubit>()..load(),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: QeranColors.creamCanvas,
         appBar: MatchmakerAppBar(
@@ -41,33 +53,42 @@ class MatchmakerDashboardTab extends StatelessWidget {
           top: false,
           bottom: false,
           child: BlocBuilder<MatchmakerDashboardCubit, MatchmakerDashboardState>(
-            builder: (context, state) => switch (state) {
-              MatchmakerDashboardLoaded(:final stats) => RefreshIndicator(
-                  color: QeranColors.wine,
-                  backgroundColor: QeranColors.paper,
-                  onRefresh: () =>
-                      context.read<MatchmakerDashboardCubit>().refresh(),
-                  child: MatchmakerDashboardBody(
-                    stats: stats,
-                    matchmakerName: _resolveName(context),
-                    onOpen: (index, {usersSubTab}) =>
-                        MatchmakerHomeShellScope.maybeOf(context)
-                            ?.openTab(index, usersSubTab: usersSubTab),
-                  ),
-                ),
-              MatchmakerDashboardError(:final message) => QeranErrorState(
-                  title: LocaleKeys.matchmaker_dashboard_error_title.t(context),
-                  message: message,
-                  retryLabel: LocaleKeys.matchmaker_dashboard_retry.t(context),
-                  onRetry: () =>
-                      context.read<MatchmakerDashboardCubit>().retry(),
-                ),
-              _ => const MatchmakerDashboardBodySkeleton(),
-            },
+            builder: _body,
           ),
         ),
       ),
     );
+  }
+
+  Widget _body(BuildContext context, MatchmakerDashboardState state) =>
+      switch (state) {
+        MatchmakerDashboardLoaded(:final stats) => RefreshIndicator(
+            color: QeranColors.wine,
+            backgroundColor: QeranColors.paper,
+            onRefresh: () => _refresh(context),
+            child: MatchmakerDashboardBody(
+              stats: stats,
+              matchmakerName: _resolveName(context),
+              onOpen: (index, {usersSubTab}) =>
+                  MatchmakerHomeShellScope.maybeOf(context)
+                      ?.openTab(index, usersSubTab: usersSubTab),
+            ),
+          ),
+        MatchmakerDashboardError(:final message) => QeranErrorState(
+            title: LocaleKeys.matchmaker_dashboard_error_title.t(context),
+            message: message,
+            retryLabel: LocaleKeys.matchmaker_dashboard_retry.t(context),
+            onRetry: () => context.read<MatchmakerDashboardCubit>().retry(),
+          ),
+        _ => const MatchmakerDashboardBodySkeleton(),
+      };
+
+  /// Pull to refresh: the counters, and her Community section's read and
+  /// badges with them.
+  static Future<void> _refresh(BuildContext context) {
+    unawaited(context.read<CommunityDashboardCubit>().load());
+    unawaited(sl<BadgesCubit>().refresh());
+    return context.read<MatchmakerDashboardCubit>().refresh();
   }
 
   /// Prefer the authoritative `/matchmaker/me` name (watched so the greeting

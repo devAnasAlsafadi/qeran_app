@@ -1118,6 +1118,11 @@ abstract class  LocaleKeys {
   static const matchmaker_community_reports_empty_body = 'matchmaker.community.reports_empty_body';
   static const matchmaker_community_reports_error = 'matchmaker.community.reports_error';
   static const matchmaker_community = 'matchmaker.community';
+  static const matchmaker_dashboard_community_subtitle = 'matchmaker.dashboard.community_subtitle';
+  static const matchmaker_dashboard_community_comments = 'matchmaker.dashboard.community_comments';
+  static const matchmaker_dashboard_community_reports = 'matchmaker.dashboard.community_reports';
+  static const matchmaker_dashboard_community_no_posts = 'matchmaker.dashboard.community_no_posts';
+  static const matchmaker_dashboard = 'matchmaker.dashboard';
   static const matchmaker = 'matchmaker';
   static const settings_account_management = 'settings.account_management';
   static const settings_change_password_title = 'settings.change_password_title';

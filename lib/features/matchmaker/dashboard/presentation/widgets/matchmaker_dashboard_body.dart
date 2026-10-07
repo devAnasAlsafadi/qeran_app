@@ -6,13 +6,14 @@ import '../../../../../core/design_system/widgets/qeran_section_header.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../home/presentation/home_shell_scope.dart';
+import '../../../community/presentation/widgets/dashboard/community_dashboard_section.dart';
 import '../../domain/entities/matchmaker_dashboard_stats.dart';
 import 'matchmaker_attention_row.dart';
 import 'matchmaker_greeting_row.dart';
 import 'matchmaker_overview_grid.dart';
 
-/// The dashboard content — greeting, the two attention heroes, and the
-/// 2×2 overview grid. The six counters and their destinations are
+/// The dashboard content — greeting, the two attention heroes, her
+/// Community section (A2–A4), and the 2×2 overview grid. The six counters and their destinations are
 /// unchanged; only the presentation is redesigned. Scrollable so the
 /// parent `RefreshIndicator` can drive pull-to-refresh.
 class MatchmakerDashboardBody extends StatelessWidget {
@@ -45,17 +46,9 @@ class MatchmakerDashboardBody extends StatelessWidget {
       children: [
         MatchmakerGreetingRow(name: matchmakerName),
         QeranSpacing.vs24,
-        QeranSectionHeader(
-          title: LocaleKeys.matchmaker_dashboard_attention_title.t(context),
-          subtitle:
-              LocaleKeys.matchmaker_dashboard_attention_subtitle.t(context),
-        ),
-        QeranSpacing.vs12,
-        // Content-sized; IntrinsicHeight keeps the two heroes equal-height
-        // without clamping either to a fixed value (which overflowed).
-        IntrinsicHeight(
-          child: MatchmakerAttentionRow(stats: stats, onOpen: onOpen),
-        ),
+        ..._attention(context),
+        QeranSpacing.vs24,
+        const CommunityDashboardSection(),
         QeranSpacing.vs24,
         QeranSectionHeader(
           title: LocaleKeys.matchmaker_dashboard_overview_title.t(context),
@@ -65,4 +58,18 @@ class MatchmakerDashboardBody extends StatelessWidget {
       ],
     );
   }
+
+  /// «تحتاج انتباهك» and its two heroes.
+  List<Widget> _attention(BuildContext context) => [
+    QeranSectionHeader(
+      title: LocaleKeys.matchmaker_dashboard_attention_title.t(context),
+      subtitle: LocaleKeys.matchmaker_dashboard_attention_subtitle.t(context),
+    ),
+    QeranSpacing.vs12,
+    // Content-sized; IntrinsicHeight keeps the two heroes equal-height
+    // without clamping either to a fixed value (which overflowed).
+    IntrinsicHeight(
+      child: MatchmakerAttentionRow(stats: stats, onOpen: onOpen),
+    ),
+  ];
 }

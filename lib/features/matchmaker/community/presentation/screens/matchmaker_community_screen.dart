@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/features/community/domain/entities/community_post.dart';
 import 'package:qeran/features/community/domain/entities/community_viewer.dart';
 import 'package:qeran/features/community/presentation/blocs/feed/community_feed_cubit.dart';
 import 'package:qeran/features/community/presentation/blocs/post_delete/post_delete_cubit.dart';
@@ -10,16 +9,15 @@ import 'package:qeran/features/community/presentation/screens/post_delete_listen
 import '../../../../../core/design_system/tokens/qeran_colors.dart';
 import '../../../../../core/design_system/widgets/qeran_app_bar.dart';
 import '../../../../../core/design_system/widgets/qeran_floating_button.dart';
-import '../../../../../core/enum/snakebar_tybe.dart';
 import '../../../../../core/di/injection_container.dart';
 import '../../../../../core/extensions/localization_extension.dart';
-import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../core/widgets/connectivity_banner_host.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../../shared/presentation/widgets/matchmaker_segmented_tabs.dart';
 import '../blocs/my_posts/my_posts_cubit.dart';
 import '../widgets/community_new_post_button.dart';
 import '../widgets/my_posts_states.dart';
+import '../widgets/published_toast.dart';
 import 'start_new_post.dart';
 
 /// Her Community screen's two segments.
@@ -101,16 +99,7 @@ class _MatchmakerCommunityScreenState extends State<MatchmakerCommunityScreen>
     final post = await startNewPost(context);
     if (post == null || !mounted) return;
     _select(MatchmakerCommunityTab.mine.index);
-    final processing = post.status == CommunityPostStatus.processing;
-    AppSnackBar.show(
-      context,
-      message:
-          (processing
-                  ? LocaleKeys.matchmaker_community_published_processing
-                  : LocaleKeys.matchmaker_community_published)
-              .t(context),
-      type: SnackBarType.success,
-    );
+    showPublishedToast(context, post);
   }
 
   @override

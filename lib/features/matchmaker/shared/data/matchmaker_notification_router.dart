@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+import 'package:qeran/features/notifications/domain/entities/community_post_target.dart';
 import 'package:qeran/features/notifications/domain/entities/notification_audience.dart';
 
 import 'json_parsers.dart';
@@ -24,6 +26,17 @@ class OpenCases extends MatchmakerDeepLink {
   final int? highlightCaseId;
 }
 
+/// Open a Community post at the comment or reply the notification is about
+/// (C8): a new comment on her post, a report on it (D36: the post at the
+/// item, never «البلاغات»), or a reply to her comment.
+class OpenPost extends MatchmakerDeepLink with EquatableMixin {
+  const OpenPost(this.target);
+  final CommunityPostTarget target;
+
+  @override
+  List<Object?> get props => [target];
+}
+
 /// Not a matchmaker deep-link we handle → no-op.
 class IgnoreDeepLink extends MatchmakerDeepLink {
   const IgnoreDeepLink();
@@ -39,6 +52,10 @@ class IgnoreDeepLink extends MatchmakerDeepLink {
 ///     audience fails the guard exactly as an unrecognised one does — this
 ///     shell acts only on what is addressed to it.
 ///   • Chat: `type == "chat"` with a parseable `conversationId`.
+///   • Community: `screen == "community_post"` (or `type == "community"`)
+///     AND [NotificationAudience.isMatchmaker], with a parseable `postId`.
+///     A reply to a member's comment carries the same shape, so again the
+///     audience is what keeps her shell from acting on it.
 /// Anything else → [IgnoreDeepLink]. Never throws.
 class MatchmakerNotificationRouter {
   const MatchmakerNotificationRouter._();
@@ -54,6 +71,11 @@ class MatchmakerNotificationRouter {
       return OpenCases(highlightCaseId: parseNullableInt(data['caseId']));
     }
 
+    if (_isCommunity(data, type) && audience.isMatchmaker) {
+      final target = CommunityPostTarget.fromData(data);
+      return target == null ? const IgnoreDeepLink() : OpenPost(target);
+    }
+
     if (type == 'chat') {
       final id = parseNullableInt(data['conversationId']);
       if (id == null) return const IgnoreDeepLink();
@@ -65,4 +87,8 @@ class MatchmakerNotificationRouter {
 
     return const IgnoreDeepLink();
   }
+
+  static bool _isCommunity(Map<String, dynamic> data, String type) =>
+      type == 'community' ||
+      parseString(data['screen']).toLowerCase() == 'community_post';
 }

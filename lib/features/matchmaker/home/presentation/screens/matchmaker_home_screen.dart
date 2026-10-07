@@ -70,22 +70,30 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen> {
   /// Raises [_fromNotification], which is what puts a back control on the
   /// destination tab.
   ///
-  /// Raised OUTSIDE the tab switch on purpose: `_selectTab` returns early when
+  /// Raised BEFORE the tab switch on purpose: `_selectTab` returns early when
   /// the target tab is already showing, and that is exactly when the control
   /// matters most — nothing else on screen changes.
   void _openFromNotification(MatchmakerDeepLink link) {
-    if (link is IgnoreDeepLink) return;
-    if (mounted) setState(() => _fromNotification = true);
     switch (link) {
       case OpenCases():
+        _raiseTrail();
         _selectTab(
           2,
         ); // Cases tab — the shell owns selection (no route change).
       case OpenUserChat():
+        _raiseTrail();
         openNotifiedChat(context, link);
+      // Over whatever is showing, with no trail: back is where she was, as
+      // in the member's shell.
+      case OpenPost():
+        unawaited(openNotifiedPost(context, link));
       case IgnoreDeepLink():
         break;
     }
+  }
+
+  void _raiseTrail() {
+    if (mounted) setState(() => _fromNotification = true);
   }
 
   /// Opening a tab acknowledges its badge. Ahead of the early return below on

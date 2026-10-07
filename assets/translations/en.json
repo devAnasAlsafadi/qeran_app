@@ -1164,7 +1164,7 @@
       "remove_video": "Remove video",
       "preparing_video": "Preparing your video… {p}%",
       "video_too_large": "This video is {size}, over the {max} limit. Choose a shorter video.",
-      "video_unavailable": "The video service isn’t available right now. Try again in a moment.",
+      "video_unavailable": "The video service is unavailable right now. Try again in a moment.",
       "published_processing": "Uploaded. Members will see it once the video finishes processing."
     }
   },

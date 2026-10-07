@@ -37,7 +37,7 @@ final _copy = {
     uploading: 'Uploading your post… 50%',
     cancel: 'Cancel',
     unavailable:
-        'The video service isn’t available right now. Try again in a moment.',
+        'The video service is unavailable right now. Try again in a moment.',
     retry: 'Retry',
   ),
 };

@@ -42,6 +42,15 @@ enum CommunityCommentsEvent {
   /// The comment or reply a notification is about is gone — deleted, or
   /// hidden by a block (C8).
   contentGone,
+
+  /// The post's author kept a reported comment: its flag is gone (E3).
+  kept,
+
+  /// The same for a reply (Q11).
+  keptReply,
+
+  /// Keeping didn't go through; the flag stays.
+  keepFailed,
 }
 
 class CommunityCommentsState extends Equatable {

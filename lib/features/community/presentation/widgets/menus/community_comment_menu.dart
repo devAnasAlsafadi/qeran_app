@@ -28,7 +28,7 @@ Widget? communityCommentMenu(
     kind: kind,
     onSelected: (context, action) => switch (action) {
       CommunityMenuAction.report => _report(context, comment, kind),
-      CommunityMenuAction.delete => _delete(context, comment, kind),
+      CommunityMenuAction.delete => deleteCommunityComment(context, comment),
       CommunityMenuAction.block => _block(context, comment),
     },
   );
@@ -49,12 +49,15 @@ Future<void> _report(
   if (outcome == ReportOutcome.gone) comments.removeGone(comment);
 }
 
-Future<void> _delete(
+/// Asks — in her words for an item that isn't hers (E4, E5) — then deletes
+/// [comment] through the post screen's comments: from the ⋮, and from a
+/// reported row's «حذف».
+Future<void> deleteCommunityComment(
   BuildContext context,
   CommunityComment comment,
-  ReportContentKind kind,
 ) async {
   final comments = context.read<CommunityCommentsCubit>();
+  final kind = contentKindOf(comment);
   if (await confirmCommunityDelete(context, kind, mine: comment.isMine)) {
     await comments.delete(comment);
   }

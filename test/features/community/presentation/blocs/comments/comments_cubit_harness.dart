@@ -9,6 +9,7 @@ import 'package:qeran/features/community/domain/entities/community_page.dart';
 import 'package:qeran/features/community/domain/usecases/create_community_comment_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/create_community_reply_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/delete_community_comment_usecase.dart';
+import 'package:qeran/features/community/domain/usecases/dismiss_community_flag_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_comment_replies_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_comment_usecase.dart';
 import 'package:qeran/features/community/domain/usecases/get_community_post_usecase.dart';
@@ -37,6 +38,8 @@ class _MockDelete extends Mock implements DeleteCommunityCommentUseCase {}
 
 class _MockGetComment extends Mock implements GetCommunityCommentUseCase {}
 
+class _MockDismissFlag extends Mock implements DismissCommunityFlagUseCase {}
+
 typedef CommentsAnswer = Either<Failure, CommunityPage<CommunityComment>>;
 
 /// A comments cubit for post 1 over scripted use cases — opened at
@@ -53,6 +56,8 @@ class CommentsHarness {
       deleteComment: delete,
       getPost: getPost,
       getComment: getComment,
+      dismissFlag: dismissFlag.call,
+      onFlagCleared: () => flagsCleared++,
       landing: landing,
     );
     when(() => getPost(1)).thenAnswer((_) async => Right(testPost()));
@@ -66,7 +71,11 @@ class CommentsHarness {
   final getPost = _MockGetPost();
   final delete = _MockDelete();
   final getComment = _MockGetComment();
+  final dismissFlag = _MockDismissFlag();
   late final CommunityCommentsCubit cubit;
+
+  /// How often her badges were asked to be read again (S16).
+  int flagsCleared = 0;
 
   /// Page [page] of the comments answers with [items], of [totalPages].
   void page(int page, List<CommunityComment> items, {int totalPages = 1}) =>

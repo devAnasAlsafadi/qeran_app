@@ -11,13 +11,16 @@ import '../community_author_name.dart';
 import '../../blocs/comments/comment_thread.dart';
 import 'comment_actions.dart';
 import 'comment_delivery_line.dart';
+import 'comment_flag_panel.dart';
 
 /// A comment or a reply (C1, C2, I2): who wrote it — a matchmaker with her
 /// photo or ring and the «خطّابة» chip — how long ago (row form, Q6), the
 /// text in its own direction and script (D13), and its Like and Reply. A
 /// reply sits under its comment's text, its picture smaller. One the member
 /// sent that isn't settled ([delivery]) is dimmed, with how it stands in
-/// place of the actions (D5, D7).
+/// place of the actions (D5, D7). One reported, for the post's author, sits
+/// in the flag's frame with its line on top and Keep / Delete in place of
+/// Like and Reply (E1, E2); its ⋮ stays.
 class CommentRow extends StatelessWidget {
   const CommentRow({
     super.key,
@@ -27,6 +30,8 @@ class CommentRow extends StatelessWidget {
     this.onLike,
     this.onReply,
     this.onRetry,
+    this.onKeep,
+    this.onDelete,
     this.menu,
   });
 
@@ -45,6 +50,11 @@ class CommentRow extends StatelessWidget {
   /// Send a failed one again.
   final VoidCallback? onRetry;
 
+  /// Keep or delete it while it's reported (E1, E2): both given for the
+  /// post's author.
+  final VoidCallback? onKeep;
+  final VoidCallback? onDelete;
+
   /// The ⋮ button, built from the server's flags.
   final Widget? menu;
 
@@ -55,13 +65,45 @@ class CommentRow extends StatelessWidget {
   static const double replyIndent =
       QeranSpacing.s16 + avatarSize + QeranSpacing.s12;
 
+  /// Reported, with her Keep and Delete to answer it.
+  bool get flagged =>
+      comment.flag != null &&
+      onKeep != null &&
+      onDelete != null &&
+      delivery == null;
+
+  double get _start => comment.isReply ? replyIndent : QeranSpacing.s16;
+
   @override
   Widget build(BuildContext context) {
+    final flag = comment.flag;
+    if (!flagged || flag == null) return _row();
+    return DecoratedBox(
+      decoration: commentFlagDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsetsDirectional.only(
+              start: _start,
+              end: QeranSpacing.s16,
+              top: QeranSpacing.s8,
+            ),
+            child: CommentFlagLine(flag: flag),
+          ),
+          _row(),
+        ],
+      ),
+    );
+  }
+
+  Widget _row() {
     final reply = comment.isReply;
     return Padding(
       // The ⋮ button brings its own 44 pt tap area to the end edge.
       padding: EdgeInsetsDirectional.only(
-        start: reply ? replyIndent : QeranSpacing.s16,
+        start: _start,
         end: menu == null ? QeranSpacing.s16 : QeranSpacing.s2,
         top: QeranSpacing.s8,
       ),
@@ -119,11 +161,17 @@ class _Body extends StatelessWidget {
     );
   }
 
-  /// The actions once posted; until then, how it stands.
+  /// The actions once posted — Keep and Delete while reported; until then,
+  /// how it stands.
   Widget _under() => switch (row.delivery) {
     final delivery? => CommentDeliveryLine(
       delivery: delivery,
       onRetry: row.onRetry ?? () {},
+    ),
+    null when row.flagged => CommentFlagActions(
+      reply: row.comment.isReply,
+      onKeep: row.onKeep!,
+      onDelete: row.onDelete!,
     ),
     null => CommentActions(
       comment: row.comment,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/state/safe_emit.dart';
@@ -12,6 +13,7 @@ import '../../../domain/usecases/get_community_comment_usecase.dart';
 import '../../../domain/usecases/get_community_post_usecase.dart';
 import '../../../domain/usecases/get_post_comments_usecase.dart';
 import '../../../domain/usecases/set_comment_like_usecase.dart';
+import 'comment_flags.dart';
 import 'comment_landing.dart';
 import 'comment_likes.dart';
 import 'comment_removal.dart';
@@ -23,14 +25,16 @@ import 'community_comments_state.dart';
 /// A post's discussion (C1–C6, D5–D10): comments newest first, a page at a
 /// time on «عرض تعليقات أخرى», each comment's replies oldest first on «عرض
 /// الردود», the optimistic like ([CommentLikes]), what the member sends
-/// ([CommentSending]) and what leaves the list ([CommentRemoval]). Opened from
-/// a notification, it lands on what that is about first ([CommentLanding]).
+/// ([CommentSending]), what leaves the list ([CommentRemoval]) and, for the
+/// post's author, the reports she keeps ([CommentFlags]). Opened from a
+/// notification, it lands on what that is about first ([CommentLanding]).
 class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     with
         SafeEmit<CommunityCommentsState>,
         CommentLikes,
         CommentSending,
         CommentRemoval,
+        CommentFlags,
         CommentLanding {
   CommunityCommentsCubit({
     required this.postId,
@@ -42,6 +46,8 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
     required this.deleteComment,
     required this.getPost,
     required this.getComment,
+    this.dismissFlag,
+    this.onFlagCleared,
     CommunityLanding? landing,
   }) : _getComments = getComments,
        _getReplies = getReplies,
@@ -63,6 +69,10 @@ class CommunityCommentsCubit extends Cubit<CommunityCommentsState>
   final GetCommunityPostUseCase getPost;
   @override
   final GetCommunityCommentUseCase getComment;
+  @override
+  final DismissFlag? dismissFlag;
+  @override
+  final VoidCallback? onFlagCleared;
   final GetPostCommentsUseCase _getComments;
   final GetCommentRepliesUseCase _getReplies;
   bool _loading = false;

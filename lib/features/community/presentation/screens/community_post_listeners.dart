@@ -86,8 +86,26 @@ void _commentsToast(BuildContext context, CommunityCommentsEvent event) {
       LocaleKeys.community_content_gone,
       SnackBarType.info,
     ),
-    _ => (null, null),
+    _ => _flagToastOf(event),
   };
+
+/// Her Keep on a reported comment or reply (E3, Q11), or its failure.
+(String?, SnackBarType?) _flagToastOf(CommunityCommentsEvent event) =>
+    switch (event) {
+      CommunityCommentsEvent.kept => (
+        LocaleKeys.community_comment_kept,
+        SnackBarType.success,
+      ),
+      CommunityCommentsEvent.keptReply => (
+        LocaleKeys.community_reply_kept,
+        SnackBarType.success,
+      ),
+      CommunityCommentsEvent.keepFailed => (
+        LocaleKeys.community_keep_failed,
+        SnackBarType.error,
+      ),
+      _ => (null, null),
+    };
 
 /// Blocked (or gone — the same, never told apart): their rows go.
 void _blocked(BuildContext context, BlockActionState state) {

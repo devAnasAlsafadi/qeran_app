@@ -87,26 +87,26 @@ List<CommentThread> withCommentLike(
   List<CommentThread> threads,
   int commentId,
   CommunityLikeState like,
-) => [
-  for (final thread in threads)
-    thread.copyWith(
-      comment: thread.id == commentId
-          ? thread.comment.withLike(like)
-          : thread.comment,
-      replies: [
-        for (final reply in thread.replies)
-          reply.id == commentId ? reply.withLike(like) : reply,
-      ],
-      landed: [
-        for (final reply in thread.landed)
-          reply.id == commentId ? reply.withLike(like) : reply,
-      ],
-      mine: [
-        for (final reply in thread.mine)
-          reply.id == commentId ? reply.withLike(like) : reply,
-      ],
-    ),
-];
+) => withCommentChanged(threads, commentId, (c) => c.withLike(like));
+
+/// [threads] with [commentId] — a comment or a reply, wherever it is —
+/// replaced by [change] of it.
+List<CommentThread> withCommentChanged(
+  List<CommentThread> threads,
+  int commentId,
+  CommunityComment Function(CommunityComment comment) change,
+) {
+  CommunityComment one(CommunityComment c) => c.id == commentId ? change(c) : c;
+  return [
+    for (final thread in threads)
+      thread.copyWith(
+        comment: one(thread.comment),
+        replies: thread.replies.map(one).toList(),
+        landed: thread.landed.map(one).toList(),
+        mine: thread.mine.map(one).toList(),
+      ),
+  ];
+}
 
 /// [threads] with the member's new [comment] at the top (D5).
 List<CommentThread> withMyComment(

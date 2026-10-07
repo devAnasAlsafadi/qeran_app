@@ -56,20 +56,27 @@ extension CommunityCommentLike on CommunityComment {
   /// This comment with [count] replies.
   CommunityComment withReplyCount(int count) => _copy(replyCount: count);
 
-  CommunityComment _copy({int? likeCount, bool? likedByMe, int? replyCount}) =>
-      CommunityComment(
-        id: id,
-        postId: postId,
-        parentCommentId: parentCommentId,
-        author: author,
-        text: text,
-        likeCount: likeCount ?? this.likeCount,
-        likedByMe: likedByMe ?? this.likedByMe,
-        replyCount: replyCount ?? this.replyCount,
-        createdAt: createdAt,
-        isMine: isMine,
-        canDelete: canDelete,
-        canBlock: canBlock,
-        flag: flag,
-      );
+  /// This comment or reply with its report flag cleared: she kept it (E3).
+  CommunityComment withoutFlag() => _copy(flagCleared: true);
+
+  CommunityComment _copy({
+    int? likeCount,
+    bool? likedByMe,
+    int? replyCount,
+    bool flagCleared = false,
+  }) => CommunityComment(
+    id: id,
+    postId: postId,
+    parentCommentId: parentCommentId,
+    author: author,
+    text: text,
+    likeCount: likeCount ?? this.likeCount,
+    likedByMe: likedByMe ?? this.likedByMe,
+    replyCount: replyCount ?? this.replyCount,
+    createdAt: createdAt,
+    isMine: isMine,
+    canDelete: canDelete,
+    canBlock: canBlock,
+    flag: flagCleared ? null : flag,
+  );
 }

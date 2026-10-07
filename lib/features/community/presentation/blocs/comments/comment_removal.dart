@@ -22,6 +22,10 @@ mixin CommentRemoval on Cubit<CommunityCommentsState> {
   @protected
   GetCommunityPostUseCase get getPost;
 
+  /// Her badges, read again when a reported item goes (S16).
+  @protected
+  VoidCallback? get onFlagCleared;
+
   /// Deletes on their way: a second tap waits.
   final Set<int> _deleting = {};
 
@@ -40,15 +44,18 @@ mixin CommentRemoval on Cubit<CommunityCommentsState> {
               : CommunityCommentsEvent.deleteFailed,
         ),
       ),
-      (_) => comment.isReply
-          ? _remove(
-              withoutReply(state.threads, comment),
-              CommunityCommentsEvent.deletedReply,
-            )
-          : _remove(
-              withoutComment(state.threads, comment.id),
-              CommunityCommentsEvent.deleted,
-            ),
+      (_) {
+        comment.isReply
+            ? _remove(
+                withoutReply(state.threads, comment),
+                CommunityCommentsEvent.deletedReply,
+              )
+            : _remove(
+                withoutComment(state.threads, comment.id),
+                CommunityCommentsEvent.deleted,
+              );
+        if (comment.flag != null) onFlagCleared?.call();
+      },
     );
   }
 

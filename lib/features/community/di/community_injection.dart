@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/features/badges/presentation/blocs/badges_cubit.dart';
 import 'package:qeran/core/state/account_scope.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/block/domain/repositories/community_member_blocker.dart';
@@ -28,6 +29,7 @@ import '../domain/usecases/report_community_content_usecase.dart';
 import '../domain/usecases/set_comment_like_usecase.dart';
 import '../domain/usecases/set_post_like_usecase.dart';
 import '../domain/usecases/watch_community_post_changes_usecase.dart';
+import '../domain/usecases/dismiss_community_flag_usecase.dart';
 import '../domain/entities/community_landing.dart';
 import '../domain/entities/community_post.dart';
 import '../domain/entities/community_viewer.dart';
@@ -149,6 +151,8 @@ void initCommunityDependencies() {
       deleteComment: sl(),
       getPost: sl(),
       getComment: sl(),
+      dismissFlag: (flagId) => sl<DismissCommunityFlagUseCase>()(flagId),
+      onFlagCleared: _refreshBadges,
       landing: landing,
     ),
   );
@@ -164,4 +168,10 @@ CommunityRemoteDataSource _dataSource() {
   final mode = CommunityMockMode.fromFlag(_mockFlag);
   if (mode == null) return CommunityRemoteDataSourceImpl(apiConsumer: sl());
   return communityMockDevFlag(mode, connectivity: sl());
+}
+
+/// Her badges read again after she keeps or deletes a reported item (S16):
+/// a backstop for the hub's `BadgeUpdated`, which needs a live connection.
+void _refreshBadges() {
+  if (sl.isRegistered<BadgesCubit>()) sl<BadgesCubit>().refresh();
 }

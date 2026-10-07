@@ -319,6 +319,14 @@ abstract class  LocaleKeys {
   static const community_status_processing = 'community.status_processing';
   static const community_status_failed = 'community.status_failed';
   static const community_status_failed_body = 'community.status_failed_body';
+  static const community_flag_reports = 'community.flag_reports';
+  static const community_flag_line = 'community.flag_line';
+  static const community_flag_line_count_only = 'community.flag_line_count_only';
+  static const community_keep_comment = 'community.keep_comment';
+  static const community_keep_reply = 'community.keep_reply';
+  static const community_comment_kept = 'community.comment_kept';
+  static const community_reply_kept = 'community.reply_kept';
+  static const community_keep_failed = 'community.keep_failed';
   static const community = 'community';
   static const notifications_title = 'notifications.title';
   static const notifications_empty_title = 'notifications.empty_title';

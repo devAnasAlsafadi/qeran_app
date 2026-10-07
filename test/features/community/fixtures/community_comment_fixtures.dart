@@ -1,5 +1,6 @@
 import 'package:qeran/features/community/domain/entities/community_author.dart';
 import 'package:qeran/features/community/domain/entities/community_comment.dart';
+import 'package:qeran/features/community/domain/entities/community_flag.dart';
 import 'package:qeran/features/community/domain/entities/community_page.dart';
 
 import 'community_post_fixtures.dart';
@@ -36,6 +37,7 @@ CommunityComment testComment({
   bool isMine = false,
   bool canDelete = false,
   bool? canBlock,
+  CommunityFlag? flag,
 }) => CommunityComment(
   id: id,
   postId: postId,
@@ -49,6 +51,7 @@ CommunityComment testComment({
   isMine: isMine,
   canDelete: canDelete,
   canBlock: canBlock ?? (!author.isMatchmaker && !isMine),
+  flag: flag,
 );
 
 /// [id], a reply under comment [parentId] — Huda's, unless told otherwise.
@@ -60,6 +63,8 @@ CommunityComment testReply({
   int likeCount = 0,
   bool likedByMe = false,
   bool isMine = false,
+  bool? canDelete,
+  CommunityFlag? flag,
 }) => testComment(
   id: id,
   parentId: parentId,
@@ -68,7 +73,8 @@ CommunityComment testReply({
   likeCount: likeCount,
   likedByMe: likedByMe,
   isMine: isMine,
-  canDelete: isMine,
+  canDelete: canDelete ?? isMine,
+  flag: flag,
 );
 
 /// Comments [from]..[to], newest first.

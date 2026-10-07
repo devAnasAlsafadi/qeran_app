@@ -48,17 +48,18 @@ class CommunityCommentItem extends StatelessWidget {
 
   Widget _row(BuildContext context) {
     final composer = context.read<CommunityComposerCubit>();
+    final comments = context.read<CommunityCommentsCubit>();
     final answerable = !readOnly && !comment.isReply && delivery == null;
     return CommentRow(
       comment: comment,
       readOnly: readOnly,
       delivery: delivery,
-      onLike: () => context.read<CommunityCommentsCubit>().toggleLike(
-        comment.id,
-        readOnly: readOnly,
-      ),
+      onLike: () => comments.toggleLike(comment.id, readOnly: readOnly),
       onReply: answerable ? () => composer.replyTo(comment) : null,
       onRetry: () => composer.retry(comment.id, comment.text, parent: parent),
+      // Her answers to a report on it (E1–E6).
+      onKeep: () => comments.keep(comment),
+      onDelete: () => deleteCommunityComment(context, comment),
       // One on its way, or failed, has nothing to report or delete yet.
       menu: delivery == null
           ? communityCommentMenu(comment, viewer: viewer)

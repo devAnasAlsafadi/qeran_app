@@ -17,8 +17,12 @@ String reportTitleKey(ReportTarget target) => switch (target) {
 
 /// A reason's label. Harassment and Other read differently on content
 /// («إساءة أو تنمّر», «سبب آخر») than on a profile (contract §5.1).
-String reportReasonKey(ReportReason reason, ReportTarget target) {
-  final content = target is ContentReportTarget;
+String reportReasonKey(ReportReason reason, ReportTarget target) =>
+    reasonLabelKey(reason, content: target is ContentReportTarget);
+
+/// [reportReasonKey] for a reason on a post, a comment or a reply
+/// ([content]), or on a profile.
+String reasonLabelKey(ReportReason reason, {required bool content}) {
   return switch (reason) {
     ReportReason.harassment when content =>
       LocaleKeys.report_reason_harassment_content,

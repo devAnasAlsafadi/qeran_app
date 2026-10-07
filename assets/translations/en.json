@@ -333,7 +333,18 @@
     "delete_post_failed": "Couldn’t delete the post. Please try again.",
     "status_processing": "Processing · shown to members when ready",
     "status_failed": "Couldn’t process the video",
-    "status_failed_body": "Members can’t see it. Delete it and publish again."
+    "status_failed_body": "Members can’t see it. Delete it and publish again.",
+    "flag_reports": {
+      "one": "1 report",
+      "other": "{n} reports"
+    },
+    "flag_line": "Reported · {count} · {reason}",
+    "flag_line_count_only": "Reported · {count}",
+    "keep_comment": "Keep",
+    "keep_reply": "Keep",
+    "comment_kept": "Comment kept and the report flag removed.",
+    "reply_kept": "Reply kept and the report flag removed.",
+    "keep_failed": "Couldn’t clear the report flag. Please try again."
   },
   "notifications": {
     "title": "Notifications",

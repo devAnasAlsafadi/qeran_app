@@ -19,7 +19,7 @@ final _copy = {
         'ميغابايت). اختاري فيديو أقصر.',
   ),
   'en': (
-    preparing: 'Preparing your video… 42%',
+    preparing: 'Preparing the video… 42%',
     cancel: 'Cancel',
     tooLarge:
         'This video is 320 MB, over the 300 MB limit. Choose a shorter video.',

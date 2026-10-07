@@ -39,7 +39,7 @@ final _copy = {
     either: 'Several images or one video',
     imagesOnly: 'Only images can be added for now',
     noImages: 'Images can’t be added with a video',
-    noVideo: 'A video can’t be added with images',
+    noVideo: 'Video can’t be added with images',
     sheet: 'Add a video',
     gallery: 'Choose from gallery',
     record: 'Record a video',
@@ -151,7 +151,7 @@ void main() {
     await tapAndSettle(tester, 'Images');
     await tapAndSettle(tester, 'Choose from gallery');
 
-    expect(find.text('A video can’t be added with images'), findsOneWidget);
+    expect(find.text('Video can’t be added with images'), findsOneWidget);
     expect(opacityOf(tester, 'Video'), 0.4);
   });
 

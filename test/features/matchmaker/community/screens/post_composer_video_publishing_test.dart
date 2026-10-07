@@ -33,7 +33,7 @@ final _copy = {
     video: 'Video',
     gallery: 'Choose from gallery',
     publish: 'Publish',
-    preparing: 'Preparing your video… 50%',
+    preparing: 'Preparing the video… 50%',
     uploading: 'Uploading your post… 50%',
     cancel: 'Cancel',
     unavailable:
@@ -120,7 +120,7 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await frames(tester);
 
-    expect(find.text('Preparing your video… 50%'), findsNothing);
+    expect(find.text('Preparing the video… 50%'), findsNothing);
     expect(find.byType(ComposerVideoPreview), findsOneWidget);
     expect(h.sentIds, isEmpty);
   });

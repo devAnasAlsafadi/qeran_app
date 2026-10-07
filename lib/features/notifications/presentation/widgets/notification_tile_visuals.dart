@@ -23,7 +23,8 @@ class NotificationTileStyle {
 /// overloaded `Match` / `Profile` types) to a [NotificationTileStyle].
 ///
 /// Tone families: Match = solid gold (the hero); Chat + Offer = soft gold;
-/// Profile + Announcement + General + Community (+ unknown) = wine tint.
+/// Profile + Announcement + General + Community (+ unknown) = wine tint — save
+/// a report on her post, which asks for her decision and wears soft gold (Q8).
 /// Within `Match` and `Community` the glyph tells the specific story; profile
 /// approve/reject stay calm — rejection never wears red (respectful
 /// matrimony app).
@@ -34,7 +35,9 @@ class NotificationTileVisuals {
     NotificationType type,
     NotificationAction action,
   ) {
-    final (background, foreground) = _tone(type);
+    final (background, foreground) = _isReport(type, action)
+        ? _softGold
+        : _tone(type);
     return NotificationTileStyle(
       background: background,
       foreground: foreground,
@@ -42,12 +45,17 @@ class NotificationTileVisuals {
     );
   }
 
+  static const _softGold = (QeranColors.gold20, QeranColors.goldDeep);
+
+  /// Only matchmakers are ever sent one, so the member's tiles never change.
+  static bool _isReport(NotificationType type, NotificationAction action) =>
+      type == NotificationType.community &&
+      action == NotificationAction.communityReport;
+
   static (Color background, Color foreground) _tone(NotificationType type) =>
       switch (type) {
         NotificationType.match => (QeranColors.gold, QeranColors.wine),
-        NotificationType.chat ||
-        NotificationType.offer =>
-          (QeranColors.gold20, QeranColors.goldDeep),
+        NotificationType.chat || NotificationType.offer => _softGold,
         NotificationType.profile ||
         NotificationType.announcement ||
         NotificationType.general ||
@@ -124,12 +132,13 @@ class NotificationTileVisuals {
       };
 
   /// Community (H1, H2): the board's reply arrow for a reply to my comment and
-  /// its comment bubble for a new comment on her post; a report wears the
-  /// report menu's flag. Any other action claims nothing, as in `Match`.
+  /// its comment bubble for a new comment on her post; a report on her post
+  /// wears the flag, filled as P3's F1 draws it (Q8). Any other action claims
+  /// nothing, as in `Match`.
   static IconData _communityIcon(NotificationAction action) => switch (action) {
         NotificationAction.communityReply => Icons.reply_rounded,
         NotificationAction.communityComment => Icons.mode_comment_outlined,
-        NotificationAction.communityReport => Icons.flag_outlined,
+        NotificationAction.communityReport => Icons.flag_rounded,
         _ => Icons.notifications_none_rounded,
       };
 

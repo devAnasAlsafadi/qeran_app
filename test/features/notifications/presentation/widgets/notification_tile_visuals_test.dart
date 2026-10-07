@@ -118,12 +118,12 @@ void main() {
   });
 
   // H1, H2: the board's community tone (wine tint) and its glyphs — the
-  // reply arrow, the comment bubble — plus the report menu's flag.
+  // reply arrow, the comment bubble. A report on her post: P3's soft gold and
+  // filled flag (Q8).
   group('Community', () {
     const expected = {
       NotificationAction.communityReply: Icons.reply_rounded,
       NotificationAction.communityComment: Icons.mode_comment_outlined,
-      NotificationAction.communityReport: Icons.flag_outlined,
     };
 
     for (final entry in expected.entries) {
@@ -138,6 +138,16 @@ void main() {
       });
     }
 
+    test('communityReport: the filled flag on soft gold (Q8)', () {
+      final style = NotificationTileVisuals.of(
+        NotificationType.community,
+        NotificationAction.communityReport,
+      );
+      expect(style.icon, Icons.flag_rounded);
+      expect(style.background, QeranColors.gold20);
+      expect(style.foreground, QeranColors.goldDeep);
+    });
+
     test('an unrecognised Community event claims nothing', () {
       expect(
         _icon(NotificationType.community, NotificationAction.none),
@@ -149,13 +159,18 @@ void main() {
       expect(NotificationType.fromWire('Community'), NotificationType.community);
     });
 
-    // Her inbox has no Community type until Phase 3: her tiles map her type
-    // by name, so a Community event still reaches them as unknown.
+    // A Community action under a type that isn't Community (an older or
+    // unrecognised record) borrows nothing: neither the glyph nor Q8's tone.
     test('a Community action under an unknown type claims nothing', () {
       expect(
         _icon(NotificationType.unknown, NotificationAction.communityComment),
         Icons.notifications_none_rounded,
       );
+      final report = NotificationTileVisuals.of(
+        NotificationType.unknown,
+        NotificationAction.communityReport,
+      );
+      expect(report.background, QeranColors.wine08);
     });
   });
 

@@ -9,6 +9,10 @@ enum MatchmakerNotificationType {
   profile,
   announcement,
   offer,
+
+  /// The discussion under her posts (contract §7.2): a new comment, a report,
+  /// and a reply to her own comment.
+  community,
   unknown;
 
   static MatchmakerNotificationType fromWire(String? raw) {
@@ -25,6 +29,8 @@ enum MatchmakerNotificationType {
         return MatchmakerNotificationType.announcement;
       case 'offer':
         return MatchmakerNotificationType.offer;
+      case 'community':
+        return MatchmakerNotificationType.community;
       default:
         return MatchmakerNotificationType.unknown;
     }

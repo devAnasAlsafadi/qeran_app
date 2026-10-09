@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_confirm_dialog.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
@@ -75,35 +75,21 @@ class _Button extends StatelessWidget {
       return;
     }
     final confirmed = await _confirmDialog(context);
-    if (confirmed != true) return;
+    if (!confirmed) return;
     await cubit.share(userId);
   }
 
-  Future<bool?> _confirmDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(LocaleKeys.profile_share_confirm_title.t(dialogCtx)),
-        content: Text(LocaleKeys.profile_share_confirm_body.t(dialogCtx)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx, false),
-            child: Text(
-              LocaleKeys.profile_share_confirm_cancel.t(dialogCtx),
-              style: const TextStyle(color: QeranColors.inkMuted),
-            ),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogCtx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: QeranColors.wine,
-            ),
-            child: Text(LocaleKeys.profile_share_confirm_send.t(dialogCtx)),
-          ),
-        ],
-      ),
-    );
-  }
+  /// The design system's confirm (E3), not a destructive one: sharing goes to
+  /// her chat, so it wears the button's own chat glyph.
+  Future<bool> _confirmDialog(BuildContext context) => QeranConfirmDialog.show(
+    context,
+    title: LocaleKeys.profile_share_confirm_title.t(context),
+    message: LocaleKeys.profile_share_confirm_body.t(context),
+    confirmLabel: LocaleKeys.profile_share_confirm_send.t(context),
+    cancelLabel: LocaleKeys.profile_share_confirm_cancel.t(context),
+    icon: Icons.chat_bubble_outline_rounded,
+    destructive: false,
+  );
 
   void _onEvent(BuildContext context, ShareWithMatchmakerState state) {
     final (key, type) = _visualFor(state.event);

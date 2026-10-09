@@ -49,34 +49,37 @@ String shippedSubscriptionsEn(String key) {
   return (json['subscriptions'] as Map<String, dynamic>)[key] as String;
 }
 
-SubscriptionPlan planWith({int? seriousInterests}) => SubscriptionPlan(
-  id: 1,
-  nameAr: 'Gold',
-  nameEn: 'Gold',
-  descriptionAr: null,
-  descriptionEn: null,
-  icon: '',
-  color: '#D4AF37',
-  sortOrder: 1,
-  isActive: true,
-  isPopular: false,
-  isFree: false,
-  features: SubscriptionFeatures(
-    likesAllowed: 50,
-    seriousInterestsAllowed: seriousInterests,
-    photoExchangesAllowed: 5,
-    dailyProfileViewsAllowed: -1,
-  ),
-  pricings: const [],
-);
+SubscriptionPlan planWith({int? seriousInterests, int? tier}) =>
+    SubscriptionPlan(
+      id: 1,
+      nameAr: 'Gold',
+      nameEn: 'Gold',
+      descriptionAr: null,
+      descriptionEn: null,
+      icon: '',
+      color: '#D4AF37',
+      sortOrder: 1,
+      isActive: true,
+      isPopular: false,
+      isFree: false,
+      tier: tier,
+      features: SubscriptionFeatures(
+        likesAllowed: 50,
+        seriousInterestsAllowed: seriousInterests,
+        photoExchangesAllowed: 5,
+        dailyProfileViewsAllowed: -1,
+      ),
+      pricings: const [],
+    );
 
 CurrentSubscription subscriptionWith({
   int? allowed,
   int? used,
   int? remaining,
+  int? tier,
 }) => CurrentSubscription(
   id: 7,
-  plan: planWith(seriousInterests: allowed),
+  plan: planWith(seriousInterests: allowed, tier: tier),
   pricing: const SubscriptionPricing(
     id: 12,
     planId: 1,

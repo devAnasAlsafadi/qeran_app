@@ -337,9 +337,6 @@ class _VipCelebratingWidget extends StatelessWidget {
                     label: LocaleKeys.subscriptions_feature_likes_label.t(context),
                   ),
                   _CelebratingFeatureRow(
-                    label: LocaleKeys.subscriptions_feature_serious_interests_label.t(context),
-                  ),
-                  _CelebratingFeatureRow(
                     label: LocaleKeys.subscriptions_feature_photo_exchanges_label.t(context),
                   ),
                   _CelebratingFeatureRow(

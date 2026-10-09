@@ -69,7 +69,7 @@ class _CouponField extends StatelessWidget {
         QeranButton(
           label: LocaleKeys.subscriptions_validate_code.t(context),
           variant: QeranButtonVariant.primary,
-          size: QeranButtonSize.sm,
+          size: QeranButtonSize.compact,
           fullWidth: false,
           onPressed: locked ? null : onValidate,
         ),
@@ -122,7 +122,7 @@ class _AppliedCouponRow extends StatelessWidget {
         QeranButton(
           label: LocaleKeys.subscriptions_remove_code.t(context),
           variant: QeranButtonVariant.ghost,
-          size: QeranButtonSize.sm,
+          size: QeranButtonSize.compact,
           fullWidth: false,
           onPressed: onRemove,
         ),

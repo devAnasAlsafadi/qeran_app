@@ -145,7 +145,7 @@ class _BlockedRow extends StatelessWidget {
           child: QeranButton(
             label: LocaleKeys.block_action_unblock.t(context),
             variant: QeranButtonVariant.secondary,
-            size: QeranButtonSize.sm,
+            size: QeranButtonSize.compact,
             loading: unblocking,
             onPressed: onUnblock,
           ),

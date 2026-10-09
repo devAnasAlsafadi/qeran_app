@@ -34,7 +34,7 @@ class PhotoViewOverlay extends StatelessWidget {
           onPressed: state.isStarting ? null : access.onReveal,
           loading: state.isStarting,
           variant: QeranButtonVariant.primaryWine,
-          size: QeranButtonSize.sm,
+          size: QeranButtonSize.compact,
           leadingIcon: Icons.visibility_outlined,
         ),
       ),
@@ -73,7 +73,7 @@ class PhotoViewOverlay extends StatelessWidget {
           label: LocaleKeys.likes_matches_photo_view_retry.t(context),
           onPressed: access.onRetry,
           variant: QeranButtonVariant.ghost,
-          size: QeranButtonSize.sm,
+          size: QeranButtonSize.compact,
         ),
       ),
       PhotoViewPhase.initial ||

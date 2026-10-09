@@ -65,7 +65,7 @@ class QeranPremiumBanner extends StatelessWidget {
                     label: ctaLabel!,
                     onPressed: onCta,
                     variant: QeranButtonVariant.primary,
-                    size: QeranButtonSize.sm,
+                    size: QeranButtonSize.compact,
                     fullWidth: false,
                   ),
                 ],

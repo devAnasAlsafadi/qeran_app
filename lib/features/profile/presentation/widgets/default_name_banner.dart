@@ -83,7 +83,7 @@ class DefaultNameBanner extends StatelessWidget {
             child: QeranButton(
               label: LocaleKeys.profile_name_default_banner_cta.t(context),
               variant: QeranButtonVariant.primaryWine,
-              size: QeranButtonSize.sm,
+              size: QeranButtonSize.compact,
               fullWidth: false,
               onPressed: onEdit,
             ),

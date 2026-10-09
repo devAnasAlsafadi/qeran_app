@@ -133,9 +133,9 @@ class MatchmakerCaseCard extends StatelessWidget {
           // detail screen paints this same status action gold too. Outlined, it
           // read as a fourth contact chip stacked under the other three.
           //
-          // [xs], the same size that bar gives its card primary: a full-width
-          // gold block repeats on every row of a scrolling list, so it earns
-          // emphasis from colour, not from height.
+          // [compact], the same size that bar gives its card primary: a
+          // full-width gold block repeats on every row of a scrolling list, so
+          // it earns emphasis from colour; its height is the 48 pt target.
           if (onUpdateStatus != null) ...[
             QeranSpacing.vs12,
             QeranButton(
@@ -143,7 +143,7 @@ class MatchmakerCaseCard extends StatelessWidget {
                 context,
               ),
               variant: QeranButtonVariant.primary,
-              size: QeranButtonSize.xs,
+              size: QeranButtonSize.compact,
               leadingIcon: Icons.update_rounded,
               onPressed: onUpdateStatus,
             ),

@@ -98,8 +98,7 @@ class _Content extends StatelessWidget {
   Widget build(BuildContext context) {
     final compact = switch (size) {
       QeranButtonSize.lg || QeranButtonSize.md => false,
-      QeranButtonSize.compact || QeranButtonSize.sm || QeranButtonSize.xs =>
-        true,
+      QeranButtonSize.compact => true,
     };
     final style = (compact ? QeranTypography.label : QeranTypography.subtitle)
         .copyWith(color: color);

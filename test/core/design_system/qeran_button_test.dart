@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 
 Future<void> _pump(WidgetTester tester, QeranButtonSize size) =>
@@ -45,24 +47,28 @@ void main() {
     expect(tester.getSize(find.byType(QeranButton)).height, 48);
   });
 
-  testWidgets('xs stays 40 pt, for the matchmaker app until its sweep', (
-    tester,
-  ) async {
-    await _pump(tester, QeranButtonSize.xs);
+  // D1 / Q11: the 40 pt xs and 36 pt sm are gone; these are all there is.
+  testWidgets('the sizes: lg 54, md 46, compact 48', (tester) async {
+    final heights = <QeranButtonSize, double>{};
+    for (final size in QeranButtonSize.values) {
+      await _pump(tester, size);
+      heights[size] = tester.getSize(find.byType(QeranButton)).height;
+    }
 
-    expect(tester.getSize(find.byType(QeranButton)).height, 40);
+    expect(heights, {
+      QeranButtonSize.lg: 54,
+      QeranButtonSize.md: 46,
+      QeranButtonSize.compact: 48,
+    });
   });
 
-  // The photo-exchange pair measures its labels with xs's padding; compact
-  // must not move that measurement.
-  testWidgets('compact looks like xs in everything but height', (
-    tester,
-  ) async {
-    final xs = await _looks(tester, QeranButtonSize.xs);
+  // The photo-exchange pair measures its labels with compact's dense look
+  // (xs's before D1): the label type, 8 pt sides, a 16 pt icon.
+  testWidgets('compact keeps the dense look', (tester) async {
     final compact = await _looks(tester, QeranButtonSize.compact);
 
-    expect(compact.style, xs.style);
-    expect(compact.padding, xs.padding);
-    expect(compact.icon, xs.icon);
+    expect(compact.style?.fontSize, QeranTypography.label.fontSize);
+    expect(compact.padding.resolve(TextDirection.ltr).left, QeranSpacing.s8);
+    expect(compact.icon, 16);
   });
 }

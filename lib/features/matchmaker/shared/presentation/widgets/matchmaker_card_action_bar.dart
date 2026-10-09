@@ -59,7 +59,7 @@ class MatchmakerCardActionBar extends StatelessWidget {
             leadingIcon: primary.icon,
             onPressed: primary.onTap,
             variant: QeranButtonVariant.primary,
-            size: QeranButtonSize.xs,
+            size: QeranButtonSize.compact,
             loading: primary.loading,
           ),
         ),

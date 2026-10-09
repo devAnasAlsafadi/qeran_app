@@ -23,6 +23,12 @@ class MatchmakerOverviewTile extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
+  static final _countStyle = QeranTypography.numeric.copyWith(
+    fontSize: 24,
+    fontWeight: FontWeight.w800,
+    color: QeranColors.wine,
+  );
+
   @override
   Widget build(BuildContext context) {
     return QeranCard(
@@ -31,26 +37,9 @@ class MatchmakerOverviewTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              _IconChip(icon: icon),
-              const Spacer(),
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 20,
-                color: QeranColors.wine40,
-              ),
-            ],
-          ),
+          _header,
           const Spacer(),
-          Text(
-            '$count',
-            style: QeranTypography.numeric.copyWith(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: QeranColors.wine,
-            ),
-          ),
+          Text('$count', style: _countStyle),
           const SizedBox(height: QeranSpacing.s2),
           Text(
             label,
@@ -62,6 +51,19 @@ class MatchmakerOverviewTile extends StatelessWidget {
       ),
     );
   }
+
+  /// The icon chip, and the direction-aware chevron at the far end.
+  Widget get _header => Row(
+    children: [
+      _IconChip(icon: icon),
+      const Spacer(),
+      const Icon(
+        Icons.chevron_right_rounded,
+        size: 20,
+        color: QeranColors.wine40,
+      ),
+    ],
+  );
 }
 
 class _IconChip extends StatelessWidget {

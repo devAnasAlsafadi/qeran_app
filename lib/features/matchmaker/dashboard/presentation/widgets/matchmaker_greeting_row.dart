@@ -35,53 +35,14 @@ class MatchmakerGreetingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final clock = now ?? DateTime.now();
     final trimmed = name?.trim() ?? '';
-    final hasName = trimmed.isNotEmpty;
-
-    // Plain salaam, no inline name — the name is rendered as its own hero line
-    // above this. With no name, the salaam itself becomes the hero line.
-    final greeting = _salaamKey(clock.hour).t(context);
-
-    // Hero style — the prominent, bold, wine-toned line (headline's default
-    // color is inkStrong == wine). Used for the name, or the salaam when no
-    // name is known.
-    final heroStyle = QeranTypography.headline.copyWith(
-      fontWeight: FontWeight.w800,
-    );
-
     return Row(
       children: [
-        QeranMonogram(name: hasName ? trimmed : null),
+        QeranMonogram(name: trimmed.isNotEmpty ? trimmed : null),
         QeranSpacing.hs12,
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: hasName
-                ? [
-                    Text(
-                      trimmed,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: heroStyle,
-                    ),
-                    QeranSpacing.vs4,
-                    Text(
-                      greeting,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: QeranTypography.subtitle.copyWith(
-                        color: QeranColors.inkMuted,
-                      ),
-                    ),
-                  ]
-                : [
-                    Text(
-                      greeting,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: heroStyle,
-                    ),
-                  ],
+          child: _NameBlock(
+            name: trimmed,
+            greeting: _salaamKey(clock.hour).t(context),
           ),
         ),
         if (showDate) ...[
@@ -99,11 +60,62 @@ class MatchmakerGreetingRow extends StatelessWidget {
   }
 }
 
+/// The name as the hero line over a muted salaam (plain, no inline name); with
+/// no name, the salaam itself is the hero line.
+class _NameBlock extends StatelessWidget {
+  const _NameBlock({required this.name, required this.greeting});
+
+  /// Trimmed; empty when unknown.
+  final String name;
+  final String greeting;
+
+  // The prominent, bold, wine-toned line (headline's default color is
+  // inkStrong == wine): the name, or the salaam when no name is known.
+  static final _heroStyle = QeranTypography.headline.copyWith(
+    fontWeight: FontWeight.w800,
+  );
+  static final _salaamStyle = QeranTypography.subtitle.copyWith(
+    color: QeranColors.inkMuted,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final hero = Text(
+      name.isEmpty ? greeting : name,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: _heroStyle,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        hero,
+        if (name.isNotEmpty) ...[
+          QeranSpacing.vs4,
+          Text(
+            greeting,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _salaamStyle,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _DateBlock extends StatelessWidget {
   const _DateBlock({required this.date, required this.locale});
 
   final DateTime date;
   final String locale;
+
+  static final _dayStyle = QeranTypography.numeric.copyWith(
+    fontSize: 14,
+    color: QeranColors.inkStrong,
+  );
+  static final _monthStyle = QeranTypography.label.copyWith(fontSize: 13);
 
   @override
   Widget build(BuildContext context) {
@@ -121,18 +133,9 @@ class _DateBlock extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              day,
-              style: QeranTypography.numeric.copyWith(
-                fontSize: 14,
-                color: QeranColors.inkStrong,
-              ),
-            ),
+            Text(day, style: _dayStyle),
             QeranSpacing.hs4,
-            Text(
-              month,
-              style: QeranTypography.label.copyWith(fontSize: 13),
-            ),
+            Text(month, style: _monthStyle),
           ],
         ),
       ],

@@ -25,58 +25,94 @@ class MatchmakerDashboardBodySkeleton extends StatelessWidget {
         QeranBottomNav.contentClearance(context),
       ),
       physics: const NeverScrollableScrollPhysics(),
+      children: const [
+        _GreetingSkeleton(),
+        QeranSpacing.vs24,
+        QeranSkeleton(width: 160, height: 20),
+        QeranSpacing.vs12,
+        _HeroesSkeleton(),
+        QeranSpacing.vs24,
+        QeranSkeleton(width: 120, height: 20),
+        QeranSpacing.vs12,
+        _TilesSkeleton(),
+      ],
+    );
+  }
+}
+
+/// The monogram and the name / salaam lines.
+class _GreetingSkeleton extends StatelessWidget {
+  const _GreetingSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
       children: [
-        Row(
-          children: [
-            const QeranSkeleton.circle(size: 48),
-            QeranSpacing.hs12,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const QeranSkeleton(width: 90, height: 10),
-                  QeranSpacing.vs8,
-                  const QeranSkeleton(width: 150, height: 18),
-                ],
-              ),
-            ),
-          ],
-        ),
-        QeranSpacing.vs24,
-        const QeranSkeleton(width: 160, height: 20),
-        QeranSpacing.vs12,
-        const Row(
-          children: [
-            Expanded(
-              child: QeranSkeleton.box(height: _heroHeight, radius: QeranRadii.panel),
-            ),
-            QeranSpacing.hs12,
-            Expanded(
-              child: QeranSkeleton.box(height: _heroHeight, radius: QeranRadii.panel),
-            ),
-          ],
-        ),
-        QeranSpacing.vs24,
-        const QeranSkeleton(width: 120, height: 20),
-        QeranSpacing.vs12,
-        GridView.count(
-          shrinkWrap: true,
-          primary: false,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: QeranSpacing.s12,
-          crossAxisSpacing: QeranSpacing.s12,
-          childAspectRatio: 1.2,
-          children: List.generate(
-            4,
-            (_) => const QeranSkeleton.box(
-              height: double.infinity,
-              radius: QeranRadii.card,
-            ),
-            growable: false,
+        QeranSkeleton.circle(size: 48),
+        QeranSpacing.hs12,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              QeranSkeleton(width: 90, height: 10),
+              QeranSpacing.vs8,
+              QeranSkeleton(width: 150, height: 18),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The two tall hero blocks, side by side.
+class _HeroesSkeleton extends StatelessWidget {
+  const _HeroesSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(
+          child: QeranSkeleton.box(
+            height: _heroHeight,
+            radius: QeranRadii.panel,
+          ),
+        ),
+        QeranSpacing.hs12,
+        Expanded(
+          child: QeranSkeleton.box(
+            height: _heroHeight,
+            radius: QeranRadii.panel,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The four overview tiles, two by two.
+class _TilesSkeleton extends StatelessWidget {
+  const _TilesSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      primary: false,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: QeranSpacing.s12,
+      crossAxisSpacing: QeranSpacing.s12,
+      childAspectRatio: 1.2,
+      children: List.generate(
+        4,
+        (_) => const QeranSkeleton.box(
+          height: double.infinity,
+          radius: QeranRadii.card,
+        ),
+        growable: false,
+      ),
     );
   }
 }

@@ -27,40 +27,56 @@ class MatchmakerAttentionRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: SoftScaleIn(
-            duration: QeranMotion.standard,
-            child: MatchmakerAttentionCard(
-              icon: Icons.pending_actions_outlined,
-              count: stats.pendingUsersCount,
-              label: LocaleKeys.matchmaker_dashboard_pending.t(context),
-              actionLabel:
-                  LocaleKeys.matchmaker_dashboard_hero_action.t(context),
-              zeroLabel:
-                  LocaleKeys.matchmaker_dashboard_pending_zero.t(context),
-              onTap: () => onOpen(MatchmakerDashboardTabs.users,
-                  usersSubTab: MatchmakerUsersList.pending),
-            ),
-          ),
-        ),
+        Expanded(child: _pending(context)),
         QeranSpacing.hs12,
-        Expanded(
-          child: SoftScaleIn(
-            duration: QeranMotion.standard,
-            delay: QeranMotion.staggerStep,
-            child: MatchmakerAttentionCard(
-              icon: Icons.mark_chat_unread_outlined,
-              count: stats.unreadMessagesCount,
-              label: LocaleKeys.matchmaker_dashboard_unread_messages.t(context),
-              actionLabel:
-                  LocaleKeys.matchmaker_dashboard_hero_action.t(context),
-              zeroLabel:
-                  LocaleKeys.matchmaker_dashboard_unread_zero.t(context),
-              onTap: () => onOpen(MatchmakerDashboardTabs.conversations),
-            ),
-          ),
-        ),
+        Expanded(child: _unread(context)),
       ],
+    );
+  }
+
+  Widget _pending(BuildContext context) => _hero(
+    context,
+    icon: Icons.pending_actions_outlined,
+    count: stats.pendingUsersCount,
+    labelKey: LocaleKeys.matchmaker_dashboard_pending,
+    zeroKey: LocaleKeys.matchmaker_dashboard_pending_zero,
+    onTap: () => onOpen(
+      MatchmakerDashboardTabs.users,
+      usersSubTab: MatchmakerUsersList.pending,
+    ),
+  );
+
+  Widget _unread(BuildContext context) => _hero(
+    context,
+    icon: Icons.mark_chat_unread_outlined,
+    count: stats.unreadMessagesCount,
+    labelKey: LocaleKeys.matchmaker_dashboard_unread_messages,
+    zeroKey: LocaleKeys.matchmaker_dashboard_unread_zero,
+    onTap: () => onOpen(MatchmakerDashboardTabs.conversations),
+    delay: QeranMotion.staggerStep,
+  );
+
+  /// One hero card, scaled in after [delay].
+  Widget _hero(
+    BuildContext context, {
+    required IconData icon,
+    required int count,
+    required String labelKey,
+    required String zeroKey,
+    required VoidCallback onTap,
+    Duration delay = Duration.zero,
+  }) {
+    return SoftScaleIn(
+      duration: QeranMotion.standard,
+      delay: delay,
+      child: MatchmakerAttentionCard(
+        icon: icon,
+        count: count,
+        label: labelKey.t(context),
+        actionLabel: LocaleKeys.matchmaker_dashboard_hero_action.t(context),
+        zeroLabel: zeroKey.t(context),
+        onTap: onTap,
+      ),
     );
   }
 }

@@ -24,35 +24,7 @@ class MatchmakerOverviewGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tiles = <Widget>[
-      MatchmakerOverviewTile(
-        icon: Icons.workspace_premium_outlined,
-        count: stats.approvedSubscribedCount,
-        label: LocaleKeys.matchmaker_dashboard_approved_subscribed.t(context),
-        onTap: () => onOpen(MatchmakerDashboardTabs.users,
-            usersSubTab: MatchmakerUsersList.approvedSubscribed),
-      ),
-      MatchmakerOverviewTile(
-        icon: Icons.verified_outlined,
-        count: stats.approvedUnsubscribedCount,
-        label: LocaleKeys.matchmaker_dashboard_approved_unsubscribed.t(context),
-        onTap: () => onOpen(MatchmakerDashboardTabs.users,
-            usersSubTab: MatchmakerUsersList.approvedUnsubscribed),
-      ),
-      MatchmakerOverviewTile(
-        icon: Icons.handshake_outlined,
-        count: stats.activeCompatibilityCasesCount,
-        label: LocaleKeys.matchmaker_dashboard_active_cases.t(context),
-        onTap: () => onOpen(MatchmakerDashboardTabs.cases),
-      ),
-      MatchmakerOverviewTile(
-        icon: Icons.groups_2_outlined,
-        count: stats.totalAssignedUsers,
-        label: LocaleKeys.matchmaker_dashboard_total_assigned.t(context),
-        onTap: () => onOpen(MatchmakerDashboardTabs.users),
-      ),
-    ];
-
+    final tiles = [..._approvedTiles(context), ..._otherTiles(context)];
     return GridView.count(
       shrinkWrap: true,
       primary: false,
@@ -71,4 +43,52 @@ class MatchmakerOverviewGrid extends StatelessWidget {
       ],
     );
   }
+
+  /// The two approved counts, each leading to its Users sub-tab.
+  List<Widget> _approvedTiles(BuildContext context) => [
+    _tile(
+      context,
+      Icons.workspace_premium_outlined,
+      stats.approvedSubscribedCount,
+      LocaleKeys.matchmaker_dashboard_approved_subscribed,
+      MatchmakerUsersList.approvedSubscribed,
+    ),
+    _tile(
+      context,
+      Icons.verified_outlined,
+      stats.approvedUnsubscribedCount,
+      LocaleKeys.matchmaker_dashboard_approved_unsubscribed,
+      MatchmakerUsersList.approvedUnsubscribed,
+    ),
+  ];
+
+  /// Active cases (Cases) and everyone assigned to her (Users).
+  List<Widget> _otherTiles(BuildContext context) => [
+    MatchmakerOverviewTile(
+      icon: Icons.handshake_outlined,
+      count: stats.activeCompatibilityCasesCount,
+      label: LocaleKeys.matchmaker_dashboard_active_cases.t(context),
+      onTap: () => onOpen(MatchmakerDashboardTabs.cases),
+    ),
+    MatchmakerOverviewTile(
+      icon: Icons.groups_2_outlined,
+      count: stats.totalAssignedUsers,
+      label: LocaleKeys.matchmaker_dashboard_total_assigned.t(context),
+      onTap: () => onOpen(MatchmakerDashboardTabs.users),
+    ),
+  ];
+
+  Widget _tile(
+    BuildContext context,
+    IconData icon,
+    int count,
+    String labelKey,
+    MatchmakerUsersList usersSubTab,
+  ) => MatchmakerOverviewTile(
+    icon: icon,
+    count: count,
+    label: labelKey.t(context),
+    onTap: () =>
+        onOpen(MatchmakerDashboardTabs.users, usersSubTab: usersSubTab),
+  );
 }

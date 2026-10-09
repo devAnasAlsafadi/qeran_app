@@ -51,7 +51,6 @@ abstract class  LocaleKeys {
   static const errors_otp_cooldown = 'errors.otp_cooldown';
   static const errors_account_not_found = 'errors.account_not_found';
   static const errors_password_mismatch = 'errors.password_mismatch';
-  static const errors_social_account_already_linked = 'errors.social_account_already_linked';
   static const errors_account_deactivated = 'errors.account_deactivated';
   static const errors_questions_load_failed = 'errors.questions_load_failed';
   static const errors_network_failed = 'errors.network_failed';

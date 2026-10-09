@@ -50,7 +50,6 @@
     "otp_cooldown": "Please wait before requesting a new code",
     "account_not_found": "No account found with these details",
     "password_mismatch": "The passwords do not match",
-    "social_account_already_linked": "This account is linked to a different sign-in method",
     "account_deactivated": "This account has been deactivated. Please contact support.",
     "questions_load_failed": "Failed to load questions.",
     "network_failed": "Check your internet connection.",

@@ -10,12 +10,10 @@ import 'error_codes.dart';
 /// a gap to paper over with a guess — it degrades to `errors.generic`, which
 /// is localized and correct, just less specific.
 ///
-/// Batch 26 filled these in: the codes below are live on the server. Which
-/// endpoint sends which is INFERRED from the code names, not confirmed per
-/// route — that is safe to get wrong in only one direction. A code listed on a
-/// map whose endpoint never sends it is inert; a code sent by an endpoint that
-/// does not list it degrades to `errors.generic`. Neither shows the member
-/// anything false.
+/// Each map lists exactly the codes its endpoint sends, from Tariq's own table
+/// (`03-api-contract.md` §12.4, his answer; Phase 4 B1). A code missing from a
+/// map degrades to `errors.generic`; a code the endpoint never sends would be
+/// dead weight, so none is kept "just in case".
 ///
 /// `VALIDATION_ERROR` is on EVERY map. It went global in the same batch, so a
 /// malformed request now reports itself the same way from any endpoint, and a
@@ -36,18 +34,20 @@ class AuthFailureKeys {
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 
-  /// `POST Auth/register-new`.
+  /// `POST Auth/register-new`. A password mismatch arrives as
+  /// `VALIDATION_ERROR`, not as `PASSWORD_MISMATCH`.
   static const Map<String, String> register = {
     AuthErrorCodes.emailAlreadyExists: LocaleKeys.errors_email_already_exists,
-    AuthErrorCodes.passwordMismatch: LocaleKeys.errors_password_mismatch,
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 
   /// `POST Auth/add-phone` — also the OTP SEND path, hence the cooldown.
+  /// `USER_NOT_FOUND` here is an account deleted mid-flow (Q7).
   static const Map<String, String> addPhone = {
     AuthErrorCodes.phoneAlreadyRegistered:
         LocaleKeys.errors_phone_already_registered,
     AuthErrorCodes.otpCooldown: LocaleKeys.errors_otp_cooldown,
+    AuthErrorCodes.userNotFound: LocaleKeys.errors_account_not_found,
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 
@@ -60,10 +60,10 @@ class AuthFailureKeys {
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 
-  /// `POST Auth/forgot-password` — sends an OTP, so it can cool down too.
+  /// `POST Auth/forgot-password` sends no code at all: it always answers with
+  /// a generic success, so an address never leaks whether it has an account.
+  /// `VALIDATION_ERROR` stays, as on every map.
   static const Map<String, String> forgotPassword = {
-    AuthErrorCodes.userNotFound: LocaleKeys.errors_account_not_found,
-    AuthErrorCodes.otpCooldown: LocaleKeys.errors_otp_cooldown,
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 
@@ -78,8 +78,8 @@ class AuthFailureKeys {
   /// `POST Auth/reset-password` — carries the OTP with the new password, so a
   /// spent or wrong code surfaces here rather than on the verify step.
   static const Map<String, String> resetPassword = {
-    AuthErrorCodes.passwordMismatch: LocaleKeys.errors_password_mismatch,
     AuthErrorCodes.otpInvalid: LocaleKeys.errors_otp_invalid,
+    AuthErrorCodes.otpMaxAttempts: LocaleKeys.errors_otp_max_attempts,
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 
@@ -93,15 +93,16 @@ class AuthFailureKeys {
     AuthErrorCodes.invalidOldPassword:
         LocaleKeys.settings_change_password_incorrect,
     AuthErrorCodes.passwordMismatch: LocaleKeys.errors_password_mismatch,
+    AuthErrorCodes.userNotFound: LocaleKeys.errors_account_not_found,
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 
   /// `POST Auth/firebase-signin` — backs BOTH Google and Apple sign-in.
   /// Firebase SDK errors are a different source and stay with
-  /// `_mapFirebaseError`; this map is only for the server's own envelope.
+  /// `_mapFirebaseError`; this map is only for the server's own envelope. A
+  /// deactivated account reads as it does on email login.
   static const Map<String, String> firebaseSignIn = {
-    AuthErrorCodes.socialAccountAlreadyLinked:
-        LocaleKeys.errors_social_account_already_linked,
+    AuthErrorCodes.accountDeactivated: LocaleKeys.errors_account_deactivated,
     AuthErrorCodes.validationError: LocaleKeys.errors_bad_request,
   };
 }

@@ -31,11 +31,6 @@ void main() {
         map: AuthFailureKeys.register,
         key: LocaleKeys.errors_email_already_exists,
       ),
-      'register — password mismatch': (
-        code: AuthErrorCodes.passwordMismatch,
-        map: AuthFailureKeys.register,
-        key: LocaleKeys.errors_password_mismatch,
-      ),
       'add-phone — duplicate number': (
         code: AuthErrorCodes.phoneAlreadyRegistered,
         map: AuthFailureKeys.addPhone,
@@ -45,6 +40,11 @@ void main() {
         code: AuthErrorCodes.otpCooldown,
         map: AuthFailureKeys.addPhone,
         key: LocaleKeys.errors_otp_cooldown,
+      ),
+      'add-phone — the account is gone (Q7)': (
+        code: AuthErrorCodes.userNotFound,
+        map: AuthFailureKeys.addPhone,
+        key: LocaleKeys.errors_account_not_found,
       ),
       'verify-otp — wrong or expired': (
         code: AuthErrorCodes.otpInvalid,
@@ -61,16 +61,6 @@ void main() {
         map: AuthFailureKeys.verifyOtp,
         key: LocaleKeys.errors_otp_max_attempts,
       ),
-      'forgot-password — no such account': (
-        code: AuthErrorCodes.userNotFound,
-        map: AuthFailureKeys.forgotPassword,
-        key: LocaleKeys.errors_account_not_found,
-      ),
-      'forgot-password — cooldown': (
-        code: AuthErrorCodes.otpCooldown,
-        map: AuthFailureKeys.forgotPassword,
-        key: LocaleKeys.errors_otp_cooldown,
-      ),
       'verify-forgot-otp — wrong or expired': (
         code: AuthErrorCodes.otpInvalid,
         map: AuthFailureKeys.verifyForgotPasswordOtp,
@@ -81,15 +71,15 @@ void main() {
         map: AuthFailureKeys.verifyForgotPasswordOtp,
         key: LocaleKeys.errors_otp_max_attempts,
       ),
-      'reset-password — password mismatch': (
-        code: AuthErrorCodes.passwordMismatch,
-        map: AuthFailureKeys.resetPassword,
-        key: LocaleKeys.errors_password_mismatch,
-      ),
       'reset-password — wrong or expired otp': (
         code: AuthErrorCodes.otpInvalid,
         map: AuthFailureKeys.resetPassword,
         key: LocaleKeys.errors_otp_invalid,
+      ),
+      'reset-password — attempts spent': (
+        code: AuthErrorCodes.otpMaxAttempts,
+        map: AuthFailureKeys.resetPassword,
+        key: LocaleKeys.errors_otp_max_attempts,
       ),
       'change-password — wrong current password': (
         code: AuthErrorCodes.invalidOldPassword,
@@ -101,10 +91,15 @@ void main() {
         map: AuthFailureKeys.changePassword,
         key: LocaleKeys.errors_password_mismatch,
       ),
-      'firebase-signin — already linked': (
-        code: AuthErrorCodes.socialAccountAlreadyLinked,
+      'change-password — the account is gone (Q7)': (
+        code: AuthErrorCodes.userNotFound,
+        map: AuthFailureKeys.changePassword,
+        key: LocaleKeys.errors_account_not_found,
+      ),
+      'firebase-signin — deactivated, as on email login': (
+        code: AuthErrorCodes.accountDeactivated,
         map: AuthFailureKeys.firebaseSignIn,
-        key: LocaleKeys.errors_social_account_already_linked,
+        key: LocaleKeys.errors_account_deactivated,
       ),
     };
 

@@ -46,42 +46,29 @@ class _SafetyMenuButtonView extends StatelessWidget {
       listenWhen: (p, c) =>
           p.eventVersion != c.eventVersion &&
           c.outcome != BlockActionOutcome.none,
-      listener: (context, state) {
-        if (state.outcome == BlockActionOutcome.success) {
-          // Close the profile, hand the blocked id back for teardown, then toast
-          // on root (survives the pop).
-          Navigator.of(context).pop(state.blockedUserId ?? targetUserId);
-          AppSnackBar.showOnRoot(
-            message: (state.messageKey ?? LocaleKeys.block_success).t(context),
-            type: SnackBarType.success,
-          );
-        } else if (state.outcome == BlockActionOutcome.failure) {
-          AppSnackBar.show(
-            context,
-            message:
-                (state.messageKey ?? LocaleKeys.errors_generic).t(context),
-            type: SnackBarType.error,
-          );
-        }
-      },
+      listener: _onOutcome,
       child: Builder(
-        builder: (context) => Material(
-          color: QeranColors.paper,
-          shape: const CircleBorder(
-            side: BorderSide(color: QeranColors.wine08),
-          ),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => _openMenu(context),
-            child: const SizedBox(
-              width: 40,
-              height: 40,
-              child: Icon(Icons.more_vert, color: QeranColors.wine, size: 20),
-            ),
-          ),
-        ),
+        builder: (context) => _MenuDisc(onTap: () => _openMenu(context)),
       ),
     );
+  }
+
+  void _onOutcome(BuildContext context, BlockActionState state) {
+    if (state.outcome == BlockActionOutcome.success) {
+      // Close the profile, hand the blocked id back for teardown, then toast
+      // on root (survives the pop).
+      Navigator.of(context).pop(state.blockedUserId ?? targetUserId);
+      AppSnackBar.showOnRoot(
+        message: (state.messageKey ?? LocaleKeys.block_success).t(context),
+        type: SnackBarType.success,
+      );
+    } else if (state.outcome == BlockActionOutcome.failure) {
+      AppSnackBar.show(
+        context,
+        message: (state.messageKey ?? LocaleKeys.errors_generic).t(context),
+        type: SnackBarType.error,
+      );
+    }
   }
 
   Future<void> _openMenu(BuildContext context) async {
@@ -122,4 +109,28 @@ class _SafetyMenuButtonView extends StatelessWidget {
   /// The signed-in account is a matchmaker — she reaches a member's profile
   /// from a shared card in her chat (§0.4).
   static bool get _viewerIsMatchmaker => signedInAsMatchmaker;
+}
+
+/// The ⋮ disc on a profile that opens the safety menu.
+class _MenuDisc extends StatelessWidget {
+  const _MenuDisc({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: QeranColors.paper,
+      shape: const CircleBorder(side: BorderSide(color: QeranColors.wine08)),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: const SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(Icons.more_vert, color: QeranColors.wine, size: 20),
+        ),
+      ),
+    );
+  }
 }

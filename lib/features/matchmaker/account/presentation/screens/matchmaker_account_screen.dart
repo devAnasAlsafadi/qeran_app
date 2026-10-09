@@ -24,9 +24,7 @@ import '../../../../../core/design_system/widgets/qeran_confirm_dialog.dart';
 import '../widgets/matchmaker_edit_name_sheet.dart';
 
 /// Matchmaker account / settings screen (pushed from the app-bar). Loads `/me`,
-/// renders the header + settings rows, and wires name / language /
-/// support / terms / deactivate / logout. Edit-name uses a minimal inline sheet
-/// for S1b; S1c formalizes it (+ change-password).
+/// renders the header + settings rows, and wires their sheets and routes.
 class MatchmakerAccountScreen extends StatelessWidget {
   const MatchmakerAccountScreen({super.key});
 
@@ -68,16 +66,10 @@ class _AccountView extends StatelessWidget {
       onEditName: identityReady ? () => _editName(context) : null,
       onChangePassword: () => _changePassword(context),
       onLanguage: () => showSettingsLanguageSheet(context),
-      onNotifications: () => NavigationManager.navigateTo(
-        context,
-        RouteNames.matchmakerNotifications,
-      ),
-      onSupport: () =>
-          NavigationManager.navigateTo(context, RouteNames.settingsSupport),
-      onTerms: () =>
-          NavigationManager.navigateTo(context, RouteNames.settingsTerms),
-      onAffiliate: () =>
-          NavigationManager.navigateTo(context, RouteNames.matchmakerAffiliate),
+      onNotifications: _go(context, RouteNames.matchmakerNotifications),
+      onSupport: _go(context, RouteNames.settingsSupport),
+      onTerms: _go(context, RouteNames.settingsTerms),
+      onAffiliate: _go(context, RouteNames.matchmakerAffiliate),
       onDeactivate: () => _deactivate(context),
       onDeleteAccount: () => showMatchmakerDeleteAccountSheet(context),
       onLogout: () => _logout(context),
@@ -88,6 +80,9 @@ class _AccountView extends StatelessWidget {
       bottomReserve: MediaQuery.of(context).padding.bottom,
     );
   }
+
+  VoidCallback _go(BuildContext context, String route) =>
+      () => NavigationManager.navigateTo(context, route);
 
   MatchmakerMe _sessionFallback(UserEntity? user) => MatchmakerMe(
     userId: user?.id ?? '',
@@ -108,6 +103,7 @@ class _AccountView extends StatelessWidget {
       // sheets (toast + close / inline) — the screen ignores them here.
       case MatchmakerAccountOutcome.saveNameSuccess:
       case MatchmakerAccountOutcome.changePasswordSuccess:
+      case MatchmakerAccountOutcome.none:
         break;
       case MatchmakerAccountOutcome.uploadPhotoSuccess:
         _toast(
@@ -121,20 +117,22 @@ class _AccountView extends StatelessWidget {
           successKey: LocaleKeys.matchmaker_account_deactivate_success,
         );
       case MatchmakerAccountOutcome.failure:
-        // Validation (edit-name) / incorrect-password (change-password) show
-        // inline in their sheets; only toast the rest (photo / deactivate / …).
-        if (state.errorKind == MatchmakerAccountErrorKind.validation ||
-            state.errorKind == MatchmakerAccountErrorKind.incorrectPassword) {
-          break;
-        }
-        _toast(
-          context,
-          state.actionErrorKey ?? LocaleKeys.errors_generic,
-          SnackBarType.error,
-        );
-      case MatchmakerAccountOutcome.none:
-        break;
+        _onFailure(context, state);
     }
+  }
+
+  /// Validation (edit-name) / incorrect-password (change-password) show
+  /// inline in their sheets; only the rest toast (photo / deactivate / …).
+  void _onFailure(BuildContext context, MatchmakerAccountState state) {
+    final inline =
+        state.errorKind == MatchmakerAccountErrorKind.validation ||
+        state.errorKind == MatchmakerAccountErrorKind.incorrectPassword;
+    if (inline) return;
+    _toast(
+      context,
+      state.actionErrorKey ?? LocaleKeys.errors_generic,
+      SnackBarType.error,
+    );
   }
 
   void _toast(BuildContext context, String key, SnackBarType type) =>
@@ -177,22 +175,17 @@ class _AccountView extends StatelessWidget {
       icon: Icons.logout_rounded,
     );
     if (!confirmed || !context.mounted) return;
-    // Resolve the copy BEFORE the sign-out + route replacement — this context
-    // is gone by the time the toast is shown.
-    final message = LocaleKeys.common_logout_success.t(context);
-    // Signing out forgets everything app-scoped that was hers (the badge
-    // counts among it): AccountScope.
-    await context.read<UserSessionCubit>().signOut();
-    if (!context.mounted) return;
-    NavigationManager.pushNamedAndRemoveUntil(context, RouteNames.loginScreen);
-    // showOnRoot (not show) so the confirmation survives the route removal —
-    // same ordering as _clearSessionAndExit below.
-    await AppSnackBar.showOnRoot(message: message, type: SnackBarType.success);
+    await _clearSessionAndExit(
+      context,
+      successKey: LocaleKeys.common_logout_success,
+    );
   }
 
-  /// Deactivate succeeded — clear the session (same path as logout; removing
+  /// Logout or deactivate succeeded — clear the session (signing out forgets
+  /// everything app-scoped that was hers, the badge counts among it; removing
   /// `matchmakerHome` tears down the matchmaker SignalR it owns) and redirect to
-  /// login, then surface the confirmation on the root overlay (survives the pop).
+  /// login. The copy is resolved BEFORE, as this context is gone by the toast;
+  /// showOnRoot so the confirmation survives the route removal.
   Future<void> _clearSessionAndExit(
     BuildContext context, {
     required String successKey,

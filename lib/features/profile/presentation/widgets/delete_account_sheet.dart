@@ -22,9 +22,11 @@ import 'package:qeran/features/profile/presentation/widgets/delete_consequence_l
 import 'package:qeran/generated/locale_keys.g.dart';
 
 /// Confirms PERMANENT account deletion: consequence list (incl. an active-
-/// subscription forfeit warning with the exact expiry), a case-insensitive
-/// typed-confirm gate, then the delete via [DeleteAccountCubit] — on success
-/// wipe + redirect to login; on failure a calm notice.
+/// subscription forfeit warning with the exact expiry, and, for everyone, that
+/// the store subscription outlives the account — Apple and Google ask for it),
+/// a case-insensitive typed-confirm gate, then the delete via
+/// [DeleteAccountCubit] — on success wipe + redirect to login; on failure a
+/// calm notice.
 Future<void> showDeleteAccountSheet(
   BuildContext context, {
   required bool subscriptionActive,
@@ -177,6 +179,11 @@ class _DeleteAccountSheetState extends State<_DeleteAccountSheet> {
                     QeranSpacing.vs12,
                     DeleteConsequenceLine(text: subWarning),
                   ],
+                  QeranSpacing.vs12,
+                  DeleteConsequenceLine(
+                    text: LocaleKeys.settings_delete_account_consequence_store
+                        .t(context),
+                  ),
                   QeranSpacing.vs12,
                   DeleteConsequenceLine(
                     text: LocaleKeys.settings_delete_account_consequence_data

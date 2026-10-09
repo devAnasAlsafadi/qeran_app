@@ -1128,6 +1128,7 @@ abstract class  LocaleKeys {
   static const settings_delete_account_sheet_title = 'settings.delete_account_sheet_title';
   static const settings_delete_account_consequence_permanent = 'settings.delete_account_consequence_permanent';
   static const settings_delete_account_consequence_subscription = 'settings.delete_account_consequence_subscription';
+  static const settings_delete_account_consequence_store = 'settings.delete_account_consequence_store';
   static const settings_delete_account_consequence_data = 'settings.delete_account_consequence_data';
   static const settings_delete_account_confirm_hint = 'settings.delete_account_confirm_hint';
   static const settings_delete_account_confirm_word = 'settings.delete_account_confirm_word';

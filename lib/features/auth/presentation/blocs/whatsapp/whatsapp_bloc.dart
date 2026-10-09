@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/errors/retry_after.dart';
 import 'package:qeran/features/auth/domain/usecases/send_whatsapp_otp_usecase.dart';
 import 'package:qeran/features/auth/domain/usecases/verify_whatsapp_otp_usecase.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
@@ -35,7 +37,7 @@ class WhatsappBloc extends Bloc<WhatsappEvent, WhatsappState> {
     final result = await _sendOtp(phoneNumber: event.phoneNumber);
     if (emit.isDone) return;
     result.fold(
-      (failure) => emit(WhatsappFailure(failure.message)),
+      (failure) => emit(_failed(failure)),
       (_) => emit(WhatsappOtpSent(event.phoneNumber)),
     );
   }
@@ -51,7 +53,7 @@ class WhatsappBloc extends Bloc<WhatsappEvent, WhatsappState> {
     );
     if (emit.isDone) return;
     result.fold(
-      (failure) => emit(WhatsappFailure(failure.message)),
+      (failure) => emit(_failed(failure)),
       (user) {
         _userSession.onAuthenticated(user);
         emit(WhatsappOtpVerified(user));
@@ -70,8 +72,12 @@ class WhatsappBloc extends Bloc<WhatsappEvent, WhatsappState> {
     final result = await _sendOtp(phoneNumber: event.phoneNumber);
     if (emit.isDone) return;
     result.fold(
-      (failure) => emit(WhatsappFailure(failure.message)),
+      (failure) => emit(_failed(failure)),
       (_) => emit(WhatsappOtpSent(event.phoneNumber, isResend: true)),
     );
   }
+
+  /// The failure, with the server's wait when it gave one (B2).
+  static WhatsappFailure _failed(Failure failure) =>
+      WhatsappFailure(failure.message, retryAfter: retryAfterOf(failure));
 }

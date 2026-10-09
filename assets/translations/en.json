@@ -48,6 +48,10 @@
     "otp_not_found": "No active code — request a new one",
     "otp_max_attempts": "Too many attempts — request a new code",
     "otp_cooldown": "Please wait before requesting a new code",
+    "otp_cooldown_seconds": {
+      "one": "Please wait 1 second before requesting a new code.",
+      "other": "Please wait {n} seconds before requesting a new code."
+    },
     "account_not_found": "No account found with these details",
     "password_mismatch": "The passwords do not match",
     "account_deactivated": "This account has been deactivated. Please contact support.",

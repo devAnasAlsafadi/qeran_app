@@ -49,6 +49,7 @@ abstract class  LocaleKeys {
   static const errors_otp_not_found = 'errors.otp_not_found';
   static const errors_otp_max_attempts = 'errors.otp_max_attempts';
   static const errors_otp_cooldown = 'errors.otp_cooldown';
+  static const errors_otp_cooldown_seconds = 'errors.otp_cooldown_seconds';
   static const errors_account_not_found = 'errors.account_not_found';
   static const errors_password_mismatch = 'errors.password_mismatch';
   static const errors_account_deactivated = 'errors.account_deactivated';

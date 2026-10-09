@@ -12,11 +12,16 @@ class OtpResendRow extends StatefulWidget {
   final bool isLoading;
   final int cooldownSeconds;
 
+  /// The server's own wait after a refused resend (B2). A new value restarts
+  /// the countdown from it, in place of the row's own [cooldownSeconds].
+  final Duration? serverCooldown;
+
   const OtpResendRow({
     super.key,
     required this.onResend,
     required this.isLoading,
     this.cooldownSeconds = 60,
+    this.serverCooldown,
   });
 
   @override
@@ -29,8 +34,8 @@ class _OtpResendRowState extends State<OtpResendRow> {
 
   bool get _canResend => _secondsRemaining == 0 && !widget.isLoading;
 
-  void _startTimer() {
-    setState(() => _secondsRemaining = widget.cooldownSeconds);
+  void _countFrom(int seconds) {
+    _secondsRemaining = seconds;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
@@ -44,7 +49,16 @@ class _OtpResendRowState extends State<OtpResendRow> {
   void _handleResend() {
     if (_canResend) {
       widget.onResend();
-      _startTimer();
+      setState(() => _countFrom(widget.cooldownSeconds));
+    }
+  }
+
+  @override
+  void didUpdateWidget(OtpResendRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final wait = widget.serverCooldown;
+    if (wait != null && wait != oldWidget.serverCooldown) {
+      _countFrom(wait.inSeconds);
     }
   }
 

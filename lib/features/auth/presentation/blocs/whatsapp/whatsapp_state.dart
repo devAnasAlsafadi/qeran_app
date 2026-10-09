@@ -22,5 +22,9 @@ final class WhatsappOtpVerified extends WhatsappState {
 final class WhatsappFailure extends WhatsappState {
   final String message;
 
-  WhatsappFailure(this.message);
+  /// How long the server said to wait before another code (`OTP_COOLDOWN`'s
+  /// `retryAfterSeconds`, B2); null when it said nothing.
+  final Duration? retryAfter;
+
+  WhatsappFailure(this.message, {this.retryAfter});
 }

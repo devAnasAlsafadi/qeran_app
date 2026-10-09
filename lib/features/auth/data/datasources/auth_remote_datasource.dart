@@ -9,11 +9,11 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/domain/entities/success_response.dart';
 import 'package:qeran/core/errors/exceptions.dart';
-import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/core/utils/log_masker.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import '../auth_error_classifier.dart';
 import '../auth_failure_keys.dart';
 import '../models/user_model.dart';
 
@@ -422,13 +422,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   // ─── Helpers ──────────────────────────────────────────────────
 
   /// `POST` that converts an envelope failure into a locale KEY before it
-  /// leaves this data source.
-  ///
-  /// The repository flattens every [ServerException] into
-  /// `ServerFailure(message)` and the `errorCode` is gone after that, so the
-  /// server's English prose would otherwise be rendered verbatim by `.t()`.
-  /// An endpoint with no confirmed codes passes an empty [codeKeys] and still
-  /// gets the fix: every failure degrades to the generic localized key.
+  /// leaves this data source ([classifyAuthFailure]); a coded one keeps its
+  /// code and data. An endpoint with no confirmed codes passes an empty
+  /// [codeKeys] and still gets the fix: every failure degrades to the generic
+  /// localized key.
   Future<dynamic> _postClassified(
     String path, {
     required Object? body,
@@ -438,14 +435,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       return await _apiConsumer.post(path, body: body);
     } on ServerException catch (e) {
-      throw ServerException(
-        message: serverFailureKey(
-          e,
-          codeKeys: codeKeys,
-          label: label,
-          tag: 'AUTH',
-        ),
-      );
+      throw classifyAuthFailure(e, codeKeys: codeKeys, label: label);
     }
   }
 

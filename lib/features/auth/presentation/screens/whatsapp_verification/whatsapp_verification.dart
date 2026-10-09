@@ -23,6 +23,7 @@ import '../../widgets/auth_hero_scaffold.dart';
 import 'widgets/otp_input_row.dart';
 import 'widgets/otp_resend_row.dart';
 import '../../widgets/auth_title_subtitle.dart';
+import '../../widgets/whatsapp_failure_text.dart';
 import 'whatsapp_verification_args.dart';
 import 'whatsapp_verification_mode.dart';
 
@@ -114,6 +115,8 @@ class _WhatsappVerificationScreenState
             builder: (context, state) => OtpResendRow(
               onResend: () => _onResend(context),
               isLoading: state is WhatsappLoading,
+              serverCooldown:
+                  state is WhatsappFailure ? state.retryAfter : null,
             ),
           ),
           QeranSpacing.vs48,
@@ -222,7 +225,7 @@ class _WhatsappVerificationScreenState
     } else if (state is WhatsappFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.tOrRaw(context),
+        message: state.text(context),
         type: SnackBarType.error,
       );
     }

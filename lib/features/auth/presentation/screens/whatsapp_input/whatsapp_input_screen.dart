@@ -19,6 +19,7 @@ import '../../controllers/phone_input_controller.dart';
 import '../../widgets/auth_hero_scaffold.dart';
 import '../../widgets/auth_phone_input.dart';
 import '../../widgets/auth_title_subtitle.dart';
+import '../../widgets/whatsapp_failure_text.dart';
 import '../whatsapp_verification/whatsapp_verification_args.dart';
 import '../whatsapp_verification/whatsapp_verification_mode.dart';
 
@@ -125,7 +126,7 @@ class _WhatsappInputScreenState extends State<WhatsappInputScreen> {
     } else if (state is WhatsappFailure) {
       AppSnackBar.show(
         context,
-        message: state.message.tOrRaw(context),
+        message: state.text(context),
         type: SnackBarType.error,
       );
     }

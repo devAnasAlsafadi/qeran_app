@@ -63,7 +63,9 @@ class MatchmakerActionChip extends StatelessWidget {
         onTap: loading ? null : onTap,
         splashColor: fg.withValues(alpha: 0.08),
         highlightColor: fg.withValues(alpha: 0.04),
-        child: Padding(
+        // A 48 pt tap target; the pill grows to it, centred (D2).
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(
             horizontal: QeranSpacing.s12,
             vertical: QeranSpacing.s6,

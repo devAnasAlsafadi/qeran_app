@@ -14,7 +14,7 @@ class MatchmakerIconAction extends StatelessWidget {
     required this.onTap,
     this.tooltip,
     this.loading = false,
-    this.size = 40,
+    this.size = 48,
   });
 
   final IconData icon;

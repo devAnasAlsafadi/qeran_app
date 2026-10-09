@@ -172,8 +172,8 @@ class _BackButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: () => NavigationManager.pop(context),
         child: const SizedBox(
-          width: 40,
-          height: 40,
+          width: 48,
+          height: 48,
           child: Icon(
             Icons.chevron_left_rounded,
             color: QeranColors.wine,

@@ -40,7 +40,8 @@ class MatchmakerSegmentedTabs extends StatelessWidget {
   // pill travels in lockstep with the page transition.
   static const Duration _kAnimDur = QeranMotion.standard;
   static const Curve _kAnimCurve = QeranCurves.standard;
-  static const double _kTrackHeight = 52.0;
+  // 56 − 2 × 4: each segment is a 48 pt tap target (D2).
+  static const double _kTrackHeight = 56.0;
   static const double _kInnerPad = 4.0;
 
   @override

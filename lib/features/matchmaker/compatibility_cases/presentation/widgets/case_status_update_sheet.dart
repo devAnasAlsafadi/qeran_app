@@ -229,6 +229,8 @@ class _TargetOption extends StatelessWidget {
         child: InkWell(
           onTap: tappable ? () => _submit(context) : null,
           child: Container(
+            // A 48 pt tap target whatever the label measures (D2).
+            constraints: const BoxConstraints(minHeight: 48),
             padding: const EdgeInsets.symmetric(
               horizontal: QeranSpacing.s16,
               vertical: QeranSpacing.s12,

@@ -101,7 +101,7 @@ class QeranSendButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool sending;
 
-  static const double size = 44;
+  static const double size = 48;
 
   @override
   Widget build(BuildContext context) {

@@ -123,7 +123,7 @@ void main() {
       expect(sends, 0);
     });
 
-    testWidgets('a 44 pt disc', (tester) async {
+    testWidgets('a 48 pt disc, the tap target (D2)', (tester) async {
       await _pump(
         tester,
         Center(child: QeranSendButton(enabled: true, onPressed: () {})),
@@ -131,7 +131,7 @@ void main() {
 
       expect(
         tester.getSize(find.byType(QeranSendButton)),
-        const Size.square(44),
+        const Size.square(48),
       );
     });
   });

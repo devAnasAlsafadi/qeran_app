@@ -67,8 +67,8 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen> {
 
   /// The single entry point for BOTH notification paths — a row tapped in the
   /// inbox (handed back when it pops) and a system push tapped outside the app.
-  /// Raises [_fromNotification], which is what puts a back control on the
-  /// destination tab.
+  /// For the tab it opens (Cases) it raises [_fromNotification], which is what
+  /// puts a back control on that tab.
   ///
   /// Raised BEFORE the tab switch on purpose: `_selectTab` returns early when
   /// the target tab is already showing, and that is exactly when the control
@@ -80,11 +80,11 @@ class _MatchmakerHomeScreenState extends State<MatchmakerHomeScreen> {
         _selectTab(
           2,
         ); // Cases tab — the shell owns selection (no route change).
+      // A chat or a post opens over whatever is showing, with no trail: back
+      // is where she was, as in the member's shell. (Her inbox opens its own
+      // chat rows, so only a system push reaches the chat case.)
       case OpenUserChat():
-        _raiseTrail();
         openNotifiedChat(context, link);
-      // Over whatever is showing, with no trail: back is where she was, as
-      // in the member's shell.
       case OpenPost():
         unawaited(openNotifiedPost(context, link));
       case IgnoreDeepLink():

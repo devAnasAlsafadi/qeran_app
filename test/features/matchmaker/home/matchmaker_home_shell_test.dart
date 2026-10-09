@@ -53,7 +53,7 @@ void main() {
   });
 
   testWidgets('a chat push tapped in the background opens the chat over the '
-      'shell, named from the push, and raises the trail', (tester) async {
+      'shell, named from the push, with no trail (C3)', (tester) async {
     final shell = HerShellRig();
     await shell.pump(tester);
 
@@ -64,7 +64,7 @@ void main() {
     expect((chat.conversationId, chat.fullName), (12, 'Dima'));
     expect(find.text('chat'), findsOneWidget);
     expect(shell.tab(tester), 0);
-    expect(shell.trail(tester), isTrue);
+    expect(shell.trail(tester), isFalse);
   });
 
   testWidgets('only what is addressed to her: a member\'s case update, or a '

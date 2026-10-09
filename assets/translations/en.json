@@ -137,15 +137,7 @@
     "photo_validation_size": "Image size exceeds 5 MB"
   },
   "onboarding": {
-    "get_started": "Get Started",
-    "page1_title": "Find Your Life Partner",
-    "page1_description": "Qeran provides you with a safe and serious environment to find your other half within Islamic guidelines.",
-    "page2_title": "Precise Compatibility",
-    "page2_description": "Our smart system helps you find who suits you based on your answers and interests.",
-    "page3_title": "Communicate with Confidence",
-    "page3_description": "Connect with others through safe and monitored messages to ensure a positive experience.",
     "skip": "Skip",
-    "splash_tagline": "A serious path to marriage — privacy, compatibility and Islamic values.",
     "community": {
       "title": "Learn before you take the step",
       "body": "Before and after engagement, Community gives you advice from people with experience: how to choose, how to prepare, and how to begin married life.",
@@ -158,29 +150,6 @@
       "topic_engagement_meta": "Video · Noura",
       "topic_preparing": "Preparing for marriage",
       "topic_preparing_meta": "Images · Huda"
-    },
-    "essence": {
-      "title": "Get to know the personality, fully private",
-      "body": "Get to know their values, interests, lifestyle and marriage goals. Photos stay hidden for both sides and are revealed only after mutual interest and mutual consent.",
-      "highlight": "Your privacy is our priority — your photos and data stay protected.",
-      "lock_note": "The photo appears only after mutual interest and consent",
-      "photo_protected": "Photo protected",
-      "identity_badge": "Verified identity",
-      "person_name": "Sara",
-      "person_age": "26",
-      "chip_education_label": "Education",
-      "chip_education_value": "University",
-      "chip_work_label": "Work",
-      "chip_work_value": "Engineer",
-      "chip_religiosity_label": "Religiosity",
-      "chip_religiosity_value": "Practicing",
-      "chip_goal_label": "Nationality",
-      "chip_goal_value": "UAE",
-      "step_blurred": "Hidden photo",
-      "step_interest": "Interest",
-      "step_request": "Request reveal",
-      "step_consent": "Consent",
-      "step_revealed": "Revealed"
     },
     "mediation": {
       "title": "Serious, matchmaker-supervised communication",

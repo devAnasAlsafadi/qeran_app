@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/features/auth/presentation/widgets/auth_hero_scaffold.dart';
 import 'package:qeran/features/likes/presentation/screens/match_success_screen.dart';
-import 'package:qeran/features/onboarding/presentation/widgets/frames/onboarding_essence_frame.dart';
+import 'package:qeran/features/onboarding/presentation/widgets/frames/onboarding_community_frame.dart';
 import 'package:qeran/features/onboarding/presentation/widgets/frames/onboarding_mediation_frame.dart';
 import 'package:qeran/features/onboarding/presentation/widgets/frames/onboarding_roadmap_frame.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,7 +46,7 @@ void main() {
   });
 
   final onboardingFrames = <String, Widget>{
-    'essence': OnboardingEssenceFrame(
+    'community': OnboardingCommunityFrame(
       dotCount: 3,
       activeDot: 0,
       onDot: (_) {},

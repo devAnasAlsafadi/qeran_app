@@ -9,10 +9,10 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../onboarding_highlight_pill.dart';
 import '../onboarding_nav_row.dart';
 import '../onboarding_section_heading.dart';
+import 'onboarding_card_top_scrim.dart';
 import 'onboarding_chat_backdrop.dart';
 import 'onboarding_hero_background.dart';
 import 'onboarding_matchmaker_glass_card.dart';
-import 'onboarding_profile_card_layers.dart';
 import 'onboarding_responsive_frame.dart';
 
 /// Frame 2 — Dignified Mediation (الوساطة الجادة).

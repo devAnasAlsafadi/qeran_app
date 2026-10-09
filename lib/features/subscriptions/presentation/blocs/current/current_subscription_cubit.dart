@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../../domain/entities/current_subscription.dart';
 import '../../../domain/usecases/get_current_subscription_usecase.dart';
+import 'activation_pending.dart';
 import 'current_subscription_state.dart';
 
 /// App-scoped (lazy singleton) holder for the signed-in user's
@@ -20,14 +23,20 @@ import 'current_subscription_state.dart';
 /// TTL and is used for cold-start, pull-to-refresh, gated-action
 /// success, and the `/subscribe` aftermath (though the latter prefers
 /// [onSubscribed] which avoids an extra round-trip entirely).
+///
+/// **C5:** a store-confirmed purchase is [CurrentSubscriptionActivating],
+/// never None, until `/current` shows it active — across restarts too.
 class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with SafeEmit<CurrentSubscriptionState> {
   final GetCurrentSubscriptionUseCase _getCurrent;
+  final ActivationPending _activation;
 
   static const Duration _ttl = Duration(seconds: 60);
 
   CurrentSubscriptionCubit({
     required GetCurrentSubscriptionUseCase getCurrent,
+    required ActivationPending activation,
   })  : _getCurrent = getCurrent,
+        _activation = activation,
         super(const CurrentSubscriptionInitial());
 
   DateTime? _lastSyncAt;
@@ -51,8 +60,12 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with Safe
   bool get hasActiveSubscription =>
       subscription?.isCurrentlyActive ?? false;
 
-  /// Cold-start entry. Always fetches, ignoring the TTL.
-  Future<void> hydrate() => refresh(force: true);
+  /// Cold-start entry. Always fetches, ignoring the TTL; a purchase still
+  /// activating from before the restart resumes its re-reads.
+  Future<void> hydrate() async {
+    await refresh(force: true);
+    if (_activation.isPending) unawaited(_pollWhilePending());
+  }
 
   /// Refreshes the subscription from the server.
   ///
@@ -85,26 +98,66 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with Safe
         : null;
 
     if (state is! CurrentSubscriptionLoaded &&
-        state is! CurrentSubscriptionNone) {
+        state is! CurrentSubscriptionNone &&
+        state is! CurrentSubscriptionActivating) {
       emit(const CurrentSubscriptionLoading());
     }
 
+    await _activation.load();
     final result = await _getCurrent();
     if (isClosed || generation != _generation) return;
-    result.fold(
-      (failure) => emit(CurrentSubscriptionFailure(
-        message: failure.message,
-        lastKnown: previous,
-      )),
-      (sub) {
-        _lastSyncAt = DateTime.now();
-        if (sub == null) {
-          emit(const CurrentSubscriptionNone());
-        } else {
-          emit(CurrentSubscriptionLoaded(sub));
-        }
-      },
+    result.fold((f) => _onFailure(f.message, previous), _onCurrent);
+  }
+
+  void _onFailure(String message, CurrentSubscription? lastKnown) =>
+      _activation.isPending
+          ? _emitActivating()
+          : emit(CurrentSubscriptionFailure(
+              message: message,
+              lastKnown: lastKnown,
+            ));
+
+  /// An active subscription settles a pending activation; anything else
+  /// while one is pending stays "activating".
+  void _onCurrent(CurrentSubscription? sub) {
+    _lastSyncAt = DateTime.now();
+    if (sub != null && sub.isCurrentlyActive) {
+      if (_activation.isPending) unawaited(_activation.settle());
+      return emit(CurrentSubscriptionLoaded(sub));
+    }
+    if (_activation.isPending) return _emitActivating();
+    emit(sub == null
+        ? const CurrentSubscriptionNone()
+        : CurrentSubscriptionLoaded(sub));
+  }
+
+  /// The store confirmed a purchase or a restore (C5). "Activating" until
+  /// `/current` shows it active — an active plan (an upgrade) keeps showing
+  /// meanwhile — with [ActivationPending.watch]'s re-reads.
+  Future<void> onStoreConfirmed() async {
+    await _activation.start();
+    if (isClosed) return;
+    if (!hasActiveSubscription) _emitActivating();
+    await _pollWhilePending();
+  }
+
+  /// Re-reads for this account only: a sign-out ends the loop.
+  Future<void> _pollWhilePending() {
+    final generation = _generation;
+    return _activation.watch(
+      () => refresh(force: true),
+      alive: () => !isClosed && generation == _generation,
     );
+  }
+
+  void _emitActivating() {
+    emit(CurrentSubscriptionActivating(
+      since: _activation.since!,
+      overdue: _activation.isOverdue,
+    ));
+    _activation.whenOverdue(() {
+      if (state is CurrentSubscriptionActivating) _emitActivating();
+    });
   }
 
   /// Pushes the freshly-issued subscription returned by `/subscribe`
@@ -121,19 +174,20 @@ class CurrentSubscriptionCubit extends Cubit<CurrentSubscriptionState> with Safe
   /// `Remaining` counts update.
   Future<void> onActionConsumedCounter() => refresh(force: true);
 
-  /// Marks the cached `/current` as stale (resets the freshness TTL) so the
-  /// next [refresh] re-fetches — without dropping the current state or touching
-  /// the in-flight coalescing. Used after a purchase so the backend value is
-  /// re-read once the webhook has granted the entitlement.
-  void invalidateCache() => _lastSyncAt = null;
-
   /// Clears the cached state when the account changes (the session's
   /// AccountScope), so the next account sees a fresh hydration cycle.
   void clear() {
     _generation++;
     _lastSyncAt = null;
     _inflight = null;
+    _activation.forgetAccount();
     emit(const CurrentSubscriptionInitial());
+  }
+
+  @override
+  Future<void> close() {
+    _activation.forgetAccount();
+    return super.close();
   }
 
   bool get _isFresh {

@@ -18,7 +18,10 @@ import 'package:qeran/features/profile/domain/usecases/get_my_profile_usecase.da
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'package:qeran/features/profile/presentation/default_name_banner_session.dart';
 import 'package:qeran/features/subscriptions/domain/usecases/get_current_subscription_usecase.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/activation_pending.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
+
+import '../../../../../core/memory_storage.dart';
 
 class MockStorage extends Mock implements StorageService {}
 
@@ -84,7 +87,10 @@ class AccountChangeRig {
     (cubit) => cubit.clear(),
   );
   late final subscription = scope.hold(
-    CurrentSubscriptionCubit(getCurrent: getCurrent),
+    CurrentSubscriptionCubit(
+      getCurrent: getCurrent,
+      activation: ActivationPending(prefs: MemoryStorage()),
+    ),
     (cubit) => cubit.clear(),
   );
   late final reads = scope.hold(

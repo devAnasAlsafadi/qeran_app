@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/config/revenuecat_config.dart';
 import 'package:qeran/core/errors/errors.dart';
-import 'package:qeran/core/services/revenuecat_service.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../domain/entities/subscription_pricing.dart';
@@ -20,50 +20,26 @@ import 'package_purchase_messages.dart';
 import 'package_purchase_state.dart';
 
 /// Screen-scoped orchestrator for the paywall purchase flow: discount-code
-/// validation, the RevenueCat purchase, restore, and the post-purchase
-/// reconcile (Q-C). It does NOT handle the free tier — that routes through
-/// `SubscribeUseCase` at the CTA (Commit 5).
+/// validation, the RevenueCat purchase and restore. What follows a confirmed
+/// purchase — waiting for the server — is [CurrentSubscriptionCubit]'s (C5).
+/// It does NOT handle the free tier — that routes through `SubscribeUseCase`
+/// at the CTA (Commit 5).
 class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<PackagePurchaseState> {
   final ValidateCodeUseCase _validateCode;
   final PurchasePackageUseCase _purchasePackage;
   final RestorePurchasesUseCase _restorePurchases;
   final CurrentSubscriptionCubit _currentSubscription;
-  final RevenueCatService _revenueCat;
-
-  /// Delays between successive `/current` re-fetches while waiting out the
-  /// post-purchase webhook lag (the 204 window). Injectable so tests can run
-  /// the backoff with zero delay. Defaults to [_kReconcileBackoff].
-  final List<Duration> _reconcileBackoff;
-
-  /// ~11s across 4 retries (plus the immediate fetch = 5 attempts). Sized for
-  /// RevenueCat webhook → `/current` activation lag without an unbounded loop.
-  static const List<Duration> _kReconcileBackoff = [
-    Duration(seconds: 1),
-    Duration(seconds: 2),
-    Duration(seconds: 3),
-    Duration(seconds: 5),
-  ];
 
   PackagePurchaseCubit({
     required ValidateCodeUseCase validateCode,
     required PurchasePackageUseCase purchasePackage,
     required RestorePurchasesUseCase restorePurchases,
     required CurrentSubscriptionCubit currentSubscription,
-    required RevenueCatService revenueCat,
-    List<Duration> reconcileBackoff = _kReconcileBackoff,
   })  : _validateCode = validateCode,
         _purchasePackage = purchasePackage,
         _restorePurchases = restorePurchases,
         _currentSubscription = currentSubscription,
-        _revenueCat = revenueCat,
-        _reconcileBackoff = reconcileBackoff,
         super(const PackagePurchaseIdle());
-
-  CustomerInfoUpdateListener? _entitlementListener;
-
-  /// Prevents overlapping purchase/restore reconciles from stacking backoff
-  /// loops. Reset in the loop's `finally`.
-  bool _reconcileInFlight = false;
 
   /// Validates [code] against [productId] for the current platform. Emits
   /// [PackagePurchaseValidatingCode] then success/failure.
@@ -157,89 +133,36 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
       oldProductId: oldProductId,
     );
     if (isClosed) return;
-    result.fold(_emitFailure, _onPurchased);
+    result.fold(
+      _emitFailure,
+      (info) => _onStoreConfirmed(info, restore: false),
+    );
   }
 
-  /// Restores prior purchases. Reuses the post-purchase reconcile.
+  /// Restores prior purchases; an active one waits for the server like a
+  /// purchase.
   Future<void> restorePurchases() async {
     emit(const PackagePurchaseInProgress());
     final result = await _restorePurchases();
     if (isClosed) return;
-    result.fold(_emitFailure, _onPurchased);
+    result.fold(_emitFailure, (info) => _onStoreConfirmed(info, restore: true));
   }
 
   /// Back to the resting state — e.g. when the user clears a code or dismisses
   /// an error.
   void reset() => emit(const PackagePurchaseIdle());
 
-  void _onPurchased(CustomerInfo customerInfo) {
-    _reconcileAfterPurchase();
-    emit(PackagePurchaseSuccess(customerInfo: customerInfo));
-  }
-
-  // Post-purchase reconcile (Q-C): success is emitted from RC's local
-  // entitlement above; /current (SOT for plan/counters) reconciles here with a
-  // bounded backoff (webhook lag can leave /current at 204 briefly), and a
-  // one-time RC listener catches webhook lag independently.
-  void _reconcileAfterPurchase() {
-    unawaited(_reconcileCurrentWithBackoff());
-    _armEntitlementListener();
-  }
-
-  /// Re-fetches `/current` immediately, then retries on [_reconcileBackoff]
-  /// delays until an active subscription lands — closing the post-purchase 204
-  /// window so the user never briefly sees "no subscription" right after
-  /// paying. Exits as soon as the sub is active; gives up gracefully after the
-  /// bound (the armed RC listener remains as an independent backstop). Guarded
-  /// so overlapping purchase/restore reconciles don't stack loops. Touches only
-  /// the app-scoped [CurrentSubscriptionCubit], so it's safe if this cubit
-  /// closes mid-flight.
-  Future<void> _reconcileCurrentWithBackoff() async {
-    if (_reconcileInFlight) return;
-    _reconcileInFlight = true;
-    try {
-      _currentSubscription.invalidateCache();
-      await _currentSubscription.refresh(force: true);
-      if (_currentSubscription.hasActiveSubscription) return;
-      for (final delay in _reconcileBackoff) {
-        await Future<void>.delayed(delay);
-        await _currentSubscription.refresh(force: true);
-        if (_currentSubscription.hasActiveSubscription) return;
-      }
-      // Bound exhausted — leave the last /current state; the RC listener will
-      // pull again if the webhook lands later.
-    } finally {
-      _reconcileInFlight = false;
+  /// The store confirmed: «اشتراكي» says "activating" until the server does
+  /// (C5). The app-scoped [CurrentSubscriptionCubit] does the re-reading, so
+  /// the wait outlives this screen. A restore that found nothing active
+  /// confirmed nothing.
+  void _onStoreConfirmed(CustomerInfo info, {required bool restore}) {
+    final active = info.entitlements.active
+        .containsKey(RevenueCatConfig.premiumEntitlementId);
+    if (!restore || active) {
+      unawaited(_currentSubscription.onStoreConfirmed());
     }
-  }
-
-  /// Single-shot `/current` re-fetch used by the RC entitlement listener (which
-  /// fires exactly when the webhook grants premium, so `/current` is ready).
-  void _pullCurrentSubscription() {
-    _currentSubscription.invalidateCache();
-    unawaited(_currentSubscription.refresh(force: true));
-  }
-
-  /// Arms a one-time RC entitlement listener: on the next `CustomerInfo`
-  /// change (e.g. the webhook granting premium after success was emitted), pull
-  /// a fresh `/current`, then disarm. Only touches the app-scoped
-  /// [CurrentSubscriptionCubit], so it's safe even if this cubit has closed.
-  void _armEntitlementListener() {
-    if (_entitlementListener != null) return;
-    void listener(CustomerInfo _) {
-      _pullCurrentSubscription();
-      _disarmEntitlementListener();
-    }
-
-    _entitlementListener = listener;
-    _revenueCat.addCustomerInfoUpdateListener(listener);
-  }
-
-  void _disarmEntitlementListener() {
-    final listener = _entitlementListener;
-    if (listener == null) return;
-    _revenueCat.removeCustomerInfoUpdateListener(listener);
-    _entitlementListener = null;
+    emit(PackagePurchaseSuccess(customerInfo: info));
   }
 
   void _emitFailure(Failure failure) {
@@ -258,11 +181,5 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
       failure: failure,
       userMessage: purchaseFailureMessage(failure),
     ));
-  }
-
-  @override
-  Future<void> close() {
-    _disarmEntitlementListener();
-    return super.close();
   }
 }

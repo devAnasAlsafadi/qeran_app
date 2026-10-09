@@ -609,6 +609,10 @@ abstract class  LocaleKeys {
   static const subscriptions_badge_you_are_here = 'subscriptions.badge_you_are_here';
   static const subscriptions_free_activate_cta = 'subscriptions.free_activate_cta';
   static const subscriptions_free_already_used = 'subscriptions.free_already_used';
+  static const subscriptions_activating_title = 'subscriptions.activating_title';
+  static const subscriptions_activating_body = 'subscriptions.activating_body';
+  static const subscriptions_activating_overdue = 'subscriptions.activating_overdue';
+  static const subscriptions_activating_ok = 'subscriptions.activating_ok';
   static const subscriptions_none_title = 'subscriptions.none_title';
   static const subscriptions_none_body = 'subscriptions.none_body';
   static const subscriptions_vip_celebrate_subtitle = 'subscriptions.vip_celebrate_subtitle';

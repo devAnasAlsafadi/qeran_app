@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:qeran/core/errors/errors.dart';
-import 'package:qeran/core/services/revenuecat_service.dart';
 import 'package:qeran/features/subscriptions/domain/entities/validate_code_response.dart';
 import 'package:qeran/features/subscriptions/domain/usecases/purchase_package_usecase.dart';
 import 'package:qeran/features/subscriptions/domain/usecases/restore_purchases_usecase.dart';
@@ -35,16 +34,7 @@ class _FakeRestore extends Fake implements RestorePurchasesUseCase {
       Right<Failure, CustomerInfo>(_FakeCustomerInfo());
 }
 
-class _FakeRevenueCat extends Fake implements RevenueCatService {
-  @override
-  void addCustomerInfoUpdateListener(CustomerInfoUpdateListener listener) {}
-  @override
-  void removeCustomerInfoUpdateListener(CustomerInfoUpdateListener listener) {}
-}
-
 class _FakeCurrentSub extends Fake implements CurrentSubscriptionCubit {
-  @override
-  void invalidateCache() {}
   @override
   Future<void> refresh({bool force = false}) async {}
   @override
@@ -74,7 +64,6 @@ PackagePurchaseCubit cubitFor(Either<Failure, ValidateCodeResponse> result) =>
       purchasePackage: _FakePurchasePackage(),
       restorePurchases: _FakeRestore(),
       currentSubscription: _FakeCurrentSub(),
-      revenueCat: _FakeRevenueCat(),
     );
 
 Future<PackagePurchaseState> validate(PackagePurchaseCubit cubit) async {

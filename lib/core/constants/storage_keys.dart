@@ -68,6 +68,12 @@ class StorageKeys {
   /// it describes the DEVICE, not the account.
   static const String serverClockSkewMs = 'server_clock_skew_ms';
 
+  /// When the store confirmed a purchase the server hasn't confirmed yet, in
+  /// milliseconds since the epoch: «اشتراكي» says "activating" until it does,
+  /// across restarts (C5, Q26). ACCOUNT-level: it goes with the account.
+  static const String subscriptionActivationSince =
+      'subscription_activation_since';
+
   /// Account/session shared-prefs keys, removed on sign-out and on a permanent
   /// delete so the next account on this phone inherits none of them. Device-
   /// level keys are intentionally absent here (preserved across both).
@@ -93,6 +99,8 @@ class StorageKeys {
     // next matchmaker to sign in on this device inherits the previous one's
     // read rows.
     matchmakerNotifReadWatermark,
+    // A purchase still activating (C5).
+    subscriptionActivationSince,
     // Account-LINK marker only — the device REGISTRATION markers are preserved
     // so the next login re-links cleanly without a redundant re-register.
     lastLinkedFcm,

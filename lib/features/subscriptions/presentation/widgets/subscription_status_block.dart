@@ -15,12 +15,14 @@ import '../../domain/entities/current_subscription.dart';
 import '../blocs/current/current_subscription_cubit.dart';
 import '../blocs/current/current_subscription_state.dart';
 import 'my_subscription_card.dart';
+import 'subscription_activating_notice.dart';
 import 'subscription_free_card.dart';
 
 /// Lives on the My-subscription screen (اشتراكي). Renders the app-scoped
-/// [CurrentSubscriptionCubit] into one of five states: active / expiring-soon
+/// [CurrentSubscriptionCubit] into one of six states: active / expiring-soon
 /// (both via [MySubscriptionCard]), expired, on-Free (our `/current`-null
-/// mapping), and loading/error. Visuals only — the cubit owns fetch + refresh.
+/// mapping), activating (C5: paid, the server not caught up — never Free), and
+/// loading/error. Visuals only — the cubit owns fetch + refresh.
 class SubscriptionStatusBlock extends StatelessWidget {
   const SubscriptionStatusBlock({super.key});
 
@@ -41,6 +43,8 @@ class SubscriptionStatusBlock extends StatelessWidget {
           // `/current` returned null → NO subscription yet (NOT "on Free"). The
           // card invites activating the free trial or picking a plan.
           CurrentSubscriptionNone() => const SubscriptionFreeCard(),
+          CurrentSubscriptionActivating(:final overdue) =>
+            _ActivatingCard(overdue: overdue),
           CurrentSubscriptionFailure(:final lastKnown) => lastKnown != null
               ? _forSubscription(lastKnown)
               : const _ErrorCard(),
@@ -68,6 +72,27 @@ class _LoadingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return const QeranCard(
       child: SizedBox(height: 120, child: Center(child: QeranLoader())),
+    );
+  }
+}
+
+/// Paid, and the server hasn't confirmed it yet (C5).
+class _ActivatingCard extends StatelessWidget {
+  final bool overdue;
+  const _ActivatingCard({required this.overdue});
+
+  @override
+  Widget build(BuildContext context) {
+    return QeranCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.hourglass_top_rounded,
+              color: QeranColors.goldDeep, size: 22),
+          QeranSpacing.hs12,
+          Expanded(child: SubscriptionActivatingNotice(overdue: overdue)),
+        ],
+      ),
     );
   }
 }

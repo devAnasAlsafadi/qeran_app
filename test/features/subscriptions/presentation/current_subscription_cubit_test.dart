@@ -9,8 +9,11 @@ import 'package:qeran/features/subscriptions/domain/entities/subscription_featur
 import 'package:qeran/features/subscriptions/domain/entities/subscription_plan.dart';
 import 'package:qeran/features/subscriptions/domain/entities/subscription_pricing.dart';
 import 'package:qeran/features/subscriptions/domain/usecases/get_current_subscription_usecase.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/activation_pending.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_state.dart';
+
+import '../../../core/memory_storage.dart';
 
 class _MockGetCurrent extends Mock implements GetCurrentSubscriptionUseCase {}
 
@@ -74,7 +77,10 @@ void main() {
 
   setUp(() {
     getCurrent = _MockGetCurrent();
-    cubit = CurrentSubscriptionCubit(getCurrent: getCurrent);
+    cubit = CurrentSubscriptionCubit(
+      getCurrent: getCurrent,
+      activation: ActivationPending(prefs: MemoryStorage()),
+    );
   });
 
   tearDown(() => cubit.close());

@@ -32,6 +32,7 @@ import 'package:qeran/features/profile/presentation/widgets/full_profile_image_o
 import 'package:qeran/features/profile/presentation/widgets/placement/qa_default_section.dart';
 import 'package:qeran/features/subscriptions/domain/entities/current_subscription.dart';
 import 'package:qeran/features/subscriptions/domain/usecases/get_current_subscription_usecase.dart';
+import 'package:qeran/features/subscriptions/presentation/blocs/current/activation_pending.dart';
 import 'package:qeran/features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_page.dart';
 import 'package:qeran/features/discovery/domain/entities/discovery_profile.dart';
@@ -63,6 +64,8 @@ import 'package:qeran/features/discovery/presentation/widgets/discovery_unified_
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../core/memory_storage.dart';
 
 /// Discovery + Full Profile are ONE screen.
 ///
@@ -200,7 +203,11 @@ class _FakeGetCurrent implements GetCurrentSubscriptionUseCase {
 }
 
 class _FakeCurrentSubCubit extends CurrentSubscriptionCubit {
-  _FakeCurrentSubCubit() : super(getCurrent: _FakeGetCurrent());
+  _FakeCurrentSubCubit()
+    : super(
+        getCurrent: _FakeGetCurrent(),
+        activation: ActivationPending(prefs: MemoryStorage()),
+      );
 }
 
 /// The share CTA at the end of the merged scroll resolves its cubit from

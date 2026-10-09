@@ -406,6 +406,9 @@ class _SubscriptionRow extends StatelessWidget {
           ),
           false,
         ),
+      // Paid, the server not caught up (C5): never "no subscription".
+      CurrentSubscriptionActivating() =>
+        (LocaleKeys.subscriptions_activating_title.t(context), false),
       _ => (LocaleKeys.subscriptions_status_none_subtitle.t(context), true),
     };
   }
@@ -432,7 +435,10 @@ class _UpgradeTeaserCard extends StatelessWidget {
           _ => false,
         };
 
-        if (isActiveVip) return const SizedBox.shrink();
+        // Nor while a purchase is activating (C5): it's already paid for.
+        if (isActiveVip || state is CurrentSubscriptionActivating) {
+          return const SizedBox.shrink();
+        }
 
         return Container(
           margin: const EdgeInsets.only(top: QeranSpacing.s24),

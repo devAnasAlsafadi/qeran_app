@@ -51,10 +51,11 @@ class _Gate extends Fake implements ProfileGateCubit {
   Stream<ProfileGateState> get stream => const Stream.empty();
 }
 
-/// No subscription yet, so the upsell card shows.
+/// No subscription yet (by default), so the upsell card shows.
 class _Subscription extends Fake implements CurrentSubscriptionCubit {
+  _Subscription([this.state = const CurrentSubscriptionInitial()]);
   @override
-  CurrentSubscriptionState get state => const CurrentSubscriptionInitial();
+  final CurrentSubscriptionState state;
   @override
   Stream<CurrentSubscriptionState> get stream => const Stream.empty();
   @override
@@ -66,6 +67,7 @@ Future<void> _pump(
   Locale locale, {
   UserSessionCubit? session,
   ProfileGateState? gate,
+  CurrentSubscriptionState? subscription,
 }) async {
   await tester.pumpWidget(
     EasyLocalization(
@@ -86,7 +88,9 @@ Future<void> _pump(
                 value: gate == null ? _Gate() : _Gate(gate),
               ),
               BlocProvider<CurrentSubscriptionCubit>.value(
-                value: _Subscription(),
+                value: subscription == null
+                    ? _Subscription()
+                    : _Subscription(subscription),
               ),
             ],
             child: const Scaffold(body: ProfileScreen()),
@@ -162,6 +166,30 @@ void main() {
       for (final line in _upsell[lang]!) {
         expect(find.text(line), findsOneWidget, reason: line);
       }
+    });
+
+    // C5: paid, the server not caught up — never "no subscription".
+    testWidgets('a purchase still activating: the row says so, no upsell '
+        '[$lang]', (tester) async {
+      await _pump(
+        tester,
+        locale,
+        subscription: CurrentSubscriptionActivating(
+          since: DateTime.now(),
+          overdue: false,
+        ),
+      );
+
+      expect(
+        find.text(_text(locale, 'subscriptions', 'activating_title')),
+        findsOneWidget,
+      );
+      expect(
+        find.text(_text(locale, 'settings', 'upgrade')),
+        findsNothing,
+        reason: 'no Upgrade pill',
+      );
+      expect(find.text(_upsell[lang]!.first), findsNothing);
     });
   }
 

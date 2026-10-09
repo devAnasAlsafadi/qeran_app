@@ -32,6 +32,22 @@ final class CurrentSubscriptionNone extends CurrentSubscriptionState {
   const CurrentSubscriptionNone();
 }
 
+/// The store confirmed a purchase or a restore, and `/current` doesn't show
+/// it active yet (C5). Shown as "activating" wherever the app would say Free
+/// — never Free for a purchase the store confirmed (Q26). [overdue]: it has
+/// waited more than ten minutes, so the surfaces point to Help & support.
+final class CurrentSubscriptionActivating extends CurrentSubscriptionState {
+  final DateTime since;
+  final bool overdue;
+  const CurrentSubscriptionActivating({
+    required this.since,
+    required this.overdue,
+  });
+
+  @override
+  List<Object?> get props => [since, overdue];
+}
+
 /// Transport / parsing error. The cubit keeps the previous state's
 /// payload in `lastKnown` so UI can decide whether to retry or fall
 /// back to stale data.

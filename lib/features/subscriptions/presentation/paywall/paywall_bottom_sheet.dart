@@ -13,6 +13,9 @@ import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../blocs/current/current_subscription_cubit.dart';
+import '../blocs/current/current_subscription_state.dart';
+import '../widgets/subscription_activating_notice.dart';
+import 'paywall_copy.dart';
 import 'paywall_intent.dart';
 
 /// Premium paper/wine sheet shown when a gated action is blocked.
@@ -38,12 +41,9 @@ class _PaywallSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasActive = context.select<CurrentSubscriptionCubit, bool>(
-      (c) => c.hasActiveSubscription,
-    );
-    final copy = _copyFor(intent, hasActive);
+    final activating = _activatingOverdue(context);
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: QeranColors.paper,
         borderRadius: QeranRadii.domeTop,
         boxShadow: QeranShadows.e3,
@@ -62,72 +62,81 @@ class _PaywallSheet extends StatelessWidget {
           QeranSpacing.vs20,
           _BadgeIcon(intent: intent),
           QeranSpacing.vs16,
-          Text(
-            copy.title.t(context),
-            textAlign: TextAlign.center,
-            style: QeranTypography.headline,
-          ),
-          QeranSpacing.vs8,
-          Text(
-            copy.body.t(context),
-            textAlign: TextAlign.center,
-            style: QeranTypography.body,
-          ),
-          QeranSpacing.vs24,
-          QeranButton(
-            label: (hasActive
-                    ? LocaleKeys.subscriptions_upgrade_cta
-                    : LocaleKeys.subscriptions_view_packages_cta)
-                .t(context),
-            variant: QeranButtonVariant.primary,
-            trailingIcon: Icons.arrow_forward_rounded,
-            onPressed: () {
-              Navigator.of(context).pop();
-              NavigationManager.navigateTo(
-                context,
-                RouteNames.packagesScreen,
-              );
-            },
-          ),
-          QeranSpacing.vs8,
-          QeranButton(
-            label: LocaleKeys.subscriptions_paywall_not_now.t(context),
-            variant: QeranButtonVariant.ghost,
-            size: QeranButtonSize.md,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          if (activating == null)
+            ..._offer(context)
+          else
+            ..._activating(context, overdue: activating),
         ],
       ),
     );
   }
 
-  _PaywallCopy _copyFor(PaywallIntent intent, bool hasActive) {
-    return switch (intent) {
-      PaywallIntent.like => hasActive
-          ? const _PaywallCopy(
-              title: LocaleKeys.subscriptions_paywall_likes_exhausted_title,
-              body: LocaleKeys.subscriptions_paywall_likes_exhausted_body,
-            )
-          : const _PaywallCopy(
-              title: LocaleKeys.subscriptions_paywall_like_title,
-              body: LocaleKeys.subscriptions_paywall_like_body,
-            ),
-      PaywallIntent.photoExchange => const _PaywallCopy(
-          title: LocaleKeys.subscriptions_paywall_photo_title,
-          body: LocaleKeys.subscriptions_paywall_photo_body,
-        ),
-      PaywallIntent.acceptLike => const _PaywallCopy(
-          title: LocaleKeys.subscriptions_paywall_accept_title,
-          body: LocaleKeys.subscriptions_paywall_accept_body,
-        ),
-    };
-  }
-}
+  /// Paid and still activating (C5): whether it's overdue; null otherwise.
+  bool? _activatingOverdue(BuildContext context) =>
+      context.select<CurrentSubscriptionCubit, bool?>(
+        (c) => switch (c.state) {
+          CurrentSubscriptionActivating(:final overdue) => overdue,
+          _ => null,
+        },
+      );
 
-class _PaywallCopy {
-  final String title;
-  final String body;
-  const _PaywallCopy({required this.title, required this.body});
+  /// While activating, the sheet says so instead of offering the plans.
+  List<Widget> _activating(BuildContext context, {required bool overdue}) => [
+        SubscriptionActivatingNotice(overdue: overdue, inSheet: true),
+        QeranSpacing.vs24,
+        QeranButton(
+          label: LocaleKeys.subscriptions_activating_ok.t(context),
+          variant: QeranButtonVariant.secondary,
+          size: QeranButtonSize.md,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ];
+
+  /// Why it's asked, and the way to the plans.
+  List<Widget> _offer(BuildContext context) {
+    final hasActive = context.select<CurrentSubscriptionCubit, bool>(
+      (c) => c.hasActiveSubscription,
+    );
+    final copy = PaywallCopy.of(intent, hasActive: hasActive);
+    return [
+      Text(
+        copy.title.t(context),
+        textAlign: TextAlign.center,
+        style: QeranTypography.headline,
+      ),
+      QeranSpacing.vs8,
+      Text(
+        copy.body.t(context),
+        textAlign: TextAlign.center,
+        style: QeranTypography.body,
+      ),
+      QeranSpacing.vs24,
+      ..._offerButtons(context, hasActive: hasActive),
+    ];
+  }
+
+  List<Widget> _offerButtons(BuildContext context, {required bool hasActive}) =>
+      [
+        QeranButton(
+          label: (hasActive
+                  ? LocaleKeys.subscriptions_upgrade_cta
+                  : LocaleKeys.subscriptions_view_packages_cta)
+              .t(context),
+          variant: QeranButtonVariant.primary,
+          trailingIcon: Icons.arrow_forward_rounded,
+          onPressed: () {
+            Navigator.of(context).pop();
+            NavigationManager.navigateTo(context, RouteNames.packagesScreen);
+          },
+        ),
+        QeranSpacing.vs8,
+        QeranButton(
+          label: LocaleKeys.subscriptions_paywall_not_now.t(context),
+          variant: QeranButtonVariant.ghost,
+          size: QeranButtonSize.md,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ];
 }
 
 class _DragHandle extends StatelessWidget {

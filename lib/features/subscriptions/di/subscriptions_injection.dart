@@ -1,3 +1,4 @@
+import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/state/account_scope.dart';
 
@@ -13,6 +14,7 @@ import '../domain/usecases/purchase_package_usecase.dart';
 import '../domain/usecases/restore_purchases_usecase.dart';
 import '../domain/usecases/subscribe_usecase.dart';
 import '../domain/usecases/validate_code_usecase.dart';
+import '../presentation/blocs/current/activation_pending.dart';
 import '../presentation/blocs/current/current_subscription_cubit.dart';
 import '../presentation/blocs/plans/subscription_plans_cubit.dart';
 import '../presentation/blocs/purchase/package_purchase_cubit.dart';
@@ -50,7 +52,10 @@ void initSubscriptionDependencies() {
   // status block, and any future feature gating.
   sl.registerLazySingleton<CurrentSubscriptionCubit>(
     () => sl<AccountScope>().hold(
-      CurrentSubscriptionCubit(getCurrent: sl()),
+      CurrentSubscriptionCubit(
+        getCurrent: sl(),
+        activation: ActivationPending(prefs: sl<SharedPrefService>()),
+      ),
       (cubit) => cubit.clear(),
     ),
   );
@@ -67,7 +72,6 @@ void initSubscriptionDependencies() {
       purchasePackage: sl(),
       restorePurchases: sl(),
       currentSubscription: sl(),
-      revenueCat: sl(),
     ),
   );
 }

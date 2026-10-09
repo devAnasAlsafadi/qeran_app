@@ -101,20 +101,20 @@ Future<void> _pump(
 String _text(Locale locale, String section, String key) =>
     (_shipped(locale)[section] as Map<String, dynamic>)[key] as String;
 
-/// What the upsell card said before its text moved to the translation files,
-/// word for word. Its first teaser is rewritten in the Phase 4 copy pass.
+/// The upsell card, word for word. The subtitle and the first teaser are the
+/// Phase 4 copy pass's (`15-wording-table.md` §2): no likes, no "match".
 const _upsell = {
   'ar': [
     'ارتقِ لعضوية التميز',
-    'افتح كافة ميزات قِران الفريدة وتعرّف على شريكك اليوم',
-    'إعجابات وتواصل بلا حدود مع الطرف الآخر',
+    'افتح ميزات قِران كلها، وابدأ رحلتك نحو الزواج مع خطّابتك',
+    'رصيد أكبر من الاهتمام، وخطّابتك ترتّب كل خطوة بعده',
     'تبادل الصور بأمان وسرية تامة',
     'اكتشف الباقات',
   ],
   'en': [
     'Upgrade to Premium',
-    'Unlock premium features and find your match today',
-    'Unlimited likes and match connections',
+    "Unlock all of Qeran's features and start your journey to marriage with your matchmaker",
+    'More interests, and your matchmaker arranges every step after',
     'Secure and private photo exchange',
     'See Plans',
   ],
@@ -154,7 +154,7 @@ void main() {
       expect(find.byIcon(Icons.chat_bubble_outline_rounded), findsNothing);
     });
 
-    testWidgets('the upsell card keeps today\'s wording [$lang]', (
+    testWidgets('the upsell card says the copy pass\'s wording [$lang]', (
       tester,
     ) async {
       await _pump(tester, locale);

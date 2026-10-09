@@ -16,7 +16,7 @@ class _StubAssetLoader extends AssetLoader {
         'matchmaker': {
           'explore_no_results_title': 'No profiles found',
           'explore_no_results_message': 'Try a different search.',
-          'explore_no_results_filtered_title': 'No matches for your filters',
+          'explore_no_results_filtered_title': 'No results for your filters',
           'explore_no_results_filtered_message': 'Try widening or clearing them.',
           'explore_edit_filters': 'Edit filters',
           'explore_clear_filters': 'Clear filters',
@@ -79,7 +79,7 @@ void main() {
       onClearFilters: () {},
     );
 
-    expect(find.text('No matches for your filters'), findsOneWidget);
+    expect(find.text('No results for your filters'), findsOneWidget);
     expect(find.text('Try widening or clearing them.'), findsOneWidget);
     expect(find.text('Edit filters'), findsOneWidget);
     expect(find.text('Clear filters'), findsOneWidget);
@@ -123,7 +123,7 @@ void main() {
     // without buttons that do nothing.
     await pump(tester, hasActiveFilters: true);
 
-    expect(find.text('No matches for your filters'), findsOneWidget);
+    expect(find.text('No results for your filters'), findsOneWidget);
     expect(find.text('Edit filters'), findsNothing);
     expect(find.text('Clear filters'), findsNothing);
   });

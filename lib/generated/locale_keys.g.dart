@@ -387,8 +387,6 @@ abstract class  LocaleKeys {
   static const discovery_daily_limit_minute_singular = 'discovery.daily_limit_minute_singular';
   static const discovery_daily_limit_minute_dual = 'discovery.daily_limit_minute_dual';
   static const discovery_daily_limit_minute_plural = 'discovery.daily_limit_minute_plural';
-  static const discovery_upgrade_banner_message = 'discovery.upgrade_banner_message';
-  static const discovery_upgrade_banner_cta = 'discovery.upgrade_banner_cta';
   static const discovery = 'discovery';
   static const filters_search_hint = 'filters.search_hint';
   static const filters_results_count = 'filters.results_count';
@@ -408,7 +406,6 @@ abstract class  LocaleKeys {
   static const likes_action_accepted_success = 'likes.action_accepted_success';
   static const likes_match_success_subtitle = 'likes.match_success_subtitle';
   static const likes_action_rejected_success = 'likes.action_rejected_success';
-  static const likes_action_subscription_required = 'likes.action_subscription_required';
   static const likes_action_request_expired = 'likes.action_request_expired';
   static const likes_action_request_not_found = 'likes.action_request_not_found';
   static const likes_action_failed = 'likes.action_failed';
@@ -422,7 +419,6 @@ abstract class  LocaleKeys {
   static const likes_loading_caption = 'likes.loading_caption';
   static const likes_locked_title = 'likes.locked_title';
   static const likes_locked_subtitle = 'likes.locked_subtitle';
-  static const likes_locked_card_title = 'likes.locked_card_title';
   static const likes_locked_card_subtitle = 'likes.locked_card_subtitle';
   static const likes_archived_title = 'likes.archived_title';
   static const likes_time_left_days_hours = 'likes.time_left_days_hours';
@@ -543,7 +539,6 @@ abstract class  LocaleKeys {
   static const subscriptions_subscription_row_subtitle_with_restore = 'subscriptions.subscription_row_subtitle_with_restore';
   static const subscriptions_upgrade_cta = 'subscriptions.upgrade_cta';
   static const subscriptions_view_packages_cta = 'subscriptions.view_packages_cta';
-  static const subscriptions_feature_likes = 'subscriptions.feature_likes';
   static const subscriptions_feature_photo_exchanges = 'subscriptions.feature_photo_exchanges';
   static const subscriptions_feature_serious_interests = 'subscriptions.feature_serious_interests';
   static const subscriptions_feature_daily_profile_views = 'subscriptions.feature_daily_profile_views';
@@ -600,8 +595,6 @@ abstract class  LocaleKeys {
   static const subscriptions_status_remaining_left = 'subscriptions.status_remaining_left';
   static const subscriptions_status_day_unit = 'subscriptions.status_day_unit';
   static const subscriptions_status_per_day = 'subscriptions.status_per_day';
-  static const subscriptions_status_free_title = 'subscriptions.status_free_title';
-  static const subscriptions_status_free_body = 'subscriptions.status_free_body';
   static const subscriptions_available_plans = 'subscriptions.available_plans';
   static const subscriptions_price_free = 'subscriptions.price_free';
   static const subscriptions_badge_popular = 'subscriptions.badge_popular';

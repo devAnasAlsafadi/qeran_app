@@ -7,20 +7,19 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
-import 'package:qeran/core/utils/app_assets.dart';
 
 import '../../on_boarding_model.dart';
 import '../cubit/onboarding_cubit.dart';
-import '../widgets/frames/onboarding_essence_frame.dart';
+import '../widgets/frames/onboarding_community_frame.dart';
 import '../widgets/frames/onboarding_mediation_frame.dart';
 import '../widgets/frames/onboarding_roadmap_frame.dart';
 import '../widgets/onboarding_top_bar.dart';
 
-/// The onboarding wizard coordinator: a 3-page `PageView` (essence · mediation ·
-/// roadmap) with a shared top bar (skip / language) and a per-frame nav row.
-/// All page math routes through the untouched [OnboardingCubit]; the
-/// brand-splash moment now lives in the splash animation, so onboarding opens
-/// directly on essence/privacy.
+/// The onboarding wizard coordinator: a 3-page `PageView` (community ·
+/// mediation · roadmap) with a shared top bar (skip / language) and a
+/// per-frame nav row. All page math routes through the untouched
+/// [OnboardingCubit]; the brand-splash moment now lives in the splash
+/// animation, so onboarding opens directly on the community slide.
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});
 
@@ -30,18 +29,7 @@ class OnBoardingScreen extends StatefulWidget {
 
 class _OnBoardingScreenState extends State<OnBoardingScreen> {
   final PageController _pageController = PageController();
-  bool _portraitPrecached = false;
   bool _pageAnimating = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_portraitPrecached) return;
-    _portraitPrecached = true;
-    unawaited(
-      precacheImage(const AssetImage(AppAssets.welcomePortrait), context),
-    );
-  }
 
   @override
   void dispose() {
@@ -120,9 +108,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   onPageChanged: cubit.onPageChanged,
                   itemBuilder: (_, index) => RepaintBoundary(
                     child: TickerMode(
-                      // The blur-reveal seam remains fully animated on the
-                      // visible privacy page, but all repeating tickers pause
-                      // as soon as their page leaves the viewport.
+                      // Any ticker on a page pauses as soon as the page
+                      // leaves the viewport.
                       enabled: index == state.currentPage,
                       child: _frameFor(index, cubit, state),
                     ),
@@ -156,8 +143,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     // the current page, and onDot navigates straight to that page (no offset —
     // the former non-dotted brand-splash frame 0 is gone).
     switch (onboardingData[index]) {
-      case OnboardingFrame.essencePrivacy:
-        return OnboardingEssenceFrame(
+      case OnboardingFrame.community:
+        return OnboardingCommunityFrame(
           dotCount: onboardingData.length,
           activeDot: state.currentPage,
           onDot: _animateToPage,

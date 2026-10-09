@@ -14,6 +14,9 @@ class ValidateCodeResponseModel {
   final int? timestampMs;
   final String? message;
 
+  /// Why a code was refused, when the server says (`DISCOUNT_CODE_*`, B3).
+  final String? errorCode;
+
   const ValidateCodeResponseModel({
     required this.valid,
     required this.discountPercent,
@@ -23,6 +26,7 @@ class ValidateCodeResponseModel {
     required this.nonce,
     required this.timestampMs,
     required this.message,
+    this.errorCode,
   });
 
   factory ValidateCodeResponseModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +39,7 @@ class ValidateCodeResponseModel {
       nonce: json['nonce'] as String?,
       timestampMs: (json['timestampMs'] as num?)?.toInt(),
       message: json['message'] as String?,
+      errorCode: json['errorCode'] as String?,
     );
   }
 
@@ -47,5 +52,6 @@ class ValidateCodeResponseModel {
         nonce: nonce,
         timestampMs: timestampMs,
         message: message,
+        errorCode: errorCode,
       );
 }

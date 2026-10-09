@@ -13,4 +13,19 @@ class SubscriptionsErrorCodes {
 
   /// A gated action needs an active subscription.
   static const String subscriptionRequired = 'SUBSCRIPTION_REQUIRED';
+
+  /// `validate-code` (`03` §12.5): no such code.
+  static const String discountCodeInvalid = 'DISCOUNT_CODE_INVALID';
+
+  /// `validate-code`: the code has expired.
+  static const String discountCodeExpired = 'DISCOUNT_CODE_EXPIRED';
+
+  /// `validate-code`: the code's GLOBAL cap is reached — never "you already
+  /// used it".
+  static const String discountCodeExhausted = 'DISCOUNT_CODE_EXHAUSTED';
+
+  /// `validate-code`: configuration on the server's side (product or store
+  /// offer not set up) — never the member's fault.
+  static const String discountProductUnknown = 'DISCOUNT_PRODUCT_UNKNOWN';
+  static const String discountOfferUnavailable = 'DISCOUNT_OFFER_UNAVAILABLE';
 }

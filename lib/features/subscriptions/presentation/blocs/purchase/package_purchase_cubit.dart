@@ -15,6 +15,7 @@ import '../../../domain/usecases/purchase_package_usecase.dart';
 import '../../../domain/usecases/restore_purchases_usecase.dart';
 import '../../../domain/usecases/validate_code_usecase.dart';
 import '../current/current_subscription_cubit.dart';
+import 'discount_code_keys.dart';
 import 'package_purchase_messages.dart';
 import 'package_purchase_state.dart';
 
@@ -77,9 +78,9 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
   /// telling someone their code is wrong when the network failed is a lie the
   /// member acts on.
   ///
-  /// One key covers every rejection — wrong, expired, already used — because
-  /// the endpoint returns no errorCode to tell them apart. Recovering that
-  /// from the prose would mean matching on Arabic sentences.
+  /// Each refusal says which it was — wrong, expired, used up, or not
+  /// applicable right now — from the server's errorCode ([DiscountCodeKeys],
+  /// B3); never from the prose.
   Future<void> validateDiscountCode({
     required String code,
     required String productId,
@@ -101,16 +102,16 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
           tag: 'SUBSCRIPTIONS',
         );
         emit(
-          const PackagePurchaseCodeValidationFailure(
-            message: LocaleKeys.errors_generic,
+          PackagePurchaseCodeValidationFailure(
+            message: DiscountCodeKeys.failed(failure),
           ),
         );
       },
       (response) => emit(
         response.valid
             ? PackagePurchaseCodeValidationSuccess(response: response)
-            : const PackagePurchaseCodeValidationFailure(
-                message: LocaleKeys.subscriptions_discount_code_invalid,
+            : PackagePurchaseCodeValidationFailure(
+                message: DiscountCodeKeys.rejected(response.errorCode),
               ),
       ),
     );

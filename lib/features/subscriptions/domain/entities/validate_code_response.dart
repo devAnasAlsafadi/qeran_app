@@ -17,6 +17,9 @@ class ValidateCodeResponse extends Equatable {
   final int? timestampMs;
   final String? message;
 
+  /// Why [valid] is false, when the server says (`DISCOUNT_CODE_*`, B3).
+  final String? errorCode;
+
   const ValidateCodeResponse({
     required this.valid,
     required this.discountPercent,
@@ -26,6 +29,7 @@ class ValidateCodeResponse extends Equatable {
     required this.nonce,
     required this.timestampMs,
     required this.message,
+    this.errorCode,
   });
 
   /// True only when the full iOS StoreKit promotional-offer signature quartet
@@ -46,5 +50,6 @@ class ValidateCodeResponse extends Equatable {
         nonce,
         timestampMs,
         message,
+        errorCode,
       ];
 }

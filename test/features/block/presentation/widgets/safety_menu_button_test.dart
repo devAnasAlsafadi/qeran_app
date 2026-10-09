@@ -1,3 +1,5 @@
+import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/core/utils/widgets/qeran_snack_bar_widget.dart';
 import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -64,6 +66,7 @@ Future<void> _pumpProfile(
     child: Builder(
       builder: (ctx) => MaterialApp(
         navigatorKey: _navigator,
+        builder: (context, child) => AppSnackBarHost(child: child!),
         locale: ctx.locale,
         supportedLocales: ctx.supportedLocales,
         localizationsDelegates: ctx.localizationDelegates,
@@ -141,6 +144,27 @@ void main() {
 
     verify(() => blockUser('user-9')).called(1);
     expect(result, 'user-9');
+    expect(find.byType(QeranSnackBarWidget), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5)); // the toast's timers
+  });
+
+  testWidgets('a block that fails says so, and the profile stays', (
+    tester,
+  ) async {
+    when(() => blockUser('user-9')).thenAnswer(
+      (_) async => const Left(ServerFailure(message: 'errors.timeout')),
+    );
+    Object? result = 'untouched';
+    await _pumpProfile(tester, popped: (value) => result = value);
+
+    await tester.tap(find.text(LocaleKeys.block_action_block));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(LocaleKeys.block_confirm_button));
+    await tester.pumpAndSettle();
+
+    expect(result, 'untouched');
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    expect(find.byType(QeranSnackBarWidget), findsOneWidget);
     await tester.pump(const Duration(seconds: 5)); // the toast's timers
   });
 

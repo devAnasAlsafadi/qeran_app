@@ -64,7 +64,7 @@ void main() {
     await _pump(tester, CommunityImageFailed(onRetry: () => retries++));
 
     expect(find.byIcon(Icons.broken_image_rounded), findsOneWidget);
-    expect(find.text('Couldn’t load the image'), findsOneWidget);
+    expect(find.text("Couldn't load the image"), findsOneWidget);
     await tester.tap(find.text('Try again'));
     expect(retries, 1);
   });

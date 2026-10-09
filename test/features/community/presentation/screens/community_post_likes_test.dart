@@ -55,7 +55,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('Couldn’t save your like. Please try again.'),
+        find.text("Couldn't save your like. Please try again."),
         findsOneWidget,
       );
       await tester.pump(const Duration(seconds: 5));

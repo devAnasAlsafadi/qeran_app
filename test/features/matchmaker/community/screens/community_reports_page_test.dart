@@ -21,7 +21,7 @@ final _copy = {
   'ar': (
     title: 'البلاغات',
     intro:
-        'بلاغات على تعليقات وردود في منشوراتك. أبقي العنصر أو احذفيه، وفي '
+        'بلاغات على تعليقات وردود في منشوراتكِ. أبقي العنصر أو احذفيه، وفي '
         'الحالتين تُزال العلامة.',
     line: 'تم الإبلاغ · بلاغان · إساءة أو تنمّر',
     kind: '· تعليق',
@@ -32,10 +32,10 @@ final _copy = {
     kept: 'أُبقي التعليق وأُزيلت علامة البلاغ.',
     askBody: 'سيُحذف هذا الرد نهائياً ولا يمكن استعادته.',
     deletedReply: 'تم حذف الرد.',
-    emptyTitle: 'لا توجد بلاغات بانتظارك',
-    emptyBody: 'ستظهر هنا البلاغات على التعليقات والردود في منشوراتك.',
+    emptyTitle: 'لا توجد بلاغات بانتظاركِ',
+    emptyBody: 'ستظهر هنا البلاغات على التعليقات والردود في منشوراتكِ.',
     error: 'تعذّر تحميل البلاغات',
-    errorBody: 'تحقّقي من اتصالك بالإنترنت وحاولي مرة أخرى.',
+    errorBody: 'تحقّقي من اتصالكِ بالإنترنت وحاولي مرة أخرى.',
     retry: 'حاولي مرة أخرى',
   ),
   'en': (
@@ -55,7 +55,7 @@ final _copy = {
     emptyTitle: 'No reports waiting for you',
     emptyBody:
         'Reports on comments and replies in your posts will appear here.',
-    error: 'Couldn’t load reports',
+    error: "Couldn't load reports",
     errorBody: 'Check your connection and try again.',
     retry: 'Try again',
   ),

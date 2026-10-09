@@ -134,7 +134,7 @@ void main() {
   // A failed delete, by the menu row chosen: a reply's in its own words
   // (Anas, 2026-10-04), in English and Arabic.
   const failures = {
-    'Delete comment': 'Couldn’t delete the comment. Please try again.',
+    'Delete comment': "Couldn't delete the comment. Please try again.",
     'Delete reply': "Couldn't delete the reply. Please try again.",
     'حذف الرد': 'تعذّر حذف الرد، حاول مرة أخرى.',
   };

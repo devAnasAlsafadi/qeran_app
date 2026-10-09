@@ -21,8 +21,8 @@ final _copy = {
   ),
   _en: (
     processing: 'Processing · shown to members when ready',
-    failed: 'Couldn’t process the video',
-    failedBody: 'Members can’t see it. Delete it and publish again.',
+    failed: "Couldn't process the video",
+    failedBody: "Members can't see it. Delete it and publish again.",
     delete: 'Delete',
     like: 'Like',
   ),

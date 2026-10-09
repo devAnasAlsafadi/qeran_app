@@ -43,7 +43,7 @@ final _copy = {
     delete: 'Delete',
     cancel: 'Cancel',
     deleted: 'Post deleted.',
-    failed: 'Couldn’t delete the post. Please try again.',
+    failed: "Couldn't delete the post. Please try again.",
     unavailable: 'This post is no longer available',
   ),
 };

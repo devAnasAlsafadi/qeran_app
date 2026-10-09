@@ -32,18 +32,18 @@ final _copy = {
     memberSubtitle: 'إرشادات تنشرها خطّابات قِران',
     emptyTitle: 'ليس لديكِ منشورات الآن',
     emptyBody: 'شاركي إرشاداً للأعضاء بنص أو صور أو فيديو.',
-    errorTitle: 'تعذّر تحميل منشوراتك',
-    errorBody: 'تحقّقي من اتصالك بالإنترنت وحاولي مرة أخرى.',
+    errorTitle: 'تعذّر تحميل منشوراتكِ',
+    errorBody: 'تحقّقي من اتصالكِ بالإنترنت وحاولي مرة أخرى.',
     retry: 'حاولي مرة أخرى',
   ),
   _en: (
     title: 'Community',
     all: 'All posts',
     mine: 'My posts',
-    memberSubtitle: 'Guidance published by Qeran’s matchmakers',
+    memberSubtitle: "Guidance published by Qeran's matchmakers",
     emptyTitle: 'You have no posts right now',
     emptyBody: 'Share guidance with members as text, images or a video.',
-    errorTitle: 'Couldn’t load your posts',
+    errorTitle: "Couldn't load your posts",
     errorBody: 'Check your connection and try again.',
     retry: 'Try again',
   ),
@@ -157,7 +157,7 @@ void main() {
     setUp(() => composer = ComposerHarness());
 
     testWidgets('B1: floats on All posts; published, she lands on «منشوراتي» '
-        'with her post first and «تم نشر منشورك.» (Q7, D5)', (tester) async {
+        'with her post first and «تم نشر منشوركِ.» (Q7, D5)', (tester) async {
       composer.publishes(Right(PostPublished(testPost(id: 31))));
       h.myPage(1, [
         testPost(id: 31, text: 'Just now'),
@@ -179,7 +179,7 @@ void main() {
         tester.getTopLeft(find.text('Just now')).dy,
         lessThan(tester.getTopLeft(find.text('Mine')).dy),
       );
-      expect(find.text('تم نشر منشورك.'), findsOneWidget);
+      expect(find.text('تم نشر منشوركِ.'), findsOneWidget);
       await tester.pump(const Duration(seconds: 5));
     });
 

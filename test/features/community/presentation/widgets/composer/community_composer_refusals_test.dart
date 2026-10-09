@@ -23,7 +23,7 @@ void main() {
 
     expect(
       find.text(
-        'This comment can’t be posted because it goes against the community '
+        "This comment can't be posted because it goes against the community "
         'guidelines. Edit it and try again.',
       ),
       findsOneWidget,
@@ -42,7 +42,7 @@ void main() {
 
     expect(
       find.text(
-        'You’ve posted a lot in a short time. Wait a moment and try again.',
+        "You've posted a lot in a short time. Wait a moment and try again.",
       ),
       findsOneWidget,
     );

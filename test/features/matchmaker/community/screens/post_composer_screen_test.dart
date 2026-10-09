@@ -27,7 +27,7 @@ final _copy = {
     rejected:
         'لا يمكن نشر هذا المنشور لأنه يخالف إرشادات النشر. عدّلي النص '
         'وحاولي مرة أخرى.',
-    failed: 'تعذّر رفع المنشور. تحقّقي من اتصالك.',
+    failed: 'تعذّر رفع المنشور. تحقّقي من اتصالكِ.',
     retry: 'إعادة المحاولة',
   ),
   _en: (
@@ -37,13 +37,13 @@ final _copy = {
     audience: 'Visible to all members and matchmakers',
     tooLong: 'The text is longer than allowed.',
     discardTitle: 'Discard this post?',
-    discardBody: 'What you’ve written or added won’t be saved.',
+    discardBody: "What you've written or added won't be saved.",
     discard: 'Discard',
     keep: 'Keep writing',
     rejected:
-        'This post can’t be published because it goes against the posting '
+        "This post can't be published because it goes against the posting "
         'guidelines. Edit it and try again.',
-    failed: 'Couldn’t upload your post. Check your connection.',
+    failed: "Couldn't upload your post. Check your connection.",
     retry: 'Retry',
   ),
 };

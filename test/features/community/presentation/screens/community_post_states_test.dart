@@ -80,7 +80,7 @@ void main() {
     comments.pageFails(1);
     await comments.cubit.load();
     await pumpPostScreen(tester, post, comments);
-    expect(find.text('Couldn’t load comments'), findsOneWidget);
+    expect(find.text("Couldn't load comments"), findsOneWidget);
     _expectButtonHugs(tester);
 
     comments.page(1, [testComment()]);
@@ -141,7 +141,7 @@ void main() {
       post.readAnswers(const Left(OfflineFailure()));
       await post.cubit.load();
       await pumpPostScreen(tester, post, comments, settle: false);
-      expect(find.text('Couldn’t load the post'), findsOneWidget);
+      expect(find.text("Couldn't load the post"), findsOneWidget);
 
       post.readAnswers(Right(testPost()));
       await tester.tap(find.text('Try again'));

@@ -38,8 +38,8 @@ final _copy = {
     video: 'Video',
     either: 'Several images or one video',
     imagesOnly: 'Only images can be added for now',
-    noImages: 'Images can’t be added with a video',
-    noVideo: 'Video can’t be added with images',
+    noImages: "Images can't be added with a video",
+    noVideo: "Video can't be added with images",
     sheet: 'Add a video',
     gallery: 'Choose from gallery',
     record: 'Record a video',
@@ -51,7 +51,7 @@ final _copy = {
         'This video is 1:24, longer than the 1:00 limit. Choose a shorter '
         'video or trim it first.',
     unsupported:
-        'This file type isn’t supported. Use JPG or PNG images, or a video in '
+        "This file type isn't supported. Use JPG or PNG images, or a video in "
         'MP4 or MOV.',
   ),
 };
@@ -155,7 +155,7 @@ void main() {
     await tapAndSettle(tester, 'Images');
     await tapAndSettle(tester, 'Choose from gallery');
 
-    expect(find.text('Video can’t be added with images'), findsOneWidget);
+    expect(find.text("Video can't be added with images"), findsOneWidget);
     expect(opacityOf(tester, 'Video'), 0.4);
   });
 

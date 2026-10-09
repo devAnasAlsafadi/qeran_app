@@ -123,7 +123,7 @@ void main() {
       tester,
       _collapsed(3).copyWith(repliesStatus: RepliesStatus.failed),
     );
-    expect(find.text('Couldn’t load more.'), findsOneWidget);
+    expect(find.text("Couldn't load more."), findsOneWidget);
 
     await tester.tap(find.text('Retry'));
 

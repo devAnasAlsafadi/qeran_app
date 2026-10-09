@@ -19,7 +19,7 @@ import 'feed_screen_rig.dart';
 const _gateCopy = {
   ProfileStatus.pendingReview:
       'Your profile is under review. You can read '
-      'now; liking and commenting open once it’s approved.',
+      "now; liking and commenting open once it's approved.",
   ProfileStatus.hidden: 'Your profile is hidden, so you can read only.',
   ProfileStatus.rejected:
       'Your profile was declined — contact your '
@@ -55,10 +55,10 @@ void main() {
     h.pageFails(2);
     await h.cubit.loadMore();
     await pumpFeed(tester, h);
-    expect(find.text('Couldn’t load more.'), findsOneWidget);
+    expect(find.text("Couldn't load more."), findsOneWidget);
     expect(
       tester.getCenter(find.text('Retry')).dy,
-      closeTo(tester.getCenter(find.text('Couldn’t load more.')).dy, 2),
+      closeTo(tester.getCenter(find.text("Couldn't load more.")).dy, 2),
       reason: "Retry stays on the message's line",
     );
 
@@ -123,7 +123,7 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Couldn’t save your like. Please try again.'),
+      find.text("Couldn't save your like. Please try again."),
       findsOneWidget,
     );
     expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);

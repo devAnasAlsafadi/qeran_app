@@ -72,7 +72,7 @@ void main() {
     (
       const Locale('en'),
       'Community',
-      'Guidance published by Qeran’s matchmakers',
+      "Guidance published by Qeran's matchmakers",
     ),
   ]) {
     testWidgets('${locale.languageCode}: no title, subtitle or gate notice, '
@@ -106,7 +106,7 @@ void main() {
     await _pumpHers(tester, feed, locale: const Locale('ar'));
 
     expect(
-      find.text('تحقّقي من اتصالك بالإنترنت وحاولي مرة أخرى.'),
+      find.text('تحقّقي من اتصالكِ بالإنترنت وحاولي مرة أخرى.'),
       findsOneWidget,
     );
     expect(find.text('حاولي مرة أخرى'), findsOneWidget);

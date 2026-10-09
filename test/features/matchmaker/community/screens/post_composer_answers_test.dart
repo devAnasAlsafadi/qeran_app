@@ -28,7 +28,7 @@ void main() {
     upload.complete(const Left(OfflineFailure()));
     await tester.pumpAndSettle();
     expect(
-      find.text('Couldn’t upload your post. Check your connection.'),
+      find.text("Couldn't upload your post. Check your connection."),
       findsOneWidget,
     );
 

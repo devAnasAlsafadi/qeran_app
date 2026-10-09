@@ -25,23 +25,23 @@ final _copy = {
         'حجم هذه الصورة 6 ميغابايت، وهو أكبر من الحد المسموح (5 ميغابايت). '
         'اختاري صورة أخرى.',
     cameraDenied:
-        'لا يمكن فتح الكاميرا دون إذنك. يمكنك تفعيله من إعدادات الهاتف.',
+        'لا يمكن فتح الكاميرا دون إذنكِ. يمكنكِ تفعيله من إعدادات الهاتف.',
   ),
   _en: (
     images: 'Images',
     sheet: 'Add images',
     gallery: 'Choose from gallery',
     camera: 'Take a photo',
-    note: 'Up to 10 images per post. Opens the phone’s own camera.',
+    note: "Up to 10 images per post. Opens the phone's own camera.",
     reorder: ' · Drag to reorder',
     tooMany:
         'The first 3 of the 5 images you picked were added. A post can have '
         'up to 3 images.',
-    unsupported: 'This file type isn’t supported. Use JPG or PNG images.',
+    unsupported: "This file type isn't supported. Use JPG or PNG images.",
     tooLarge: 'This image is 6 MB, over the 5 MB limit. Choose another image.',
     cameraDenied:
-        'The camera can’t open without your permission. You can turn it on '
-        'in the phone’s settings.',
+        "The camera can't open without your permission. You can turn it on "
+        "in the phone's settings.",
   ),
 };
 

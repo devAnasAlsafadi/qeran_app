@@ -37,9 +37,9 @@ class _MockWatch extends Mock implements WatchCommunityPostChangesUseCase {}
 final _copy = {
   'ar': (
     title: 'المجتمع',
-    subtitle: 'منشوراتك وما يحتاج قرارك فيها',
-    comments: 'تعليقات جديدة على منشوراتك',
-    reports: 'بلاغات بانتظار قرارك',
+    subtitle: 'منشوراتكِ وما يحتاج قراركِ فيها',
+    comments: 'تعليقات جديدة على منشوراتكِ',
+    reports: 'بلاغات بانتظار قراركِ',
     noPosts: 'ليس لديكِ منشورات الآن. شاركي إرشاداً مع الأعضاء.',
     newPost: 'منشور جديد',
   ),

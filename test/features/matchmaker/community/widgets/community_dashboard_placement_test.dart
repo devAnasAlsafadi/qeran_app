@@ -73,7 +73,7 @@ void main() {
     );
   }
 
-  testWidgets('right after «تحتاج انتباهك», before «نظرة عامة»; nothing '
+  testWidgets('right after «تحتاج انتباهكِ», before «نظرة عامة»; nothing '
       'else in the body moves', (tester) async {
     final context = await pumpShippedStrings(tester, const Locale('en'));
     final body =

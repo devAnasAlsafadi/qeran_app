@@ -128,7 +128,9 @@ class MatchmakerAccountBody extends StatelessWidget {
               ),
               const SettingsRowDivider(),
               SettingsRow(
-                icon: Icons.chat_bubble_outline_rounded,
+                // The help glyph, as the member's Profile has: the chat bubble
+                // belongs to chat (D3).
+                icon: Icons.help_outline_rounded,
                 title: LocaleKeys.settings_support_row.t(context),
                 subtitle: LocaleKeys.settings_support_sub.t(context),
                 onTap: onSupport,

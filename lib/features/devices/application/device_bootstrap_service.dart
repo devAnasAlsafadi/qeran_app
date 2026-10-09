@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
@@ -72,6 +74,7 @@ class DeviceBootstrapService {
     _busy = true;
     try {
       await _ensurePermission();
+      await _registration.retryOwedRelease();
       final token = await _notifications.getToken();
       if (token == null) return;
       await _sharedPrefs.save(StorageKeys.latestFcmToken, token);
@@ -120,6 +123,7 @@ class DeviceBootstrapService {
     try {
       final token = await _sharedPrefs.get<String>(StorageKeys.latestFcmToken);
       if (token == null || token.isEmpty) return;
+      await _registration.markReleaseOwed();
       await _account
           .unlink(token)
           .timeout(_unlinkWait)
@@ -133,6 +137,12 @@ class DeviceBootstrapService {
   }
 
   static const Duration _unlinkWait = Duration(seconds: 3);
+
+  /// Retries an owed push release whenever the connection returns (C2).
+  StreamSubscription<bool> retryWhenOnline(Stream<bool> onStatusChange) =>
+      onStatusChange
+          .where((online) => online)
+          .listen((_) => _registration.retryOwedRelease());
 
   /// Wired into FirebaseMessaging.onTokenRefresh.
   Future<void> onTokenRefreshed(String newToken) async {

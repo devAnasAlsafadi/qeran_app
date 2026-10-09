@@ -49,6 +49,9 @@ class DeviceAccountLink {
       (_) async {
         AppLogger.info('Device linked', tag: 'DEVICE');
         await _sharedPrefs.save(StorageKeys.lastLinkedFcm, token);
+        // This phone now belongs to the account signing in: nothing is owed
+        // to the one before it (C2).
+        await _sharedPrefs.remove(StorageKeys.pushReleaseOwed);
       },
     );
   }
@@ -84,6 +87,7 @@ class DeviceAccountLink {
       (_) async {
         AppLogger.info('Device  linked (after register retry)', tag: 'DEVICE');
         await _sharedPrefs.save(StorageKeys.lastLinkedFcm, token);
+        await _sharedPrefs.remove(StorageKeys.pushReleaseOwed);
       },
     );
   }

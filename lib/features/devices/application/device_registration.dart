@@ -57,16 +57,40 @@ class DeviceRegistration {
   /// forgotten: the next read registers it again.
   void renewToken() => _renewal = _renew();
 
+  /// The release stays owed until FCM confirms the old token is gone (C2).
+  Future<void> markReleaseOwed() =>
+      _sharedPrefs.save(StorageKeys.pushReleaseOwed, true);
+
+  /// Finishes a release an offline sign-out couldn't: waits out a renewal
+  /// under way, then renews once more if it's still owed. Needs no JWT — FCM
+  /// deletes the old token and a new one registers, unlinked.
+  Future<void> retryOwedRelease() async {
+    try {
+      await _renewal;
+      if (await _sharedPrefs.get<bool>(StorageKeys.pushReleaseOwed) != true) {
+        return;
+      }
+      renewToken();
+      await _renewal;
+    } catch (e, s) {
+      AppLogger.error('owed release failed', error: e, stack: s, tag: 'DEVICE');
+    }
+  }
+
   Future<void> _renew() async {
     try {
-      final deleted = await _notifications
-          .deleteToken()
+      final deleted = await Future.sync(_notifications.deleteToken)
           .then((_) => true)
-          .timeout(_deleteWait, onTimeout: () => false);
+          .timeout(_deleteWait, onTimeout: () => false)
+          // A throw is "not deleted" too: the keys still go below, and the
+          // owed release is retried (C2).
+          .catchError((Object _) => false);
       for (final key in _tokenKeys) {
         await _sharedPrefs.remove(key);
       }
       if (!deleted) return;
+      // The old token is dead: nothing of the old account reaches this phone.
+      await _sharedPrefs.remove(StorageKeys.pushReleaseOwed);
       final fresh = await _readOrFetch();
       if (fresh != null) await registerIfNeeded(fresh);
     } catch (e, s) {

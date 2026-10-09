@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/services/connectivity_service.dart';
 import 'package:qeran/core/services/notification_service.dart';
 import 'package:qeran/core/services/revenuecat_service.dart';
 import 'package:qeran/core/services/firebase_initialization_service.dart';
@@ -61,6 +62,9 @@ Future<void> _initializeDeferredServices() async {
   await firebaseReady;
   await _initializeNotifications();
   unawaited(di.sl<DeviceBootstrapService>().bootstrap());
+  di.sl<DeviceBootstrapService>().retryWhenOnline(
+    di.sl<ConnectivityService>().onStatusChange,
+  );
 }
 
 Future<void> _initializeNotifications() async {

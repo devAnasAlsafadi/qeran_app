@@ -29,6 +29,13 @@ class StorageKeys {
   static const String lastLinkedFcm = 'last_linked_fcm';
   static const String notifPermissionAsked = 'notif_permission_asked';
 
+  /// A sign-out couldn't finish releasing this phone's push (offline): FCM
+  /// still holds the old token, so the previous account's pushes can arrive.
+  /// Retried at the next start and when the connection returns; cleared once
+  /// FCM deletes the token or a sign-in links the phone (C2). DEVICE-level:
+  /// it must outlive the account, so it is not in [accountKeys].
+  static const String pushReleaseOwed = 'push_release_owed';
+
   /// Local READ watermark for the USER-app inbox — everything with an id at or
   /// below it counts as read. Set by "mark all as read".
   ///

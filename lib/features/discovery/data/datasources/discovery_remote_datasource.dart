@@ -231,8 +231,8 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
     } on ServerException catch (e) {
       // `postRaw` throws `CodedServerException` (non-2xx, or a 2xx
       // `{success: false}`) carrying the stable `errorCode`. Classify by
-      // that code first, falling back to Arabic message matching; unknown
-      // ones bubble up so the repository converts to `Left(Failure)`.
+      // that code; an unknown or missing one leaves as the generic key (the
+      // code kept), so the repository converts it to `Left(Failure)`.
       final code = e is CodedServerException ? e.errorCode : null;
       final outcome = _classifyLikeFailure(e.message, errorCode: code);
       if (outcome != null) {
@@ -247,7 +247,7 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
         'Like failed (unmapped) target=$targetUserId message="${e.message}"',
         tag: 'DISCOVERY',
       );
-      rethrow;
+      throw keyedServerException(e, label: 'LIKE', tag: 'DISCOVERY');
     }
   }
 
@@ -283,81 +283,29 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
     return (value == null || value < 0) ? 0 : value;
   }
 
-  /// Maps a gated like failure onto a typed [LikeOutcome]. Prefers the
-  /// stable backend [errorCode]; the Arabic message substring match is a
-  /// fallback only, for a missing or unrecognised code. Returns `null` for
-  /// the unrecognised case (the repository then surfaces it as a
-  /// transport-level `Failure`).
-  ///
-  /// The Arabic matcher normalises tashkeel, tatweel, and bidi marks on both
-  /// sides so future copy edits don't silently break the dispatch.
-  LikeOutcome? _classifyLikeFailure(String rawMessage, {String? errorCode}) {
-    // errorCode-first: the contract's stable codes (never parse the message
-    // when a code is present and known).
-    if (errorCode != null && errorCode.isNotEmpty) {
+  /// Maps a gated like failure onto a typed [LikeOutcome] by its
+  /// [errorCode]. A missing or unrecognised code returns `null`, and the
+  /// caller throws the generic key. The message is never parsed: every like
+  /// error carries its code (Tariq), and release day rewords the messages an
+  /// old Arabic substring match relied on (H2, D19).
+  LikeOutcome? _classifyLikeFailure(String rawMessage, {String? errorCode}) =>
       switch (errorCode) {
-        case LikesErrorCodes.subscriptionRequired:
-        case LikesErrorCodes.likesQuotaExceeded:
-        case LikesErrorCodes.likesFreeQuotaExceeded:
-          return LikePaywall(serverMessage: rawMessage);
-        case LikesErrorCodes.likeAlreadyExists:
-          return LikeAlreadyPending(serverMessage: rawMessage);
-        case LikesErrorCodes.sameGenderNotAllowed:
-          return LikeGenderMismatch(serverMessage: rawMessage);
-        case LikesErrorCodes.targetUserNotFound:
-        case LikesErrorCodes.likeNotFound:
-          return LikeUserUnavailable(serverMessage: rawMessage);
-        case LikesErrorCodes.profileNotApproved:
-          return LikeUnderReview(serverMessage: rawMessage);
-      }
-      // Unrecognised code — fall through to the Arabic matcher below.
-    }
-    final m = _normaliseArabic(rawMessage);
-    // Subscription / quota exhausted —
-    // "لقد استنفدت عدد الإعجابات المسموح به في اشتراكك"
-    if (m.contains(_normaliseArabic('استنفدت')) ||
-        m.contains(_normaliseArabic('الإعجابات المسموح'))) {
-      return LikePaywall(serverMessage: rawMessage);
-    }
-    // Already pending / accepted —
-    // "يوجد طلب قائم بالفعل بينكما"
-    if (m.contains(_normaliseArabic('طلب قائم'))) {
-      return LikeAlreadyPending(serverMessage: rawMessage);
-    }
-    // Gender mismatch —
-    // "لا يمكن إرسال إعجاب لشخص من نفس الجنس"
-    if (m.contains(_normaliseArabic('نفس الجنس'))) {
-      return LikeGenderMismatch(serverMessage: rawMessage);
-    }
-    // User gone or hidden —
-    // "المستخدم غير موجود أو غير مرئي"
-    if (m.contains(_normaliseArabic('غير موجود')) ||
-        m.contains(_normaliseArabic('غير مرئي'))) {
-      return LikeUserUnavailable(serverMessage: rawMessage);
-    }
-    return null;
-  }
-
-  /// Strips tashkeel (U+064B–U+0652), tatweel (U+0640), and bidi
-  /// control marks (LRM/RLM, isolates, embeddings) and collapses
-  /// whitespace. Lets `.contains` match across copy variants the
-  /// backend might emit. The bidi-marks regex is assembled from code
-  /// units so the source file itself contains no literal direction-
-  /// override characters — the Dart analyzer flags those as a visual
-  /// spoofing hazard.
-  static final RegExp _tashkeelTatweel = RegExp('[ً-ْـ]');
-  static final RegExp _bidiMarks = RegExp(
-    '[${String.fromCharCode(0x200E)}${String.fromCharCode(0x200F)}'
-    '${String.fromCharCode(0x202A)}-${String.fromCharCode(0x202E)}'
-    '${String.fromCharCode(0x2066)}-${String.fromCharCode(0x2069)}]',
-  );
-  static final RegExp _whitespace = RegExp(r'\s+');
-
-  String _normaliseArabic(String s) {
-    return s
-        .replaceAll(_tashkeelTatweel, '')
-        .replaceAll(_bidiMarks, '')
-        .replaceAll(_whitespace, ' ')
-        .trim();
-  }
+        LikesErrorCodes.subscriptionRequired ||
+        LikesErrorCodes.likesQuotaExceeded ||
+        LikesErrorCodes.likesFreeQuotaExceeded => LikePaywall(
+          serverMessage: rawMessage,
+        ),
+        LikesErrorCodes.likeAlreadyExists => LikeAlreadyPending(
+          serverMessage: rawMessage,
+        ),
+        LikesErrorCodes.sameGenderNotAllowed => LikeGenderMismatch(
+          serverMessage: rawMessage,
+        ),
+        LikesErrorCodes.targetUserNotFound || LikesErrorCodes.likeNotFound =>
+          LikeUserUnavailable(serverMessage: rawMessage),
+        LikesErrorCodes.profileNotApproved => LikeUnderReview(
+          serverMessage: rawMessage,
+        ),
+        _ => null,
+      };
 }

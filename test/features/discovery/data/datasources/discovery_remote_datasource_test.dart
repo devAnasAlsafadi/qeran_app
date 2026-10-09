@@ -241,12 +241,7 @@ void main() {
       },
     );
 
-    test('Arabic message is the fallback when no errorCode', () async {
-      when(() => api.postRaw(any())).thenThrow(
-        ServerException(message: 'لقد استنفدت عدد الإعجابات المسموح به'),
-      );
-      expect(await ds.likeProfile('u1'), isA<LikePaywall>());
-    });
+    // No code → the generic key: `discovery_like_uncoded_test.dart` (H2).
 
     test('success {status:1, data} → LikeAccepted', () async {
       when(

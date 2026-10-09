@@ -110,11 +110,13 @@ CurrentSubscription subscriptionWith({
 
 /// Pumps [body] in English with the shipped theme. [page] widgets are full
 /// screens with their own Scaffold; anything else is a section, wrapped in a
-/// scrolling Scaffold.
+/// scrolling Scaffold. [builder] wraps the app's content (e.g. the
+/// snackbar host).
 Future<void> pumpSubscriptionWidget(
   WidgetTester tester,
   Widget body, {
   bool page = false,
+  TransitionBuilder? builder,
 }) async {
   tester.view.physicalSize = const Size(400, 1800);
   tester.view.devicePixelRatio = 1;
@@ -130,6 +132,7 @@ Future<void> pumpSubscriptionWidget(
           locale: ctx.locale,
           supportedLocales: ctx.supportedLocales,
           localizationsDelegates: ctx.localizationDelegates,
+          builder: builder,
           home: page
               ? body
               : Scaffold(body: SingleChildScrollView(child: body)),

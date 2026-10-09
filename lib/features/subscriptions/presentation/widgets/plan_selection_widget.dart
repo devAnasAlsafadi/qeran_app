@@ -42,8 +42,9 @@ class PlanSelectionWidget extends StatelessWidget {
   final ValueChanged<int> onPricingSelected;
   final CurrentSubscription? currentSub;
 
-  /// The free-tier plan from the backend (null when the payload has none). Its
-  /// feature bullets / quotas render on the free card, matching the paid cards.
+  /// The free-tier plan from the backend (null when the payload has none —
+  /// then there is no free card). Its feature bullets / quotas render on the
+  /// free card, matching the paid cards.
   final SubscriptionPlan? freePlan;
 
   /// True while a free-tier activation call is in flight (drives the Free card
@@ -97,12 +98,15 @@ class PlanSelectionWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. Free-tier card — shown unless the user is on a PAID plan. It is the
-        // "activate free" CTA when there is no subscription yet, and the
-        // "أنت هنا الآن" indicator once the free trial is actually active.
-        if (!isPaidActive) ...[
+        // 1. Free-tier card — shown unless the user is on a PAID plan, and
+        // only when the payload has the free plan: from release day the
+        // server omits it for anyone who already used it, unless it's their
+        // active plan (H2, §12.2). It is the "activate free" CTA when there
+        // is no subscription yet, and the "أنت هنا الآن" indicator once the
+        // free trial is actually active.
+        if (!isPaidActive && freePlan != null) ...[
           _FreePlanCard(
-            plan: freePlan,
+            plan: freePlan!,
             isActive: isFreeActive,
             busy: freeBusy,
             onActivate: onActivateFree,

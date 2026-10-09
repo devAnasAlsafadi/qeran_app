@@ -18,9 +18,8 @@ class _FreePlanCard extends StatelessWidget {
     required this.onActivate,
   });
 
-  /// The backend free plan (null when the payload carries none — the card then
-  /// degrades to header + CTA only, never fabricating features).
-  final SubscriptionPlan? plan;
+  /// The backend free plan. The card isn't drawn without one (H2).
+  final SubscriptionPlan plan;
   final bool isActive;
   final bool busy;
   final VoidCallback? onActivate;
@@ -70,15 +69,12 @@ class _FreePlanCard extends StatelessWidget {
           ),
           // Feature list — same backend-driven component (and layout) as the
           // paid cards: bullets when the backend supplies them, otherwise the
-          // numeric quota checklist. Omitted only if the payload has no free
-          // plan (nothing to render — never fabricated).
-          if (plan != null) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(color: QeranColors.divider, height: 1),
-            ),
-            PlanFeaturesWidget(plan: plan!),
-          ],
+          // numeric quota checklist.
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: QeranColors.divider, height: 1),
+          ),
+          PlanFeaturesWidget(plan: plan),
           if (!isActive) ...[
             const SizedBox(height: 14),
             QeranButton(

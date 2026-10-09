@@ -57,12 +57,15 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- The three permission prompts: English here (the development language),
+	     and per language in en.lproj / ar.lproj InfoPlist.strings (Phase 4 F1).
+	     iOS picks by the phone's language, not the app's own switch. -->
 	<key>NSCameraUsageDescription</key>
-	<string>نحتاج الوصول للكاميرا لالتقاط صورة الملف الشخصي وصور منشورات المجتمع وفيديوهاتها</string>
+	<string>Qeran uses the camera to take your profile photo, and photos and videos for Community posts.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>نحتاج الوصول للميكروفون لتسجيل صوت فيديو منشورات المجتمع</string>
+	<string>Qeran uses the microphone to record the sound of Community post videos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>نحتاج الوصول لمعرض الصور لاختيار صور الملف الشخصي وصور منشورات المجتمع وفيديوهاتها</string>
+	<string>Qeran uses your photo library to choose your profile photo, and photos and videos for Community posts.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

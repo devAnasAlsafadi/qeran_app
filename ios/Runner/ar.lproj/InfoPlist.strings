@@ -1,0 +1,5 @@
+/* The permission prompts in Arabic (Phase 4 F1). */
+
+"NSCameraUsageDescription" = "نحتاج الوصول للكاميرا لالتقاط صورة الملف الشخصي وصور منشورات المجتمع وفيديوهاتها";
+"NSMicrophoneUsageDescription" = "نحتاج الوصول للميكروفون لتسجيل صوت فيديو منشورات المجتمع";
+"NSPhotoLibraryUsageDescription" = "نحتاج الوصول لمعرض الصور لاختيار صور الملف الشخصي وصور منشورات المجتمع وفيديوهاتها";

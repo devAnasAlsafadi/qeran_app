@@ -87,6 +87,24 @@ workflows:
             exit 1
           fi
 
+      - name: Confirm the permission prompts reached the bundle in both languages
+        # Phase 4 F1: the camera, microphone and photo-library prompts live per
+        # language in InfoPlist.strings, added to the project by hand (no Mac).
+        # A file left out of the target still builds green and ships the
+        # prompts in one language — the same trap as the plist above.
+        script: |
+          IPA=$(find build/ios/ipa -maxdepth 1 -name '*.ipa' | head -1)
+          MISSING=0
+          for LPROJ in ar.lproj en.lproj; do
+            if unzip -l "$IPA" | grep -q "Runner.app/$LPROJ/InfoPlist.strings"; then
+              echo "OK — $LPROJ/InfoPlist.strings is present in $IPA"
+            else
+              echo "MISSING — $LPROJ/InfoPlist.strings was NOT found inside $IPA"
+              MISSING=1
+            fi
+          done
+          exit $MISSING
+
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log

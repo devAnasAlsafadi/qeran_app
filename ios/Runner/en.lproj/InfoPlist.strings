@@ -1,0 +1,5 @@
+/* The permission prompts in English (Phase 4 F1). Info.plist holds the same text. */
+
+"NSCameraUsageDescription" = "Qeran uses the camera to take your profile photo, and photos and videos for Community posts.";
+"NSMicrophoneUsageDescription" = "Qeran uses the microphone to record the sound of Community post videos.";
+"NSPhotoLibraryUsageDescription" = "Qeran uses your photo library to choose your profile photo, and photos and videos for Community posts.";

@@ -811,7 +811,6 @@
     "entry_no_matchmaker_subtitle": "ستظهر محادثتك هنا بمجرد تعيين الخطّابة.",
     "entry_failure_title": "تعذّر فتح المحادثة",
     "entry_retry": "حاول مرة أخرى",
-    "header_default_subtitle": "الخطّابة المسؤولة عنك",
     "empty_title": "لا رسائل بعد",
     "empty_start_with": "ابدأ المحادثة مع {peer}",
     "empty_start_with_matchmaker": "ابدئي المحادثة مع {peer}",

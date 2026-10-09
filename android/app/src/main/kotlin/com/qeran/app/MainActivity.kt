@@ -25,7 +25,8 @@ import io.flutter.embedding.android.FlutterActivity
  * build that reaches the store is protected by construction, with no switch to
  * remember to turn back on.
  *
- * Android only. iOS has no equivalent API; that exposure is accepted (QER-3).
+ * Android only. iOS has no equivalent API; its protection is deferred to
+ * after release (QER-3; Phase 4 Q24).
  */
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

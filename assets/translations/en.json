@@ -767,7 +767,6 @@
     "entry_no_matchmaker_subtitle": "Once assigned, your conversation will appear here.",
     "entry_failure_title": "Couldn't open the chat",
     "entry_retry": "Try again",
-    "header_default_subtitle": "Your matchmaker",
     "empty_title": "No messages yet",
     "empty_start_with": "Start the conversation with {peer}",
     "empty_start_with_matchmaker": "Start the conversation with {peer}",

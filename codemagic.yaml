@@ -64,7 +64,7 @@ workflows:
 
       - name: Build signed IPA
         # Apple rejects a build whose number is not greater than the last one
-        # uploaded, and pubspec is at +11 locally. Reading the latest from
+        # uploaded, and pubspec's own build number lags it. Reading the latest from
         # TestFlight and adding one keeps that true without editing pubspec.
         script: |
           BUILD_NUMBER=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID") + 1))

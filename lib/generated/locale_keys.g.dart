@@ -700,7 +700,6 @@ abstract class  LocaleKeys {
   static const chat_entry_no_matchmaker_subtitle = 'chat.entry_no_matchmaker_subtitle';
   static const chat_entry_failure_title = 'chat.entry_failure_title';
   static const chat_entry_retry = 'chat.entry_retry';
-  static const chat_header_default_subtitle = 'chat.header_default_subtitle';
   static const chat_empty_title = 'chat.empty_title';
   static const chat_empty_start_with = 'chat.empty_start_with';
   static const chat_empty_start_with_matchmaker = 'chat.empty_start_with_matchmaker';

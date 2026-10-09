@@ -21,7 +21,7 @@
 
 
     <application
-        android:label="qeran"
+        android:label="Qeran"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false">

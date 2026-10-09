@@ -188,4 +188,16 @@ void main() {
 
     expect(find.text(LocaleKeys.block_action_block), findsOneWidget);
   });
+
+  // R6: the disc itself is a real 48 pt target, like her discs (D2).
+  testWidgets('the ⋮ disc is 48 pt', (tester) async {
+    _signIn(const UserEntity(id: 'u-1', name: 'ديما', email: '', role: 'User'));
+
+    await _pumpProfile(tester, popped: (_) {});
+
+    expect(
+      tester.getSize(find.byType(SafetyMenuButton)),
+      const Size.square(48),
+    );
+  });
 }

@@ -27,7 +27,8 @@ class LikesSegmentedTabs extends StatelessWidget {
   });
 
   static const double _kTrackHeight = 56.0;
-  static const double _kInnerPad = 5.0;
+  // 56 − 2 × 4: each segment is a real 48 pt target, as on her tabs (R5).
+  static const double _kInnerPad = 4.0;
 
   static const List<LikesTab> _order = [
     LikesTab.sent,

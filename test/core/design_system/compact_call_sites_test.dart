@@ -10,7 +10,7 @@ import '../shipped_strings_rig.dart';
 /// D1: the buttons that were `xs` (40 pt) or `sm` (36 pt) are `compact` now —
 /// a real 48 pt tap target — and still fit a 360-wide phone in both
 /// languages. The rest of D1's call sites are covered by their own screen
-/// tests, and by `QeranButtonSize` having no size under 46 left to pick.
+/// tests, and by `QeranButtonSize` having no size under 48 left to pick.
 void main() {
   setUpAll(initShippedStrings);
 

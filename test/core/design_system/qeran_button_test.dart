@@ -48,7 +48,8 @@ void main() {
   });
 
   // D1 / Q11: the 40 pt xs and 36 pt sm are gone; these are all there is.
-  testWidgets('the sizes: lg 54, md 46, compact 48', (tester) async {
+  // R4: md is the full 48 pt target too.
+  testWidgets('the sizes: lg 54, md 48, compact 48', (tester) async {
     final heights = <QeranButtonSize, double>{};
     for (final size in QeranButtonSize.values) {
       await _pump(tester, size);
@@ -57,7 +58,7 @@ void main() {
 
     expect(heights, {
       QeranButtonSize.lg: 54,
-      QeranButtonSize.md: 46,
+      QeranButtonSize.md: 48,
       QeranButtonSize.compact: 48,
     });
   });

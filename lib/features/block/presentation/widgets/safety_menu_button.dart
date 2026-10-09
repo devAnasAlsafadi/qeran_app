@@ -125,9 +125,10 @@ class _MenuDisc extends StatelessWidget {
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
+        // A real 48 pt target, like her discs (R6).
         child: const SizedBox(
-          width: 40,
-          height: 40,
+          width: 48,
+          height: 48,
           child: Icon(Icons.more_vert, color: QeranColors.wine, size: 20),
         ),
       ),

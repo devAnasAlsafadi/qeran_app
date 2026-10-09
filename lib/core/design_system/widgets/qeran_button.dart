@@ -19,7 +19,7 @@ enum QeranButtonVariant {
   destructive,
 }
 
-/// Heights: lg 54 · md 46 · compact 48.
+/// Heights: lg 54 · md 48 · compact 48.
 ///
 /// [compact] is the dense-row size: the label type and tight padding long
 /// Arabic labels need, at the full 48 pt tap target. The 40 pt `xs` and 36 pt
@@ -127,7 +127,7 @@ class QeranButton extends StatelessWidget {
 
   static double _height(QeranButtonSize s) => switch (s) {
         QeranButtonSize.lg => 54,
-        QeranButtonSize.md => 46,
+        QeranButtonSize.md => 48,
         // Dense rows where labels need the width, at the full 48 pt target.
         QeranButtonSize.compact => 48,
       };

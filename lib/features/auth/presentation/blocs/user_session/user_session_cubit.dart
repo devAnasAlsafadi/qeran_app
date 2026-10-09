@@ -76,6 +76,9 @@ class UserSessionCubit extends Cubit<UserSessionState>
     try {
       final token = await _secureStorage.get<String>(StorageKeys.token);
       if (token == null || token.isEmpty) {
+        // An Android restore can bring the account prefs back without the
+        // token (C1): forget them, with sign-out's own list.
+        await _forgetAccount();
         emit(const UserSessionUnauthenticated());
         return;
       }

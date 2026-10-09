@@ -4,6 +4,7 @@ import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_radii.dart';
 import '../tokens/qeran_shadows.dart';
 import '../tokens/qeran_spacing.dart';
+import '../tokens/qeran_strokes.dart';
 
 enum QeranCardVariant { standard, hero, flat }
 
@@ -19,6 +20,7 @@ class QeranCard extends StatelessWidget {
     this.accentBar = false,
     this.onTap,
     this.background,
+    this.borderColor,
   });
 
   const QeranCard.hero({
@@ -29,6 +31,7 @@ class QeranCard extends StatelessWidget {
     this.accentBar = true,
     this.onTap,
     this.background,
+    this.borderColor,
   }) : variant = QeranCardVariant.hero;
 
   const QeranCard.flat({
@@ -38,6 +41,7 @@ class QeranCard extends StatelessWidget {
     this.margin,
     this.onTap,
     this.background,
+    this.borderColor,
   })  : variant = QeranCardVariant.flat,
         accentBar = false;
 
@@ -48,6 +52,11 @@ class QeranCard extends StatelessWidget {
   final bool accentBar;
   final VoidCallback? onTap;
   final Color? background;
+
+  /// A hairline edge in this colour — for a card on a dark ground, where the
+  /// shadow alone doesn't separate it (onboarding's wine card on wine). It
+  /// replaces the flat variant's wine-08 line.
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +89,7 @@ class QeranCard extends StatelessWidget {
         color: bg,
         borderRadius: radius,
         boxShadow: shadow,
-        border: variant == QeranCardVariant.flat
-            ? Border.all(color: QeranColors.wine08)
-            : null,
+        border: _border(variant, borderColor),
       ),
       child: content,
     );
@@ -112,6 +119,15 @@ class QeranCard extends StatelessWidget {
         QeranCardVariant.hero => QeranRadii.panelR,
         QeranCardVariant.flat => QeranRadii.cardR,
       };
+
+  static BoxBorder? _border(QeranCardVariant v, Color? color) {
+    if (color != null) {
+      return Border.all(color: color, width: QeranStrokes.hairline);
+    }
+    return v == QeranCardVariant.flat
+        ? Border.all(color: QeranColors.wine08)
+        : null;
+  }
 
   static List<BoxShadow> _shadow(QeranCardVariant v) => switch (v) {
         QeranCardVariant.standard => QeranShadows.e2,

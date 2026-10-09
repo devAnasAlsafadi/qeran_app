@@ -504,9 +504,28 @@
     "locked_subtitle": "اشترك لتعرف من أبدى اهتمامه بك",
     "locked_card_subtitle": "اشترك للكشف عن التفاصيل",
     "archived_title": "السجل",
-    "time_left_days_hours": "{days} يوم و {hours} ساعة",
-    "time_left_hours_minutes": "{hours} ساعة و {minutes} دقيقة",
-    "time_left_minutes": "{minutes} دقيقة",
+    "time_left_pair": "{first} و{second}",
+    "countdown_days": {
+      "one": "يوم",
+      "two": "يومان",
+      "few": "{n} أيام",
+      "many": "{n} يوماً",
+      "other": "{n} يوم"
+    },
+    "countdown_hours": {
+      "one": "ساعة",
+      "two": "ساعتان",
+      "few": "{n} ساعات",
+      "many": "{n} ساعة",
+      "other": "{n} ساعة"
+    },
+    "countdown_minutes": {
+      "one": "دقيقة",
+      "two": "دقيقتان",
+      "few": "{n} دقائق",
+      "many": "{n} دقيقة",
+      "other": "{n} دقيقة"
+    },
     "time_left_soon": "بعد قليل",
     "matches_empty_title": "لا يوجد اهتمام متبادل بعد",
     "matches_empty_subtitle": "عندما يقبل شخصٌ اهتمامك، ستجده هنا.",

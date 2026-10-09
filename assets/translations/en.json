@@ -472,9 +472,19 @@
     "locked_subtitle": "Subscribe to see who's interested in you",
     "locked_card_subtitle": "Subscribe to reveal details",
     "archived_title": "History",
-    "time_left_days_hours": "{days}d {hours}h",
-    "time_left_hours_minutes": "{hours}h {minutes}m",
-    "time_left_minutes": "{minutes}m",
+    "time_left_pair": "{first} {second}",
+    "countdown_days": {
+      "one": "{n}d",
+      "other": "{n}d"
+    },
+    "countdown_hours": {
+      "one": "{n}h",
+      "other": "{n}h"
+    },
+    "countdown_minutes": {
+      "one": "{n}m",
+      "other": "{n}m"
+    },
     "time_left_soon": "Soon",
     "matches_empty_title": "No mutual interest yet",
     "matches_empty_subtitle": "When someone accepts your interest, you'll find them here.",

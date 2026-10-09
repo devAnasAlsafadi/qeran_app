@@ -206,7 +206,8 @@ void main() {
   // column the chip had 130dp for the 144.8dp it wants and overflowed by 15px;
   // the full-width line gives it the room. 280dp is BELOW the 320dp floor this
   // project supports — kept only because this is where the overflow was found,
-  // and a width that used to break is worth one assertion.
+  // and a width that used to break is worth one assertion. 141dp since Phase 4
+  // A3: «23 ساعة و59 دقيقة» lost the space the old «و 59» had.
   testWidgets('280dp no longer overflows', (tester) async {
     await pumpMatchCard(
       tester,
@@ -219,6 +220,6 @@ void main() {
     );
 
     expect(_chip, findsOneWidget);
-    expect(tester.getSize(_chip).width, closeTo(144.8, 1.0));
+    expect(tester.getSize(_chip).width, closeTo(141.0, 1.0));
   });
 }

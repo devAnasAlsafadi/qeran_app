@@ -421,9 +421,10 @@ abstract class  LocaleKeys {
   static const likes_locked_subtitle = 'likes.locked_subtitle';
   static const likes_locked_card_subtitle = 'likes.locked_card_subtitle';
   static const likes_archived_title = 'likes.archived_title';
-  static const likes_time_left_days_hours = 'likes.time_left_days_hours';
-  static const likes_time_left_hours_minutes = 'likes.time_left_hours_minutes';
-  static const likes_time_left_minutes = 'likes.time_left_minutes';
+  static const likes_time_left_pair = 'likes.time_left_pair';
+  static const likes_countdown_days = 'likes.countdown_days';
+  static const likes_countdown_hours = 'likes.countdown_hours';
+  static const likes_countdown_minutes = 'likes.countdown_minutes';
   static const likes_time_left_soon = 'likes.time_left_soon';
   static const likes_matches_empty_title = 'likes.matches_empty_title';
   static const likes_matches_empty_subtitle = 'likes.matches_empty_subtitle';

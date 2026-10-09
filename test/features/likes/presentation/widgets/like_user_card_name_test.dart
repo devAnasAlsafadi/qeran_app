@@ -28,7 +28,9 @@ class _StubAssetLoader extends AssetLoader {
   Future<Map<String, dynamic>?> load(String path, Locale locale) async =>
       const {
         'likes': {
-          'time_left_days_hours': '{days}ي {hours}س',
+          'time_left_pair': '{first} {second}',
+          'countdown_days': {'other': '{n}ي'},
+          'countdown_hours': {'other': '{n}س'},
           'status_waiting_reply': 'بانتظار الرد',
         },
         'matchmaker': {'users_age_years': '{age} سنة'},

@@ -105,7 +105,7 @@ MatchCard copyCard(
 /// The widest countdown the chip can ever show, in seconds.
 ///
 /// NOT the largest number — the formatter buckets, and `23h 59m` picks the
-/// two-unit hours/minutes template («٢٣ ساعة و ٥٩ دقيقة») which is longer in
+/// two-unit hours/minutes pair («23 ساعة و59 دقيقة») which is longer in
 /// Arabic than any days/hours pairing. A guard fed "3 days" measures a chip
 /// roughly 20dp narrower than the one that actually ships.
 const int kWidestCountdownSeconds = 23 * 3600 + 59 * 60;

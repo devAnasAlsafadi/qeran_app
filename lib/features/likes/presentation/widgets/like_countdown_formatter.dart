@@ -1,67 +1,69 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+
+/// One unit of the remaining time: its plural key and its count.
+typedef CountdownPart = ({String key, int n});
 
 /// Bucket-and-format helper for the remaining-time chip on the Likes
 /// screen.
 ///
 /// The bucketing is exposed as a pure function ([resolve]) so it's
 /// unit-testable without spinning up EasyLocalization. The
-/// presentation-side [format] wraps it with `context.tr` and named
-/// args.
+/// presentation-side [format] says each unit in its plural form (Arabic
+/// «يومان», «4 ساعات», «11 دقيقة») and joins two with `likes.time_left_pair`.
 class LikeCountdownFormatter {
   const LikeCountdownFormatter._();
 
-  /// Picks the largest non-zero unit pair so the chip stays compact.
-  /// Output is always one of the four `likes.time_left_*` keys (or
-  /// `likes.status_expired` when the count has dropped to zero).
+  /// Picks the largest non-zero unit and the one below it, so the chip stays
+  /// compact. A zero second unit is left out («يوم», not «يوم و0 ساعة»).
   ///
-  /// Returns the chosen locale key + the named arguments the
-  /// `time_left_*` templates expect. `expired` returns an empty arg
-  /// map.
-  ///
-  ///   * `> 24 h` → days + hours
-  ///   * `> 1 h`  → hours + minutes
-  ///   * `> 1 m`  → minutes only
-  ///   * `1..59 s` → "soon"
-  ///   * `≤ 0`    → "expired"
-  static ({String key, Map<String, String> args}) resolve(int seconds) {
+  ///   * `≥ 24 h` → days (+ hours)
+  ///   * `≥ 1 h`  → hours (+ minutes)
+  ///   * `≥ 1 m`  → minutes
+  ///   * `1..59 s` → [label] "soon", no parts
+  ///   * `≤ 0`    → [label] "expired" (the status's own key), no parts
+  static ({String? label, List<CountdownPart> parts}) resolve(int seconds) {
     if (seconds <= 0) {
-      return (key: LocaleKeys.likes_status_expired, args: const {});
+      return (label: LocaleKeys.likes_status_expired, parts: const []);
     }
-    final totalMinutes = seconds ~/ 60;
-    final totalHours = totalMinutes ~/ 60;
-    final days = totalHours ~/ 24;
-    final hoursRemainder = totalHours % 24;
-    final minutesRemainder = totalMinutes % 60;
-
+    final minutes = seconds ~/ 60;
+    final hours = minutes ~/ 60;
+    final days = hours ~/ 24;
     if (days > 0) {
-      return (
-        key: LocaleKeys.likes_time_left_days_hours,
-        args: {'days': '$days', 'hours': '$hoursRemainder'},
+      return _pair(
+        (key: LocaleKeys.likes_countdown_days, n: days),
+        (key: LocaleKeys.likes_countdown_hours, n: hours % 24),
       );
     }
-    if (totalHours > 0) {
-      return (
-        key: LocaleKeys.likes_time_left_hours_minutes,
-        args: {'hours': '$totalHours', 'minutes': '$minutesRemainder'},
+    if (hours > 0) {
+      return _pair(
+        (key: LocaleKeys.likes_countdown_hours, n: hours),
+        (key: LocaleKeys.likes_countdown_minutes, n: minutes % 60),
       );
     }
-    if (totalMinutes > 0) {
+    if (minutes > 0) {
       return (
-        key: LocaleKeys.likes_time_left_minutes,
-        args: {'minutes': '$totalMinutes'},
+        label: null,
+        parts: [(key: LocaleKeys.likes_countdown_minutes, n: minutes)],
       );
     }
-    return (key: LocaleKeys.likes_time_left_soon, args: const {});
+    return (label: LocaleKeys.likes_time_left_soon, parts: const []);
   }
+
+  static ({String? label, List<CountdownPart> parts}) _pair(
+    CountdownPart first,
+    CountdownPart second,
+  ) => (label: null, parts: [first, if (second.n > 0) second]);
 
   static String format(BuildContext context, int seconds) {
     final r = resolve(seconds);
-    if (r.args.isEmpty) {
-      return r.key.t(context);
-    }
-    return context.tr(r.key, namedArgs: r.args);
+    final words = [for (final p in r.parts) p.key.tPlural(context, p.n)];
+    if (words.isEmpty) return r.label!.t(context);
+    if (words.length == 1) return words.single;
+    return LocaleKeys.likes_time_left_pair.t(
+      context,
+      namedArgs: {'first': words.first, 'second': words.last},
+    );
   }
 }

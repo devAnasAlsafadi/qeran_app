@@ -15,7 +15,7 @@ import '../../domain/entities/current_subscription.dart';
 import '../blocs/current/current_subscription_cubit.dart';
 import '../blocs/current/current_subscription_state.dart';
 import 'my_subscription_card.dart';
-import 'subscription_activating_notice.dart';
+import 'subscription_activating_card.dart';
 import 'subscription_free_card.dart';
 
 /// Lives on the My-subscription screen (اشتراكي). Renders the app-scoped
@@ -44,7 +44,7 @@ class SubscriptionStatusBlock extends StatelessWidget {
           // card invites activating the free trial or picking a plan.
           CurrentSubscriptionNone() => const SubscriptionFreeCard(),
           CurrentSubscriptionActivating(:final overdue) =>
-            _ActivatingCard(overdue: overdue),
+            SubscriptionActivatingCard(overdue: overdue),
           CurrentSubscriptionFailure(:final lastKnown) => lastKnown != null
               ? _forSubscription(lastKnown)
               : const _ErrorCard(),
@@ -72,27 +72,6 @@ class _LoadingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return const QeranCard(
       child: SizedBox(height: 120, child: Center(child: QeranLoader())),
-    );
-  }
-}
-
-/// Paid, and the server hasn't confirmed it yet (C5).
-class _ActivatingCard extends StatelessWidget {
-  final bool overdue;
-  const _ActivatingCard({required this.overdue});
-
-  @override
-  Widget build(BuildContext context) {
-    return QeranCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.hourglass_top_rounded,
-              color: QeranColors.goldDeep, size: 22),
-          QeranSpacing.hs12,
-          Expanded(child: SubscriptionActivatingNotice(overdue: overdue)),
-        ],
-      ),
     );
   }
 }

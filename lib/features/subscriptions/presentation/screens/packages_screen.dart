@@ -30,6 +30,7 @@ import '../widgets/paywall_purchase_flow.dart';
 import '../widgets/plan_selection_widget.dart';
 import '../widgets/restore_purchases_tile.dart';
 import '../widgets/sticky_cta_widget.dart';
+import '../widgets/subscription_activating_card.dart';
 
 /// Full-route packages screen — thin coordinator. Provides the plans + purchase
 /// cubits, composes the extracted paywall widgets, and delegates CTA routing to
@@ -148,6 +149,12 @@ class _PackagesViewState extends State<_PackagesView>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Paid, not yet confirmed: said first, so nobody buys again.
+            if (currentSubState
+                case CurrentSubscriptionActivating(:final overdue)) ...[
+              SubscriptionActivatingCard(overdue: overdue),
+              QeranSpacing.vs16,
+            ],
             const ProfileGateBanner(),
             const PaywallHeroWidget(),
             QeranSpacing.vs20,

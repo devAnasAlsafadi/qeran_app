@@ -146,6 +146,19 @@
     "page3_description": "Connect with others through safe and monitored messages to ensure a positive experience.",
     "skip": "Skip",
     "splash_tagline": "A serious path to marriage — privacy, compatibility and Islamic values.",
+    "community": {
+      "title": "Learn before you take the step",
+      "body": "Before and after engagement, Community gives you advice from people with experience: how to choose, how to prepare, and how to begin married life.",
+      "highlight": "Only Qeran's matchmakers publish in Community, and there are no ads.",
+      "card_title": "Community",
+      "card_subtitle": "Guidance from Qeran's matchmakers",
+      "topic_choosing": "Choosing a spouse",
+      "topic_choosing_meta": "Article · Huda",
+      "topic_engagement": "Engagement and the shar‘i viewing",
+      "topic_engagement_meta": "Video · Noura",
+      "topic_preparing": "Preparing for marriage",
+      "topic_preparing_meta": "Images · Huda"
+    },
     "essence": {
       "title": "Get to know the personality, fully private",
       "body": "Get to know their values, interests, lifestyle and marriage goals. Photos stay hidden for both sides and are revealed only after mutual interest and mutual consent.",

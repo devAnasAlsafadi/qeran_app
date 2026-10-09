@@ -7,6 +7,7 @@ import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/features/discovery/data/datasources/discovery_remote_datasource.dart';
 import 'package:qeran/features/legal/data/datasources/legal_remote_datasource.dart';
 import 'package:qeran/features/legal/domain/entities/legal_document_type.dart';
+import 'package:qeran/features/matchmaker/users/data/datasources/matchmaker_editable_answers_remote_datasource.dart';
 import 'package:qeran/features/matchmaker/users/data/datasources/matchmaker_user_actions_remote_datasource.dart';
 import 'package:qeran/features/matchmaker/users/data/datasources/matchmaker_user_profile_remote_datasource.dart';
 import 'package:qeran/features/profile/data/datasources/profile_remote_datasource.dart';
@@ -56,6 +57,10 @@ void main() {
     fail('expected a ServerException');
   }
 
+  Future<String> saveAnswer() => MatchmakerEditableAnswersRemoteDataSourceImpl(
+    apiConsumer: api,
+  ).updateTextAnswer(userId: 'u1', questionId: 3, textAnswer: 'نص');
+
   void submitFails(String code) => when(
     () => api.post(any(), body: any(named: 'body')),
   ).thenThrow(_coded(code));
@@ -92,6 +97,17 @@ void main() {
         MatchmakerUserActionsRemoteDataSourceImpl(
           apiConsumer: api,
         ).approve('u1'),
+    // R7: the two sites found after Q8's ten.
+    'her answer-edit save': saveAnswer,
+    'my names save, answered with no data': () {
+      when(
+        () => api.put(any(), body: any(named: 'body')),
+      ).thenAnswer((_) async => {'status': 1, 'message': _prose});
+      return ProfileRemoteDataSourceImpl(
+        apiConsumer: api,
+        secureStorage: _MockStorage(),
+      ).updateProfile(displayName: 'ديما');
+    },
   };
 
   for (final MapEntry(key: name, value: call) in sites.entries) {
@@ -117,6 +133,24 @@ void main() {
       expect(await submit(), LocaleKeys.errors_bad_request);
     });
   });
+
+  test(
+    'her answer-edit save refused in its envelope: a key, the code kept',
+    () async {
+      when(() => api.postRaw(any(), body: any(named: 'body'))).thenAnswer(
+        (_) async => {'status': 0, 'data': _prose, 'errorCode': 'UNAUTHORIZED'},
+      );
+
+      await expectLater(
+        saveAnswer(),
+        throwsA(
+          isA<CodedServerException>()
+              .having((e) => e.message, 'message', LocaleKeys.errors_generic)
+              .having((e) => e.errorCode, 'errorCode', 'UNAUTHORIZED'),
+        ),
+      );
+    },
+  );
 
   group('keyedServerException', () {
     test('a coded failure keeps its code, status and data', () {

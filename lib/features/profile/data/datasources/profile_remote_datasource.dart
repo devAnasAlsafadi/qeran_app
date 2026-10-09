@@ -111,10 +111,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       response as Map<String, dynamic>,
       (json) => MyProfileModel.fromJson(json as Map<String, dynamic>),
     );
+    // No data is a failure the server didn't word: never its message (R7).
     if (apiResponse.data == null) {
-      throw ServerException(
-        message: apiResponse.message ?? LocaleKeys.errors_generic,
-      );
+      throw ServerException(message: LocaleKeys.errors_generic);
     }
     AppLogger.info('Profile names updated', tag: 'PROFILE');
     return apiResponse.data!;

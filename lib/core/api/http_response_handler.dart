@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../app_logger.dart';
 import '../errors/exceptions.dart';
+import '../../generated/locale_keys.g.dart';
 import 'http_errors.dart';
 
 /// Enveloped responses (`{ status, message, errorCode, data }`): returns the
@@ -21,9 +22,10 @@ dynamic handleEnvelopedResponse(http.Response response) {
       if (responseBody['status'] == 1 || responseBody['status'] == true) {
         return responseBody;
       } else {
-        // Status-envelope failure on a 2xx response.
+        // Status-envelope failure on a 2xx response. With no message, the
+        // app's own generic key — never an English literal (R7).
         throw CodedServerException(
-          message: responseBody['message'] ?? "Operation Failed",
+          message: responseBody['message'] ?? LocaleKeys.errors_generic,
           errorCode: responseBody is Map ? responseBody['errorCode'] as String? : null,
           data: responseBody is Map ? responseBody['data'] : null,
         );
@@ -146,7 +148,7 @@ dynamic handleRawResponse(http.Response response) {
 
   if (body is Map<String, dynamic> && body['success'] == false) {
     throw CodedServerException(
-      message: body['message'] as String? ?? 'Operation Failed',
+      message: body['message'] as String? ?? LocaleKeys.errors_generic,
       errorCode: body['errorCode'] as String?,
       data: body['data'],
     );

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../domain/entities/other_profile.dart';
 import '../../../domain/entities/profile_fetch_outcome.dart';
@@ -86,7 +87,9 @@ class ProfileDetailsCubit extends Cubit<ProfileDetailsState> with SafeEmit<Profi
         // Surface as a failure with no seed so the global session
         // observer can react. The 401 path is shared infra; we don't
         // duplicate the routing here.
-        emit(const ProfileDetailsFailure(message: 'unauthorized'));
+        emit(
+          const ProfileDetailsFailure(message: LocaleKeys.errors_unauthorized),
+        );
     }
   }
 }

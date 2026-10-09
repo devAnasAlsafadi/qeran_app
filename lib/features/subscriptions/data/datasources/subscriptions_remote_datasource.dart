@@ -2,6 +2,7 @@ import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../models/current_subscription_model.dart';
@@ -45,7 +46,12 @@ class SubscriptionsRemoteDataSourceImpl
   @override
   Future<List<SubscriptionPlanModel>> getPlans() async {
     AppLogger.debug('FETCH SUBSCRIPTION PLANS', tag: 'SUBSCRIPTIONS');
-    final body = await _apiConsumer.getRaw(EndPoints.subscriptionPlans);
+    final dynamic body;
+    try {
+      body = await _apiConsumer.getRaw(EndPoints.subscriptionPlans);
+    } on ServerException catch (e) {
+      throw keyedServerException(e, label: 'PLANS', tag: 'SUBSCRIPTIONS');
+    }
     if (body is! List) {
       throw ServerException(message: LocaleKeys.errors_generic);
     }

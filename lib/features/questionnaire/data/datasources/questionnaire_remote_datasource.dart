@@ -3,6 +3,7 @@ import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../../core/api/api_response.dart';
 import '../../../../core/domain/entities/success_response.dart';
@@ -31,7 +32,7 @@ class QuestionnaireRemoteDataSourceImpl
       tag: 'QUESTIONNAIRE',
     );
 
-    final response = await _apiConsumer.get(
+    final response = await _get(
       EndPoints.questions,
       queryParameters: {'gender': gender.apiValue},
     );
@@ -49,9 +50,7 @@ class QuestionnaireRemoteDataSourceImpl
     });
 
     if (apiResponse.data == null) {
-      throw ServerException(
-        message: apiResponse.message ?? LocaleKeys.errors_questions_load_failed,
-      );
+      throw ServerException(message: LocaleKeys.errors_questions_load_failed);
     }
 
     AppLogger.info(
@@ -66,7 +65,7 @@ class QuestionnaireRemoteDataSourceImpl
   Future<List<EditableCategoryModel>> fetchEditForm() async {
     AppLogger.debug('FETCH EDIT FORM', tag: 'QUESTIONNAIRE');
 
-    final response = await _apiConsumer.get(EndPoints.editForm);
+    final response = await _get(EndPoints.editForm);
 
     final apiResponse = ApiResponse<List<EditableCategoryModel>>.fromJson(
       response,
@@ -80,9 +79,7 @@ class QuestionnaireRemoteDataSourceImpl
     );
 
     if (apiResponse.data == null) {
-      throw ServerException(
-        message: apiResponse.message ?? LocaleKeys.errors_questions_load_failed,
-      );
+      throw ServerException(message: LocaleKeys.errors_questions_load_failed);
     }
 
     AppLogger.info(
@@ -114,15 +111,33 @@ class QuestionnaireRemoteDataSourceImpl
       );
 
       return SuccessResponse.fromApiResponse(apiResponse);
-    } on CodedServerException catch (e) {
+    } on ServerException catch (e) {
       // Age gate: the server rejects the whole submission when the birthdate is
       // under 18 (UNDERAGE_NOT_ALLOWED). Classify on the errorCode — never the
-      // message — and surface a localized 18+ notice instead of raw backend
-      // text. Any other coded failure bubbles unchanged.
-      if (e.errorCode == QuestionnaireErrorCodes.underageNotAllowed) {
-        throw ServerException(message: LocaleKeys.errors_underage);
-      }
-      rethrow;
+      // message — so every failure surfaces as a localized key (B4).
+      throw keyedServerException(
+        e,
+        codeKeys: _submitKeys,
+        label: 'SUBMIT-ANSWERS',
+        tag: 'QUESTIONNAIRE',
+      );
+    }
+  }
+
+  static const _submitKeys = {
+    QuestionnaireErrorCodes.underageNotAllowed: LocaleKeys.errors_underage,
+    QuestionnaireErrorCodes.validationError: LocaleKeys.errors_bad_request,
+  };
+
+  /// A `GET` whose failure leaves as a locale key, never the server's prose.
+  Future<dynamic> _get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      return await _apiConsumer.get(path, queryParameters: queryParameters);
+    } on ServerException catch (e) {
+      throw keyedServerException(e, label: path, tag: 'QUESTIONNAIRE');
     }
   }
 }

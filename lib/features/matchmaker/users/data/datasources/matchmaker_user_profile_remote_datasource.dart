@@ -2,6 +2,7 @@ import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../shared/data/matchmaker_envelope.dart';
@@ -22,15 +23,21 @@ class MatchmakerUserProfileRemoteDataSourceImpl
   @override
   Future<MatchmakerUserProfileModel> getUserProfile(String userId) async {
     AppLogger.debug('MATCHMAKER — get user profile $userId', tag: 'MATCHMAKER');
-    final response = await _apiConsumer.get(
-      EndPoints.matchmakerUserProfile(userId),
-    );
-    // `get()` enforced the OUTER envelope (status == 1). This endpoint
-    // double-wraps, so unwrap the inner {status, data, message, errorCode}
-    // envelope once more to reach the profile — tolerant of a future
-    // flatten (see `unwrapInnerEnvelope`).
-    final profileJson =
-        unwrapInnerEnvelope((response as Map<String, dynamic>)['data']);
+    final Map<String, dynamic>? profileJson;
+    try {
+      final response = await _apiConsumer.get(
+        EndPoints.matchmakerUserProfile(userId),
+      );
+      // `get()` enforced the OUTER envelope (status == 1). This endpoint
+      // double-wraps, so unwrap the inner {status, data, message, errorCode}
+      // envelope once more to reach the profile — tolerant of a future
+      // flatten (see `unwrapInnerEnvelope`).
+      profileJson =
+          unwrapInnerEnvelope((response as Map<String, dynamic>)['data']);
+    } on ServerException catch (e) {
+      // Either envelope's failure leaves as a key, never its prose (B4).
+      throw keyedServerException(e, label: 'USER-PROFILE', tag: 'MATCHMAKER');
+    }
     if (profileJson == null) {
       AppLogger.error(
         'MATCHMAKER — profile $userId ok but body was empty',

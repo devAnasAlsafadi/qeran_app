@@ -8,4 +8,8 @@ class QuestionnaireErrorCodes {
   /// supplied birthdate is under 18. The birthday picker also clamps to 18+
   /// client-side, but the server code is the authoritative gate.
   static const String underageNotAllowed = 'UNDERAGE_NOT_ALLOWED';
+
+  /// A malformed submission. Its prose is English (HANDOFF:306), so it gets
+  /// the shared "check what you typed" text.
+  static const String validationError = 'VALIDATION_ERROR';
 }

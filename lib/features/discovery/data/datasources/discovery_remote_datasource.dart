@@ -3,6 +3,7 @@ import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 import 'package:qeran/core/utils/server_datetime.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -100,8 +101,13 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
         if (errorCode == DiscoveryErrorCodes.dailyViewsExceeded) {
           throw DailyViewsExceededException(resetAt: _resetAtFrom(body));
         }
-        throw ServerException(
-          message: body['message'] as String? ?? LocaleKeys.errors_generic,
+        throw keyedServerException(
+          CodedServerException(
+            message: body['message'] as String? ?? '',
+            errorCode: errorCode,
+          ),
+          label: 'DISCOVERY',
+          tag: 'DISCOVERY',
         );
       }
 
@@ -111,9 +117,7 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
       );
 
       if (apiResponse.data == null) {
-        throw ServerException(
-          message: apiResponse.message ?? LocaleKeys.errors_generic,
-        );
+        throw ServerException(message: LocaleKeys.errors_generic);
       }
 
       AppLogger.info(
@@ -133,7 +137,7 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
       if (e.errorCode == DiscoveryErrorCodes.dailyViewsExceeded) {
         throw DailyViewsExceededException(resetAt: _nextUtcMidnight());
       }
-      rethrow;
+      throw keyedServerException(e, label: 'DISCOVERY', tag: 'DISCOVERY');
     }
   }
 

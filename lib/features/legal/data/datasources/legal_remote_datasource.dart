@@ -3,6 +3,7 @@ import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/legal_document_type.dart';
@@ -27,7 +28,12 @@ class LegalRemoteDataSourceImpl implements LegalRemoteDataSource {
       LegalDocumentType.privacyPolicy => EndPoints.privacyPolicy,
     };
     AppLogger.debug('LEGAL — get ${type.name}', tag: 'LEGAL');
-    final response = await _apiConsumer.get(path);
+    final dynamic response;
+    try {
+      response = await _apiConsumer.get(path);
+    } on ServerException catch (e) {
+      throw keyedServerException(e, label: 'LEGAL', tag: 'LEGAL');
+    }
     final apiResponse = ApiResponse<LegalDocumentModel>.fromJson(
       response as Map<String, dynamic>,
       (json) => LegalDocumentModel.fromJson(json as Map<String, dynamic>),

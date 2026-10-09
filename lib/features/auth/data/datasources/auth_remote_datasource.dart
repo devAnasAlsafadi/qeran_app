@@ -9,11 +9,11 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/domain/entities/success_response.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/core/utils/log_masker.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
-import '../auth_error_classifier.dart';
 import '../auth_failure_keys.dart';
 import '../models/user_model.dart';
 
@@ -422,7 +422,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   // ─── Helpers ──────────────────────────────────────────────────
 
   /// `POST` that converts an envelope failure into a locale KEY before it
-  /// leaves this data source ([classifyAuthFailure]); a coded one keeps its
+  /// leaves this data source ([keyedServerException]); a coded one keeps its
   /// code and data. An endpoint with no confirmed codes passes an empty
   /// [codeKeys] and still gets the fix: every failure degrades to the generic
   /// localized key.
@@ -435,7 +435,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       return await _apiConsumer.post(path, body: body);
     } on ServerException catch (e) {
-      throw classifyAuthFailure(e, codeKeys: codeKeys, label: label);
+      throw keyedServerException(
+        e,
+        codeKeys: codeKeys,
+        label: label,
+        tag: 'AUTH',
+      );
     }
   }
 

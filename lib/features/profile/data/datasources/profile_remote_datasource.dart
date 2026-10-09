@@ -6,6 +6,7 @@ import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -69,15 +70,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<MyProfileModel> getMyProfile() async {
     AppLogger.debug('FETCH MY PROFILE', tag: 'PROFILE');
-    final response = await _apiConsumer.get(EndPoints.myProfile);
+    final dynamic response;
+    try {
+      response = await _apiConsumer.get(EndPoints.myProfile);
+    } on ServerException catch (e) {
+      throw keyedServerException(e, label: 'MY-PROFILE', tag: 'PROFILE');
+    }
     final apiResponse = ApiResponse<MyProfileModel>.fromJson(
       response as Map<String, dynamic>,
       (json) => MyProfileModel.fromJson(json as Map<String, dynamic>),
     );
     if (apiResponse.data == null) {
-      throw ServerException(
-        message: apiResponse.message ?? LocaleKeys.errors_generic,
-      );
+      throw ServerException(message: LocaleKeys.errors_generic);
     }
     AppLogger.info('My profile fetched', tag: 'PROFILE');
     return apiResponse.data!;
@@ -126,9 +130,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         (json) => OtherProfileModel.fromJson(json as Map<String, dynamic>),
       );
       if (apiResponse.data == null) {
-        throw ServerException(
-          message: apiResponse.message ?? LocaleKeys.errors_generic,
-        );
+        throw ServerException(message: LocaleKeys.errors_generic);
       }
       AppLogger.info('Profile fetched id=$userId', tag: 'PROFILE');
       return GetProfileByIdSuccess(apiResponse.data!);
@@ -140,7 +142,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         );
         return GetProfileByIdNotFound(e.message);
       }
-      rethrow;
+      throw keyedServerException(e, label: 'PROFILE-BY-ID', tag: 'PROFILE');
     }
   }
 

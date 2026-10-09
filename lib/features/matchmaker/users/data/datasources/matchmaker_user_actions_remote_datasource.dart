@@ -1,6 +1,8 @@
 import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/keyed_server_exception.dart';
 
 import '../../../shared/data/matchmaker_envelope.dart';
 
@@ -47,7 +49,13 @@ class MatchmakerUserActionsRemoteDataSourceImpl
     Object? body,
   }) async {
     AppLogger.debug('MATCHMAKER — $action', tag: 'MATCHMAKER');
-    final response = await _apiConsumer.postRaw(path, body: body);
-    return mutationResultText(response);
+    try {
+      final response = await _apiConsumer.postRaw(path, body: body);
+      return mutationResultText(response);
+    } on ServerException catch (e) {
+      // A key, never the server's prose; the code stays, as the cubit
+      // branches on UNAUTHORIZED (B4).
+      throw keyedServerException(e, label: action, tag: 'MATCHMAKER');
+    }
   }
 }

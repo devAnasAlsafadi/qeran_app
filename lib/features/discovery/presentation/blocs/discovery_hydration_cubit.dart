@@ -61,10 +61,9 @@ class DiscoveryHydrationCubit extends Cubit<DiscoveryHydrationState>
         switch (outcome) {
           case ProfileFetched(:final profile):
             emit(state.copyWith(byId: {...state.byId, userId: profile}));
-          // Not-found / unauthorized are terminal for THIS card only. The deck
-          // keeps its own truth; a stale card just shows no extra sections.
+          // Not-found is terminal for THIS card only. The deck keeps its own
+          // truth; a stale card just shows no extra sections.
           case ProfileNotFoundOutcome():
-          case ProfileUnauthorizedOutcome():
             emit(state.copyWith(failed: {...state.failed, userId}));
         }
       },

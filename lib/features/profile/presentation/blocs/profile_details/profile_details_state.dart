@@ -49,11 +49,10 @@ final class ProfileDetailsLoaded extends ProfileDetailsState {
 }
 
 final class ProfileDetailsNotFound extends ProfileDetailsState {
-  final int eventVersion;
-  const ProfileDetailsNotFound({required this.eventVersion});
+  const ProfileDetailsNotFound();
 
   @override
-  List<Object?> get props => [eventVersion];
+  List<Object?> get props => [];
 }
 
 final class ProfileDetailsFailure extends ProfileDetailsState {

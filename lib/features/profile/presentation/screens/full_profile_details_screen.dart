@@ -77,12 +77,8 @@ class _ProfileDetailsView extends StatelessWidget {
     final scaffold = Scaffold(
       body: SafeArea(
         bottom: false,
-        child: BlocConsumer<ProfileDetailsCubit, ProfileDetailsState>(
-          listenWhen: (prev, curr) =>
-              curr is ProfileDetailsNotFound &&
-              (prev is! ProfileDetailsNotFound ||
-                  prev.eventVersion != curr.eventVersion),
-          listener: _onState,
+        // Not found says so once, as the full-screen state: no snackbar.
+        child: BlocBuilder<ProfileDetailsCubit, ProfileDetailsState>(
           builder: (context, state) =>
               _Body(state: state, args: args, canReact: canReact),
         ),
@@ -94,15 +90,6 @@ class _ProfileDetailsView extends StatelessWidget {
           previous.eventVersion != current.eventVersion,
       listener: _onReaction,
       child: scaffold,
-    );
-  }
-
-  void _onState(BuildContext context, ProfileDetailsState state) {
-    if (state is! ProfileDetailsNotFound) return;
-    AppSnackBar.show(
-      context,
-      message: LocaleKeys.profile_not_available.t(context),
-      type: SnackBarType.info,
     );
   }
 

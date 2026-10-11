@@ -64,8 +64,7 @@ void main() {
     expect(cubit.state, isA<ProfileDetailsLoaded>());
   });
 
-  test('PROFILE_NOT_FOUND → ProfileDetailsNotFound with version bump',
-      () async {
+  test('PROFILE_NOT_FOUND → ProfileDetailsNotFound', () async {
     when(() => uc('guid')).thenAnswer(
       (_) async => const Right<Failure, ProfileFetchOutcome>(
         ProfileNotFoundOutcome(serverMessage: 'gone'),
@@ -73,7 +72,6 @@ void main() {
     );
     await cubit.init(userId: 'guid');
     expect(cubit.state, isA<ProfileDetailsNotFound>());
-    expect((cubit.state as ProfileDetailsNotFound).eventVersion, 1);
   });
 
   test('transport failure with seed retains seed inside Failure', () async {

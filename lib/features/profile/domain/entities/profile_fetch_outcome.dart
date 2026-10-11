@@ -21,8 +21,3 @@ final class ProfileNotFoundOutcome extends ProfileFetchOutcome {
   final String serverMessage;
   const ProfileNotFoundOutcome({required this.serverMessage});
 }
-
-final class ProfileUnauthorizedOutcome extends ProfileFetchOutcome {
-  final String serverMessage;
-  const ProfileUnauthorizedOutcome({required this.serverMessage});
-}

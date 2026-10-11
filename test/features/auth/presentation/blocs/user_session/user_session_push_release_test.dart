@@ -49,6 +49,17 @@ void main() {
     expect(cubit.state, isA<UserSessionUnauthenticated>());
   });
 
+  test('an expired session drops its dead token before releasing push, '
+      'then signs out as usual (C4)', () async {
+    final cubit = cubitWith(() async => log.add('push'));
+
+    await cubit.expireSession();
+
+    expect(log.take(2), ['token', 'push']);
+    expect(log, contains('prefs'));
+    expect(cubit.state, isA<UserSessionUnauthenticated>());
+  });
+
   test('a release that fails still signs out', () async {
     final cubit = cubitWith(() async => throw Exception('offline'));
 

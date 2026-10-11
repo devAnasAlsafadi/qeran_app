@@ -32,7 +32,10 @@ String transportErrorMessage(Object e) {
 String statusErrorMessage(int statusCode) => switch (statusCode) {
       400 => LocaleKeys.errors_bad_request,
       401 => LocaleKeys.errors_unauthorized,
-      403 => LocaleKeys.errors_forbidden,
+      // A permission error (e.g. a member's token on a matchmaker route):
+      // the generic error, never a sign-out (TQ11). Screens that handle a
+      // 403 themselves branch on the status, not on this text.
+      403 => LocaleKeys.errors_generic,
       404 => LocaleKeys.errors_not_found,
       408 => LocaleKeys.errors_timeout,
       429 => LocaleKeys.errors_too_many_requests,

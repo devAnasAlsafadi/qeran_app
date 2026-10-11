@@ -30,7 +30,8 @@ Future<void> initShippedStrings() async {
 /// of settling — for a child that never settles (a skeleton's shimmer).
 /// [builder] wraps the navigator, as `MaterialApp.builder` does — for what
 /// pushed screens must find above them; [onGenerateRoute] answers named
-/// routes.
+/// routes; [navigatorKey] and [navigatorObservers] are the app's own. The
+/// home route is named `/`, as the splash is.
 Future<BuildContext> pumpShippedStrings(
   WidgetTester tester,
   Locale locale, {
@@ -38,6 +39,8 @@ Future<BuildContext> pumpShippedStrings(
   bool settle = true,
   TransitionBuilder? builder,
   RouteFactory? onGenerateRoute,
+  GlobalKey<NavigatorState>? navigatorKey,
+  List<NavigatorObserver> navigatorObservers = const [],
 }) async {
   late BuildContext inside;
   await tester.pumpWidget(
@@ -56,6 +59,8 @@ Future<BuildContext> pumpShippedStrings(
           localizationsDelegates: ctx.localizationDelegates,
           builder: builder,
           onGenerateRoute: onGenerateRoute,
+          navigatorKey: navigatorKey,
+          navigatorObservers: navigatorObservers,
           home: Builder(
             builder: (c) {
               inside = c;

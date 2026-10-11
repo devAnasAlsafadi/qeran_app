@@ -46,6 +46,7 @@ class HttpProgressUploader implements ProgressUploader {
       final response = await http.Response.fromStream(
         await client.send(request),
       );
+      context.noteStatus(response.statusCode, request.headers);
       return handleEnvelopedResponse(response);
     } catch (e) {
       throw abort.explain() ?? _transportError(e, uri);

@@ -16,6 +16,7 @@ dynamic handleEnvelopedResponse(http.Response response) {
     '${response.statusCode} ${response.request?.url}',
     tag: 'HTTP',
   );
+  _throwIfEmptyFailure(response);
   try {
     final dynamic responseBody = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -70,6 +71,22 @@ dynamic handleEnvelopedResponse(http.Response response) {
     );
     throw ServerException(message: statusErrorMessage(response.statusCode));
   }
+}
+
+/// A failing status with no body is classified from the status alone, never as
+/// a parse error: a 401 always comes this way (TQ11), with only a
+/// `WWW-Authenticate` header.
+void _throwIfEmptyFailure(http.Response response) {
+  final ok = response.statusCode >= 200 && response.statusCode < 300;
+  if (ok || response.body.trim().isNotEmpty) return;
+  AppLogger.error(
+    '${response.statusCode} ${response.request?.url}: no body',
+    tag: 'HTTP',
+  );
+  throw ServerException(
+    message: statusErrorMessage(response.statusCode),
+    statusCode: response.statusCode,
+  );
 }
 
 /// Same status-code handling as [handleEnvelopedResponse] but does **not**

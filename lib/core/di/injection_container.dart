@@ -33,6 +33,7 @@ import '../services/language_service.dart';
 import '../services/notification_service.dart';
 import '../services/revenuecat_service.dart';
 import '../services/storage_service.dart';
+import '../routes/app_route_tracker.dart';
 import '../state/account_scope.dart';
 import 'network_injection.dart';
 import '../utils/server_clock.dart';
@@ -50,6 +51,8 @@ Future<void> init() async {
   sl.registerSingleton<GlobalKey<NavigatorState>>(
     GlobalKey<NavigatorState>(debugLabel: 'rootNavigator'),
   );
+  // Its top route, attached as MaterialApp.navigatorObservers (C4).
+  sl.registerSingleton<AppRouteTracker>(AppRouteTracker());
 
   //! External
   final sharedPrefs = await SharedPreferences.getInstance();

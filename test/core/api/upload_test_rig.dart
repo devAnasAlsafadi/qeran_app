@@ -11,6 +11,7 @@ import 'package:qeran/core/domain/upload.dart';
 import 'package:qeran/core/services/connectivity_service.dart';
 import 'package:qeran/core/services/language_service.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/core/session/session_expiry.dart';
 
 class _MockStorage extends Mock implements StorageService {}
 
@@ -68,7 +69,11 @@ class UploadRig {
     contentType: 'image/jpeg',
   );
 
-  HttpProgressUploader uploader(UploadHandler handler, {Duration? stall}) {
+  HttpProgressUploader uploader(
+    UploadHandler handler, {
+    Duration? stall,
+    SessionExpiry? expiry,
+  }) {
     final storage = _MockStorage();
     final language = _MockLanguage();
     when(
@@ -84,6 +89,7 @@ class UploadRig {
         storage: storage,
         languageService: language,
         connectivity: connectivity,
+        sessionExpiry: expiry,
       ),
       stallTimeout: stall ?? const Duration(seconds: 30),
     );

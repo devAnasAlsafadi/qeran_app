@@ -51,6 +51,16 @@ void main() {
     verifyNever(rig.notifications.getToken);
   });
 
+  test('an expired session (its token already dropped): no unlink is sent, '
+      'and the token is renewed all the same (C4)', () async {
+    rig.jwt = null;
+
+    await rig.service.releasePush();
+    await settle();
+
+    expect(rig.calls, ['delete', 'register $newToken']);
+  });
+
   test('the server refusing the unlink: the token is renewed anyway', () async {
     unlinkAnswers(() async => const Left(ServerFailure(message: 'nope')));
 

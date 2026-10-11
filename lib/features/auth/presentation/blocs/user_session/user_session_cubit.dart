@@ -155,6 +155,15 @@ class UserSessionCubit extends Cubit<UserSessionState>
     emit(const UserSessionUnauthenticated());
   }
 
+  /// C4: our API refused the stored token (expired, corrupt, or the account
+  /// behind it gone). [signOut], with the dead token removed first: nothing
+  /// the teardown sends carries it, so no 401 reports it again, and push is
+  /// released on the phone alone — the server's unlink needs a live token.
+  Future<void> expireSession() async {
+    await _secureStorage.remove(StorageKeys.token);
+    await signOut();
+  }
+
   /// Full local wipe for a PERMANENT account deletion, after the server's
   /// `DELETE /api/Profile` succeeds: [signOut], with secure storage cleared
   /// wholesale (only sensitive auth lives there). DEVICE-level prefs survive

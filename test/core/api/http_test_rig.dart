@@ -7,6 +7,7 @@ import 'package:qeran/core/constants/storage_keys.dart';
 import 'package:qeran/core/services/connectivity_service.dart';
 import 'package:qeran/core/services/language_service.dart';
 import 'package:qeran/core/services/storage_service.dart';
+import 'package:qeran/core/session/session_expiry.dart';
 
 class _MockStorage extends Mock implements StorageService {}
 
@@ -39,16 +40,19 @@ class ScriptedClient extends http.BaseClient {
   }
 }
 
-/// An [HttpConsumer] over [client]: signed in (`jwt-1`), Arabic, online —
-/// unless the test flips [connectivity].
+/// An [HttpConsumer] over [client]: signed in ([token], `jwt-1` unless the
+/// test says otherwise), Arabic, online — unless the test flips
+/// [connectivity]. 401s go to [sessionExpiry] when one is given.
 HttpConsumer scriptedConsumer(
   ScriptedClient client, {
   required MockConnectivity connectivity,
+  String? token = 'jwt-1',
+  SessionExpiry? sessionExpiry,
 }) {
   final storage = _MockStorage();
   final language = _MockLanguage();
   when(() => storage.get<String>(StorageKeys.token))
-      .thenAnswer((_) async => 'jwt-1');
+      .thenAnswer((_) async => token);
   when(() => language.currentLanguage).thenReturn('ar');
   when(() => connectivity.isOnline).thenAnswer((_) async => true);
   return HttpConsumer(
@@ -56,5 +60,6 @@ HttpConsumer scriptedConsumer(
     storage: storage,
     languageService: language,
     connectivity: connectivity,
+    sessionExpiry: sessionExpiry,
   );
 }

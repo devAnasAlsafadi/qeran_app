@@ -12,6 +12,7 @@ import 'package:qeran/core/services/firebase_initialization_service.dart';
 import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
+import 'package:qeran/features/auth/presentation/session_expiry_handler.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
 import 'core/di/injection_container.dart' as di;
 import 'core/utils/app_assets.dart';
@@ -26,6 +27,8 @@ void main() async {
   await Future.wait<void>([di.init(), EasyLocalization.ensureInitialized()]);
 
   Bloc.observer = SimpleBlocObserver();
+  // Before the first request: the splash's own reads can meet a 401 (C4).
+  di.sl<SessionExpiryHandler>().start();
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('ar')],

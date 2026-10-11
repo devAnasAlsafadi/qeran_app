@@ -49,6 +49,9 @@ class PushRig {
   late SharedPrefService prefs;
   late DeviceBootstrapService service;
 
+  /// The session's JWT; null once an expired session has dropped it (C4).
+  String? jwt = 'jwt';
+
   PushRig() {
     when(
       notifications.deleteToken,
@@ -56,7 +59,7 @@ class PushRig {
     when(notifications.getToken).thenAnswer((_) async => newToken);
     when(
       () => _secure.get<String>(StorageKeys.token),
-    ).thenAnswer((_) async => 'jwt');
+    ).thenAnswer((_) async => jwt);
     _logged(() => unlink(token: any(named: 'token')), 'unlink');
     _logged(() => _link(token: any(named: 'token')), 'link');
     _logged(

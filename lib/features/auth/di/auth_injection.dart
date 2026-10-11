@@ -31,6 +31,7 @@ import '../presentation/blocs/password_reset/password_reset_bloc.dart';
 import '../presentation/blocs/register/register_bloc.dart';
 import '../presentation/blocs/user_session/user_session_cubit.dart';
 import '../presentation/blocs/whatsapp/whatsapp_bloc.dart';
+import '../presentation/session_expiry_handler.dart';
 
 void initAuthDependencies() {
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
@@ -115,4 +116,15 @@ void initAuthDependencies() {
   );
 
   sl.registerFactory(() => ChangePasswordCubit(sl()));
+
+  // A 401 to our Bearer signs out once, to login (C4); started by `main`.
+  sl.registerLazySingleton(
+    () => SessionExpiryHandler(
+      expiry: sl(),
+      session: sl<UserSessionCubit>(),
+      secureStorage: sl<StorageService>(),
+      navigator: sl(),
+      routes: sl(),
+    ),
+  );
 }

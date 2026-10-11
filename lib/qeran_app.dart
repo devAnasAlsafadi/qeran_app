@@ -9,6 +9,7 @@ import 'core/connectivity/connectivity_cubit.dart';
 import 'core/constants/app_constants.dart';
 import 'core/design_system/theme/qeran_theme.dart';
 import 'core/di/injection_container.dart';
+import 'core/routes/app_route_tracker.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_name.dart';
 import 'core/services/connectivity_service.dart';
@@ -54,6 +55,7 @@ class QeranApp extends StatelessWidget {
       ],
       child: MaterialApp(
         navigatorKey: sl<GlobalKey<NavigatorState>>(),
+        navigatorObservers: [sl<AppRouteTracker>()],
         localizationsDelegates: [
           ...context.localizationDelegates,
           CountryLocalizations.delegate,

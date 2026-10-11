@@ -56,8 +56,13 @@ class DeviceAccountLink {
     );
   }
 
-  /// Unlinks [token] from the account signed in; logs the outcome.
+  /// Unlinks [token] from the account signed in; logs the outcome. Without a
+  /// JWT there is no account to unlink it from, so nothing is sent: an expired
+  /// session removes its dead token first (C4), and FCM's renewal still cuts
+  /// this phone off from it.
   Future<void> unlink(String token) async {
+    final jwt = await _secureStorage.get<String>(StorageKeys.token);
+    if (jwt == null || jwt.isEmpty) return;
     final result = await _unlinkDevice(token: token);
     result.fold(
       (failure) =>

@@ -7,6 +7,7 @@ import '../errors/exceptions.dart';
 import '../services/connectivity_service.dart';
 import '../services/language_service.dart';
 import '../services/storage_service.dart';
+import '../session/session_expiry.dart';
 import 'api_consumer.dart';
 import 'end_points.dart';
 import 'http_errors.dart';
@@ -20,6 +21,9 @@ class HttpConsumer extends ApiConsumer {
   final LanguageService languageService;
   final ConnectivityService connectivity;
 
+  /// Told of every 401 to our Bearer (C4); none in a test that doesn't care.
+  final SessionExpiry? sessionExpiry;
+
   static const Duration _timeout = Duration(seconds: 30);
   static const Duration _multipartTimeout = Duration(seconds: 60);
 
@@ -28,6 +32,7 @@ class HttpConsumer extends ApiConsumer {
     required this.storage,
     required this.languageService,
     required this.connectivity,
+    this.sessionExpiry,
   });
 
   /// The offline pre-flight and our headers, shared with the uploader.
@@ -35,6 +40,7 @@ class HttpConsumer extends ApiConsumer {
     storage: storage,
     languageService: languageService,
     connectivity: connectivity,
+    sessionExpiry: sessionExpiry,
   );
 
   Future<void> _ensureOnline() => _context.ensureOnline();
@@ -123,9 +129,10 @@ class HttpConsumer extends ApiConsumer {
     AppLogger.info('POST (multipart) $uri', tag: 'HTTP');
     try {
       await _ensureOnline();
+      final headers = await _getHeaders();
       final request = await buildMultipartRequest(
         uri,
-        headers: await _getHeaders(),
+        headers: headers,
         files: files,
         fieldName: fieldName,
         fields: fields,
@@ -133,6 +140,7 @@ class HttpConsumer extends ApiConsumer {
       final streamed =
           await client.send(request).timeout(timeout ?? _multipartTimeout);
       final response = await http.Response.fromStream(streamed);
+      _context.noteStatus(response.statusCode, headers);
       return handleEnvelopedResponse(response);
     } catch (e) {
       if (e is OfflineException) rethrow;
@@ -161,7 +169,9 @@ class HttpConsumer extends ApiConsumer {
     AppLogger.info('$label $uri', tag: 'HTTP');
     try {
       await _ensureOnline();
-      final response = await send(uri, await _getHeaders()).timeout(_timeout);
+      final headers = await _getHeaders();
+      final response = await send(uri, headers).timeout(_timeout);
+      _context.noteStatus(response.statusCode, headers);
       return raw ? handleRawResponse(response) : handleEnvelopedResponse(response);
     } catch (e) {
       if (e is OfflineException) rethrow;

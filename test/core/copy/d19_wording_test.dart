@@ -34,7 +34,9 @@ Iterable<(String, String)> _strings(
   }
 }
 
-/// The 36 member-to-member keys the pass reworded (the 39 less the 3 deleted).
+/// The member-to-member keys the pass reworded: the 39, less the 3 deleted,
+/// less the delete-account line, which now names Community's likes too and
+/// is checked on its own below (Run 5).
 const _d19 = [
   'discovery.action_like_label',
   'discovery.like_already_pending',
@@ -62,7 +64,6 @@ const _d19 = [
   'subscriptions.paywall_accept_title',
   'subscriptions.paywall_accept_body',
   'notifications.empty_subtitle',
-  'settings.delete_account_consequence_data',
   'matchmaker.interests_tab_incoming',
   'matchmaker.interests_tab_outgoing',
   'matchmaker.interests_empty_incoming_title',
@@ -89,13 +90,30 @@ void main() {
   final ar = _load('ar');
   final en = _load('en');
 
-  test('the 36 member keys say «اهتمام», never «إعجاب» / like', () {
-    expect(_d19, hasLength(36));
+  test('the 35 member keys say «اهتمام», never «إعجاب» / like', () {
+    expect(_d19, hasLength(35));
     for (final key in _d19) {
       final arabic = _at(ar, key)! as String;
       expect(arabic, isNot(matches('إعجاب|أعجب')), reason: key);
       expect(_at(en, key)! as String, isNot(matches(_like)), reason: key);
     }
+  });
+
+  test('the member delete line: «اهتمام» for interests, «إعجاب» only for '
+      "Community's likes", () {
+    const key = 'settings.delete_account_consequence_data';
+    final arabic = _at(ar, key)! as String;
+    expect(arabic, contains('كل اهتمام أبديته'));
+    expect(
+      arabic.replaceFirst('إعجاباتك في المجتمع', ''),
+      isNot(matches('إعجاب|أعجب')),
+    );
+    final english = _at(en, key)! as String;
+    expect(english, contains("every interest you've shown"));
+    expect(
+      english.replaceFirst('likes in Community', ''),
+      isNot(matches(_like)),
+    );
   });
 
   test('Community still says «إعجاب» / like', () {

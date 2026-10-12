@@ -24,7 +24,9 @@ import '../blocs/matchmaker_delete_account_cubit.dart';
 /// Confirms PERMANENT Moderator account deletion — mirrors the user delete
 /// sheet (typed-confirm gate → delete → wipe → login), minus the subscription
 /// warning (a matchmaker has no subscription). Reuses the shared
-/// `settings_delete_account_*` copy + [DeleteConsequenceLine].
+/// `settings_delete_account_*` copy + [DeleteConsequenceLine], except what
+/// disappears: her own line (her posts, comments, replies, likes and chats),
+/// never the member's, which speaks of interests she never shows.
 Future<void> showMatchmakerDeleteAccountSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
@@ -149,7 +151,8 @@ class _MatchmakerDeleteAccountSheetState
                   ),
                   QeranSpacing.vs12,
                   DeleteConsequenceLine(
-                    text: LocaleKeys.settings_delete_account_consequence_data
+                    text: LocaleKeys
+                        .settings_delete_account_consequence_matchmaker
                         .t(context),
                   ),
                   QeranSpacing.vs20,

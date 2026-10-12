@@ -72,6 +72,10 @@ class MatchmakerAccountRepositoryImpl implements MatchmakerAccountRepository {
     } on AuthException catch (e) {
       AppLogger.error('MATCHMAKER — account auth', error: e, tag: 'REPO');
       return Left(AuthFailure(message: e.message));
+    } on OfflineException {
+      // Offline says so, as it does for a member — not «حدث خطأ غير متوقع».
+      AppLogger.warning('MATCHMAKER — account offline', tag: 'REPO');
+      return const Left(OfflineFailure());
     } catch (e) {
       AppLogger.error('MATCHMAKER — account crashed', error: e, tag: 'REPO');
       return const Left(ServerFailure(message: LocaleKeys.errors_unexpected));

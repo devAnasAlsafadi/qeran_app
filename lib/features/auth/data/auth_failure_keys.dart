@@ -84,11 +84,12 @@ class AuthFailureKeys {
   };
 
   /// `POST Auth/change-password`. Lives on a SEPARATE data source from the
-  /// seven above, which is why it was unclassified until now.
+  /// seven above, which is why it was unclassified until now. The matchmaker
+  /// app's account data source reads it too: one endpoint, one copy.
   ///
-  /// Where each of these is shown is decided once, in `ChangePasswordCubit` —
-  /// only the wrong-current-password case is anchored under a field, because
-  /// it is the only one that is about that field.
+  /// Where each of these is shown is decided by each app's cubit — only the
+  /// wrong-current-password case is anchored under a field, because it is the
+  /// only one that is about that field.
   static const Map<String, String> changePassword = {
     AuthErrorCodes.invalidOldPassword:
         LocaleKeys.settings_change_password_incorrect,

@@ -77,7 +77,8 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit
     if (isClosed) return;
     result.fold(
       (failure) => _emitFailure('save name', failure.message,
-          _classifyName(failure)),
+          _kindFor(failure, MatchmakerAccountErrorCodes.validationError,
+              MatchmakerAccountErrorKind.validation)),
       (_) => _emitSuccess(
         MatchmakerAccountOutcome.saveNameSuccess,
         me: state.me?.copyWith(name: name),
@@ -141,10 +142,10 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit
         ));
     if (isClosed) return;
     result.fold(
-      // The endpoint carries no errorCode — a wrong password surfaces as the
-      // server message, shown inline in the change-password sheet.
+      // Only a wrong password is about the field, so only it sits under it.
       (failure) => _emitFailure('change password', failure.message,
-          MatchmakerAccountErrorKind.incorrectPassword),
+          _kindFor(failure, MatchmakerAccountErrorCodes.invalidOldPassword,
+              MatchmakerAccountErrorKind.incorrectPassword)),
       (_) => _emitSuccess(MatchmakerAccountOutcome.changePasswordSuccess),
     );
   }
@@ -180,13 +181,13 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit
     ));
   }
 
-  MatchmakerAccountErrorKind _classifyName(Failure failure) {
-    if (failure is CodedServerFailure &&
-        failure.errorCode == MatchmakerAccountErrorCodes.validationError) {
-      return MatchmakerAccountErrorKind.validation;
-    }
-    return MatchmakerAccountErrorKind.generic;
-  }
+  /// [kind] (shown inline in its sheet) when [failure] carries [code]; any
+  /// other failure toasts.
+  MatchmakerAccountErrorKind _kindFor(Failure failure, String code,
+          MatchmakerAccountErrorKind kind) =>
+      failure is CodedServerFailure && failure.errorCode == code
+          ? kind
+          : MatchmakerAccountErrorKind.generic;
 
   /// Ported from `PhotoUploadCubit._validateImage` — jpg/jpeg/png ≤2MB. Returns
   /// a locale key when invalid, else null.

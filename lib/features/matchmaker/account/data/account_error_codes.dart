@@ -9,4 +9,7 @@ class MatchmakerAccountErrorCodes {
 
   /// The signed-in matchmaker account no longer exists.
   static const String userNotFound = 'USER_NOT_FOUND';
+
+  /// `POST /api/auth/change-password`: the current password is wrong.
+  static const String invalidOldPassword = 'INVALID_OLD_PASSWORD';
 }

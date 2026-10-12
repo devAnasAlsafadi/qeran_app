@@ -4,7 +4,9 @@ import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/core/session/session_token_renewal.dart';
+import 'package:qeran/features/auth/data/auth_failure_keys.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../shared/data/json_parsers.dart';
@@ -35,9 +37,9 @@ abstract interface class MatchmakerAccountRemoteDataSource {
   /// `POST /api/auth/change-password` — body
   /// `{oldPassword, newPassword, confirmNewPassword}` (the DTO requires all
   /// three; the UI's single new-password field feeds both new + confirm).
-  /// Shared auth endpoint. A wrong current password surfaces as a
-  /// status==0 envelope → [CodedServerException] carrying the server message.
-  /// Success answers with the new token, returned here (null before Tariq's
+  /// Shared auth endpoint. A failure throws [CodedServerException] carrying a
+  /// locale key (never the server's sentence) and the `errorCode` — a wrong
+  /// current password is `INVALID_OLD_PASSWORD`. Success answers with the new token, returned here (null before Tariq's
   /// deploy); the old one is refused from then on.
   Future<String?> changePassword({
     required String currentPassword,
@@ -113,18 +115,32 @@ class MatchmakerAccountRemoteDataSourceImpl
     required String newPassword,
   }) async {
     AppLogger.debug('MATCHMAKER — change password', tag: 'MATCHMAKER');
-    // `post()` enforces status==1; a wrong password throws CodedServerException
-    // carrying the localized server message (the endpoint has no errorCode).
-    final response = await _apiConsumer.post(
-      EndPoints.changePassword,
-      body: {
-        'oldPassword': currentPassword,
-        'newPassword': newPassword,
-        // No confirm field in the UI — the single new-password field is the
-        // source of truth, so it satisfies the DTO's required confirm too.
-        'confirmNewPassword': newPassword,
-      },
-    );
+    final dynamic response;
+    try {
+      response = await _apiConsumer.post(
+        EndPoints.changePassword,
+        body: {
+          'oldPassword': currentPassword,
+          'newPassword': newPassword,
+          // No confirm field in the UI — the single new-password field is the
+          // source of truth, so it satisfies the DTO's required confirm too.
+          'confirmNewPassword': newPassword,
+        },
+      );
+    } on ServerException catch (e) {
+      // The member's map, for the member's endpoint: a wrong password reads
+      // as it does for a member, and the server's sentence never reaches her.
+      // The code goes on with the key; the cubit places the message by it.
+      throw CodedServerException(
+        message: serverFailureKey(
+          e,
+          codeKeys: AuthFailureKeys.changePassword,
+          label: 'CHANGE PASSWORD',
+          tag: 'MATCHMAKER',
+        ),
+        errorCode: e is CodedServerException ? e.errorCode : null,
+      );
+    }
     return renewedTokenIn(response);
   }
 }

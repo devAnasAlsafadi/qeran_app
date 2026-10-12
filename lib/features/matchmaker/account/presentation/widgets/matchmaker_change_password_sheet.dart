@@ -14,8 +14,9 @@ import '../blocs/matchmaker_account_state.dart';
 
 /// Change-password bottom sheet — shares the screen's [MatchmakerAccountCubit].
 /// Current + new password (obscured, with the built-in eye). On success: toast +
-/// close. A wrong current password (the endpoint has no errorCode) shows the
-/// server message inline under the current-password field.
+/// close. A wrong current password (`INVALID_OLD_PASSWORD`) shows the member's
+/// own line inline under the current-password field; anything else toasts
+/// from the screen.
 Future<void> showMatchmakerChangePasswordSheet(
   BuildContext context, {
   required MatchmakerAccountCubit cubit,

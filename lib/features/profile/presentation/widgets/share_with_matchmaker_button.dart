@@ -66,10 +66,12 @@ class _Button extends StatelessWidget {
     ShareWithMatchmakerState state,
   ) async {
     if (state.isSharing) return;
+    // No one to ask yet — never assigned, or hers was deleted: the line the
+    // chat and the inquiry show a member waiting for one.
     if (!state.hasMatchmaker) {
       AppSnackBar.show(
         context,
-        message: LocaleKeys.profile_share_no_matchmaker.t(context),
+        message: LocaleKeys.chat_entry_no_matchmaker_title.t(context),
         type: SnackBarType.info,
       );
       return;
@@ -104,7 +106,7 @@ class _Button extends StatelessWidget {
       case ShareEvent.success:
         return (LocaleKeys.profile_share_success, SnackBarType.success);
       case ShareEvent.noMatchmaker:
-        return (LocaleKeys.profile_share_no_matchmaker, SnackBarType.info);
+        return (LocaleKeys.chat_entry_no_matchmaker_title, SnackBarType.info);
       case ShareEvent.validation:
         return (LocaleKeys.profile_share_validation, SnackBarType.info);
       case ShareEvent.rateLimited:

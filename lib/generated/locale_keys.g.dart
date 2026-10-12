@@ -691,7 +691,6 @@ abstract class  LocaleKeys {
   static const profile_share_confirm_send = 'profile.share_confirm_send';
   static const profile_share_confirm_cancel = 'profile.share_confirm_cancel';
   static const profile_share_success = 'profile.share_success';
-  static const profile_share_no_matchmaker = 'profile.share_no_matchmaker';
   static const profile_share_profile_not_found = 'profile.share_profile_not_found';
   static const profile_share_validation = 'profile.share_validation';
   static const profile_share_rate_limited = 'profile.share_rate_limited';

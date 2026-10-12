@@ -757,7 +757,6 @@
     "share_confirm_send": "Share",
     "share_confirm_cancel": "Cancel",
     "share_success": "Profile shared with your matchmaker",
-    "share_no_matchmaker": "Your matchmaker has not been assigned yet",
     "share_profile_not_found": "This profile is no longer available",
     "share_validation": "We couldn't share this profile",
     "share_rate_limited": "Too many shares — try again shortly",

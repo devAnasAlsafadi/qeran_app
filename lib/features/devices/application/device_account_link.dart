@@ -72,10 +72,7 @@ class DeviceAccountLink {
   }
 
   Future<void> _onLinkFailed(Failure failure, String token) async {
-    final msg = failure.message.toLowerCase();
-    final notRegistered =
-        msg.contains('device not found') || msg.contains('register it first');
-    if (!notRegistered) {
+    if (!_notRegistered(failure)) {
       AppLogger.error('link failed: ${failure.message}', tag: 'DEVICE');
       return;
     }
@@ -95,5 +92,19 @@ class DeviceAccountLink {
         await _sharedPrefs.remove(StorageKeys.pushReleaseOwed);
       },
     );
+  }
+
+  /// The server doesn't know this device: `DEVICE_NOT_FOUND` (Tariq, R11),
+  /// so register it and link again. Bad input is `VALIDATION_ERROR`, which
+  /// registering can't fix. The English sentence it sent before the code is
+  /// still read beside it until the code is confirmed live.
+  static bool _notRegistered(Failure failure) {
+    if (failure is CodedServerFailure &&
+        failure.errorCode == 'DEVICE_NOT_FOUND') {
+      return true;
+    }
+    final msg = failure.message.toLowerCase();
+    return msg.contains('device not found') ||
+        msg.contains('register it first');
   }
 }

@@ -18,7 +18,7 @@ class _MockDeviceInfo extends Mock implements DeviceInfoService {}
 
 class _MockRegister extends Mock implements RegisterDeviceUseCase {}
 
-class _MockLink extends Mock implements LinkDeviceUseCase {}
+class MockLink extends Mock implements LinkDeviceUseCase {}
 
 class MockUnlink extends Mock implements UnlinkDeviceUseCase {}
 
@@ -44,7 +44,7 @@ class PushRig {
   final notifications = MockNotifications();
   final unlink = MockUnlink();
   final _register = _MockRegister();
-  final _link = _MockLink();
+  final link = MockLink();
   final _secure = _MockSecure();
   late SharedPrefService prefs;
   late DeviceBootstrapService service;
@@ -61,7 +61,7 @@ class PushRig {
       () => _secure.get<String>(StorageKeys.token),
     ).thenAnswer((_) async => jwt);
     _logged(() => unlink(token: any(named: 'token')), 'unlink');
-    _logged(() => _link(token: any(named: 'token')), 'link');
+    _logged(() => link(token: any(named: 'token')), 'link');
     _logged(
       () => _register(
         token: any(named: 'token'),
@@ -101,7 +101,7 @@ class PushRig {
       notifications: notifications,
       deviceInfo: deviceInfo,
       registerDevice: _register,
-      linkDevice: _link,
+      linkDevice: link,
       unlinkDevice: unlink,
       sharedPrefs: prefs,
       secureStorage: _secure,

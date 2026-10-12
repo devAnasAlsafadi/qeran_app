@@ -4,6 +4,7 @@ import 'package:qeran/core/api/api_consumer.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/session/session_token_renewal.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../shared/data/json_parsers.dart';
@@ -36,7 +37,9 @@ abstract interface class MatchmakerAccountRemoteDataSource {
   /// three; the UI's single new-password field feeds both new + confirm).
   /// Shared auth endpoint. A wrong current password surfaces as a
   /// status==0 envelope → [CodedServerException] carrying the server message.
-  Future<void> changePassword({
+  /// Success answers with the new token, returned here (null before Tariq's
+  /// deploy); the old one is refused from then on.
+  Future<String?> changePassword({
     required String currentPassword,
     required String newPassword,
   });
@@ -105,14 +108,14 @@ class MatchmakerAccountRemoteDataSourceImpl
   }
 
   @override
-  Future<void> changePassword({
+  Future<String?> changePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
     AppLogger.debug('MATCHMAKER — change password', tag: 'MATCHMAKER');
     // `post()` enforces status==1; a wrong password throws CodedServerException
     // carrying the localized server message (the endpoint has no errorCode).
-    await _apiConsumer.post(
+    final response = await _apiConsumer.post(
       EndPoints.changePassword,
       body: {
         'oldPassword': currentPassword,
@@ -122,5 +125,6 @@ class MatchmakerAccountRemoteDataSourceImpl
         'confirmNewPassword': newPassword,
       },
     );
+    return renewedTokenIn(response);
   }
 }

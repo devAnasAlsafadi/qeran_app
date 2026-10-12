@@ -136,6 +136,17 @@ class UserSessionCubit extends Cubit<UserSessionState>
     emit(UserSessionAuthenticated(user.copyWith(hasAnsweredQuestions: true)));
   }
 
+  /// A password change answered with a new token; the old one is refused from
+  /// then on. Stored, and the signed-in user's from now on, which is what
+  /// images load with. Signed out meanwhile: dropped, or the next start would
+  /// sign the account back in.
+  Future<void> adoptToken(String token) async {
+    final user = currentUser;
+    if (user == null) return;
+    await _secureStorage.save(StorageKeys.token, token);
+    emit(UserSessionAuthenticated(user.copyWith(token: token)));
+  }
+
   /// Clears the persisted session and emits `Unauthenticated`. Reached from
   /// the logout action on `ProfileScreen` and `MatchmakerAccountScreen`.
   ///

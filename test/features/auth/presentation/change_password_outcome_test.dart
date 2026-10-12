@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/session/session_expiry.dart';
+import 'package:qeran/core/session/session_token_renewal.dart';
 import 'package:qeran/features/auth/data/error_codes.dart';
 import 'package:qeran/features/auth/domain/repositories/change_password_repository.dart';
 import 'package:qeran/features/auth/domain/usecases/change_password_usecase.dart';
@@ -19,22 +21,30 @@ import 'package:qeran/generated/locale_keys.g.dart';
 /// would pass while the other collapsed.
 class _ScriptedRepository implements ChangePasswordRepository {
   _ScriptedRepository(this._result);
-  final Either<Failure, Unit> _result;
+  final Either<Failure, String?> _result;
 
   @override
-  Future<Either<Failure, Unit>> changePassword({
+  Future<Either<Failure, String?>> changePassword({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,
   }) async => _result;
 }
 
-ChangePasswordCubit cubitFor(Either<Failure, Unit> result) =>
-    ChangePasswordCubit(ChangePasswordUseCase(_ScriptedRepository(result)));
+ChangePasswordCubit cubitFor(
+  Either<Failure, String?> result, {
+  List<String>? adopted,
+}) => ChangePasswordCubit(
+  ChangePasswordUseCase(_ScriptedRepository(result)),
+  SessionTokenRenewal(
+    expiry: SessionExpiry(),
+    adopt: (token) async => adopted?.add(token),
+  ),
+);
 
 /// What the data source hands up after classifying: the message is already a
 /// locale key, and the code rides along so the slot can be chosen.
-Either<Failure, Unit> classified(String key, String? code) =>
+Either<Failure, String?> classified(String key, String? code) =>
     Left(CodedServerFailure(message: key, errorCode: code));
 
 Future<ChangePasswordState> submit(ChangePasswordCubit cubit) async {
@@ -138,13 +148,25 @@ void main() {
   });
 
   test('success clears the error and its slot', () async {
-    final cubit = cubitFor(const Right(unit));
+    final cubit = cubitFor(const Right(null));
 
     final state = await submit(cubit);
 
     expect(state.status, ChangePasswordStatus.success);
     expect(state.errorKey, isNull);
     expect(state.errorSlot, ChangePasswordErrorSlot.none);
+    await cubit.close();
+  });
+
+  test('a success adopts the new token it brings, before it says '
+      'so', () async {
+    final adopted = <String>[];
+    final cubit = cubitFor(const Right('jwt-2'), adopted: adopted);
+
+    final state = await submit(cubit);
+
+    expect(adopted, ['jwt-2']);
+    expect(state.status, ChangePasswordStatus.success);
     await cubit.close();
   });
 }

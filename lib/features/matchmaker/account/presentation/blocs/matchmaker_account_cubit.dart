@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/session/session_token_renewal.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../data/account_error_codes.dart';
@@ -26,6 +27,7 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit
   final UploadAccountPhotoUseCase _uploadPhoto;
   final DeactivateAccountUseCase _deactivate;
   final ChangePasswordUseCase _changePassword;
+  final SessionTokenRenewal _renewal;
 
   MatchmakerAccountCubit({
     required GetMeUseCase getMe,
@@ -33,11 +35,13 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit
     required UploadAccountPhotoUseCase uploadPhoto,
     required DeactivateAccountUseCase deactivate,
     required ChangePasswordUseCase changePassword,
+    required SessionTokenRenewal renewal,
   })  : _getMe = getMe,
         _updateName = updateName,
         _uploadPhoto = uploadPhoto,
         _deactivate = deactivate,
         _changePassword = changePassword,
+        _renewal = renewal,
         super(const MatchmakerAccountState());
 
   Future<void> load() async {
@@ -130,10 +134,11 @@ class MatchmakerAccountCubit extends Cubit<MatchmakerAccountState> with SafeEmit
       return;
     }
     _emitInFlight(MatchmakerAccountAction.changingPassword);
-    final result = await _changePassword(
-      currentPassword: currentPassword,
-      newPassword: newPassword,
-    );
+    // Its new token is adopted before any 401 is judged (C4).
+    final result = await _renewal.run(() => _changePassword(
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        ));
     if (isClosed) return;
     result.fold(
       // The endpoint carries no errorCode — a wrong password surfaces as the

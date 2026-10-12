@@ -19,7 +19,8 @@ abstract interface class MatchmakerAccountRepository {
   /// PERMANENT account deletion (`DELETE /matchmaker/me/account`).
   Future<Either<Failure, Unit>> deleteAccount();
 
-  Future<Either<Failure, Unit>> changePassword({
+  /// The success value is the new token the change answers with, if any.
+  Future<Either<Failure, String?>> changePassword({
     required String currentPassword,
     required String newPassword,
   });

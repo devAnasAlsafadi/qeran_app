@@ -13,18 +13,17 @@ class ChangePasswordRepositoryImpl
   const ChangePasswordRepositoryImpl(this._dataSource);
 
   @override
-  Future<Either<Failure, Unit>> changePassword({
+  Future<Either<Failure, String?>> changePassword({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,
   }) {
-    return executeApiCall(() async {
-      await _dataSource.changePassword(
+    return executeApiCall(
+      () => _dataSource.changePassword(
         currentPassword: currentPassword,
         newPassword: newPassword,
         confirmPassword: confirmPassword,
-      );
-      return unit;
-    });
+      ),
+    );
   }
 }

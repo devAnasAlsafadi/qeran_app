@@ -5,6 +5,7 @@ import 'package:qeran/core/datasources/shared_pref_service.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/core/services/google_sign_in_service.dart';
+import 'package:qeran/core/session/session_token_renewal.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
 import 'package:qeran/features/questionnaire/domain/usecases/submit_answers_usecase.dart';
 import '../data/datasources/auth_remote_datasource.dart';
@@ -115,7 +116,15 @@ void initAuthDependencies() {
     ),
   );
 
-  sl.registerFactory(() => ChangePasswordCubit(sl()));
+  sl.registerFactory(() => ChangePasswordCubit(sl(), sl()));
+
+  // A password change's new token, adopted with 401s held (C4); both apps.
+  sl.registerLazySingleton(
+    () => SessionTokenRenewal(
+      expiry: sl(),
+      adopt: sl<UserSessionCubit>().adoptToken,
+    ),
+  );
 
   // A 401 to our Bearer signs out once, to login (C4); started by `main`.
   sl.registerLazySingleton(

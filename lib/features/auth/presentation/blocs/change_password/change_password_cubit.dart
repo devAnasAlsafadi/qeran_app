@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/core/session/session_token_renewal.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../data/error_codes.dart';
@@ -18,7 +19,10 @@ import 'change_password_state.dart';
 class ChangePasswordCubit extends Cubit<ChangePasswordState> with SafeEmit<ChangePasswordState> {
   final ChangePasswordUseCase _changePassword;
 
-  ChangePasswordCubit(this._changePassword)
+  /// The new token the change answers with, adopted before any 401 is judged.
+  final SessionTokenRenewal _renewal;
+
+  ChangePasswordCubit(this._changePassword, this._renewal)
       : super(const ChangePasswordState());
 
   Future<void> submit({
@@ -32,10 +36,12 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> with SafeEmit<Chang
       clearError: true,
       errorSlot: ChangePasswordErrorSlot.none,
     ));
-    final result = await _changePassword(
-      currentPassword: currentPassword,
-      newPassword: newPassword,
-      confirmPassword: confirmPassword,
+    final result = await _renewal.run(
+      () => _changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      ),
     );
     if (isClosed) return;
     result.fold(

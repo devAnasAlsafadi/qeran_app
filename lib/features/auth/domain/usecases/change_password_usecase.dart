@@ -3,13 +3,14 @@ import 'package:qeran/core/errors/errors.dart';
 
 import '../repositories/change_password_repository.dart';
 
-/// Changes the signed-in user's password (current + new + confirm).
+/// Changes the signed-in user's password (current + new + confirm); the
+/// success value is the new token it answers with, if any.
 class ChangePasswordUseCase {
   final ChangePasswordRepository _repository;
 
   const ChangePasswordUseCase(this._repository);
 
-  Future<Either<Failure, Unit>> call({
+  Future<Either<Failure, String?>> call({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,

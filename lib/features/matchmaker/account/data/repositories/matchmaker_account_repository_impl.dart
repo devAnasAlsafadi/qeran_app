@@ -47,17 +47,16 @@ class MatchmakerAccountRepositoryImpl implements MatchmakerAccountRepository {
       });
 
   @override
-  Future<Either<Failure, Unit>> changePassword({
+  Future<Either<Failure, String?>> changePassword({
     required String currentPassword,
     required String newPassword,
   }) =>
-      _guard(() async {
-        await _dataSource.changePassword(
+      _guard(
+        () => _dataSource.changePassword(
           currentPassword: currentPassword,
           newPassword: newPassword,
-        );
-        return unit;
-      });
+        ),
+      );
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() call) async {
     try {

@@ -67,6 +67,7 @@ void initMatchmakerAccountDependencies() {
       uploadPhoto: sl(),
       deactivate: sl(),
       changePassword: sl(),
+      renewal: sl(),
     ),
   );
   // Permanent account deletion (mirrors the user delete cubit).

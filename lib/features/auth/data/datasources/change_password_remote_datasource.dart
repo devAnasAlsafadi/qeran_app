@@ -1,10 +1,9 @@
 import 'package:qeran/core/api/api_consumer.dart';
-import 'package:qeran/core/api/api_response.dart';
 import 'package:qeran/core/api/end_points.dart';
 import 'package:qeran/core/app_logger.dart';
-import 'package:qeran/core/domain/entities/success_response.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/core/errors/server_error_classifier.dart';
+import 'package:qeran/core/session/session_token_renewal.dart';
 
 import '../auth_failure_keys.dart';
 
@@ -16,9 +15,11 @@ abstract interface class ChangePasswordRemoteDataSource {
   /// `POST Auth/change-password` — body
   /// `{oldPassword, newPassword, confirmNewPassword}` (the DTO requires all
   /// three). A wrong current password comes back as a `status == 0` envelope,
-  /// which the [ApiConsumer] surfaces as a `CodedServerException`; success
-  /// returns `data: null`.
-  Future<SuccessResponse<void>> changePassword({
+  /// which the [ApiConsumer] surfaces as a `CodedServerException`. Success
+  /// answers with the new token in `data`, as login does — the old one is
+  /// refused from then on — returned here; null before Tariq's deploy, which
+  /// answers `data: null`.
+  Future<String?> changePassword({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,
@@ -33,7 +34,7 @@ class ChangePasswordRemoteDataSourceImpl
       : _apiConsumer = apiConsumer;
 
   @override
-  Future<SuccessResponse<void>> changePassword({
+  Future<String?> changePassword({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,
@@ -64,7 +65,6 @@ class ChangePasswordRemoteDataSourceImpl
         errorCode: e is CodedServerException ? e.errorCode : null,
       );
     }
-    final apiResponse = ApiResponse<void>.fromJson(response, (_) {});
-    return SuccessResponse.fromApiResponse(apiResponse);
+    return renewedTokenIn(response);
   }
 }

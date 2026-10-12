@@ -19,9 +19,9 @@ import 'blocs/user_session/user_session_cubit.dart';
 /// both roles.
 ///
 /// A report counts only while its token is still the stored one: a request
-/// that left before a sign-out, or before a new sign-in, carries a token that
-/// is already gone. Reports arriving while one is handled are the same
-/// session's, so they are dropped.
+/// that left before a sign-out, a new sign-in or a password change carries a
+/// token that is already gone. Reports arriving while one is handled are the
+/// same session's, so they are dropped.
 class SessionExpiryHandler {
   SessionExpiryHandler({
     required SessionExpiry expiry,
@@ -54,6 +54,8 @@ class SessionExpiryHandler {
       // The splash reads the token once and then routes; signing out before
       // it has would let it route on into the app without one.
       await _routes.whenNotOn(RouteNames.splashScreen);
+      // A password change in flight replaces the token: judged after it.
+      await _expiry.settled();
       if (await _secureStorage.get<String>(StorageKeys.token) != token) return;
       AppLogger.warning('Session expired (401) — signing out', tag: 'SESSION');
       await _session.expireSession();

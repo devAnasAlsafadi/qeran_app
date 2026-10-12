@@ -45,7 +45,7 @@ void main() {
       const Locale('en'),
       child: const Center(child: ShareWithMatchmakerButton(userId: 'u-7')),
     );
-    await tester.tap(find.text('Ask my matchmaker about this profile'));
+    await tester.tap(find.text('Ask my matchmaker'));
     await tester.pumpAndSettle();
     expect(find.text('Share with your matchmaker?'), findsOneWidget);
   }

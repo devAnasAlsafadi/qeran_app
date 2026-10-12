@@ -46,7 +46,10 @@ class AuthPhoneInput extends StatelessWidget {
                 hint: LocaleKeys.auth_phone_hint.t(context),
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
-                validator: validator ?? PhoneValidator.validate,
+                // PhoneValidator answers with locale keys; they're
+                // translated here, where they're shown.
+                validator:
+                    validator ?? (v) => PhoneValidator.validate(v)?.t(context),
               ),
             ),
           ],

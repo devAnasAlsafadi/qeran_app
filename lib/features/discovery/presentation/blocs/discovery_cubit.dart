@@ -397,6 +397,16 @@ class DiscoveryCubit extends Cubit<DiscoveryState>
     emit(current.copyWith(currentIndex: newIndex, resetActionError: true));
   }
 
+  /// [userId] was blocked from their card: they leave the deck and the next
+  /// card is current. The server's teardown keeps them out of later pages, so
+  /// nothing is refetched — a reload would lose the member's place.
+  void drop(String userId) {
+    final current = state;
+    if (current is! DiscoveryLoaded) return;
+    emit(current.without(userId));
+    _maybePrefetch();
+  }
+
   /// Puts every profile the user skipped back into the deck.
   ///
   /// Three outcomes, three different consequences on screen:

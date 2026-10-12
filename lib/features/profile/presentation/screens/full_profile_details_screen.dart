@@ -28,10 +28,12 @@ import '../widgets/states/profile_details_error_view.dart';
 import '../widgets/states/profile_details_not_available_view.dart';
 import '../widgets/states/profile_details_skeleton.dart';
 
-/// Reusable full-profile read surface. Entry points (Discovery card,
-/// chat shared bubble, like row, match card, settings) all push to
-/// this single route with [FullProfileDetailsArgs]; the entry source
-/// gates affordances (share button, action bar) inside the body.
+/// Reusable full-profile read surface. Entry points (chat shared bubble,
+/// the Interests rows sent and received, match card) all push to this
+/// single route with [FullProfileDetailsArgs]; the entry source gates
+/// affordances (share button, action bar) inside the body. Suggestions
+/// doesn't: since `5648f961` its card is the profile itself, with this
+/// screen's ⋮ on its name line (run 6).
 class FullProfileDetailsScreen extends StatelessWidget {
   final FullProfileDetailsArgs args;
   const FullProfileDetailsScreen({super.key, required this.args});

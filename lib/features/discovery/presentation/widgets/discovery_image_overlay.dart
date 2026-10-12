@@ -25,6 +25,7 @@ class DiscoveryImageOverlay extends StatelessWidget {
     required this.aboveItems,
     required this.bottomContentInset,
     this.topClearance = 0,
+    this.nameTrailing,
   });
 
   final String name;
@@ -37,6 +38,9 @@ class DiscoveryImageOverlay extends StatelessWidget {
   /// What covers the photo's top — the title row — which the privacy group
   /// must stay clear of.
   final double topClearance;
+
+  /// At the end of the name line: the card's ⋮.
+  final Widget? nameTrailing;
 
   static const double _compactHeight = 220;
   static const double _veryCompactHeight = 150;
@@ -67,7 +71,7 @@ class DiscoveryImageOverlay extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              DiscoveryNameAgeRow(name: name, age: age),
+              DiscoveryNameAgeRow(name: name, age: age, trailing: nameTrailing),
               // Compatibility pill — directly under name+age, exactly where
               // the standalone full profile puts it. On the merged screen it
               // is a scroll reveal (see [matchPillReveal]) that takes up NO

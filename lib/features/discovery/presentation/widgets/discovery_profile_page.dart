@@ -118,6 +118,7 @@ class _DiscoveryProfilePageState extends State<DiscoveryProfilePage> {
           bottomInset: navClearance + _kActionZoneClearance,
           scrollOffset: widget.scrollOffset,
           onFilterTap: () => openDiscoveryFilters(context),
+          onBlocked: context.read<DiscoveryCubit>().drop,
           activeFilterCount: context.read<DiscoveryCubit>().activeFilters.count,
         );
       },

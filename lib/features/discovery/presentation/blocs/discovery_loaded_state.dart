@@ -100,6 +100,16 @@ final class DiscoveryLoaded extends DiscoveryState {
   DiscoveryProfile? get next =>
       currentIndex + 1 < profiles.length ? profiles[currentIndex + 1] : null;
 
+  /// The deck without [userId], blocked from their card: the next card takes
+  /// the current one's place; Undo walks back over the cards kept before it.
+  DiscoveryLoaded without(String userId) {
+    final behind = profiles.take(currentIndex).where((p) => p.id == userId);
+    return copyWith(
+      profiles: [...profiles.where((p) => p.id != userId)],
+      currentIndex: currentIndex - behind.length,
+    );
+  }
+
   /// Copies the loaded state with selective overrides.
   ///
   /// `resetActionError` clears BOTH [actionError] and [actionFailureKind]

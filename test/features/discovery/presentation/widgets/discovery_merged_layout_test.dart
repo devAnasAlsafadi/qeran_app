@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
+import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
 import 'package:qeran/features/chat/domain/repositories/chat_repository.dart';
 import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
@@ -50,6 +51,7 @@ import 'package:qeran/features/discovery/domain/entities/placement_value.dart'
 import 'package:qeran/features/discovery/domain/usecases/fetch_discovery_page_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/like_profile_usecase.dart';
 import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_name_age_row.dart';
 import 'package:qeran/features/discovery/domain/usecases/reset_skipped_profiles_usecase.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
@@ -308,6 +310,10 @@ Future<_FakeProfileRepository> _pumpView(
     () => DiscoveryHydrationCubit(
       getProfileById: GetProfileByIdUseCase(profileRepo),
     ),
+  );
+  // The card's ⋮ (run 6); no test here taps it.
+  sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(
+    (_, _) => BlockActionCubit(block: (_) async => const Right(null)),
   );
   final chatRepo = _FakeChatRepository();
   sl.registerFactory<ShareWithMatchmakerCubit>(
@@ -869,7 +875,9 @@ void main() {
       // invisible-but-reserved gap under the name read as a layout bug.
       expect(find.byType(ProfileMatchPill), findsNothing);
 
-      final name = tester.getRect(find.text('Name-a 25'));
+      // From the name LINE, which holds the card's 48 pt ⋮ beside the name
+      // since run 6: the room under the line is what must stay tight.
+      final name = tester.getRect(find.byType(DiscoveryNameAgeRow));
       final chips = tester.getRect(find.byType(DiscoveryChipsAboveImage));
       expect(chips.top - name.bottom, lessThan(QeranSpacing.s16));
     });

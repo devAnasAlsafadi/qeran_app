@@ -41,6 +41,7 @@ class DiscoveryUnifiedCard extends StatefulWidget {
     required this.scrollOffset,
     required this.activeFilterCount,
     this.onFilterTap,
+    this.onBlocked,
   });
 
   final DiscoveryProfile profile;
@@ -63,6 +64,9 @@ class DiscoveryUnifiedCard extends StatefulWidget {
 
   final VoidCallback? onFilterTap;
   final int activeFilterCount;
+
+  /// The card's ⋮ blocked its member; null draws no ⋮.
+  final ValueChanged<String>? onBlocked;
 
   @override
   State<DiscoveryUnifiedCard> createState() => _DiscoveryUnifiedCardState();
@@ -132,6 +136,7 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
                         scrollOffset: widget.scrollOffset,
                         pillReveal: _pillReveal,
                         onFilterTap: widget.onFilterTap,
+                        onBlocked: widget.onBlocked,
                         activeFilterCount: widget.activeFilterCount,
                       ),
                     ),

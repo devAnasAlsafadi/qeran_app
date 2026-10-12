@@ -44,44 +44,26 @@ void main() {
       expect(outcome.serverMessage, 'تم القبول');
     });
 
-    test('status 0 + "الاشتراك مطلوب" → RequiresSubscription', () async {
-      when(() => api.postRaw(any())).thenAnswer((_) async => {
-            'status': 0,
-            'message': 'الاشتراك مطلوب لقبول الإعجابات',
-            'data': null,
-          });
+    // R12: Tariq confirmed every refusal carries a code. Without one, its
+    // words are never read — the old fallbacks' sentences and his new ones.
+    for (final sentence in const [
+      'الاشتراك مطلوب لقبول الاهتمام',
+      'انتهى رصيد الاهتمام في تجربتك المجانية، اشترك للمزيد',
+      'انتهت مدة الطلب',
+      'الطلب غير موجود أو منتهي',
+    ]) {
+      test('an uncoded refusal is a plain failure: "$sentence"', () async {
+        when(() => api.postRaw(any())).thenAnswer((_) async => {
+              'status': 0,
+              'message': sentence,
+              'data': null,
+            });
 
-      final outcome = await ds.acceptLike(2);
+        final outcome = await ds.acceptLike(2);
 
-      expect(outcome, isA<LikeActionRequiresSubscription>());
-    });
-
-    test('status 0 + "انتهت مدة الطلب" → Expired (not NotFound)', () async {
-      // "منتهي" substring would also catch this — ordering inside the
-      // classifier must run "انتهت مدة" first.
-      when(() => api.postRaw(any())).thenAnswer((_) async => {
-            'status': 0,
-            'message': 'انتهت مدة الطلب',
-            'data': null,
-          });
-
-      final outcome = await ds.acceptLike(3);
-
-      expect(outcome, isA<LikeActionExpired>());
-    });
-
-    test('status 0 + "الطلب غير موجود أو منتهي" → NotFoundOrExpired',
-        () async {
-      when(() => api.postRaw(any())).thenAnswer((_) async => {
-            'status': 0,
-            'message': 'الطلب غير موجود أو منتهي',
-            'data': null,
-          });
-
-      final outcome = await ds.acceptLike(4);
-
-      expect(outcome, isA<LikeActionNotFoundOrExpired>());
-    });
+        expect(outcome, isA<LikeActionFailure>());
+      });
+    }
 
     test('unknown status 0 message → LikeActionFailure (no throw)', () async {
       when(() => api.postRaw(any())).thenAnswer((_) async => {
@@ -103,17 +85,12 @@ void main() {
       expect(() => ds.acceptLike(6), throwsA(isA<ServerException>()));
     });
 
-    test('postRaw throws subscription-required → classified outcome',
+    test('an uncoded throw is never read: rethrown, the generic error',
         () async {
-      // postRaw will throw if backend uses {success: false}; the
-      // classifier should still recognize the Arabic message and
-      // return a typed outcome rather than rethrowing.
       when(() => api.postRaw(any())).thenThrow(
-          ServerException(message: 'الاشتراك مطلوب لقبول الإعجابات'));
+          ServerException(message: 'الاشتراك مطلوب لقبول الاهتمام'));
 
-      final outcome = await ds.acceptLike(7);
-
-      expect(outcome, isA<LikeActionRequiresSubscription>());
+      expect(() => ds.acceptLike(7), throwsA(isA<ServerException>()));
     });
   });
 
@@ -131,7 +108,7 @@ void main() {
       expect(outcome, isA<LikeActionSuccess>());
     });
 
-    test('status 0 + "الطلب غير موجود" → NotFoundOrExpired', () async {
+    test('an uncoded refusal to decline is a plain failure', () async {
       when(() => api.postRaw(any())).thenAnswer((_) async => {
             'status': 0,
             'message': 'الطلب غير موجود',
@@ -140,7 +117,7 @@ void main() {
 
       final outcome = await ds.rejectLike(10);
 
-      expect(outcome, isA<LikeActionNotFoundOrExpired>());
+      expect(outcome, isA<LikeActionFailure>());
     });
   });
 

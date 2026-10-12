@@ -182,20 +182,8 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
           );
       }
     }
-    // Legacy Arabic-message fallback.
-    final m = _normaliseArabic(rawMessage);
-    if (m.contains(_normaliseArabic('الاشتراك مطلوب'))) {
-      return PhotoExchangeRequestRequiresSubscription(
-          serverMessage: rawMessage);
-    }
-    if (m.contains(_normaliseArabic('طلب تبادل قائم'))) {
-      return PhotoExchangeRequestAlreadyPending(serverMessage: rawMessage);
-    }
-    if (m.contains(_normaliseArabic('غير موجود')) ||
-        m.contains(_normaliseArabic('لم يُقبل')) ||
-        m.contains(_normaliseArabic('لم يقبل'))) {
-      return PhotoExchangeRequestLikeNotAccepted(serverMessage: rawMessage);
-    }
+    // Code only (R12): one without is a plain failure, shown as the
+    // generic error; its words are never read.
     return PhotoExchangeRequestFailure(
       serverMessage: rawMessage,
       errorCode: null,
@@ -219,13 +207,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
           );
       }
     }
-    final m = _normaliseArabic(rawMessage);
-    if (m.contains(_normaliseArabic('انتهت مدة'))) {
-      return PhotoExchangeRespondExpired(serverMessage: rawMessage);
-    }
-    if (m.contains(_normaliseArabic('غير موجود'))) {
-      return PhotoExchangeRespondNotFound(serverMessage: rawMessage);
-    }
+    // Code only (R12), as the request above.
     return PhotoExchangeRespondFailure(
       serverMessage: rawMessage,
       errorCode: null,
@@ -389,21 +371,5 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
       '${extra.isEmpty ? '' : ' | unlisted keys: $extra'}',
       tag: 'MATCHES',
     );
-  }
-
-  static final RegExp _tashkeelTatweel = RegExp('[ً-ْـ]');
-  static final RegExp _bidiMarks = RegExp(
-    '[${String.fromCharCode(0x200E)}${String.fromCharCode(0x200F)}'
-    '${String.fromCharCode(0x202A)}-${String.fromCharCode(0x202E)}'
-    '${String.fromCharCode(0x2066)}-${String.fromCharCode(0x2069)}]',
-  );
-  static final RegExp _whitespace = RegExp(r'\s+');
-
-  String _normaliseArabic(String s) {
-    return s
-        .replaceAll(_tashkeelTatweel, '')
-        .replaceAll(_bidiMarks, '')
-        .replaceAll(_whitespace, ' ')
-        .trim();
   }
 }

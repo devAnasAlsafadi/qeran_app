@@ -205,16 +205,15 @@ void main() {
       expect(outcome, isA<PhotoExchangeRequestLimitReached>());
     });
 
-    test('legacy Arabic-only fallback still classifies subscription',
+    test('an uncoded refusal is a plain failure, whatever its words (R12)',
         () async {
       when(() => api.postRaw(any())).thenAnswer((_) async => {
             'status': 0,
             'message': 'الاشتراك مطلوب لطلب تبادل الصور',
-            // No errorCode — exercises the legacy fallback path.
           });
 
       final outcome = await ds.requestPhotoExchange(4);
-      expect(outcome, isA<PhotoExchangeRequestRequiresSubscription>());
+      expect(outcome, isA<PhotoExchangeRequestFailure>());
     });
 
     test('CodedServerException with classified code → typed outcome',
@@ -265,6 +264,16 @@ void main() {
 
       final outcome = await ds.acceptPhotoExchange(10);
       expect(outcome, isA<PhotoExchangeRespondNotFound>());
+    });
+
+    test('an uncoded refusal to respond is a plain failure (R12)', () async {
+      when(() => api.postRaw(any())).thenAnswer((_) async => {
+            'status': 0,
+            'message': 'انتهت مدة الطلب',
+          });
+
+      final outcome = await ds.acceptPhotoExchange(4);
+      expect(outcome, isA<PhotoExchangeRespondFailure>());
     });
 
     test('PHOTO_EXCHANGE_EXPIRED → Expired', () async {

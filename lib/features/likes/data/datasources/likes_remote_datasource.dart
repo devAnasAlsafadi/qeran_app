@@ -132,17 +132,10 @@ class LikesRemoteDataSourceImpl implements LikesRemoteDataSource {
     return '';
   }
 
-  /// Maps backend failures onto a typed outcome. Strategy:
-  ///
-  /// 1. If `errorCode` is present, switch on it (canonical path).
-  /// 2. Otherwise, fall back to Arabic-message substring matching for
-  ///    backward compatibility with the pre-errorCode rollout. This
-  ///    branch can be removed once backend ships `errorCode` on every
-  ///    failure response.
-  ///
-  /// Order in the legacy block matters: "انتهت مدة الطلب" must
-  /// classify BEFORE the broader "غير موجود / منتهي" branch — the
-  /// latter would otherwise swallow it through the "منتهي" substring.
+  /// Maps a refusal onto a typed outcome by its `errorCode` alone: Tariq
+  /// confirmed every refusal from accept and decline carries one (R12). One
+  /// without — a 500 with no envelope, say — is a plain failure, which the
+  /// screen shows as the generic error; its words are never read.
   LikeActionOutcome _classify(String rawMessage, String? errorCode) {
     if (errorCode != null && errorCode.isNotEmpty) {
       switch (errorCode) {
@@ -160,36 +153,7 @@ class LikesRemoteDataSourceImpl implements LikesRemoteDataSource {
           return LikeActionFailure(serverMessage: rawMessage);
       }
     }
-    // Legacy Arabic-message fallback — retained for backward compat
-    // until the backend errorCode rollout is complete.
-    final m = _normaliseArabic(rawMessage);
-    if (m.contains(_normaliseArabic('الاشتراك مطلوب'))) {
-      return LikeActionRequiresSubscription(serverMessage: rawMessage);
-    }
-    if (m.contains(_normaliseArabic('انتهت مدة'))) {
-      return LikeActionExpired(serverMessage: rawMessage);
-    }
-    if (m.contains(_normaliseArabic('غير موجود')) ||
-        m.contains(_normaliseArabic('منتهي'))) {
-      return LikeActionNotFoundOrExpired(serverMessage: rawMessage);
-    }
     return LikeActionFailure(serverMessage: rawMessage);
-  }
-
-  static final RegExp _tashkeelTatweel = RegExp('[ً-ْـ]');
-  static final RegExp _bidiMarks = RegExp(
-    '[${String.fromCharCode(0x200E)}${String.fromCharCode(0x200F)}'
-    '${String.fromCharCode(0x202A)}-${String.fromCharCode(0x202E)}'
-    '${String.fromCharCode(0x2066)}-${String.fromCharCode(0x2069)}]',
-  );
-  static final RegExp _whitespace = RegExp(r'\s+');
-
-  String _normaliseArabic(String s) {
-    return s
-        .replaceAll(_tashkeelTatweel, '')
-        .replaceAll(_bidiMarks, '')
-        .replaceAll(_whitespace, ' ')
-        .trim();
   }
 
   /// Three deployment states this parser must survive:

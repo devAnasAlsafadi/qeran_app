@@ -54,7 +54,8 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
           // yet" is a product state and gets a calm card telling the member
           // one is on the way. A coded failure is not that, and routing it to
           // the same place tells the member to wait for something waiting
-          // cannot fix.
+          // cannot fix. One code is that state: a deleted matchmaker
+          // ([_isUnassigned]).
           //
           // The backend is moving this endpoint to an explicit enum, after
           // which the ambiguity disappears and this branch is redundant.
@@ -66,7 +67,7 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
           // replace the calm card with an error for every member who simply
           // has no matchmaker yet.
           final code = body['errorCode'];
-          if (code is String && code.isNotEmpty) {
+          if (code is String && code.isNotEmpty && !_isUnassigned(code)) {
             AppLogger.warning(
               'CHAT — my-matchmaker failed inside a 200 envelope: '
               'code="$code" message="$message"',
@@ -75,7 +76,8 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
             return MyMatchmakerFailure(serverMessage: message, errorCode: code);
           }
           AppLogger.info(
-            'CHAT — my-matchmaker not assigned message="$message"',
+            'CHAT — my-matchmaker not assigned code="$code" '
+            'message="$message"',
             tag: 'CHAT',
           );
           return MyMatchmakerNotAssigned(serverMessage: message);
@@ -103,6 +105,10 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       throw ServerException(message: LocaleKeys.errors_generic);
     } on ServerException catch (e) {
       final code = e is CodedServerException ? e.errorCode : null;
+      if (_isUnassigned(code)) {
+        AppLogger.info('CHAT — my-matchmaker gone code="$code"', tag: 'CHAT');
+        return MyMatchmakerNotAssigned(serverMessage: e.message);
+      }
       AppLogger.warning(
         'CHAT — my-matchmaker failed code="$code" message="${e.message}"',
         tag: 'CHAT',
@@ -110,6 +116,12 @@ class ChatRemoteDataSourceImpl implements ChatRemoteDataSource {
       return MyMatchmakerFailure(serverMessage: e.message, errorCode: code);
     }
   }
+
+  /// A member whose matchmaker was deleted is back to waiting for one, as a
+  /// member never assigned is: the same calm state, never an error a retry
+  /// can't fix. Checked in both places the code can arrive, the 200 envelope
+  /// and a refusal.
+  bool _isUnassigned(String? code) => code == ChatErrorCodes.matchmakerNotFound;
 
   // ── Messages ───────────────────────────────────────────────────────
 

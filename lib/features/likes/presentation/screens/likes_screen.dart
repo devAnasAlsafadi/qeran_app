@@ -8,7 +8,6 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
-import 'package:qeran/features/chat/presentation/screens/my_matchmaker_chat_page.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_bottom_sheet.dart';
 import 'package:qeran/features/subscriptions/presentation/paywall/paywall_intent.dart';
@@ -19,6 +18,7 @@ import '../blocs/likes_state.dart';
 import '../blocs/match_actions_cubit.dart';
 import '../blocs/match_actions_state.dart';
 import 'match_action_snackbars.dart';
+import 'matchmaker_inquiry_snackbars.dart';
 import '../blocs/matchmaker_inquiry_cubit.dart';
 import '../blocs/matchmaker_inquiry_state.dart';
 import '../widgets/likes_segmented_tabs.dart';
@@ -76,7 +76,7 @@ class _LikesView extends StatelessWidget {
           listenWhen: (prev, curr) =>
               prev.eventVersion != curr.eventVersion &&
               curr.event != InquiryEvent.none,
-          listener: _onInquiryEvent,
+          listener: onInquiryEvent,
           child: BlocConsumer<LikesCubit, LikesState>(
           // Listener only fires on `actionEventVersion` bumps so toasts
           // and the paywall sheet can never re-trigger from an
@@ -106,31 +106,6 @@ class _LikesView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// The inquiry's own outcomes, on their own listener.
-  ///
-  /// Three arms rather than three of forty. Its enum holds only what this
-  /// cubit can emit, so the switch stays exhaustive AND every arm is
-  /// reachable — a new inquiry outcome is a compile error here, which is the
-  /// property a shared forty-member enum would have buried.
-  void _onInquiryEvent(BuildContext context, MatchmakerInquiryState state) {
-    switch (state.event) {
-      case InquiryEvent.none:
-        break;
-      // Open the chat, freshly loaded, so the newly posted profile card and
-      // text are visible immediately. The formal step does not join this: it
-      // posts nothing to the matchmaker, so there would be nothing to show.
-      case InquiryEvent.success:
-      case InquiryEvent.alreadySent:
-        openMatchmakerChat(context);
-      case InquiryEvent.failure:
-        AppSnackBar.show(
-          context,
-          message: LocaleKeys.likes_matches_action_request_failed.t(context),
-          type: SnackBarType.error,
-        );
-    }
   }
 
   /// Dispatches the cubit's one-shot outcome to a snackbar / paywall.

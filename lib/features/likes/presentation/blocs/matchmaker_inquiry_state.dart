@@ -7,7 +7,10 @@ import 'package:equatable/equatable.dart';
 /// leave this cubit's listener switch answering thirty-odd events it can never
 /// emit, and the exhaustiveness that makes an unhandled event a COMPILE error
 /// is only useful while every arm is one this cubit can actually reach.
-enum InquiryEvent { none, success, alreadySent, failure }
+///
+/// [noMatchmaker] is not a failure: the member has no one to ask yet, never
+/// assigned or because hers was deleted.
+enum InquiryEvent { none, success, alreadySent, noMatchmaker, failure }
 
 /// State of the stage-0 matchmaker inquiry: which cards have one in flight,
 /// which have already had one this session, and the last outcome.

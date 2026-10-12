@@ -11,4 +11,7 @@ class ChatErrorCodes {
 
   // Share-profile only
   static const String profileNotFound = 'PROFILE_NOT_FOUND';
+
+  // My-matchmaker only: her account was deleted (Tariq, 2026-10-12).
+  static const String matchmakerNotFound = 'MATCHMAKER_NOT_FOUND';
 }

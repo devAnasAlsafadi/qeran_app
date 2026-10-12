@@ -59,26 +59,46 @@ class MatchmakerInquiryCubit extends Cubit<MatchmakerInquiryState>
     emit(
       state.copyWith(inFlightLikeIds: {...state.inFlightLikeIds, id}),
     );
-    final done = await _shareAndSend(card: card, message: message);
+    final event = await _ask(card, message);
     if (isClosed) return;
+    final done = event == InquiryEvent.success;
 
     emit(
       state.copyWith(
         inFlightLikeIds: {...state.inFlightLikeIds}..remove(id),
         sentLikeIds: done ? {...state.sentLikeIds, id} : state.sentLikeIds,
-        event: done ? InquiryEvent.success : InquiryEvent.failure,
+        event: event,
         eventVersion: state.eventVersion + 1,
       ),
     );
   }
 
-  Future<bool> _shareAndSend({
-    required MatchCard card,
-    required String message,
-  }) async {
-    final conversationId = await _resolveConversationId(card);
-    if (conversationId == null || isClosed) return false;
+  /// Into the conversation the card names, else the one the look-up finds.
+  ///
+  /// A member with no matchmaker, never assigned or hers deleted, has no one
+  /// to ask yet: [InquiryEvent.noMatchmaker], never an error. A card can still
+  /// name the conversation of a matchmaker since deleted, so a failed share
+  /// into it asks the server whether anyone is there.
+  Future<InquiryEvent> _ask(MatchCard card, String message) async {
+    final embedded = int.tryParse(card.conversationId ?? '');
+    if (embedded != null && await _shareAndSend(embedded, card, message)) {
+      return InquiryEvent.success;
+    }
+    if (isClosed) return InquiryEvent.failure;
+    final found = await _lookUp();
+    if (found is MyMatchmakerNotAssigned) return InquiryEvent.noMatchmaker;
+    if (found is! MyMatchmakerAssigned || embedded != null || isClosed) {
+      return InquiryEvent.failure;
+    }
+    final sent = await _shareAndSend(found.info.conversationId, card, message);
+    return sent ? InquiryEvent.success : InquiryEvent.failure;
+  }
 
+  Future<bool> _shareAndSend(
+    int conversationId,
+    MatchCard card,
+    String message,
+  ) async {
     final share = await _shareProfile(
       conversationId: conversationId,
       sharedUserId: card.otherUserId,
@@ -124,24 +144,15 @@ class MatchmakerInquiryCubit extends Cubit<MatchmakerInquiryState>
     }, (outcome) => outcome is SendTextSuccess);
   }
 
-  Future<int?> _resolveConversationId(MatchCard card) async {
-    final embedded = int.tryParse(card.conversationId ?? '');
-    if (embedded != null) return embedded;
-
+  /// Who the server says her matchmaker is now; null when it couldn't say.
+  Future<MyMatchmakerOutcome?> _lookUp() async {
     final result = await _getMyMatchmaker();
-    if (isClosed) return null;
-    return result.fold(
-      (failure) {
-        AppLogger.warning(
-          'MATCHMAKER-SEND — resolve failed raw="${failure.message}"',
-          tag: 'MATCHES',
-        );
-        return null;
-      },
-      (outcome) => switch (outcome) {
-        MyMatchmakerAssigned(:final info) => info.conversationId,
-        MyMatchmakerNotAssigned() || MyMatchmakerFailure() => null,
-      },
-    );
+    return result.fold((failure) {
+      AppLogger.warning(
+        'MATCHMAKER-SEND — resolve failed raw="${failure.message}"',
+        tag: 'MATCHES',
+      );
+      return null;
+    }, (outcome) => outcome);
   }
 }

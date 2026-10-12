@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../../core/design_system/widgets/qeran_button.dart';
+import '../../../../../../core/design_system/widgets/qeran_button_row.dart';
 import '../../../../../../core/extensions/localization_extension.dart';
 import '../../../../../../generated/locale_keys.g.dart';
 import '../../screens/matchmaker_community_screen.dart';
@@ -18,26 +19,22 @@ class CommunityDashboardActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return QeranButtonRow(
+      gap: QeranSpacing.s8,
       children: [
-        Expanded(
-          child: QeranButton(
-            label: LocaleKeys.matchmaker_community_title.t(context),
-            onPressed: () => unawaited(openMatchmakerCommunity(context)),
-            variant: QeranButtonVariant.secondary,
-            size: QeranButtonSize.compact,
-            leadingIcon: Icons.dynamic_feed_rounded,
-          ),
+        QeranButton(
+          label: LocaleKeys.matchmaker_community_title.t(context),
+          onPressed: () => unawaited(openMatchmakerCommunity(context)),
+          variant: QeranButtonVariant.secondary,
+          size: QeranButtonSize.compact,
+          leadingIcon: Icons.dynamic_feed_rounded,
         ),
-        QeranSpacing.hs8,
-        Expanded(
-          child: QeranButton(
-            label: LocaleKeys.matchmaker_community_new_post.t(context),
-            onPressed: () => _newPost(context),
-            variant: QeranButtonVariant.primaryGold,
-            size: QeranButtonSize.compact,
-            leadingIcon: Icons.edit_square,
-          ),
+        QeranButton(
+          label: LocaleKeys.matchmaker_community_new_post.t(context),
+          onPressed: () => _newPost(context),
+          variant: QeranButtonVariant.primaryGold,
+          size: QeranButtonSize.compact,
+          leadingIcon: Icons.edit_square,
         ),
       ],
     );

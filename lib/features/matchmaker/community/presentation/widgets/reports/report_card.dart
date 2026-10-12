@@ -11,6 +11,7 @@ import '../../../../../../core/design_system/tokens/qeran_shadows.dart';
 import '../../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../../core/design_system/widgets/qeran_button.dart';
+import '../../../../../../core/design_system/widgets/qeran_button_row.dart';
 import '../../../../../../core/design_system/widgets/qeran_own_text.dart';
 import '../../../../../../core/extensions/localization_extension.dart';
 import '../../../../../../core/utils/relative_time.dart';
@@ -69,26 +70,22 @@ class ReportCard extends StatelessWidget {
 
   Widget _answers(BuildContext context) => Padding(
     padding: const EdgeInsets.only(top: QeranSpacing.s12),
-    child: Row(
+    child: QeranButtonRow(
+      gap: QeranSpacing.s8,
       children: [
-        Expanded(
-          child: QeranButton(
-            label: LocaleKeys.matchmaker_community_report_keep.t(context),
-            onPressed: answering ? null : onKeep,
-            variant: QeranButtonVariant.secondary,
-            size: QeranButtonSize.compact,
-            leadingIcon: Icons.check_rounded,
-          ),
+        QeranButton(
+          label: LocaleKeys.matchmaker_community_report_keep.t(context),
+          onPressed: answering ? null : onKeep,
+          variant: QeranButtonVariant.secondary,
+          size: QeranButtonSize.compact,
+          leadingIcon: Icons.check_rounded,
         ),
-        QeranSpacing.hs8,
-        Expanded(
-          child: QeranButton(
-            label: LocaleKeys.common_delete.t(context),
-            onPressed: answering ? null : onDelete,
-            variant: QeranButtonVariant.destructive,
-            size: QeranButtonSize.compact,
-            leadingIcon: Icons.delete_outline_rounded,
-          ),
+        QeranButton(
+          label: LocaleKeys.common_delete.t(context),
+          onPressed: answering ? null : onDelete,
+          variant: QeranButtonVariant.destructive,
+          size: QeranButtonSize.compact,
+          leadingIcon: Icons.delete_outline_rounded,
         ),
       ],
     ),

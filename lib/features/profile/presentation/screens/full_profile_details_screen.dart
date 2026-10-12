@@ -5,6 +5,7 @@ import 'package:qeran/core/enum/snakebar_tybe.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button_row.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
@@ -296,32 +297,27 @@ class _PinnedReactionCta extends StatelessWidget {
           QeranSpacing.s12,
         ),
         child: BlocBuilder<ProfileReactionCubit, ProfileReactionState>(
-          builder: (context, state) => Row(
+          builder: (context, state) => QeranButtonRow(
             children: [
-              Expanded(
-                child: QeranButton(
-                  label: LocaleKeys.discovery_action_like_label.t(context),
-                  leadingIcon: Icons.favorite_rounded,
-                  variant: QeranButtonVariant.primaryWine,
-                  size: QeranButtonSize.md,
-                  loading: state.isLiking,
-                  onPressed: state.isBusy
-                      ? null
-                      : () => context.read<ProfileReactionCubit>().like(userId),
-                ),
+              QeranButton(
+                label: LocaleKeys.discovery_action_like_label.t(context),
+                leadingIcon: Icons.favorite_rounded,
+                variant: QeranButtonVariant.primaryWine,
+                size: QeranButtonSize.md,
+                loading: state.isLiking,
+                onPressed: state.isBusy
+                    ? null
+                    : () => context.read<ProfileReactionCubit>().like(userId),
               ),
-              QeranSpacing.hs12,
-              Expanded(
-                child: QeranButton(
-                  label: LocaleKeys.discovery_action_pass_label.t(context),
-                  leadingIcon: Icons.close_rounded,
-                  variant: QeranButtonVariant.secondary,
-                  size: QeranButtonSize.md,
-                  loading: state.isPassing,
-                  onPressed: state.isBusy
-                      ? null
-                      : () => context.read<ProfileReactionCubit>().pass(userId),
-                ),
+              QeranButton(
+                label: LocaleKeys.discovery_action_pass_label.t(context),
+                leadingIcon: Icons.close_rounded,
+                variant: QeranButtonVariant.secondary,
+                size: QeranButtonSize.md,
+                loading: state.isPassing,
+                onPressed: state.isBusy
+                    ? null
+                    : () => context.read<ProfileReactionCubit>().pass(userId),
               ),
             ],
           ),

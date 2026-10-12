@@ -8,6 +8,7 @@ import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
+import '../../../../../core/design_system/widgets/qeran_button_row.dart';
 import '../../../../../core/design_system/widgets/qeran_empty_state.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_text_field.dart';
@@ -351,31 +352,26 @@ class _Footer extends StatelessWidget {
             QeranSpacing.s20,
             QeranSpacing.s16,
           ),
-          child: Row(
+          child: QeranButtonRow(
             children: [
-              Expanded(
-                child: QeranButton(
-                  label: LocaleKeys.common_cancel.t(context),
-                  variant: QeranButtonVariant.ghost,
-                  onPressed: state.sending
-                      ? null
-                      : () => Navigator.of(context).pop(),
-                ),
+              QeranButton(
+                label: LocaleKeys.common_cancel.t(context),
+                variant: QeranButtonVariant.ghost,
+                onPressed: state.sending
+                    ? null
+                    : () => Navigator.of(context).pop(),
               ),
-              QeranSpacing.hs12,
-              Expanded(
-                child: QeranButton(
-                  label: context.tr(
-                    LocaleKeys.matchmaker_explore_share_send,
-                    namedArgs: {'count': '$count'},
-                  ),
-                  variant: QeranButtonVariant.primary,
-                  leadingIcon: Icons.send_rounded,
-                  loading: state.sending,
-                  onPressed: (count == 0 || state.sending)
-                      ? null
-                      : () => context.read<MatchmakerShareCubit>().send(),
+              QeranButton(
+                label: context.tr(
+                  LocaleKeys.matchmaker_explore_share_send,
+                  namedArgs: {'count': '$count'},
                 ),
+                variant: QeranButtonVariant.primary,
+                leadingIcon: Icons.send_rounded,
+                loading: state.sending,
+                onPressed: (count == 0 || state.sending)
+                    ? null
+                    : () => context.read<MatchmakerShareCubit>().send(),
               ),
             ],
           ),

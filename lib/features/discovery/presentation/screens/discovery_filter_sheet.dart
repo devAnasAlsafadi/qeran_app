@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_sheet.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
+import 'package:qeran/core/design_system/widgets/qeran_button_row.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_filter_facets_empty.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
@@ -134,25 +135,20 @@ class _Footer extends StatelessWidget {
             QeranSpacing.s20,
             QeranSpacing.s16,
           ),
-          child: Row(
+          child: QeranButtonRow(
             children: [
-              Expanded(
-                child: QeranButton(
-                  label: LocaleKeys.discovery_filter_clear_all.t(context),
-                  variant: QeranButtonVariant.ghost,
-                  // Clears facets + ranges in place; Apply commits the payload.
-                  onPressed: enabled
-                      ? () => context.read<DiscoveryFilterCubit>().clearAll()
-                      : null,
-                ),
+              QeranButton(
+                label: LocaleKeys.discovery_filter_clear_all.t(context),
+                variant: QeranButtonVariant.ghost,
+                // Clears facets + ranges in place; Apply commits the payload.
+                onPressed: enabled
+                    ? () => context.read<DiscoveryFilterCubit>().clearAll()
+                    : null,
               ),
-              QeranSpacing.hs12,
-              Expanded(
-                child: QeranButton(
-                  label: LocaleKeys.discovery_filter_show_results.t(context),
-                  variant: QeranButtonVariant.primaryWine,
-                  onPressed: enabled ? () => _apply(context) : null,
-                ),
+              QeranButton(
+                label: LocaleKeys.discovery_filter_show_results.t(context),
+                variant: QeranButtonVariant.primaryWine,
+                onPressed: enabled ? () => _apply(context) : null,
               ),
             ],
           ),

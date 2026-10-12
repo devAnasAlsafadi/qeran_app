@@ -10,8 +10,10 @@ Future<void> _pump(WidgetTester tester, QeranButtonSize size) =>
         home: Center(
           child: SizedBox(
             width: 240,
+            // One line: the heights are each size's minimum. A label that
+            // wraps grows its button (qeran_button_wrap_test.dart).
             child: QeranButton(
-              label: 'أرسل استفساراتك',
+              label: 'أرسل',
               onPressed: () {},
               size: size,
               trailingIcon: Icons.check_rounded,
@@ -34,7 +36,7 @@ Future<({TextStyle? style, EdgeInsetsGeometry padding, double? icon})> _looks(
         .first,
   );
   return (
-    style: tester.widget<Text>(find.text('أرسل استفساراتك')).style,
+    style: tester.widget<Text>(find.text('أرسل')).style,
     padding: padding.padding,
     icon: tester.widget<Icon>(find.byIcon(Icons.check_rounded)).size,
   );

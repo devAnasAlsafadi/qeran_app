@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
+import '../../../../../core/design_system/widgets/qeran_button_row.dart';
 import '../../../../../core/design_system/widgets/qeran_error_state.dart';
 import '../../../../../core/design_system/widgets/qeran_filter_facets_empty.dart';
 import '../../../../../core/design_system/widgets/qeran_loader.dart';
@@ -134,28 +135,23 @@ class _Footer extends StatelessWidget {
             QeranSpacing.s20,
             QeranSpacing.s16,
           ),
-          child: Row(
+          child: QeranButtonRow(
             children: [
-              Expanded(
-                child: QeranButton(
-                  label:
-                      LocaleKeys.matchmaker_explore_filter_clear.t(context),
-                  variant: QeranButtonVariant.ghost,
-                  // Clears in-place (facets + ranges); تطبيق commits it.
-                  onPressed: loaded
-                      ? () =>
-                          context.read<MatchmakerExploreFilterCubit>().clearAll()
-                      : null,
-                ),
+              QeranButton(
+                label:
+                    LocaleKeys.matchmaker_explore_filter_clear.t(context),
+                variant: QeranButtonVariant.ghost,
+                // Clears in-place (facets + ranges); تطبيق commits it.
+                onPressed: loaded
+                    ? () =>
+                        context.read<MatchmakerExploreFilterCubit>().clearAll()
+                    : null,
               ),
-              QeranSpacing.hs12,
-              Expanded(
-                child: QeranButton(
-                  label:
-                      LocaleKeys.matchmaker_explore_filter_apply.t(context),
-                  variant: QeranButtonVariant.primary,
-                  onPressed: loaded ? () => _apply(context) : null,
-                ),
+              QeranButton(
+                label:
+                    LocaleKeys.matchmaker_explore_filter_apply.t(context),
+                variant: QeranButtonVariant.primary,
+                onPressed: loaded ? () => _apply(context) : null,
               ),
             ],
           ),

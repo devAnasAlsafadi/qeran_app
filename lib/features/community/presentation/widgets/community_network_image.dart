@@ -72,8 +72,10 @@ class _CommunityNetworkImageState extends State<CommunityNetworkImage> {
   }
 }
 
-/// A8: the image couldn't load — say so, and offer to try again. Cream, with
-/// the message scaled down rather than overflowing a small frame.
+/// A8: the image couldn't load — say so, and offer to try again. Cream, at
+/// its own size: nothing here is scaled down (run 6, a label never shrinks).
+/// The smallest frame that shows it, a post's 16:9 photo on a 320 phone
+/// (264 × 148), holds it whole; an avatar falls back to its monogram.
 class CommunityImageFailed extends StatelessWidget {
   const CommunityImageFailed({
     super.key,
@@ -92,25 +94,22 @@ class CommunityImageFailed extends StatelessWidget {
     return ColoredBox(
       color: onWine ? QeranColors.wine : QeranColors.creamSurface,
       child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.broken_image_rounded,
-                size: onWine ? 36 : 30,
-                color: onWine ? QeranColors.gold : QeranColors.inkMuted,
-              ),
-              const SizedBox(height: QeranSpacing.s6),
-              Text(
-                LocaleKeys.community_image_failed.t(context),
-                style: QeranTypography.bodySm.copyWith(color: ink),
-              ),
-              if (onWine) QeranSpacing.vs8,
-              _retry(context),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.broken_image_rounded,
+              size: onWine ? 36 : 30,
+              color: onWine ? QeranColors.gold : QeranColors.inkMuted,
+            ),
+            const SizedBox(height: QeranSpacing.s6),
+            Text(
+              LocaleKeys.community_image_failed.t(context),
+              style: QeranTypography.bodySm.copyWith(color: ink),
+            ),
+            if (onWine) QeranSpacing.vs8,
+            _retry(context),
+          ],
         ),
       ),
     );

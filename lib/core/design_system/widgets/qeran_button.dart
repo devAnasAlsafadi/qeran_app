@@ -19,7 +19,10 @@ enum QeranButtonVariant {
   destructive,
 }
 
-/// Heights: lg 54 · md 48 · compact 48.
+/// Heights: lg 54 · md 48 · compact 48 — each a minimum. A label never cuts
+/// and its font never shrinks: one too wide for its slot wraps onto a second
+/// line and the button grows (run 6). Side by side, `QeranButtonRow` keeps the
+/// pair at one height.
 ///
 /// [compact] is the dense-row size: the label type and tight padding long
 /// Arabic labels need, at the full 48 pt tap target. The 40 pt `xs` and 36 pt
@@ -63,10 +66,12 @@ class QeranButton extends StatelessWidget {
       duration: QeranMotion.fast,
       opacity: disabled && !loading ? 0.5 : 1.0,
       child: SizedBox(
-        height: _height(size),
         width: fullWidth ? double.infinity : null,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: minTapWidth),
+          constraints: BoxConstraints(
+            minWidth: minTapWidth,
+            minHeight: _height(size),
+          ),
           child: _surface(spec, disabled: disabled),
         ),
       ),
@@ -87,19 +92,25 @@ class QeranButton extends StatelessWidget {
       splashColor: spec.fg.withValues(alpha: 0.08),
       highlightColor: spec.fg.withValues(alpha: 0.04),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: _hPad(size)),
+        padding: EdgeInsets.symmetric(
+          horizontal: _hPad(size),
+          vertical: QeranSpacing.s8,
+        ),
         // A width factor of 1 sizes the button to its label instead of
-        // filling whatever width it's given.
+        // filling whatever width it's given; a height factor of 1 keeps it to
+        // its label's lines, never the height of whatever holds it.
         child: Center(
           widthFactor: fullWidth ? null : 1,
+          heightFactor: 1,
           child: _child(spec),
         ),
       ),
     ),
   );
 
-  /// The label — or, loading, the loader. A button that hugs its label
-  /// keeps the label's width while it loads, so nothing around it moves.
+  /// The label — or, loading, the loader over the label's room: the button
+  /// keeps its width and its lines while it loads, so nothing around it
+  /// moves.
   Widget _child(_Spec spec) {
     final content = _Content(
       label: label,
@@ -115,7 +126,6 @@ class QeranButton extends StatelessWidget {
       primary: spec.loaderPrimary ?? spec.fg,
       accent: spec.loaderAccent ?? spec.fg,
     );
-    if (fullWidth) return loader;
     return Stack(
       alignment: Alignment.center,
       children: [

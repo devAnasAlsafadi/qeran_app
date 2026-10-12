@@ -112,13 +112,9 @@ class _Content extends StatelessWidget {
           Icon(leadingIcon, size: iconSize, color: color),
           QeranSpacing.hs8,
         ],
+        // Wraps rather than cuts, at the button's own size (run 6).
         Flexible(
-          child: Text(
-            label,
-            style: style,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: Text(label, style: style, textAlign: TextAlign.center),
         ),
         if (trailingIcon != null) ...[
           QeranSpacing.hs8,

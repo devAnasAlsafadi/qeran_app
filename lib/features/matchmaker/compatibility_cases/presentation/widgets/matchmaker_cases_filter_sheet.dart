@@ -6,6 +6,7 @@ import '../../../../../core/design_system/tokens/qeran_spacing.dart';
 import '../../../../../core/design_system/tokens/qeran_typography.dart';
 import '../../../../../core/design_system/widgets/qeran_bottom_sheet.dart';
 import '../../../../../core/design_system/widgets/qeran_button.dart';
+import '../../../../../core/design_system/widgets/qeran_button_row.dart';
 import '../../../../../core/extensions/localization_extension.dart';
 import '../../../../../generated/locale_keys.g.dart';
 import '../../domain/entities/compatibility_case_stage.dart';
@@ -84,22 +85,17 @@ class _CasesFilterSheetState extends State<_CasesFilterSheet> {
           QeranSpacing.s20,
           QeranSpacing.s16,
         ),
-        child: Row(
+        child: QeranButtonRow(
           children: [
-            Expanded(
-              child: QeranButton(
-                label: LocaleKeys.matchmaker_cases_filter_clear.t(context),
-                variant: QeranButtonVariant.ghost,
-                onPressed: _clear,
-              ),
+            QeranButton(
+              label: LocaleKeys.matchmaker_cases_filter_clear.t(context),
+              variant: QeranButtonVariant.ghost,
+              onPressed: _clear,
             ),
-            QeranSpacing.hs12,
-            Expanded(
-              child: QeranButton(
-                label: LocaleKeys.matchmaker_cases_filter_apply.t(context),
-                variant: QeranButtonVariant.primary,
-                onPressed: _apply,
-              ),
+            QeranButton(
+              label: LocaleKeys.matchmaker_cases_filter_apply.t(context),
+              variant: QeranButtonVariant.primary,
+              onPressed: _apply,
             ),
           ],
         ),

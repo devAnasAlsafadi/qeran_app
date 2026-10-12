@@ -83,12 +83,14 @@ class SettingsRow extends StatelessWidget {
                     ),
                     if (subtitle != null) ...[
                       QeranSpacing.vs4,
+                      // Two lines: «عرض اشتراكك أو استعادة المشتريات» was cut
+                      // on one beside its «ترقية» chip at 360.
                       Text(
                         subtitle!,
                         style: QeranTypography.caption.copyWith(
                           color: QeranColors.inkMuted,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],

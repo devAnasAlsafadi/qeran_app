@@ -96,15 +96,8 @@ class DeviceAccountLink {
 
   /// The server doesn't know this device: `DEVICE_NOT_FOUND` (Tariq, R11),
   /// so register it and link again. Bad input is `VALIDATION_ERROR`, which
-  /// registering can't fix. The English sentence it sent before the code is
-  /// still read beside it until the code is confirmed live.
-  static bool _notRegistered(Failure failure) {
-    if (failure is CodedServerFailure &&
-        failure.errorCode == 'DEVICE_NOT_FOUND') {
-      return true;
-    }
-    final msg = failure.message.toLowerCase();
-    return msg.contains('device not found') ||
-        msg.contains('register it first');
-  }
+  /// registering can't fix. Only the code counts: the server's words never do.
+  static bool _notRegistered(Failure failure) =>
+      failure is CodedServerFailure &&
+      failure.errorCode == 'DEVICE_NOT_FOUND';
 }

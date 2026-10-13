@@ -7,9 +7,9 @@ import 'push_release_rig.dart';
 
 /// R11 (Tariq): linking a device the server doesn't know answers
 /// `DEVICE_NOT_FOUND` — register it, then link again. Bad input answers
-/// `VALIDATION_ERROR`, which registering can't fix. The English sentence the
-/// server sent before the code is still read beside it (pinned in
-/// `device_bootstrap_service_test.dart`) until the code is confirmed live.
+/// `VALIDATION_ERROR`, which registering can't fix. The code is live (Tariq,
+/// 2026-10-13), so the English sentence the server sent before it no longer
+/// counts.
 void main() {
   late PushRig rig;
 
@@ -44,6 +44,16 @@ void main() {
 
   test('VALIDATION_ERROR: no register, no second link', () async {
     firstLinkAnswers(coded('VALIDATION_ERROR'));
+
+    await rig.service.linkSilently();
+
+    expect(rig.calls, ['link $oldToken']);
+  });
+
+  test('the old English sentence without the code: no register', () async {
+    firstLinkAnswers(
+      const ServerFailure(message: 'Device not found. Register it first.'),
+    );
 
     await rig.service.linkSilently();
 

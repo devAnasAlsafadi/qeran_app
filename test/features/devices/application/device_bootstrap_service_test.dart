@@ -217,7 +217,10 @@ void main() {
         if (firstCall) {
           firstCall = false;
           return const Left<Failure, Unit>(
-            ServerFailure(message: 'Device not found. Register it first.'),
+            CodedServerFailure(
+              message: 'errors.generic',
+              errorCode: 'DEVICE_NOT_FOUND',
+            ),
           );
         }
         return const Right<Failure, Unit>(unit);

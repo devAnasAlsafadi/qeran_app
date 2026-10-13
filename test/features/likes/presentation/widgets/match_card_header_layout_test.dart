@@ -18,10 +18,14 @@ import 'match_card_copy_harness.dart';
 /// Sub-step 8 (Phase 1) added exactly 16 to each: this card's two buttons,
 /// «طلب تبادل الصور» and the inquiry, went from 40 to 48 pt. They were 292 /
 /// 292 / 266 / 270; nothing else on the card moved.
+///
+/// Run 7 (item 8) added 4 at 360 in Arabic: the status line became the
+/// client's longer «الصور مخفية حتى الموافقة على تبادلها», which takes the
+/// second of its two lines there. It was 282.
 const Map<String, double> kChiplessCardHeight = {
   '320-ar': 308,
   '320-en': 308,
-  '360-ar': 282,
+  '360-ar': 286,
   '360-en': 286,
 };
 

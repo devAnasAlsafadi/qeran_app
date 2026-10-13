@@ -492,7 +492,7 @@
     "matches_empty_title": "No mutual interest yet",
     "matches_empty_subtitle": "When someone accepts your interest, you'll find them here.",
     "matches_error_title": "Couldn't load mutual interest",
-    "matches_stage_waiting_photos_title": "Photos hidden until exchange",
+    "matches_stage_waiting_photos_title": "Photos stay hidden until the exchange is approved",
     "matches_stage_waiting_photos_cta": "Request photo exchange",
     "matches_stage_waiting_photos_pending": "Awaiting their response",
     "matches_photo_exchange_action_accept": "Accept photos",

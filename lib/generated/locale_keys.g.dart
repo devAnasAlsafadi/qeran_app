@@ -606,7 +606,6 @@ abstract class  LocaleKeys {
   static const subscriptions_status_day_unit = 'subscriptions.status_day_unit';
   static const subscriptions_status_per_day = 'subscriptions.status_per_day';
   static const subscriptions_available_plans = 'subscriptions.available_plans';
-  static const subscriptions_price_free = 'subscriptions.price_free';
   static const subscriptions_badge_popular = 'subscriptions.badge_popular';
   static const subscriptions_badge_your_plan = 'subscriptions.badge_your_plan';
   static const subscriptions_badge_upgrade_available = 'subscriptions.badge_upgrade_available';

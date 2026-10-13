@@ -61,6 +61,46 @@ final _free = SubscriptionPlan(
   pricings: const [_freePricing],
 );
 
+/// The free plan with its name and pricing label set as given.
+SubscriptionPlan _withPricing({
+  String nameAr = 'مجانية',
+  String nameEn = 'Free',
+  String? labelEn,
+}) => SubscriptionPlan(
+  id: 3,
+  nameAr: nameAr,
+  nameEn: nameEn,
+  descriptionAr: null,
+  descriptionEn: null,
+  icon: '',
+  color: '',
+  sortOrder: 0,
+  isActive: true,
+  isPopular: false,
+  isFree: true,
+  tier: 0,
+  features: planWith().features,
+  pricings: [
+    SubscriptionPricing(
+      id: 30,
+      planId: 3,
+      durationDays: 30,
+      labelAr: null,
+      labelEn: labelEn,
+      price: 0,
+      originalPrice: null,
+      discountPercent: 0,
+      monthlyEquivalent: 0,
+      sortOrder: 0,
+      isActive: true,
+      isPopular: false,
+      storeProductId: null,
+      appleProductId: null,
+      googleProductId: null,
+    ),
+  ],
+);
+
 /// The plans screen's list, with or without the free plan in the payload.
 Widget _selection({SubscriptionPlan? freePlan}) {
   final paid = planWith(tier: 1);
@@ -111,7 +151,8 @@ void main() {
     await sl.reset();
   });
 
-  final freeTitle = shippedSubscriptionsEn('free_plan_title');
+  // Run 10: the free card's name is the plan's own (`nameEn` here).
+  final freeTitle = _free.nameEn;
 
   testWidgets('no free plan in the payload: no free card', (tester) async {
     await pumpSubscriptionWidget(tester, _selection());
@@ -131,6 +172,39 @@ void main() {
     expect(find.text(freeTitle), findsOneWidget);
     expect(
       find.text(shippedSubscriptionsEn('free_activate_cta')),
+      findsOneWidget,
+    );
+  });
+
+  // Run 10, plans item 6: the name and period are the API's; ours only stand
+  // in when it sends none.
+  testWidgets('its name and its period label from the API', (tester) async {
+    await pumpSubscriptionWidget(
+      tester,
+      _selection(freePlan: _withPricing(labelEn: 'Free month')),
+    );
+
+    expect(find.text('Free'), findsOneWidget);
+    expect(find.text('Free month'), findsOneWidget);
+    expect(find.text(shippedSubscriptionsEn('free_plan_title')), findsNothing);
+  });
+
+  testWidgets('no period label: its days', (tester) async {
+    await pumpSubscriptionWidget(tester, _selection(freePlan: _free));
+
+    expect(find.text('7 days'), findsOneWidget);
+  });
+
+  testWidgets('no name sent: our title stands in', (tester) async {
+    await pumpSubscriptionWidget(
+      tester,
+      _selection(
+        freePlan: _withPricing(nameAr: '', nameEn: ''),
+      ),
+    );
+
+    expect(
+      find.text(shippedSubscriptionsEn('free_plan_title')),
       findsOneWidget,
     );
   });

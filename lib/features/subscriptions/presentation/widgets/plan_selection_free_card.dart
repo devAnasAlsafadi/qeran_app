@@ -44,33 +44,7 @@ class _FreePlanCard extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      LocaleKeys.subscriptions_free_plan_title.t(context),
-                      style: QeranTypography.subtitle.copyWith(
-                        color: QeranColors.wine,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (plan.subtitle(
-                      isArabic: context.locale.languageCode == 'ar',
-                    )
-                        case final subtitle?) ...[
-                      const SizedBox(height: 2),
-                      _PlanSubtitle(subtitle),
-                    ],
-                    const SizedBox(height: 2),
-                    Text(
-                      LocaleKeys.subscriptions_price_free.t(context),
-                      style: QeranTypography.bodySm
-                          .copyWith(color: QeranColors.inkBody),
-                    ),
-                  ],
-                ),
-              ),
+              Expanded(child: _FreeCardTitle(plan: plan)),
               if (isActive) const _YouAreHereBadge(),
             ],
           ),
@@ -94,6 +68,47 @@ class _FreePlanCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// The free plan's name, its tagline and its period, all the API's (run 10):
+/// «الباقة المجانية», «جرّب قِران شهراً مجاناً», «شهر مجاني». Our own title
+/// stands in only when the API sends no name.
+class _FreeCardTitle extends StatelessWidget {
+  const _FreeCardTitle({required this.plan});
+
+  final SubscriptionPlan plan;
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+    final name = plan.name(isArabic: isArabic);
+    final pricing = plan.activePricings.firstOrNull;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          name.isNotEmpty
+              ? name
+              : LocaleKeys.subscriptions_free_plan_title.t(context),
+          style: QeranTypography.subtitle.copyWith(
+            color: QeranColors.wine,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (plan.subtitle(isArabic: isArabic) case final subtitle?) ...[
+          const SizedBox(height: 2),
+          _PlanSubtitle(subtitle),
+        ],
+        if (pricing != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            pricePeriod(context, pricing, null),
+            style: QeranTypography.bodySm.copyWith(color: QeranColors.inkBody),
+          ),
+        ],
+      ],
     );
   }
 }

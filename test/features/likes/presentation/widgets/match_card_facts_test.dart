@@ -10,7 +10,7 @@ import 'match_card_copy_harness.dart';
 
 /// Run 7, item 5: the Mutual cards show the other member's residence, job and
 /// age under the name, as Sent and Received do — each only when the row
-/// carries it (TQ16 asks Tariq to send them on `matches`).
+/// carries it (TQ16: Tariq sends them on `matches` from his next deploy).
 Map<String, dynamic> _row([Map<String, dynamic> extra = const {}]) => {
   'likeRequestId': 7,
   'otherUserId': 'u7',
@@ -45,7 +45,7 @@ void main() {
   group('the row', () {
     test('direct keys', () {
       final card = MatchCardModel.fromJson(
-        _row({'age': 29, 'countryOfResidence': 'الكويت', 'job': 'مهندس'}),
+        _row({'age': 29, 'residenceCountry': 'الكويت', 'job': 'مهندس'}),
       ).toEntity();
       expect((card.age, card.residence, card.job), (29, 'الكويت', 'مهندس'));
     });

@@ -37,9 +37,9 @@ void main() {
       'profileId': 'user-3',
       'name': 'User',
       'status': 0,
-      'age': '31',
-      'countryOfResidence': 'Jordan',
-      'occupation': 'Engineer',
+      'age': 31,
+      'residenceCountry': 'Jordan',
+      'job': 'Engineer',
     }).toEntity();
 
     expect(entity.age, 31);

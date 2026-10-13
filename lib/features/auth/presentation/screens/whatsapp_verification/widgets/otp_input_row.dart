@@ -4,6 +4,7 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/utils/ascii_digits.dart';
 
 class OtpInputRow extends StatelessWidget {
   final List<TextEditingController> controllers;
@@ -65,7 +66,11 @@ class _OtpBox extends StatelessWidget {
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
         maxLength: 1,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        // «١» becomes 1 first; digits-only alone dropped it without a word.
+        inputFormatters: [
+          const AsciiDigitsFormatter(),
+          FilteringTextInputFormatter.digitsOnly,
+        ],
         onChanged: onChanged,
         style: QeranTypography.headline,
         decoration: const InputDecoration(

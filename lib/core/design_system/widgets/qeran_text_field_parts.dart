@@ -43,6 +43,7 @@ extension _Field on _QeranTextFieldState {
       enabled: widget.enabled,
       readOnly: widget.readOnly,
       maxLength: widget.maxLength,
+      inputFormatters: widget.inputFormatters,
       // Obscured input must stay single-line.
       maxLines: widget.obscureText ? 1 : widget.maxLines,
       // Dropped alongside it: a resting height above the forced ceiling of 1

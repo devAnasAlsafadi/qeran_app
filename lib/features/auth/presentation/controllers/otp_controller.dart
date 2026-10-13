@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/utils/ascii_digits.dart';
 
 class OtpController {
   final List<TextEditingController> otpControllers = List.generate(
@@ -7,7 +8,7 @@ class OtpController {
   );
   final List<FocusNode> otpFocusNodes = List.generate(4, (_) => FocusNode());
 
-  String get fullOtp => otpControllers.map((c) => c.text).join();
+  String get fullOtp => toAsciiDigits(otpControllers.map((c) => c.text).join());
 
   bool get isOtpComplete => fullOtp.length == 4;
 

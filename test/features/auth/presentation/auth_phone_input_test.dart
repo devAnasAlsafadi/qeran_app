@@ -22,19 +22,21 @@ void main() {
     code.dispose();
   });
 
-  Future<void> submit(WidgetTester tester, Locale locale, String typed) async {
-    await pumpShippedStrings(
-      tester,
-      locale,
-      child: Form(
-        key: form,
-        child: AuthPhoneInput(
-          controller: controller,
-          focusNode: focus,
-          countryCodeNotifier: code,
-        ),
+  Future<void> pump(WidgetTester tester, Locale locale) => pumpShippedStrings(
+    tester,
+    locale,
+    child: Form(
+      key: form,
+      child: AuthPhoneInput(
+        controller: controller,
+        focusNode: focus,
+        countryCodeNotifier: code,
       ),
-    );
+    ),
+  );
+
+  Future<void> submit(WidgetTester tester, Locale locale, String typed) async {
+    await pump(tester, locale);
     controller.text = typed;
     form.currentState!.validate();
     await tester.pump();
@@ -72,4 +74,17 @@ void main() {
     }
     expect(find.textContaining('validators.'), findsNothing);
   });
+
+  // Run 7, item 6: the client typed «١٢٣٤٥٦٧» and was told "digits only".
+  for (final (name, typed) in [
+    ('Arabic-Indic', '١٢٣٤٥٦٧'),
+    ('Persian', '۱۲۳۴۵۶۷'),
+  ]) {
+    testWidgets('$name digits typed show as 1234567 and pass', (tester) async {
+      await pump(tester, const Locale('ar'));
+      await tester.enterText(find.byType(TextField), typed);
+      expect(controller.text, '1234567');
+      expect(form.currentState!.validate(), isTrue);
+    });
+  }
 }

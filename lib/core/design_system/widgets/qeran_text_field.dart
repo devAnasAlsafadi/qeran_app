@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_radii.dart';
@@ -44,6 +45,7 @@ class QeranTextField extends StatefulWidget {
     this.suffix,
     this.autofillHints,
     this.helper,
+    this.inputFormatters,
   }) : assert(
          minLines == null || minLines <= maxLines,
          'minLines cannot exceed maxLines',
@@ -99,6 +101,10 @@ class QeranTextField extends StatefulWidget {
   /// danger take the line's place — instead of a bare error text. Both a
   /// [validator]'s message and [errorText] do.
   final QeranHelperLine? helper;
+
+  /// Applied to every edit, in order, before [maxLength]'s own limit — e.g.
+  /// `AsciiDigitsFormatter` on a field whose value is a number to the server.
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<QeranTextField> createState() => _QeranTextFieldState();

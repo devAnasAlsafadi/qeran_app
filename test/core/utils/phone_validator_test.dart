@@ -36,5 +36,15 @@ void main() {
         null,
       ); // spaces are ignored
     });
+
+    // Run 7, item 6: the client's «١٢٣٤٥٦٧» was refused as "digits only".
+    test('Arabic-Indic and Persian digits are digits', () {
+      expect(PhoneValidator.validate('١٢٣٤٥٦٧'), null);
+      expect(PhoneValidator.validate('۵۹۱ ۲۳۴ ۵۶۷'), null);
+      expect(
+        PhoneValidator.validate('١٢٣'),
+        LocaleKeys.validators_phone_too_short,
+      );
+    });
   });
 }

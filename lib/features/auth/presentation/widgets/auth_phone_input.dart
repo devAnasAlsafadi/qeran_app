@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/ascii_digits.dart';
 import 'package:qeran/core/utils/phone_validator.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -45,6 +46,7 @@ class AuthPhoneInput extends StatelessWidget {
                 focusNode: focusNode,
                 hint: LocaleKeys.auth_phone_hint.t(context),
                 keyboardType: TextInputType.phone,
+                inputFormatters: const [AsciiDigitsFormatter()],
                 textInputAction: TextInputAction.done,
                 // PhoneValidator answers with locale keys; they're
                 // translated here, where they're shown.

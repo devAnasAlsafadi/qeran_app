@@ -61,6 +61,7 @@ class _CouponField extends StatelessWidget {
             hint: LocaleKeys.subscriptions_discount_code_placeholder.t(context),
             enabled: !locked,
             maxLength: 20,
+            inputFormatters: const [AsciiDigitsFormatter()],
             textInputAction: TextInputAction.done,
             onSubmitted: locked ? null : (_) => onValidate(),
           ),

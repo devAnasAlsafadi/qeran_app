@@ -10,6 +10,7 @@ import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/design_system/widgets/qeran_text_field.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/ascii_digits.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_pricing.dart';
@@ -66,7 +67,7 @@ class _OrderSummaryWidgetState extends State<OrderSummaryWidget> {
   }
 
   void _validate() {
-    final code = _controller.text.trim().toUpperCase();
+    final code = toAsciiDigits(_controller.text.trim()).toUpperCase();
     final productId = widget.codeProductId;
     if (code.isEmpty || productId == null || productId.isEmpty) return;
     context

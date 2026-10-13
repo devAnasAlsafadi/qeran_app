@@ -662,7 +662,6 @@
     "feature_photo_exchanges_label": "تبادلات الصور",
     "feature_serious_interests_label": "الاهتمامات الجادة",
     "feature_daily_profile_views_label": "المشاهدات اليومية",
-    "currency": "$",
     "price_per_period": "{price} / {period}",
     "period_day": {
       "one": "يوم",

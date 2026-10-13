@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
+import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
@@ -14,8 +17,11 @@ import '../blocs/purchase/package_purchase_state.dart';
 /// * **Purchasing / validating** (or [freeBusy]) — inline spinner, disabled.
 /// * **Applied discount** — "Subscribe now — {percent}% off".
 /// * **Default** — "Subscribe now".
+/// * **[unavailable]** — no button: the store has no product for the chosen
+///   period, so one quiet line says the plan can't be bought now (run 10).
 class StickyCtaWidget extends StatelessWidget {
   final bool hasSelection;
+  final bool unavailable;
   final bool freeBusy;
   final int? discountPercent;
   final VoidCallback? onPressed;
@@ -26,10 +32,21 @@ class StickyCtaWidget extends StatelessWidget {
     required this.onPressed,
     this.freeBusy = false,
     this.discountPercent,
+    this.unavailable = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (unavailable) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: QeranSpacing.s12),
+        child: Text(
+          LocaleKeys.subscriptions_purchase_package_not_found.t(context),
+          textAlign: TextAlign.center,
+          style: QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
+        ),
+      );
+    }
     return BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(
       builder: (context, state) {
         final busy = freeBusy ||

@@ -9,10 +9,9 @@ import '../repositories/purchase_repository.dart';
 /// map by a pricing's platform store id (`appleProductId` / `googleProductId`)
 /// to bind the store's localized price string as the displayed/charged price.
 ///
-/// The store is the source of truth for price; backend pricing is the fallback
-/// when a product is missing (see `SubscriptionPlansCubit`). A store hiccup
-/// therefore surfaces as `Left(Failure)` and the caller degrades to backend
-/// prices — it must never break the paywall.
+/// The store is the only source of a displayed price; the API's `price` is
+/// never shown. A store hiccup surfaces as `Left(Failure)`, and the paywall
+/// shows the plans without prices or a buy button — it must never break.
 class GetStoreProductsUseCase {
   final PurchaseRepository _repository;
   const GetStoreProductsUseCase(this._repository);
@@ -26,7 +25,7 @@ class GetStoreProductsUseCase {
         // Google Play subscription store ids are "<productId>:<basePlanId>";
         // the paywall keys off the backend googleProductId (the bare portion).
         // Register both so a lookup by either shape resolves the store price
-        // instead of silently falling back to the backend price.
+        // instead of silently finding none.
         products[product.identifier] = product;
         products[product.identifier.split(':').first] = product;
         products[package.identifier] = product;

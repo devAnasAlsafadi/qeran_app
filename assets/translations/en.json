@@ -618,7 +618,6 @@
     "feature_photo_exchanges_label": "Photo exchanges",
     "feature_serious_interests_label": "Serious interests",
     "feature_daily_profile_views_label": "Daily profile views",
-    "currency": "$",
     "price_per_period": "{price} / {period}",
     "period_day": {
       "one": "day",

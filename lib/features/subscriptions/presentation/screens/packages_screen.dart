@@ -206,14 +206,15 @@ class _PackagesViewState extends State<_PackagesView>
                         : null;
                 // No store price means no purchase: the amount cannot be
                 // disclosed, and RevenueCat would fail to find the package
-                // anyway. Free plans are exempt — they never touch the store.
+                // anyway. Once the store has answered without it, the button
+                // gives way to one line saying so (run 10).
                 final selectedStoreProduct = selectedPricing == null
                     ? null
                     : state.storeProductFor(selectedPricing, isIOS: _isIOS);
                 final priceUnavailable = selectedPricing != null &&
-                    selectedPricing.price != 0 &&
                     selectedStoreProduct == null;
                 return StickyCtaWidget(
+                  unavailable: priceUnavailable && state.storeResolved,
                   hasSelection: selectedPricing != null && !priceUnavailable,
                   freeBusy: freeBusy,
                   discountPercent: discountPercent,

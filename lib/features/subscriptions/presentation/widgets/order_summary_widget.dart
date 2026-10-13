@@ -14,13 +14,14 @@ import 'package:qeran/core/utils/ascii_digits.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/subscription_pricing.dart';
-import '../../domain/helpers/subscription_format.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
 import '../blocs/purchase/package_purchase_state.dart';
 
 part 'order_summary_parts.dart';
 
-/// The "Order summary" card. Always renders the plan + the real store subtotal.
+/// The "Order summary" card. Renders the plan, and the store's own price when
+/// the store has the product; never the API's `price` (no currency, not what
+/// is charged), so with no store product there is no price row (run 10).
 /// When [allowDiscountCode] is set it also renders the coupon field, and once a
 /// code validates it adds the applied-coupon tag, a "% off" badge, the discount
 /// percent, and a "final price at checkout" note.
@@ -80,15 +81,6 @@ class _OrderSummaryWidgetState extends State<OrderSummaryWidget> {
     context.read<PackagePurchaseCubit>().reset();
   }
 
-  /// Subtotal = the real store price; backend price is the fallback only when
-  /// the store product hasn't resolved. No discount math either way.
-  String _subtotal(BuildContext context) {
-    final store = widget.storeProduct;
-    if (store != null) return store.priceString;
-    final currency = LocaleKeys.subscriptions_currency.t(context);
-    return SubscriptionFormat.formatPrice(widget.pricing.price, currency);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(
@@ -119,13 +111,15 @@ class _OrderSummaryWidgetState extends State<OrderSummaryWidget> {
               ),
               QeranSpacing.vs12,
               _PlanRow(name: widget.planName),
-              QeranSpacing.vs12,
-              _SummaryRow(
-                label: LocaleKeys.subscriptions_order_summary_subtotal
-                    .t(context),
-                value: _subtotal(context),
-                valueLtr: true,
-              ),
+              if (widget.storeProduct case final store?) ...[
+                QeranSpacing.vs12,
+                _SummaryRow(
+                  label: LocaleKeys.subscriptions_order_summary_subtotal
+                      .t(context),
+                  value: store.priceString,
+                  valueLtr: true,
+                ),
+              ],
               if (allowCode) ...[
                 QeranSpacing.vs12,
                 if (applied == null)

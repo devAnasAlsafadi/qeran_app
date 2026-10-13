@@ -38,25 +38,18 @@ class _PlanCard extends StatelessWidget {
     required this.onPricingSelected,
   });
 
-  /// Plan-card price summary. Zero-price (free) plans read "مجاني"/"Free" with
-  /// no currency at all; paid plans render the localized store price with the
-  /// period it pays for ("SAR 99.99 / 3 أشهر"), never a fixed «/شهر».
+  /// Plan-card price summary: the localized store price with the period it pays
+  /// for ("SAR 99.99 / 3 أشهر"), never a fixed «/شهر».
   ///
   /// Returns null when there is no store price to show — the caller then draws
-  /// a placeholder or the unavailable note. The backend `price` is deliberately
-  /// NOT used as a fallback: it is an administrative figure that differs from
-  /// what the store actually charges, so displaying it would misstate the
-  /// amount the user is about to pay.
+  /// a placeholder, or nothing. The API's `price` is never shown: it is an
+  /// administrative figure with no currency, not what the store charges.
   String? _priceLabel(
     BuildContext context,
     SubscriptionPricing? pricing,
     StoreProduct? storeProduct,
   ) {
-    if (pricing == null) return null;
-    if (pricing.price == 0) {
-      return LocaleKeys.subscriptions_price_free.t(context);
-    }
-    if (storeProduct == null) return null;
+    if (pricing == null || storeProduct == null) return null;
     return priceWithPeriod(context, storeProduct, pricing);
   }
 
@@ -69,8 +62,8 @@ class _PlanCard extends StatelessWidget {
 
     // Plan-card price: bound to the SELECTED pricing (the same one the summary,
     // CTA and charge read) — falling back to the first active pricing before a
-    // selection exists. Free → "مجاني"/"Free" (no currency); paid → the store
-    // price, or a placeholder until the store answers.
+    // selection exists: the store price, a placeholder until the store
+    // answers, or nothing when it has none.
     final activePricings = plan.activePricings;
     final selectedPricing = selectedPricingFor(plan) ??
         (activePricings.isNotEmpty ? activePricings.first : null);

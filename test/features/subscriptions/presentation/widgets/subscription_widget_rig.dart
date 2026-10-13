@@ -117,6 +117,7 @@ Future<void> pumpSubscriptionWidget(
   Widget body, {
   bool page = false,
   TransitionBuilder? builder,
+  bool settle = true,
 }) async {
   tester.view.physicalSize = const Size(400, 1800);
   tester.view.devicePixelRatio = 1;
@@ -140,5 +141,9 @@ Future<void> pumpSubscriptionWidget(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) return tester.pumpAndSettle().then((_) {});
+  // A shimmer never settles: a few frames instead.
+  for (var i = 0; i < 5; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }

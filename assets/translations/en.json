@@ -619,7 +619,23 @@
     "feature_serious_interests_label": "Serious interests",
     "feature_daily_profile_views_label": "Daily profile views",
     "currency": "$",
-    "per_month": "/mo",
+    "price_per_period": "{price} / {period}",
+    "period_day": {
+      "one": "day",
+      "other": "{n} days"
+    },
+    "period_week": {
+      "one": "week",
+      "other": "{n} weeks"
+    },
+    "period_month": {
+      "one": "month",
+      "other": "{n} months"
+    },
+    "period_year": {
+      "one": "year",
+      "other": "{n} years"
+    },
     "duration_days": "{days} days",
     "empty_plans": "No packages available right now",
     "load_failed": "Couldn't load packages",

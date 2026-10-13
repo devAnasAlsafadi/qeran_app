@@ -16,6 +16,7 @@ import '../../domain/entities/subscription_pricing.dart';
 import '../../domain/entities/current_subscription.dart';
 import 'plan_features_widget.dart';
 import 'plan_pricing_selector.dart';
+import 'price_period.dart';
 
 part 'plan_selection_card.dart';
 part 'plan_card_price.dart';

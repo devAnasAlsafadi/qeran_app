@@ -10,12 +10,11 @@ part of 'plan_selection_widget.dart';
 class _PlanCardPrice extends StatelessWidget {
   const _PlanCardPrice({
     required this.priceText,
-    required this.isFreePlan,
     required this.storeResolved,
   });
 
+  /// The whole line, period included ("SAR 99.99 / 3 أشهر", or «مجاني»).
   final String? priceText;
-  final bool isFreePlan;
   final bool storeResolved;
 
   @override
@@ -33,11 +32,6 @@ class _PlanCardPrice extends StatelessWidget {
       );
     }
 
-    // Free reads just "مجاني" — no "/شهريًا" suffix.
-    if (isFreePlan) return Text(text, style: style);
-    return Text(
-      '$text ${LocaleKeys.subscriptions_per_month.t(context)}',
-      style: style,
-    );
+    return Text(text, style: style);
   }
 }

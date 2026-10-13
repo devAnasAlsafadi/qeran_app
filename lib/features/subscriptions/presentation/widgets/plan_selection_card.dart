@@ -39,7 +39,8 @@ class _PlanCard extends StatelessWidget {
   });
 
   /// Plan-card price summary. Zero-price (free) plans read "مجاني"/"Free" with
-  /// no currency at all; paid plans render the localized store price.
+  /// no currency at all; paid plans render the localized store price with the
+  /// period it pays for ("SAR 99.99 / 3 أشهر"), never a fixed «/شهر».
   ///
   /// Returns null when there is no store price to show — the caller then draws
   /// a placeholder or the unavailable note. The backend `price` is deliberately
@@ -55,7 +56,8 @@ class _PlanCard extends StatelessWidget {
     if (pricing.price == 0) {
       return LocaleKeys.subscriptions_price_free.t(context);
     }
-    return storeProduct?.priceString;
+    if (storeProduct == null) return null;
+    return priceWithPeriod(context, storeProduct, pricing);
   }
 
   @override
@@ -75,8 +77,6 @@ class _PlanCard extends StatelessWidget {
     final storeProduct =
         selectedPricing != null ? resolveStoreProduct(selectedPricing) : null;
     final priceText = _priceLabel(context, selectedPricing, storeProduct);
-    // A free plan reads just "مجاني" — no "/شهريًا" per-month suffix.
-    final isFreePlan = selectedPricing?.price == 0;
 
     return GestureDetector(
       onTap: isOwned ? null : () => onPlanChanged(index),
@@ -147,7 +147,6 @@ class _PlanCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         _PlanCardPrice(
                           priceText: priceText,
-                          isFreePlan: isFreePlan,
                           storeResolved: storeResolved,
                         ),
                       ],

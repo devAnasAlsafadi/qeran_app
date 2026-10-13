@@ -663,7 +663,35 @@
     "feature_serious_interests_label": "الاهتمامات الجادة",
     "feature_daily_profile_views_label": "المشاهدات اليومية",
     "currency": "$",
-    "per_month": "/شهر",
+    "price_per_period": "{price} / {period}",
+    "period_day": {
+      "one": "يوم",
+      "two": "يومين",
+      "few": "{n} أيام",
+      "many": "{n} يوماً",
+      "other": "{n} يوم"
+    },
+    "period_week": {
+      "one": "أسبوع",
+      "two": "أسبوعين",
+      "few": "{n} أسابيع",
+      "many": "{n} أسبوعاً",
+      "other": "{n} أسبوع"
+    },
+    "period_month": {
+      "one": "شهر",
+      "two": "شهرين",
+      "few": "{n} أشهر",
+      "many": "{n} شهراً",
+      "other": "{n} شهر"
+    },
+    "period_year": {
+      "one": "سنة",
+      "two": "سنتين",
+      "few": "{n} سنوات",
+      "many": "{n} سنة",
+      "other": "{n} سنة"
+    },
     "duration_days": "{days} يوم",
     "empty_plans": "لا توجد باقات متاحة حالياً",
     "load_failed": "تعذّر تحميل الباقات",

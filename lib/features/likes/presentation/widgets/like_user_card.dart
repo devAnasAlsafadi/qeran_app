@@ -76,7 +76,11 @@ class LikeUserCard extends StatelessWidget {
       padding: const EdgeInsets.all(QeranSpacing.s16),
       onTap: card.isLocked ? onUnlock : onOpenProfile,
       child: card.isLocked
-          ? const LikeCardLocked()
+          ? LikeCardLocked(
+              age: card.age,
+              residence: card.residence,
+              job: card.job,
+            )
           : _VisibleContent(
               card: card,
               onAccept: onAccept,

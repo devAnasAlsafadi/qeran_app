@@ -6,16 +6,24 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'card_facts_line.dart';
+
 /// Locked variant — the server redacted the identity because the user
 /// isn't subscribed. The whole [QeranCard] is the tap target (routes to
 /// packages), so this only paints the redacted row: a lock-glyph avatar on
 /// the leading edge, a **redacted-name bar** where the name would be, the
-/// "unlock" subtitle, and a trailing disclosure chevron.
+/// facts the server still sends (its age: it leaves residence and job out on
+/// purpose, TQ16), the "unlock" subtitle, and a trailing disclosure chevron.
 class LikeCardLocked extends StatelessWidget {
-  const LikeCardLocked({super.key});
+  const LikeCardLocked({super.key, this.age, this.residence, this.job});
+
+  final int? age;
+  final String? residence;
+  final String? job;
 
   @override
   Widget build(BuildContext context) {
+    final facts = CardFactsLine(age: age, residence: residence, job: job);
     return Row(
       children: [
         const _LockAvatar(),
@@ -35,7 +43,13 @@ class LikeCardLocked extends StatelessWidget {
                   borderRadius: QeranRadii.pill,
                 ),
               ),
-              const SizedBox(height: QeranSpacing.s12),
+              if (facts.isEmpty)
+                const SizedBox(height: QeranSpacing.s12)
+              else ...[
+                QeranSpacing.vs8,
+                facts,
+                QeranSpacing.vs8,
+              ],
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

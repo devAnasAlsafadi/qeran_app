@@ -17,6 +17,7 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import '../../domain/entities/subscription_features.dart';
 import '../blocs/plans/subscription_plans_cubit.dart';
 import '../blocs/plans/subscription_plans_state.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
@@ -117,11 +118,11 @@ class _PackagesViewState extends State<_PackagesView>
     final isBasicOwned = currentSub != null && currentSub.plan.isBasicTier;
 
     if (isVipOwned) {
-      return const SafeArea(
+      return SafeArea(
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: _VipCelebratingWidget(),
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: _VipCelebratingWidget(features: currentSub.plan.features),
         ),
       );
     }

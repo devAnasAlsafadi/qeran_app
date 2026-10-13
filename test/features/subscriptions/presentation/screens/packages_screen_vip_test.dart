@@ -21,8 +21,8 @@ class _MockPurchase extends Mock implements PackagePurchaseCubit {}
 class _MockCurrent extends Mock implements CurrentSubscriptionCubit {}
 
 /// A VIP member opening the plans sees the "everything is yours" card instead.
-/// Its feature rows are fixed, so the serious-interests row would outlive the
-/// server dropping that allowance on release day (Phase 4 A1).
+/// Its three rows (likes, photo exchanges, daily views) read the plan's
+/// allowances; the serious-interests row is never one of them (Phase 4 A1).
 void main() {
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
@@ -48,6 +48,34 @@ void main() {
   });
 
   tearDown(sl.reset);
+
+  Future<void> openAsVip(WidgetTester tester) async {
+    final current = _MockCurrent();
+    when(() => current.state).thenReturn(
+      CurrentSubscriptionLoaded(
+        subscriptionWith(allowed: -1, used: 0, remaining: -1, tier: 2),
+      ),
+    );
+    when(() => current.stream).thenAnswer((_) => const Stream.empty());
+    await pumpSubscriptionWidget(
+      tester,
+      BlocProvider<CurrentSubscriptionCubit>.value(
+        value: current,
+        child: const PackagesScreen(),
+      ),
+      page: true,
+    );
+  }
+
+  // Run 10, plans item 5: the rows read the plan's features{} (here likes 50,
+  // photo exchanges 5, daily views unlimited), not three fixed «غير محدود».
+  testWidgets('the rows say what the plan gives', (tester) async {
+    await openAsVip(tester);
+
+    expect(find.text('50'), findsOneWidget);
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text(shippedSubscriptionsEn('unlimited')), findsOneWidget);
+  });
 
   testWidgets('the VIP card lists no serious-interests row', (tester) async {
     final current = _MockCurrent();

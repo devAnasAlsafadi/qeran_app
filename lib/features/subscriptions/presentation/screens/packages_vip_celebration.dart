@@ -1,8 +1,12 @@
 part of 'packages_screen.dart';
 
-/// A VIP owner's plans screen: a celebration in place of the plans.
+/// A VIP owner's plans screen: a celebration in place of the plans. Its rows
+/// say what the plan gives, from its `features{}` (run 10): unlimited or the
+/// number.
 class _VipCelebratingWidget extends StatelessWidget {
-  const _VipCelebratingWidget();
+  const _VipCelebratingWidget({required this.features});
+
+  final SubscriptionFeatures features;
 
   @override
   Widget build(BuildContext context) {
@@ -93,16 +97,19 @@ class _VipCelebratingWidget extends StatelessWidget {
                     label: LocaleKeys.subscriptions_feature_likes_label.t(
                       context,
                     ),
+                    allowed: features.likesAllowed,
                   ),
                   _CelebratingFeatureRow(
                     label: LocaleKeys
                         .subscriptions_feature_photo_exchanges_label
                         .t(context),
+                    allowed: features.photoExchangesAllowed,
                   ),
                   _CelebratingFeatureRow(
                     label: LocaleKeys
                         .subscriptions_feature_daily_profile_views_label
                         .t(context),
+                    allowed: features.dailyProfileViewsAllowed,
                   ),
                   const SizedBox(height: 28),
                   QeranButton(
@@ -123,7 +130,10 @@ class _VipCelebratingWidget extends StatelessWidget {
 
 class _CelebratingFeatureRow extends StatelessWidget {
   final String label;
-  const _CelebratingFeatureRow({required this.label});
+
+  /// The plan's allowance: `-1` is unlimited.
+  final int allowed;
+  const _CelebratingFeatureRow({required this.label, required this.allowed});
 
   @override
   Widget build(BuildContext context) {
@@ -143,25 +153,31 @@ class _CelebratingFeatureRow extends StatelessWidget {
               style: QeranTypography.body.copyWith(color: QeranColors.wine),
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.all_inclusive_rounded,
-                size: 17,
-                color: QeranColors.goldDeep,
-              ),
-              QeranSpacing.hs4,
-              Text(
-                LocaleKeys.subscriptions_unlimited.t(context),
-                style: QeranTypography.body.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+          if (!SubscriptionFeatures.isUnlimited(allowed))
+            Text(
+              '$allowed',
+              style: QeranTypography.numeric.copyWith(color: QeranColors.wine),
+            )
+          else
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.all_inclusive_rounded,
+                  size: 17,
                   color: QeranColors.goldDeep,
                 ),
-              ),
-            ],
-          ),
+                QeranSpacing.hs4,
+                Text(
+                  LocaleKeys.subscriptions_unlimited.t(context),
+                  style: QeranTypography.body.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: QeranColors.goldDeep,
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

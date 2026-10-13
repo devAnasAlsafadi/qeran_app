@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/profile/data/models/placement_model.dart';
+import 'package:qeran/features/profile/domain/entities/placement.dart';
 import 'package:qeran/features/profile/domain/entities/placement_code.dart';
 import 'package:qeran/features/profile/domain/entities/placement_item_type.dart';
 import 'package:qeran/features/profile/domain/entities/placement_value.dart';
@@ -75,6 +76,22 @@ void main() {
       }).toEntity();
       expect(entity.code, PlacementCode.aboutMe);
       expect(entity.items, isEmpty);
+    });
+
+    // TQ18: the category's dashboard key, and whether the payload sends it.
+    test('categoryKey: set, null, or not sent at all', () {
+      Placement parse(Map<String, dynamic> extra) => PlacementModel.fromJson({
+            'placementCode': 0,
+            'placementName': 'الدين ونمط الحياة',
+            ...extra,
+          }).toEntity();
+
+      final set = parse({'categoryKey': 'religion'});
+      expect((set.categoryKey, set.hasCategoryKey), ('religion', true));
+      final unset = parse({'categoryKey': null});
+      expect((unset.categoryKey, unset.hasCategoryKey), (null, true));
+      final before = parse({});
+      expect((before.categoryKey, before.hasCategoryKey), (null, false));
     });
   });
 }

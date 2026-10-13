@@ -58,6 +58,10 @@ Future<void> _pump(WidgetTester tester) => pumpOnPhone(
   ),
 );
 
+/// A section from a payload with no `categoryKey` (before Tariq's deploy).
+Placement _named(String name) =>
+    Placement(code: PlacementCode.defaultGroup, name: name, items: const []);
+
 Rect _rect(WidgetTester tester, String text) => tester.getRect(find.text(text));
 
 /// How many lines [text] was laid out on: one per distinct row of its
@@ -74,21 +78,36 @@ int _lines(WidgetTester tester, String text) => tester
 void main() {
   setUpAll(loadShippedFonts);
 
-  group('the section icon, by name', () {
+  group('the section icon, by name, while no key is sent', () {
     test('the known sections', () {
-      expect(sectionIconFor('الدين ونمط الحياة'), Icons.mosque_outlined);
-      expect(sectionIconFor('الحياة الزوجية'), Icons.diversity_1_outlined);
-      expect(sectionIconFor('الوظيفة والدخل'), Icons.work_outline_rounded);
-      expect(sectionIconFor('المعلومات الشخصية'), Icons.badge_outlined);
+      expect(
+        sectionIconFor(_named('الدين ونمط الحياة')),
+        Icons.mosque_outlined,
+      );
+      expect(
+        sectionIconFor(_named('الحياة الزوجية')),
+        Icons.diversity_1_outlined,
+      );
+      expect(
+        sectionIconFor(_named('الوظيفة والدخل')),
+        Icons.work_outline_rounded,
+      );
+      expect(sectionIconFor(_named('المعلومات الشخصية')), Icons.badge_outlined);
     });
 
     test('marks and the tatweel do not hide a name', () {
-      expect(sectionIconFor('الحياة الزوجيّة'), Icons.diversity_1_outlined);
-      expect(sectionIconFor('الـدين ونمط الحياة'), Icons.mosque_outlined);
+      expect(
+        sectionIconFor(_named('الحياة الزوجيّة')),
+        Icons.diversity_1_outlined,
+      );
+      expect(
+        sectionIconFor(_named('الـدين ونمط الحياة')),
+        Icons.mosque_outlined,
+      );
     });
 
     test('a name it does not know keeps the default', () {
-      expect(sectionIconFor('قسم جديد'), Icons.list_alt_rounded);
+      expect(sectionIconFor(_named('قسم جديد')), Icons.list_alt_rounded);
     });
   });
 

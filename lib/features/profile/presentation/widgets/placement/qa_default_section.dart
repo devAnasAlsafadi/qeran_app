@@ -22,7 +22,7 @@ class QaDefaultSection extends StatelessWidget {
       children: [
         ProfileSectionHeader(
           title: placement.name,
-          icon: sectionIconFor(placement.name),
+          icon: sectionIconFor(placement),
         ),
         QeranSpacing.vs8,
         for (final item in placement.items)

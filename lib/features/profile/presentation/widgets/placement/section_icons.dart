@@ -7,49 +7,51 @@ import '../../../domain/entities/placement.dart';
 /// (null) and a key we don't know get the default.
 ///
 /// Until Tariq's deploy the payload carries no `categoryKey`, and the icon
-/// goes by the section's name, as it did since run 7.
+/// goes by the section's name: the key that name stands for, so the icon is
+/// the same either side of the deploy.
 IconData sectionIconFor(Placement placement) {
   if (placement.hasCategoryKey) {
     final key = placement.categoryKey?.trim().toLowerCase();
     return _byKey[key] ?? _defaultIcon;
   }
-  return _byName(placement.name);
+  return _byKey[_keyByName(placement.name)] ?? _defaultIcon;
 }
 
 const IconData _defaultIcon = Icons.list_alt_rounded;
 
-/// The keys proposed to Tariq (`17`, run 9). `other` is left out on purpose:
-/// it takes the default.
+/// The keys sent to Tariq (`14`, TQ18), one per live category. `other` and
+/// «بدون تصنيف» (null) are left out on purpose: they take the default.
 const Map<String, IconData> _byKey = {
   'personal': Icons.badge_outlined,
-  'religion': Icons.mosque_outlined,
+  'values': Icons.mosque_outlined,
   'marriage': Icons.diversity_1_outlined,
   'work': Icons.work_outline_rounded,
-  'education': Icons.school_outlined,
+  'about': Icons.person_search_outlined,
+  'personality': Icons.psychology_outlined,
 };
 
 /// TO REMOVE after Tariq's deploy (`14`, TQ18), with
-/// [Placement.hasCategoryKey]: the icon by the section's name, matched on
-/// words, not whole names, ignoring Arabic marks and the tatweel, so a respelt
-/// «الحياة الزوجيّة» still finds its icon. A name it doesn't know keeps the
-/// default.
-IconData _byName(String name) {
+/// [Placement.hasCategoryKey]: the key a live category's name stands for, so
+/// its icon is the same before and after the deploy. Matched on a word of the
+/// dashboard's name (AR and EN), ignoring Arabic marks and the tatweel; a name
+/// it doesn't know takes the default.
+String? _keyByName(String name) {
   final bare = name.replaceAll(_marks, '').toLowerCase();
-  for (final (words, icon) in _byWords) {
-    if (words.any(bare.contains)) return icon;
+  for (final (words, key) in _keyWords) {
+    if (words.any(bare.contains)) return key;
   }
-  return _defaultIcon;
+  return null;
 }
 
 final RegExp _marks = RegExp('[\u0640\u064B-\u065F\u0670]');
 
-const List<(List<String>, IconData)> _byWords = [
-  (['الدين', 'religion'], Icons.mosque_outlined),
-  (['الزوجية', 'الزواج', 'marri'], Icons.diversity_1_outlined),
-  (
-    ['الوظيفة', 'العمل', 'الدخل', 'work', 'job', 'income'],
-    Icons.work_outline_rounded,
-  ),
-  (['التعليم', 'education'], Icons.school_outlined),
-  (['الشخصية', 'personal'], Icons.badge_outlined),
+/// Each list names words only its own category's name has («الشخصية» is in
+/// two, so it is in neither).
+const List<(List<String>, String)> _keyWords = [
+  (['السمات', 'personality'], 'personality'),
+  (['المعلومات', 'personal information'], 'personal'),
+  (['القيم', 'values'], 'values'),
+  (['الزوجية', 'marital'], 'marriage'),
+  (['الوظيفة', 'الدخل', 'work'], 'work'),
+  (['شريك', 'partner'], 'about'),
 ];

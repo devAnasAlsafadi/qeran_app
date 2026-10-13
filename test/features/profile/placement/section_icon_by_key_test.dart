@@ -15,7 +15,7 @@ import '../../../core/shipped_fonts_rig.dart';
 /// section's icon goes by the key; by its name only while the payload has no
 /// such field (before his deploy); the default for null, `other` or a key we
 /// don't know.
-IconData _iconFor(Map<String, dynamic> extra, {String name = 'الدين'}) =>
+IconData _iconFor(Map<String, dynamic> extra, {String name = 'القيم'}) =>
     sectionIconFor(
       PlacementModel.fromJson({
         'placementCode': 0,
@@ -26,27 +26,26 @@ IconData _iconFor(Map<String, dynamic> extra, {String name = 'الدين'}) =>
     );
 
 void main() {
-  test('each proposed key has its icon', () {
+  test('each live key has its icon', () {
     expect(_iconFor({'categoryKey': 'personal'}), Icons.badge_outlined);
-    expect(_iconFor({'categoryKey': 'religion'}), Icons.mosque_outlined);
+    expect(_iconFor({'categoryKey': 'values'}), Icons.mosque_outlined);
     expect(_iconFor({'categoryKey': 'marriage'}), Icons.diversity_1_outlined);
     expect(_iconFor({'categoryKey': 'work'}), Icons.work_outline_rounded);
-    expect(_iconFor({'categoryKey': 'education'}), Icons.school_outlined);
+    expect(_iconFor({'categoryKey': 'about'}), Icons.person_search_outlined);
+    expect(_iconFor({'categoryKey': 'personality'}), Icons.psychology_outlined);
   });
 
   test('the key wins over the name', () {
-    final icon = _iconFor({
-      'categoryKey': 'education',
-    }, name: 'الدين ونمط الحياة');
-    expect(icon, Icons.school_outlined);
+    final icon = _iconFor({'categoryKey': 'work'}, name: 'القيم ونمط الحياة');
+    expect(icon, Icons.work_outline_rounded);
   });
 
   test(
     'null, other and an unknown key take the default, whatever the name',
     () {
-      for (final key in [null, 'other', 'hobbies', '']) {
+      for (final key in [null, 'other', 'religion', 'education', '']) {
         expect(
-          _iconFor({'categoryKey': key}, name: 'الدين ونمط الحياة'),
+          _iconFor({'categoryKey': key}, name: 'القيم ونمط الحياة'),
           Icons.list_alt_rounded,
           reason: 'categoryKey: $key',
         );
@@ -55,18 +54,18 @@ void main() {
   );
 
   test('the key is read whatever its case or spaces', () {
-    expect(_iconFor({'categoryKey': ' Religion '}), Icons.mosque_outlined);
+    expect(_iconFor({'categoryKey': ' Values '}), Icons.mosque_outlined);
   });
 
   test('no categoryKey in the payload: the name decides, as before', () {
-    expect(_iconFor({}, name: 'الدين ونمط الحياة'), Icons.mosque_outlined);
+    expect(_iconFor({}, name: 'القيم ونمط الحياة'), Icons.mosque_outlined);
     expect(_iconFor({}, name: 'قسم جديد'), Icons.list_alt_rounded);
   });
   testWidgets('the section draws the icon of its key', (tester) async {
     final placement = PlacementModel.fromJson({
       'placementCode': 0,
-      'placementName': 'الدين ونمط الحياة',
-      'categoryKey': 'education',
+      'placementName': 'القيم ونمط الحياة',
+      'categoryKey': 'work',
     }).toEntity();
     final section = Placement(
       code: placement.code,
@@ -86,7 +85,7 @@ void main() {
 
     await pumpOnPhone(tester, 'ar', QaDefaultSection(placement: section));
 
-    expect(find.byIcon(Icons.school_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.work_outline_rounded), findsOneWidget);
     expect(find.byIcon(Icons.mosque_outlined), findsNothing);
   });
 }

@@ -79,20 +79,25 @@ void main() {
   setUpAll(loadShippedFonts);
 
   group('the section icon, by name, while no key is sent', () {
-    test('the known sections', () {
-      expect(
-        sectionIconFor(_named('الدين ونمط الحياة')),
-        Icons.mosque_outlined,
-      );
-      expect(
-        sectionIconFor(_named('الحياة الزوجية')),
-        Icons.diversity_1_outlined,
-      );
-      expect(
-        sectionIconFor(_named('الوظيفة والدخل')),
-        Icons.work_outline_rounded,
-      );
-      expect(sectionIconFor(_named('المعلومات الشخصية')), Icons.badge_outlined);
+    const live = {
+      'المعلومات الشخصية': Icons.badge_outlined,
+      'Personal Information': Icons.badge_outlined,
+      'القيم ونمط الحياة': Icons.mosque_outlined,
+      'Values & Lifestyle': Icons.mosque_outlined,
+      'الحياة الزوجية': Icons.diversity_1_outlined,
+      'Marital Life': Icons.diversity_1_outlined,
+      'الوظيفة والدخل': Icons.work_outline_rounded,
+      'Work & Income': Icons.work_outline_rounded,
+      'عني وعن شريك حياتي': Icons.person_search_outlined,
+      'About Me & My Partner': Icons.person_search_outlined,
+      'السمات الشخصية والاهتمامات': Icons.psychology_outlined,
+      'Personality & Interests': Icons.psychology_outlined,
+    };
+
+    test('each live category, in both languages, as its key would', () {
+      live.forEach((name, icon) {
+        expect(sectionIconFor(_named(name)), icon, reason: name);
+      });
     });
 
     test('marks and the tatweel do not hide a name', () {
@@ -101,13 +106,17 @@ void main() {
         Icons.diversity_1_outlined,
       );
       expect(
-        sectionIconFor(_named('الـدين ونمط الحياة')),
+        sectionIconFor(_named('الـقيم ونمط الحياة')),
         Icons.mosque_outlined,
       );
     });
 
     test('a name it does not know keeps the default', () {
-      expect(sectionIconFor(_named('قسم جديد')), Icons.list_alt_rounded);
+      expect(sectionIconFor(_named('بدون تصنيف')), Icons.list_alt_rounded);
+      expect(
+        sectionIconFor(_named('الدين ونمط الحياة')),
+        Icons.list_alt_rounded,
+      );
     });
   });
 

@@ -71,6 +71,8 @@ SubscriptionPlan planOf({
   bool isFree = false,
   SubscriptionFeatures features = unlimited,
   List<SubscriptionPricing>? pricings,
+  String? subtitleAr,
+  String? subtitleEn,
 }) => SubscriptionPlan(
   id: id,
   nameAr: nameAr,
@@ -88,6 +90,8 @@ SubscriptionPlan planOf({
   featuresEn: 'Intensive matchmaker follow-up',
   features: features,
   pricings: pricings ?? [vipMonth, vipQuarter],
+  subtitleAr: subtitleAr,
+  subtitleEn: subtitleEn,
 );
 
 StoreProduct productOf(String id, String price, {String? period}) =>

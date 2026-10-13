@@ -137,6 +137,11 @@ class _PlanCard extends StatelessWidget {
                             ],
                           ],
                         ),
+                        if (plan.subtitle(isArabic: isArabic)
+                            case final subtitle?) ...[
+                          const SizedBox(height: 2),
+                          _PlanSubtitle(subtitle),
+                        ],
                         const SizedBox(height: 2),
                         _PlanCardPrice(
                           priceText: priceText,

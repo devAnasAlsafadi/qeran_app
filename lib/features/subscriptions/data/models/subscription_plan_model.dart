@@ -25,6 +25,8 @@ class SubscriptionPlanModel {
   final String? featuresEn;
   final SubscriptionFeaturesModel features;
   final List<SubscriptionPricingModel> pricings;
+  final String? subtitleAr;
+  final String? subtitleEn;
 
   const SubscriptionPlanModel({
     required this.id,
@@ -43,6 +45,8 @@ class SubscriptionPlanModel {
     required this.featuresEn,
     required this.features,
     required this.pricings,
+    this.subtitleAr,
+    this.subtitleEn,
   });
 
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
@@ -68,6 +72,8 @@ class SubscriptionPlanModel {
           .whereType<Map<String, dynamic>>()
           .map(SubscriptionPricingModel.fromJson)
           .toList(),
+      subtitleAr: json['subtitleAr'] as String?,
+      subtitleEn: json['subtitleEn'] as String?,
     );
   }
 
@@ -88,5 +94,7 @@ class SubscriptionPlanModel {
         featuresEn: featuresEn,
         features: features.toEntity(),
         pricings: pricings.map((p) => p.toEntity()).toList(),
+        subtitleAr: subtitleAr,
+        subtitleEn: subtitleEn,
       );
 }

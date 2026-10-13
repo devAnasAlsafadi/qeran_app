@@ -55,6 +55,13 @@ class _FreePlanCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (plan.subtitle(
+                      isArabic: context.locale.languageCode == 'ar',
+                    )
+                        case final subtitle?) ...[
+                      const SizedBox(height: 2),
+                      _PlanSubtitle(subtitle),
+                    ],
                     const SizedBox(height: 2),
                     Text(
                       LocaleKeys.subscriptions_price_free.t(context),

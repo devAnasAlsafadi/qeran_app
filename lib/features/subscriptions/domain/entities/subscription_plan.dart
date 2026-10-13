@@ -49,6 +49,11 @@ class SubscriptionPlan extends Equatable {
   final SubscriptionFeatures features;
   final List<SubscriptionPricing> pricings;
 
+  /// The dashboard's one-line tagline under the plan's name, per locale
+  /// («جرّب قِران شهراً مجاناً»). Nullable.
+  final String? subtitleAr;
+  final String? subtitleEn;
+
   const SubscriptionPlan({
     required this.id,
     required this.nameAr,
@@ -66,6 +71,8 @@ class SubscriptionPlan extends Equatable {
     this.featuresEn,
     required this.features,
     required this.pricings,
+    this.subtitleAr,
+    this.subtitleEn,
   });
 
   /// Tier identification (see [tier]). Null tier → both false.
@@ -104,6 +111,18 @@ class SubscriptionPlan extends Equatable {
     return isArabic ? nameEn : nameAr;
   }
 
+  /// The tagline in the active locale, else the other; null when neither is
+  /// set, so nothing is drawn.
+  String? subtitle({required bool isArabic}) {
+    for (final raw in isArabic
+        ? [subtitleAr, subtitleEn]
+        : [subtitleEn, subtitleAr]) {
+      final text = raw?.trim();
+      if (text != null && text.isNotEmpty) return text;
+    }
+    return null;
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -122,5 +141,7 @@ class SubscriptionPlan extends Equatable {
         featuresEn,
         features,
         pricings,
+        subtitleAr,
+        subtitleEn,
       ];
 }

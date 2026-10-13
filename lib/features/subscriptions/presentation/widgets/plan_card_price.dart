@@ -1,5 +1,19 @@
 part of 'plan_selection_widget.dart';
 
+/// The dashboard's tagline under a plan's name (run 10), on the paid cards and
+/// the free card alike.
+class _PlanSubtitle extends StatelessWidget {
+  const _PlanSubtitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
+  );
+}
+
 /// The plan-card price line. Renders the store price when there is one, a
 /// shimmer while the catalogue is still loading, and nothing once the store has
 /// answered without one: the plan's content stands without a price, and the
@@ -10,10 +24,7 @@ part of 'plan_selection_widget.dart';
 /// `monthlyEquivalent`): they carry no currency and aren't what the store
 /// charges.
 class _PlanCardPrice extends StatelessWidget {
-  const _PlanCardPrice({
-    required this.priceText,
-    required this.storeResolved,
-  });
+  const _PlanCardPrice({required this.priceText, required this.storeResolved});
 
   /// The whole line, period included ("SAR 99.99 / 3 أشهر").
   final String? priceText;

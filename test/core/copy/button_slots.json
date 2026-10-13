@@ -93,7 +93,7 @@
   {"site": "full_profile_details_screen:315", "key": "discovery.action_pass_label", "width": 154, "size": "md", "lead": true},
   {"site": "photo_manager_screen:349", "key": "auth.photo_upload_button", "width": 328},
   {"site": "profile_self_view:122", "key": "profile.photos_manage", "width": 320, "lead": true},
-  {"site": "profile_screen:531", "key": "profile.upsell_cta", "width": 284},
+  {"site": "profile_upgrade_banner:91", "key": "profile.upsell_cta", "width": 296, "size": "compact"},
   {"site": "report_card:75", "key": "matchmaker.community.report_keep", "width": 144, "size": "compact", "lead": true},
   {"site": "report_card:85", "key": "common.delete", "width": 144, "size": "compact", "lead": true},
   {"site": "case_status_actions:59 visited", "key": "matchmaker.cases_action_parents_visited", "width": 320, "lead": true},

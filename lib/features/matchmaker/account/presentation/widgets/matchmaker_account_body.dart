@@ -227,18 +227,19 @@ class _HeroAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const size = SettingsProfileHero.avatarSize;
     if (url == null || url!.isEmpty) {
-      return QeranMonogram(name: name, size: 64);
+      return QeranMonogram(name: name, size: size);
     }
     return Container(
-      width: 64,
-      height: 64,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: QeranColors.gold, width: 1.5),
       ),
       padding: const EdgeInsets.all(2),
-      child: MatchmakerUserAvatar(url: url, size: 58, monogramName: name),
+      child: MatchmakerUserAvatar(url: url, size: size - 6, monogramName: name),
     );
   }
 }

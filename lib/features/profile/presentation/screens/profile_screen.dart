@@ -3,12 +3,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
-import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
 import 'package:qeran/core/design_system/widgets/qeran_chip.dart';
 import 'package:qeran/core/design_system/widgets/qeran_monogram.dart';
@@ -23,6 +19,7 @@ import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/features/auth/presentation/session_image_headers.dart';
 import 'package:qeran/features/profile/presentation/default_name_banner_session.dart';
 import 'package:qeran/features/profile/presentation/widgets/default_name_banner.dart';
+import 'package:qeran/features/profile/presentation/widgets/profile_upgrade_banner.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_cubit.dart';
 import 'package:qeran/features/auth/presentation/blocs/user_session/user_session_state.dart';
 import 'package:qeran/features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
@@ -147,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     verified: false,
                     completionLabel: null,
                   ),
-                  const _UpgradeTeaserCard(),
+                  const ProfileUpgradeBanner(),
                   QeranSpacing.vs24,
                   QeranSectionHeader(
                     title: LocaleKeys.settings_account_management.t(context),
@@ -207,11 +204,12 @@ class _HeroAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const size = SettingsProfileHero.avatarSize;
     final hasPhoto = photoUrl != null && photoUrl!.isNotEmpty;
-    if (!hasPhoto) return QeranMonogram(name: name, size: 64);
+    if (!hasPhoto) return QeranMonogram(name: name, size: size);
     return Container(
-      width: 64,
-      height: 64,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: QeranColors.gold, width: 1.5),
@@ -222,10 +220,10 @@ class _HeroAvatar extends StatelessWidget {
           imageUrl: photoUrl!,
           httpHeaders: sessionImageHeaders(context, photoUrl!),
           fit: BoxFit.cover,
-          width: 58,
-          height: 58,
-          placeholder: (_, _) => QeranMonogram(name: name, size: 58),
-          errorWidget: (_, _, _) => QeranMonogram(name: name, size: 58),
+          width: size - 6,
+          height: size - 6,
+          placeholder: (_, _) => QeranMonogram(name: name, size: size - 6),
+          errorWidget: (_, _, _) => QeranMonogram(name: name, size: size - 6),
         ),
       ),
     );
@@ -411,168 +409,5 @@ class _SubscriptionRow extends StatelessWidget {
         (LocaleKeys.subscriptions_activating_title.t(context), false),
       _ => (LocaleKeys.subscriptions_status_none_subtitle.t(context), true),
     };
-  }
-}
-
-class _UpgradeTeaserCard extends StatelessWidget {
-  const _UpgradeTeaserCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<CurrentSubscriptionCubit, CurrentSubscriptionState>(
-      builder: (context, state) {
-        // Show the upsell for everyone who can still upgrade — no subscription,
-        // Free (tier 0), or Basic (tier 1). Hide it ONLY for an active VIP
-        // (tier 2), the top tier. Backend-driven: gate on tier +
-        // isCurrentlyActive (never the plan name). Honours `lastKnown` too, so
-        // a VIP doesn't flash the upsell during a transient /current failure.
-        final isActiveVip = switch (state) {
-          CurrentSubscriptionLoaded(:final subscription) =>
-            subscription.isCurrentlyActive && subscription.plan.isVipTier,
-          CurrentSubscriptionFailure(:final lastKnown) => lastKnown != null &&
-              lastKnown.isCurrentlyActive &&
-              lastKnown.plan.isVipTier,
-          _ => false,
-        };
-
-        // Nor while a purchase is activating (C5): it's already paid for.
-        if (isActiveVip || state is CurrentSubscriptionActivating) {
-          return const SizedBox.shrink();
-        }
-
-        return Container(
-          margin: const EdgeInsets.only(top: QeranSpacing.s24),
-          decoration: BoxDecoration(
-            borderRadius: QeranRadii.panelR,
-            boxShadow: QeranShadows.eHero,
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [QeranColors.wineLight, QeranColors.wine],
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: QeranRadii.panelR,
-            child: Stack(
-              children: [
-                // Circular background overlay decoration
-                Positioned(
-                  top: -50,
-                  right: -30,
-                  child: Container(
-                    width: 180,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: QeranColors.gold.withValues(alpha: 0.20),
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(22),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: QeranColors.gold.withValues(alpha: 0.18),
-                              border: Border.all(color: QeranColors.gold, width: 1.2),
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.workspace_premium_rounded,
-                              color: QeranColors.gold,
-                              size: 27,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  LocaleKeys.profile_upsell_title.t(context),
-                                  style: QeranTypography.subtitle.copyWith(
-                                    color: QeranColors.paper,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 17,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  LocaleKeys.profile_upsell_subtitle.t(context),
-                                  style: QeranTypography.bodySm.copyWith(
-                                    color: QeranColors.gold.withValues(alpha: 0.80),
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      QeranSpacing.vs16,
-                      // Teasers list
-                      _TeaserRow(
-                        label: LocaleKeys.profile_upsell_teaser_1.t(context),
-                      ),
-                      _TeaserRow(
-                        label: LocaleKeys.profile_upsell_teaser_2.t(context),
-                      ),
-                      const SizedBox(height: 18),
-                      QeranButton(
-                        label: LocaleKeys.profile_upsell_cta.t(context),
-                        onPressed: () => NavigationManager.navigateTo(
-                          context,
-                          RouteNames.packagesScreen,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _TeaserRow extends StatelessWidget {
-  final String label;
-  const _TeaserRow({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.done_rounded,
-            color: QeranColors.gold,
-            size: 18,
-          ),
-          QeranSpacing.hs8,
-          Expanded(
-            child: Text(
-              label,
-              style: QeranTypography.bodySm.copyWith(
-                color: QeranColors.paper,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

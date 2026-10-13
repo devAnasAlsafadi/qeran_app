@@ -19,8 +19,11 @@ import '../../../../core/design_system/tokens/qeran_typography.dart';
 ///   yet; see HANDOFF).
 ///
 /// [avatar] is a slot (each role supplies its own photo-or-monogram widget,
-/// sized ~64) so the JWT-headered matchmaker avatar and the session-photo user
-/// avatar both fit without the hero knowing their source.
+/// sized [avatarSize]) so the JWT-headered matchmaker avatar and the
+/// session-photo user avatar both fit without the hero knowing their source.
+///
+/// Compact (run 8, the client: with the upgrade card it took over half the
+/// screen): a 48 avatar, the name at title size, 14 above and below.
 class SettingsProfileHero extends StatelessWidget {
   const SettingsProfileHero({
     super.key,
@@ -32,6 +35,9 @@ class SettingsProfileHero extends StatelessWidget {
     this.completionLabel,
     this.verified = false,
   });
+
+  /// The avatar both roles put in the slot.
+  static const double avatarSize = 48;
 
   final Widget avatar;
   final String name;
@@ -75,9 +81,11 @@ class SettingsProfileHero extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(QeranSpacing.s20),
+              padding: const EdgeInsets.symmetric(
+                horizontal: QeranSpacing.s16,
+                vertical: 14,
+              ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   avatar,
                   QeranSpacing.hs16,
@@ -88,7 +96,7 @@ class SettingsProfileHero extends StatelessWidget {
                       children: [
                         Text(
                           name,
-                          style: QeranTypography.headline.copyWith(
+                          style: QeranTypography.title.copyWith(
                             color: QeranColors.paper,
                           ),
                           maxLines: 1,

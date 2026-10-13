@@ -80,12 +80,14 @@ extension _Field on _QeranTextFieldState {
       contentPadding: _contentPadding,
       hintText: widget.hint,
       hintStyle: QeranTypography.bodySm.copyWith(color: QeranColors.inkFaint),
+      hintMaxLines: _kMessageLines,
       helper: widget.helper,
       // With a help line an error takes its shape: Material allows the
       // widget or the text, never both.
       errorText: widget.helper == null ? widget.errorText : null,
       error: _errorLine(),
       errorStyle: QeranTypography.caption.copyWith(color: QeranColors.danger),
+      errorMaxLines: _kMessageLines,
       counterStyle: QeranTypography.caption.copyWith(
         color: QeranColors.inkMuted,
       ),
@@ -99,6 +101,12 @@ extension _Field on _QeranTextFieldState {
       focusedErrorBorder: _border(_focusedErrorEdge),
     );
   }
+
+  /// A field's messages are never cut (run 7): Material cuts an error or a
+  /// hint at one line with "…" unless given a line count, so they get one no
+  /// message reaches, and wrap onto as many lines as they need. A help line
+  /// ([QeranHelperLine]) already wraps.
+  static const int _kMessageLines = 100;
 
   /// [QeranTextField.errorText] as the help line's error, when there's one.
   Widget? _errorLine() => switch (widget.errorText) {

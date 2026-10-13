@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
+import 'card_facts_line.dart';
 import 'like_user_card.dart';
 
 /// The identity block of every Matches-tab card: avatar, name, an optional
@@ -32,6 +33,7 @@ class MatchCardHeader extends StatelessWidget {
     required this.nameColor,
     required this.statusLine,
     this.trailing,
+    this.facts,
   });
 
   final Widget avatar;
@@ -44,6 +46,9 @@ class MatchCardHeader extends StatelessWidget {
   /// Optional action pinned to the trailing edge of the name row. The cancel
   /// X on the Matches tab; null everywhere else.
   final Widget? trailing;
+
+  /// Residence, job and age under the name, when the row carries any.
+  final CardFactsLine? facts;
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +81,10 @@ class MatchCardHeader extends StatelessWidget {
                   if (trailing != null) ...[QeranSpacing.hs8, trailing!],
                 ],
               ),
+              if (facts case final facts? when !facts.isEmpty) ...[
+                const SizedBox(height: QeranSpacing.s6),
+                facts,
+              ],
               const SizedBox(height: QeranSpacing.s6),
               statusLine,
             ],

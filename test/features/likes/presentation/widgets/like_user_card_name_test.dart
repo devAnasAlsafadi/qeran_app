@@ -3,9 +3,11 @@
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/features/likes/domain/entities/like_request_card.dart';
 import 'package:qeran/features/likes/domain/entities/like_request_status.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_card_countdown_chip.dart';
+import 'package:qeran/features/likes/presentation/widgets/like_card_status.dart';
 import 'package:qeran/features/likes/presentation/widgets/like_user_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -175,12 +177,66 @@ void main() {
     expect(find.text('Jordan'), findsOneWidget);
   });
 
-  testWidgets('the job is never rendered on this row', (tester) async {
-    // The card carries identity and location only. `job` is still parsed off
-    // the wire, so this guards the render tree rather than the payload.
+  // Run 7, item 5: the client's design asks for residence, job and age under
+  // the name, in that order (job was hidden on 12 Aug at his earlier request).
+  testWidgets('residence, job and age, in the client order', (tester) async {
     await _pumpCard(tester, _cardWithFacts());
 
-    expect(find.text('Engineer'), findsNothing);
+    expect(find.text('Engineer'), findsOneWidget);
+    double x(IconData icon) => tester.getCenter(find.byIcon(icon)).dx;
+    // Arabic reads from the right.
+    expect(
+      x(Icons.location_on_outlined),
+      greaterThan(x(Icons.work_outline_rounded)),
+    );
+    expect(x(Icons.work_outline_rounded), greaterThan(x(Icons.cake_outlined)));
+  });
+
+  testWidgets('a row with no facts keeps no empty line under the name', (
+    tester,
+  ) async {
+    await _pumpCard(
+      tester,
+      const LikeRequestCard(
+        likeRequestId: 4,
+        profileId: 'p4',
+        name: 'User',
+        profileImage: null,
+        status: LikeRequestStatus.accepted,
+        createdAt: null,
+        remainingSeconds: null,
+        actions: [],
+        isLocked: false,
+      ),
+    );
+
+    final name = tester.getRect(find.text('User'));
+    final status = tester.getRect(find.byType(LikeCardStatus));
+    // The one gap between the name and the status, nothing added for facts.
+    expect(status.top - name.bottom, QeranSpacing.s6);
+  });
+
+  testWidgets('only what the row carries: age alone is age alone', (
+    tester,
+  ) async {
+    await _pumpCard(
+      tester,
+      const LikeRequestCard(
+        likeRequestId: 3,
+        profileId: 'p3',
+        name: 'User',
+        profileImage: null,
+        age: 30,
+        status: LikeRequestStatus.accepted,
+        createdAt: null,
+        remainingSeconds: null,
+        actions: [],
+        isLocked: false,
+      ),
+    );
+
+    expect(find.byIcon(Icons.cake_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.location_on_outlined), findsNothing);
     expect(find.byIcon(Icons.work_outline_rounded), findsNothing);
   });
 }

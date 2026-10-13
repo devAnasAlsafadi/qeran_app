@@ -4,6 +4,7 @@ import 'package:qeran/core/data/display_name.dart';
 import '../../domain/entities/like_request_card.dart';
 import '../../domain/entities/like_request_status.dart';
 import 'like_profile_image_model.dart';
+import 'card_facts.dart';
 
 class LikeRequestCardModel {
   final int likeRequestId;
@@ -39,6 +40,7 @@ class LikeRequestCardModel {
   factory LikeRequestCardModel.fromJson(Map<String, dynamic> json) {
     final image = json['profileImage'];
     final actionsRaw = json['actions'];
+    final facts = CardFacts.fromJson(json);
     return LikeRequestCardModel(
       // Wire type is number; coerce defensively so a server hiccup
       // (string id, missing field) doesn't crash parsing.
@@ -48,21 +50,9 @@ class LikeRequestCardModel {
       profileImage: image is Map<String, dynamic>
           ? LikeProfileImageModel.fromJson(image)
           : null,
-      age: _age(json),
-      residence: _fact(
-        json,
-        directKeys: const [
-          'residence',
-          'countryOfResidence',
-          'residenceCountry',
-        ],
-        questionTerms: const ['إقامة', 'اقامة', 'residence'],
-      ),
-      job: _fact(
-        json,
-        directKeys: const ['job', 'occupation', 'profession'],
-        questionTerms: const ['مهنة', 'وظيفة', 'job', 'occupation'],
-      ),
+      age: facts.age,
+      residence: facts.residence,
+      job: facts.job,
       // Wire shape is currently `int` (0..3) but earlier docs used
       // capitalised strings — pass the raw Object so the parser can
       // dispatch on either type.
@@ -78,43 +68,6 @@ class LikeRequestCardModel {
   }
 
   static DateTime? _parseIso(Object? raw) => parseServerDateTime(raw);
-
-  static int? _age(Map<String, dynamic> json) {
-    final direct = _parseInt(json['age']);
-    if (direct != null) return direct;
-    final answer = _fact(
-      json,
-      directKeys: const [],
-      questionTerms: const ['العمر', 'age'],
-    );
-    return _parseInt(answer);
-  }
-
-  static int? _parseInt(Object? raw) {
-    if (raw is num) return raw.toInt();
-    return int.tryParse(raw?.toString().trim() ?? '');
-  }
-
-  static String? _fact(
-    Map<String, dynamic> json, {
-    required List<String> directKeys,
-    required List<String> questionTerms,
-  }) {
-    for (final key in directKeys) {
-      final value = json[key]?.toString().trim();
-      if (value != null && value.isNotEmpty) return value;
-    }
-    final answers = json['answers'];
-    if (answers is! List) return null;
-    for (final raw in answers) {
-      if (raw is! Map) continue;
-      final question = raw['question']?.toString().toLowerCase() ?? '';
-      if (!questionTerms.any(question.contains)) continue;
-      final answer = raw['answer']?.toString().trim();
-      if (answer != null && answer.isNotEmpty) return answer;
-    }
-    return null;
-  }
 
   LikeRequestCard toEntity() => LikeRequestCard(
     likeRequestId: likeRequestId,

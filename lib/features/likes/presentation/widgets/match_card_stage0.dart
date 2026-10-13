@@ -14,6 +14,7 @@ import 'match_card_stage0_status.dart';
 import 'match_journey_card.dart';
 import 'match_card_sent_action.dart';
 import 'match_pending_countdown_chip.dart';
+import 'card_facts_line.dart';
 
 /// Stage 0 — WaitingForPhotoExchange. Three sub-states off
 /// `pendingPhotoExchange`:
@@ -128,6 +129,11 @@ class MatchCardStage0 extends StatelessWidget {
     }
 
     return MatchCardScaffold(
+      facts: CardFactsLine(
+        age: card.age,
+        residence: card.residence,
+        job: card.job,
+      ),
       avatar: avatarWidget,
       name: nameText,
       statusIcon: statusIconData,

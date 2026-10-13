@@ -12,6 +12,7 @@ import 'match_card_formal_step_section.dart';
 import 'match_card_photo_access.dart';
 import 'match_card_scaffold.dart';
 import 'match_journey_card.dart';
+import 'card_facts_line.dart';
 
 /// Stage 1 — PhotosExchanged (photo exchange accepted). The preview never
 /// fetches clear bytes; the explicit reveal action opens the permission-
@@ -67,6 +68,11 @@ class MatchCardStage1 extends StatelessWidget {
       isRejecting: isRejectingFormalStep,
     );
     return MatchCardScaffold(
+      facts: CardFactsLine(
+        age: card.age,
+        residence: card.residence,
+        job: card.job,
+      ),
       avatar: GestureDetector(
         onTap: photos.canOpen ? onOpenGallery : null,
         child: MatchCardAvatar(

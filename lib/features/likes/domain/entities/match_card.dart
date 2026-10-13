@@ -59,6 +59,12 @@ class MatchCard extends Equatable {
   /// before it shipped; existing rows were backfilled.
   final DateTime? lastActivityAt;
 
+  /// The other member's age, country of residence and job, shown under the
+  /// name when the row carries them (`CardFacts`); null when it doesn't.
+  final int? age;
+  final String? residence;
+  final String? job;
+
   const MatchCard({
     required this.likeRequestId,
     required this.otherUserId,
@@ -72,6 +78,9 @@ class MatchCard extends Equatable {
     this.caseStatus = MatchCaseStatus.active,
     this.pendingFormalStep,
     this.lastActivityAt,
+    this.age,
+    this.residence,
+    this.job,
   });
 
   /// Whether THIS member has already set the formal step in motion, so the
@@ -137,5 +146,8 @@ class MatchCard extends Equatable {
         caseStatus,
         pendingFormalStep,
         lastActivityAt,
+        age,
+        residence,
+        job,
       ];
 }

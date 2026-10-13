@@ -7,6 +7,7 @@ import 'formal_request_model.dart';
 import 'match_image_model.dart';
 import 'pending_formal_step_model.dart';
 import 'photo_exchange_pending_model.dart';
+import 'card_facts.dart';
 
 class MatchCardModel {
   final int likeRequestId;
@@ -21,6 +22,7 @@ class MatchCardModel {
   final MatchCaseStatus caseStatus;
   final PendingFormalStepModel? pendingFormalStep;
   final DateTime? lastActivityAt;
+  final CardFacts facts;
 
   const MatchCardModel({
     required this.likeRequestId,
@@ -35,6 +37,7 @@ class MatchCardModel {
     required this.caseStatus,
     required this.pendingFormalStep,
     required this.lastActivityAt,
+    this.facts = const CardFacts(),
   });
 
   factory MatchCardModel.fromJson(Map<String, dynamic> json) {
@@ -58,6 +61,7 @@ class MatchCardModel {
       // date it emits, so this is the belt to that braces — and it is the
       // difference between an ordering key and a guess.
       lastActivityAt: parseNullableDateTime(json['lastActivityAt']),
+      facts: CardFacts.fromJson(json),
     );
   }
 
@@ -84,5 +88,8 @@ class MatchCardModel {
         caseStatus: caseStatus,
         pendingFormalStep: pendingFormalStep?.toEntity(),
         lastActivityAt: lastActivityAt,
+        age: facts.age,
+        residence: facts.residence,
+        job: facts.job,
       );
 }

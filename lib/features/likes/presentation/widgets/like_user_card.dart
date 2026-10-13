@@ -3,10 +3,9 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_card.dart';
-import 'package:qeran/core/extensions/localization_extension.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/like_request_card.dart';
+import 'card_facts_line.dart';
 import 'like_card_actions.dart';
 import 'like_card_avatar.dart';
 import 'like_card_countdown_chip.dart';
@@ -109,6 +108,11 @@ class _VisibleContent extends StatelessWidget {
     // `isAwaitingResponse`, not `status == pending`: the deadline now comes
     // back on lapsed rows too, so a Pending row is not necessarily live.
     final live = card.isAwaitingResponse;
+    final facts = CardFactsLine(
+      age: card.age,
+      residence: card.residence,
+      job: card.job,
+    );
     final showTimer =
         live && (card.expiresAt != null || card.remainingSeconds != null);
     final showActions = live && (card.canAccept || card.canReject);
@@ -158,10 +162,9 @@ class _VisibleContent extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (card.age != null ||
-                      card.residence?.isNotEmpty == true) ...[
+                  if (!facts.isEmpty) ...[
                     const SizedBox(height: QeranSpacing.s6),
-                    _LikeFacts(card: card),
+                    facts,
                   ],
                   const SizedBox(height: QeranSpacing.s6),
                   LikeCardStatus(card: card),
@@ -185,51 +188,6 @@ class _VisibleContent extends StatelessWidget {
             ),
           ),
         ],
-      ],
-    );
-  }
-}
-
-class _LikeFacts extends StatelessWidget {
-  const _LikeFacts({required this.card});
-
-  final LikeRequestCard card;
-
-  @override
-  Widget build(BuildContext context) {
-    final facts = <({IconData icon, String text})>[
-      if (card.age != null)
-        (
-          icon: Icons.cake_outlined,
-          text: LocaleKeys.matchmaker_users_age_years.t(
-            context,
-            namedArgs: {'age': '${card.age}'},
-          ),
-        ),
-      if (card.residence?.isNotEmpty == true)
-        (icon: Icons.location_on_outlined, text: card.residence!),
-      // Job is deliberately absent: the row carries identity and location
-      // only. `LikeRequestCard.job` is still parsed — the field stays on the
-      // wire contract — it simply has no place on this card.
-    ];
-    return Wrap(
-      spacing: QeranSpacing.s12,
-      runSpacing: QeranSpacing.s4,
-      children: [
-        for (final fact in facts)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(fact.icon, size: 14, color: QeranColors.inkMuted),
-              QeranSpacing.hs4,
-              Text(
-                fact.text,
-                style: QeranTypography.caption.copyWith(
-                  color: QeranColors.inkBody,
-                ),
-              ),
-            ],
-          ),
       ],
     );
   }

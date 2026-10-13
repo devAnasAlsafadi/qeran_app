@@ -11,6 +11,7 @@ import 'match_card_cancel_action.dart';
 import 'match_card_formal_step_section.dart';
 import 'match_card_scaffold.dart';
 import 'match_journey_card.dart';
+import 'card_facts_line.dart';
 
 /// Stage 2 — MatchmakerEngaged (photo exchange rejected). Photos stay
 /// BLURRED (`image.isBlurred == true`) and a formalRequest is active.
@@ -62,6 +63,11 @@ class MatchCardStage2 extends StatelessWidget {
       isRejecting: isRejectingFormalStep,
     );
     return MatchCardScaffold(
+      facts: CardFactsLine(
+        age: card.age,
+        residence: card.residence,
+        job: card.job,
+      ),
       avatar: MatchCardAvatar(
         url: image?.url,
         blur: image?.isBlurred ?? true,

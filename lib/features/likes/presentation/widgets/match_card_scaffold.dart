@@ -5,6 +5,7 @@ import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+import 'card_facts_line.dart';
 import 'match_card_header.dart';
 import 'match_card_primary_region.dart';
 
@@ -23,6 +24,9 @@ class MatchCardScaffold extends StatelessWidget {
   final IconData statusIcon;
   final String statusText;
   final Color statusColor;
+
+  /// The other member's residence, job and age, under the name.
+  final CardFactsLine? facts;
 
   /// Optional pending-countdown chip, on a full-width line of its own between
   /// the identity block and the actions.
@@ -100,6 +104,7 @@ class MatchCardScaffold extends StatelessWidget {
     required this.statusIcon,
     required this.statusText,
     required this.statusColor,
+    this.facts,
     this.topChip,
     this.headerTrailing,
     this.primaryLabel,
@@ -124,6 +129,7 @@ class MatchCardScaffold extends StatelessWidget {
           name: name,
           nameColor: QeranColors.wine,
           trailing: headerTrailing,
+          facts: facts,
           statusLine: isEnded
               // Muted, not danger. The journey row underneath already carries
               // the ending in danger with a cross; a second red line stacked

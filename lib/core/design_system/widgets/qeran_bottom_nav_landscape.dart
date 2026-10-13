@@ -23,6 +23,7 @@ class _CompactLandscapeNav extends StatelessWidget {
           QeranBottomNav.compactLandscapeMargin,
         ),
         child: DecoratedBox(
+          key: QeranBottomNav.barKey,
           decoration: BoxDecoration(
             color: QeranColors.paper,
             borderRadius: QeranRadii.cardR,
@@ -63,23 +64,14 @@ class _CompactLandscapeNav extends StatelessWidget {
                 HapticFeedback.lightImpact();
                 onTap(index);
               },
-        child: Center(
-          child: AnimatedContainer(
-            duration: QeranMotion.standard,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: isActive ? QeranColors.gold20 : Colors.transparent,
-              borderRadius: QeranRadii.pill,
-            ),
+        // Inset, so a long label never pushes the disc to the bar's edge.
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _IconWithBadge(
-                  item: item,
-                  icon: isActive
-                      ? _NavGlyph.filled(item, QeranColors.inkMuted)
-                      : _NavGlyph.outline(item, QeranColors.inkMuted),
-                ),
+                _disc(item, isActive),
                 const SizedBox(width: 6),
                 Flexible(child: _label(item, isActive)),
               ],
@@ -89,6 +81,26 @@ class _CompactLandscapeNav extends StatelessWidget {
       ),
     );
   }
+
+  /// The portrait bar's mark, the same here (run 8): a gold disc inside the
+  /// bar behind the selected tab's filled wine icon. It fades in and out in
+  /// place, as the pill it replaced did.
+  Widget _disc(QeranNavItem item, bool isActive) => AnimatedContainer(
+    duration: QeranMotion.standard,
+    width: QeranBottomNav.discDiameter,
+    height: QeranBottomNav.discDiameter,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: QeranColors.gold.withValues(alpha: isActive ? 1 : 0),
+    ),
+    child: _IconWithBadge(
+      item: item,
+      icon: isActive
+          ? _NavGlyph.filled(item, QeranColors.wine)
+          : _NavGlyph.outline(item, QeranColors.inkMuted),
+    ),
+  );
 
   Widget _label(QeranNavItem item, bool isActive) => Text(
     item.label,

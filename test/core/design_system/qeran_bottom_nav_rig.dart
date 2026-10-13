@@ -47,9 +47,10 @@ Future<void> pumpNav(
   WidgetTester tester,
   String lang,
   NavBuilder nav,
-  int at,
-) async {
-  tester.view.physicalSize = const Size(360, 800);
+  int at, {
+  Size size = const Size(360, 800),
+}) async {
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   var index = at;

@@ -232,7 +232,7 @@ class _OnboardingHeader extends StatelessWidget {
               : context.read<PhotoManagerCubit>().skip,
           child: Text(
             LocaleKeys.common_skip.t(context),
-            style: QeranTypography.body.copyWith(color: QeranColors.gold),
+            style: QeranTypography.body.copyWith(color: QeranColors.wine),
           ),
         ),
       ],

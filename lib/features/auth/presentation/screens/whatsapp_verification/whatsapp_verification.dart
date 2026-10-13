@@ -19,6 +19,7 @@ import '../../blocs/whatsapp/whatsapp_bloc.dart';
 import '../../blocs/whatsapp/whatsapp_event.dart';
 import '../../blocs/whatsapp/whatsapp_state.dart';
 import '../../controllers/otp_controller.dart';
+import '../../open_signed_in.dart';
 import '../../widgets/auth_hero_scaffold.dart';
 import 'widgets/otp_input_row.dart';
 import 'widgets/otp_resend_row.dart';
@@ -211,11 +212,7 @@ class _WhatsappVerificationScreenState
         message: LocaleKeys.auth_otp_verified_success.t(context),
         type: SnackBarType.success,
       );
-      final answered = state.user.hasAnsweredQuestions == true;
-      NavigationManager.pushNamedAndRemoveUntil(
-        context,
-        answered ? RouteNames.homeScreen : RouteNames.genderSelectionScreen,
-      );
+      openSignedIn(context, state.user, phoneVerified: true);
     } else if (state is WhatsappOtpSent && state.isResend) {
       AppSnackBar.show(
         context,

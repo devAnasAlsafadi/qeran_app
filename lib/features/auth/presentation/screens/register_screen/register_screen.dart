@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/di/injection_container.dart';
@@ -8,12 +10,14 @@ import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
+import 'package:qeran/core/utils/keyboard_dismissal.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../../blocs/login/login_bloc.dart';
 import '../../blocs/login/login_state.dart';
 import '../../blocs/register/register_bloc.dart';
 import '../../blocs/register/register_event.dart';
 import '../../blocs/register/register_state.dart';
+import '../../open_signed_in.dart';
 import '../../widgets/auth_hero_scaffold.dart';
 import 'register_controller.dart';
 import 'widgets/register_actions.dart';
@@ -104,6 +108,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 
     if (_controller.validate()) {
+      // Nothing focused while signing up (see `openSignedIn`).
+      unawaited(dismissKeyboard());
       context.read<RegisterBloc>().add(
         RegisterRequested(
           name: _controller.nameController.text.trim(),
@@ -126,6 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         message: LocaleKeys.auth_register_success.t(context),
         type: SnackBarType.success,
       );
+      unawaited(dismissKeyboard());
       NavigationManager.navigateTo(context, RouteNames.whatsappInput);
     } else if (state is RegisterFailure) {
       AppSnackBar.show(
@@ -139,28 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _onSocialLoginStateChanged(BuildContext context, LoginState state) {
     if (state is LoginSuccess) {
       _controller.forgetForm();
-      // Mirror the login screen's onboarding gates so a social sign-in
-      // from the register screen doesn't skip phone-verify / questions.
-      if (state.user.role?.toLowerCase() == 'moderator') {
-        NavigationManager.pushNamedAndRemoveUntil(
-          context,
-          RouteNames.matchmakerHome,
-        );
-        return;
-      }
-      if (state.user.isPhoneVerified != true) {
-        NavigationManager.navigateTo(context, RouteNames.whatsappInput);
-      } else if (state.user.hasAnsweredQuestions != true) {
-        NavigationManager.pushNamedAndRemoveUntil(
-          context,
-          RouteNames.genderSelectionScreen,
-        );
-      } else {
-        NavigationManager.pushNamedAndRemoveUntil(
-          context,
-          RouteNames.homeScreen,
-        );
-      }
+      openSignedIn(context, state.user);
     } else if (state is LoginFailure) {
       AppSnackBar.show(
         context,

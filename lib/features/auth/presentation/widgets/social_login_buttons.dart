@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
 import 'package:qeran/core/utils/app_assets.dart';
+import 'package:qeran/core/utils/keyboard_dismissal.dart';
 
 class SocialLoginButtons extends StatelessWidget {
   final VoidCallback onGoogleTap;
@@ -79,8 +81,16 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tap = onTap;
     return GestureDetector(
-      onTap: onTap,
+      // The keyboard closes before the sheet opens: on an iPhone a field
+      // still focused under Google's or Apple's sheet gets it back after.
+      onTap: tap == null
+          ? null
+          : () {
+              unawaited(dismissKeyboard());
+              tap();
+            },
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
         opacity: dimmed ? 0.6 : 1.0,

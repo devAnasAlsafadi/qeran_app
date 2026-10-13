@@ -45,8 +45,9 @@ void _own<B extends Object>(B bloc, StreamController<Object> states) {
   return (bloc: bloc, states: states);
 }
 
-StreamController<RegisterState> wireRegister() {
-  final bloc = MockRegisterBloc();
+/// [bloc] for a test that stubs its `add`; a fresh mock otherwise.
+StreamController<RegisterState> wireRegister([MockRegisterBloc? given]) {
+  final bloc = given ?? MockRegisterBloc();
   final states = StreamController<RegisterState>.broadcast();
   when(() => bloc.state).thenReturn(RegisterInitial());
   when(() => bloc.stream).thenAnswer((_) => states.stream);

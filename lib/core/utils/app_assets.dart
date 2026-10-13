@@ -9,4 +9,8 @@ class AppAssets {
   static const String genderMale = '${_imagePath}gender_male.webp';
   static const String genderFemale = '${_imagePath}gender_female.webp';
   static const String googleLogo = '${_iconPath}google_logo.svg';
+
+  /// The Suggestions tab: a ring with a diamond, echoing the logo's ring.
+  static const String navRingOutline = '${_iconPath}nav_ring_outline.svg';
+  static const String navRingFilled = '${_iconPath}nav_ring_filled.svg';
 }

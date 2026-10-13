@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/utils/app_assets.dart';
 import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
@@ -24,9 +25,10 @@ List<QeranNavItem> buildHomeNavItems(
     filledIcon: Icons.groups_rounded,
     label: LocaleKeys.home_nav_community.t(context),
   ),
-  QeranNavItem(
-    outlineIcon: Icons.diamond_outlined,
-    filledIcon: Icons.diamond_rounded,
+  // A ring with a diamond (the client, run 8): our own drawing, no icon set.
+  QeranNavItem.svg(
+    outlineSvg: AppAssets.navRingOutline,
+    filledSvg: AppAssets.navRingFilled,
     label: LocaleKeys.home_nav_marriage.t(context),
   ),
   QeranNavItem(

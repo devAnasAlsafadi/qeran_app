@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/design_system/widgets/qeran_bottom_nav.dart';
+import 'package:qeran/core/utils/app_assets.dart';
 import 'package:qeran/features/badges/domain/entities/badge_counts.dart';
 import 'package:qeran/features/badges/domain/entities/badge_tab_keys.dart';
 import 'package:qeran/features/badges/domain/entities/nav_badge_tabs.dart';
@@ -89,6 +90,16 @@ void main() {
       items[HomeShellNavigator.profileTab].label,
       LocaleKeys.home_nav_profile,
     );
+  });
+
+  // Run 8 (the client): a ring with a diamond, our own drawing.
+  testWidgets('Suggestions is the ring, outline and filled', (tester) async {
+    final suggestions = (await _items(tester))[HomeShellNavigator.discoveryTab];
+
+    expect(suggestions.outlineSvg, AppAssets.navRingOutline);
+    expect(suggestions.filledSvg, AppAssets.navRingFilled);
+    expect(suggestions.outlineIcon, isNull);
+    expect(suggestions.filledIcon, isNull);
   });
 
   testWidgets('a dot only where the badge map clears one', (tester) async {

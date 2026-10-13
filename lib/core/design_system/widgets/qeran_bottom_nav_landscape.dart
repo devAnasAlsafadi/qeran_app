@@ -76,11 +76,9 @@ class _CompactLandscapeNav extends StatelessWidget {
               children: [
                 _IconWithBadge(
                   item: item,
-                  icon: Icon(
-                    isActive ? item.filledIcon : item.outlineIcon,
-                    color: QeranColors.inkMuted,
-                    size: _iconSize,
-                  ),
+                  icon: isActive
+                      ? _NavGlyph.filled(item, QeranColors.inkMuted)
+                      : _NavGlyph.outline(item, QeranColors.inkMuted),
                 ),
                 const SizedBox(width: 6),
                 Flexible(child: _label(item, isActive)),

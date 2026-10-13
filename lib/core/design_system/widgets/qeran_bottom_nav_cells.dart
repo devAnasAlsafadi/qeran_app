@@ -79,22 +79,42 @@ class _CellIcon extends StatelessWidget {
         children: [
           FadeTransition(
             opacity: outlineOpacity,
-            child: Icon(
-              item.outlineIcon,
-              color: QeranColors.inkMuted,
-              size: _iconSize,
-            ),
+            child: _NavGlyph.outline(item, QeranColors.inkMuted),
           ),
           FadeTransition(
             opacity: ReverseAnimation(outlineOpacity),
-            child: Icon(
-              item.filledIcon,
-              color: QeranColors.wine,
-              size: _iconSize,
-            ),
+            child: _NavGlyph.filled(item, QeranColors.wine),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// One state of a tab's picture: its Material icon, or its SVG tinted the
+/// same way, at the same size.
+class _NavGlyph extends StatelessWidget {
+  _NavGlyph.outline(QeranNavItem item, this.color)
+    : icon = item.outlineIcon,
+      svg = item.outlineSvg;
+
+  _NavGlyph.filled(QeranNavItem item, this.color)
+    : icon = item.filledIcon,
+      svg = item.filledSvg;
+
+  final IconData? icon;
+  final String? svg;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = svg;
+    if (asset == null) return Icon(icon, color: color, size: _iconSize);
+    return SvgPicture.asset(
+      asset,
+      width: _iconSize,
+      height: _iconSize,
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
 }

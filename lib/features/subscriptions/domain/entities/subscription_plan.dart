@@ -54,6 +54,15 @@ class SubscriptionPlan extends Equatable {
   final String? subtitleAr;
   final String? subtitleEn;
 
+  /// The dashboard's badge text per locale (TQ20), null for no badge.
+  final String? badgeAr;
+  final String? badgeEn;
+
+  /// Whether the payload sends `badgeAr` / `badgeEn` at all. Until it does,
+  /// the badge is ours, «الأكثر طلباً», on a plan the dashboard marks
+  /// `isPopular` (run 10).
+  final bool hasBadgeFields;
+
   const SubscriptionPlan({
     required this.id,
     required this.nameAr,
@@ -73,6 +82,9 @@ class SubscriptionPlan extends Equatable {
     required this.pricings,
     this.subtitleAr,
     this.subtitleEn,
+    this.badgeAr,
+    this.badgeEn,
+    this.hasBadgeFields = false,
   });
 
   /// Tier identification (see [tier]). Null tier → both false.
@@ -113,10 +125,16 @@ class SubscriptionPlan extends Equatable {
 
   /// The tagline in the active locale, else the other; null when neither is
   /// set, so nothing is drawn.
-  String? subtitle({required bool isArabic}) {
-    for (final raw in isArabic
-        ? [subtitleAr, subtitleEn]
-        : [subtitleEn, subtitleAr]) {
+  String? subtitle({required bool isArabic}) =>
+      _either(isArabic, subtitleAr, subtitleEn);
+
+  /// The dashboard's badge in the active locale, else the other; null when
+  /// neither is set. Only read once [hasBadgeFields].
+  String? badge({required bool isArabic}) =>
+      _either(isArabic, badgeAr, badgeEn);
+
+  static String? _either(bool isArabic, String? ar, String? en) {
+    for (final raw in isArabic ? [ar, en] : [en, ar]) {
       final text = raw?.trim();
       if (text != null && text.isNotEmpty) return text;
     }
@@ -143,5 +161,8 @@ class SubscriptionPlan extends Equatable {
         pricings,
         subtitleAr,
         subtitleEn,
+        badgeAr,
+        badgeEn,
+        hasBadgeFields,
       ];
 }

@@ -73,6 +73,9 @@ SubscriptionPlan planOf({
   List<SubscriptionPricing>? pricings,
   String? subtitleAr,
   String? subtitleEn,
+  String? badgeAr,
+  String? badgeEn,
+  bool hasBadgeFields = false,
 }) => SubscriptionPlan(
   id: id,
   nameAr: nameAr,
@@ -92,6 +95,9 @@ SubscriptionPlan planOf({
   pricings: pricings ?? [vipMonth, vipQuarter],
   subtitleAr: subtitleAr,
   subtitleEn: subtitleEn,
+  badgeAr: badgeAr,
+  badgeEn: badgeEn,
+  hasBadgeFields: hasBadgeFields,
 );
 
 StoreProduct productOf(String id, String price, {String? period}) =>

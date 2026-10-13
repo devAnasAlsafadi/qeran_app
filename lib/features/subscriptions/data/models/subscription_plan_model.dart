@@ -27,6 +27,9 @@ class SubscriptionPlanModel {
   final List<SubscriptionPricingModel> pricings;
   final String? subtitleAr;
   final String? subtitleEn;
+  final String? badgeAr;
+  final String? badgeEn;
+  final bool hasBadgeFields;
 
   const SubscriptionPlanModel({
     required this.id,
@@ -47,6 +50,9 @@ class SubscriptionPlanModel {
     required this.pricings,
     this.subtitleAr,
     this.subtitleEn,
+    this.badgeAr,
+    this.badgeEn,
+    this.hasBadgeFields = false,
   });
 
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
@@ -74,6 +80,10 @@ class SubscriptionPlanModel {
           .toList(),
       subtitleAr: json['subtitleAr'] as String?,
       subtitleEn: json['subtitleEn'] as String?,
+      badgeAr: json['badgeAr'] as String?,
+      badgeEn: json['badgeEn'] as String?,
+      hasBadgeFields:
+          json.containsKey('badgeAr') || json.containsKey('badgeEn'),
     );
   }
 
@@ -96,5 +106,8 @@ class SubscriptionPlanModel {
         pricings: pricings.map((p) => p.toEntity()).toList(),
         subtitleAr: subtitleAr,
         subtitleEn: subtitleEn,
+        badgeAr: badgeAr,
+        badgeEn: badgeEn,
+        hasBadgeFields: hasBadgeFields,
       );
 }

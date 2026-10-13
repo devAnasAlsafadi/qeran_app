@@ -57,8 +57,13 @@ class _PlanCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOwned = plan.id == ownedPlanId;
 
-    // Check if it's the VIP plan to show popular tag
-    final isVip = plan.isVipTier;
+    // The badge: the dashboard's own text once it sends one (TQ20), until
+    // then ours on the plan it marks isPopular — never by tier (run 10).
+    final badge = plan.hasBadgeFields
+        ? plan.badge(isArabic: isArabic)
+        : (plan.isPopular
+            ? LocaleKeys.subscriptions_badge_popular.t(context)
+            : null);
 
     // Plan-card price: bound to the SELECTED pricing (the same one the summary,
     // CTA and charge read) — falling back to the first active pricing before a
@@ -113,7 +118,12 @@ class _PlanCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        // A Wrap, so a long name or a large font puts the
+                        // badge under the name instead of overflowing.
+                        Wrap(
+                          spacing: QeranSpacing.s8,
+                          runSpacing: QeranSpacing.s4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               plan.name(isArabic: isArabic),
@@ -122,11 +132,9 @@ class _PlanCard extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            if (isVip) ...[
-                              QeranSpacing.hs8,
+                            if (badge != null) ...[
                               _PillBadge(
-                                label: LocaleKeys.subscriptions_badge_popular
-                                    .t(context),
+                                label: badge,
                                 background:
                                     QeranColors.gold.withValues(alpha: 0.18),
                                 foreground: QeranColors.goldDeep,

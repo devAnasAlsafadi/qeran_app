@@ -4,7 +4,8 @@
 /// what a SELECTION means, this is about what order things are DRAWN in, and
 /// folding them together would push it past the 200-line limit.
 ///
-/// Both filter cubits call [sortedFilterQuestions] once, on load. Sorting in
+/// The member's filter cubit calls [sortedFilterQuestions] once, on load (her
+/// explore sheet keeps the server's order since run 10). Sorting in
 /// `build` would redo this work on every rebuild — including every keystroke in
 /// a searchable facet — for a result that cannot change until the next fetch.
 library;

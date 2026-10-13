@@ -490,8 +490,10 @@ void main() {
     });
   });
 
-  group('loadFilters applies displayPriority order (E2)', () {
-    test('the emitted questions are sorted, matching the user app', () async {
+  // Run 10 (Anas): her sheet keeps the server's order (age first, Tariq);
+  // displayPriority no longer re-sorts it. The member's sheet still does.
+  group('loadFilters keeps the server order', () {
+    test('questions and options as sent, whatever their priority', () async {
       await loadWith([
         _q(id: 3, type: FilterQuestionType.select, options: const [
           DiscoveryFilterOption(value: 'b', display: 'B', displayPriority: 2),
@@ -502,8 +504,8 @@ void main() {
         _q(id: 2, type: FilterQuestionType.text, displayPriority: 2),
       ]);
 
-      expect(loaded().questions.map((q) => q.id), [1, 2, 3]);
-      expect(loaded().questions.last.options!.map((o) => o.value), ['a', 'b']);
+      expect(loaded().questions.map((q) => q.id), [3, 1, 2]);
+      expect(loaded().questions.first.options!.map((o) => o.value), ['b', 'a']);
     });
   });
 }

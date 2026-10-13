@@ -3,7 +3,6 @@ import 'package:qeran/core/design_system/widgets/qeran_filter_chip_facet.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 
 import '../../../../discovery/domain/entities/discovery_filter_selection.dart';
-import '../../../../discovery/domain/filter_display_order.dart';
 import '../../../../discovery/domain/filter_payload_builders.dart';
 import '../../../../discovery/domain/filter_question_screening.dart';
 import '../../../../discovery/domain/filter_selection_rules.dart';
@@ -37,7 +36,9 @@ class MatchmakerExploreFilterCubit
           all: questions,
           logTag: 'MM-EXPLORE-FILTERS',
         );
-        final usable = sortedFilterQuestions(screened.kept);
+        // The server's order, questions and options alike: it puts age
+        // first (Tariq, run 9), and no displayPriority re-sort here (run 10).
+        final usable = screened.kept;
         nonSearchableLongLists(
           questions: usable,
           optionCountThreshold: kQeranSearchableFacetThreshold,

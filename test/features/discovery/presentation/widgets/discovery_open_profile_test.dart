@@ -7,8 +7,8 @@ import 'package:qeran/core/connectivity/connectivity_cubit.dart';
 import 'package:qeran/core/di/injection_container.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/services/connectivity_service.dart';
+import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/core/utils/app_snackbar.dart';
-import 'package:qeran/features/block/presentation/blocs/block_action_cubit.dart';
 import 'package:qeran/features/chat/domain/entities/my_matchmaker_outcome.dart';
 import 'package:qeran/features/chat/domain/repositories/chat_repository.dart';
 import 'package:qeran/features/chat/domain/usecases/get_my_matchmaker_usecase.dart';
@@ -22,12 +22,14 @@ import 'package:qeran/features/discovery/domain/usecases/pass_profile_usecase.da
 import 'package:qeran/features/discovery/domain/usecases/reset_skipped_profiles_usecase.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_cubit.dart';
 import 'package:qeran/features/discovery/presentation/blocs/discovery_hydration_cubit.dart';
+import 'package:qeran/features/discovery/presentation/widgets/discovery_card.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_view.dart';
+import 'package:qeran/features/profile/domain/entities/profile_entry_source.dart';
+import 'package:qeran/features/profile/presentation/full_profile_details_args.dart';
 import 'package:qeran/features/profile/domain/entities/profile_fetch_outcome.dart';
 import 'package:qeran/features/profile/domain/repositories/profile_repository.dart';
 import 'package:qeran/features/profile/domain/usecases/get_profile_by_id_usecase.dart';
 import 'package:qeran/features/profile/presentation/blocs/share_with_matchmaker/share_with_matchmaker_cubit.dart';
-import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Keys render as themselves.
@@ -100,8 +102,10 @@ class _Online implements ConnectivityService {
   Stream<bool> get onStatusChange => const Stream<bool>.empty();
 }
 
-/// The whole Suggestions screen: blocking from a card brings the next member
-/// up, on the same screen, with nothing reloaded (run 6).
+/// Run 7 (Anas's hand check): the Suggestions card carries no ⋮. A tap on its
+/// photo or its name opens the full profile, whose ⋮ reports and blocks
+/// (Apple 1.2, one tap away). A block there closes it with the member's id,
+/// and the card leaves the deck: the next member, same screen, no reload.
 void main() {
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
@@ -129,18 +133,14 @@ void main() {
         shareProfile: ShareProfileUseCase(_Chat()),
       ),
     );
-    sl.registerFactoryParam<BlockActionCubit, BlockOrigin, void>(
-      (_, _) => BlockActionCubit(
-        block: (_) async => const Right<Failure, void>(null),
-      ),
-    );
   });
 
   tearDown(AppSnackBar.debugReset);
 
-  testWidgets('blocked from the card: the next member, same screen', (
-    tester,
-  ) async {
+  /// Pumps Suggestions; the full profile is a stand-in that records what it
+  /// was opened with.
+  Future<List<FullProfileDetailsArgs>> pump(WidgetTester tester) async {
+    final opened = <FullProfileDetailsArgs>[];
     await tester.pumpWidget(
       EasyLocalization(
         supportedLocales: const [Locale('en')],
@@ -152,6 +152,14 @@ void main() {
             supportedLocales: ctx.supportedLocales,
             localizationsDelegates: ctx.localizationDelegates,
             builder: (_, child) => AppSnackBarHost(child: child!),
+            onGenerateRoute: (settings) {
+              if (settings.name != RouteNames.fullProfileDetails) return null;
+              opened.add(settings.arguments! as FullProfileDetailsArgs);
+              return MaterialPageRoute<Object?>(
+                settings: settings,
+                builder: (_) => const Scaffold(body: Text('full profile')),
+              );
+            },
             home: BlocProvider<ConnectivityCubit>(
               create: (_) => ConnectivityCubit(service: _Online()),
               child: const Scaffold(body: DiscoveryView()),
@@ -161,18 +169,54 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    return opened;
+  }
+
+  Future<void> closeProfile(WidgetTester tester, [Object? result]) async {
+    tester.state<NavigatorState>(find.byType(Navigator)).pop(result);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the card has no ⋮', (tester) async {
+    await pump(tester);
     expect(find.text('Name-a 25'), findsOneWidget);
+    expect(find.byIcon(Icons.more_vert), findsNothing);
+  });
 
-    await tester.tap(find.byIcon(Icons.more_vert));
+  testWidgets('a tap on the photo opens the full profile', (tester) async {
+    final opened = await pump(tester);
+    await tester.tap(find.byType(DiscoveryImagePanel));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(LocaleKeys.block_action_block));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(LocaleKeys.block_confirm_button));
-    await tester.pumpAndSettle();
+    expect(find.text('full profile'), findsOneWidget);
+    expect(opened.single.userId, 'a');
+    expect(opened.single.entry, ProfileEntrySource.discovery);
+    expect(opened.single.initialData?.name, 'Name-a');
+  });
 
+  testWidgets('so does a tap on the name', (tester) async {
+    final opened = await pump(tester);
+    await tester.tap(find.text('Name-a 25'));
+    await tester.pumpAndSettle();
+    expect(opened.single.userId, 'a');
+  });
+
+  testWidgets('blocked there: back on Suggestions, the next member', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Name-a 25'));
+    await tester.pumpAndSettle();
+    await closeProfile(tester, 'a');
     expect(find.text('Name-a 25'), findsNothing);
     expect(find.text('Name-b 25'), findsOneWidget);
     expect(find.byType(DiscoveryView), findsOneWidget);
-    await tester.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets('closed without a block: the same member stays', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('Name-a 25'));
+    await tester.pumpAndSettle();
+    await closeProfile(tester);
+    expect(find.text('Name-a 25'), findsOneWidget);
   });
 }

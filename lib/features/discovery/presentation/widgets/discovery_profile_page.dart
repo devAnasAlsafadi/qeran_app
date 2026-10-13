@@ -12,6 +12,7 @@ import 'discovery_blurred_image.dart';
 import 'discovery_card_skeleton.dart';
 import 'discovery_unified_card.dart';
 import 'open_discovery_filters.dart';
+import 'open_discovery_profile.dart';
 
 /// Height reserved at the end of the scroll so the last section and the share
 /// CTA can travel clear of the pinned frosted action cluster.
@@ -118,7 +119,7 @@ class _DiscoveryProfilePageState extends State<DiscoveryProfilePage> {
           bottomInset: navClearance + _kActionZoneClearance,
           scrollOffset: widget.scrollOffset,
           onFilterTap: () => openDiscoveryFilters(context),
-          onBlocked: context.read<DiscoveryCubit>().drop,
+          onOpenProfile: () => openDiscoveryProfile(context, profile),
           activeFilterCount: context.read<DiscoveryCubit>().activeFilters.count,
         );
       },

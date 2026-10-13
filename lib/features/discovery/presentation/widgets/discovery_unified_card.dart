@@ -41,7 +41,7 @@ class DiscoveryUnifiedCard extends StatefulWidget {
     required this.scrollOffset,
     required this.activeFilterCount,
     this.onFilterTap,
-    this.onBlocked,
+    this.onOpenProfile,
   });
 
   final DiscoveryProfile profile;
@@ -65,8 +65,8 @@ class DiscoveryUnifiedCard extends StatefulWidget {
   final VoidCallback? onFilterTap;
   final int activeFilterCount;
 
-  /// The card's ⋮ blocked its member; null draws no ⋮.
-  final ValueChanged<String>? onBlocked;
+  /// Opens this member's full profile: a tap on the photo or the name.
+  final VoidCallback? onOpenProfile;
 
   @override
   State<DiscoveryUnifiedCard> createState() => _DiscoveryUnifiedCardState();
@@ -136,8 +136,8 @@ class _DiscoveryUnifiedCardState extends State<DiscoveryUnifiedCard> {
                         scrollOffset: widget.scrollOffset,
                         pillReveal: _pillReveal,
                         onFilterTap: widget.onFilterTap,
-                        onBlocked: widget.onBlocked,
                         activeFilterCount: widget.activeFilterCount,
+                        onOpenProfile: widget.onOpenProfile,
                       ),
                     ),
                     SliverToBoxAdapter(

@@ -46,7 +46,7 @@ class DiscoveryFirstScreenful extends StatelessWidget {
     required this.pillReveal,
     required this.activeFilterCount,
     this.onFilterTap,
-    this.onBlocked,
+    this.onOpenProfile,
   });
 
   final DiscoveryProfile profile;
@@ -66,8 +66,8 @@ class DiscoveryFirstScreenful extends StatelessWidget {
   final VoidCallback? onFilterTap;
   final int activeFilterCount;
 
-  /// The ⋮ on the name line blocked its member; null draws no ⋮.
-  final ValueChanged<String>? onBlocked;
+  /// A tap on the photo, the name on it included, opens the full profile.
+  final VoidCallback? onOpenProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -99,8 +99,8 @@ class DiscoveryFirstScreenful extends StatelessWidget {
               child: DiscoveryImagePanel(
                 profile: profile,
                 height: photoHeight,
+                onTap: onOpenProfile,
                 onFilterTap: onFilterTap,
-                onBlocked: onBlocked,
                 activeFilterCount: activeFilterCount,
                 // The intro sheet slides up over the photo's bottom edge, so
                 // the chips have to clear that overlap — plus room to breathe

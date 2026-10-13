@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/features/block/presentation/widgets/safety_menu_button.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_photo_hero_motion.dart';
 
 import '../../domain/entities/discovery_profile.dart';
@@ -28,10 +27,6 @@ class DiscoveryImagePanel extends StatelessWidget {
 
   /// The number on the filter pill; 0 draws none.
   final int activeFilterCount;
-
-  /// Report / Block for this member, the ⋮ at the end of the name line (run 6,
-  /// Apple 1.2); called once they're blocked. Null draws no ⋮.
-  final ValueChanged<String>? onBlocked;
 
   /// Fixed panel height. Null lets the panel fill its parent (the legacy
   /// flex-slot layout); the merged screen passes an explicit height because
@@ -63,7 +58,6 @@ class DiscoveryImagePanel extends StatelessWidget {
     this.onTap,
     this.showTitleRow = true,
     this.onFilterTap,
-    this.onBlocked,
     this.height,
     this.bottomContentInset = 0,
     this.matchPillReveal,
@@ -115,7 +109,6 @@ class DiscoveryImagePanel extends StatelessWidget {
               aboveItems: aboveItems,
               bottomContentInset: bottomContentInset,
               topClearance: showTitleRow ? DiscoveryTitleRow.extent : 0,
-              nameTrailing: _menu(),
             ),
           ),
           if (showTitleRow)
@@ -138,14 +131,6 @@ class DiscoveryImagePanel extends StatelessWidget {
       ),
       ),
     );
-  }
-
-  /// The same ⋮ as the full profile, on the card: no screen of its own to
-  /// close, so a block hands the id back and the card leaves the deck.
-  Widget? _menu() {
-    final onBlocked = this.onBlocked;
-    if (onBlocked == null) return null;
-    return SafetyMenuButton(targetUserId: profile.id, onBlocked: onBlocked);
   }
 
   String _primaryImageUrl() {

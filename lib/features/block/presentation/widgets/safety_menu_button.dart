@@ -24,34 +24,21 @@ enum _SafetyAction { report, block }
 class SafetyMenuButton extends StatelessWidget {
   final String targetUserId;
 
-  /// What a successful block does instead of popping. A pushed profile closes;
-  /// a Suggestions card has no route of its own to pop (one Navigator, under
-  /// the home tabs), so it passes this and leaves the deck.
-  final ValueChanged<String>? onBlocked;
-
-  const SafetyMenuButton({
-    super.key,
-    required this.targetUserId,
-    this.onBlocked,
-  });
+  const SafetyMenuButton({super.key, required this.targetUserId});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<BlockActionCubit>(
       create: (_) => sl<BlockActionCubit>(param1: BlockOrigin.profile),
-      child: _SafetyMenuButtonView(
-        targetUserId: targetUserId,
-        onBlocked: onBlocked,
-      ),
+      child: _SafetyMenuButtonView(targetUserId: targetUserId),
     );
   }
 }
 
 class _SafetyMenuButtonView extends StatelessWidget {
   final String targetUserId;
-  final ValueChanged<String>? onBlocked;
 
-  const _SafetyMenuButtonView({required this.targetUserId, this.onBlocked});
+  const _SafetyMenuButtonView({required this.targetUserId});
 
   @override
   Widget build(BuildContext context) {
@@ -68,17 +55,13 @@ class _SafetyMenuButtonView extends StatelessWidget {
 
   void _onOutcome(BuildContext context, BlockActionState state) {
     if (state.outcome == BlockActionOutcome.success) {
-      // Close the profile, or hand the id to whoever shows it, then toast on
-      // root (survives the pop).
-      final blocked = state.blockedUserId ?? targetUserId;
-      final message = (state.messageKey ?? LocaleKeys.block_success).t(context);
-      final onBlocked = this.onBlocked;
-      if (onBlocked != null) {
-        onBlocked(blocked);
-      } else {
-        Navigator.of(context).pop(blocked);
-      }
-      AppSnackBar.showOnRoot(message: message, type: SnackBarType.success);
+      // Close the profile, hand the blocked id back for teardown, then toast
+      // on root (survives the pop).
+      Navigator.of(context).pop(state.blockedUserId ?? targetUserId);
+      AppSnackBar.showOnRoot(
+        message: (state.messageKey ?? LocaleKeys.block_success).t(context),
+        type: SnackBarType.success,
+      );
     } else if (state.outcome == BlockActionOutcome.failure) {
       AppSnackBar.show(
         context,

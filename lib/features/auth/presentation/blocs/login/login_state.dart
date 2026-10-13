@@ -25,5 +25,9 @@ final class LoginSuccess extends LoginState {
 final class LoginFailure extends LoginState {
   final String message;
 
-  LoginFailure(this.message);
+  /// A Google or Apple failure's short reference (`signInReference`), shown
+  /// small under [message]; null for email.
+  final String? reference;
+
+  LoginFailure(this.message, {this.reference});
 }

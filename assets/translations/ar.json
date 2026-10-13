@@ -38,6 +38,8 @@
     "auth_failed_apple": "فشل تسجيل الدخول بـ Apple",
     "auth_token_error": "فشل الحصول على رمز المصادقة",
     "apple_sign_in_cancelled": "تم إلغاء تسجيل الدخول بـ Apple",
+    "google_sign_in_cancelled": "تم إلغاء تسجيل الدخول بـ Google",
+    "sign_in_reference": "رمز المرجع: {code}",
     "upload_failed": "فشل رفع الصور",
     "invalid_server_response": "استجابة غير صالحة من الخادم",
     "unauthorized_access": "غير مصرح بالوصول",

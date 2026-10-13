@@ -62,7 +62,16 @@ class DailyViewsExceededFailure extends Failure {
 }
 
 class AuthFailure extends Failure {
-  const AuthFailure({super.message = LocaleKeys.errors_unauthorized});
+  /// [AuthException.reference], carried across.
+  final String? reference;
+
+  const AuthFailure({
+    super.message = LocaleKeys.errors_unauthorized,
+    this.reference,
+  });
+
+  @override
+  List<Object?> get props => [message, reference];
 }
 
 class OfflineFailure extends Failure {

@@ -18,6 +18,7 @@ import '../../blocs/register/register_bloc.dart';
 import '../../blocs/register/register_event.dart';
 import '../../blocs/register/register_state.dart';
 import '../../open_signed_in.dart';
+import '../../sign_in_reference.dart';
 import '../../widgets/auth_hero_scaffold.dart';
 import 'register_controller.dart';
 import 'widgets/register_actions.dart';
@@ -151,6 +152,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       AppSnackBar.show(
         context,
         message: state.message.tOrRaw(context),
+        note: signInReferenceNote(context, state.reference),
         type: SnackBarType.error,
       );
     }

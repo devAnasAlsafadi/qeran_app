@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:qeran/core/design_system/theme/qeran_theme.dart';
 import 'package:qeran/core/di/injection_container.dart';
+import 'package:qeran/core/utils/app_snackbar.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
 import 'package:qeran/features/auth/presentation/blocs/login/login_bloc.dart';
 import 'package:qeran/features/auth/presentation/blocs/login/login_state.dart';
@@ -109,20 +110,27 @@ int keyboardHides(WidgetTester tester) => tester.testTextInput.log
     .length;
 
 /// Pumps [screen] as the home route, every named route answered.
-Future<Exit> pumpExit(WidgetTester tester, Widget screen) async {
+Future<Exit> pumpExit(
+  WidgetTester tester,
+  Widget screen, {
+  Locale locale = const Locale('ar'),
+}) async {
   final exit = Exit();
+  addTearDown(AppSnackBar.debugReset);
   tester.view.physicalSize = const Size(390, 1600);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await pumpShippedStrings(
     tester,
-    const Locale('ar'),
+    locale,
     child: screen,
     settle: false,
     // The app's theme picks the shipped face by locale; without it the text
     // measures in the test font, and the OTP screen's resend row overflows.
-    builder: (_, navigator) =>
-        Theme(data: QeranTheme.light(const Locale('ar')), child: navigator!),
+    builder: (_, navigator) => Theme(
+      data: QeranTheme.light(locale),
+      child: AppSnackBarHost(child: navigator!),
+    ),
     navigatorObservers: [_Recorder(exit, () => keyboardHides(tester))],
     onGenerateRoute: (settings) => MaterialPageRoute(
       settings: settings,

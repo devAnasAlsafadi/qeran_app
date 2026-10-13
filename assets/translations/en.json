@@ -38,6 +38,8 @@
     "auth_failed_apple": "Apple sign-in failed.",
     "auth_token_error": "Failed to retrieve authentication token.",
     "apple_sign_in_cancelled": "Apple sign-in was cancelled.",
+    "google_sign_in_cancelled": "Google sign-in was cancelled.",
+    "sign_in_reference": "Reference: {code}",
     "upload_failed": "Failed to upload photos.",
     "invalid_server_response": "Invalid server response.",
     "unauthorized_access": "Unauthorized access.",

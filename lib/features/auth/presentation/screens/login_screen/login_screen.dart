@@ -15,6 +15,7 @@ import '../../blocs/login/login_bloc.dart';
 import '../../blocs/login/login_state.dart';
 import '../../blocs/login/login_event.dart';
 import '../../open_signed_in.dart';
+import '../../sign_in_reference.dart';
 import '../../widgets/auth_hero_scaffold.dart';
 import 'login_controller.dart';
 import 'widgets/login_actions.dart';
@@ -120,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
       AppSnackBar.show(
         context,
         message: state.message.tOrRaw(context),
+        note: signInReferenceNote(context, state.reference),
         type: SnackBarType.error,
       );
     }

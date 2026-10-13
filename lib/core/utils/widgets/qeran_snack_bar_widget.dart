@@ -12,6 +12,9 @@ import '../../enum/snakebar_tybe.dart';
 class QeranSnackBarWidget extends StatelessWidget {
   final String? title;
   final String message;
+
+  /// A small, quiet line under [message] — e.g. a failed sign-in's reference.
+  final String? note;
   final SnackBarType type;
   final VoidCallback onDismiss;
   final bool visible;
@@ -20,6 +23,7 @@ class QeranSnackBarWidget extends StatelessWidget {
     super.key,
     required this.message,
     this.title,
+    this.note,
     required this.type,
     required this.onDismiss,
     this.visible = true,
@@ -96,6 +100,16 @@ class QeranSnackBarWidget extends StatelessWidget {
                         color: spec.foreground.withValues(alpha: 0.75),
                       ),
                     ),
+                    if (note != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: QeranSpacing.s4),
+                        child: Text(
+                          note!,
+                          style: QeranTypography.caption.copyWith(
+                            color: spec.foreground.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

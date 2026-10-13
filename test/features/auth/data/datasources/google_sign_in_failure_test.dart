@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mocktail/mocktail.dart';
@@ -23,6 +24,10 @@ class _MockApi extends Mock implements ApiConsumer {}
 class _MockPrefs extends Mock implements SharedPrefService {}
 
 class _MockSecure extends Mock implements StorageService {}
+
+class _MockAccount extends Mock implements GoogleSignInAccount {}
+
+class _FakeCredential extends Fake implements AuthCredential {}
 
 /// What a failed Google sign-in tells us, and what it tells the user.
 ///
@@ -213,6 +218,88 @@ void main() {
         LocaleKeys.errors_auth_failed_google,
         isNot(contains('فشل')),
       );
+    });
+  });
+
+  // Run 7, item 3b: each failure carries a short reference naming its stage
+  // and cause, and a closed sheet says so calmly, as Apple's does.
+  group('the reference, and a closed sheet', () {
+    late _MockGoogle google;
+    late _MockFirebaseAuth firebase;
+    late AuthRemoteDataSourceImpl datasource;
+
+    setUpAll(() => registerFallbackValue(_FakeCredential()));
+
+    setUp(() {
+      google = _MockGoogle();
+      firebase = _MockFirebaseAuth();
+      datasource = AuthRemoteDataSourceImpl(
+        firebaseAuth: firebase,
+        apiConsumer: _MockApi(),
+        sharedPref: _MockPrefs(),
+        secureStorage: _MockSecure(),
+        googleSignIn: google,
+      );
+    });
+
+    Future<AuthException> thrown() async {
+      try {
+        await datasource.loginWithGoogle();
+      } on AuthException catch (e) {
+        return e;
+      }
+      throw StateError('expected an AuthException');
+    }
+
+    test('a closed sheet: the calm line, G-CANCEL', () async {
+      when(() => google.authenticate()).thenThrow(
+        const GoogleSignInException(code: GoogleSignInExceptionCode.canceled),
+      );
+      final e = await thrown();
+      expect(e.message, LocaleKeys.errors_google_sign_in_cancelled);
+      expect(e.reference, 'G-CANCEL');
+    });
+
+    test('a broken sheet: the failure line, its code', () async {
+      when(() => google.authenticate()).thenThrow(
+        const GoogleSignInException(
+          code: GoogleSignInExceptionCode.providerConfigurationError,
+        ),
+      );
+      final e = await thrown();
+      expect(e.message, LocaleKeys.errors_auth_failed_google);
+      expect(e.reference, 'G-PROVIDER-CONFIG');
+    });
+
+    test('a network error inside the Google exchange: G-NET', () async {
+      when(
+        () => google.authenticate(),
+      ).thenThrow(PlatformException(code: 'NSURLErrorDomain: -1009'));
+      final e = await thrown();
+      expect(e.message, LocaleKeys.errors_auth_failed_google);
+      expect(e.reference, 'G-NET-1009');
+    });
+
+    test('Firebase refuses: F-<its code>, and a shipped build logs it', () async {
+      final account = _MockAccount();
+      when(
+        () => account.authentication,
+      ).thenReturn(const GoogleSignInAuthentication(idToken: 'id'));
+      when(() => google.authenticate()).thenAnswer((_) async => account);
+      when(() => firebase.signInWithCredential(any())).thenThrow(
+        FirebaseAuthException(code: 'account-exists-with-different-credential'),
+      );
+      final logs = <String>[];
+      final original = debugPrint;
+      debugPrint = (String? m, {int? wrapWidth}) => logs.add(m ?? '');
+      late AuthException e;
+      try {
+        e = await thrown();
+      } finally {
+        debugPrint = original;
+      }
+      expect(e.reference, 'F-account-exists-with-different-credential');
+      expect(logs.join(), contains('account-exists-with-different-credential'));
     });
   });
 }

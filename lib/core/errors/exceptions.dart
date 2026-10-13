@@ -79,7 +79,12 @@ class CacheException implements Exception {
 
 class AuthException implements Exception {
   final String message;
-  AuthException({required this.message});
+
+  /// A short code naming the cause, shown small under the message — set by
+  /// the social sign-ins (`sign_in_references.dart`); null elsewhere.
+  final String? reference;
+
+  AuthException({required this.message, this.reference});
 
   @override
   String toString() => message;

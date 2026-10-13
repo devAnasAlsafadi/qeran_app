@@ -55,7 +55,7 @@ Failure _serverFailureOf(Object e) {
   }
   if (e is AuthException) {
     AppLogger.error('Auth error', error: e, tag: 'REPO');
-    return AuthFailure(message: e.message);
+    return AuthFailure(message: e.message, reference: e.reference);
   }
   AppLogger.error('Unexpected error', error: e, tag: 'REPO');
   return ServerFailure(message: LocaleKeys.errors_unexpected);

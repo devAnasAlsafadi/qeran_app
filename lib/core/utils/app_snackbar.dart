@@ -37,9 +37,12 @@ class AppSnackBar {
     required String message,
     required SnackBarType type,
     String? title,
+    String? note,
     OverlayState? overlay,
   }) {
-    _enqueue(_SnackRequest(message: message, type: type, title: title));
+    _enqueue(
+      _SnackRequest(message: message, type: type, title: title, note: note),
+    );
     return Future<void>.value();
   }
 
@@ -82,6 +85,7 @@ class AppSnackBar {
       message: request.message,
       type: request.type,
       title: request.title,
+      note: request.note,
       visible: false,
     );
     _visible.value = <_SnackMessage>[..._visible.value, item];
@@ -222,6 +226,7 @@ class AppSnackBarHost extends StatelessWidget {
                                   child: QeranSnackBarWidget(
                                     message: message.message,
                                     title: message.title,
+                                    note: message.note,
                                     type: message.type,
                                     visible: message.visible,
                                     onDismiss: () =>
@@ -249,14 +254,16 @@ class _SnackRequest {
   final String message;
   final SnackBarType type;
   final String? title;
+  final String? note;
 
   const _SnackRequest({
     required this.message,
     required this.type,
     required this.title,
+    this.note,
   });
 
-  String get signature => '$title|$message|$type';
+  String get signature => '$title|$message|$note|$type';
 }
 
 @immutable
@@ -265,6 +272,7 @@ class _SnackMessage {
   final String message;
   final SnackBarType type;
   final String? title;
+  final String? note;
   final bool visible;
 
   const _SnackMessage({
@@ -273,9 +281,10 @@ class _SnackMessage {
     required this.type,
     required this.title,
     required this.visible,
+    this.note,
   });
 
-  String get signature => '$title|$message|$type';
+  String get signature => '$title|$message|$note|$type';
 
   _SnackMessage copyWith({bool? visible}) {
     return _SnackMessage(
@@ -283,6 +292,7 @@ class _SnackMessage {
       message: message,
       type: type,
       title: title,
+      note: note,
       visible: visible ?? this.visible,
     );
   }

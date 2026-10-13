@@ -39,6 +39,8 @@ abstract class  LocaleKeys {
   static const errors_auth_failed_apple = 'errors.auth_failed_apple';
   static const errors_auth_token_error = 'errors.auth_token_error';
   static const errors_apple_sign_in_cancelled = 'errors.apple_sign_in_cancelled';
+  static const errors_google_sign_in_cancelled = 'errors.google_sign_in_cancelled';
+  static const errors_sign_in_reference = 'errors.sign_in_reference';
   static const errors_upload_failed = 'errors.upload_failed';
   static const errors_invalid_server_response = 'errors.invalid_server_response';
   static const errors_unauthorized_access = 'errors.unauthorized_access';

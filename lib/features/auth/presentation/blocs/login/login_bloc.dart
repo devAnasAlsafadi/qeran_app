@@ -1,8 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/features/auth/domain/usecases/login_with_apple_usecase.dart';
 import 'package:qeran/features/auth/domain/usecases/login_with_email_usecase.dart';
 import 'package:qeran/features/auth/domain/usecases/login_with_google_usecase.dart';
 import 'package:qeran/features/devices/application/device_bootstrap_service.dart';
+import '../../sign_in_reference.dart';
 import '../user_session/user_session_cubit.dart';
 import 'login_event.dart';
 import 'login_state.dart';
@@ -59,7 +62,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     final result = await _loginWithGoogle();
     if (emit.isDone) return;
     result.fold(
-      (failure) => emit(LoginFailure(failure.message)),
+      (failure) => emit(_socialFailure(failure)),
       (user) {
         _userSession.onAuthenticated(user);
         emit(LoginSuccess(user));
@@ -76,13 +79,21 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     final result = await _loginWithApple();
     if (emit.isDone) return;
     result.fold(
-      (failure) => emit(LoginFailure(failure.message)),
+      (failure) => emit(_socialFailure(failure)),
       (user) {
         _userSession.onAuthenticated(user);
         emit(LoginSuccess(user));
         _linkIfTokenIssued(user.token);
       },
     );
+  }
+
+  /// A Google or Apple sign-in that failed: its message, with the short
+  /// reference naming the cause — also written to a shipped build's log.
+  LoginFailure _socialFailure(Failure failure) {
+    final reference = signInReference(failure);
+    AppLogger.releaseDiagnostic('Sign-in failed: ref=$reference', tag: 'AUTH');
+    return LoginFailure(failure.message, reference: reference);
   }
 
   void _linkIfTokenIssued(String? token) {

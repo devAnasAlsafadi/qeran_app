@@ -15,6 +15,7 @@ import 'package:qeran/core/services/google_sign_in_service.dart';
 import 'package:qeran/core/utils/log_masker.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import '../auth_failure_keys.dart';
+import '../sign_in_references.dart';
 import '../models/user_model.dart';
 
 abstract interface class AuthRemoteDataSource {
@@ -312,12 +313,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
       final user = userCredential.user;
       if (user == null) {
-        throw AuthException(message: LocaleKeys.errors_auth_failed_google);
+        throw AuthException(
+          message: LocaleKeys.errors_auth_failed_google,
+          reference: 'F-NO-USER',
+        );
       }
 
       final firebaseIdToken = await user.getIdToken();
       if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
-        throw AuthException(message: LocaleKeys.errors_auth_token_error);
+        throw AuthException(
+          message: LocaleKeys.errors_auth_token_error,
+          reference: 'F-NO-TOKEN',
+        );
       }
 
       final displayName = user.displayName ?? googleUser.displayName ?? '';
@@ -331,8 +338,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         displayName: displayName,
       );
     } on FirebaseAuthException catch (e) {
-      AppLogger.error('Firebase Google login failed', error: e, tag: 'AUTH');
-      throw AuthException(message: _mapFirebaseError(e.code));
+      AppLogger.releaseDiagnostic(
+        'Google sign-in failed at Firebase: code=${e.code}',
+        tag: 'AUTH',
+      );
+      throw AuthException(
+        message: _mapFirebaseError(e.code),
+        reference: firebaseReference(e.code),
+      );
     } on GoogleSignInException catch (e) {
       // Release-visible on purpose. On iOS this catch is where a missing client
       // configuration lands, and the generic toast below tells nobody which
@@ -345,7 +358,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'Google sign-in failed: code=${e.code.name} description=${e.description}',
         tag: 'AUTH',
       );
-      throw AuthException(message: LocaleKeys.errors_auth_failed_google);
+      // Closing the sheet isn't a failure: it says so calmly, as Apple's does.
+      throw AuthException(
+        message: e.code == GoogleSignInExceptionCode.canceled
+            ? LocaleKeys.errors_google_sign_in_cancelled
+            : LocaleKeys.errors_auth_failed_google,
+        reference: googleReference(e.code),
+      );
     } on AuthException {
       rethrow;
     } catch (e) {
@@ -359,7 +378,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'Unexpected Google sign-in error: ${e.runtimeType} - $e',
         tag: 'AUTH',
       );
-      throw AuthException(message: LocaleKeys.errors_auth_failed_google);
+      throw AuthException(
+        message: LocaleKeys.errors_auth_failed_google,
+        reference: googlePlatformReference(e),
+      );
     }
   }
 
@@ -388,12 +410,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
       final user = userCredential.user;
       if (user == null) {
-        throw AuthException(message: LocaleKeys.errors_auth_failed_apple);
+        throw AuthException(
+          message: LocaleKeys.errors_auth_failed_apple,
+          reference: 'F-NO-USER',
+        );
       }
 
       final firebaseIdToken = await user.getIdToken();
       if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
-        throw AuthException(message: LocaleKeys.errors_auth_token_error);
+        throw AuthException(
+          message: LocaleKeys.errors_auth_token_error,
+          reference: 'F-NO-TOKEN',
+        );
       }
 
       final name = [
@@ -411,11 +439,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         displayName: displayName,
       );
     } on FirebaseAuthException catch (e) {
-      AppLogger.error('Firebase Apple login failed', error: e, tag: 'AUTH');
-      throw AuthException(message: _mapFirebaseError(e.code));
+      AppLogger.releaseDiagnostic(
+        'Apple sign-in failed at Firebase: code=${e.code}',
+        tag: 'AUTH',
+      );
+      throw AuthException(
+        message: _mapFirebaseError(e.code),
+        reference: firebaseReference(e.code),
+      );
     } on SignInWithAppleAuthorizationException catch (e) {
-      AppLogger.error('Apple sign-in failed', error: e, tag: 'AUTH');
-      throw AuthException(message: LocaleKeys.errors_apple_sign_in_cancelled);
+      AppLogger.releaseDiagnostic(
+        'Apple sign-in failed: code=${e.code.name}',
+        tag: 'AUTH',
+      );
+      throw AuthException(
+        message: LocaleKeys.errors_apple_sign_in_cancelled,
+        reference: appleReference(e.code),
+      );
     }
   }
 

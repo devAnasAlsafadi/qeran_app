@@ -18,6 +18,10 @@ part 'qeran_filter_searchable_facet_row.dart';
 ///
 /// Options render in the order given — this widget applies no sort. Ordering is
 /// the caller's (ultimately the backend's) decision.
+///
+/// While open it keeps itself alive in a lazy list, so scrolling it out of
+/// view and back finds it still open with its search (run 10); a closed one
+/// is let go as usual.
 class QeranFilterSearchableFacet extends StatefulWidget {
   const QeranFilterSearchableFacet({
     super.key,
@@ -52,8 +56,8 @@ class QeranFilterSearchableFacet extends StatefulWidget {
       _QeranFilterSearchableFacetState();
 }
 
-class _QeranFilterSearchableFacetState
-    extends State<QeranFilterSearchableFacet> {
+class _QeranFilterSearchableFacetState extends State<QeranFilterSearchableFacet>
+    with AutomaticKeepAliveClientMixin {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
   String _query = '';
@@ -67,7 +71,11 @@ class _QeranFilterSearchableFacetState
     _searchFocus.unfocus();
     _query = '';
     _isExpanded = false;
+    updateKeepAlive();
   }
+
+  @override
+  bool get wantKeepAlive => _isExpanded;
 
   @override
   void dispose() {
@@ -81,6 +89,7 @@ class _QeranFilterSearchableFacetState
   /// not in the tree until this setState has rebuilt.
   void _toggleExpanded() {
     setState(() => _isExpanded = !_isExpanded);
+    updateKeepAlive();
     if (!_isExpanded) {
       _searchFocus.unfocus();
       return;
@@ -92,6 +101,7 @@ class _QeranFilterSearchableFacetState
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (widget.options.isEmpty) return const SizedBox.shrink();
 
     final selected = widget.options

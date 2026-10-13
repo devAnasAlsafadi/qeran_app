@@ -4,6 +4,7 @@ import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import '../../../domain/entities/placement.dart';
 import 'items/placement_item_renderer.dart';
 import 'profile_section_header.dart';
+import 'section_icons.dart';
 
 /// Generic Q&A section — used for any `defaultGroup` placement and as
 /// the graceful fallback for unrecognised codes. Renders the header
@@ -21,7 +22,7 @@ class QaDefaultSection extends StatelessWidget {
       children: [
         ProfileSectionHeader(
           title: placement.name,
-          icon: Icons.list_alt_rounded,
+          icon: sectionIconFor(placement.name),
         ),
         QeranSpacing.vs8,
         for (final item in placement.items)

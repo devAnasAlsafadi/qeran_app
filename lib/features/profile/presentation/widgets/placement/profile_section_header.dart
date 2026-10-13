@@ -28,7 +28,9 @@ class ProfileSectionHeader extends StatelessWidget {
             Flexible(
               child: Text(
                 title,
-                style: QeranTypography.label.copyWith(color: QeranColors.wine),
+                style: QeranTypography.subtitle.copyWith(
+                  color: QeranColors.wine,
+                ),
               ),
             ),
           ],

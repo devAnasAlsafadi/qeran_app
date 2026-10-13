@@ -8,11 +8,6 @@ import '../../../../domain/entities/placement_value.dart';
 import 'editable_text_answer.dart';
 import 'inline_chip.dart';
 
-/// Answers shorter than this render inline (question on the start edge,
-/// answer on the end edge). Longer answers wrap onto their own line below
-/// the question — matching Figma's "الديانة … مسلمة سنّية" layout.
-const int _kInlineMaxChars = 24;
-
 /// Item-level dispatcher. Single answers render as a question/answer row
 /// (label muted on the start edge, answer emphasized on the end edge);
 /// multi answers render as a label with a wrap of chips beneath.
@@ -52,49 +47,28 @@ class _SingleRow extends StatelessWidget {
   final String answer;
   const _SingleRow({required this.question, required this.answer});
 
+  /// The question takes the width it needs and wraps only when a whole line
+  /// can't hold it; the answer follows on the same line when it fits, and
+  /// starts the next line when it doesn't (run 7, Anas's rule for the profile
+  /// view). A [Row] used to split the width between the two, so a question
+  /// wrapped beside its answer with room left on the line.
   @override
   Widget build(BuildContext context) {
-    final inline = answer.trim().length <= _kInlineMaxChars;
-    if (inline) {
-      // Question + answer sit beside each other at comparable sizes —
-      // the answer is only slightly emphasized (dark vs muted), never
-      // larger. Grouped close together, not pushed to opposite edges.
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Flexible(
-            child: Text(
-              question,
-              textAlign: TextAlign.start,
-              style: _questionStyle,
-            ),
-          ),
-          const SizedBox(width: QeranSpacing.s8),
-          Flexible(
-            child: Text(
-              answer,
-              textAlign: TextAlign.start,
-              style: _answerStyle,
-            ),
-          ),
-        ],
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Wrap(
+      spacing: QeranSpacing.s8,
+      runSpacing: QeranSpacing.s6,
       children: [
-        Text(question, textAlign: TextAlign.start, style: _questionStyle),
-        const SizedBox(height: QeranSpacing.s6),
+        Text(question, textAlign: TextAlign.start, style: questionStyle),
         Text(answer, textAlign: TextAlign.start, style: _answerStyle),
       ],
     );
   }
 
-  static final TextStyle _questionStyle = QeranTypography.bodySm.copyWith(
-    color: QeranColors.inkBody,
-  );
+  /// The body text's own colour: questions are plain text; only the answers
+  /// take the identity's wine.
+  static const TextStyle questionStyle = QeranTypography.body;
 
-  static final TextStyle _answerStyle = QeranTypography.bodySm.copyWith(
+  static final TextStyle _answerStyle = QeranTypography.body.copyWith(
     color: QeranColors.wine,
     fontWeight: FontWeight.w600,
   );
@@ -113,7 +87,7 @@ class _MultiRow extends StatelessWidget {
         Text(
           question,
           textAlign: TextAlign.start,
-          style: QeranTypography.bodySm.copyWith(color: QeranColors.inkBody),
+          style: _SingleRow.questionStyle,
         ),
         const SizedBox(height: QeranSpacing.s6),
         Wrap(

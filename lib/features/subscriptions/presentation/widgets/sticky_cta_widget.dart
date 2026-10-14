@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_button.dart';
@@ -18,7 +17,8 @@ import '../blocs/purchase/package_purchase_state.dart';
 /// * **Applied discount** — "Subscribe now — {percent}% off".
 /// * **Default** — "Subscribe now".
 /// * **[unavailable]** — no button: the store has no product for the chosen
-///   period, so one quiet line says the plan can't be bought now (run 10).
+///   period, so one line in body text says the plan can't be bought now
+///   (runs 10 and 11).
 class StickyCtaWidget extends StatelessWidget {
   final bool hasSelection;
   final bool unavailable;
@@ -43,7 +43,7 @@ class StickyCtaWidget extends StatelessWidget {
         child: Text(
           LocaleKeys.subscriptions_purchase_package_not_found.t(context),
           textAlign: TextAlign.center,
-          style: QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
+          style: QeranTypography.body,
         ),
       );
     }

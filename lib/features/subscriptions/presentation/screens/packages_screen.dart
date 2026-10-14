@@ -138,6 +138,15 @@ class _PackagesViewState extends State<_PackagesView>
     final activePlan = paidPlans[activeIndex];
     final cubit = context.read<SubscriptionPlansCubit>();
     final selectedPricing = cubit.pricingFor(activePlan);
+    // No store price means no purchase: the amount cannot be disclosed, and
+    // RevenueCat would fail to find the package anyway. Once the store has
+    // answered without it, the code field and the button give way to one
+    // line saying so (runs 10 and 11).
+    final selectedStore = selectedPricing == null
+        ? null
+        : state.storeProductFor(selectedPricing, isIOS: _isIOS);
+    final priceUnavailable = selectedPricing != null && selectedStore == null;
+    final unavailable = priceUnavailable && state.storeResolved;
 
     return SafeArea(
       top: false,
@@ -187,15 +196,14 @@ class _PackagesViewState extends State<_PackagesView>
                       Localizations.localeOf(context).languageCode == 'ar',
                 ),
                 pricing: selectedPricing,
-                storeProduct:
-                    state.storeProductFor(selectedPricing, isIOS: _isIOS),
+                storeProduct: selectedStore,
                 // Android keeps sending the Google id it has always sent; iOS
                 // resolves its own, though the field is hidden there anyway.
                 codeProductId: _isIOS
                     ? (selectedPricing.appleProductId ??
                         selectedPricing.storeProductId)
                     : selectedPricing.googleProductId,
-                allowDiscountCode: !_isIOS,
+                allowDiscountCode: !_isIOS && !unavailable,
               ),
             ],
             QeranSpacing.vs24,
@@ -205,17 +213,8 @@ class _PackagesViewState extends State<_PackagesView>
                     purchaseState is PackagePurchaseCodeValidationSuccess
                         ? purchaseState.response.discountPercent
                         : null;
-                // No store price means no purchase: the amount cannot be
-                // disclosed, and RevenueCat would fail to find the package
-                // anyway. Once the store has answered without it, the button
-                // gives way to one line saying so (run 10).
-                final selectedStoreProduct = selectedPricing == null
-                    ? null
-                    : state.storeProductFor(selectedPricing, isIOS: _isIOS);
-                final priceUnavailable = selectedPricing != null &&
-                    selectedStoreProduct == null;
                 return StickyCtaWidget(
-                  unavailable: priceUnavailable && state.storeResolved,
+                  unavailable: unavailable,
                   hasSelection: selectedPricing != null && !priceUnavailable,
                   freeBusy: freeBusy,
                   discountPercent: discountPercent,

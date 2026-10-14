@@ -61,6 +61,9 @@ class PhotoExchangeLimitSheet extends StatelessWidget {
     // backend behaviour ever changes. Both the renewal pill and the renewal
     // subtitle are gated off for free.
     final isFreePlan = sub?.plan.isFree ?? false;
+    // `willRenew: false` (a manual grant): the plan ends on the date, and
+    // nothing renews then (run 11). Null keeps the old wording.
+    final ends = sub?.willRenew == false;
     final showRenewal = sub != null && sub.hasReliableExpiry && !isFreePlan;
     final renewalDate = showRenewal
         ? DateFormat.yMMMMd(context.locale.toString())
@@ -112,7 +115,7 @@ class PhotoExchangeLimitSheet extends StatelessWidget {
                 ),
               ),
               // Renewal subtitle — hidden for a free plan (see isFreePlan note).
-              if (!isFreePlan) ...[
+              if (!isFreePlan && !ends) ...[
                 QeranSpacing.vs8,
                 Text(
                   LocaleKeys.likes_matches_photo_exchange_limit_subtitle.tr(),
@@ -126,7 +129,9 @@ class PhotoExchangeLimitSheet extends StatelessWidget {
                 Center(
                   child: _Pill(
                     icon: Icons.calendar_today_rounded,
-                    text: LocaleKeys.likes_matches_photo_exchange_limit_renewal
+                    text: (ends
+                            ? LocaleKeys.likes_matches_photo_exchange_limit_ends
+                            : LocaleKeys.likes_matches_photo_exchange_limit_renewal)
                         .tr(namedArgs: {'date': renewalDate}),
                     background: QeranColors.creamSurface,
                     iconColor: QeranColors.goldDeep,

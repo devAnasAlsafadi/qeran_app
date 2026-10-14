@@ -13,7 +13,8 @@ import '../../domain/entities/current_subscription.dart';
 import 'days_remaining_painter.dart';
 
 /// The My-subscription card's plan hero: the days-remaining ring beside the
-/// plan name + "renews on {date}". The ring accent deepens for [expiring].
+/// plan name + its date line ([_dateLine]). The ring accent deepens for
+/// [expiring].
 class MySubscriptionHero extends StatelessWidget {
   final CurrentSubscription subscription;
   final bool expiring;
@@ -54,9 +55,7 @@ class MySubscriptionHero extends StatelessWidget {
               ),
               QeranSpacing.vs4,
               Text(
-                LocaleKeys.subscriptions_status_active_until
-                    .t(context)
-                    .replaceFirst(
+                _dateLine(context, subscription.willRenew).replaceFirst(
                         '{date}', dateFmt.format(subscription.expiresAt)),
                 style:
                     QeranTypography.bodySm.copyWith(color: QeranColors.inkMuted),
@@ -68,6 +67,15 @@ class MySubscriptionHero extends StatelessWidget {
     );
   }
 }
+
+/// «يتجدّد في» when the store renews it, «ينتهي في» when it won't (manual
+/// grants, the free plan), and the old «ساري حتى» while the server doesn't
+/// say (run 11).
+String _dateLine(BuildContext context, bool? willRenew) => switch (willRenew) {
+      true => LocaleKeys.subscriptions_status_renews_on.t(context),
+      false => LocaleKeys.subscriptions_status_ends_on.t(context),
+      null => LocaleKeys.subscriptions_status_active_until.t(context),
+    };
 
 class _DaysRing extends StatelessWidget {
   final int days;

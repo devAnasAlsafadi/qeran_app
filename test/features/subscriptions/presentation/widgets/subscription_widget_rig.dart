@@ -77,6 +77,8 @@ CurrentSubscription subscriptionWith({
   int? used,
   int? remaining,
   int? tier,
+  bool? willRenew,
+  Duration expiresIn = const Duration(days: 60),
 }) => CurrentSubscription(
   id: 7,
   plan: planWith(seriousInterests: allowed, tier: tier),
@@ -98,7 +100,7 @@ CurrentSubscription subscriptionWith({
     googleProductId: null,
   ),
   startsAt: DateTime.now().subtract(const Duration(days: 1)),
-  expiresAt: DateTime.now().add(const Duration(days: 60)),
+  expiresAt: DateTime.now().add(expiresIn),
   isActive: true,
   likesUsed: 12,
   likesRemaining: 38,
@@ -106,6 +108,7 @@ CurrentSubscription subscriptionWith({
   seriousInterestsRemaining: remaining,
   photoExchangesUsed: 0,
   photoExchangesRemaining: 5,
+  willRenew: willRenew,
 );
 
 /// Pumps [body] in English with the shipped theme. [page] widgets are full

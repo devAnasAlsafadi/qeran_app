@@ -60,7 +60,9 @@ class SubscriptionStatusBlock extends StatelessWidget {
     if (!sub.isCurrentlyActive) return const _ExpiredCard();
     return MySubscriptionCard(
       subscription: sub,
-      expiring: sub.daysRemaining <= _expiringThresholdDays,
+      // One the store renews isn't ending: no «ينتهي اشتراكك قريباً» (run 11).
+      expiring:
+          sub.daysRemaining <= _expiringThresholdDays && sub.willRenew != true,
     );
   }
 }

@@ -493,6 +493,7 @@ abstract class  LocaleKeys {
   static const likes_matches_photo_exchange_limit_subtitle = 'likes.matches_photo_exchange_limit_subtitle';
   static const likes_matches_photo_exchange_limit_plan_badge = 'likes.matches_photo_exchange_limit_plan_badge';
   static const likes_matches_photo_exchange_limit_renewal = 'likes.matches_photo_exchange_limit_renewal';
+  static const likes_matches_photo_exchange_limit_ends = 'likes.matches_photo_exchange_limit_ends';
   static const likes_matches_photo_exchange_limit_upgrade_line = 'likes.matches_photo_exchange_limit_upgrade_line';
   static const likes_matches_photo_exchange_limit_cta_upgrade = 'likes.matches_photo_exchange_limit_cta_upgrade';
   static const likes_matches_photo_exchange_limit_dismiss_later = 'likes.matches_photo_exchange_limit_dismiss_later';
@@ -585,6 +586,8 @@ abstract class  LocaleKeys {
   static const subscriptions_status_none_subtitle = 'subscriptions.status_none_subtitle';
   static const subscriptions_discount_badge = 'subscriptions.discount_badge';
   static const subscriptions_status_active_until = 'subscriptions.status_active_until';
+  static const subscriptions_status_renews_on = 'subscriptions.status_renews_on';
+  static const subscriptions_status_ends_on = 'subscriptions.status_ends_on';
   static const subscriptions_status_days_remaining = 'subscriptions.status_days_remaining';
   static const subscriptions_status_expired_banner = 'subscriptions.status_expired_banner';
   static const subscriptions_status_not_subscribed_title = 'subscriptions.status_not_subscribed_title';

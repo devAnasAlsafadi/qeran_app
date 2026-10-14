@@ -89,6 +89,8 @@ class MySubscriptionCard extends StatelessWidget {
       size: QeranButtonSize.md,
       onPressed: toPlans,
     );
+    // A plan the store renews by itself has nothing to renew (run 11).
+    if (subscription.willRenew == true) return [upgrade];
     final renew = QeranButton(
       label: LocaleKeys.subscriptions_renew_subscription.t(context),
       variant:

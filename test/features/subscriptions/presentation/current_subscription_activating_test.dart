@@ -113,17 +113,26 @@ void main() {
     await cubit.close();
   });
 
-  test('turns overdue on its own at the ten-minute mark', () async {
+  // Its own clock and the test zone's fake timers: a slow machine can't
+  // reach the mark before the first look (it once did, on the wall clock).
+  testWidgets('turns overdue on its own at the ten-minute mark', (
+    tester,
+  ) async {
     answers = [const Right(null)];
-    final almost = DateTime.now().subtract(
-      ActivationPending.overdueAfter - const Duration(milliseconds: 60),
+    var now = DateTime.fromMillisecondsSinceEpoch(1760000000000);
+    final almost = now.subtract(
+      ActivationPending.overdueAfter - const Duration(seconds: 1),
     );
     prefs.values[_key] = almost.millisecondsSinceEpoch;
-    final cubit = build();
+    final cubit = build(now: () => now);
 
     await cubit.hydrate();
+    await tester.pump(const Duration(milliseconds: 999));
+    now = now.add(const Duration(milliseconds: 999));
     expect((cubit.state as CurrentSubscriptionActivating).overdue, isFalse);
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+
+    now = now.add(const Duration(milliseconds: 1));
+    await tester.pump(const Duration(milliseconds: 1));
 
     expect((cubit.state as CurrentSubscriptionActivating).overdue, isTrue);
     await cubit.close();

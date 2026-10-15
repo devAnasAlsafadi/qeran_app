@@ -724,7 +724,6 @@
     "status_expired_subtitle": "انتهت صلاحية الاشتراك",
     "status_none_subtitle": "لا يوجد اشتراك نشط",
     "discount_badge": "خصم {percent}٪",
-    "status_active_until": "ساري حتى {date}",
     "status_renews_on": "يتجدّد في {date}",
     "status_ends_on": "ينتهي في {date}",
     "status_days_remaining": "المتبقي: {days} يوم",

@@ -62,7 +62,7 @@ class SubscriptionStatusBlock extends StatelessWidget {
       subscription: sub,
       // One the store renews isn't ending: no «ينتهي اشتراكك قريباً» (run 11).
       expiring:
-          sub.daysRemaining <= _expiringThresholdDays && sub.willRenew != true,
+          sub.daysRemaining <= _expiringThresholdDays && !sub.willRenew,
     );
   }
 }

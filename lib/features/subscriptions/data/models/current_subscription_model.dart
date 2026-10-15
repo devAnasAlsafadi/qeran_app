@@ -23,7 +23,7 @@ class CurrentSubscriptionModel {
   final int? seriousInterestsRemaining;
   final int photoExchangesUsed;
   final int photoExchangesRemaining;
-  final bool? willRenew;
+  final bool willRenew;
 
   const CurrentSubscriptionModel({
     required this.id,
@@ -39,7 +39,7 @@ class CurrentSubscriptionModel {
     this.seriousInterestsRemaining,
     required this.photoExchangesUsed,
     required this.photoExchangesRemaining,
-    this.willRenew,
+    this.willRenew = false,
   });
 
   factory CurrentSubscriptionModel.fromJson(Map<String, dynamic> json) {
@@ -79,11 +79,8 @@ class CurrentSubscriptionModel {
           (json['photoExchangesUsed'] as num?)?.toInt() ?? 0,
       photoExchangesRemaining:
           (json['photoExchangesRemaining'] as num?)?.toInt() ?? 0,
-      // Absent (or not a bool) stays null: the server hasn't said.
-      willRenew: switch (json['willRenew']) {
-        final bool value => value,
-        _ => null,
-      },
+      // Only a sent `true` renews; absent or not a bool reads as false.
+      willRenew: json['willRenew'] == true,
     );
   }
 

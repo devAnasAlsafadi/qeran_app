@@ -77,7 +77,7 @@ CurrentSubscription subscriptionWith({
   int? used,
   int? remaining,
   int? tier,
-  bool? willRenew,
+  bool willRenew = false,
   Duration expiresIn = const Duration(days: 60),
 }) => CurrentSubscription(
   id: 7,

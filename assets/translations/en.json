@@ -668,7 +668,6 @@
     "status_expired_subtitle": "Subscription expired",
     "status_none_subtitle": "No active subscription",
     "discount_badge": "{percent}% off",
-    "status_active_until": "Active until {date}",
     "status_renews_on": "Renews on {date}",
     "status_ends_on": "Ends on {date}",
     "status_days_remaining": "{days} days remaining",

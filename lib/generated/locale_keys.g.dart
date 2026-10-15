@@ -590,7 +590,6 @@ abstract class  LocaleKeys {
   static const subscriptions_status_expired_subtitle = 'subscriptions.status_expired_subtitle';
   static const subscriptions_status_none_subtitle = 'subscriptions.status_none_subtitle';
   static const subscriptions_discount_badge = 'subscriptions.discount_badge';
-  static const subscriptions_status_active_until = 'subscriptions.status_active_until';
   static const subscriptions_status_renews_on = 'subscriptions.status_renews_on';
   static const subscriptions_status_ends_on = 'subscriptions.status_ends_on';
   static const subscriptions_status_days_remaining = 'subscriptions.status_days_remaining';

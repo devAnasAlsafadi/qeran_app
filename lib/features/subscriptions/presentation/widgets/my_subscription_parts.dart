@@ -69,13 +69,10 @@ class MySubscriptionHero extends StatelessWidget {
 }
 
 /// «يتجدّد في» when the store renews it, «ينتهي في» when it won't (manual
-/// grants, the free plan), and the old «ساري حتى» while the server doesn't
-/// say (run 11).
-String _dateLine(BuildContext context, bool? willRenew) => switch (willRenew) {
-      true => LocaleKeys.subscriptions_status_renews_on.t(context),
-      false => LocaleKeys.subscriptions_status_ends_on.t(context),
-      null => LocaleKeys.subscriptions_status_active_until.t(context),
-    };
+/// grants, the free plan; run 11).
+String _dateLine(BuildContext context, bool willRenew) => willRenew
+    ? LocaleKeys.subscriptions_status_renews_on.t(context)
+    : LocaleKeys.subscriptions_status_ends_on.t(context);
 
 class _DaysRing extends StatelessWidget {
   final int days;

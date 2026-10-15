@@ -46,10 +46,11 @@ class CurrentSubscription extends Equatable {
   final int photoExchangesUsed;
   final int photoExchangesRemaining;
 
-  /// Whether the store will renew it (`/current`'s `willRenew`). Always
-  /// false for a manual dashboard grant and the free plan; null while the
-  /// server doesn't send it, which keeps the old wording.
-  final bool? willRenew;
+  /// Whether the store will renew it (`/current`'s `willRenew`, live since
+  /// 2026-10-15). False for a manual dashboard grant and the free plan, and
+  /// when a response leaves it out: nothing promises a renewal the server
+  /// didn't state.
+  final bool willRenew;
 
   const CurrentSubscription({
     required this.id,
@@ -65,7 +66,7 @@ class CurrentSubscription extends Equatable {
     this.seriousInterestsRemaining,
     required this.photoExchangesUsed,
     required this.photoExchangesRemaining,
-    this.willRenew,
+    this.willRenew = false,
   });
 
   /// True when [value] represents "unlimited" on a remaining counter — any

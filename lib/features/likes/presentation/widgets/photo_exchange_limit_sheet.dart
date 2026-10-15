@@ -62,8 +62,8 @@ class PhotoExchangeLimitSheet extends StatelessWidget {
     // subtitle are gated off for free.
     final isFreePlan = sub?.plan.isFree ?? false;
     // `willRenew: false` (a manual grant): the plan ends on the date, and
-    // nothing renews then (run 11). Null keeps the old wording.
-    final ends = sub?.willRenew == false;
+    // nothing renews then (run 11).
+    final ends = sub != null && !sub.willRenew;
     final showRenewal = sub != null && sub.hasReliableExpiry && !isFreePlan;
     final renewalDate = showRenewal
         ? DateFormat.yMMMMd(context.locale.toString())

@@ -29,12 +29,13 @@ String _s(String lang, String section, String key) =>
 /// Run 11: `/current`'s `willRenew`. True: «يتجدّد في», no «ينتهي اشتراكك
 /// قريباً», no «تجديد الاشتراك». False (a manual grant): «ينتهي في», and the
 /// photo-exchange sheet says the plan ends instead of promising a renewal.
-/// Absent: today's wording, unchanged.
+/// Live since 2026-10-15, so «ساري حتى» is gone: a response without it reads
+/// as won't renew.
 void main() {
   setUpAll(initShippedStrings);
 
   group('the model', () {
-    bool? parsed(Map<String, dynamic> extra) =>
+    bool parsed(Map<String, dynamic> extra) =>
         CurrentSubscriptionModel.fromJson({
           'expiresAt': '2026-11-01T00:00:00Z',
           ...extra,
@@ -45,10 +46,10 @@ void main() {
       expect(parsed({'willRenew': false}), isFalse);
     });
 
-    test('absent, null or not a bool: null', () {
-      expect(parsed({}), isNull);
-      expect(parsed({'willRenew': null}), isNull);
-      expect(parsed({'willRenew': 'yes'}), isNull);
+    test('absent, null or not a bool: won\'t renew', () {
+      expect(parsed({}), isFalse);
+      expect(parsed({'willRenew': null}), isFalse);
+      expect(parsed({'willRenew': 'yes'}), isFalse);
     });
   });
 
@@ -100,12 +101,13 @@ void main() {
         expect(find.text(sub('renew_subscription')), findsOneWidget);
       });
 
-      testWidgets('not sent: today\'s line, the notice, renew', (tester) async {
+      testWidgets('not sent: as won\'t renew, the notice, renew', (
+        tester,
+      ) async {
         await pump(tester, subscriptionWith(expiresIn: soon));
 
-        expect(find.textContaining(sub('status_active_until')), findsOneWidget);
+        expect(find.textContaining(sub('status_ends_on')), findsOneWidget);
         expect(find.textContaining(sub('status_renews_on')), findsNothing);
-        expect(find.textContaining(sub('status_ends_on')), findsNothing);
         expect(find.text(sub('expiring_title')), findsOneWidget);
         expect(find.text(sub('renew_subscription')), findsOneWidget);
       });
@@ -146,17 +148,13 @@ void main() {
         expect(find.text(promise), findsNothing);
       });
 
-      for (final willRenew in const [true, null]) {
-        testWidgets('willRenew $willRenew: renews on, as today', (
-          tester,
-        ) async {
-          await pump(tester, subscriptionWith(willRenew: willRenew));
+      testWidgets('renews: renews on, and the promise', (tester) async {
+        await pump(tester, subscriptionWith(willRenew: true));
 
-          expect(find.textContaining(renews), findsOneWidget);
-          expect(find.textContaining(ends), findsNothing);
-          expect(find.text(promise), findsOneWidget);
-        });
-      }
+        expect(find.textContaining(renews), findsOneWidget);
+        expect(find.textContaining(ends), findsNothing);
+        expect(find.text(promise), findsOneWidget);
+      });
     });
   }
 }

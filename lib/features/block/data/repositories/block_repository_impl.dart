@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/blocked_user.dart';
@@ -45,13 +46,16 @@ class BlockRepositoryImpl implements BlockRepository {
     } on CodedServerException catch (e) {
       AppLogger.error('BLOCK — failed (${e.errorCode})', error: e, tag: 'REPO');
       return Left(
-        CodedServerFailure(message: e.message, errorCode: e.errorCode),
+        CodedServerFailure(
+          message: keyOrGeneric(e.message),
+          errorCode: e.errorCode,
+        ),
       );
     } on ServerException catch (e) {
       AppLogger.error('BLOCK — failed', error: e, tag: 'REPO');
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(message: keyOrGeneric(e.message)));
     } on AuthException catch (e) {
-      return Left(AuthFailure(message: e.message));
+      return Left(AuthFailure(message: keyOrGeneric(e.message)));
     } catch (e) {
       AppLogger.error('BLOCK — crashed', error: e, tag: 'REPO');
       return const Left(ServerFailure(message: LocaleKeys.errors_unexpected));

@@ -10,6 +10,7 @@ import 'package:qeran/features/auth/data/datasources/auth_remote_datasource.dart
 import 'package:qeran/features/auth/data/models/user_model.dart';
 import 'package:qeran/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:qeran/features/auth/domain/entities/user_entity.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -129,7 +130,7 @@ void main() {
           result,
           equals(
             Left<Failure, UserEntity>(
-              const ServerFailure(message: 'البريد الإلكتروني مستخدم بالفعل'),
+              const ServerFailure(message: LocaleKeys.errors_generic),
             ),
           ),
         );
@@ -226,7 +227,7 @@ void main() {
           result,
           equals(
             Left<Failure, UserEntity>(
-              const ServerFailure(message: 'كلمة المرور غير صحيحة'),
+              const ServerFailure(message: LocaleKeys.errors_generic),
             ),
           ),
         );
@@ -314,7 +315,7 @@ void main() {
           result,
           equals(
             Left<Failure, UserEntity>(
-              const ServerFailure(message: 'البيانات المدخلة غير صحيحة'),
+              const ServerFailure(message: LocaleKeys.errors_generic),
             ),
           ),
         );

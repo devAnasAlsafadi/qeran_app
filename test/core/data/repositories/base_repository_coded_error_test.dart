@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 class _RepositoryHarness with BaseRepository {
   Future<Either<Failure, T>> run<T>(Future<T> Function() call) =>
@@ -24,7 +25,8 @@ void main() {
       result.fold((failure) {
         expect(failure, isA<CodedServerFailure>());
         final coded = failure as CodedServerFailure;
-        expect(coded.message, 'not assigned');
+        // The server's sentence never reaches the UI (cleanup audit 19).
+        expect(coded.message, LocaleKeys.errors_generic);
         expect(coded.errorCode, 'UNAUTHORIZED');
         expect(coded.statusCode, 200);
       }, (_) => fail('Expected a failure'));

@@ -7,6 +7,7 @@ import 'package:qeran/features/discovery/data/datasources/discovery_remote_datas
 import 'package:qeran/features/discovery/data/models/discovery_page_model.dart';
 import 'package:qeran/features/discovery/data/repositories/discovery_repository_impl.dart';
 import 'package:qeran/features/discovery/domain/entities/like_outcome.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 class MockDataSource extends Mock implements DiscoveryRemoteDataSource {}
 
@@ -63,7 +64,7 @@ void main() {
       result.fold(
         (failure) {
           expect(failure, isA<ServerFailure>());
-          expect(failure.message, 'boom');
+          expect(failure.message, LocaleKeys.errors_generic);
         },
         (_) => fail('expected Left(ServerFailure)'),
       );
@@ -110,7 +111,7 @@ void main() {
       result.fold(
         (failure) {
           expect(failure, isA<ServerFailure>());
-          expect(failure.message, 'mystery server error');
+          expect(failure.message, LocaleKeys.errors_generic);
         },
         (_) => fail('expected Left(ServerFailure)'),
       );
@@ -136,7 +137,7 @@ void main() {
       result.fold(
         (failure) {
           expect(failure, isA<ServerFailure>());
-          expect(failure.message, 'skip-failed');
+          expect(failure.message, LocaleKeys.errors_generic);
         },
         (_) => fail('expected Left(ServerFailure)'),
       );

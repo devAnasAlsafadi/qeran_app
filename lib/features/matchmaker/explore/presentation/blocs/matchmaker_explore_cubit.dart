@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/core/state/safe_emit.dart';
 import 'package:qeran/core/enum/gender.dart';
 import 'package:qeran/core/state/paginated_list_cubit_mixin.dart';
@@ -120,7 +121,7 @@ class MatchmakerExploreCubit
       ));
     }).catchError((Object e) {
       if (isClosed) return;
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(isLoading: false, errorMessage: keyOrGeneric(e.toString())));
     });
   }
 }

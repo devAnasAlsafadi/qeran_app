@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
+
 
 import 'paginated_list_state.dart';
 
@@ -47,7 +49,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
       if (isClosed) return;
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        errorMessage: keyOrGeneric(e.toString()),
       ));
     }
   }
@@ -72,7 +74,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
       if (isClosed) return;
       emit(state.copyWith(
         isRefreshing: false,
-        errorMessage: e.toString(),
+        errorMessage: keyOrGeneric(e.toString()),
       ));
     }
   }
@@ -101,7 +103,7 @@ mixin PaginatedListCubitMixin<T> on Cubit<PaginatedListState<T>> {
       if (isClosed) return;
       emit(state.copyWith(
         isLoadingMore: false,
-        errorMessage: e.toString(),
+        errorMessage: keyOrGeneric(e.toString()),
       ));
     }
   }

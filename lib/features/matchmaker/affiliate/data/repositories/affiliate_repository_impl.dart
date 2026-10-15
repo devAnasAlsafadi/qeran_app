@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/affiliate_commissions_page.dart';
@@ -44,7 +45,7 @@ class AffiliateRepositoryImpl implements AffiliateRepository {
       }
       AppLogger.error('AFFILIATE — summary failed', error: e, tag: 'REPO');
       return Left(CodedServerFailure(
-        message: e.message,
+        message: keyOrGeneric(e.message),
         errorCode: e.errorCode,
         statusCode: e.statusCode,
       ));
@@ -53,7 +54,7 @@ class AffiliateRepositoryImpl implements AffiliateRepository {
       return const Left(OfflineFailure());
     } on ServerException catch (e) {
       AppLogger.error('AFFILIATE — summary failed', error: e, tag: 'REPO');
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(message: keyOrGeneric(e.message)));
     } catch (e) {
       AppLogger.error('AFFILIATE — summary crashed', error: e, tag: 'REPO');
       return const Left(ServerFailure(message: LocaleKeys.errors_unexpected));

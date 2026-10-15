@@ -3,6 +3,7 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/support_category.dart';
@@ -39,13 +40,13 @@ class SupportRepositoryImpl with BaseRepository implements SupportRepository {
       return const Right(unit);
     } on CodedServerException catch (e) {
       AppLogger.error('SUPPORT — create ticket failed', error: e, tag: 'REPO');
-      return Left(CodedServerFailure(message: e.message, errorCode: e.errorCode));
+      return Left(CodedServerFailure(message: keyOrGeneric(e.message), errorCode: e.errorCode));
     } on ServerException catch (e) {
       AppLogger.error('SUPPORT — create ticket failed', error: e, tag: 'REPO');
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(message: keyOrGeneric(e.message)));
     } on AuthException catch (e) {
       AppLogger.error('SUPPORT — create ticket auth', error: e, tag: 'REPO');
-      return Left(AuthFailure(message: e.message));
+      return Left(AuthFailure(message: keyOrGeneric(e.message)));
     } catch (e) {
       AppLogger.error('SUPPORT — create ticket crashed', error: e, tag: 'REPO');
       return const Left(ServerFailure(message: LocaleKeys.errors_unexpected));

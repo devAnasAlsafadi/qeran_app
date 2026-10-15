@@ -3,6 +3,7 @@ import 'package:qeran/core/data/account_cache.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/current_subscription.dart';
@@ -62,12 +63,12 @@ class SubscriptionsRepositoryImpl
       return const Left(OfflineFailure());
     } on CodedServerException catch (e) {
       return Left(CodedServerFailure(
-        message: e.message,
+        message: keyOrGeneric(e.message),
         errorCode: e.errorCode,
         statusCode: e.statusCode,
       ));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(message: keyOrGeneric(e.message)));
     } catch (_) {
       return const Left(ServerFailure(message: LocaleKeys.errors_unexpected));
     }

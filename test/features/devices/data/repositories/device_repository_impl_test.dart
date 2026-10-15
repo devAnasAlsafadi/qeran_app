@@ -8,6 +8,7 @@ import 'package:qeran/features/devices/data/datasources/device_remote_datasource
 import 'package:qeran/features/devices/data/models/link_device_request_model.dart';
 import 'package:qeran/features/devices/data/models/register_device_request_model.dart';
 import 'package:qeran/features/devices/data/repositories/device_repository_impl.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 class MockDataSource extends Mock implements DeviceRemoteDataSource {}
 
@@ -59,7 +60,7 @@ void main() {
       result.fold(
         (failure) {
           expect(failure, isA<ServerFailure>());
-          expect(failure.message, 'boom');
+          expect(failure.message, LocaleKeys.errors_generic);
         },
         (_) => fail('expected Left(ServerFailure)'),
       );
@@ -77,7 +78,7 @@ void main() {
       expect(result, equals(const Right<Failure, Unit>(unit)));
     });
 
-    test('propagates server message into Failure', () async {
+    test('a server sentence reaches the failure as errors.generic', () async {
       when(() => dataSource.linkDevice(any())).thenThrow(
         ServerException(message: 'Device not found. Register it first.'),
       );
@@ -86,7 +87,7 @@ void main() {
 
       result.fold(
         (failure) =>
-            expect(failure.message, 'Device not found. Register it first.'),
+            expect(failure.message, LocaleKeys.errors_generic),
         (_) => fail('expected Left'),
       );
     });

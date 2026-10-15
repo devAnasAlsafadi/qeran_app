@@ -3,6 +3,7 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 
 typedef ApiCall<T> = Future<T> Function();
 
@@ -43,7 +44,7 @@ Failure _serverFailureOf(Object e) {
     // distinguish e.g. UNAUTHORIZED from a generic server failure.
     AppLogger.error('Coded server error', error: e, tag: 'REPO');
     return CodedServerFailure(
-      message: e.message,
+      message: keyOrGeneric(e.message),
       errorCode: e.errorCode,
       statusCode: e.statusCode,
       data: e.data,
@@ -51,11 +52,14 @@ Failure _serverFailureOf(Object e) {
   }
   if (e is ServerException) {
     AppLogger.error('Server error', error: e, tag: 'REPO');
-    return ServerFailure(message: e.message);
+    return ServerFailure(message: keyOrGeneric(e.message));
   }
   if (e is AuthException) {
     AppLogger.error('Auth error', error: e, tag: 'REPO');
-    return AuthFailure(message: e.message, reference: e.reference);
+    return AuthFailure(
+      message: keyOrGeneric(e.message),
+      reference: e.reference,
+    );
   }
   AppLogger.error('Unexpected error', error: e, tag: 'REPO');
   return ServerFailure(message: LocaleKeys.errors_unexpected);

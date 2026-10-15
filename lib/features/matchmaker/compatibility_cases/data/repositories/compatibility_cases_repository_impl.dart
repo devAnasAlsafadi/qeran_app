@@ -3,6 +3,7 @@ import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 import 'package:qeran/core/errors/exceptions.dart';
+import 'package:qeran/core/errors/server_error_classifier.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/compatibility_cases_page.dart';
@@ -61,7 +62,7 @@ class CompatibilityCasesRepositoryImpl
       );
       return Left(
         CodedServerFailure(
-          message: e.message,
+          message: keyOrGeneric(e.message),
           errorCode: e.errorCode,
           statusCode: e.statusCode,
         ),
@@ -72,10 +73,10 @@ class CompatibilityCasesRepositoryImpl
         error: e,
         tag: 'REPO',
       );
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(message: keyOrGeneric(e.message)));
     } on AuthException catch (e) {
       AppLogger.error('MATCHMAKER — update status auth', error: e, tag: 'REPO');
-      return Left(AuthFailure(message: e.message));
+      return Left(AuthFailure(message: keyOrGeneric(e.message)));
     } catch (e) {
       AppLogger.error(
         'MATCHMAKER — update status crashed',

@@ -107,12 +107,12 @@ void main() {
 
     test('the repository carries an exception\'s reference across', () async {
       final result = await _Repo().executeApiCall<void>(
-        () => throw AuthException(message: 'k', reference: 'A-FAILED'),
+        () => throw AuthException(message: 'auth.k', reference: 'A-FAILED'),
       );
       expect(
         result,
         const Left<Failure, void>(
-          AuthFailure(message: 'k', reference: 'A-FAILED'),
+          AuthFailure(message: 'auth.k', reference: 'A-FAILED'),
         ),
       );
     });

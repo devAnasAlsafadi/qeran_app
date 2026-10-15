@@ -35,7 +35,7 @@ String serverFailureKey(
   String tag = 'API',
 }) {
   final code = exception is CodedServerException ? exception.errorCode : null;
-  final key = codeKeys[code] ?? _transportKeyOrGeneric(exception.message);
+  final key = codeKeys[code] ?? keyOrGeneric(exception.message);
   AppLogger.warning(
     '$label failed — errorCode="${code ?? '-'}" key=$key '
     'serverMessage="${exception.message}"',
@@ -44,9 +44,13 @@ String serverFailureKey(
   return key;
 }
 
-/// `HttpConsumer` already emits locale keys for transport failures, so keep
-/// those; a raw server sentence becomes `errors.generic`.
-String _transportKeyOrGeneric(String message) =>
-    kLocaleKeyShape.hasMatch(message.trim())
-    ? message.trim()
-    : LocaleKeys.errors_generic;
+/// [message] when it is a locale key (`HttpConsumer`'s transport keys, a
+/// data source's errorCode key); a server sentence becomes
+/// [LocaleKeys.errors_generic] («حدث خطأ، حاول مرة أخرى»). Empty stays empty,
+/// so a caller's own fallback still applies. Every failure leaving a
+/// repository goes through this (cleanup audit `19`, run 11).
+String keyOrGeneric(String message) {
+  final value = message.trim();
+  if (value.isEmpty) return value;
+  return kLocaleKeyShape.hasMatch(value) ? value : LocaleKeys.errors_generic;
+}

@@ -63,6 +63,12 @@ class SubscriptionPlan extends Equatable {
   /// `isPopular` (run 10).
   final bool hasBadgeFields;
 
+  /// The free plan only, signed in (`freePlanUsed`, TQ25): true when the
+  /// member had it before and it isn't their plan now, so the free card
+  /// hides; false when they can activate it or it is their plan; null for a
+  /// paid plan, without a token, or while the server doesn't send it.
+  final bool? freePlanUsed;
+
   const SubscriptionPlan({
     required this.id,
     required this.nameAr,
@@ -85,6 +91,7 @@ class SubscriptionPlan extends Equatable {
     this.badgeAr,
     this.badgeEn,
     this.hasBadgeFields = false,
+    this.freePlanUsed,
   });
 
   /// Tier identification (see [tier]). Null tier → both false.
@@ -164,5 +171,6 @@ class SubscriptionPlan extends Equatable {
         badgeAr,
         badgeEn,
         hasBadgeFields,
+        freePlanUsed,
       ];
 }

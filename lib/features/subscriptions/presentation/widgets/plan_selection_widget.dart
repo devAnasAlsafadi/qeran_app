@@ -85,6 +85,11 @@ class PlanSelectionWidget extends StatelessWidget {
     final isFreeActive = currentSub != null && currentSub!.plan.isFree;
     final isPaidActive = currentSub != null && !currentSub!.plan.isFree;
     final ownedPlanId = currentSub?.plan.id;
+    // A member who had the free plan doesn't see it again (`freePlanUsed`,
+    // TQ25), unless it is their plan now.
+    final showFree = !isPaidActive &&
+        freePlan != null &&
+        (isFreeActive || freePlan!.freePlanUsed != true);
 
     // The period the user actually owns (monthly vs 3-month), resolved from the
     // owned pricing — locale label first, then the backend `{days}` fallback
@@ -102,10 +107,11 @@ class PlanSelectionWidget extends StatelessWidget {
         // 1. Free-tier card — shown unless the user is on a PAID plan, and
         // only when the payload has the free plan: from release day the
         // server omits it for anyone who already used it, unless it's their
-        // active plan (H2, §12.2). It is the "activate free" CTA when there
+        // active plan (H2, §12.2); until then `freePlanUsed` hides it (TQ25).
+        // It is the "activate free" CTA when there
         // is no subscription yet, and the "أنت هنا الآن" indicator once the
         // free trial is actually active.
-        if (!isPaidActive && freePlan != null) ...[
+        if (showFree) ...[
           _FreePlanCard(
             plan: freePlan!,
             isActive: isFreeActive,

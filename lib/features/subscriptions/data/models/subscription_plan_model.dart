@@ -30,6 +30,7 @@ class SubscriptionPlanModel {
   final String? badgeAr;
   final String? badgeEn;
   final bool hasBadgeFields;
+  final bool? freePlanUsed;
 
   const SubscriptionPlanModel({
     required this.id,
@@ -53,6 +54,7 @@ class SubscriptionPlanModel {
     this.badgeAr,
     this.badgeEn,
     this.hasBadgeFields = false,
+    this.freePlanUsed,
   });
 
   factory SubscriptionPlanModel.fromJson(Map<String, dynamic> json) {
@@ -84,6 +86,11 @@ class SubscriptionPlanModel {
       badgeEn: json['badgeEn'] as String?,
       hasBadgeFields:
           json.containsKey('badgeAr') || json.containsKey('badgeEn'),
+      // Absent or not a bool: null, the server hasn't said (TQ25).
+      freePlanUsed: switch (json['freePlanUsed']) {
+        final bool used => used,
+        _ => null,
+      },
     );
   }
 
@@ -109,5 +116,6 @@ class SubscriptionPlanModel {
         badgeAr: badgeAr,
         badgeEn: badgeEn,
         hasBadgeFields: hasBadgeFields,
+        freePlanUsed: freePlanUsed,
       );
 }

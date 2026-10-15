@@ -88,6 +88,47 @@ void main() {
     expect(parsed({'freePlanUsed': 'yes'}), isNull);
   });
 
+  test(
+    'the live shape (/plans for dima, 2026-10-15): Free true, paid null',
+    () {
+      SubscriptionPlan plan(Map<String, dynamic> json) =>
+          SubscriptionPlanModel.fromJson(json).toEntity();
+
+      expect(
+        plan({
+          'id': 3,
+          'isFree': true,
+          'tier': 0,
+          'freePlanUsed': true,
+        }).freePlanUsed,
+        isTrue,
+      );
+      expect(
+        plan({
+          'id': 5,
+          'isFree': false,
+          'tier': 2,
+          'freePlanUsed': null,
+        }).freePlanUsed,
+        isNull,
+      );
+    },
+  );
+
+  for (final used in const [true, false, null]) {
+    testWidgets('a paid member: no free card (freePlanUsed $used)', (
+      tester,
+    ) async {
+      await pumpSubscriptionWidget(
+        tester,
+        _selection(_free(used: used), current: _on(planWith(tier: 2))),
+      );
+
+      expect(card, findsNothing);
+      expect(activate, findsNothing);
+    });
+  }
+
   testWidgets('used before, not theirs now: no free card', (tester) async {
     await pumpSubscriptionWidget(tester, _selection(_free(used: true)));
 

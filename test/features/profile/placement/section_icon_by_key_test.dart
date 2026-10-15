@@ -31,7 +31,7 @@ void main() {
     expect(_iconFor({'categoryKey': 'values'}), Icons.mosque_outlined);
     expect(_iconFor({'categoryKey': 'marriage'}), Icons.diversity_1_outlined);
     expect(_iconFor({'categoryKey': 'work'}), Icons.work_outline_rounded);
-    expect(_iconFor({'categoryKey': 'about'}), Icons.person_search_outlined);
+    expect(_iconFor({'categoryKey': 'about'}), Icons.sticky_note_2_outlined);
     expect(_iconFor({'categoryKey': 'personality'}), Icons.psychology_outlined);
   });
 

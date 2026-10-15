@@ -88,8 +88,8 @@ void main() {
       'Marital Life': Icons.diversity_1_outlined,
       'الوظيفة والدخل': Icons.work_outline_rounded,
       'Work & Income': Icons.work_outline_rounded,
-      'عني وعن شريك حياتي': Icons.person_search_outlined,
-      'About Me & My Partner': Icons.person_search_outlined,
+      'عني وعن شريك حياتي': Icons.sticky_note_2_outlined,
+      'About Me & My Partner': Icons.sticky_note_2_outlined,
       'السمات الشخصية والاهتمامات': Icons.psychology_outlined,
       'Personality & Interests': Icons.psychology_outlined,
     };

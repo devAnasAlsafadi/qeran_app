@@ -26,7 +26,7 @@ const Map<String, IconData> _byKey = {
   'values': Icons.mosque_outlined,
   'marriage': Icons.diversity_1_outlined,
   'work': Icons.work_outline_rounded,
-  'about': Icons.person_search_outlined,
+  'about': Icons.sticky_note_2_outlined,
   'personality': Icons.psychology_outlined,
 };
 

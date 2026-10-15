@@ -9,15 +9,15 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../../likes/data/error_codes.dart';
 import '../../domain/entities/like_outcome.dart';
+import '../discovery_search_body.dart';
 import '../models/discovery_filter_question_model.dart';
 import '../models/discovery_page_model.dart';
 
 abstract interface class DiscoveryRemoteDataSource {
-  /// [filterParams] is the **already-flat** query map produced by
-  /// `DiscoveryFilterCubit.buildPayload()` — keys like
-  /// `RangeFrom[5]`, `RangeTo[5]`, `QuestionFilters[18]`. The datasource
-  /// spreads them straight into the query string; it does NOT JSON-encode
-  /// or otherwise transform.
+  /// `POST /api/Discovery/search`. [filterParams] is the flat map produced by
+  /// `DiscoveryFilterCubit.buildPayload()` — keys like `RangeFrom[5]`,
+  /// `RangeTo[5]`, `QuestionFilters[18]` — which [discoverySearchBody] turns
+  /// into the body's dictionaries.
   Future<DiscoveryPageModel> fetchPage({
     int page,
     int pageSize,
@@ -76,20 +76,19 @@ class DiscoveryRemoteDataSourceImpl implements DiscoveryRemoteDataSource {
       tag: 'DISCOVERY',
     );
 
-    final qp = <String, dynamic>{
-      'Page': page,
-      'PageSize': pageSize,
-      ...?filterParams,
-    };
-
-    // Uses `getRaw` (not `get`) so a coded failure envelope is returned rather
-    // than thrown before we can read it: the no-subscription daily-view cap
-    // arrives as `{status:0, errorCode:DAILY_VIEWS_EXCEEDED, data:{resetAt}}`,
-    // and we must surface `resetAt` for the "come back tomorrow" countdown.
+    // Uses `postRaw` (not `post`) so a coded failure envelope is returned
+    // rather than thrown before we can read it: the no-subscription daily-view
+    // cap arrives as `{status:0, errorCode:DAILY_VIEWS_EXCEEDED,
+    // data:{resetAt}}`, and we must surface `resetAt` for the "come back
+    // tomorrow" countdown.
     try {
-      final body = await _apiConsumer.getRaw(
-        EndPoints.discovery,
-        queryParameters: qp,
+      final body = await _apiConsumer.postRaw(
+        EndPoints.discoverySearch,
+        body: discoverySearchBody(
+          page: page,
+          pageSize: pageSize,
+          filters: filterParams,
+        ),
       );
       if (body is! Map<String, dynamic>) {
         throw ServerException(message: LocaleKeys.errors_generic);

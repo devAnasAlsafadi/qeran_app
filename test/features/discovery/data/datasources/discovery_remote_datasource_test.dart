@@ -31,85 +31,70 @@ void main() {
     ds = DiscoveryRemoteDataSourceImpl(apiConsumer: api);
   });
 
-  group('fetchPage — query parameter shape', () {
-    test('spreads flat filterParams directly into the query map '
-        '(no JSON encoding)', () async {
-      when(
-        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
-      ).thenAnswer((_) async => _emptyPage());
-
-      const filters = {
-        'RangeFrom[1]': '18',
-        'RangeTo[1]': '50',
-        'RangeFrom[5]': '160',
-        'RangeTo[5]': '180',
-        'QuestionFilters[18]': 'Single',
-        'QuestionFilters[11]': 'SA',
-        'QuestionFilters[22]': 'Honest,Ambitious,FamilyOriented',
-      };
-
-      await ds.fetchPage(page: 1, pageSize: 20, filterParams: filters);
-
+  group('fetchPage — POST Discovery/search (run 11)', () {
+    Map<String, dynamic> sentBody() {
       final captured = verify(
-        () => api.getRaw(
-          captureAny(),
-          queryParameters: captureAny(named: 'queryParameters'),
-        ),
+        () => api.postRaw(captureAny(), body: captureAny(named: 'body')),
       ).captured;
+      expect(captured.first, 'Discovery/search');
+      return captured.last as Map<String, dynamic>;
+    }
 
-      expect(captured.first, EndPoints.discovery);
-      final qp = captured.last as Map<String, dynamic>;
-      // Page + size are always present.
-      expect(qp['Page'], 1);
-      expect(qp['PageSize'], 20);
-      // Every flat filter key is spread in unchanged.
-      filters.forEach((k, v) {
-        expect(qp[k], v, reason: 'expected qp[$k]=$v');
+    setUp(
+      () => when(
+        () => api.postRaw(any(), body: any(named: 'body')),
+      ).thenAnswer((_) async => _emptyPage()),
+    );
+
+    test('the filters go in the body, by question id; ranges as numbers', () async {
+      await ds.fetchPage(
+        page: 1,
+        pageSize: 20,
+        filterParams: const {
+          'RangeFrom[1]': '18',
+          'RangeTo[1]': '50',
+          'RangeFrom[5]': '160.5',
+          'QuestionFilters[18]': 'Single',
+          'QuestionFilters[22]': 'Honest,Ambitious,FamilyOriented',
+        },
+      );
+
+      final body = sentBody();
+      expect(body, {
+        'page': 1,
+        'pageSize': 20,
+        'questionFilters': {
+          '18': 'Single',
+          '22': 'Honest,Ambitious,FamilyOriented',
+        },
+        'rangeFrom': {'1': 18, '5': 160.5},
+        'rangeTo': {'1': 50},
       });
-      // Critically: NO legacy "QuestionFilters" JSON-blob key.
       expect(
-        qp.containsKey('QuestionFilters'),
-        isFalse,
-        reason: 'must not jsonEncode into a "QuestionFilters" blob',
+        (body['rangeFrom'] as Map)['1'],
+        isA<int>(),
+        reason: 'a whole edge is 18, not 18.0',
+      );
+      verifyNever(
+        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
       );
     });
 
-    test('null filterParams → only Page + PageSize sent', () async {
-      when(
-        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
-      ).thenAnswer((_) async => _emptyPage());
-
+    test('no filters, or empty ones: page and pageSize only', () async {
       await ds.fetchPage();
+      expect(sentBody(), {'page': 1, 'pageSize': 10});
 
-      final qp =
-          verify(
-                () => api.getRaw(
-                  any(),
-                  queryParameters: captureAny(named: 'queryParameters'),
-                ),
-              ).captured.single
-              as Map<String, dynamic>;
-
-      expect(qp.keys.toSet(), {'Page', 'PageSize'});
+      await ds.fetchPage(page: 2, filterParams: const {});
+      expect(sentBody(), {'page': 2, 'pageSize': 10});
     });
 
-    test('empty filterParams behaves like null (no spread)', () async {
-      when(
-        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
-      ).thenAnswer((_) async => _emptyPage());
+    test('a key it does not know, or a range that is not a number, is '
+        'left out', () async {
+      await ds.fetchPage(
+        filterParams: const {'Other[3]': 'x', 'RangeTo[5]': 'tall'},
+      );
 
-      await ds.fetchPage(filterParams: const {});
-
-      final qp =
-          verify(
-                () => api.getRaw(
-                  any(),
-                  queryParameters: captureAny(named: 'queryParameters'),
-                ),
-              ).captured.single
-              as Map<String, dynamic>;
-
-      expect(qp.keys.toSet(), {'Page', 'PageSize'});
+      expect(sentBody(), {'page': 1, 'pageSize': 10});
     });
   });
 
@@ -120,7 +105,7 @@ void main() {
     test('200 {status:0, DAILY_VIEWS_EXCEEDED, data.resetAt} → typed '
         'exception carrying the parsed resetAt', () async {
       when(
-        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+        () => api.postRaw(any(), body: any(named: 'body')),
       ).thenAnswer(
         (_) async => {
           'status': 0,
@@ -141,7 +126,7 @@ void main() {
     test('non-2xx thrown CodedServerException with the code → typed '
         'exception (fallback resetAt = next UTC midnight)', () async {
       when(
-        () => api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+        () => api.postRaw(any(), body: any(named: 'body')),
       ).thenThrow(
         CodedServerException(
           message: 'capped',
@@ -162,7 +147,7 @@ void main() {
       () async {
         when(
           () =>
-              api.getRaw(any(), queryParameters: any(named: 'queryParameters')),
+              api.postRaw(any(), body: any(named: 'body')),
         ).thenAnswer(
           (_) async => {
             'status': 0,

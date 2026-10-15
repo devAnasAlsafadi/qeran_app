@@ -112,7 +112,9 @@ class EndPoints {
   static const String unlinkDevice = "Devices/unlink";
 
   // Discovery
-  static const String discovery = "Discovery";
+  /// `POST /api/Discovery/search` — the deck, its filters in the body
+  /// (`DiscoveryFilterDto`), not the query string (run 11).
+  static const String discoverySearch = "Discovery/search";
   static const String discoveryFilters = "Discovery/filters";
 
   /// `POST /api/likes/{targetUserId}` — Bearer JWT, no body. Backend
@@ -358,8 +360,9 @@ class EndPoints {
   static String matchmakerCompatibilityCaseNote(int caseId) =>
       "matchmaker/compatibility-cases/$caseId/my-note";
 
-  /// `GET /api/matchmaker/explore?page=N&pageSize=M&search=...&gender=...`
-  static const String matchmakerExplore = "matchmaker/explore";
+  /// `POST /api/matchmaker/explore/search` — her explore list, the search,
+  /// gender and filters in the body (`MatchmakerExploreFilter`; run 11).
+  static const String matchmakerExploreSearch = "matchmaker/explore/search";
 
   /// `GET /api/matchmaker/explore/filters` — available filter questions.
   static const String matchmakerExploreFilters = "matchmaker/explore/filters";

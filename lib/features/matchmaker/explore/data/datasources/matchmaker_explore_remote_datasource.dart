@@ -11,8 +11,9 @@ import '../explore_query_builder.dart';
 import '../models/matchmaker_explore_page_model.dart';
 
 abstract interface class MatchmakerExploreRemoteDataSource {
-  /// One page of explore results, filtered by [search] / [gender] /
-  /// [questionFilters] (`QuestionFilters[id]=comma-joined`).
+  /// One page of explore results (`POST matchmaker/explore/search`),
+  /// filtered by [search] / [gender] / [questionFilters] (comma-joined per
+  /// question id) and the ranges, all in the body ([buildExploreBody]).
   Future<MatchmakerExplorePageModel> getExplore({
     required int page,
     required int pageSize,
@@ -44,25 +45,23 @@ class MatchmakerExploreRemoteDataSourceImpl
     Map<int, double> rangeFrom = const {},
     Map<int, double> rangeTo = const {},
   }) async {
-    final query = <String, dynamic>{
-      'page': page,
-      'pageSize': pageSize,
-      ...buildExploreQuery(
-        search: search,
-        gender: gender,
-        questionFilters: questionFilters,
-        rangeFrom: rangeFrom,
-        rangeTo: rangeTo,
-      ),
-    };
+    final body = buildExploreBody(
+      page: page,
+      pageSize: pageSize,
+      search: search,
+      gender: gender,
+      questionFilters: questionFilters,
+      rangeFrom: rangeFrom,
+      rangeTo: rangeTo,
+    );
     AppLogger.debug(
       'MATCHMAKER — explore page=$page size=$pageSize '
-      'filters=${query.length - 2}',
+      'filters=${body.length - 2}',
       tag: 'MATCHMAKER',
     );
-    final response = await _apiConsumer.get(
-      EndPoints.matchmakerExplore,
-      queryParameters: query,
+    final response = await _apiConsumer.post(
+      EndPoints.matchmakerExploreSearch,
+      body: body,
     );
     final apiResponse = ApiResponse<MatchmakerExplorePageModel>.fromJson(
       response as Map<String, dynamic>,

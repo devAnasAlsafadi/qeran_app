@@ -41,7 +41,4 @@ abstract interface class PurchaseRepository {
 
   /// Restores prior purchases (reinstall / new device). `Left` on store error.
   Future<Either<Failure, CustomerInfo>> restorePurchases();
-
-  /// Whether the account currently holds the `premium` entitlement.
-  Future<Either<Failure, bool>> hasPremiumEntitlement();
 }

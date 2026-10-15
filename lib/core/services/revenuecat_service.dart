@@ -13,7 +13,6 @@ import '../config/revenuecat_config.dart';
 /// the session flow.
 class RevenueCatService {
   bool _configured = false;
-  bool get isConfigured => _configured;
 
   /// One-time SDK configuration. Safe to call more than once. Anonymous —
   /// user identity is attached later via [logIn].
@@ -86,10 +85,6 @@ class RevenueCatService {
   /// Delegates to [purchase]; the [PlatformException] still propagates.
   Future<CustomerInfo> purchasePackage(Package package) =>
       purchase(PurchaseParams.package(package));
-
-  /// True when [info] carries the premium entitlement as active.
-  bool hasPremium(CustomerInfo info) => info.entitlements.active
-      .containsKey(RevenueCatConfig.premiumEntitlementId);
 
   /// Current [CustomerInfo] (entitlement snapshot). Defensive: returns null +
   /// logs on failure so a status check degrades gracefully rather than throws.

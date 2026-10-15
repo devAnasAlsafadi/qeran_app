@@ -107,11 +107,4 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
     if (info == null) return const Left(StoreUnavailableFailure());
     return Right(info);
   }
-
-  @override
-  Future<Either<Failure, bool>> hasPremiumEntitlement() async {
-    final info = await _rc.getCustomerInfo();
-    if (info == null) return const Left(StoreUnavailableFailure());
-    return Right(_rc.hasPremium(info));
-  }
 }

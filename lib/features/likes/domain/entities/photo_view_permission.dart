@@ -24,8 +24,6 @@ class PhotoViewPermission extends Equatable {
     this.secondsRemaining,
   });
 
-  bool get hasAcceptedExchange => photoExchangeId != null;
-
   @override
   List<Object?> get props => [
     targetUserId,

@@ -6,10 +6,9 @@ import '../tokens/qeran_shadows.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_strokes.dart';
 
-enum QeranCardVariant { standard, hero, flat }
+enum QeranCardVariant { standard, flat }
 
-/// Default elevated card. Use [QeranCard.hero] for paywall / match-success
-/// surfaces, [QeranCard.flat] inside already-elevated parents.
+/// Default elevated card. Use [QeranCard.flat] inside already-elevated parents.
 class QeranCard extends StatelessWidget {
   const QeranCard({
     super.key,
@@ -22,17 +21,6 @@ class QeranCard extends StatelessWidget {
     this.background,
     this.borderColor,
   });
-
-  const QeranCard.hero({
-    super.key,
-    required this.child,
-    this.padding,
-    this.margin,
-    this.accentBar = true,
-    this.onTap,
-    this.background,
-    this.borderColor,
-  }) : variant = QeranCardVariant.hero;
 
   const QeranCard.flat({
     super.key,
@@ -62,10 +50,7 @@ class QeranCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = _radius(variant);
     final shadow = _shadow(variant);
-    final pad = padding ??
-        (variant == QeranCardVariant.hero
-            ? QeranSpacing.cardInnerHero
-            : QeranSpacing.cardInner);
+    final pad = padding ?? QeranSpacing.cardInner;
     final bg = background ?? QeranColors.paper;
 
     final content = ClipRRect(
@@ -116,7 +101,6 @@ class QeranCard extends StatelessWidget {
 
   static BorderRadius _radius(QeranCardVariant v) => switch (v) {
         QeranCardVariant.standard => QeranRadii.cardR,
-        QeranCardVariant.hero => QeranRadii.panelR,
         QeranCardVariant.flat => QeranRadii.cardR,
       };
 
@@ -131,7 +115,6 @@ class QeranCard extends StatelessWidget {
 
   static List<BoxShadow> _shadow(QeranCardVariant v) => switch (v) {
         QeranCardVariant.standard => QeranShadows.e2,
-        QeranCardVariant.hero => QeranShadows.e3,
         QeranCardVariant.flat => QeranShadows.e0,
       };
 }

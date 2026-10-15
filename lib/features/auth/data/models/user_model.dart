@@ -39,20 +39,6 @@ class UserModel {
     hasAnsweredQuestions: json['hasAnsweredQuestions'] as bool?,
   );
 
-  factory UserModel.fromFirebaseUser({
-    required String uid,
-    required String name,
-    required String email,
-    String? photoUrl,
-    String? token,
-  }) => UserModel(
-    id: uid,
-    name: name,
-    email: email,
-    photoUrl: photoUrl,
-    token: token,
-  );
-
   UserEntity toEntity() => UserEntity(
     id: id,
     name: name,

@@ -41,6 +41,8 @@ class RouteNames {
   static const String matchmakerNotifications = '/matchmaker/notifications';
   static const String matchmakerAccount = '/matchmaker/account';
   static const String matchmakerUserProfile = '/matchmaker/user-profile';
+  /// Only a route label: the cases list pushes the detail directly, so the
+  /// list's cubit stays in scope. The router has no case for it.
   static const String matchmakerCaseDetail = '/matchmaker/case-detail';
   static const String matchmakerUserChat = '/matchmaker/user-chat';
   static const String matchmakerInterests = '/matchmaker/interests';

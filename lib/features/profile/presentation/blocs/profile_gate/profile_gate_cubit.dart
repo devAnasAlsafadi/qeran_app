@@ -29,14 +29,6 @@ class ProfileGateCubit extends Cubit<ProfileGateState>
     : _getMyProfile = getMyProfile,
       super(const ProfileGateInitial());
 
-  /// Fetches the profile status once. No-op if already loading or resolved —
-  /// safe to call on every shell mount. Use [refresh] to force a re-fetch
-  /// (e.g. after the matchmaker approves and the user pulls to refresh).
-  Future<void> ensureLoaded() async {
-    if (state is ProfileGateLoading || state is ProfileGateResolved) return;
-    await _load();
-  }
-
   Future<void> refresh() => _load();
 
   Future<void> _load() async {

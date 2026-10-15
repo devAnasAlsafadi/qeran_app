@@ -14,9 +14,9 @@ import '../../domain/entities/matchmaker_user_row.dart';
 import '../../domain/entities/matchmaker_users_list.dart';
 import 'matchmaker_review_action_sheet.dart';
 
-/// The action a card button triggers. The card maps each to its handler; only
-/// [message] is ever shown as `loading` (while its conversation resolves).
-enum MatchmakerCardAction { approve, message, view, notes, interests }
+/// The card button that can show a loader: only [message] has one (while its
+/// conversation resolves).
+enum MatchmakerCardAction { message }
 
 /// One user row — a 52px avatar (photo → wine+gold monogram fallback), name,
 /// ≤3 fact chips + age, and a per-list action bar (gold primary + icon-only

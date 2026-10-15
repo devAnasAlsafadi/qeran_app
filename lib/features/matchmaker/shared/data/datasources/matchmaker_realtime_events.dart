@@ -46,12 +46,6 @@ mixin MatchmakerRealtimeEvents {
   }
 
   @visibleForTesting
-  void onCaseUpdatedForTest(List<Object?>? args) => _onCaseUpdated(args);
-
-  @visibleForTesting
-  void onMessageForTest(List<Object?>? args) => _onMessage(args);
-
-  @visibleForTesting
   void onPostStatusForTest(List<Object?>? args) => _onPostStatus(args);
 
   void _onCaseUpdated(List<Object?>? args) {

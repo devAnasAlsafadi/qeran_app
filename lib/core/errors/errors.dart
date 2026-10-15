@@ -42,10 +42,6 @@ class CodedServerFailure extends ServerFailure {
   List<Object?> get props => [message, errorCode, statusCode];
 }
 
-class CacheFailure extends Failure {
-  const CacheFailure({required super.message});
-}
-
 /// The no-subscription daily view cap (`DAILY_VIEWS_EXCEEDED`). Carries the
 /// [resetAt] instant (next UTC midnight) for the reset countdown. Not a
 /// paywall — the UI shows a "come back tomorrow" state.

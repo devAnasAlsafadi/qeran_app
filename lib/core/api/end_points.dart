@@ -338,10 +338,6 @@ class EndPoints {
   static const String matchmakerCompatibility =
       "matchmaker/compatibility-cases";
 
-  /// Mutation/note resource, same `/compatibility-cases` root.
-  static const String matchmakerCompatibilityCases =
-      "matchmaker/compatibility-cases";
-
   /// `POST /api/matchmaker/compatibility-cases/{formalRequestId}/status`
   /// — body `{newStatus}` (1..5).
   static String matchmakerCompatibilityCaseStatus(int formalRequestId) =>

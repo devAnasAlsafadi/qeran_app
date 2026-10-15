@@ -37,20 +37,6 @@ class NavigationManager {
     );
   }
 
-  //popUntil
-  static void popUntil(BuildContext context, String routeUntil) {
-    Navigator.popUntil(context, (route) => route.settings.name == routeUntil);
-  }
-
-  //popAndPush
-  static void popAndPush(
-    BuildContext context,
-    String route, {
-    Object? arguments,
-  }) {
-    Navigator.popAndPushNamed(context, route, arguments: arguments);
-  }
-
   //pop
   static void pop<T extends Object>(BuildContext context, [T? result]) {
     Navigator.pop(context, result);

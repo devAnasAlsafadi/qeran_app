@@ -69,14 +69,6 @@ class DailyViewsExceededException extends ServerException {
   });
 }
 
-class CacheException implements Exception {
-  final String message;
-  CacheException({required this.message});
-
-  @override
-  String toString() => message;
-}
-
 class AuthException implements Exception {
   final String message;
 

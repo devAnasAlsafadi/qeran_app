@@ -12,8 +12,6 @@ import 'package:qeran/features/home/presentation/screens/home_screen.dart';
 import 'package:qeran/features/likes/presentation/screens/match_success_screen.dart';
 import 'package:qeran/features/matchmaker/account/presentation/screens/matchmaker_account_screen.dart';
 import 'package:qeran/features/matchmaker/affiliate/presentation/screens/matchmaker_affiliate_screen.dart';
-import 'package:qeran/features/matchmaker/compatibility_cases/domain/entities/compatibility_case.dart';
-import 'package:qeran/features/matchmaker/compatibility_cases/presentation/screens/matchmaker_case_detail_screen.dart';
 import 'package:qeran/features/matchmaker/conversations/domain/entities/matchmaker_conversation.dart';
 import 'package:qeran/features/matchmaker/conversations/presentation/screens/matchmaker_user_chat_screen.dart';
 import 'package:qeran/features/matchmaker/home/presentation/screens/matchmaker_home_screen.dart';
@@ -208,14 +206,6 @@ class AppRouter {
           builder: (context) => args == null
               ? const RouteFallbackScreen()
               : MatchmakerUserProfileScreen(args: args),
-        );
-      case RouteNames.matchmakerCaseDetail:
-        final caseArg = settings.arguments as CompatibilityCase?;
-        return _buildSmoothRoute(
-          settings: settings,
-          builder: (context) => caseArg == null
-              ? const RouteFallbackScreen()
-              : MatchmakerCaseDetailScreen(caseItem: caseArg),
         );
       case RouteNames.matchmakerInterests:
         final userId = settings.arguments as String?;

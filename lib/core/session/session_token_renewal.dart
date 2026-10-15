@@ -4,7 +4,7 @@ import '../errors/errors.dart';
 import 'session_expiry.dart';
 
 /// The token a password change answers with: `data.token`, the shape login
-/// answers with; null when there is none (before Tariq's deploy).
+/// answers with; null when there is none.
 String? renewedTokenIn(Object? response) {
   if (response is! Map) return null;
   final data = response['data'];

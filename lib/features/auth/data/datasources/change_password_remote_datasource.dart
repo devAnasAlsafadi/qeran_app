@@ -17,8 +17,7 @@ abstract interface class ChangePasswordRemoteDataSource {
   /// three). A wrong current password comes back as a `status == 0` envelope,
   /// which the [ApiConsumer] surfaces as a `CodedServerException`. Success
   /// answers with the new token in `data`, as login does — the old one is
-  /// refused from then on — returned here; null before Tariq's deploy, which
-  /// answers `data: null`.
+  /// refused from then on — returned here; null if the answer carries none.
   Future<String?> changePassword({
     required String currentPassword,
     required String newPassword,

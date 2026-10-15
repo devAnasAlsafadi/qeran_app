@@ -5,7 +5,7 @@ import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 
 /// One labelled field on the profile-edit form — the question text (with a
 /// required marker) above its input. [child] is the type-specific input
-/// (wired in the next sub-step); for now callers pass a read-only summary.
+/// (`ProfileEditRenderer`).
 class ProfileEditField extends StatelessWidget {
   final String label;
   final bool isRequired;

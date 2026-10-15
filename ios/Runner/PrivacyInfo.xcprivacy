@@ -16,8 +16,9 @@
     web privacy policy dropped its location clause (Aug 2 handoff §2.3).
     Declaring collection we don't perform is worse than declaring nothing.
   - Bundled SDKs (RevenueCat, Firebase, connectivity_plus, secure_storage,
-    device_info, package_info, shared_preferences, image_picker) ship their OWN
-    PrivacyInfo manifests — do not re-declare their data here.
+    device_info, package_info, shared_preferences, image_picker, video_player,
+    share_plus, app_settings) ship their OWN PrivacyInfo manifests — do not
+    re-declare their data here. video_compress ships none.
   - Required-reason APIs are declared as a superset. Flutter.framework already
     declares FileTimestamp and SystemBootTime, and several SDKs declare
     UserDefaults, but under Swift Package Manager the plugin code links

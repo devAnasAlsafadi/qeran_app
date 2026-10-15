@@ -256,7 +256,6 @@ class EndPoints {
   static String get chatHubUrl => '${Uri.parse(baseUrl).origin}/hubs/chat';
 
   // ─── Matchmaker (role=Moderator) ─────────────────────
-  // Source: docs/MOBILE_MATCHMAKER_FLOW.md.
   // String constants only — no behavior, no validation.
 
   /// `GET /api/matchmaker/dashboard` — 6 counters

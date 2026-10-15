@@ -29,7 +29,7 @@ class QeranMotion {
   /// One pass of the onboarding privacy blur-reveal seam (it ping-pongs, so a
   /// full cycle is 2×). Deliberately the slowest token in the set — meditative,
   /// not a UI transition. Matches the motion designer's reference exactly
-  /// (`docs/_design/Qeran Privacy Seam.html` → `6s ease-in-out alternate`).
+  /// (`6s ease-in-out alternate`).
   static const Duration revealSweep = Duration(seconds: 6);
 }
 

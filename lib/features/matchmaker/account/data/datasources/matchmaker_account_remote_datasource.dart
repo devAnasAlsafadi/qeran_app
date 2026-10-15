@@ -39,8 +39,9 @@ abstract interface class MatchmakerAccountRemoteDataSource {
   /// three; the UI's single new-password field feeds both new + confirm).
   /// Shared auth endpoint. A failure throws [CodedServerException] carrying a
   /// locale key (never the server's sentence) and the `errorCode` — a wrong
-  /// current password is `INVALID_OLD_PASSWORD`. Success answers with the new token, returned here (null before Tariq's
-  /// deploy); the old one is refused from then on.
+  /// current password is `INVALID_OLD_PASSWORD`. Success answers with the new
+  /// token, returned here (null if the answer carries none); the old one is
+  /// refused from then on.
   Future<String?> changePassword({
     required String currentPassword,
     required String newPassword,

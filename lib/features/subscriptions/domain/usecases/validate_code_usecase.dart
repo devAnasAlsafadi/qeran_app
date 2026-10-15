@@ -8,7 +8,7 @@ import '../repositories/subscriptions_repository.dart';
 /// returning the offer id (+ iOS signature) to hand to RevenueCat. A `false`
 /// [ValidateCodeResponse.valid] is a **successful** result (a Right carrying
 /// the reason [ValidateCodeResponse.message]) — a Left is only a transport /
-/// server error. See docs/PAYWALL_IMPLEMENTATION_PLAN.md §2.4/§2.5.
+/// server error.
 class ValidateCodeUseCase {
   final SubscriptionsRepository _repository;
   const ValidateCodeUseCase(this._repository);

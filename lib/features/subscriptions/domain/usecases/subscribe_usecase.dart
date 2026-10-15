@@ -8,7 +8,6 @@ import '../repositories/subscriptions_repository.dart';
 /// Paid subscriptions activate via RevenueCat + the server-side webhook,
 /// **not** this endpoint — the backend rejects a paid tier here
 /// («هذا الاشتراك مدفوع ويُفعَّل عبر المتجر»).
-/// See docs/PAYWALL_IMPLEMENTATION_PLAN.md §2.6.
 class SubscribeUseCase {
   final SubscriptionsRepository _repository;
   const SubscribeUseCase(this._repository);

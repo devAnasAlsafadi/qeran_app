@@ -21,8 +21,8 @@
          the app's own external files folder, which needs no permission. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:node="remove" />
-    <!-- Google Play Billing — required by RevenueCat for in-app purchases. -->
-    <uses-permission android:name="com.android.vending.BILLING" />
+    <!-- Google Play Billing's permission arrives merged from the billing
+         library RevenueCat pulls in; it needs no line here. -->
 
 
     <application

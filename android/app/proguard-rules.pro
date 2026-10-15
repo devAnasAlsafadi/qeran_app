@@ -72,8 +72,9 @@
 -keepclassmembers,allowobfuscation class * { @com.google.gson.annotations.SerializedName <fields>; }
 -dontwarn sun.misc.**
 
-# ---- flutter_secure_storage (AndroidX security / Keystore) ----
--keep class androidx.security.crypto.** { *; }
+# ---- flutter_secure_storage ----
+# v10 encrypts with Tink and ships no androidx.security.crypto, so there is
+# nothing to keep; the warning stays quiet in case a library still names it.
 -dontwarn androidx.security.crypto.**
 
 # ---- image_picker / share_plus / connectivity_plus / device_info / package_info ----

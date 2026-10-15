@@ -2,14 +2,17 @@ part of 'plan_selection_widget.dart';
 
 /// One selectable plan card in the packages list. Renders the plan header
 /// (name + popular tag + selected/owned badge), the header price bound to the
-/// selected pricing, the billing-period picker (multi-pricing purchase
-/// candidates only), and the expanded features list. Private to the
-/// [PlanSelectionWidget] library.
+/// selected pricing, the billing-period picker (a selected plan with more
+/// than one period, their own included: run 11), and the expanded features
+/// list. Private to the [PlanSelectionWidget] library.
 class _PlanCard extends StatelessWidget {
   final SubscriptionPlan plan;
   final int index;
   final bool isSelected;
   final int? ownedPlanId;
+
+  /// A plan above the one they hold: «ترقية متاحة».
+  final bool isUpgrade;
 
   /// Resolved period of the plan the user actually owns (e.g. "3 أشهر" /
   /// "3 months"), or null when nothing is owned. Rendered on the owned card's
@@ -29,6 +32,7 @@ class _PlanCard extends StatelessWidget {
     required this.index,
     required this.isSelected,
     required this.ownedPlanId,
+    required this.isUpgrade,
     required this.ownedPeriodLabel,
     required this.isArabic,
     required this.selectedPricingFor,
@@ -77,7 +81,7 @@ class _PlanCard extends StatelessWidget {
     final priceText = _priceLabel(context, selectedPricing, storeProduct);
 
     return GestureDetector(
-      onTap: isOwned ? null : () => onPlanChanged(index),
+      onTap: () => onPlanChanged(index),
       child: Container(
         decoration: BoxDecoration(
           color: QeranColors.paper,
@@ -101,18 +105,7 @@ class _PlanCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (!isOwned)
-                    Icon(
-                      isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                      color: isSelected ? QeranColors.gold : QeranColors.inkMuted,
-                      size: 20,
-                    ),
-                  if (isOwned)
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      color: QeranColors.goldDeep,
-                      size: 20,
-                    ),
+                  _PlanMark(owned: isOwned, selected: isSelected),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -158,31 +151,20 @@ class _PlanCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Badges (Current / Upgrade Available)
-                  if (isOwned)
-                    _PillBadge(
-                      label: ownedPlanBadgeLabel(
-                        LocaleKeys.subscriptions_badge_your_plan.t(context),
-                        ownedPeriodLabel,
-                      ),
-                      background: QeranColors.wine.withValues(alpha: 0.08),
-                      foreground: QeranColors.wine,
-                    ),
-                  if (!isOwned && ownedPlanId != null)
-                    _PillBadge(
-                      label: LocaleKeys.subscriptions_badge_upgrade_available
-                          .t(context),
-                      background: QeranColors.gold.withValues(alpha: 0.18),
-                      foreground: QeranColors.goldDeep,
-                    ),
+                  _PlanStatus(
+                    owned: isOwned,
+                    upgrade: isUpgrade,
+                    ownedPeriodLabel: ownedPeriodLabel,
+                  ),
                 ],
               ),
 
               // Billing-period picker — sits directly under the header price,
-              // above the features. Only for a purchase candidate (selected,
-              // not owned) that exposes more than one pricing; a single-pricing
-              // plan (e.g. Basic) shows nothing.
-              if (isSelected && !isOwned && activePricings.length > 1) ...[
+              // above the features. Only for the selected plan when it exposes
+              // more than one pricing, their own plan included (the period
+              // they don't hold); a single-pricing plan (e.g. Basic) shows
+              // nothing.
+              if (isSelected && activePricings.length > 1) ...[
                 QeranSpacing.vs12,
                 PlanPricingSelector(
                   plan: plan,
@@ -203,44 +185,6 @@ class _PlanCard extends StatelessWidget {
               ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Rounded status pill used for the plan-card badges (popular tag, "your plan",
-/// "upgrade available"). One shape, parameterised on label + colours so the
-/// three badges never drift apart.
-class _PillBadge extends StatelessWidget {
-  final String label;
-  final Color background;
-  final Color foreground;
-  final double fontSize;
-  final EdgeInsetsGeometry padding;
-
-  const _PillBadge({
-    required this.label,
-    required this.background,
-    required this.foreground,
-    this.fontSize = 11,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: QeranRadii.pill,
-      ),
-      child: Text(
-        label,
-        style: QeranTypography.bodySm.copyWith(
-          fontSize: fontSize,
-          color: foreground,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

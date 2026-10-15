@@ -693,7 +693,7 @@
     "status_per_day": "{count} / day",
     "available_plans": "Available Plans",
     "badge_popular": "Popular",
-    "badge_your_plan": "Your Plan",
+    "badge_your_plan": "Your current plan",
     "badge_upgrade_available": "Upgrade Available",
     "free_plan_title": "Free Basic Plan",
     "badge_you_are_here": "You are here",
@@ -704,11 +704,7 @@
     "activating_overdue": "If this continues, contact us from Help & support.",
     "activating_ok": "OK",
     "none_title": "No subscription yet",
-    "none_body": "Activate the free plan or pick a plan to get started.",
-    "vip_celebrate_subtitle": "You're on our highest plan",
-    "vip_celebrate_body": "All premium Qeran features are fully unlocked for you",
-    "vip_active_features": "Active Features",
-    "vip_back_to_profile": "Back to Profile"
+    "none_body": "Activate the free plan or pick a plan to get started."
   },
   "profile": {
     "upsell_title": "Upgrade to Premium",

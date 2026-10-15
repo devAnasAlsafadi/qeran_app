@@ -2,13 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
-import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
-import 'package:qeran/core/design_system/tokens/qeran_shadows.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
-import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/design_system/widgets/qeran_app_bar.dart';
-import 'package:qeran/core/design_system/widgets/qeran_button.dart';
 import 'package:qeran/core/design_system/widgets/qeran_empty_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_error_state.dart';
 import 'package:qeran/core/design_system/widgets/qeran_loader.dart';
@@ -17,7 +13,9 @@ import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/features/profile/presentation/widgets/profile_gate_banner.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
-import '../../domain/entities/subscription_features.dart';
+import '../../domain/entities/subscription_plan.dart';
+import '../../domain/entities/subscription_pricing.dart';
+import '../../domain/helpers/plan_offer.dart';
 import '../blocs/plans/subscription_plans_cubit.dart';
 import '../blocs/plans/subscription_plans_state.dart';
 import '../blocs/purchase/package_purchase_cubit.dart';
@@ -33,7 +31,7 @@ import '../widgets/restore_purchases_tile.dart';
 import '../widgets/sticky_cta_widget.dart';
 import '../widgets/subscription_activating_card.dart';
 
-part 'packages_vip_celebration.dart';
+part 'packages_screen_parts.dart';
 
 /// Full-route packages screen — thin coordinator. Provides the plans + purchase
 /// cubits, composes the extracted paywall widgets, and delegates CTA routing to
@@ -67,12 +65,25 @@ class _PackagesView extends StatefulWidget {
 
 class _PackagesViewState extends State<_PackagesView>
     with PaywallPurchaseFlow<_PackagesView> {
-  int _activePlanIndex = 0;
+  /// Null until they tap a plan: then [PlanOffer.initialIndex] decides.
+  int? _activePlanIndex;
+
+  /// Plans whose period they picked themselves: their own period stays
+  /// picked; otherwise it is never preselected.
+  final _pickedPeriod = <int>{};
   final bool _isIOS = Platform.isIOS;
 
   void _setActivePlan(int index) {
     if (index == _activePlanIndex) return;
     setState(() => _activePlanIndex = index);
+  }
+
+  void _pickPeriod(SubscriptionPlan plan, int pricingId) {
+    setState(() => _pickedPeriod.add(plan.id));
+    context.read<SubscriptionPlansCubit>().selectPricing(
+          planId: plan.id,
+          pricingId: pricingId,
+        );
   }
 
   @override
@@ -96,11 +107,17 @@ class _PackagesViewState extends State<_PackagesView>
   }
 
   Widget _buildLoaded(BuildContext context, SubscriptionPlansLoaded state) {
-    // Selectable list = purchasable plans only. The free tier is rendered as the
-    // static "you are here" card inside PlanSelectionWidget, so it's excluded
-    // here to avoid a double render. Guarding on `paidPlans` (⊇ `plans.isEmpty`)
-    // also protects the index math below from a free-only payload.
-    final paidPlans = state.paidPlans;
+    final currentSubState = context.watch<CurrentSubscriptionCubit>().state;
+    final currentSub = currentSubState is CurrentSubscriptionLoaded &&
+            currentSubState.subscription.isCurrentlyActive
+        ? currentSubState.subscription
+        : null;
+    // Selectable list = purchasable plans only, none below theirs (run 11: the
+    // top plan lists itself too, for the period they don't hold — no more
+    // celebration dead end). The free tier is the static card inside
+    // PlanSelectionWidget. An empty list also guards the index math below.
+    final offer = PlanOffer(state.paidPlans, owned: currentSub);
+    final paidPlans = offer.plans;
     if (paidPlans.isEmpty) {
       return QeranEmptyState(
         title: LocaleKeys.subscriptions_empty_plans.t(context),
@@ -108,46 +125,16 @@ class _PackagesViewState extends State<_PackagesView>
       );
     }
 
-    final currentSubState = context.watch<CurrentSubscriptionCubit>().state;
-    final currentSub = currentSubState is CurrentSubscriptionLoaded &&
-            currentSubState.subscription.isCurrentlyActive
-        ? currentSubState.subscription
-        : null;
-
-    final isVipOwned = currentSub != null && currentSub.plan.isVipTier;
-    final isBasicOwned = currentSub != null && currentSub.plan.isBasicTier;
-
-    if (isVipOwned) {
-      return SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: _VipCelebratingWidget(features: currentSub.plan.features),
-        ),
-      );
-    }
-
-    int activeIndex = _activePlanIndex.clamp(0, paidPlans.length - 1);
-    if (isBasicOwned) {
-      final vipIndex = paidPlans.indexWhere((p) => p.isVipTier);
-      if (vipIndex != -1) {
-        activeIndex = vipIndex;
-      }
-    }
-
+    final activeIndex = (_activePlanIndex ?? offer.initialIndex)
+        .clamp(0, paidPlans.length - 1);
     final activePlan = paidPlans[activeIndex];
     final cubit = context.read<SubscriptionPlansCubit>();
-    final selectedPricing = cubit.pricingFor(activePlan);
-    // No store price means no purchase: the amount cannot be disclosed, and
-    // RevenueCat would fail to find the package anyway. Once the store has
-    // answered without it, the code field and the button give way to one
-    // line saying so (runs 10 and 11).
-    final selectedStore = selectedPricing == null
-        ? null
-        : state.storeProductFor(selectedPricing, isIOS: _isIOS);
-    final priceUnavailable = selectedPricing != null && selectedStore == null;
-    final unavailable = priceUnavailable && state.storeResolved;
-
+    SubscriptionPricing? pricingFor(SubscriptionPlan plan) => offer.preselect(
+          plan,
+          cubit.pricingFor(plan),
+          picked: _pickedPeriod.contains(plan.id),
+        );
+    final selectedPricing = pricingFor(activePlan);
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
@@ -174,83 +161,33 @@ class _PackagesViewState extends State<_PackagesView>
               plans: paidPlans,
               activeIndex: activeIndex,
               activePlan: activePlan,
-              selectedPricingFor: cubit.pricingFor,
+              selectedPricingFor: pricingFor,
               onPlanChanged: _setActivePlan,
-              onPricingSelected: (pricingId) => cubit.selectPricing(
-                planId: activePlan.id,
-                pricingId: pricingId,
-              ),
+              onPricingSelected: (id) => _pickPeriod(activePlan, id),
               resolveStoreProduct: (pricing) =>
                   state.storeProductFor(pricing, isIOS: _isIOS),
               storeResolved: state.storeResolved,
               currentSub: currentSub,
+              isUpgrade: offer.isUpgrade,
               freePlan: state.freePlan,
               freeBusy: freeBusy,
               onActivateFree: () => activateFree(context),
             ),
-            if (selectedPricing != null) ...[
-              QeranSpacing.vs16,
-              OrderSummaryWidget(
-                planName: activePlan.name(
-                  isArabic:
-                      Localizations.localeOf(context).languageCode == 'ar',
-                ),
-                pricing: selectedPricing,
-                storeProduct: selectedStore,
-                // Android keeps sending the Google id it has always sent; iOS
-                // resolves its own, though the field is hidden there anyway.
-                codeProductId: _isIOS
-                    ? (selectedPricing.appleProductId ??
-                        selectedPricing.storeProductId)
-                    : selectedPricing.googleProductId,
-                allowDiscountCode: !_isIOS && !unavailable,
-              ),
-            ],
-            QeranSpacing.vs24,
-            BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(
-              builder: (context, purchaseState) {
-                final discountPercent =
-                    purchaseState is PackagePurchaseCodeValidationSuccess
-                        ? purchaseState.response.discountPercent
-                        : null;
-                return StickyCtaWidget(
-                  unavailable: unavailable,
-                  hasSelection: selectedPricing != null && !priceUnavailable,
-                  freeBusy: freeBusy,
-                  discountPercent: discountPercent,
-                  onPressed: selectedPricing == null || priceUnavailable
-                      ? null
-                      : () => handleCta(context, activePlan, selectedPricing),
-                );
-              },
+            _Checkout(
+              plan: activePlan,
+              pricing: selectedPricing,
+              storeProduct: selectedPricing == null
+                  ? null
+                  : state.storeProductFor(selectedPricing, isIOS: _isIOS),
+              storeResolved: state.storeResolved,
+              owned: offer.isOwnedPricing(selectedPricing),
+              isIOS: _isIOS,
+              freeBusy: freeBusy,
+              onBuy: () => handleCta(context, activePlan, selectedPricing!),
             ),
-            QeranSpacing.vs12,
-            // Apple requires a visible "Restore purchases" on the purchase
-            // surface. Self-contained tile (own cubit + restore-specific outcome
-            // handling), enabled on both platforms — restore triggers no payment.
-            const RestorePurchasesTile(),
-            QeranSpacing.vs12,
-            // Apple 3.1.2(a): the subscription binding + both legal documents
-            // must be reachable from the surface that sells the subscription.
-            const LegalLinksRow(),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  final String message;
-  const _ErrorState({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return QeranErrorState(
-      title: LocaleKeys.subscriptions_load_failed.t(context),
-      message: message,
-      retryLabel: LocaleKeys.subscriptions_retry.t(context),
-      onRetry: () => context.read<SubscriptionPlansCubit>().load(),
     );
   }
 }

@@ -19,9 +19,12 @@ import '../blocs/purchase/package_purchase_state.dart';
 /// * **[unavailable]** — no button: the store has no product for the chosen
 ///   period, so one line in body text says the plan can't be bought now
 ///   (runs 10 and 11).
+/// * **[owned]** — the plan and period they hold: «باقتك الحالية», disabled
+///   (run 11).
 class StickyCtaWidget extends StatelessWidget {
   final bool hasSelection;
   final bool unavailable;
+  final bool owned;
   final bool freeBusy;
   final int? discountPercent;
   final VoidCallback? onPressed;
@@ -33,6 +36,7 @@ class StickyCtaWidget extends StatelessWidget {
     this.freeBusy = false,
     this.discountPercent,
     this.unavailable = false,
+    this.owned = false,
   });
 
   @override
@@ -45,6 +49,13 @@ class StickyCtaWidget extends StatelessWidget {
           textAlign: TextAlign.center,
           style: QeranTypography.body,
         ),
+      );
+    }
+    if (owned) {
+      return QeranButton(
+        label: LocaleKeys.subscriptions_badge_your_plan.t(context),
+        variant: QeranButtonVariant.primary,
+        onPressed: null,
       );
     }
     return BlocBuilder<PackagePurchaseCubit, PackagePurchaseState>(

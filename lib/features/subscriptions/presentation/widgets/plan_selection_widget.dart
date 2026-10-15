@@ -19,6 +19,7 @@ import 'plan_pricing_selector.dart';
 import 'price_period.dart';
 
 part 'plan_selection_card.dart';
+part 'plan_card_badges.dart';
 part 'plan_card_price.dart';
 part 'plan_selection_free_card.dart';
 
@@ -42,6 +43,10 @@ class PlanSelectionWidget extends StatelessWidget {
   final ValueChanged<int> onPlanChanged;
   final ValueChanged<int> onPricingSelected;
   final CurrentSubscription? currentSub;
+
+  /// A plan above the one they hold, which says «ترقية متاحة» (run 11). Null:
+  /// no plan says it.
+  final bool Function(SubscriptionPlan plan)? isUpgrade;
 
   /// The free-tier plan from the backend (null when the payload has none —
   /// then there is no free card). Its feature bullets / quotas render on the
@@ -74,6 +79,7 @@ class PlanSelectionWidget extends StatelessWidget {
     required this.resolveStoreProduct,
     this.storeResolved = false,
     this.currentSub,
+    this.isUpgrade,
     this.freePlan,
     this.freeBusy = false,
     this.onActivateFree,
@@ -139,6 +145,7 @@ class PlanSelectionWidget extends StatelessWidget {
                 index: i,
                 isSelected: i == activeIndex,
                 ownedPlanId: ownedPlanId,
+                isUpgrade: isUpgrade?.call(plans[i]) ?? false,
                 ownedPeriodLabel: ownedPeriodLabel,
                 isArabic: isArabic,
                 selectedPricingFor: selectedPricingFor,

@@ -749,7 +749,7 @@
     "status_per_day": "{count} يومياً",
     "available_plans": "الخطط المتاحة",
     "badge_popular": "الأكثر طلباً",
-    "badge_your_plan": "خطتك الحالية",
+    "badge_your_plan": "باقتك الحالية",
     "badge_upgrade_available": "ترقية متاحة",
     "free_plan_title": "الباقة المجانية",
     "badge_you_are_here": "أنت هنا الآن",
@@ -760,11 +760,7 @@
     "activating_overdue": "إذا استمر ذلك، تواصل معنا من المساعدة والدعم.",
     "activating_ok": "حسناً",
     "none_title": "لا يوجد اشتراك بعد",
-    "none_body": "فعّل الباقة المجانية أو اختر باقة للبدء.",
-    "vip_celebrate_subtitle": "أنت على أرقى خطة لدينا",
-    "vip_celebrate_body": "كافة ميزات قِران الفريدة مفتوحة لك بالكامل",
-    "vip_active_features": "المميزات النشطة",
-    "vip_back_to_profile": "العودة إلى الملف الشخصي"
+    "none_body": "فعّل الباقة المجانية أو اختر باقة للبدء."
   },
   "profile": {
     "upsell_title": "ارتقِ لعضوية التميز",

@@ -5,7 +5,7 @@ import '../../../../../../core/enum/snakebar_tybe.dart';
 import '../../../../../../core/extensions/localization_extension.dart';
 import '../../../../../../core/utils/app_snackbar.dart';
 import '../../../../../../generated/locale_keys.g.dart';
-import '../../services/community_media_picker.dart';
+import '../../../../../../core/media/media_access.dart';
 
 enum ComposerMediaSource { gallery, camera }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:qeran/core/media/media_access.dart';
 import 'package:qeran/features/community/domain/entities/community_config.dart';
-import 'package:qeran/features/matchmaker/community/presentation/services/community_media_picker.dart';
 import 'package:qeran/features/matchmaker/community/presentation/widgets/composer/composer_image_tile.dart';
 
 import '../../../../core/shipped_strings_rig.dart';

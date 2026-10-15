@@ -10,6 +10,14 @@
     "next": "Next",
     "skip": "Skip"
   },
+  "media": {
+    "camera_off_title": "Camera access is off",
+    "camera_off_message": "You can allow Qeran to use the camera in your phone's settings.",
+    "photos_off_title": "Photo access is off",
+    "photos_off_message": "You can allow Qeran to use your photos in your phone's settings.",
+    "open_settings": "Open settings",
+    "not_now": "Not now"
+  },
   "validators": {
     "field_required": "This field is required",
     "invalid_email": "Please enter a valid email",

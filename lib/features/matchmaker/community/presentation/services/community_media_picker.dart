@@ -1,19 +1,10 @@
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../../core/app_logger.dart';
-
-/// What she refused the app: the camera, or her photos (S9).
-enum MediaAccess { camera, photos }
-
-/// Thrown when the system refused access; the composer says how to allow it.
-class MediaAccessDenied implements Exception {
-  final MediaAccess access;
-  const MediaAccessDenied(this.access);
-}
+import '../../../../../core/media/media_access.dart';
 
 /// The phone's own picker and camera for her composer (plan §3.3). Answers
-/// file paths; what each file really is, the inspector decides.
+/// file paths; what each file really is, the inspector decides. A refused
+/// camera or library throws [MediaAccessDenied] (S9).
 abstract class CommunityMediaPicker {
   /// Up to [limit] images from her gallery, in the order she picked them
   /// (empty when she backs out). Null [limit]: no cap from config.
@@ -88,20 +79,6 @@ class ImagePickerCommunityMediaPicker implements CommunityMediaPicker {
     requestFullMetadata: false,
   ))?.path;
 
-  /// A refusal becomes [MediaAccessDenied]; any other platform error (no
-  /// camera, the picker already open) is logged and reads as backing out.
-  Future<T> _guard<T>(Future<T> Function() pick, {required T fallback}) async {
-    try {
-      return await pick();
-    } on PlatformException catch (e) {
-      switch (e.code) {
-        case 'camera_access_denied':
-          throw const MediaAccessDenied(MediaAccess.camera);
-        case 'photo_access_denied':
-          throw const MediaAccessDenied(MediaAccess.photos);
-      }
-      AppLogger.warning('Picker failed: ${e.code}', tag: 'COMMUNITY');
-      return fallback;
-    }
-  }
+  Future<T> _guard<T>(Future<T> Function() pick, {required T fallback}) =>
+      guardMediaAccess(pick, fallback: fallback, tag: 'COMMUNITY');
 }

@@ -13,6 +13,13 @@ abstract class  LocaleKeys {
   static const common_next = 'common.next';
   static const common_skip = 'common.skip';
   static const common = 'common';
+  static const media_camera_off_title = 'media.camera_off_title';
+  static const media_camera_off_message = 'media.camera_off_message';
+  static const media_photos_off_title = 'media.photos_off_title';
+  static const media_photos_off_message = 'media.photos_off_message';
+  static const media_open_settings = 'media.open_settings';
+  static const media_not_now = 'media.not_now';
+  static const media = 'media';
   static const validators_field_required = 'validators.field_required';
   static const validators_invalid_email = 'validators.invalid_email';
   static const validators_password_too_short = 'validators.password_too_short';

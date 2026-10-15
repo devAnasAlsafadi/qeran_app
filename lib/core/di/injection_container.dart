@@ -26,6 +26,7 @@ import '../../features/subscriptions/di/subscriptions_injection.dart';
 import '../../features/support/di/support_injection.dart';
 import '../datasources/shared_pref_service.dart';
 import '../datasources/secure_storage_service.dart';
+import '../media/app_settings_opener.dart';
 import '../services/device_info_service.dart';
 import '../services/firebase_initialization_service.dart';
 import '../services/google_sign_in_service.dart';
@@ -99,6 +100,10 @@ Future<void> init() async {
   //! Devices / FCM infrastructure
   sl.registerLazySingleton<NotificationService>(() => NotificationService());
   sl.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
+
+  //! Media — the app's page in the phone's settings, after a refused
+  //  camera or photo library.
+  sl.registerLazySingleton(() => const AppSettingsOpener());
 
   //! Payments — RevenueCat (P1: init + identity only). Configured from
   //  main(); identity bound to UserSessionCubit. The custom-checkout +

@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:qeran/core/media/media_access.dart';
 import 'package:qeran/features/matchmaker/community/presentation/services/community_media_picker.dart';
 
 class _MockImagePicker extends Mock implements ImagePicker {}
@@ -82,6 +83,29 @@ void main() {
     single(
       ImageSource.gallery,
       error: PlatformException(code: 'photo_access_denied'),
+    );
+    await expectLater(
+      picker.pickImages(limit: 1),
+      throwsA(
+        isA<MediaAccessDenied>().having(
+          (e) => e.access,
+          'access',
+          MediaAccess.photos,
+        ),
+      ),
+    );
+  });
+
+  test('restricted (Screen Time, a managed iPhone) is a refusal too', () async {
+    single(
+      ImageSource.camera,
+      error: PlatformException(code: 'camera_access_restricted'),
+    );
+    await expectLater(picker.captureImage(), throwsA(isA<MediaAccessDenied>()));
+
+    single(
+      ImageSource.gallery,
+      error: PlatformException(code: 'photo_access_restricted'),
     );
     await expectLater(
       picker.pickImages(limit: 1),

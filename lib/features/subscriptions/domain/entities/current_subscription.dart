@@ -38,8 +38,9 @@ class CurrentSubscription extends Equatable {
   final int likesUsed;
   final int likesRemaining;
 
-  /// Both null once the server stops sending them (release day, with
-  /// [SubscriptionFeatures.seriousInterestsAllowed]).
+  /// Never shown: serious interests are unused and nothing spends them
+  /// (Tariq, TQ26, run 11). Both null once the server stops sending them on
+  /// launch day, with [SubscriptionFeatures.seriousInterestsAllowed].
   final int? seriousInterestsUsed;
   final int? seriousInterestsRemaining;
   final int photoExchangesUsed;

@@ -657,11 +657,9 @@
     "upgrade_cta": "ترقية الاشتراك",
     "view_packages_cta": "اعرض الباقات",
     "feature_photo_exchanges": "تبادل صور",
-    "feature_serious_interests": "اهتمام جاد",
     "feature_daily_profile_views": "مشاهدة/يوم",
     "feature_likes_label": "رصيد الاهتمام",
     "feature_photo_exchanges_label": "تبادلات الصور",
-    "feature_serious_interests_label": "الاهتمامات الجادة",
     "feature_daily_profile_views_label": "المشاهدات اليومية",
     "price_per_period": "{price} / {period}",
     "period_day": {

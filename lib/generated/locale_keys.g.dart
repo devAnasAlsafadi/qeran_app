@@ -548,11 +548,9 @@ abstract class  LocaleKeys {
   static const subscriptions_upgrade_cta = 'subscriptions.upgrade_cta';
   static const subscriptions_view_packages_cta = 'subscriptions.view_packages_cta';
   static const subscriptions_feature_photo_exchanges = 'subscriptions.feature_photo_exchanges';
-  static const subscriptions_feature_serious_interests = 'subscriptions.feature_serious_interests';
   static const subscriptions_feature_daily_profile_views = 'subscriptions.feature_daily_profile_views';
   static const subscriptions_feature_likes_label = 'subscriptions.feature_likes_label';
   static const subscriptions_feature_photo_exchanges_label = 'subscriptions.feature_photo_exchanges_label';
-  static const subscriptions_feature_serious_interests_label = 'subscriptions.feature_serious_interests_label';
   static const subscriptions_feature_daily_profile_views_label = 'subscriptions.feature_daily_profile_views_label';
   static const subscriptions_price_per_period = 'subscriptions.price_per_period';
   static const subscriptions_period_day = 'subscriptions.period_day';

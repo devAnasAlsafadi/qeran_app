@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:qeran/features/subscriptions/presentation/screens/purchase_success_screen.dart';
 import 'package:qeran/features/subscriptions/presentation/widgets/my_subscription_card.dart';
@@ -7,12 +8,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'subscription_widget_rig.dart';
 
-/// The backend drops the three `seriousInterests*` fields on release day. Each
-/// screen that lists the allowance draws its row only while the server still
-/// sends it — and draws every other row either way.
+/// Serious interests are unused and nothing spends them (Tariq, TQ26, run
+/// 11): no member screen draws them, even while the server still sends the
+/// fields (until launch day), and every other row stays.
 void main() {
-  final label = shippedSubscriptionsEn('feature_serious_interests_label');
   final likes = shippedSubscriptionsEn('feature_likes_label');
+  final serious = find.textContaining('erious');
 
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
@@ -20,73 +21,46 @@ void main() {
     await loadShippedFonts();
   });
 
-  group('plan card fallback checklist', () {
-    testWidgets('draws the row while the allowance is sent', (tester) async {
-      await pumpSubscriptionWidget(
-        tester,
-        PlanFeaturesWidget(plan: planWith(seriousInterests: -1)),
-      );
+  void expectNoRow() {
+    expect(serious, findsNothing);
+    expect(find.byIcon(Icons.handshake_rounded), findsNothing);
+    expect(find.text(likes), findsOneWidget);
+  }
 
-      expect(find.text(label), findsOneWidget);
-    });
-
-    testWidgets('omits only that row once it is absent', (tester) async {
-      await pumpSubscriptionWidget(
-        tester,
-        PlanFeaturesWidget(plan: planWith()),
-      );
-
-      expect(find.text(label), findsNothing);
-      expect(find.text(likes), findsOneWidget);
-    });
-  });
-
-  group('my subscription card', () {
-    testWidgets('draws the row while all three counters are sent', (
+  testWidgets('plan card checklist: no row while the allowance is sent', (
+    tester,
+  ) async {
+    await pumpSubscriptionWidget(
       tester,
-    ) async {
-      await pumpSubscriptionWidget(
-        tester,
-        MySubscriptionCard(
-          subscription: subscriptionWith(allowed: -1, used: 0, remaining: -1),
-          expiring: false,
-        ),
-      );
+      PlanFeaturesWidget(plan: planWith(seriousInterests: -1)),
+    );
 
-      expect(find.text(label), findsOneWidget);
-    });
-
-    testWidgets('omits only that row once they are absent', (tester) async {
-      await pumpSubscriptionWidget(
-        tester,
-        MySubscriptionCard(subscription: subscriptionWith(), expiring: false),
-      );
-
-      expect(find.text(label), findsNothing);
-      expect(find.text(likes), findsOneWidget);
-    });
+    expectNoRow();
   });
 
-  group('purchase success', () {
-    testWidgets('draws the row while the allowance is sent', (tester) async {
-      await pumpSubscriptionWidget(
-        tester,
-        PurchaseSuccessScreen(plan: planWith(seriousInterests: 3)),
-        page: true,
-      );
+  testWidgets('«اشتراكي»: no row while all three counters are sent', (
+    tester,
+  ) async {
+    await pumpSubscriptionWidget(
+      tester,
+      MySubscriptionCard(
+        subscription: subscriptionWith(allowed: -1, used: 0, remaining: -1),
+        expiring: false,
+      ),
+    );
 
-      expect(find.text(label), findsOneWidget);
-    });
+    expectNoRow();
+  });
 
-    testWidgets('omits only that row once it is absent', (tester) async {
-      await pumpSubscriptionWidget(
-        tester,
-        PurchaseSuccessScreen(plan: planWith()),
-        page: true,
-      );
+  testWidgets('purchase success: no row while the allowance is sent', (
+    tester,
+  ) async {
+    await pumpSubscriptionWidget(
+      tester,
+      PurchaseSuccessScreen(plan: planWith(seriousInterests: 3)),
+      page: true,
+    );
 
-      expect(find.text(label), findsNothing);
-      expect(find.text(likes), findsOneWidget);
-    });
+    expectNoRow();
   });
 }

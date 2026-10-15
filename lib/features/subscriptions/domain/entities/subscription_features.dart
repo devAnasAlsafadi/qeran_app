@@ -16,9 +16,9 @@ class SubscriptionFeatures extends Equatable {
 
   final int likesAllowed;
 
-  /// Null when the server no longer sends it. The backend drops the field on
-  /// release day (nothing ever spent it), and the UI then omits its row
-  /// rather than show a fabricated 0.
+  /// Never shown: serious interests are unused and nothing spends them
+  /// (Tariq, TQ26, run 11). Null once the server stops sending it on launch
+  /// day.
   final int? seriousInterestsAllowed;
   final int photoExchangesAllowed;
   final int dailyProfileViewsAllowed;

@@ -117,12 +117,6 @@ class _EntitlementsCard extends StatelessWidget {
           _row(context, Icons.favorite_rounded,
               LocaleKeys.subscriptions_feature_likes_label.t(context),
               features.likesAllowed),
-          // Drawn only while the server still sends the allowance.
-          if (features.seriousInterestsAllowed case final int allowed)
-            _row(context, Icons.handshake_rounded,
-                LocaleKeys.subscriptions_feature_serious_interests_label
-                    .t(context),
-                allowed),
           _row(context, Icons.photo_library_rounded,
               LocaleKeys.subscriptions_feature_photo_exchanges_label.t(context),
               features.photoExchangesAllowed),

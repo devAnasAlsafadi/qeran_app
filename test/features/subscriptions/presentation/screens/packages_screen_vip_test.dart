@@ -103,9 +103,6 @@ void main() {
       find.text(shippedSubscriptionsEn('feature_likes_label')),
       findsOneWidget,
     );
-    expect(
-      find.text(shippedSubscriptionsEn('feature_serious_interests_label')),
-      findsNothing,
-    );
+    expect(find.textContaining('erious'), findsNothing);
   });
 }

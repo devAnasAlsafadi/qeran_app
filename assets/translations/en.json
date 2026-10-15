@@ -613,11 +613,9 @@
     "upgrade_cta": "Upgrade subscription",
     "view_packages_cta": "View packages",
     "feature_photo_exchanges": "photo exchange",
-    "feature_serious_interests": "serious interest",
     "feature_daily_profile_views": "view/day",
     "feature_likes_label": "Interests",
     "feature_photo_exchanges_label": "Photo exchanges",
-    "feature_serious_interests_label": "Serious interests",
     "feature_daily_profile_views_label": "Daily profile views",
     "price_per_period": "{price} / {period}",
     "period_day": {

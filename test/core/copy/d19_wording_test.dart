@@ -136,7 +136,6 @@ void main() {
     const sections = ['likes.', 'matchmaker.interests_', 'notifications.'];
     const keys = [
       'auth.photo_privacy_note',
-      'discovery.filter_subtitle',
       'profile.upsell_teaser_1',
       'matchmaker.explore_no_results_filtered_title',
     ];

@@ -5,34 +5,50 @@ import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/core/media/media_access.dart';
+import 'package:qeran/core/media/pick_with_access.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
+/// The camera or the gallery for a profile photo. The sheet only answers
+/// which; the phone's picker opens once it has closed.
 class PhotoPickerBottomSheet extends StatelessWidget {
-  final ValueChanged<String> onImagePicked;
+  const PhotoPickerBottomSheet({super.key});
 
-  const PhotoPickerBottomSheet({super.key, required this.onImagePicked});
-
-  static void show(
+  /// The sheet, then the picker on [context] (the photo manager, still on
+  /// screen), so a refused camera or library gets the settings dialog.
+  /// Backing out of either does nothing; a picked photo goes to
+  /// [onImagePicked].
+  static Future<void> show(
     BuildContext context, {
     required ValueChanged<String> onImagePicked,
-  }) {
-    showModalBottomSheet(
+    ImagePicker? picker,
+  }) async {
+    final source = await showModalBottomSheet<ImageSource>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: QeranRadii.domeTop,
       ),
-      builder: (context) =>
-          PhotoPickerBottomSheet(onImagePicked: onImagePicked),
+      builder: (context) => const PhotoPickerBottomSheet(),
     );
+    if (source == null || !context.mounted) return;
+    await pickWithAccess(context, () async {
+      final path = await _pick(picker ?? ImagePicker(), source);
+      if (path != null) onImagePicked(path);
+    });
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: source, imageQuality: 85);
-    if (pickedFile != null) {
-      onImagePicked(pickedFile.path);
-    }
-  }
+  /// No full metadata, so iOS asks for no photo-library permission to pick
+  /// one photo.
+  static Future<String?> _pick(ImagePicker picker, ImageSource source) =>
+      guardMediaAccess(
+        () async => (await picker.pickImage(
+          source: source,
+          imageQuality: 85,
+          requestFullMetadata: false,
+        ))?.path,
+        fallback: null,
+        tag: 'PROFILE',
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +78,7 @@ class PhotoPickerBottomSheet extends StatelessWidget {
                 LocaleKeys.auth_photo_camera.t(context),
                 style: QeranTypography.subtitle,
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
+              onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(
@@ -76,10 +89,7 @@ class PhotoPickerBottomSheet extends StatelessWidget {
                 LocaleKeys.auth_photo_gallery.t(context),
                 style: QeranTypography.subtitle,
               ),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qeran/core/routes/route_fallback_screen.dart';
 import 'package:qeran/core/routes/route_name.dart';
 import 'package:qeran/features/auth/presentation/screens/forgot_password/forget_pass_screen.dart';
 import 'package:qeran/features/auth/presentation/screens/login_screen/login_screen.dart';
@@ -205,11 +206,7 @@ class AppRouter {
         return _buildSmoothRoute(
           settings: settings,
           builder: (context) => args == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
+              ? const RouteFallbackScreen()
               : MatchmakerUserProfileScreen(args: args),
         );
       case RouteNames.matchmakerCaseDetail:
@@ -217,11 +214,7 @@ class AppRouter {
         return _buildSmoothRoute(
           settings: settings,
           builder: (context) => caseArg == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
+              ? const RouteFallbackScreen()
               : MatchmakerCaseDetailScreen(caseItem: caseArg),
         );
       case RouteNames.matchmakerInterests:
@@ -229,11 +222,7 @@ class AppRouter {
         return _buildSmoothRoute(
           settings: settings,
           builder: (context) => userId == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
+              ? const RouteFallbackScreen()
               : MatchmakerInterestsScreen(userId: userId),
         );
       case RouteNames.matchmakerUserChat:
@@ -241,11 +230,7 @@ class AppRouter {
         return _buildSmoothRoute(
           settings: settings,
           builder: (context) => conv == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
+              ? const RouteFallbackScreen()
               : MatchmakerUserChatScreen(conversation: conv),
         );
       case RouteNames.homeScreen:
@@ -304,11 +289,7 @@ class AppRouter {
         return _buildProfileDetailsRoute(
           settings: settings,
           builder: (context) => args == null
-              ? Scaffold(
-                  body: Center(
-                    child: Text('Missing args for ${settings.name}'),
-                  ),
-                )
+              ? const RouteFallbackScreen()
               : FullProfileDetailsScreen(args: args),
         );
       case RouteNames.myProfile:
@@ -343,9 +324,7 @@ class AppRouter {
       default:
         return _buildSmoothRoute(
           settings: settings,
-          builder: (context) => Scaffold(
-            body: Center(child: Text('No route defined for ${settings.name}')),
-          ),
+          builder: (context) => const RouteFallbackScreen(),
         );
     }
   }

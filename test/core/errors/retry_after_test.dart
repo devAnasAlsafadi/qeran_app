@@ -7,21 +7,15 @@ CodedServerFailure withData(Object? data) =>
 
 void main() {
   test("the server's seconds, as a number or a numeric string", () {
-    expect(
-      retryAfterOf(withData({'retryAfterSeconds': 42})),
-      const Duration(seconds: 42),
-    );
-    expect(
-      retryAfterOf(withData({'retryAfterSeconds': ' 7 '})),
-      const Duration(seconds: 7),
-    );
+    expect(retryAfterOf(withData({'retryAfterSeconds': 42})),
+        const Duration(seconds: 42));
+    expect(retryAfterOf(withData({'retryAfterSeconds': ' 7 '})),
+        const Duration(seconds: 7));
   });
 
   test('a fraction of a second rounds up, never to zero', () {
-    expect(
-      retryAfterOf(withData({'retryAfterSeconds': 0.4})),
-      const Duration(seconds: 1),
-    );
+    expect(retryAfterOf(withData({'retryAfterSeconds': 0.4})),
+        const Duration(seconds: 1));
   });
 
   test('nothing usable → null, so the caller uses its own wait', () {

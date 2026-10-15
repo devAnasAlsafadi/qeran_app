@@ -5,7 +5,6 @@ import 'package:dartz/dartz.dart';
 import 'package:qeran/core/data/repositories/base_repository.dart';
 import 'package:qeran/core/errors/errors.dart';
 
-import '../../domain/entities/basic_user.dart';
 import '../../domain/entities/my_profile.dart';
 import '../../domain/entities/profile_fetch_outcome.dart';
 import '../../domain/entities/profile_image.dart';
@@ -55,14 +54,6 @@ class ProfileRepositoryImpl
         GetProfileByIdNotFound(:final message) =>
             ProfileNotFoundOutcome(serverMessage: message),
       };
-    });
-  }
-
-  @override
-  Future<Either<Failure, BasicUser?>> getBasicUser(String id) {
-    return executeApiCall(() async {
-      final model = await _dataSource.getBasicUser(id);
-      return model?.toEntity();
     });
   }
 

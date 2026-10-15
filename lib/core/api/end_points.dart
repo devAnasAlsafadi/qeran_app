@@ -79,12 +79,6 @@ class EndPoints {
   /// `errorCode: "PROFILE_NOT_FOUND"`.
   static String profileById(String userId) => "discovery/profiles/$userId";
 
-  /// `GET /api/users/{id}` — lightweight user info (id, name, email,
-  /// gender, age, latitude, longitude). No images, no placements. Use
-  /// for cases where only a name/age is needed (e.g. comment/notif
-  /// headers). NOT a substitute for [profileById].
-  static String userBasic(String id) => "users/$id";
-
   // ── Safety / moderation (UGC) ──
   /// `POST /api/reports` — report a user and/or a piece of content. Body
   /// `{targetUserId?, targetContentId?, reason, note?}`; success `data` is the

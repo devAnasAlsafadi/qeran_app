@@ -11,7 +11,6 @@ import 'package:qeran/core/services/storage_service.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../error_codes.dart';
-import '../models/basic_user_model.dart';
 import '../models/my_profile_model.dart';
 import '../models/other_profile_model.dart';
 import '../models/owner_image_model.dart';
@@ -45,7 +44,6 @@ abstract interface class ProfileRemoteDataSource {
     String? realName,
   });
   Future<GetProfileByIdResult> getProfileById(String userId);
-  Future<BasicUserModel?> getBasicUser(String id);
   Future<List<OwnerImageModel>> getProfileImages();
   Future<List<OwnerImageModel>> addProfileImages(List<File> images);
   Future<void> deleteProfileImage(String imageId);
@@ -142,28 +140,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         return GetProfileByIdNotFound(e.message);
       }
       throw keyedServerException(e, label: 'PROFILE-BY-ID', tag: 'PROFILE');
-    }
-  }
-
-  @override
-  Future<BasicUserModel?> getBasicUser(String id) async {
-    AppLogger.debug('FETCH BASIC USER -> $id', tag: 'PROFILE');
-    try {
-      final response = await _apiConsumer.get(EndPoints.userBasic(id));
-      final apiResponse = ApiResponse<BasicUserModel>.fromJson(
-        response as Map<String, dynamic>,
-        (json) => BasicUserModel.fromJson(json as Map<String, dynamic>),
-      );
-      return apiResponse.data;
-    } on CodedServerException catch (e) {
-      if (e.errorCode == 'USER_NOT_FOUND') {
-        AppLogger.warning(
-          'Basic user not found id=$id message="${e.message}"',
-          tag: 'PROFILE',
-        );
-        return null;
-      }
-      rethrow;
     }
   }
 

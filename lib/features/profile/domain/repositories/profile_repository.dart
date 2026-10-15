@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:qeran/core/errors/errors.dart';
 
-import '../entities/basic_user.dart';
 import '../entities/my_profile.dart';
 import '../entities/profile_fetch_outcome.dart';
 import '../entities/profile_image.dart';
@@ -29,10 +28,6 @@ abstract interface class ProfileRepository {
   /// `Right(ProfileNotFoundOutcome)` — *not* a Left — so the UI can
   /// distinguish a missing profile from a transport failure.
   Future<Either<Failure, ProfileFetchOutcome>> getProfileById(String userId);
-
-  /// `GET /api/users/{id}`. Lightweight tuple — no images, no
-  /// placements. `null` on documented USER_NOT_FOUND.
-  Future<Either<Failure, BasicUser?>> getBasicUser(String id);
 
   Future<Either<Failure, List<OwnerImage>>> getProfileImages();
   /// Returns the images CREATED by this request (not the full library), so a

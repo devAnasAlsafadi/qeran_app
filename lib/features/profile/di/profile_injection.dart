@@ -11,7 +11,6 @@ import '../domain/repositories/profile_repository.dart';
 import '../domain/usecases/delete_account_usecase.dart';
 import '../domain/usecases/add_profile_images_usecase.dart';
 import '../domain/usecases/delete_profile_image_usecase.dart';
-import '../domain/usecases/get_basic_user_usecase.dart';
 import '../domain/usecases/get_my_profile_usecase.dart';
 import '../domain/usecases/get_profile_images_usecase.dart';
 import '../domain/usecases/get_profile_by_id_usecase.dart';
@@ -59,7 +58,6 @@ void initProfileDependencies() {
     ),
   );
   sl.registerLazySingleton(() => GetProfileByIdUseCase(sl()));
-  sl.registerLazySingleton(() => GetBasicUserUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
 
   //! Cubits (screen-scoped per CLAUDE.md §2)

@@ -79,8 +79,6 @@ class _Tile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRtl = Directionality.of(context) == TextDirection.rtl ||
-        Localizations.localeOf(context).languageCode == 'ar';
     return QeranCard(
       padding: EdgeInsets.zero,
       child: Material(
@@ -130,10 +128,10 @@ class _Tile extends StatelessWidget {
                 QeranSpacing.hs12,
                 busy
                     ? QeranLoader.inline(color: QeranColors.wine)
-                    : Icon(
-                        isRtl
-                            ? Icons.chevron_right_rounded
-                            : Icons.chevron_left_rounded,
+                    // Mirrors itself (`matchTextDirection`): forward in both
+                    // languages. Swapping it by hand flipped English back.
+                    : const Icon(
+                        Icons.chevron_right_rounded,
                         size: 22,
                         color: QeranColors.wine20,
                       ),

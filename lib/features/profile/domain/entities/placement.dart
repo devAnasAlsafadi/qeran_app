@@ -13,12 +13,12 @@ class Placement extends Equatable {
 
   final List<PlacementItem> items;
 
-  /// The category's English key, set in the dashboard (`religion`,
-  /// `marriage`, …; `other` always exists). Null when the dashboard hasn't set
-  /// one. Picks the section's icon.
+  /// The category's English key, set in the dashboard (`personal`, `values`,
+  /// …; `other` always exists), sent on each of the section's items. Null when
+  /// the dashboard hasn't set one. Picks the section's icon.
   final String? categoryKey;
 
-  /// Whether the payload sends `categoryKey` at all, set or null. False until
+  /// Whether any of its items sends `categoryKey`, set or null. False until
   /// Tariq's deploy, and the icon then goes by the section's name; this flag
   /// goes with that fallback (`14`, TQ18).
   final bool hasCategoryKey;

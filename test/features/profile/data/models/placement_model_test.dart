@@ -78,20 +78,52 @@ void main() {
       expect(entity.items, isEmpty);
     });
 
-    // TQ18: the category's dashboard key, and whether the payload sends it.
-    test('categoryKey: set, null, or not sent at all', () {
-      Placement parse(Map<String, dynamic> extra) => PlacementModel.fromJson({
+    // TQ18, run 11: the key comes on each item; the section takes the first
+    // key its items send, and knows whether any item sends the field.
+    test('categoryKey from the items: set, null, or not sent at all', () {
+      Placement parse(List<Map<String, dynamic>> items) =>
+          PlacementModel.fromJson({
             'placementCode': 0,
-            'placementName': 'الدين ونمط الحياة',
-            ...extra,
+            'placementName': 'القيم ونمط الحياة',
+            'items': items,
           }).toEntity();
 
-      final set = parse({'categoryKey': 'religion'});
-      expect((set.categoryKey, set.hasCategoryKey), ('religion', true));
-      final unset = parse({'categoryKey': null});
+      final set = parse([
+        {'questionId': 1, 'categoryKey': 'values'},
+      ]);
+      expect((set.categoryKey, set.hasCategoryKey), ('values', true));
+      final unset = parse([
+        {'questionId': 1, 'categoryKey': null},
+      ]);
       expect((unset.categoryKey, unset.hasCategoryKey), (null, true));
-      final before = parse({});
+      final before = parse([
+        {'questionId': 1},
+      ]);
       expect((before.categoryKey, before.hasCategoryKey), (null, false));
+      final first = parse([
+        {'questionId': 1, 'categoryKey': null},
+        {'questionId': 2},
+        {'questionId': 3, 'categoryKey': ' '},
+        {'questionId': 4, 'categoryKey': 'values'},
+        {'questionId': 5, 'categoryKey': 'work'},
+      ]);
+      expect((first.categoryKey, first.hasCategoryKey), ('values', true));
+    });
+
+    test('a categoryKey on the placement itself is not read', () {
+      final placement = PlacementModel.fromJson({
+        'placementCode': 0,
+        'placementName': 'القيم ونمط الحياة',
+        'categoryKey': 'work',
+        'items': [
+          {'questionId': 1},
+        ],
+      }).toEntity();
+
+      expect(
+        (placement.categoryKey, placement.hasCategoryKey),
+        (null, false),
+      );
     });
   });
 }

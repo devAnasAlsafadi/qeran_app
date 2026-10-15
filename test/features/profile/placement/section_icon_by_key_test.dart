@@ -10,18 +10,19 @@ import 'package:qeran/features/profile/presentation/widgets/placement/section_ic
 
 import '../../../core/shipped_fonts_rig.dart';
 
-/// TQ18 (Tariq, 2026-10-13): each category carries `categoryKey`, an English
-/// key set in the dashboard (`other` always exists; null when unset). The
-/// section's icon goes by the key; by its name only while the payload has no
-/// such field (before his deploy); the default for null, `other` or a key we
-/// don't know.
-IconData _iconFor(Map<String, dynamic> extra, {String name = 'القيم'}) =>
+/// TQ18 (Tariq; on each item, run 11): `categoryKey`, an English key set in
+/// the dashboard (`other` always exists; null when unset). The section's icon
+/// goes by the key its items send; by its name only while no item sends the
+/// field (before his deploy); the default for null, `other` or a key we don't
+/// know.
+IconData _iconFor(Map<String, dynamic> item, {String name = 'القيم'}) =>
     sectionIconFor(
       PlacementModel.fromJson({
         'placementCode': 0,
         'placementName': name,
-        'items': const [],
-        ...extra,
+        'items': [
+          {'questionId': 1, ...item},
+        ],
       }).toEntity(),
     );
 
@@ -65,7 +66,9 @@ void main() {
     final placement = PlacementModel.fromJson({
       'placementCode': 0,
       'placementName': 'القيم ونمط الحياة',
-      'categoryKey': 'work',
+      'items': [
+        {'questionId': 1, 'categoryKey': 'work'},
+      ],
     }).toEntity();
     final section = Placement(
       code: placement.code,

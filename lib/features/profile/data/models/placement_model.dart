@@ -9,11 +9,12 @@ class PlacementModel {
   final String placementName;
   final List<PlacementItemModel> items;
 
-  /// The category's dashboard key (`religion`, …), null when unset.
+  /// The first dashboard key its items send (`items[].categoryKey`, TQ18,
+  /// run 11), null when none is set.
   final String? categoryKey;
 
-  /// The payload sends `categoryKey` (null or not). Before Tariq's deploy it
-  /// doesn't, and the icon goes by [placementName] (`14`, TQ18).
+  /// An item sends `categoryKey` (null or not). Before Tariq's deploy none
+  /// does, and the icon goes by [placementName].
   final bool hasCategoryKey;
 
   const PlacementModel({
@@ -27,6 +28,12 @@ class PlacementModel {
 
   factory PlacementModel.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'];
+    final keyed = rawItems is List
+        ? rawItems
+            .whereType<Map<String, dynamic>>()
+            .where((item) => item.containsKey('categoryKey'))
+            .toList(growable: false)
+        : const <Map<String, dynamic>>[];
     final items = rawItems is List
         ? rawItems
             .whereType<Map<String, dynamic>>()
@@ -38,8 +45,11 @@ class PlacementModel {
       placementCode: parseInt(json['placementCode']),
       placementName: parseString(json['placementName']),
       items: items,
-      categoryKey: parseNullableString(json['categoryKey']),
-      hasCategoryKey: json.containsKey('categoryKey'),
+      categoryKey: keyed
+          .map((item) => parseNullableString(item['categoryKey']))
+          .firstWhere((key) => key != null && key.trim().isNotEmpty,
+              orElse: () => null),
+      hasCategoryKey: keyed.isNotEmpty,
     );
   }
 

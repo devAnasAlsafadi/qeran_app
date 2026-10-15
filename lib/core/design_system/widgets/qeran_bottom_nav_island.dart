@@ -56,22 +56,32 @@ extension _Island on _QeranBottomNavState {
   );
 }
 
-/// The island: white, rounded, with a raised wine shadow — white-on-white
-/// needs a stronger, more elevated lift than e3 to read above the content.
+/// The island: white and rounded, lifted by [QeranShadows.eLiftUp] (cast up,
+/// over the content it floats on) and edged with a hairline, so it reads apart
+/// from a white card behind it (run 11).
 class _BarPainter extends CustomPainter {
   const _BarPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    final bar = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Offset.zero & size,
-          const Radius.circular(QeranRadii.card),
-        ),
+    final bar = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(QeranRadii.card),
+    );
+    for (final shadow in QeranShadows.eLiftUp) {
+      canvas.drawRRect(
+        bar.shift(shadow.offset).inflate(shadow.spreadRadius),
+        shadow.toPaint(),
       );
-    canvas.drawShadow(bar, QeranColors.wine.withValues(alpha: 0.18), 24, false);
-    canvas.drawPath(bar, Paint()..color = QeranColors.paper);
+    }
+    canvas.drawRRect(bar, Paint()..color = QeranColors.paper);
+    canvas.drawRRect(
+      bar.deflate(QeranStrokes.hairline / 2),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = QeranStrokes.hairline
+        ..color = QeranShadows.hairlineBorder,
+    );
   }
 
   @override

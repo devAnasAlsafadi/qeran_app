@@ -27,13 +27,12 @@ class _CompactLandscapeNav extends StatelessWidget {
           decoration: BoxDecoration(
             color: QeranColors.paper,
             borderRadius: QeranRadii.cardR,
-            boxShadow: [
-              BoxShadow(
-                color: QeranColors.wine.withValues(alpha: 0.12),
-                blurRadius: 16,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            // The portrait island's lift and hairline (run 11).
+            boxShadow: QeranShadows.eLiftUp,
+            border: Border.all(
+              color: QeranShadows.hairlineBorder,
+              width: QeranStrokes.hairline,
+            ),
           ),
           child: SizedBox(
             height: QeranBottomNav.compactLandscapeHeight,

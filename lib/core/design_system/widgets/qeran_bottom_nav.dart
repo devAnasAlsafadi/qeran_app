@@ -8,6 +8,8 @@ import '../../widgets/bottom_chrome_inset.dart';
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_motion.dart';
 import '../tokens/qeran_radii.dart';
+import '../tokens/qeran_shadows.dart';
+import '../tokens/qeran_strokes.dart';
 import '../tokens/qeran_typography.dart';
 import 'qeran_nav_item.dart';
 

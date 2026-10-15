@@ -373,9 +373,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (e is OfflineException) rethrow;
       // Also release-visible: the type alone usually names the layer that
       // failed (a PlatformException from the plugin, a StateError from our own
-      // wiring), which is the difference between a fix and another dig.
+      // wiring), which is the difference between a fix and another dig. The
+      // type only: the exception's own text can carry anything (audit 19).
       AppLogger.releaseDiagnostic(
-        'Unexpected Google sign-in error: ${e.runtimeType} - $e',
+        'Unexpected Google sign-in error: ${e.runtimeType}',
         tag: 'AUTH',
       );
       throw AuthException(

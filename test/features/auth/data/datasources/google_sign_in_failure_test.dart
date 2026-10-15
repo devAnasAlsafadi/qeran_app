@@ -167,6 +167,8 @@ void main() {
       // The generic arm: the type usually names the layer that failed, which
       // is the difference between a fix and another dig.
       expect(written.join(), contains('StateError'));
+      // Its own words stay out of a shipped build's log (cleanup audit 19).
+      expect(written.join(), isNot(contains('wiring is wrong')));
     });
 
     test('the user is shown the locale key, not Arabic text', () async {

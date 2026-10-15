@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Camera: profile-photo and Community post capture via image_picker. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Optional, not required: CAMERA alone makes Google Play treat the camera
+         (and autofocus) as required and hide the app from phones without
+         one; the gallery covers them. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <!-- Gallery picking uses the Android system Photo Picker (image_picker on
          API 33+), which needs NO media-read permission — so READ_MEDIA_IMAGES is
          intentionally NOT declared (Google Play Photo & Video Permissions

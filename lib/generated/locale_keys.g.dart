@@ -1081,8 +1081,6 @@ abstract class  LocaleKeys {
   static const matchmaker_community_cancel_upload_body = 'matchmaker.community.cancel_upload_body';
   static const matchmaker_community_cancel_upload = 'matchmaker.community.cancel_upload';
   static const matchmaker_community_keep_uploading = 'matchmaker.community.keep_uploading';
-  static const matchmaker_community_camera_denied = 'matchmaker.community.camera_denied';
-  static const matchmaker_community_photos_denied = 'matchmaker.community.photos_denied';
   static const matchmaker_community_video = 'matchmaker.community.video';
   static const matchmaker_community_video_sheet_title = 'matchmaker.community.video_sheet_title';
   static const matchmaker_community_record_video = 'matchmaker.community.record_video';

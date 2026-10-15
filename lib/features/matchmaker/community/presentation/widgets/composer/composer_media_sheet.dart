@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../core/design_system/widgets/qeran_options_sheet.dart';
-import '../../../../../../core/enum/snakebar_tybe.dart';
 import '../../../../../../core/extensions/localization_extension.dart';
-import '../../../../../../core/utils/app_snackbar.dart';
 import '../../../../../../generated/locale_keys.g.dart';
-import '../../../../../../core/media/media_access.dart';
 
 enum ComposerMediaSource { gallery, camera }
 
@@ -34,23 +31,3 @@ Future<ComposerMediaSource?> chooseMediaSource(
     ),
   ],
 );
-
-/// Runs [pick]; a refused camera or library gets a calm toast (S9). Its
-/// copy is read before the pick, while [context] is surely mounted.
-Future<void> pickWithAccess(
-  BuildContext context,
-  Future<void> Function() pick,
-) async {
-  final camera = LocaleKeys.matchmaker_community_camera_denied.t(context);
-  final photos = LocaleKeys.matchmaker_community_photos_denied.t(context);
-  try {
-    await pick();
-  } on MediaAccessDenied catch (e) {
-    if (!context.mounted) return;
-    AppSnackBar.show(
-      context,
-      message: e.access == MediaAccess.camera ? camera : photos,
-      type: SnackBarType.notice,
-    );
-  }
-}

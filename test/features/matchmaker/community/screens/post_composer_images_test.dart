@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:qeran/core/media/media_access.dart';
 import 'package:qeran/features/community/domain/entities/community_config.dart';
 import 'package:qeran/features/matchmaker/community/presentation/widgets/composer/composer_image_tile.dart';
 
@@ -24,8 +23,6 @@ final _copy = {
     tooLarge:
         'حجم هذه الصورة 6 ميغابايت، وهو أكبر من الحد المسموح (5 ميغابايت). '
         'اختاري صورة أخرى.',
-    cameraDenied:
-        'لا يمكن فتح الكاميرا دون إذنكِ. يمكنكِ تفعيله من إعدادات الهاتف.',
   ),
   _en: (
     images: 'Images',
@@ -39,9 +36,6 @@ final _copy = {
         'up to 3 images.',
     unsupported: "This file type isn't supported. Use JPG or PNG images.",
     tooLarge: 'This image is 6 MB, over the 5 MB limit. Choose another image.',
-    cameraDenied:
-        "The camera can't open without your permission. You can turn it on "
-        "in the phone's settings.",
   ),
 };
 
@@ -128,19 +122,6 @@ void main() {
       await pick(tester, t.gallery);
       expect(find.text(t.tooLarge), findsOneWidget);
       expect(find.byType(ComposerImageTile), findsNothing);
-    });
-
-    testWidgets('S9 [${locale.languageCode}]: the camera refused — a calm '
-        'toast, nothing added', (tester) async {
-      h.picker.refuses = const MediaAccessDenied(MediaAccess.camera);
-      await startComposer(tester, h, locale: locale);
-
-      await sheet(tester, t.images);
-      await pick(tester, t.camera);
-
-      expect(find.text(t.cameraDenied), findsOneWidget);
-      expect(find.byType(ComposerImageTile), findsNothing);
-      await tester.pump(const Duration(seconds: 5));
     });
   }
 

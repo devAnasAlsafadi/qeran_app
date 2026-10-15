@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../../core/di/injection_container.dart';
 import '../../../../../../core/extensions/localization_extension.dart';
+import '../../../../../../core/media/pick_with_access.dart';
 import '../../../../../../generated/locale_keys.g.dart';
 import '../../blocs/composer/post_draft_cubit.dart';
 import '../../services/community_media_picker.dart';

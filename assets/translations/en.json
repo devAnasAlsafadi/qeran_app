@@ -1172,8 +1172,6 @@
       "cancel_upload_body": "The upload stops and your post goes back to a draft you can edit or discard.",
       "cancel_upload": "Cancel upload",
       "keep_uploading": "Keep uploading",
-      "camera_denied": "The camera can't open without your permission. You can turn it on in the phone's settings.",
-      "photos_denied": "Your photos can't open without your permission. You can turn it on in the phone's settings.",
       "video": "Video",
       "video_sheet_title": "Add a video",
       "record_video": "Record a video",

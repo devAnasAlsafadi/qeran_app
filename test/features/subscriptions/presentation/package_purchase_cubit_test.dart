@@ -41,7 +41,6 @@ class _FakePurchase extends Fake implements PurchasePackageUseCase {
     String? keyId,
     String? nonce,
     int? timestampMs,
-    String? oldProductId,
   }) async => Right(_FakeCustomerInfo(premium: true));
 }
 

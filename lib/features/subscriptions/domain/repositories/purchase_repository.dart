@@ -18,8 +18,8 @@ abstract interface class PurchaseRepository {
   Future<Either<Failure, Package>> findPackage({required String productId});
 
   /// Purchases [package]. On Android an [offerId] selects the matching Google
-  /// Play subscription offer; [oldProductId] (a different owned product) drives
-  /// an upgrade with `WITH_TIME_PRORATION`. The iOS StoreKit promo quartet
+  /// Play subscription offer; [oldProductId] (the owned Play product, from
+  /// [replaceableProductId]) drives an upgrade with `WITH_TIME_PRORATION`. The iOS StoreKit promo quartet
   /// ([signature]/[keyId]/[nonce]/[timestampMs]) is accepted for forward-compat
   /// and only takes effect once a JWS signing service supplies it.
   Future<Either<Failure, CustomerInfo>> purchasePackage({
@@ -31,6 +31,13 @@ abstract interface class PurchaseRepository {
     int? timestampMs,
     String? oldProductId,
   });
+
+  /// The Google Play subscription behind the active premium entitlement, as
+  /// RevenueCat knows it (`product:basePlan` when it says the base plan): the
+  /// purchase an upgrade replaces. Null when the entitlement wasn't bought on
+  /// Google Play — a manual grant, a promotional one, the App Store, none at
+  /// all — or the store didn't answer: then there is nothing to replace.
+  Future<String?> replaceableProductId();
 
   /// Restores prior purchases (reinstall / new device). `Left` on store error.
   Future<Either<Failure, CustomerInfo>> restorePurchases();

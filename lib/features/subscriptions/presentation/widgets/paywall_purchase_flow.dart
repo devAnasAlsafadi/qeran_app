@@ -81,7 +81,8 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
   }
 
   /// CTA routing: free → `/subscribe`; same product → route to اشتراكي;
-  /// otherwise a paid purchase (carrying [oldProductId] for upgrade proration).
+  /// otherwise a paid purchase (an upgrade replaces the store's own purchase,
+  /// which the purchase use case asks RevenueCat for).
   void handleCta(
     BuildContext context,
     SubscriptionPlan plan,
@@ -124,15 +125,12 @@ mixin PaywallPurchaseFlow<T extends StatefulWidget> on State<T> {
     _firePaidPurchase(context, pricing);
   }
 
-  /// Fires (or re-fires on Retry) the paid purchase with the captured discount
-  /// and the current upgrade-proration product id.
+  /// Fires (or re-fires on Retry) the paid purchase with the captured
+  /// discount.
   void _firePaidPurchase(BuildContext context, SubscriptionPricing pricing) {
-    final currentProductId =
-        sl<CurrentSubscriptionCubit>().subscription?.pricing.googleProductId;
     context.read<PackagePurchaseCubit>().purchase(
           pricing: pricing,
           validatedCode: _purchasedValidatedCode,
-          oldProductId: currentProductId,
         );
   }
 

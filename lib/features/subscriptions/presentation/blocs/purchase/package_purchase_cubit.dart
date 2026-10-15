@@ -93,12 +93,11 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
     );
   }
 
-  /// Buys [pricing]. [validatedCode] carries an applied offer; [oldProductId]
-  /// (a different owned product) drives an upgrade.
+  /// Buys [pricing]. [validatedCode] carries an applied offer; what an
+  /// upgrade replaces, the use case asks the store.
   Future<void> purchase({
     required SubscriptionPricing pricing,
     ValidateCodeResponse? validatedCode,
-    String? oldProductId,
   }) async {
     // `productId` already resolves canonical-then-platform; no further fallback
     // — dropping to the Google id on iOS would look up a product the StoreKit
@@ -112,16 +111,6 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
       return;
     }
 
-    // Same product already owned → nothing to buy (upgrades to a *different*
-    // product are allowed and proceed).
-    if (oldProductId != null && oldProductId == productId) {
-      emit(const PackagePurchaseFailure(
-        failure: AlreadyOwnedFailure(),
-        userMessage: LocaleKeys.subscriptions_purchase_already_subscribed,
-      ));
-      return;
-    }
-
     emit(const PackagePurchaseInProgress());
     final result = await _purchasePackage(
       productId: productId,
@@ -130,7 +119,6 @@ class PackagePurchaseCubit extends Cubit<PackagePurchaseState> with SafeEmit<Pac
       keyId: validatedCode?.keyId,
       nonce: validatedCode?.nonce,
       timestampMs: validatedCode?.timestampMs,
-      oldProductId: oldProductId,
     );
     if (isClosed) return;
     result.fold(

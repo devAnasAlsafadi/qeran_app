@@ -4,7 +4,6 @@ import '../colleagues/data/datasources/matchmaker_colleagues_remote_datasource.d
 import '../colleagues/data/repositories/matchmaker_colleagues_repository_impl.dart';
 import '../colleagues/domain/repositories/matchmaker_colleagues_repository.dart';
 import '../colleagues/domain/usecases/get_colleague_conversations_usecase.dart';
-import '../colleagues/domain/usecases/get_colleagues_usecase.dart';
 import '../colleagues/domain/usecases/open_colleague_chat_usecase.dart';
 import '../colleagues/presentation/blocs/matchmaker_colleague_conversations_cubit.dart';
 import '../colleagues/presentation/blocs/matchmaker_colleague_open_chat_cubit.dart';
@@ -42,18 +41,16 @@ void initMatchmakerConversationsDependencies() {
     ),
   );
 
-  //! ── S2a · Colleagues (directory + colleague conversations) ───────
-  // Data/domain only here; the colleague-conversations list + directory UI
-  // and their cubits are wired in S2b/S2c. The colleague chat reuses the
-  // shared MatchmakerUserChatScreen (the MatchmakerConversation entity is
-  // generic), and the "start chat" action reuses the open-chat→navigate host.
+  //! ── S2a · Colleague conversations ───────────────────────────────
+  // The colleague chat reuses the shared MatchmakerUserChatScreen (the
+  // MatchmakerConversation entity is generic), and the "start chat" action
+  // reuses the open-chat→navigate host.
   sl.registerLazySingleton<MatchmakerColleaguesRemoteDataSource>(
     () => MatchmakerColleaguesRemoteDataSourceImpl(apiConsumer: sl()),
   );
   sl.registerLazySingleton<MatchmakerColleaguesRepository>(
     () => MatchmakerColleaguesRepositoryImpl(sl()),
   );
-  sl.registerLazySingleton(() => GetColleaguesUseCase(sl()));
   sl.registerLazySingleton(() => GetColleagueConversationsUseCase(sl()));
   sl.registerLazySingleton(() => OpenColleagueChatUseCase(sl()));
   // S2b · colleague-conversations segment — one cubit per mount; the caller

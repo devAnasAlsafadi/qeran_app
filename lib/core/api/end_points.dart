@@ -367,9 +367,6 @@ class EndPoints {
   /// `GET /api/matchmaker/explore/filters` — available filter questions.
   static const String matchmakerExploreFilters = "matchmaker/explore/filters";
 
-  /// `GET /api/matchmaker/colleagues?page=N&pageSize=M`
-  static const String matchmakerColleagues = "matchmaker/colleagues";
-
   /// `POST /api/matchmaker/colleagues/{id}/open-chat` — body empty.
   /// Returns `conversationId`.
   static String matchmakerColleagueOpenChat(String colleagueId) =>

@@ -7,15 +7,8 @@ import 'package:qeran/generated/locale_keys.g.dart';
 import '../../../shared/data/json_parsers.dart';
 import '../../../shared/data/matchmaker_envelope.dart';
 import '../models/matchmaker_colleague_conversations_page_model.dart';
-import '../models/matchmaker_colleagues_page_model.dart';
 
 abstract interface class MatchmakerColleaguesRemoteDataSource {
-  /// The directory of colleagues to START a chat with.
-  Future<MatchmakerColleaguesPageModel> getColleagues({
-    required int page,
-    required int pageSize,
-  });
-
   /// Active colleague↔colleague threads (same envelope as user conversations).
   Future<MatchmakerColleagueConversationsPageModel> getColleagueConversations({
     required int page,
@@ -35,28 +28,6 @@ class MatchmakerColleaguesRemoteDataSourceImpl
   const MatchmakerColleaguesRemoteDataSourceImpl({
     required ApiConsumer apiConsumer,
   }) : _apiConsumer = apiConsumer;
-
-  @override
-  Future<MatchmakerColleaguesPageModel> getColleagues({
-    required int page,
-    required int pageSize,
-  }) async {
-    AppLogger.debug(
-      'MATCHMAKER — get colleagues page=$page size=$pageSize',
-      tag: 'MATCHMAKER',
-    );
-    final response = await _apiConsumer.get(
-      EndPoints.matchmakerColleagues,
-      queryParameters: {'page': page, 'pageSize': pageSize},
-    );
-    // `get()` enforced the OUTER envelope (status == 1). The directory payload
-    // may be a bare array OR a paginated object; the model tolerates both. A
-    // double-wrapped Map is unwrapped first so a future shape parses unchanged.
-    final raw = (response as Map<String, dynamic>)['data'];
-    final payload =
-        raw is Map<String, dynamic> ? (unwrapInnerEnvelope(raw) ?? raw) : raw;
-    return MatchmakerColleaguesPageModel.fromData(payload);
-  }
 
   @override
   Future<MatchmakerColleagueConversationsPageModel> getColleagueConversations({

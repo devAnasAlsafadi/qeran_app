@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: nothing leaves the phone, by cloud backup or by
+     device-to-device transfer. The member's name, email, role and FCM token
+     live in SharedPreferences, and the secure-storage keys can't follow
+     their data to a new phone anyway (cleanup audit 19, run 11). Older
+     Android reads android:allowBackup="false" in the manifest. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

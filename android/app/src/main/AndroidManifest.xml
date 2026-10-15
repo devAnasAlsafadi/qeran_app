@@ -24,7 +24,9 @@
         android:label="Qeran"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="false"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <!-- FCM notification small-icon: a white silhouette (Android tints it
              with notification_accent). Without this, background pushes fall
              back to the app icon and render as a white square. -->

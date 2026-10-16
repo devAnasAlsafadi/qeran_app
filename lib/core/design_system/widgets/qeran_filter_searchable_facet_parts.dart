@@ -28,13 +28,7 @@ class _Panel extends StatelessWidget {
         color: QeranColors.paper,
         borderRadius: QeranRadii.cardR,
         border: Border.all(color: QeranColors.inkFaint.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: QeranShadows.e1,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

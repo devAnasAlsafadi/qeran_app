@@ -34,7 +34,7 @@ class QeranPremiumBanner extends StatelessWidget {
         gradient: const LinearGradient(
           begin: AlignmentDirectional.topStart,
           end: AlignmentDirectional.bottomEnd,
-          colors: [Color(0xFF4A1F38), QeranColors.wine],
+          colors: [QeranColors.wineLight, QeranColors.wine],
         ),
       ),
       padding: const EdgeInsets.all(QeranSpacing.s24),

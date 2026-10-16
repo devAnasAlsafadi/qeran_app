@@ -4,6 +4,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../tokens/qeran_colors.dart';
 import '../tokens/qeran_radii.dart';
+import '../tokens/qeran_shadows.dart';
 import '../tokens/qeran_spacing.dart';
 import '../tokens/qeran_typography.dart';
 import 'qeran_search_field.dart';

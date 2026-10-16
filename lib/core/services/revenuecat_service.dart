@@ -14,6 +14,12 @@ import '../config/revenuecat_config.dart';
 class RevenueCatService {
   bool _configured = false;
 
+  /// The SDK's own log in the device log: everything while debugging, only
+  /// errors in a release (or profile) build (cleanup audit `19`, run 11).
+  @visibleForTesting
+  static LogLevel logLevelFor({required bool debug}) =>
+      debug ? LogLevel.debug : LogLevel.error;
+
   /// One-time SDK configuration. Safe to call more than once. Anonymous —
   /// user identity is attached later via [logIn].
   Future<void> configure() async {
@@ -24,7 +30,7 @@ class RevenueCatService {
           tag: 'RC');
       return;
     }
-    await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.warn);
+    await Purchases.setLogLevel(logLevelFor(debug: kDebugMode));
     await Purchases.configure(PurchasesConfiguration(apiKey));
     _configured = true;
     AppLogger.info('RevenueCat configured', tag: 'RC');

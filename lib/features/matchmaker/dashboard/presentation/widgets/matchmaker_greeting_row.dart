@@ -115,7 +115,7 @@ class _DateBlock extends StatelessWidget {
     fontSize: 14,
     color: QeranColors.inkStrong,
   );
-  static final _monthStyle = QeranTypography.label.copyWith(fontSize: 13);
+  static const _monthStyle = QeranTypography.label;
 
   @override
   Widget build(BuildContext context) {

@@ -65,7 +65,6 @@ class PurchaseFailureScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: QeranTypography.headline.copyWith(
                   fontWeight: FontWeight.w800,
-                  fontSize: 22,
                   color: QeranColors.wine,
                 ),
               ),

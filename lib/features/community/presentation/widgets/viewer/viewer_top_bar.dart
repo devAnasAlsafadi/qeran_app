@@ -41,7 +41,6 @@ class ViewerTopBar extends StatelessWidget {
     text,
     textDirection: TextDirection.ltr,
     style: QeranTypography.numeric.copyWith(
-      fontSize: 15,
       fontWeight: FontWeight.w700,
       color: QeranColors.paper,
     ),

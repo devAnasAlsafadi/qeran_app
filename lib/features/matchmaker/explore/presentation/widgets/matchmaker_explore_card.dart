@@ -80,7 +80,6 @@ class MatchmakerExploreCard extends StatelessWidget {
                     Text(
                       user.fullName,
                       style: QeranTypography.subtitle.copyWith(
-                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                       maxLines: 1,

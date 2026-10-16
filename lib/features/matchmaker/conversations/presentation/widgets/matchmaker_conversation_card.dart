@@ -182,7 +182,6 @@ class _UnreadPill extends StatelessWidget {
         style: QeranTypography.caption.copyWith(
           color: QeranColors.wine,
           fontWeight: FontWeight.w800,
-          fontSize: 11,
         ),
       ),
     );

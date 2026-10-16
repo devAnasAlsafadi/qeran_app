@@ -10,6 +10,15 @@ class LogMasker {
     r'\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b',
   );
 
+  /// An email address, also URL-encoded (`%40`) as in a query string.
+  static final RegExp _emailPattern = RegExp(
+    r'[\w.+-]+(?:@|%40)[\w-]+(?:\.[\w-]+)+',
+  );
+
+  /// A phone-length number: 8 or more digits in a row, with or without `+`.
+  /// Ids, counts, pages, dates and OTP lengths are shorter.
+  static final RegExp _longNumberPattern = RegExp(r'\+?\d{8,}');
+
   /// Masks a phone number for safe logging.
   ///
   /// Keeps the first 3 and last 4 digits and replaces the middle with `*`.
@@ -47,4 +56,11 @@ class LogMasker {
   /// Removes JWTs from arbitrary diagnostic text before it is logged.
   static String secrets(String value) =>
       value.replaceAll(_jwtPattern, '<redacted-jwt>');
+
+  /// What `AppLogger` applies to every debug line: [secrets], then email
+  /// addresses and phone-length numbers. A debug log is still copied off the
+  /// device by whoever holds it, so it carries no token and no contact detail.
+  static String redact(String value) => secrets(value)
+      .replaceAll(_emailPattern, '<redacted-email>')
+      .replaceAll(_longNumberPattern, '<redacted-number>');
 }

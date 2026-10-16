@@ -1,22 +1,56 @@
 import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
 
+import 'utils/log_masker.dart';
+
 class AppLogger {
   static const bool _isDebug = kDebugMode;
 
+  /// Where a debug line goes: `dev.log`. Tests swap it to read what was
+  /// written. Every line, and any error passed with it, reaches it through
+  /// [LogMasker.redact]: no token, email or phone number in a debug log
+  /// (cleanup audit `19`, run 11).
+  @visibleForTesting
+  static void Function(
+    String message,
+    String tag,
+    Object? error,
+    StackTrace? stack,
+  )
+  sink = _toDevLog;
+
+  static void _toDevLog(
+    String message,
+    String tag,
+    Object? error,
+    StackTrace? stack,
+  ) => dev.log(message, name: tag, error: error, stackTrace: stack);
+
+  static void _write(
+    String message,
+    String tag, {
+    Object? error,
+    StackTrace? stack,
+  }) => sink(
+    LogMasker.redact(message),
+    tag,
+    error == null ? null : LogMasker.redact('$error'),
+    stack,
+  );
+
   static void info(String message, {String tag = 'INFO'}) {
     if (!_isDebug) return;
-    dev.log('\x1B[32m$message\x1B[0m', name: tag, time: DateTime.now());
+    _write('\x1B[32m$message\x1B[0m', tag);
   }
 
   static void debug(String message, {String tag = 'DEBUG'}) {
     if (!_isDebug) return;
-    dev.log('🔍 $message', name: tag);
+    _write('🔍 $message', tag);
   }
 
   static void warning(String message, {String tag = 'WARNING'}) {
     if (!_isDebug) return;
-    dev.log('⚠️ $message', name: tag);
+    _write('⚠️ $message', tag);
   }
 
   static void error(
@@ -26,7 +60,7 @@ class AppLogger {
     String tag = 'ERROR',
   }) {
     if (!_isDebug) return;
-    dev.log('❌ $message', name: tag, error: error, stackTrace: stack);
+    _write('❌ $message', tag, error: error, stack: stack);
   }
 
   /// Logs in RELEASE as well as debug. Everything else here is debug-only on

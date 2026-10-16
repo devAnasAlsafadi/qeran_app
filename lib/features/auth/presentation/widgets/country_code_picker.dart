@@ -72,7 +72,6 @@ class CountryCodePicker extends StatelessWidget {
         ),
         inputDecoration: InputDecoration(
           hintText: 'auth.country_search_hint'.t(context),
-          hintTextDirection: TextDirection.rtl,
           prefixIcon: const Icon(Icons.search_rounded, color: QeranColors.inkFaint),
           filled: true,
           fillColor: QeranColors.paper,

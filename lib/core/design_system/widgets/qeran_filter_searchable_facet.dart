@@ -109,7 +109,9 @@ class _QeranFilterSearchableFacetState extends State<QeranFilterSearchableFacet>
         .toList();
     final selectedText = selected.isEmpty
         ? null
-        : selected.map((e) => e.display).join('، ');
+        : selected
+              .map((e) => e.display)
+              .join(LocaleKeys.common_list_separator.t(context));
 
     final q = _query.trim().toLowerCase();
     final matches = widget.options

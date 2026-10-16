@@ -173,7 +173,7 @@ class _HeroInfo extends StatelessWidget {
             children: chips
                 .map(
                   (i) => ProfileOverlayChip(
-                    label: _displayText(i.display),
+                    label: _displayText(context, i.display),
                     icon: _iconFor(i.question),
                   ),
                 )
@@ -184,10 +184,12 @@ class _HeroInfo extends StatelessWidget {
     );
   }
 
-  String _displayText(PlacementValue value) {
+  String _displayText(BuildContext context, PlacementValue value) {
     return switch (value) {
       PlacementSingle(value: final v) => v,
-      PlacementMulti(values: final vs) => vs.join('، '),
+      PlacementMulti(values: final vs) => vs.join(
+        context.tr(LocaleKeys.common_list_separator),
+      ),
     };
   }
 

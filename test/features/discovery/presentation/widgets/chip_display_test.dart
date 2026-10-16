@@ -69,11 +69,10 @@ void main() {
       );
     });
 
-    test('joins multi values with the Arabic comma + space', () {
-      final out = chipDisplayPure(
-        _multi(PlacementItemType.checkbox, ['العربية', 'الإنجليزية']),
-      );
-      expect(out, 'العربية، الإنجليزية');
+    test('joins multi values with the given separator', () {
+      final multi = _multi(PlacementItemType.checkbox, ['A', 'B']);
+      expect(chipDisplayPure(multi, separator: '، '), 'A، B');
+      expect(chipDisplayPure(multi, separator: ', '), 'A, B');
     });
 
     test('omits suffix for weight/height when unit string is null', () {

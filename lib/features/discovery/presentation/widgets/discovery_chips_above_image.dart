@@ -3,6 +3,8 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 import '../../domain/entities/placement_item.dart';
 import '../../domain/entities/placement_value.dart';
@@ -57,7 +59,7 @@ class _PillChip extends StatelessWidget {
           ),
           const SizedBox(width: QeranSpacing.s6),
           Text(
-            _displayText(item.display),
+            _displayText(context, item.display),
             style: QeranTypography.label.copyWith(color: QeranColors.paper),
           ),
         ],
@@ -65,10 +67,12 @@ class _PillChip extends StatelessWidget {
     );
   }
 
-  String _displayText(PlacementValue value) {
+  String _displayText(BuildContext context, PlacementValue value) {
     return switch (value) {
       PlacementSingle(value: final v) => v,
-      PlacementMulti(values: final vs) => vs.join('، '),
+      PlacementMulti(values: final vs) => vs.join(
+        LocaleKeys.common_list_separator.t(context),
+      ),
     };
   }
 }

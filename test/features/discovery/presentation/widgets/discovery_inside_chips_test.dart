@@ -5,6 +5,8 @@ import 'package:qeran/features/discovery/domain/entities/placement_item_type.dar
 import 'package:qeran/features/discovery/domain/entities/placement_value.dart';
 import 'package:qeran/features/discovery/presentation/widgets/discovery_inside_chips.dart';
 
+import '../../../../core/shipped_strings_rig.dart';
+
 PlacementItem _item(int qid, dynamic display) => PlacementItem(
       questionId: qid,
       question: 'q-$qid',
@@ -16,6 +18,8 @@ PlacementItem _item(int qid, dynamic display) => PlacementItem(
     );
 
 void main() {
+  setUpAll(initShippedStrings);
+
   group('DiscoveryInsideChips', () {
     testWidgets('renders nothing for an empty item list', (tester) async {
       await tester.pumpWidget(const MaterialApp(
@@ -39,15 +43,21 @@ void main() {
       expect(find.text('60 كيلو'), findsOneWidget);
     });
 
-    testWidgets('joins multi values with Arabic comma', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: DiscoveryInsideChips(items: [
+    // The language's own separator: «، » in Arabic, ", " in English.
+    for (final (lang, joined) in [
+      ('ar', 'Arabic، English'),
+      ('en', 'Arabic, English'),
+    ]) {
+      testWidgets('$lang: joins multi values', (tester) async {
+        await pumpShippedStrings(
+          tester,
+          Locale(lang),
+          child: DiscoveryInsideChips(items: [
             _item(12, ['Arabic', 'English']),
           ]),
-        ),
-      ));
-      expect(find.text('Arabic، English'), findsOneWidget);
-    });
+        );
+        expect(find.text(joined), findsOneWidget);
+      });
+    }
   });
 }

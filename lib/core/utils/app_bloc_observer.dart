@@ -1,6 +1,14 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:qeran/core/app_logger.dart';
 import 'package:qeran/core/utils/log_masker.dart';
+
+/// Installs [SimpleBlocObserver] in debug builds only. In a release build it
+/// would still run on every event and state change, building strings for
+/// logs [AppLogger] then drops (cleanup audit `19`, run 11).
+void installBlocObserver({bool debug = kDebugMode}) {
+  if (debug) Bloc.observer = SimpleBlocObserver();
+}
 
 class SimpleBlocObserver extends BlocObserver {
   @override

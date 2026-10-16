@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:bloc/bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -26,7 +25,7 @@ void main() async {
   // independent, so running them together avoids serial startup latency.
   await Future.wait<void>([di.init(), EasyLocalization.ensureInitialized()]);
 
-  Bloc.observer = SimpleBlocObserver();
+  installBlocObserver();
   // Before the first request: the splash's own reads can meet a 401 (C4).
   di.sl<SessionExpiryHandler>().start();
   runApp(

@@ -5,12 +5,12 @@
 # Brand: gold symbol (#E4C094) on wine (#431C33). iOS icon is flattened opaque
 # (no alpha — App Store requirement).
 #
-# ⚠️  ANDROID ADAPTIVE LAYERS ARE NO LONGER GENERATED FROM THIS CONFIG.
+# ⚠️  ANDROID IS OFF HERE (`android: false`): the tool generates iOS only.
 #
 # `android/app/src/main/res/mipmap-*/ic_launcher_foreground.png` and
 # `mipmap-anydpi-v26/ic_launcher.xml` are hand-maintained from the vetted set in
-# `branding/android/` (see branding/INSTALL.md). Running this tool WILL revert
-# them: it rewrites ic_launcher.xml without the 12% inset and recreates the
+# `branding/android/` (see branding/INSTALL.md). With Android on, the tool would
+# revert them: it rewrites ic_launcher.xml without the 12% inset and recreates the
 # `drawable-*/ic_launcher_{foreground,monochrome}.png` files that were
 # deliberately deleted.
 #
@@ -20,12 +20,12 @@
 # at ~91% of the 72dp visible area against iOS's 70%. The 12% inset lands it at
 # ~50dp (69%), matching iOS.
 #
-# If you regenerate: re-copy the five foregrounds from branding/android/,
-# restore the inset in ic_launcher.xml, and re-delete the drawable-* orphans.
-# The iOS side below is still generated normally and is safe to re-run.
+# If Android is ever turned back on: re-copy the five foregrounds from
+# branding/android/, restore the inset in ic_launcher.xml, and re-delete the
+# drawable-* orphans. The iOS side below is safe to re-run.
 flutter_launcher_icons:
   image_path: "branding/out/ic_ios_1024.png"
-  android: "ic_launcher"
+  android: false
   ios: true
   remove_alpha_ios: true
   min_sdk_android: 21

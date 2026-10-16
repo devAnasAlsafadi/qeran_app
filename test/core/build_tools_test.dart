@@ -31,4 +31,16 @@ void main() {
   test('flutter_native_splash is a dev dependency only', () {
     expect(sections()['flutter_native_splash'], {'dev_dependencies'});
   });
+
+  // The Android icons are hand-made (12% inset); a run with Android on would
+  // overwrite them. `android: false` also gates the adaptive and monochrome
+  // layers.
+  test('flutter_launcher_icons leaves Android alone', () {
+    final android = [
+      for (final line in File('flutter_launcher_icons.yaml').readAsLinesSync())
+        if (RegExp(r'^  android:\s*(.+?)\s*$').firstMatch(line) case final m?)
+          m.group(1),
+    ];
+    expect(android, ['false']);
+  });
 }

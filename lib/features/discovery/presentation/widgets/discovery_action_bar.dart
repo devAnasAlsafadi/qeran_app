@@ -90,9 +90,9 @@ const _ActionButtonPalette _kLikePalette = _ActionButtonPalette(
 /// three read as secondary, secondary-warm, and primary without relying on size
 /// alone.
 ///
-/// The Row mirrors automatically by locale via natural Directionality (no
-/// manual flip / textDirection override): LTR renders like (leading) … undo ·
-/// pass (trailing); RTL mirrors it so pass · undo … like reads right-to-left.
+/// The one row that does NOT mirror: it is pinned RTL in both languages so
+/// each button sits on its gesture's side — like on the right (a right
+/// swipe), pass on the left (a left swipe) — in Arabic and English alike.
 ///
 /// Each button owns its own `AnimationController` for press feedback
 /// and is fully independent — a press on one button never affects the

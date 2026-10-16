@@ -114,7 +114,7 @@ class _TitleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: const EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s20,
         QeranSpacing.s8,
         QeranSpacing.s16,

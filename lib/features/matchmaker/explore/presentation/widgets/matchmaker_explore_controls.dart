@@ -32,7 +32,7 @@ class MatchmakerExploreControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: const EdgeInsetsDirectional.fromSTEB(
         QeranSpacing.s20,
         QeranSpacing.s12,
         QeranSpacing.s12,

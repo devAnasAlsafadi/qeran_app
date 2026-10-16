@@ -41,9 +41,9 @@ class MatchSuccessScreen extends StatelessWidget {
         child: Stack(
           children: [
             // Quiet ring flourishes at top-end and bottom-start corners.
-            const Positioned(
+            const PositionedDirectional(
               top: -60,
-              right: -60,
+              end: -60,
               child: RingMotif(
                 color: QeranColors.gold,
                 opacity: 0.10,
@@ -52,9 +52,9 @@ class MatchSuccessScreen extends StatelessWidget {
                 spacing: 18,
               ),
             ),
-            const Positioned(
+            const PositionedDirectional(
               bottom: -80,
-              left: -80,
+              start: -80,
               child: RingMotif(
                 color: QeranColors.gold,
                 opacity: 0.06,

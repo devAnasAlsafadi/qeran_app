@@ -9,7 +9,7 @@ import 'community_mock_store.dart';
 /// Who the dev-flag build answers as.
 const communityMockDevViewer = CommunityMockViewer(
   id: 'mock-me',
-  displayName: 'Dima Alsafadi',
+  displayName: 'Mock Member',
 );
 
 /// The dev-flag build: 500 ms per call (3 s for [CommunityMockMode.slow]),

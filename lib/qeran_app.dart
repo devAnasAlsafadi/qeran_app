@@ -4,7 +4,6 @@ import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import 'core/connectivity/connectivity_cubit.dart';
 import 'core/constants/app_constants.dart';
 import 'core/design_system/theme/qeran_theme.dart';
@@ -69,15 +68,6 @@ class QeranApp extends StatelessWidget {
         initialRoute: RouteNames.splashScreen,
         onGenerateRoute: AppRouter().onGenerateRoute,
         builder: (context, child) {
-          final responsive = ResponsiveBreakpoints.builder(
-            child: child!,
-            breakpoints: [
-              const Breakpoint(start: 0, end: 450, name: MOBILE),
-              const Breakpoint(start: 451, end: 800, name: TABLET),
-              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-              const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
-            ],
-          );
           // QER-10: tapping anywhere outside a field closes the keyboard.
           // Done once here, above the Navigator, so it covers every screen in
           // both roles rather than being re-added screen by screen.
@@ -91,7 +81,7 @@ class QeranApp extends StatelessWidget {
             child: AppLifecyclePrivacyShield(
               suppression: privacyShieldSuppressed,
               child: AppSnackBarHost(
-                child: _ConnectivityBannerHost(child: responsive),
+                child: _ConnectivityBannerHost(child: child!),
               ),
             ),
           );

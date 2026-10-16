@@ -50,6 +50,7 @@ class QeranConfirmDialog extends StatelessWidget {
   }) async {
     final result = await showDialog<bool>(
       context: context,
+      barrierColor: QeranColors.overlayTintDark,
       builder: (_) => QeranConfirmDialog(
         title: title,
         message: message,

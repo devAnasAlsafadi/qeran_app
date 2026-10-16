@@ -25,6 +25,7 @@ class PhotoPickerBottomSheet extends StatelessWidget {
   }) async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
+      barrierColor: QeranColors.overlayTintDark,
       shape: const RoundedRectangleBorder(
         borderRadius: QeranRadii.domeTop,
       ),

@@ -81,6 +81,7 @@ class SupportTypeField extends StatelessWidget {
   Future<void> _openPicker(BuildContext context, String lang) async {
     final selected = await showModalBottomSheet<int>(
       context: context,
+      barrierColor: QeranColors.overlayTintDark,
       backgroundColor: QeranColors.creamCanvas,
       shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
       builder: (sheetCtx) => SafeArea(

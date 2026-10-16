@@ -21,6 +21,7 @@ Future<ReportOutcome?> showReportSheet(
 }) {
   return showModalBottomSheet<ReportOutcome>(
     context: context,
+    barrierColor: QeranColors.overlayTintDark,
     isScrollControlled: true,
     backgroundColor: QeranColors.paper,
     shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),

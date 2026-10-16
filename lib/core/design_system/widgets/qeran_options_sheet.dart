@@ -37,6 +37,7 @@ abstract final class QeranOptionsSheet {
     String? note,
   }) => showModalBottomSheet<T>(
     context: context,
+    barrierColor: QeranColors.overlayTintDark,
     backgroundColor: QeranColors.paper,
     shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),
     builder: (_) =>

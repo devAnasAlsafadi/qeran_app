@@ -30,6 +30,7 @@ import '../blocs/matchmaker_delete_account_cubit.dart';
 Future<void> showMatchmakerDeleteAccountSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
+    barrierColor: QeranColors.overlayTintDark,
     isScrollControlled: true,
     backgroundColor: QeranColors.paper,
     shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),

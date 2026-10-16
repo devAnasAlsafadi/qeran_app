@@ -34,6 +34,7 @@ Future<void> showDeleteAccountSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    barrierColor: QeranColors.overlayTintDark,
     isScrollControlled: true,
     backgroundColor: QeranColors.paper,
     shape: const RoundedRectangleBorder(borderRadius: QeranRadii.domeTop),

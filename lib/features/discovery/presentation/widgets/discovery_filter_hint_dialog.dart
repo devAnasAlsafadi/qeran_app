@@ -10,6 +10,7 @@ import 'package:qeran/generated/locale_keys.g.dart';
 Future<void> showDiscoveryFilterHintDialog(BuildContext context) {
   return showDialog<void>(
     context: context,
+    barrierColor: QeranColors.overlayTintDark,
     barrierDismissible: false,
     builder: (dialogContext) => Dialog(
       backgroundColor: QeranColors.paper,

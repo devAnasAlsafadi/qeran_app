@@ -19,8 +19,8 @@ class PurchaseSuccessHero extends StatelessWidget {
       height: 320,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [QeranColors.wineLight, QeranColors.wine],
         ),
       ),

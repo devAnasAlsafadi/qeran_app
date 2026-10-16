@@ -80,8 +80,8 @@ class QeranHeroBadge extends StatelessWidget {
               : BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    begin: AlignmentDirectional.topStart,
+                    end: AlignmentDirectional.bottomEnd,
                     colors: [QeranColors.wineLight, QeranColors.wine],
                   ),
                   border: Border.all(

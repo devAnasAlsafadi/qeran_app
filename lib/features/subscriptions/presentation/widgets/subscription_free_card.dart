@@ -25,8 +25,8 @@ class SubscriptionFreeCard extends StatelessWidget {
         borderRadius: QeranRadii.panelR,
         boxShadow: QeranShadows.eHero,
         gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [QeranColors.wineLight, QeranColors.wine],
         ),
       ),

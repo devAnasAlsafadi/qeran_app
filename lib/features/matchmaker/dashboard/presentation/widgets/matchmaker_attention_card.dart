@@ -44,8 +44,8 @@ class MatchmakerAttentionCard extends StatelessWidget {
     borderRadius: QeranRadii.panelR,
     boxShadow: QeranShadows.eHero,
     gradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      begin: AlignmentDirectional.topStart,
+      end: AlignmentDirectional.bottomEnd,
       colors: [QeranColors.wineLight, QeranColors.wine],
     ),
   );

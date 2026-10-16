@@ -32,8 +32,8 @@ class QeranPremiumBanner extends StatelessWidget {
         borderRadius: QeranRadii.panelR,
         boxShadow: QeranShadows.eHero,
         gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
           colors: [Color(0xFF4A1F38), QeranColors.wine],
         ),
       ),

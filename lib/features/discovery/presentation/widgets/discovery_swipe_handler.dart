@@ -30,12 +30,13 @@ class DiscoverySwipeHandler extends StatefulWidget {
   ///
   /// Read ONCE per gesture, at drag start, and latched for that gesture — a
   /// swipe begun at the top runs to completion even though the card moves.
-  ///
-  /// Null (default) means always enabled — the behaviour every existing
-  /// fixture and the legacy card relied on.
-  final ValueListenable<bool>? enabled;
+  final ValueListenable<bool> enabled;
 
-  const DiscoverySwipeHandler({super.key, required this.child, this.enabled});
+  const DiscoverySwipeHandler({
+    super.key,
+    required this.child,
+    required this.enabled,
+  });
 
   @override
   State<DiscoverySwipeHandler> createState() => _DiscoverySwipeHandlerState();
@@ -71,7 +72,7 @@ class _DiscoverySwipeHandlerState extends State<DiscoverySwipeHandler> {
       onHorizontalDragStart: controller == null
           ? null
           : (_) {
-              _allowedThisGesture = widget.enabled?.value ?? true;
+              _allowedThisGesture = widget.enabled.value;
               if (!_allowedThisGesture) return;
               if (isLikeInFlight()) return;
               controller.onDragStart();

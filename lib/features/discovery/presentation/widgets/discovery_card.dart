@@ -28,10 +28,9 @@ class DiscoveryImagePanel extends StatelessWidget {
   /// The number on the filter pill; 0 draws none.
   final int activeFilterCount;
 
-  /// Fixed panel height. Null lets the panel fill its parent (the legacy
-  /// flex-slot layout); the merged screen passes an explicit height because
-  /// it lives inside a scroll, which has no bounded height to expand into.
-  final double? height;
+  /// Fixed panel height: the merged screen lives inside a scroll, which has
+  /// no bounded height for the panel to expand into.
+  final double height;
 
   /// Reveal factor for the compatibility pill: 0 hides it, 1 shows it in full.
   ///
@@ -58,7 +57,7 @@ class DiscoveryImagePanel extends StatelessWidget {
     this.onTap,
     this.showTitleRow = true,
     this.onFilterTap,
-    this.height,
+    required this.height,
     this.bottomContentInset = 0,
     this.matchPillReveal,
   });

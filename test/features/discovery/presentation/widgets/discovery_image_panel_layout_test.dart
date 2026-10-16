@@ -37,6 +37,7 @@ void main() {
               height: 140,
               child: DiscoveryImagePanel(
                 profile: _profile,
+                height: 140,
                 activeFilterCount: 0,
                 showTitleRow: false,
               ),

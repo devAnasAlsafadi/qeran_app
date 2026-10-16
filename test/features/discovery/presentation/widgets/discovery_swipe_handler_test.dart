@@ -31,6 +31,9 @@ class _RecordingController extends DiscoveryDeckAnimationController {
 
 const _targetKey = Key('swipe-target');
 
+/// The deck at its top: swipes allowed.
+final _atTop = ValueNotifier<bool>(true);
+
 Future<void> _pumpHandler(
   WidgetTester tester,
   DiscoveryDeckAnimationController controller,
@@ -42,6 +45,7 @@ Future<void> _pumpHandler(
         child: Scaffold(
           body: Center(
             child: DiscoverySwipeHandler(
+              enabled: _atTop,
               child: const SizedBox(
                 key: _targetKey,
                 width: 240,
@@ -124,6 +128,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: DiscoverySwipeHandler(
+              enabled: _atTop,
               child: const SizedBox(
                 key: _targetKey,
                 width: 240,

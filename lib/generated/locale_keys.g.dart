@@ -12,6 +12,8 @@ abstract class  LocaleKeys {
   static const common_delete = 'common.delete';
   static const common_next = 'common.next';
   static const common_skip = 'common.skip';
+  static const common_app_name = 'common.app_name';
+  static const common_list_separator = 'common.list_separator';
   static const common = 'common';
   static const media_camera_off_title = 'media.camera_off_title';
   static const media_camera_off_message = 'media.camera_off_message';

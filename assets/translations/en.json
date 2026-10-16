@@ -8,7 +8,9 @@
     "send": "Send",
     "delete": "Delete",
     "next": "Next",
-    "skip": "Skip"
+    "skip": "Skip",
+    "app_name": "Qeran",
+    "list_separator": ", "
   },
   "media": {
     "camera_off_title": "Camera access is off",

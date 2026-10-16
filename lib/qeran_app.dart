@@ -5,9 +5,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/connectivity/connectivity_cubit.dart';
-import 'core/constants/app_constants.dart';
 import 'core/design_system/theme/qeran_theme.dart';
 import 'core/di/injection_container.dart';
+import 'core/extensions/localization_extension.dart';
 import 'core/routes/app_route_tracker.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/route_name.dart';
@@ -24,6 +24,12 @@ import 'features/devices/application/device_bootstrap_service.dart';
 import 'features/profile/presentation/blocs/profile_gate/profile_gate_cubit.dart';
 import 'features/splash/presentation/blocs/splash_cubit.dart';
 import 'features/subscriptions/presentation/blocs/current/current_subscription_cubit.dart';
+import 'generated/locale_keys.g.dart';
+
+/// The app's name in the member's language, for the task switcher (Android
+/// recents): «قِران» / "Qeran" (cleanup audit `19`, run 11).
+String qeranAppTitle(BuildContext context) =>
+    LocaleKeys.common_app_name.t(context);
 
 class QeranApp extends StatelessWidget {
   const QeranApp({super.key});
@@ -62,7 +68,7 @@ class QeranApp extends StatelessWidget {
         supportedLocales: context.supportedLocales,
         locale: context.locale,
         debugShowCheckedModeBanner: false,
-        title: AppConstants.appTitle,
+        onGenerateTitle: qeranAppTitle,
         theme: QeranTheme.light(context.locale),
         themeMode: ThemeMode.light,
         initialRoute: RouteNames.splashScreen,

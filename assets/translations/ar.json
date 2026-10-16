@@ -8,7 +8,9 @@
     "send": "إرسال",
     "delete": "حذف",
     "next": "التالي",
-    "skip": "تخطي"
+    "skip": "تخطي",
+    "app_name": "قِران",
+    "list_separator": "، "
   },
   "media": {
     "camera_off_title": "الوصول إلى الكاميرا غير مسموح",

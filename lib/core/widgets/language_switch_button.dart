@@ -4,6 +4,8 @@ import 'package:qeran/core/design_system/tokens/qeran_colors.dart';
 import 'package:qeran/core/design_system/tokens/qeran_radii.dart';
 import 'package:qeran/core/design_system/tokens/qeran_spacing.dart';
 import 'package:qeran/core/design_system/tokens/qeran_typography.dart';
+import 'package:qeran/core/extensions/localization_extension.dart';
+import 'package:qeran/generated/locale_keys.g.dart';
 
 enum LanguageSwitchVariant { light, dark }
 
@@ -21,7 +23,7 @@ class LanguageSwitchButton extends StatelessWidget {
 
     return PopupMenuButton<Locale>(
       initialValue: context.locale,
-      tooltip: 'Select Language',
+      tooltip: LocaleKeys.settings_language_row.t(context),
       offset: const Offset(0, 45),
       shape: const RoundedRectangleBorder(
         borderRadius: QeranRadii.controlR,

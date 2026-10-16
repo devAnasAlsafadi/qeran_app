@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qeran/core/app_logger.dart';
+import 'package:qeran/core/utils/log_masker.dart';
 import 'package:qeran/core/extensions/localization_extension.dart';
 import 'package:qeran/generated/locale_keys.g.dart';
 import 'package:qeran/core/routes/navigation_manager.dart';
@@ -188,7 +189,7 @@ class _WhatsappVerificationScreenState
       return;
     }
     final otp = _controller.fullOtp;
-    AppLogger.debug('Submitting OTP to API: $otp', tag: 'OTP');
+    AppLogger.debug('Submitting OTP to API: ${LogMasker.otp(otp)}', tag: 'OTP');
     if (_mode == WhatsappVerificationMode.registration) {
       context.read<WhatsappBloc>().add(
         VerifyOtpRequested(phoneNumber: _phoneNumber, otp: otp),

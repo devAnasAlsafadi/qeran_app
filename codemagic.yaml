@@ -30,6 +30,10 @@ workflows:
       xcode: latest
       cocoapods: default
 
+      groups:
+        # Holds the secure CERTIFICATE_PRIVATE_KEY the signing step reads.
+        - ios_signing
+
       vars:
         # Apple ID of the app in App Store Connect — the numeric id from the
         # app's URL, NOT the bundle id and NOT an email address. Used only to
@@ -47,14 +51,16 @@ workflows:
         script: find . -name "Podfile" -execdir pod install \;
 
       - name: Set up code signing
+        # The key must be the same on every build. A key generated on the
+        # runner needs a new distribution certificate each time, and Apple's
+        # limit then fails the build with 409. With the stored key, the first
+        # build creates the certificate and every later build reuses it.
         script: |
           keychain initialize
-          openssl genrsa -out /tmp/certificate_private_key 2048
-          export CERTIFICATE_PRIVATE_KEY=$(cat /tmp/certificate_private_key)
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create \
-            --certificate-key=@file:/tmp/certificate_private_key
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY
           keychain add-certificates
 
       - name: Apply fetched provisioning profiles
